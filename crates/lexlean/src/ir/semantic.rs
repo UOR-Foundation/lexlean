@@ -3397,7 +3397,6 @@ fn proof_binders(proof: &SemanticProof, visit: &mut impl FnMut(&str)) {
         SemanticProof::Reflexivity
         | SemanticProof::Decide
         | SemanticProof::RegionCheck
-        | SemanticProof::Simplify { .. }
         | SemanticProof::Congruence
         | SemanticProof::BooleanReflection { .. }
         | SemanticProof::LinearArithmetic { .. }
@@ -8979,6 +8978,9 @@ fn check_simplify_hypotheses(
             ));
         }
     }
+    Ok(())
+}
+
 /// The hypothesis name `term_cases` introduces (§17.10, `SM-35`).
 const TERM_CASES_HYPOTHESIS: &str = "llCase";
 
@@ -9247,7 +9249,8 @@ fn check_nested_branches(
                 return Err(format!("shadowed proof binder `{binder}`"));
             }
         }
-        check_proof(&branch.proof, &nested, env)?;
+        // A member branch proves its member's motive, not the statement.
+        check_proof(&branch.proof, &nested, env, None)?;
     }
     if let Some((missing, _)) = expected.iter().find(|(name, _)| !observed.contains(name)) {
         return Err(format!(
