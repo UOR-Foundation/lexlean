@@ -147,22 +147,30 @@ fn assert_targeted(plant: &preservation::Planted) {
             plant.origin,
             plant.expected
         );
+        // The reason is the one the mutated construct at the planted site
+        // gives, not any lockstep refusal of the function: a slice's bounds
+        // are the buffer plant's two sites (the first bound is a variable,
+        // the second a literal), a swapped branch leaves a variable bound
+        // where the source has another, and a swapped call names the callee
+        // it lowered to.
+        let variable = |reason: &str| {
+            reason
+                .strip_prefix("the lowering of `")
+                .is_some_and(|rest| rest.ends_with("` is not a variable"))
+        };
+        let fits = match (plant.mutation, plant.ordinal) {
+            (Mutation::Buffer, 0) | (Mutation::Branches, _) => variable(reason),
+            (Mutation::Buffer, 1) => reason == "the lowering of a literal is not a value",
+            (Mutation::Recursion, _) => {
+                reason.starts_with("a call of function ") && reason.contains(" lowered to ")
+            }
+            _ => false,
+        };
         assert!(
-            reason.contains("the lowering of") || reason.contains("lowered to"),
-            "{} {:?} in function {}: the refusal is not a lowering that departs from the source: {refusal}",
-            plant.root,
-            plant.mutation,
-            plant.function
+            fits,
+            "{} {:?} at site {} of function {}: the refusal is not the one this construct gives: {refusal}",
+            plant.root, plant.mutation, plant.ordinal, plant.function
         );
-        if plant.mutation == Mutation::Recursion {
-            assert!(
-                reason.starts_with("a call of function "),
-                "{} {:?} in function {}: a recursion plant is refused at a call: {refusal}",
-                plant.root,
-                plant.mutation,
-                plant.function
-            );
-        }
         return;
     }
     assert_not_a_limit(
