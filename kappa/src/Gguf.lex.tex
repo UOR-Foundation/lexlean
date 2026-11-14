@@ -11,22 +11,14 @@ structure{
   name: Frame,
   type_parameters: [],
   parameters: [],
-  fields: [
-    {name: tag, type: Nat},
-    {name: remaining, type: Nat},
-    {name: depth, type: Nat}
-  ]
+  fields: [{name: tag, type: Nat}, {name: remaining, type: Nat}, {name: depth, type: Nat}]
 }
 
 structure{
   name: Measure,
   type_parameters: [],
   parameters: [],
-  fields: [
-    {name: position, type: Nat},
-    {name: ok, type: Bool},
-    {name: stack, type: (List Frame)}
-  ]
+  fields: [{name: position, type: Nat}, {name: ok, type: Bool}, {name: stack, type: (List Frame)}]
 }
 
 structure{
@@ -68,31 +60,21 @@ structure{
   name: Placing,
   type_parameters: [],
   parameters: [],
-  fields: [
-    {name: done, type: Bool},
-    {name: acc, type: (List (Bytes * Bytes))}
-  ]
+  fields: [{name: done, type: Bool}, {name: acc, type: (List (Bytes * Bytes))}]
 }
 
 structure{
   name: TensorPlacing,
   type_parameters: [],
   parameters: [],
-  fields: [
-    {name: done, type: Bool},
-    {name: acc, type: (List Tensor)}
-  ]
+  fields: [{name: done, type: Bool}, {name: acc, type: (List Tensor)}]
 }
 
 structure{
   name: Emit,
   type_parameters: [],
   parameters: [],
-  fields: [
-    {name: ok, type: Bool},
-    {name: offset, type: Nat},
-    {name: out, type: Bytes}
-  ]
+  fields: [{name: ok, type: Bool}, {name: offset, type: Nat}, {name: out, type: Bytes}]
 }
 
 definition{
