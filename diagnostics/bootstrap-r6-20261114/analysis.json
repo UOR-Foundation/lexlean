@@ -1,0 +1,42 @@
+{
+  "source_receipt_sha256": "178fd32041599b1ed9f02ec19c52c99cd6b39b8036b1d3a93d9c5a60a29b4bc3",
+  "diagnostic_checkpoint": "ffd742003d7519588fcd3a0cbf1a0920932e8a7e",
+  "command_count": 69,
+  "command_payload_max_bytes": 1882872,
+  "candidate_partition_payloads": [
+    {
+      "bytes": 4135127,
+      "commands": 17
+    },
+    {
+      "bytes": 3985322,
+      "commands": 8
+    },
+    {
+      "bytes": 4083847,
+      "commands": 14
+    },
+    {
+      "bytes": 4135786,
+      "commands": 19
+    },
+    {
+      "bytes": 2683657,
+      "commands": 4
+    },
+    {
+      "bytes": 3765313,
+      "commands": 2
+    },
+    {
+      "bytes": 3970572,
+      "commands": 3
+    },
+    {
+      "bytes": 691671,
+      "commands": 2
+    }
+  ],
+  "recovered_identical": true,
+  "scope": "Static source analysis only; no elaboration, replay, axiom audit or proof of timeout cause."
+}

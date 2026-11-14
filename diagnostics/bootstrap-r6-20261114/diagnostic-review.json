@@ -1,0 +1,35 @@
+{
+  "review": "independent bounded source review",
+  "reviewer": "/root/diagnostic_review",
+  "reviewed_at_utc": "2026-11-14T19:28:13.966209+00:00",
+  "producer": "9fd01c31e40bb29577833825f902fafcceedb49a",
+  "checkpoint": "ffd742003d7519588fcd3a0cbf1a0920932e8a7e",
+  "source_sha256": "a0afe5cbeab263c1b06f7563f91ad92621d7ccb3c39a728dae6242dccfc82467",
+  "bundle_sha256": "c535a1e8de218b6a74f81fb3c1e5af87c4fb98797b5439204fb061b8caa3bf64",
+  "artifact_id": 14124948732,
+  "retained_run": 43620506158,
+  "verdict": "No blocking source defect found for source-generation-only diagnostic",
+  "findings": [
+    "Uses production roots() ordering and exact certificate() function as verify/mod.rs; index 6 and semantic-prefix assertion bind the requested failed module.",
+    "Reads existing lock through read_current_lock; does not compute or rewrite locks.",
+    "Actual language-1.2 compiler identity now asserted against retained compiler.json.",
+    "All 1650 selected retained stage-input hashes match compiler/language/bootstrap/stdlib/toolchain inputs; symlinks compared as their target text.",
+    "Generates only selected certificate A under configured per-file generation/lowering limits; no Lean process, package export, pin, or acceptance path.",
+    "Output directory must be absent. Each generated artifact gets byte length and SHA-256. Receipt explicitly denies acceptance and lists unexercised aggregate budget, Lean elaboration, kernel replay, axiom audit and certificates B/E.",
+    "Producer literal is bound by this reviewed checkpoint, not a general run-time Git checkout validator."
+  ],
+  "runtime_validation": "Not performed by this reviewer; parent run pending.",
+  "historical_root_hint": {
+    "index": 6,
+    "root": "LexLeanBoot.RuntimeValidate.validateRuntime",
+    "recorded_source_bytes": 5135227,
+    "warning": "Historical committed preservation prefix differs from retained v5; fresh diagnostic must confirm root identity."
+  },
+  "related_owner_work": {
+    "pr": 537,
+    "commit": "89b8f7738ed4781ba75bcc62ebb09cfcc7a42c40",
+    "observation": "Conditional taken-branch proof casts address definitional unfolding; plausible mechanism, no causal attribution to R6 established. Do not adopt or replay solely on this source review."
+  },
+  "remaining_blockers": [],
+  "qualification": false
+}

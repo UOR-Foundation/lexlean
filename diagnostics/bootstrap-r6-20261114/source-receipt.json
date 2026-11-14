@@ -1,0 +1,98 @@
+{
+  "accepted": false,
+  "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+  "files": {
+    "R6.lean": {
+      "bytes": 27486279,
+      "sha256": "f2b97f4fa88240086aa64c970014361a667acc9cbe4aeaa5e56828d77d22bdf4"
+    },
+    "R6.lex.tex": {
+      "bytes": 7861853,
+      "sha256": "d8dae493ba5af7fb90b9ea2ca80a363f03701b0e8e966f6ce186bd07295dce57"
+    },
+    "program.json": {
+      "bytes": 637857,
+      "sha256": "a8dee6a41e11e4170ce3adacecb50b59e3b1ea290f6dce4b139876e8bd4f1427"
+    }
+  },
+  "imports": [
+    "LexLeanBoot.AxiomOutput",
+    "LexLeanBoot.CalculusCheck",
+    "LexLeanBoot.PrimitiveScan",
+    "LexLeanBoot.RuntimeValidate",
+    "LexLeanBoot.RustAst",
+    "LexLeanBoot.RustPrint",
+    "LexLeanBoot.RustValidate",
+    "LexLeanBoot.TokenAudit",
+    "LexLeanStd.Buffer",
+    "LexLeanStd.Text"
+  ],
+  "kind": "source-generation-only",
+  "module": "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6",
+  "not_exercised": [
+    "aggregate production budget",
+    "Lean elaboration",
+    "kernel replay",
+    "axiom audit",
+    "certificates B and E"
+  ],
+  "producer": "9fd01c31e40bb29577833825f902fafcceedb49a",
+  "retained_run": "43620506158",
+  "root": "LexLeanBoot.RuntimeValidate.validateRuntime",
+  "roots": [
+    {
+      "index": 0,
+      "root": "LexLeanBoot.AxiomOutput.isClosedLeanName"
+    },
+    {
+      "index": 1,
+      "root": "LexLeanBoot.AxiomOutput.parseAuditOutput"
+    },
+    {
+      "index": 2,
+      "root": "LexLeanBoot.CalculusCheck.checkProgram"
+    },
+    {
+      "index": 3,
+      "root": "LexLeanBoot.CalculusCheck.checkArguments"
+    },
+    {
+      "index": 4,
+      "root": "LexLeanBoot.PrimitiveScan.scanSource"
+    },
+    {
+      "index": 5,
+      "root": "LexLeanBoot.PrimitiveScan.rejectAtoms"
+    },
+    {
+      "index": 6,
+      "root": "LexLeanBoot.RuntimeValidate.validateRuntime"
+    },
+    {
+      "index": 7,
+      "root": "LexLeanBoot.RustPrint.printCrate"
+    },
+    {
+      "index": 8,
+      "root": "LexLeanBoot.RustPrint.printExpr"
+    },
+    {
+      "index": 9,
+      "root": "LexLeanBoot.RustValidate.validateCrate"
+    },
+    {
+      "index": 10,
+      "root": "LexLeanBoot.RustValidate.correspondCrate"
+    },
+    {
+      "index": 11,
+      "root": "LexLeanBoot.TokenAudit.lex"
+    },
+    {
+      "index": 12,
+      "root": "LexLeanBoot.TokenAudit.auditTokens"
+    }
+  ],
+  "semantic_id": "6ec49c97f5334c1cfee5e969876350b6c733b13fe29268c49fc4c10e4e689249",
+  "theorem": "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.root"
+}
