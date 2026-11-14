@@ -4720,9 +4720,7 @@ pub fn run(id: &str) {
             );
         }
         "SP-17" => {
-            use crate::lean_literals::{
-                auxiliary_part_from, is_lean_syntax, scan_repository, scan_source,
-            };
+            use crate::lean_literals::{is_lean_syntax, scan_repository, scan_source};
             let root = repo_root();
             // The repository holds no Lean source text template.
             let found = scan_repository(root.as_std_path());
@@ -4763,16 +4761,14 @@ pub fn run(id: &str) {
                     planted[0].line, planted[0].literal
                 );
             }
-            // In the auxiliary module part of the backend, a template is
-            // reported, and a command line outside the allow-list too.
+            // The scan covers the whole of the backend, and a template in it
+            // is reported.
             let backend = std::fs::read_to_string(root.join("crates/lexlean/src/backend/lean.rs"))
                 .expect("the backend reads");
-            let from = auxiliary_part_from(&backend);
-            assert!(from > 1, "the backend has an auxiliary module part");
             let planted = scan_source(
                 "backend/lean.rs",
                 &format!("{backend}\nfn planted() -> String {{ String::from(\"namespace Planted\\nend Planted\\n\") }}\n"),
-                from,
+                1,
             );
             assert_eq!(
                 planted.len(),
@@ -4783,6 +4779,68 @@ pub fn run(id: &str) {
                 "SP-17 planted in backend/lean.rs: line {} `{}`",
                 planted[0].line, planted[0].literal
             );
+            // The shapes a one-literal, prefix-matching scan read past (#181):
+            // each is planted in the real source of the backend, once, and
+            // found once, and its line is the planted one.
+            let shapes: [(&str, &str); 10] = [
+                (
+                    "concat!",
+                    "fn planted() -> String { concat!(\"theorem t : True := \", \"trivial\").to_owned() }\n",
+                ),
+                (
+                    "plus",
+                    "fn planted() -> String { String::from(\"import \") + \"Lean\" }\n",
+                ),
+                (
+                    "lines",
+                    "fn planted() -> String { [\"namespace Planted\", \"end Planted\"].join(\"\\n\") }\n",
+                ),
+                (
+                    "escapes",
+                    "fn planted() -> String { String::from(\"import\\u{20}Lean\\x0a\") }\n",
+                ),
+                (
+                    "private theorem",
+                    "fn planted(n: u64) -> String { format!(\"private theorem {n} : {n} = {n}\\n  by decide\") }\n",
+                ),
+                (
+                    "inductive where",
+                    "fn planted(t: &str) -> String { format!(\"inductive {t} where\\n  | a\") }\n",
+                ),
+                (
+                    "end",
+                    "fn planted(ns: &str) -> String { format!(\"end {ns}\") }\n",
+                ),
+                (
+                    "#reduce",
+                    "fn planted() -> String { String::from(\"#reduce {}\") }\n",
+                ),
+                (
+                    "by simp",
+                    "fn planted() -> String { String::from(\"by simp [{}]\") }\n",
+                ),
+                (
+                    "allowed prefix",
+                    "fn planted(x: &str) -> String { format!(\" := by {x}\") }\n",
+                ),
+            ];
+            let backend_lines = backend.lines().count();
+            for (name, shape) in shapes {
+                let found = scan_source("backend/lean.rs", &format!("{backend}\n{shape}"), 1);
+                assert_eq!(
+                    found.len(),
+                    1,
+                    "SP-17 shape `{name}` is reported once: {found:?}"
+                );
+                assert!(
+                    found[0].line > backend_lines,
+                    "SP-17 shape `{name}` is the planted one: {found:?}"
+                );
+                eprintln!(
+                    "SP-17 shape `{name}`: line {} `{}`",
+                    found[0].line, found[0].literal
+                );
+            }
             // Test code is not production: the same template under
             // `#[cfg(test)]` is not reported, and the definition separates a
             // bare word, a diagnostic and Lean.
@@ -4798,7 +4856,12 @@ pub fn run(id: &str) {
                 "fun x => x",
                 "(.option {})",
                 "#print axioms {}",
-                "set_option maxHeartbeats 0\\n",
+                "set_option maxHeartbeats 0\n",
+                "private theorem t (n : Nat) : n = n\n  by decide",
+                "inductive T where\n  | a",
+                "end Planted",
+                "#reduce f x",
+                "by simp [foo]",
             ] {
                 assert!(is_lean_syntax(lean), "`{lean}` is Lean syntax");
             }
@@ -4808,17 +4871,24 @@ pub fn run(id: &str) {
                 "instance `{module}.{name}` is recursive",
                 "a match on a pair splits it",
                 "function {index} lowered",
+                "end of input",
+                "stopped by hand",
+                "a reading by simple means",
             ] {
                 assert!(!is_lean_syntax(plain), "`{plain}` is not Lean syntax");
             }
-            // Every allow-list entry is used: one that matches nothing is a
-            // hole that no longer has a reason.
-            for (file, beginning, reason) in crate::lean_literals::ALLOWED {
+            // Every allow-list entry is used: one that matches no text of its
+            // file as a whole, or one that is not Lean syntax, is a hole that
+            // no longer has a reason.
+            for (file, whole, reason) in crate::lean_literals::ALLOWED {
                 let source = std::fs::read_to_string(root.join("crates/lexlean/src").join(file))
                     .expect("an allowed file reads");
                 assert!(
-                    source.contains(&format!("\"{beginning}")),
-                    "the allow-list entry {file} `{beginning}` ({reason}) matches nothing"
+                    is_lean_syntax(whole)
+                        && crate::lean_literals::texts(&source, 1)
+                            .iter()
+                            .any(|(_, readings)| readings.iter().any(|text| text == whole)),
+                    "the allow-list entry {file} `{whole}` ({reason}) matches no whole text"
                 );
             }
         }

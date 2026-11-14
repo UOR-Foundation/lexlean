@@ -4,32 +4,50 @@
 //! A template is a Rust string literal that is Lean syntax. The scan is a
 //! lexer over the sources, not a search for keywords: it reads comments, string
 //! literals (plain, raw, byte), character literals and lifetimes the way the Rust
-//! lexer does, drops every item under `#[cfg(test)]`, and tests each remaining
-//! literal with [`is_lean_syntax`]. Lean is written to a file by the backend
-//! from typed data (`backend::lean::AuxiliaryModule` and the core backend), so a
-//! literal that is Lean syntax anywhere else is a template that bypasses it.
+//! lexer does, decodes every escape of a plain literal (`\n`, `\t`, `\\`, `\"`,
+//! `\x41`, `\u{2192}`, and the line continuation), drops every item under
+//! `#[cfg(test)]`, and tests what remains. Lean is written to a file by the
+//! backend from typed data (`backend::lean::AuxiliaryModule` and the core
+//! backend), so a literal that is Lean syntax anywhere else is a template that
+//! bypasses it.
 //!
-//! What counts as Lean syntax, by [`is_lean_syntax`], for the text of a literal
-//! with its `\n` escapes read as line breaks:
+//! A text can be cut anywhere, so literals written one after another in one
+//! expression (`concat!`, `+`, an array of lines, the arguments of `format!`)
+//! are tested as RT-04 tests them: each alone, joined, and joined with a line
+//! break between them. Two literals are one expression when no `;`, `{` or `}`
+//! and at most 64 other characters of code lie between them.
+//!
+//! What counts as Lean syntax, by [`is_lean_syntax`], for the decoded text of a
+//! literal:
 //!
 //! * a Lean symbol: `:=`, `=>`, `↦`, `→`, `∀`, `∃`, `⟨`, `⟩`, `(.`, a name
 //!   quote `«`, an attribute `@[`, a `fun` binder (`fun` and a space, then a
-//!   letter, `_` or `(`), a command `#print`, `#check`, or `#eval` and a space
-//!   and more, or a parenthesized application of a capitalized name (`(Option
-//!   {})`: a parenthesis, a name that begins with a capital, a space, and
-//!   more);
+//!   letter, `_` or `(`), a tactic block (`by` and a space, then a tactic of
+//!   Lean's: `decide`, `simp`, `rfl`, `omega`, `exact`, ...), or a
+//!   parenthesized application of a capitalized name (`(Option {})`: a
+//!   parenthesis, a name that begins with a capital, a space, and more);
 //! * a command line: a line that begins with `import`, `namespace`,
-//!   `set_option`, `universe`, or `open` and a space and more;
-//! * a declaration: a line that begins with `theorem`, `def`, `example`,
-//!   `instance`, `structure`, `inductive`, or `abbrev` and a space and more,
-//!   in a literal that holds a `:`.
+//!   `set_option`, `universe`, `open`, `#print`, `#check`, `#eval` or `#reduce`
+//!   and a space and more, or `end` and one name;
+//! * a declaration: a line that begins, after any of `private`, `protected`,
+//!   `public`, `noncomputable`, `partial` and `unsafe`, with `theorem`, `def`,
+//!   `example`, `instance`, `structure`, `inductive`, `abbrev`, or `class` and
+//!   a space and more, in a literal that holds a `:` or a line that ends in
+//!   ` where`.
 //!
 //! A bare word (`"inductive"`, `"theorem "`) is a name or a token a scan
 //! compares against, not a template, and English diagnostics that happen to
 //! begin with one of the words carry no `:`. The allow-list ([`ALLOWED`]) is
-//! short, and each entry says why: the printouts of kernel terms that
-//! developers read, the quote of a name, and the closed commands the auxiliary
-//! module renderer writes.
+//! short, matches a whole text and never a prefix, and each entry says why: the
+//! printouts of kernel terms that developers read, the quote of a name, the
+//! tokens the term renderer writes from typed data, and the closed commands the
+//! auxiliary module renderer writes.
+//!
+//! What the scan does not read, and VERIFICATION.md (SP-17) names: a file that
+//! is not a `.rs` source of `production/` or `backend/lean.rs`; text assembled
+//! from pieces that are not literals (a `char`, `stringify!`, a `format!`
+//! argument that is itself a name of Lean's, a `const` joined to a literal in
+//! another statement); and a literal split across two statements.
 
 use std::path::Path;
 
@@ -44,9 +62,10 @@ pub struct Finding {
     pub literal: String,
 }
 
-/// The literals that are Lean syntax and are not templates: the file they are
-/// in (a suffix of its path), the beginning of the literal, and why.
-pub const ALLOWED: [(&str, &str, &str); 9] = [
+/// The texts that are Lean syntax and are not templates: the file they are in
+/// (a suffix of its path), the whole text, and why. A text matches only when it
+/// is equal to the entry: an entry is never a prefix.
+pub const ALLOWED: [(&str, &str, &str); 17] = [
     (
         "production/certificate.rs",
         "«{segment}»",
@@ -59,12 +78,7 @@ pub const ALLOWED: [(&str, &str, &str); 9] = [
     ),
     (
         "production/kernel/ext.rs",
-        "({keyword} {open}",
-        "the printout of a kernel binder, read by developers in diagnostics",
-    ),
-    (
-        "production/kernel/ext.rs",
-        "(let {n} : {ty}",
+        "(let {n} : {ty} := {value}; {rest})",
         "the printout of a kernel let, read by developers in diagnostics",
     ),
     (
@@ -92,13 +106,52 @@ pub const ALLOWED: [(&str, &str, &str); 9] = [
         "#check @",
         "the renderer of a closed auxiliary command",
     ),
+    (
+        "backend/lean.rs",
+        " → ",
+        "a token of Lean the term renderer writes from the typed lexicon term it renders",
+    ),
+    (
+        "backend/lean.rs",
+        " => ",
+        "a token of Lean the term renderer writes from the typed lexicon term it renders",
+    ),
+    (
+        "backend/lean.rs",
+        "=>",
+        "a token of Lean the term renderer writes from the typed lexicon term it renders",
+    ),
+    (
+        "backend/lean.rs",
+        "→",
+        "a token of Lean the term renderer writes from the typed lexicon term it renders",
+    ),
+    (
+        "backend/lean.rs",
+        ":=",
+        "a token of Lean the term renderer writes from the typed lexicon term it renders",
+    ),
+    (
+        "backend/lean.rs",
+        "⟨",
+        "a token of Lean the term renderer writes from the typed lexicon term it renders",
+    ),
+    (
+        "backend/lean.rs",
+        "⟩",
+        "a token of Lean the term renderer writes from the typed lexicon term it renders",
+    ),
+    (
+        "backend/lean.rs",
+        "@[",
+        "a token of Lean the term renderer writes from the typed lexicon term it renders",
+    ),
+    (
+        "backend/lean.rs",
+        "(let {fresh} : {ty_text} := {value_text}; {body_text})",
+        "the printout of a let in the text of a term the renderer prints, read by developers",
+    ),
 ];
-
-/// The line of `backend/lean.rs` that begins the part the scan covers: the
-/// probe and audit modules, which are data the backend renders. The rest of
-/// the file renders the lexicon terms of the program a user wrote, which is
-/// what the backend is for.
-pub const AUXILIARY_PART: &str = "Probe and audit modules";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Token {
@@ -167,10 +220,12 @@ fn tokens(source: &str) -> Vec<Token> {
             at += 1;
             while at < chars.len() && chars[at] != '"' {
                 if chars[at] == '\\' {
-                    text.push('\\');
                     at += 1;
-                }
-                if at < chars.len() {
+                    let (decoded, used, breaks) = decode_escape(&chars[at..]);
+                    text.push_str(&decoded);
+                    at += used;
+                    line += breaks;
+                } else {
                     if chars[at] == '\n' {
                         line += 1;
                     }
@@ -207,6 +262,58 @@ fn tokens(source: &str) -> Vec<Token> {
         }
     }
     out
+}
+
+/// The escape that follows a backslash, read the way Rust reads it: the text it
+/// stands for, the characters it takes, and the line breaks it spans. A line
+/// continuation (a backslash at the end of a line) drops the break and the
+/// white space that opens the next line. An escape that is none of Rust's
+/// stays as written, so nothing a scan compares is lost.
+fn decode_escape(rest: &[char]) -> (String, usize, usize) {
+    match rest.first() {
+        Some('n') => ("\n".to_owned(), 1, 0),
+        Some('t') => ("\t".to_owned(), 1, 0),
+        Some('r') => ("\r".to_owned(), 1, 0),
+        Some('0') => ("\0".to_owned(), 1, 0),
+        Some('\\') => ("\\".to_owned(), 1, 0),
+        Some('"') => ("\"".to_owned(), 1, 0),
+        Some('\'') => ("'".to_owned(), 1, 0),
+        Some('x') => {
+            let digits: String = rest.iter().skip(1).take(2).collect();
+            u8::from_str_radix(&digits, 16).map_or_else(
+                |_| ("\\x".to_owned(), 1, 0),
+                |byte| ((byte as char).to_string(), 3, 0),
+            )
+        }
+        Some('u') if rest.get(1) == Some(&'{') => {
+            let close = rest.iter().position(|c| *c == '}');
+            close
+                .and_then(|close| {
+                    let digits: String = rest[2..close].iter().filter(|c| **c != '_').collect();
+                    u32::from_str_radix(&digits, 16)
+                        .ok()
+                        .and_then(char::from_u32)
+                        .map(|decoded| (decoded.to_string(), close + 1, 0))
+                })
+                .unwrap_or_else(|| ("\\u".to_owned(), 1, 0))
+        }
+        Some('\n') | Some('\r') => {
+            let mut used = 0;
+            let mut breaks = 0;
+            while let Some(next) = rest.get(used) {
+                if !next.is_whitespace() {
+                    break;
+                }
+                if *next == '\n' {
+                    breaks += 1;
+                }
+                used += 1;
+            }
+            (String::new(), used, breaks)
+        }
+        Some(other) => (format!("\\{other}"), 1, 0),
+        None => ("\\".to_owned(), 0, 0),
+    }
 }
 
 /// A raw string begins at `at`: the number of `#` and the index after the quote.
@@ -268,6 +375,9 @@ fn outside_tests(tokens: Vec<Token>) -> Vec<Token> {
             } else {
                 at += 1;
             }
+            // The removed item ends a statement, so literals on either side
+            // of it are never one expression.
+            out.push(Token::Symbol(';'));
         } else {
             out.push(tokens[at].clone());
             at += 1;
@@ -277,13 +387,41 @@ fn outside_tests(tokens: Vec<Token>) -> Vec<Token> {
 }
 
 /// Whether the text of a literal is Lean syntax (see the module's definition).
+/// The text is the literal as the Rust lexer decodes it, line breaks included.
 #[must_use]
 pub fn is_lean_syntax(literal: &str) -> bool {
     const SYMBOLS: [&str; 10] = [":=", "=>", "↦", "→", "∀", "∃", "⟨", "⟩", "(.", "«"];
+    const TACTICS: [&str; 17] = [
+        "decide",
+        "native_decide",
+        "simp",
+        "simp_all",
+        "rfl",
+        "omega",
+        "exact",
+        "intro",
+        "intros",
+        "apply",
+        "cases",
+        "induction",
+        "rw",
+        "trivial",
+        "constructor",
+        "assumption",
+        "aesop",
+    ];
+    const MODIFIERS: [&str; 6] = [
+        "private",
+        "protected",
+        "public",
+        "noncomputable",
+        "partial",
+        "unsafe",
+    ];
     if SYMBOLS.iter().any(|symbol| literal.contains(symbol)) || literal.contains("@[") {
         return true;
     }
-    let text = literal.replace("\\n", "\n");
+    let text = literal;
     let characters: Vec<char> = text.chars().collect();
     for (at, character) in characters.iter().enumerate() {
         if *character == '(' && characters.get(at + 1).is_some_and(char::is_ascii_uppercase) {
@@ -308,15 +446,44 @@ pub fn is_lean_syntax(literal: &str) -> bool {
     {
         return true;
     }
+    // A tactic block: `by` and a space, then a tactic of Lean's.
+    if text.split("by ").skip(1).enumerate().any(|(index, rest)| {
+        let before = text.split("by ").take(index + 1).collect::<String>();
+        let word_start = before.is_empty() || before.ends_with(|c: char| c.is_whitespace() || c == '(');
+        let word: String = rest
+            .chars()
+            .take_while(|c| c.is_alphanumeric() || *c == '_')
+            .collect();
+        word_start && TACTICS.contains(&word.as_str())
+    }) {
+        return true;
+    }
+    let rest_after = |line: &str, word: &str| -> Option<String> {
+        line.trim_start()
+            .strip_prefix(word)
+            .and_then(|rest| rest.strip_prefix(' '))
+            .map(|rest| rest.trim().to_owned())
+            .filter(|rest| !rest.is_empty())
+    };
     let begins = |line: &str, words: &[&str]| {
-        words.iter().any(|word| {
-            line.trim_start()
-                .strip_prefix(word)
-                .and_then(|rest| rest.strip_prefix(' '))
-                .is_some_and(|rest| !rest.trim().is_empty())
-        })
+        words
+            .iter()
+            .any(|word| rest_after(line, word).is_some())
     };
     text.lines().any(|line| {
+        // The closing of a namespace or section is `end` and one name.
+        if rest_after(line, "end").is_some_and(|name| !name.contains(' ')) {
+            return true;
+        }
+        // A declaration may be preceded by modifiers.
+        let mut declaration = line.trim_start();
+        while let Some(rest) = MODIFIERS.iter().find_map(|modifier| {
+            declaration
+                .strip_prefix(modifier)
+                .and_then(|rest| rest.strip_prefix(' '))
+        }) {
+            declaration = rest;
+        }
         begins(
             line,
             &[
@@ -328,10 +495,11 @@ pub fn is_lean_syntax(literal: &str) -> bool {
                 "#print",
                 "#check",
                 "#eval",
+                "#reduce",
             ],
-        ) || (text.contains(':')
+        ) || ((text.contains(':') || declaration.trim_end().ends_with(" where"))
             && begins(
-                line,
+                declaration,
                 &[
                     "theorem",
                     "def",
@@ -340,48 +508,105 @@ pub fn is_lean_syntax(literal: &str) -> bool {
                     "structure",
                     "inductive",
                     "abbrev",
+                    "class",
                 ],
             ))
     })
 }
 
+/// The expressions of a source that hold string literals: the literals of one
+/// expression, written one after another (`concat!`, `+`, an array of lines,
+/// the arguments of `format!`), with the line of the first. A text can be cut
+/// anywhere, so an expression is tested as its literals alone, joined, and
+/// joined with a line break between, as RT-04 reads them.
+fn expressions(tokens: &[Token]) -> Vec<(usize, Vec<String>)> {
+    let mut found = Vec::new();
+    let mut chain: Vec<(usize, String)> = Vec::new();
+    let mut gap = 0;
+    let flush = |chain: &mut Vec<(usize, String)>, found: &mut Vec<(usize, Vec<String>)>| {
+        if let Some((line, _)) = chain.first() {
+            found.push((*line, chain.iter().map(|(_, text)| text.clone()).collect()));
+        }
+        chain.clear();
+    };
+    for token in tokens {
+        match token {
+            Token::Literal(line, text) => {
+                // The same expression: little code between the two, and no
+                // statement or block boundary.
+                if gap > 64 {
+                    flush(&mut chain, &mut found);
+                }
+                gap = 0;
+                chain.push((*line, text.clone()));
+            }
+            Token::Symbol(c) => {
+                if matches!(c, ';' | '{' | '}') {
+                    flush(&mut chain, &mut found);
+                }
+                gap += 1;
+            }
+            Token::Word(word) => gap += word.chars().count(),
+        }
+    }
+    flush(&mut chain, &mut found);
+    found
+}
+
+/// The readings of one expression's literals that are tested: each literal
+/// alone, the literals joined, and the literals joined with a line break.
+fn readings(parts: &[String]) -> Vec<String> {
+    let mut all: Vec<String> = parts.to_vec();
+    if parts.len() > 1 {
+        all.push(parts.concat());
+        all.push(parts.join("\n"));
+    }
+    all
+}
+
+/// Whether `literal`, whole, is the allow-list entry for `file`.
+fn allowed(file: &str, literal: &str) -> bool {
+    ALLOWED
+        .iter()
+        .any(|(suffix, whole, _)| file.ends_with(suffix) && literal == *whole)
+}
+
+/// The readings of every expression of `source` from line `from` on, outside
+/// test items, with the line of the expression: what the scan tests and the
+/// allow-list is matched against.
+#[must_use]
+pub fn texts(source: &str, from: usize) -> Vec<(usize, Vec<String>)> {
+    expressions(&outside_tests(tokens(source)))
+        .into_iter()
+        .filter(|(line, _)| *line >= from)
+        .map(|(line, parts)| (line, readings(&parts)))
+        .collect()
+}
+
 /// The literals of `source` that are Lean syntax and are not allowed, in the
-/// file named `file`, from line `from` on.
+/// file named `file`, from line `from` on: one finding for an expression, its
+/// first reading that is. A reading that is allowed whole excuses itself only:
+/// an allowed literal joined to more text is a new text, which is tested as
+/// one.
 #[must_use]
 pub fn scan_source(file: &str, source: &str, from: usize) -> Vec<Finding> {
-    outside_tests(tokens(source))
+    texts(source, from)
         .into_iter()
-        .filter_map(|token| match token {
-            Token::Literal(line, literal)
-                if line >= from
-                    && is_lean_syntax(&literal)
-                    && !ALLOWED.iter().any(|(suffix, beginning, _)| {
-                        file.ends_with(suffix) && literal.starts_with(beginning)
-                    }) =>
-            {
-                Some(Finding {
+        .filter_map(|(line, readings)| {
+            readings
+                .into_iter()
+                .find(|reading| is_lean_syntax(reading) && !allowed(file, reading))
+                .map(|literal| Finding {
                     file: file.to_owned(),
                     line,
                     literal,
                 })
-            }
-            _ => None,
         })
         .collect()
 }
 
-/// The first line of `backend/lean.rs` the scan covers.
-#[must_use]
-pub fn auxiliary_part_from(source: &str) -> usize {
-    source
-        .lines()
-        .position(|line| line.contains(AUXILIARY_PART))
-        .map_or(1, |index| index + 1)
-}
-
 /// The findings of the repository at `root`: every source under
-/// `crates/lexlean/src/production/`, and `backend/lean.rs` from its auxiliary
-/// module part.
+/// `crates/lexlean/src/production/`, and the whole of `backend/lean.rs`.
 ///
 /// # Panics
 ///
@@ -406,10 +631,6 @@ pub fn scan_repository(root: &Path) -> Vec<Finding> {
         findings.extend(scan_source(&file, &source, 1));
     }
     let backend = std::fs::read_to_string(base.join("backend/lean.rs")).expect("the backend reads");
-    findings.extend(scan_source(
-        "backend/lean.rs",
-        &backend,
-        auxiliary_part_from(&backend),
-    ));
+    findings.extend(scan_source("backend/lean.rs", &backend, 1));
     findings
 }
