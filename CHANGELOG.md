@@ -22,7 +22,10 @@ workspace carried at those versions without a tag.
   generated projection or a lock takes the next line's side for `regenerate.yml` to rewrite,
   SPEC.md and register changes of a line without `spec/` are carried into the next line's
   modules by `cargo xtask spec port --register`, and any other conflict opens the pull
-  request as a draft naming its paths. A newer push supersedes the older forward branch.
+  request as a draft naming its paths, an authored writer input such as an export's
+  `roots.json` among them. A newer push closes an older forward pull request only when its
+  branch holds nothing but the workflow's merge and regeneration, and only once the new one
+  is open; one with work finished by hand stays open and is linked.
 - Canonical JSON refuses duplicate keys that differ only in their escapes (SPEC.md §21.7,
   `AR-11`, #475). The duplicate check compared each key as written, so `{"a":1,"\u0061":2}`
   passed it and `Json::parse` returned `{"a":2}`, dropping the first member; keys are now

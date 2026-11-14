@@ -13,13 +13,17 @@ name: forward
 on:
   push:
     branches: ["release/**"]
+  # A merge made with the workflow token starts no push run, so a workflow
+  # that lands on a line itself (`cut.yml`) calls this one with the line.
+  workflow_call:
+    inputs:
+      line:
+        description: The release line whose head is carried forward
+        type: string
+        required: true
 
 permissions:
   contents: read
-
-concurrency:
-  group: forward-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   merge:
@@ -27,6 +31,11 @@ jobs:
     if: github.repository == 'UOR-Foundation/LexLean'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    # On the job, not the workflow: a call from `cut.yml` is part of the
+    # caller's run, which a newer push to the line must not cancel.
+    concurrency:
+      group: forward-${{ inputs.line || github.ref_name }}
+      cancel-in-progress: true
     permissions:
       contents: write
       pull-requests: write
@@ -37,6 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.line || github.sha }}
           fetch-depth: 0
       - name: Install the pinned Rust toolchain
         run: rustup toolchain install
@@ -45,6 +55,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
+          LINE: ${{ inputs.line || github.ref_name }}
         run: .github/scripts/forward-merge.sh
 
   regenerate:

@@ -13,7 +13,7 @@
 # the pull request is opened as a draft naming the paths, for an agent to
 # finish. A newer forward branch of the same lines closes the older ones.
 #
-# Inputs, from the environment: REPO, GITHUB_REF_NAME (the pushed line), the
+# Inputs, from the environment: REPO, LINE or GITHUB_REF_NAME (the line), the
 # checkout (the pushed commit, full history, the workflow token), GITHUB_OUTPUT,
 # GITHUB_STEP_SUMMARY, GITHUB_SERVER_URL. Outputs: branch, commit, clean.
 set -euo pipefail
@@ -23,7 +23,7 @@ summary=${GITHUB_STEP_SUMMARY:-/dev/null}
 output=${GITHUB_OUTPUT:-/dev/null}
 say() { printf '%s\n' "$1" | tee -a "$summary"; }
 
-line=${GITHUB_REF_NAME:?GITHUB_REF_NAME names the pushed line}
+line=${LINE:-${GITHUB_REF_NAME:?LINE or GITHUB_REF_NAME names the pushed line}}
 if ! [[ "$line" =~ ^release/v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
   say "\`$line\` is not a release line: nothing to carry forward."
   exit 0
@@ -58,10 +58,14 @@ git rev-parse --verify --quiet MERGE_HEAD >/dev/null || {
   exit 1
 }
 
+# Only what a writer of §9.2 or `cargo metadata` writes from the merged tree.
+# What a writer reads (an export's `roots.json`, a measured row of
+# `tests/stack-bounds.json`) is authored, and a conflict in it is listed.
 generated() {
   case "$1" in
-    SPEC.md | model/*.toml | CONFORMANCE.md | ERRORS.md | Cargo.lock | lexlean.lock | */lexlean.lock \
-      | */expected/* | tests/golden/* | tests/production-export/* | tests/stack-bounds.json) return 0 ;;
+    SPEC.md | model/ids.toml | model/errors.toml | model/ledger.toml | model/authorities.toml \
+      | CONFORMANCE.md | ERRORS.md | Cargo.lock | lexlean.lock | */lexlean.lock | */expected/* \
+      | tests/golden/*.txt | tests/production-export/*/packages/*) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -132,6 +136,29 @@ commit=$(git rev-parse HEAD)
   echo "clean=$clean"
 } >>"$output"
 
+# An older forward pull request of these lines is superseded only when its
+# branch holds nothing but what this run makes again: the bot's merge and the
+# bot's regeneration on it. One carrying any other commit (a conflict finished
+# by hand) stays open, linked from the new one, until its work is carried.
+bot_pattern='41898282\+github-actions\[bot\]@users\.noreply\.github\.com'
+superseded=()
+kept=()
+while read -r number ref; do
+  [ -n "$number" ] || continue
+  if ! git fetch --quiet origin "refs/heads/$ref:refs/remotes/origin/$ref"; then
+    kept+=("$number")
+    continue
+  fi
+  extra=$(git log --format='%ae %s' "origin/$ref" --not "origin/$next" "$source" |
+    grep -v -x -E "$bot_pattern (Merge release/v[0-9.]+ into release/v[0-9.]+|Regenerate the written outputs of [0-9a-f]+)" || true)
+  if [ -z "$extra" ]; then
+    superseded+=("$number")
+  else
+    kept+=("$number")
+  fi
+done < <(gh pr list --repo "$repo" --base "$next" --state open --json number,headRefName \
+  --jq ".[] | select(.headRefName | startswith(\"$prefix\")) | select(.headRefName != \"$branch\") | \"\\(.number) \\(.headRefName)\"")
+
 title="Forward-merge $line (${source:0:8}) into $next"
 if [ "$clean" = true ]; then
   body="Merges \`$line\` at \`$source\` into \`$next\` (SPEC.md §9.4; opened by \`forward.yml\`). \`regenerate.yml\` writes the generated projections and locks from the merged tree, delivers them here, and dispatches the gate. Land it with a merge commit."
@@ -140,20 +167,22 @@ else
   body="Merges \`$line\` at \`$source\` into \`$next\` (SPEC.md §9.4; opened by \`forward.yml\`). These paths are committed as \`$next\`'s side and are finished by hand before this is ready; then push the head to \`regenerate/<name>\`:"$'\n\n'"$(printf -- '- `%s`\n' "${unresolved[@]}")"
   draft=(--draft)
 fi
+if [ "${#kept[@]}" -gt 0 ]; then
+  body+=$'\n\n'"Older forward pull requests with work not yet in \`$next\`, left open: $(printf '#%s ' "${kept[@]}")"
+fi
 if url=$(gh pr create --repo "$repo" --base "$next" --head "$branch" "${draft[@]}" \
     --title "$title" --body "$body" 2>&1); then
   say "Opened $url"
 else
-  # The repository may not let the workflow token open pull requests.
+  # The repository may not let the workflow token open pull requests. With
+  # no replacement open, nothing older is closed.
   echo "::warning::no pull request opened ($url)"
   say "Open the pull request: $GITHUB_SERVER_URL/$repo/compare/$next...$branch"
-  url="$branch"
+  superseded=()
 fi
 [ "$clean" = true ] || say "Finish by hand: $(printf '`%s` ' "${unresolved[@]}")"
-
-gh pr list --repo "$repo" --base "$next" --state open --json number,headRefName \
-  --jq ".[] | select(.headRefName | startswith(\"$prefix\")) | select(.headRefName != \"$branch\") | .number" |
-  while read -r older; do
-    gh pr close "$older" --repo "$repo" --delete-branch --comment "Superseded by $url." ||
-      echo "::warning::#$older not closed"
-  done
+[ "${#kept[@]}" -eq 0 ] || say "Left open, with work not yet in \`$next\`: $(printf '#%s ' "${kept[@]}")"
+for older in "${superseded[@]}"; do
+  gh pr close "$older" --repo "$repo" --delete-branch --comment "Superseded by $url." ||
+    echo "::warning::#$older not closed"
+done

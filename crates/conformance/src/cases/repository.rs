@@ -2257,7 +2257,8 @@ pub(crate) fn run(id: &str) {
             let forward = root_file(".github/workflows/forward.yml");
             for needed in [
                 "  push:\n    branches: [\"release/**\"]\n",
-                "  group: forward-${{ github.ref }}\n  cancel-in-progress: true\n",
+                "      group: forward-${{ inputs.line || github.ref_name }}\n      cancel-in-progress: true\n",
+                "  workflow_call:\n",
                 "run: .github/scripts/forward-merge.sh",
                 "uses: ./.github/workflows/regenerate.yml",
                 "ref: ${{ needs.merge.outputs.commit }}",
@@ -2266,12 +2267,26 @@ pub(crate) fn run(id: &str) {
                 assert!(forward.contains(needed), "§9.4: forward.yml has `{needed}`");
             }
             let merge = root_file(".github/scripts/forward-merge.sh");
+            // An authored writer input is never taken from one side unread.
+            for forbidden in [
+                "tests/production-export/* ",
+                "tests/production-export/*)",
+                "tests/stack-bounds.json)",
+            ] {
+                assert!(
+                    !merge.contains(forbidden),
+                    "§9.4: forward-merge.sh takes no side of an authored input: `{forbidden}`"
+                );
+            }
             for needed in [
                 "git merge --quiet --no-ff --no-commit",
                 "cargo xtask spec port",
                 "--register",
                 "--draft",
                 "compare/$next...$branch",
+                "tests/production-export/*/packages/*)",
+                "Regenerate the written outputs of",
+                "superseded=()",
             ] {
                 assert!(
                     merge.contains(needed),
