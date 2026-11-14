@@ -4785,7 +4785,7 @@ pub fn run(id: &str) {
             let shapes: [(&str, &str); 10] = [
                 (
                     "concat!",
-                    "fn planted() -> String { concat!(\"theorem t : True := \", \"trivial\").to_owned() }\n",
+                    "fn planted() -> String { concat!(\"im\", \"port Lean\").to_owned() }\n",
                 ),
                 (
                     "plus",
@@ -4793,7 +4793,7 @@ pub fn run(id: &str) {
                 ),
                 (
                     "lines",
-                    "fn planted() -> String { [\"namespace Planted\", \"end Planted\"].join(\"\\n\") }\n",
+                    "fn planted() -> String { [\"namespace\", \" Planted\\nend\", \" Planted\"].concat() }\n",
                 ),
                 (
                     "escapes",
@@ -4824,6 +4824,22 @@ pub fn run(id: &str) {
                     "fn planted(x: &str) -> String { format!(\" := by {x}\") }\n",
                 ),
             ];
+            // Fragments that are clean alone: only the joined reading is Lean.
+            for fragment in ["im", "port Lean", "namespace", " Planted\nend", " Planted"] {
+                assert!(
+                    scan_source(
+                        "x.rs",
+                        &format!("fn f() {{ g(\"{}\"); }}\n", fragment.replace('\n', "\\n")),
+                        1
+                    )
+                    .is_empty(),
+                    "the fragment {fragment:?} is clean alone"
+                );
+            }
+            let joined: [(&str, &str); 2] = [
+                ("concat!", "import Lean"),
+                ("lines", "namespace Planted\nend Planted"),
+            ];
             let backend_lines = backend.lines().count();
             for (name, shape) in shapes {
                 let found = scan_source("backend/lean.rs", &format!("{backend}\n{shape}"), 1);
@@ -4836,6 +4852,12 @@ pub fn run(id: &str) {
                     found[0].line > backend_lines,
                     "SP-17 shape `{name}` is the planted one: {found:?}"
                 );
+                if let Some((_, text)) = joined.iter().find(|(joined, _)| *joined == name) {
+                    assert_eq!(
+                        found[0].literal, *text,
+                        "SP-17 shape `{name}` is reported as its joined reading"
+                    );
+                }
                 eprintln!(
                     "SP-17 shape `{name}`: line {} `{}`",
                     found[0].line, found[0].literal
