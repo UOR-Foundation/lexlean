@@ -1409,5 +1409,6 @@ pub fn functions() -> Vec<Json> {
     all.extend(crate::lcnf_extract::authority_functions());
     all.extend(crate::lcnf_extract::run_functions());
     all.extend(crate::lcnf_extract::entry_functions());
+    all.extend(crate::lcnf_inspection::functions());
     all
 }

@@ -20,6 +20,7 @@ pub mod gnaf;
 pub mod inventory;
 pub mod lcnf_adapter;
 pub mod lcnf_extract;
+mod lcnf_inspection;
 pub mod lcnf_registry;
 mod lean_list;
 pub mod lean_literals;
