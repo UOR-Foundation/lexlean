@@ -100,10 +100,11 @@ impl Certificate {
     pub fn released(mut self) -> Self {
         self.text = String::new();
         self.source = None;
-        if let Some(data) = &mut self.data {
+        self.data = self.data.map(|mut data| {
             data.nodes = Vec::new();
             data.proof_nodes = Vec::new();
-        }
+            data
+        });
         self
     }
 }
