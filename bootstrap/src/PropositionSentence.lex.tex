@@ -1,0 +1,1510 @@
+\begin{lexlean}{PropositionSentence}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{GrammarProof}
+\importmodule{PropositionTerms}
+\importmodule{PrimitiveScan}
+\title{Natural number addition}
+\begin{semanticmodule}
+inductive{
+  name: PhraseItem,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: PWord, fields: [(List Nat), Nat, Nat]},
+    {name: PMath, fields: [GrammarProof::TextToken]},
+    {name: PTermPhrase, fields: [PropositionTerms::Term]},
+    {name: PPunct, fields: [Nat, Nat]}
+  ]
+}
+
+structure{
+  name: Steps,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: bud, type: PropositionTerms::Bud},
+    {name: items, type: (List (PhraseItem * Nat))},
+    {name: error, type: (Option PrimitiveScan::Rejection)}
+  ]
+}
+
+structure{
+  name: SFrame,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: pos, type: Nat}, {name: items, type: (List PhraseItem)}]
+}
+
+structure{
+  name: CoverSearch,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: stack, type: (List SFrame)},
+    {name: bud, type: PropositionTerms::Bud},
+    {name: covers, type: (List (List PhraseItem))},
+    {name: foundAny, type: Bool},
+    {name: error, type: (Option PrimitiveScan::Rejection)}
+  ]
+}
+
+definition{
+  name: mergeMatched,
+  parameters: [ctx : PropositionTerms::Ctx, position : Nat, a : PropositionTerms::Matched, lo : Nat, hi : Nat],
+  result: PropositionTerms::Matched,
+  body: (match (project a error)
+    | Option.some problem => a
+    | Option.none => (let b : PropositionTerms::Matched := (PropositionTerms::formMatches ctx (project a bud) position lo hi); (match (project b error)
+      | Option.some problem => b
+      | Option.none => (record PropositionTerms::Matched {bud := (project b bud), found := (prim append (project a found) (project b found) : (List PropositionTerms::Match)), error := (ctor Option.none [PrimitiveScan::Rejection])})))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: wordConceptMatches,
+  parameters: [ctx : PropositionTerms::Ctx, bud : PropositionTerms::Bud, position : Nat],
+  result: PropositionTerms::Matched,
+  body: (let m0 : PropositionTerms::Matched := (PropositionTerms::formMatches ctx bud position 0 2); (let m1 : PropositionTerms::Matched := (mergeMatched ctx position m0 6 7); (mergeMatched ctx position m1 10 13))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: wordStepsFrom,
+  parameters: [matched : (List PropositionTerms::Match)],
+  result: (List (PhraseItem * Nat)),
+  body: (let ends : (List Nat) := (prim list_fold (fun (out : (List Nat)) (found : PropositionTerms::Match) => (if (PropositionTerms::natIn (project found upto) out) then out else (prim append out (cons (project found upto) (nil Nat)) : (List Nat)))) (nil Nat) matched : (List Nat)); (prim list_fold (fun [matched] (out : (List (PhraseItem * Nat))) (end : Nat) => (let candidates : (List Nat) := (prim list_fold (fun [end] (forms : (List Nat)) (found : PropositionTerms::Match) => (if ((project found upto) =? end) then (prim append forms (cons (project found form) (nil Nat)) : (List Nat)) else forms)) (nil Nat) matched : (List Nat)); (prim append out (cons ((ctor PhraseItem.PWord candidates 0 end), end) (nil (PhraseItem * Nat))) : (List (PhraseItem * Nat))))) (nil (PhraseItem * Nat)) ends : (List (PhraseItem * Nat)))),
+  executable: true
+}
+
+definition{
+  name: nounOfSteps,
+  parameters: [alts : (List PropositionTerms::TAlt)],
+  result: (List (PhraseItem * Nat)),
+  body: (prim list_fold (fun (out : (List (PhraseItem * Nat))) (alt : PropositionTerms::TAlt) => (match (project alt term)
+    | PropositionTerms::Term.TNounOf form start stop arg kws => (prim append out (cons ((ctor PhraseItem.PTermPhrase (project alt term)), (project alt upto)) (nil (PhraseItem * Nat))) : (List (PhraseItem * Nat)))
+    | PropositionTerms::Term.TIsland tok => out
+    | PropositionTerms::Term.TArgNil => out
+    | PropositionTerms::Term.TArgCons a b => out)) (nil (PhraseItem * Nat)) alts : (List (PhraseItem * Nat))),
+  executable: true
+}
+
+definition{
+  name: punctCode,
+  parameters: [text : Bytes],
+  result: (Option Nat),
+  body: (if (PropositionTerms::same text (PropositionTerms::lit ":")) then (ctor Option.some [Nat] 0) else (if (PropositionTerms::same text (PropositionTerms::lit "-")) then (ctor Option.some [Nat] 1) else (if (PropositionTerms::same text (PropositionTerms::lit "(")) then (ctor Option.some [Nat] 2) else (if (PropositionTerms::same text (PropositionTerms::lit ")")) then (ctor Option.some [Nat] 3) else (ctor Option.none [Nat]))))),
+  executable: true
+}
+
+definition{
+  name: phraseStepsAt,
+  parameters: [ctx : PropositionTerms::Ctx, bud : PropositionTerms::Bud, position : Nat],
+  result: Steps,
+  body: (match (PropositionTerms::tokenAt ctx position)
+    | Option.none => (record Steps {bud := bud, items := (nil (PhraseItem * Nat)), error := (ctor Option.none [PrimitiveScan::Rejection])})
+    | Option.some token => (match token
+      | GrammarProof::TextToken.TokenIsland opening innerStart innerEnd closing shown => (record Steps {bud := bud, items := (cons ((ctor PhraseItem.PMath token), (position + 1)) (nil (PhraseItem * Nat))), error := (ctor Option.none [PrimitiveScan::Rejection])})
+      | GrammarProof::TextToken.TokenAtom which => (let text : Bytes := (project (PropositionTerms::atomOr ctx which) text); (match (punctCode text)
+        | Option.some code => (record Steps {bud := bud, items := (cons ((ctor PhraseItem.PPunct which code), (position + 1)) (nil (PhraseItem * Nat))), error := (ctor Option.none [PrimitiveScan::Rejection])})
+        | Option.none => (let nounOfTry : (List (PhraseItem * Nat)) := (if (PropositionTerms::same text (PropositionTerms::lit "the")) then (match (PropositionTerms::termPhrase (project ctx path) (project ctx atoms) (project ctx tokens) (project ctx edges) (project ctx maxEdges) (project ctx maxStates) (project ctx maxDepth) (project bud states) (project bud edges) position 1)
+          | Result.error problem => (nil (PhraseItem * Nat))
+          | Result.ok alts => (nounOfSteps alts)) else (nil (PhraseItem * Nat))); (match nounOfTry
+          | List.cons head tail => (record Steps {bud := bud, items := nounOfTry, error := (ctor Option.none [PrimitiveScan::Rejection])})
+          | List.nil => (let matched : PropositionTerms::Matched := (wordConceptMatches ctx bud position); (match (project matched error)
+            | Option.some problem => (record Steps {bud := (project matched bud), items := (nil (PhraseItem * Nat)), error := (ctor Option.some [PrimitiveScan::Rejection] problem)})
+            | Option.none => (match (project matched found)
+              | List.nil => (record Steps {bud := (project matched bud), items := (nil (PhraseItem * Nat)), error := (ctor Option.some [PrimitiveScan::Rejection] (PropositionTerms::placed (PropositionTerms::lit "LLL1004") (PropositionTerms::cat (PropositionTerms::cat (PropositionTerms::lit "`") text) (PropositionTerms::lit "` is not a phrase concept")) (ctor Option.none [PrimitiveScan::Place])))})
+              | List.cons headM tailM => (record Steps {bud := (project matched bud), items := (wordStepsFrom (project matched found)), error := (ctor Option.none [PrimitiveScan::Rejection])})))))))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: coverSearchStep,
+  parameters: [ctx : PropositionTerms::Ctx, limit : Nat, search : CoverSearch],
+  result: CoverSearch,
+  body: (match (project search error)
+    | Option.some problem => search
+    | Option.none => (if (PropositionTerms::both (0 <? limit) (limit <=? (prim length (project search covers) : Nat))) then search else (match (project search stack)
+      | List.nil => search
+      | List.cons frame rest => (if ((prim length (project ctx tokens) : Nat) <=? (project frame pos)) then (record CoverSearch {stack := rest, bud := (project search bud), covers := (prim append (project search covers) (cons (project frame items) (nil (List PhraseItem))) : (List (List PhraseItem))), foundAny := true, error := (ctor Option.none [PrimitiveScan::Rejection])}) else (let charge : (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)) := (PropositionTerms::chargeState ctx (project search bud)); (match (second charge)
+        | Option.some problem => (record CoverSearch {stack := rest, bud := (first charge), covers := (project search covers), foundAny := (project search foundAny), error := (ctor Option.some [PrimitiveScan::Rejection] problem)})
+        | Option.none => (let steps : Steps := (phraseStepsAt ctx (first charge) (project frame pos)); (match (project steps error)
+          | Option.some problem => (record CoverSearch {stack := rest, bud := (project steps bud), covers := (project search covers), foundAny := (project search foundAny), error := (ctor Option.none [PrimitiveScan::Rejection])})
+          | Option.none => (record CoverSearch {stack := (prim append (prim list_fold (fun [frame] (out : (List SFrame)) (step : (PhraseItem * Nat)) => (cons (record SFrame {pos := (second step), items := (prim append (project frame items) (cons (first step) (nil PhraseItem)) : (List PhraseItem))}) out)) (nil SFrame) (project steps items) : (List SFrame)) rest : (List SFrame)), bud := (project steps bud), covers := (project search covers), foundAny := (project search foundAny), error := (ctor Option.none [PrimitiveScan::Rejection])}))))))))),
+  executable: true
+}
+
+definition{
+  name: coverSearchDecide,
+  parameters: [ctx : PropositionTerms::Ctx, limit : Nat, search : CoverSearch],
+  result: (Option CoverSearch),
+  body: (match (project search stack)
+    | List.nil => (ctor Option.none [CoverSearch])
+    | List.cons headF tailF => (match (project search error)
+      | Option.some problem => (ctor Option.none [CoverSearch])
+      | Option.none => (if (PropositionTerms::both (0 <? limit) (limit <=? (prim length (project search covers) : Nat))) then (ctor Option.none [CoverSearch]) else (ctor Option.some [CoverSearch] (coverSearchStep ctx limit search))))),
+  executable: true
+}
+
+definition{
+  name: coverSearchLoop,
+  parameters: [ctx : PropositionTerms::Ctx, limit : Nat, maxStates : Nat, statesBefore : Nat, edgesBefore : Nat],
+  result: CoverSearch,
+  body: (first (prim iterate_until (fun [ctx, limit] (search : CoverSearch) => (coverSearchDecide ctx limit search)) ((prim multiply (maxStates + 2) 64 : Nat) + 64) (record CoverSearch {stack := (cons (record SFrame {pos := 0, items := (nil PhraseItem)}) (nil SFrame)), bud := (PropositionTerms::fresh statesBefore edgesBefore), covers := (nil (List PhraseItem)), foundAny := false, error := (ctor Option.none [PrimitiveScan::Rejection])}) : (CoverSearch * Bool))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: wholeFilePlace,
+  parameters: [path : Bytes],
+  result: PrimitiveScan::Place,
+  body: (record PrimitiveScan::Place {path := path, byteStart := 0, byteEnd := 0, lineStart := 1, columnStart := 1, lineEnd := 1, columnEnd := 1}),
+  executable: true
+}
+
+definition{
+  name: phraseCovers,
+  parameters: [
+    path : Bytes,
+    atoms : (List PrimitiveScan::Atom),
+    tokens : (List GrammarProof::TextToken),
+    edges : (List (List PropositionTerms::TEdge)),
+    maxEdges : Nat,
+    maxStates : Nat,
+    maxDepth : Nat,
+    statesBefore : Nat,
+    edgesBefore : Nat,
+    limit : Nat
+  ],
+  result: (Result (List (List PhraseItem)) PrimitiveScan::Rejection),
+  body: (match tokens
+    | List.nil => (ctor Result.error [(List (List PhraseItem)), PrimitiveScan::Rejection] (PropositionTerms::placed (PropositionTerms::lit "LLP2001") (PropositionTerms::lit "a phrase is a nonempty sequence of concepts") (ctor Option.some [PrimitiveScan::Place] (wholeFilePlace path))))
+    | List.cons headT tailT => (let ctx : PropositionTerms::Ctx := (PropositionTerms::context path atoms tokens edges maxEdges maxStates maxDepth); (let final : CoverSearch := (coverSearchLoop ctx limit maxStates statesBefore edgesBefore); (match (project final error)
+      | Option.some problem => (ctor Result.error [(List (List PhraseItem)), PrimitiveScan::Rejection] problem)
+      | Option.none => (if (project final foundAny) then (ctor Result.ok [(List (List PhraseItem)), PrimitiveScan::Rejection] (project final covers)) else (ctor Result.error [(List (List PhraseItem)), PrimitiveScan::Rejection] (PropositionTerms::placed (PropositionTerms::lit "LLP2001") (PropositionTerms::lit "a phrase is a nonempty sequence of concepts") (ctor Option.some [PrimitiveScan::Place] (wholeFilePlace path))))))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+inductive{
+  name: PropAst,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: PACond, fields: [PropAst, PropAst, (List GrammarProof::Keyword)]},
+    {name: PAIff, fields: [PropAst, PropAst, (List GrammarProof::Keyword)]},
+    {name: PAImplies, fields: [PropAst, PropAst, (List GrammarProof::Keyword)]},
+    {name: PAOr, fields: [(List PropAst), (List GrammarProof::Keyword)]},
+    {name: PAAnd, fields: [(List PropAst), (List GrammarProof::Keyword)]},
+    {name: PANot, fields: [PropAst, (List GrammarProof::Keyword)]},
+    {name: PAForAll, fields: [(List PropositionTerms::Binder), PropAst, (List GrammarProof::Keyword)]},
+    {name: PAExists, fields: [PropositionTerms::Binder, Bool, PropAst, (List GrammarProof::Keyword)]},
+    {name: PAMath, fields: [GrammarProof::TextToken]},
+    {
+      name: PAPred,
+      fields: [
+        (List Nat),
+        Nat,
+        Nat,
+        (List PropositionTerms::Term),
+        (List GrammarProof::Keyword)
+      ]
+    }
+  ]
+}
+
+structure{
+  name: PAlt,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: upto, type: Nat}, {name: prop, type: PropAst}]
+}
+
+definition{
+  name: termPhraseAt,
+  parameters: [ctx : PropositionTerms::Ctx, bud : PropositionTerms::Bud, position : Nat, depth : Nat],
+  result: (Result ((List PropositionTerms::TAlt) * PropositionTerms::Bud) PrimitiveScan::Rejection),
+  body: (PropositionTerms::termPhraseWithBud (project ctx path) (project ctx atoms) (project ctx tokens) (project ctx edges) (project ctx maxEdges) (project ctx maxStates) (project ctx maxDepth) (project bud states) (project bud edges) position depth),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: predAdjectiveAlts,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    bud : PropositionTerms::Bud,
+    afterFirst : Nat,
+    firstArg : PropositionTerms::Term
+  ],
+  result: ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (match (PropositionTerms::isWord ctx afterFirst (PropositionTerms::lit "is"))
+    | Option.none => ((nil PAlt), (bud, (ctor Option.none [PrimitiveScan::Rejection])))
+    | Option.some isKw => (let matched : PropositionTerms::Matched := (PropositionTerms::formMatches ctx bud (afterFirst + 1) 3 3); (match (project matched error)
+      | Option.some problem => ((nil PAlt), ((project matched bud), (ctor Option.some [PrimitiveScan::Rejection] problem)))
+      | Option.none => (let built : (List PAlt) := (prim list_fold (fun [afterFirst, ctx, firstArg, isKw] (out : (List PAlt)) (m : PropositionTerms::Match) => (let range : (Nat * Nat) := (PropositionTerms::atomRange ctx (afterFirst + 1) (project m upto)); (prim append out (cons (record PAlt {upto := (project m upto), prop := (ctor PropAst.PAPred (cons (project m form) (nil Nat)) (first range) (second range) (cons firstArg (nil PropositionTerms::Term)) (cons isKw (nil GrammarProof::Keyword)))}) (nil PAlt)) : (List PAlt)))) (nil PAlt) (project matched found) : (List PAlt)); (built, ((project matched bud), (ctor Option.none [PrimitiveScan::Rejection]))))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: predAddIntrans,
+  parameters: [
+    acc : (List PAlt),
+    m : PropositionTerms::Match,
+    firstArg : PropositionTerms::Term,
+    afterFirst : Nat
+  ],
+  result: (List PAlt),
+  body: (prim append acc (cons (record PAlt {upto := (project m upto), prop := (ctor PropAst.PAPred (cons (project m form) (nil Nat)) afterFirst (project m upto) (cons firstArg (nil PropositionTerms::Term)) (nil GrammarProof::Keyword))}) (nil PAlt)) : (List PAlt)),
+  executable: true
+}
+
+definition{
+  name: predAddTrans,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    bud : PropositionTerms::Bud,
+    acc : (List PAlt),
+    m : PropositionTerms::Match,
+    firstArg : PropositionTerms::Term,
+    afterFirst : Nat,
+    secondAlts : (List PropositionTerms::TAlt)
+  ],
+  result: ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (prim list_fold (fun [afterFirst, ctx, firstArg, m] (state : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))) (secondAlt : PropositionTerms::TAlt) => (match (second (second state))
+    | Option.some problem => state
+    | Option.none => (let charge : (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)) := (PropositionTerms::chargeState ctx (first (second state))); (match (second charge)
+        | Option.some problem => ((first state), ((first charge), (ctor Option.some [PrimitiveScan::Rejection] problem)))
+        | Option.none => ((prim append (first state) (cons (record PAlt {upto := (project secondAlt upto), prop := (ctor PropAst.PAPred (cons (project m form) (nil Nat)) afterFirst (project m upto) (cons firstArg (cons (project secondAlt term) (nil PropositionTerms::Term))) (nil GrammarProof::Keyword))}) (nil PAlt)) : (List PAlt)), ((first charge), (ctor Option.none [PrimitiveScan::Rejection]))))))) (acc, (bud, (ctor Option.none [PrimitiveScan::Rejection]))) secondAlts : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: predIntransOrTransAlts,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    bud : PropositionTerms::Bud,
+    afterFirst : Nat,
+    depth : Nat,
+    firstArg : PropositionTerms::Term
+  ],
+  result: ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (let matched : PropositionTerms::Matched := (PropositionTerms::formMatches ctx bud afterFirst 4 5); (match (project matched error)
+    | Option.some problem => ((nil PAlt), ((project matched bud), (ctor Option.some [PrimitiveScan::Rejection] problem)))
+    | Option.none => (prim list_fold (fun [afterFirst, ctx, depth, firstArg] (state : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))) (m : PropositionTerms::Match) => (match (second (second state))
+      | Option.some problem => state
+      | Option.none => (if ((project m category) =? 4) then ((predAddIntrans (first state) m firstArg afterFirst), (second state)) else (match (termPhraseAt ctx (first (second state)) (project m upto) depth)
+        | Result.error problem => ((first state), ((first (second state)), (ctor Option.some [PrimitiveScan::Rejection] problem)))
+        | Result.ok pair => (predAddTrans ctx (second pair) (first state) m firstArg afterFirst (first pair)))))) ((nil PAlt), ((project matched bud), (ctor Option.none [PrimitiveScan::Rejection]))) (project matched found) : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: binderListAt,
+  parameters: [ctx : PropositionTerms::Ctx, bud : PropositionTerms::Bud, position : Nat, required : Bool],
+  result: (Result ((List PropositionTerms::BAlt) * PropositionTerms::Bud) PrimitiveScan::Rejection),
+  body: (PropositionTerms::binderAlternativesWithBud (project ctx path) (project ctx atoms) (project ctx tokens) (project ctx edges) (project ctx maxEdges) (project ctx maxStates) (project ctx maxDepth) (project bud states) (project bud edges) position required),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: predOneFirstArg,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    bud : PropositionTerms::Bud,
+    depth : Nat,
+    firstArg : PropositionTerms::Term,
+    afterFirst : Nat
+  ],
+  result: ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (let adj : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))) := (predAdjectiveAlts ctx bud afterFirst firstArg); (match (second (second adj))
+    | Option.some problem => ((first adj), ((first (second adj)), (ctor Option.some [PrimitiveScan::Rejection] problem)))
+    | Option.none => (let it : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))) := (predIntransOrTransAlts ctx (first (second adj)) afterFirst depth firstArg); (match (second (second it))
+        | Option.some problem => ((first adj), ((first (second it)), (ctor Option.some [PrimitiveScan::Rejection] problem)))
+        | Option.none => ((prim append (first adj) (first it) : (List PAlt)), ((first (second it)), (ctor Option.none [PrimitiveScan::Rejection]))))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: predicateFrameAt,
+  parameters: [ctx : PropositionTerms::Ctx, bud : PropositionTerms::Bud, position : Nat, depth : Nat],
+  result: ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (match (termPhraseAt ctx bud position depth)
+    | Result.error problem => ((nil PAlt), (bud, (ctor Option.some [PrimitiveScan::Rejection] problem)))
+    | Result.ok pair => (prim list_fold (fun [ctx, depth] (state : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))) (firstAlt : PropositionTerms::TAlt) => (match (second (second state))
+        | Option.some problem => state
+        | Option.none => (let one : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))) := (predOneFirstArg ctx (first (second state)) depth (project firstAlt term) (project firstAlt upto)); ((prim append (first state) (first one) : (List PAlt)), (second one))))) ((nil PAlt), ((second pair), (ctor Option.none [PrimitiveScan::Rejection]))) (first pair) : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: negAtomicAlts,
+  parameters: [ctx : PropositionTerms::Ctx, bud : PropositionTerms::Bud, position : Nat, depth : Nat],
+  result: ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (let predResult : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))) := (predicateFrameAt ctx bud position depth); (match (second (second predResult))
+    | Option.some problem => predResult
+    | Option.none => ((match (PropositionTerms::islandAt ctx position)
+        | Option.some token => (cons (record PAlt {upto := (position + 1), prop := (ctor PropAst.PAMath token)}) (first predResult))
+        | Option.none => (first predResult)), (second predResult)))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+structure{
+  name: BinderFrontier,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: upto, type: Nat},
+    {name: binders, type: (List PropositionTerms::Binder)},
+    {name: keywords, type: (List GrammarProof::Keyword)}
+  ]
+}
+
+structure{
+  name: PChainItem,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: upto, type: Nat},
+    {name: items, type: (List PropAst)},
+    {name: keywords, type: (List GrammarProof::Keyword)}
+  ]
+}
+
+structure{
+  name: PExCand,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: upto, type: Nat},
+    {name: binder, type: PropositionTerms::Binder},
+    {name: unique, type: Bool},
+    {name: headKeywords, type: (List GrammarProof::Keyword)}
+  ]
+}
+
+inductive{
+  name: PFrame,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: PStart, fields: [Nat, Nat]},
+    {name: PIfLeftResume, fields: [Nat, Nat, GrammarProof::Keyword]},
+    {
+      name: PAntecedentPending,
+      fields: [Nat, Nat, (List PAlt), GrammarProof::Keyword, (List PAlt)]
+    },
+    {
+      name: PConsequentResume,
+      fields: [
+        Nat,
+        Nat,
+        GrammarProof::Keyword,
+        GrammarProof::Keyword,
+        GrammarProof::Keyword,
+        PropAst,
+        (List PAlt),
+        (List PAlt)
+      ]
+    },
+    {name: PFinish, fields: [Nat, Nat, (List PAlt)]},
+    {name: PEquivLeftResume, fields: [Nat, Nat]},
+    {name: PEquivPending, fields: [Nat, Nat, (List PAlt), (List PAlt)]},
+    {
+      name: PEquivRightResume,
+      fields: [
+        Nat,
+        Nat,
+        Nat,
+        PropAst,
+        GrammarProof::Keyword,
+        GrammarProof::Keyword,
+        GrammarProof::Keyword,
+        GrammarProof::Keyword,
+        (List PAlt),
+        (List PAlt)
+      ]
+    },
+    {name: PImplLeftResume, fields: [Nat, Nat]},
+    {name: PImplPending, fields: [Nat, Nat, (List PAlt), (List PAlt)]},
+    {
+      name: PImplRightResume,
+      fields: [Nat, Nat, Nat, PropAst, GrammarProof::Keyword, (List PAlt), (List PAlt)]
+    },
+    {name: PChainEntry, fields: [Bool, Nat, Nat]},
+    {name: PChainBaseResume, fields: [Bool, Nat, Nat]},
+    {
+      name: PChainRound,
+      fields: [Bool, Nat, (List PChainItem), (List PChainItem), (List PAlt)]
+    },
+    {
+      name: PChainExtendResume,
+      fields: [
+        Bool,
+        Nat,
+        (List PropAst),
+        (List GrammarProof::Keyword),
+        GrammarProof::Keyword,
+        (List PChainItem),
+        (List PChainItem),
+        (List PAlt)
+      ]
+    },
+    {name: PNegStart, fields: [Nat, Nat]},
+    {
+      name: PNegNotResume,
+      fields: [
+        Nat,
+        Nat,
+        GrammarProof::Keyword,
+        (List BinderFrontier),
+        (List PExCand),
+        (List PAlt)
+      ]
+    },
+    {
+      name: PNegForAll,
+      fields: [Nat, Nat, (List BinderFrontier), (List PExCand), (List PAlt), (List PAlt)]
+    },
+    {
+      name: PNegForAllResume,
+      fields: [
+        Nat,
+        Nat,
+        (List PropositionTerms::Binder),
+        (List GrammarProof::Keyword),
+        (List BinderFrontier),
+        (List PExCand),
+        (List PAlt),
+        (List PAlt)
+      ]
+    },
+    {name: PNegExists, fields: [Nat, Nat, (List PExCand), (List PAlt), (List PAlt)]},
+    {
+      name: PNegExistsResume,
+      fields: [
+        Nat,
+        Nat,
+        PropositionTerms::Binder,
+        Bool,
+        (List GrammarProof::Keyword),
+        (List PExCand),
+        (List PAlt),
+        (List PAlt)
+      ]
+    }
+  ]
+}
+
+structure{
+  name: PMach,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: stack, type: (List PFrame)},
+    {name: returned, type: (List PAlt)},
+    {name: bud, type: PropositionTerms::Bud},
+    {name: error, type: (Option PrimitiveScan::Rejection)}
+  ]
+}
+
+definition{
+  name: mkP,
+  parameters: [m : PMach, stack : (List PFrame), returned : (List PAlt)],
+  result: PMach,
+  body: (record PMach {stack := stack, returned := returned, bud := (project m bud), error := (ctor Option.none [PrimitiveScan::Rejection])}),
+  executable: true
+}
+
+definition{
+  name: failedP,
+  parameters: [m : PMach, bud : PropositionTerms::Bud, problem : PrimitiveScan::Rejection],
+  result: PMach,
+  body: (record PMach {stack := (project m stack), returned := (project m returned), bud := bud, error := (ctor Option.some [PrimitiveScan::Rejection] problem)}),
+  executable: true
+}
+
+definition{
+  name: isInitialWord,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    position : Nat,
+    word : Bytes,
+    capitalized : Bytes
+  ],
+  result: (Option GrammarProof::Keyword),
+  body: (match (PropositionTerms::isWord ctx position word)
+    | Option.some kw => (ctor Option.some [GrammarProof::Keyword] kw)
+    | Option.none => (if (position =? 0) then (PropositionTerms::isWord ctx position capitalized) else (ctor Option.none [GrammarProof::Keyword]))),
+  executable: true
+}
+
+structure{
+  name: BinderChain,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: pending, type: (List BinderFrontier)},
+    {name: grown, type: (List BinderFrontier)},
+    {name: done, type: (List BinderFrontier)},
+    {name: bud, type: PropositionTerms::Bud},
+    {name: error, type: (Option PrimitiveScan::Rejection)}
+  ]
+}
+
+definition{
+  name: binderChainExtend,
+  parameters: [
+    head : BinderFrontier,
+    andKw : GrammarProof::Keyword,
+    nextBinders : (List PropositionTerms::BAlt)
+  ],
+  result: (List BinderFrontier),
+  body: (prim list_fold (fun [andKw, head] (out : (List BinderFrontier)) (b : PropositionTerms::BAlt) => (prim append out (cons (record BinderFrontier {upto := (project b upto), binders := (prim append (project head binders) (cons (project b binder) (nil PropositionTerms::Binder)) : (List PropositionTerms::Binder)), keywords := (prim append (project head keywords) (cons andKw (nil GrammarProof::Keyword)) : (List GrammarProof::Keyword))}) (nil BinderFrontier)) : (List BinderFrontier))) (nil BinderFrontier) nextBinders : (List BinderFrontier)),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: binderChainHead,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    state : BinderChain,
+    head : BinderFrontier,
+    restPending : (List BinderFrontier)
+  ],
+  result: BinderChain,
+  body: (let done2 : (List BinderFrontier) := (prim append (project state done) (cons head (nil BinderFrontier)) : (List BinderFrontier)); (match (PropositionTerms::isWord ctx (project head upto) (PropositionTerms::lit "and"))
+    | Option.none => (record BinderChain {pending := restPending, grown := (project state grown), done := done2, bud := (project state bud), error := (ctor Option.none [PrimitiveScan::Rejection])})
+    | Option.some andKw => (match (binderListAt ctx (project state bud) ((project head upto) + 1) false)
+        | Result.error problem => (record BinderChain {pending := (nil BinderFrontier), grown := (nil BinderFrontier), done := done2, bud := (project state bud), error := (ctor Option.some [PrimitiveScan::Rejection] problem)})
+        | Result.ok pair => (record BinderChain {pending := restPending, grown := (prim append (project state grown) (binderChainExtend head andKw (first pair)) : (List BinderFrontier)), done := done2, bud := (second pair), error := (ctor Option.none [PrimitiveScan::Rejection])})))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: binderChainStep,
+  parameters: [ctx : PropositionTerms::Ctx, state : BinderChain],
+  result: (Option BinderChain),
+  body: (match (project state error)
+    | Option.some problem => (ctor Option.none [BinderChain])
+    | Option.none => (match (project state pending)
+      | List.cons head restPending => (ctor Option.some [BinderChain] (binderChainHead ctx state head restPending))
+      | List.nil => (match (project state grown)
+          | List.nil => (ctor Option.none [BinderChain])
+          | List.cons headGrown tailGrown => (ctor Option.some [BinderChain] (record BinderChain {pending := (cons headGrown tailGrown), grown := (nil BinderFrontier), done := (project state done), bud := (project state bud), error := (ctor Option.none [PrimitiveScan::Rejection])}))))),
+  executable: true
+}
+
+definition{
+  name: binderSeed,
+  parameters: [firstBinders : (List PropositionTerms::BAlt)],
+  result: (List BinderFrontier),
+  body: (prim list_fold (fun [] (out : (List BinderFrontier)) (b : PropositionTerms::BAlt) => (prim append out (cons (record BinderFrontier {upto := (project b upto), binders := (cons (project b binder) (nil PropositionTerms::Binder)), keywords := (nil GrammarProof::Keyword)}) (nil BinderFrontier)) : (List BinderFrontier))) (nil BinderFrontier) firstBinders : (List BinderFrontier)),
+  executable: true
+}
+
+definition{
+  name: binderChainAt,
+  parameters: [ctx : PropositionTerms::Ctx, bud : PropositionTerms::Bud, position : Nat],
+  result: ((List BinderFrontier) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (match (binderListAt ctx bud position false)
+    | Result.error problem => ((nil BinderFrontier), (bud, (ctor Option.some [PrimitiveScan::Rejection] problem)))
+    | Result.ok pair => (let seed : (List BinderFrontier) := (binderSeed (first pair)); (let final : BinderChain := (first (prim iterate_until (fun [ctx] (state : BinderChain) => (binderChainStep ctx state)) ((prim multiply (prim length seed : Nat) 4 : Nat) + 64) (record BinderChain {pending := seed, grown := (nil BinderFrontier), done := (nil BinderFrontier), bud := (second pair), error := (ctor Option.none [PrimitiveScan::Rejection])}) : (BinderChain * Bool))); ((project final done), ((project final bud), (project final error)))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: existsCandsOf,
+  parameters: [
+    unique : Bool,
+    headKeywords : (List GrammarProof::Keyword),
+    balts : (List PropositionTerms::BAlt)
+  ],
+  result: (List PExCand),
+  body: (prim list_fold (fun [headKeywords, unique] (out : (List PExCand)) (b : PropositionTerms::BAlt) => (prim append out (cons (record PExCand {upto := (project b upto), binder := (project b binder), unique := unique, headKeywords := headKeywords}) (nil PExCand)) : (List PExCand))) (nil PExCand) balts : (List PExCand)),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: plainExistsCands,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    bud : PropositionTerms::Bud,
+    pos : Nat,
+    thereKw : GrammarProof::Keyword,
+    existsKw : GrammarProof::Keyword,
+    prefix : (List PExCand)
+  ],
+  result: ((List PExCand) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (match (binderListAt ctx bud (pos + 2) true)
+    | Result.error problem => (prefix, (bud, (ctor Option.some [PrimitiveScan::Rejection] problem)))
+    | Result.ok pair => ((prim append prefix (existsCandsOf false (cons thereKw (cons existsKw (nil GrammarProof::Keyword))) (first pair)) : (List PExCand)), ((second pair), (ctor Option.none [PrimitiveScan::Rejection])))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: existsHeadsAt,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    bud : PropositionTerms::Bud,
+    pos : Nat,
+    thereKw : GrammarProof::Keyword,
+    existsKw : GrammarProof::Keyword
+  ],
+  result: ((List PExCand) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (match (PropositionTerms::isWord ctx (pos + 2) (PropositionTerms::lit "exactly"))
+    | Option.none => (plainExistsCands ctx bud pos thereKw existsKw (nil PExCand))
+    | Option.some exactlyKw => (match (PropositionTerms::isWord ctx (pos + 3) (PropositionTerms::lit "one"))
+        | Option.none => (plainExistsCands ctx bud pos thereKw existsKw (nil PExCand))
+        | Option.some oneKw => (match (binderListAt ctx bud (pos + 4) false)
+            | Result.error problem => ((nil PExCand), (bud, (ctor Option.some [PrimitiveScan::Rejection] problem)))
+            | Result.ok pair => (plainExistsCands ctx (second pair) pos thereKw existsKw (existsCandsOf true (cons thereKw (cons existsKw (cons exactlyKw (cons oneKw (nil GrammarProof::Keyword))))) (first pair)))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: existsPendingAt,
+  parameters: [ctx : PropositionTerms::Ctx, bud : PropositionTerms::Bud, pos : Nat],
+  result: ((List PExCand) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (match (isInitialWord ctx pos (PropositionTerms::lit "there") (PropositionTerms::lit "There"))
+    | Option.none => ((nil PExCand), (bud, (ctor Option.none [PrimitiveScan::Rejection])))
+    | Option.some thereKw => (match (PropositionTerms::isWord ctx (pos + 1) (PropositionTerms::lit "exists"))
+        | Option.none => ((nil PExCand), (bud, (ctor Option.none [PrimitiveScan::Rejection])))
+        | Option.some existsKw => (existsHeadsAt ctx bud pos thereKw existsKw))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: prefixForAllKw,
+  parameters: [
+    forKw : GrammarProof::Keyword,
+    everyKw : GrammarProof::Keyword,
+    pending : (List BinderFrontier)
+  ],
+  result: (List BinderFrontier),
+  body: (prim list_fold (fun [everyKw, forKw] (out : (List BinderFrontier)) (f : BinderFrontier) => (prim append out (cons (record BinderFrontier {upto := (project f upto), binders := (project f binders), keywords := (prim append (cons forKw (cons everyKw (nil GrammarProof::Keyword))) (project f keywords) : (List GrammarProof::Keyword))}) (nil BinderFrontier)) : (List BinderFrontier))) (nil BinderFrontier) pending : (List BinderFrontier)),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: forallPendingAt,
+  parameters: [ctx : PropositionTerms::Ctx, bud : PropositionTerms::Bud, pos : Nat],
+  result: ((List BinderFrontier) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (match (isInitialWord ctx pos (PropositionTerms::lit "for") (PropositionTerms::lit "For"))
+    | Option.none => ((nil BinderFrontier), (bud, (ctor Option.none [PrimitiveScan::Rejection])))
+    | Option.some forKw => (match (PropositionTerms::isWord ctx (pos + 1) (PropositionTerms::lit "every"))
+        | Option.none => ((nil BinderFrontier), (bud, (ctor Option.none [PrimitiveScan::Rejection])))
+        | Option.some everyKw => (let chainResult : ((List BinderFrontier) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))) := (binderChainAt ctx bud (pos + 2)); (match (second (second chainResult))
+            | Option.some problem => chainResult
+            | Option.none => ((prefixForAllKw forKw everyKw (first chainResult)), (second chainResult)))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: mkPB,
+  parameters: [
+    m : PMach,
+    stack : (List PFrame),
+    returned : (List PAlt),
+    bud : PropositionTerms::Bud
+  ],
+  result: PMach,
+  body: (record PMach {stack := stack, returned := returned, bud := bud, error := (ctor Option.none [PrimitiveScan::Rejection])}),
+  executable: true
+}
+
+definition{
+  name: isComma,
+  parameters: [ctx : PropositionTerms::Ctx, position : Nat],
+  result: (Option GrammarProof::Keyword),
+  body: (match (PropositionTerms::tokenAt ctx position)
+    | Option.some token => (match token
+        | GrammarProof::TextToken.TokenAtom which => (if (PropositionTerms::same (project (PropositionTerms::atomOr ctx which) text) (PropositionTerms::lit ",")) then (ctor Option.some [GrammarProof::Keyword] (record GrammarProof::Keyword {atom := which, entry := (PropositionTerms::lit "comma")})) else (ctor Option.none [GrammarProof::Keyword]))
+        | GrammarProof::TextToken.TokenIsland opening innerStart innerEnd closing shown => (ctor Option.none [GrammarProof::Keyword]))
+    | Option.none => (ctor Option.none [GrammarProof::Keyword])),
+  executable: true
+}
+
+definition{
+  name: notAltsOf,
+  parameters: [notKw : GrammarProof::Keyword, innerAlts : (List PAlt)],
+  result: (List PAlt),
+  body: (prim list_fold (fun [notKw] (out : (List PAlt)) (innerAlt : PAlt) => (prim append out (cons (record PAlt {upto := (project innerAlt upto), prop := (ctor PropAst.PANot (project innerAlt prop) (cons notKw (nil GrammarProof::Keyword)))}) (nil PAlt)) : (List PAlt))) (nil PAlt) innerAlts : (List PAlt)),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: forAllAltsOf,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    bud : PropositionTerms::Bud,
+    binders : (List PropositionTerms::Binder),
+    keywords : (List GrammarProof::Keyword),
+    bodyAlts : (List PAlt)
+  ],
+  result: ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (prim list_fold (fun [binders, ctx, keywords] (state : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))) (bodyAlt : PAlt) => (match (second (second state))
+    | Option.some problem => state
+    | Option.none => (let charge : (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)) := (PropositionTerms::chargeState ctx (first (second state))); (match (second charge)
+        | Option.some problem => ((first state), ((first charge), (ctor Option.some [PrimitiveScan::Rejection] problem)))
+        | Option.none => ((prim append (first state) (cons (record PAlt {upto := (project bodyAlt upto), prop := (ctor PropAst.PAForAll binders (project bodyAlt prop) keywords)}) (nil PAlt)) : (List PAlt)), ((first charge), (ctor Option.none [PrimitiveScan::Rejection]))))))) ((nil PAlt), (bud, (ctor Option.none [PrimitiveScan::Rejection]))) bodyAlts : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: existsAltsOf,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    bud : PropositionTerms::Bud,
+    binder : PropositionTerms::Binder,
+    unique : Bool,
+    keywords : (List GrammarProof::Keyword),
+    bodyAlts : (List PAlt)
+  ],
+  result: ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (prim list_fold (fun [binder, ctx, keywords, unique] (state : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))) (bodyAlt : PAlt) => (match (second (second state))
+    | Option.some problem => state
+    | Option.none => (let charge : (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)) := (PropositionTerms::chargeState ctx (first (second state))); (match (second charge)
+        | Option.some problem => ((first state), ((first charge), (ctor Option.some [PrimitiveScan::Rejection] problem)))
+        | Option.none => ((prim append (first state) (cons (record PAlt {upto := (project bodyAlt upto), prop := (ctor PropAst.PAExists binder unique (project bodyAlt prop) keywords)}) (nil PAlt)) : (List PAlt)), ((first charge), (ctor Option.none [PrimitiveScan::Rejection]))))))) ((nil PAlt), (bud, (ctor Option.none [PrimitiveScan::Rejection]))) bodyAlts : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: negStartDispatchNot,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    bud : PropositionTerms::Bud,
+    atomicAlts : (List PAlt),
+    forallPending : (List BinderFrontier),
+    existsPending : (List PExCand)
+  ],
+  result: PMach,
+  body: (match (isInitialWord ctx pos (PropositionTerms::lit "not") (PropositionTerms::lit "Not"))
+    | Option.none => (mkPB m (cons (ctor PFrame.PNegForAll pos depth forallPending existsPending atomicAlts (nil PAlt)) rest) (nil PAlt) bud)
+    | Option.some notKw => (mkPB m (cons (ctor PFrame.PNegStart (pos + 1) (depth + 1)) (cons (ctor PFrame.PNegNotResume pos depth notKw forallPending existsPending atomicAlts) rest)) (nil PAlt) bud)),
+  executable: true
+}
+
+definition{
+  name: negStartAfterForAll,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    bud : PropositionTerms::Bud,
+    atomicAlts : (List PAlt),
+    forallPending : (List BinderFrontier)
+  ],
+  result: PMach,
+  body: (let existsResult : ((List PExCand) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))) := (existsPendingAt ctx bud pos); (match (second (second existsResult))
+    | Option.some problem => (failedP m (first (second existsResult)) problem)
+    | Option.none => (negStartDispatchNot ctx m rest pos depth (first (second existsResult)) atomicAlts forallPending (first existsResult)))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: negStartAfterAtomic,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    bud : PropositionTerms::Bud,
+    atomicAlts : (List PAlt)
+  ],
+  result: PMach,
+  body: (let forallResult : ((List BinderFrontier) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))) := (forallPendingAt ctx bud pos); (match (second (second forallResult))
+    | Option.some problem => (failedP m (first (second forallResult)) problem)
+    | Option.none => (negStartAfterForAll ctx m rest pos depth (first (second forallResult)) atomicAlts (first forallResult)))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: negStartAfterCharge,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    bud : PropositionTerms::Bud
+  ],
+  result: PMach,
+  body: (let atomicResult : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))) := (negAtomicAlts ctx bud pos depth); (match (second (second atomicResult))
+    | Option.some problem => (failedP m (first (second atomicResult)) problem)
+    | Option.none => (negStartAfterAtomic ctx m rest pos depth (first (second atomicResult)) (first atomicResult)))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: negStartStep,
+  parameters: [ctx : PropositionTerms::Ctx, m : PMach, rest : (List PFrame), pos : Nat, depth : Nat],
+  result: PMach,
+  body: (let charge : (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)) := (PropositionTerms::chargeState ctx (project m bud)); (match (second charge)
+    | Option.some problem => (failedP m (first charge) problem)
+    | Option.none => (match (PropositionTerms::depthRefusal ctx depth pos)
+        | Option.some problem => (failedP m (first charge) problem)
+        | Option.none => (negStartAfterCharge ctx m rest pos depth (first charge))))),
+  executable: true
+}
+
+definition{
+  name: negNotResumeStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    notKw : GrammarProof::Keyword,
+    forallPending : (List BinderFrontier),
+    existsPending : (List PExCand),
+    atomicAlts : (List PAlt)
+  ],
+  result: PMach,
+  body: (let acc : (List PAlt) := (notAltsOf notKw (project m returned)); (mkP m (cons (ctor PFrame.PNegForAll pos depth forallPending existsPending atomicAlts acc) rest) (nil PAlt))),
+  executable: true
+}
+
+definition{
+  name: negForAllStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    pendingForall : (List BinderFrontier),
+    existsPending : (List PExCand),
+    atomicAlts : (List PAlt),
+    acc : (List PAlt)
+  ],
+  result: PMach,
+  body: (match pendingForall
+    | List.nil => (mkP m (cons (ctor PFrame.PNegExists pos depth existsPending atomicAlts acc) rest) (nil PAlt))
+    | List.cons head restPending => (match (isComma ctx (project head upto))
+        | Option.none => (mkP m (cons (ctor PFrame.PNegForAll pos depth restPending existsPending atomicAlts acc) rest) (nil PAlt))
+        | Option.some commaKw => (mkP m (cons (ctor PFrame.PStart ((project head upto) + 1) (depth + 1)) (cons (ctor PFrame.PNegForAllResume pos depth (project head binders) (prim append (project head keywords) (cons commaKw (nil GrammarProof::Keyword)) : (List GrammarProof::Keyword)) restPending existsPending atomicAlts acc) rest)) (nil PAlt)))),
+  executable: true
+}
+
+definition{
+  name: negForAllResumeStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    binders : (List PropositionTerms::Binder),
+    keywords : (List GrammarProof::Keyword),
+    restPending : (List BinderFrontier),
+    existsPending : (List PExCand),
+    atomicAlts : (List PAlt),
+    acc : (List PAlt)
+  ],
+  result: PMach,
+  body: (let extendedResult : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))) := (forAllAltsOf ctx (project m bud) binders keywords (project m returned)); (match (second (second extendedResult))
+    | Option.some problem => (failedP m (first (second extendedResult)) problem)
+    | Option.none => (let acc2 : (List PAlt) := (prim append acc (first extendedResult) : (List PAlt)); (mkPB m (cons (ctor PFrame.PNegForAll pos depth restPending existsPending atomicAlts acc2) rest) (nil PAlt) (first (second extendedResult)))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: negExistsStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    pendingExists : (List PExCand),
+    atomicAlts : (List PAlt),
+    acc : (List PAlt)
+  ],
+  result: PMach,
+  body: (match pendingExists
+    | List.nil => (mkP m rest (prim append acc atomicAlts : (List PAlt)))
+    | List.cons head restPending => (match (PropositionTerms::isWord ctx (project head upto) (PropositionTerms::lit "such"))
+        | Option.none => (mkP m (cons (ctor PFrame.PNegExists pos depth restPending atomicAlts acc) rest) (nil PAlt))
+        | Option.some suchKw => (match (PropositionTerms::isWord ctx ((project head upto) + 1) (PropositionTerms::lit "that"))
+            | Option.none => (mkP m (cons (ctor PFrame.PNegExists pos depth restPending atomicAlts acc) rest) (nil PAlt))
+            | Option.some thatKw => (mkP m (cons (ctor PFrame.PStart ((project head upto) + 2) (depth + 1)) (cons (ctor PFrame.PNegExistsResume pos depth (project head binder) (project head unique) (prim append (project head headKeywords) (cons suchKw (cons thatKw (nil GrammarProof::Keyword))) : (List GrammarProof::Keyword)) restPending atomicAlts acc) rest)) (nil PAlt))))),
+  executable: true
+}
+
+definition{
+  name: negExistsResumeStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    binder : PropositionTerms::Binder,
+    unique : Bool,
+    keywords : (List GrammarProof::Keyword),
+    restPending : (List PExCand),
+    atomicAlts : (List PAlt),
+    acc : (List PAlt)
+  ],
+  result: PMach,
+  body: (let extendedResult : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))) := (existsAltsOf ctx (project m bud) binder unique keywords (project m returned)); (match (second (second extendedResult))
+    | Option.some problem => (failedP m (first (second extendedResult)) problem)
+    | Option.none => (let acc2 : (List PAlt) := (prim append acc (first extendedResult) : (List PAlt)); (mkPB m (cons (ctor PFrame.PNegExists pos depth restPending atomicAlts acc2) rest) (nil PAlt) (first (second extendedResult)))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: chainWordOf,
+  parameters: [isOr : Bool],
+  result: Bytes,
+  body: (if isOr then (PropositionTerms::lit "or") else (PropositionTerms::lit "and")),
+  executable: true
+}
+
+definition{
+  name: chainItemOf,
+  parameters: [isOr : Bool, items : (List PropAst), keywords : (List GrammarProof::Keyword)],
+  result: PropAst,
+  body: (match items
+    | List.cons only more => (match more
+        | List.nil => only
+        | List.cons secondItem laterItems => (if isOr then (ctor PropAst.PAOr items keywords) else (ctor PropAst.PAAnd items keywords)))
+    | List.nil => (if isOr then (ctor PropAst.PAOr items keywords) else (ctor PropAst.PAAnd items keywords))),
+  executable: true
+}
+
+definition{
+  name: chainSeedOf,
+  parameters: [baseAlts : (List PAlt)],
+  result: (List PChainItem),
+  body: (prim list_fold (fun [] (out : (List PChainItem)) (a : PAlt) => (prim append out (cons (record PChainItem {upto := (project a upto), items := (cons (project a prop) (nil PropAst)), keywords := (nil GrammarProof::Keyword)}) (nil PChainItem)) : (List PChainItem))) (nil PChainItem) baseAlts : (List PChainItem)),
+  executable: true
+}
+
+definition{
+  name: chainGrowOf,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    bud : PropositionTerms::Bud,
+    items : (List PropAst),
+    keywords : (List GrammarProof::Keyword),
+    kw : GrammarProof::Keyword,
+    nextAlts : (List PAlt)
+  ],
+  result: ((List PChainItem) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (prim list_fold (fun [ctx, items, keywords, kw] (state : ((List PChainItem) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))) (a : PAlt) => (match (second (second state))
+    | Option.some problem => state
+    | Option.none => (let charge : (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)) := (PropositionTerms::chargeState ctx (first (second state))); (match (second charge)
+        | Option.some problem => ((first state), ((first charge), (ctor Option.some [PrimitiveScan::Rejection] problem)))
+        | Option.none => ((prim append (first state) (cons (record PChainItem {upto := (project a upto), items := (prim append items (cons (project a prop) (nil PropAst)) : (List PropAst)), keywords := (prim append keywords (cons kw (nil GrammarProof::Keyword)) : (List GrammarProof::Keyword))}) (nil PChainItem)) : (List PChainItem)), ((first charge), (ctor Option.none [PrimitiveScan::Rejection]))))))) ((nil PChainItem), (bud, (ctor Option.none [PrimitiveScan::Rejection]))) nextAlts : ((List PChainItem) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: chainEntryStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    isOr : Bool,
+    pos : Nat,
+    depth : Nat
+  ],
+  result: PMach,
+  body: (if isOr then (mkP m (cons (ctor PFrame.PChainEntry false pos depth) (cons (ctor PFrame.PChainBaseResume isOr pos depth) rest)) (nil PAlt)) else (mkP m (cons (ctor PFrame.PNegStart pos depth) (cons (ctor PFrame.PChainBaseResume isOr pos depth) rest)) (nil PAlt))),
+  executable: true
+}
+
+definition{
+  name: chainBaseResumeStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    isOr : Bool,
+    pos : Nat,
+    depth : Nat
+  ],
+  result: PMach,
+  body: (let seed : (List PChainItem) := (chainSeedOf (project m returned)); (mkP m (cons (ctor PFrame.PChainRound isOr depth seed (nil PChainItem) (nil PAlt)) rest) (nil PAlt))),
+  executable: true
+}
+
+definition{
+  name: chainRoundStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    isOr : Bool,
+    depth : Nat,
+    pending : (List PChainItem),
+    grown : (List PChainItem),
+    doneAlts : (List PAlt)
+  ],
+  result: PMach,
+  body: (match pending
+    | List.nil => (match grown
+        | List.nil => (mkP m rest doneAlts)
+        | List.cons grownHead grownTail => (mkP m (cons (ctor PFrame.PChainRound isOr depth grown (nil PChainItem) doneAlts) rest) (nil PAlt)))
+    | List.cons head restPending => (let altHere : PropAst := (chainItemOf isOr (project head items) (project head keywords)); (let doneAlts2 : (List PAlt) := (prim append doneAlts (cons (record PAlt {upto := (project head upto), prop := altHere}) (nil PAlt)) : (List PAlt)); (match (PropositionTerms::isWord ctx (project head upto) (chainWordOf isOr))
+        | Option.none => (mkP m (cons (ctor PFrame.PChainRound isOr depth restPending grown doneAlts2) rest) (nil PAlt))
+        | Option.some kw => (let nextFrame : PFrame := (if isOr then (ctor PFrame.PChainEntry false ((project head upto) + 1) depth) else (ctor PFrame.PNegStart ((project head upto) + 1) depth)); (mkP m (cons nextFrame (cons (ctor PFrame.PChainExtendResume isOr depth (project head items) (project head keywords) kw restPending grown doneAlts2) rest)) (nil PAlt))))))),
+  executable: true
+}
+
+definition{
+  name: chainExtendResumeStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    isOr : Bool,
+    depth : Nat,
+    items : (List PropAst),
+    keywords : (List GrammarProof::Keyword),
+    kw : GrammarProof::Keyword,
+    restPending : (List PChainItem),
+    grown : (List PChainItem),
+    doneAlts : (List PAlt)
+  ],
+  result: PMach,
+  body: (let grown2result : ((List PChainItem) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))) := (chainGrowOf ctx (project m bud) items keywords kw (project m returned)); (match (second (second grown2result))
+    | Option.some problem => (failedP m (first (second grown2result)) problem)
+    | Option.none => (let grown2 : (List PChainItem) := (prim append grown (first grown2result) : (List PChainItem)); (mkPB m (cons (ctor PFrame.PChainRound isOr depth restPending grown2 doneAlts) rest) (nil PAlt) (first (second grown2result)))))),
+  executable: true
+}
+
+definition{
+  name: pushImplication,
+  parameters: [pos : Nat, depth : Nat, rest : (List PFrame)],
+  result: (List PFrame),
+  body: (cons (ctor PFrame.PChainEntry true pos depth) (cons (ctor PFrame.PImplLeftResume pos depth) rest)),
+  executable: true
+}
+
+definition{
+  name: pushEquivalence,
+  parameters: [pos : Nat, depth : Nat, rest : (List PFrame)],
+  result: (List PFrame),
+  body: (pushImplication pos depth (cons (ctor PFrame.PEquivLeftResume pos depth) rest)),
+  executable: true
+}
+
+definition{
+  name: implAltsOf,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    bud : PropositionTerms::Bud,
+    left : PropAst,
+    kw : GrammarProof::Keyword,
+    rightAlts : (List PAlt)
+  ],
+  result: ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (prim list_fold (fun [ctx, kw, left] (state : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))) (r : PAlt) => (match (second (second state))
+    | Option.some problem => state
+    | Option.none => (let charge : (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)) := (PropositionTerms::chargeState ctx (first (second state))); (match (second charge)
+        | Option.some problem => ((first state), ((first charge), (ctor Option.some [PrimitiveScan::Rejection] problem)))
+        | Option.none => ((prim append (first state) (cons (record PAlt {upto := (project r upto), prop := (ctor PropAst.PAImplies left (project r prop) (cons kw (nil GrammarProof::Keyword)))}) (nil PAlt)) : (List PAlt)), ((first charge), (ctor Option.none [PrimitiveScan::Rejection]))))))) ((nil PAlt), (bud, (ctor Option.none [PrimitiveScan::Rejection]))) rightAlts : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: implLeftResumeStep,
+  parameters: [ctx : PropositionTerms::Ctx, m : PMach, rest : (List PFrame), pos : Nat, depth : Nat],
+  result: PMach,
+  body: (mkP m (cons (ctor PFrame.PImplPending pos depth (project m returned) (nil PAlt)) rest) (nil PAlt)),
+  executable: true
+}
+
+definition{
+  name: implPendingStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    pendingLeft : (List PAlt),
+    acc : (List PAlt)
+  ],
+  result: PMach,
+  body: (match pendingLeft
+    | List.nil => (mkP m rest acc)
+    | List.cons head restPending => (match (PropositionTerms::isWord ctx (project head upto) (PropositionTerms::lit "implies"))
+        | Option.none => (mkP m (cons (ctor PFrame.PImplPending pos depth restPending (prim append acc (cons head (nil PAlt)) : (List PAlt))) rest) (nil PAlt))
+        | Option.some kw => (mkP m (pushImplication ((project head upto) + 1) (depth + 1) (cons (ctor PFrame.PImplRightResume pos depth (project head upto) (project head prop) kw restPending acc) rest)) (nil PAlt)))),
+  executable: true
+}
+
+definition{
+  name: implRightResumeStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    afterLeft : Nat,
+    left : PropAst,
+    kw : GrammarProof::Keyword,
+    restPending : (List PAlt),
+    acc : (List PAlt)
+  ],
+  result: PMach,
+  body: (let extendedResult : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))) := (implAltsOf ctx (project m bud) left kw (project m returned)); (match (second (second extendedResult))
+    | Option.some problem => (failedP m (first (second extendedResult)) problem)
+    | Option.none => (let acc1 : (List PAlt) := (prim append acc (first extendedResult) : (List PAlt)); (let acc2 : (List PAlt) := (prim append acc1 (cons (record PAlt {upto := afterLeft, prop := left}) (nil PAlt)) : (List PAlt)); (mkPB m (cons (ctor PFrame.PImplPending pos depth restPending acc2) rest) (nil PAlt) (first (second extendedResult))))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: equivAltsOf,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    bud : PropositionTerms::Bud,
+    left : PropAst,
+    k1 : GrammarProof::Keyword,
+    k2 : GrammarProof::Keyword,
+    k3 : GrammarProof::Keyword,
+    k4 : GrammarProof::Keyword,
+    rightAlts : (List PAlt)
+  ],
+  result: ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))),
+  body: (prim list_fold (fun [ctx, k1, k2, k3, k4, left] (state : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))) (r : PAlt) => (match (second (second state))
+    | Option.some problem => state
+    | Option.none => (let charge : (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)) := (PropositionTerms::chargeState ctx (first (second state))); (match (second charge)
+        | Option.some problem => ((first state), ((first charge), (ctor Option.some [PrimitiveScan::Rejection] problem)))
+        | Option.none => ((prim append (first state) (cons (record PAlt {upto := (project r upto), prop := (ctor PropAst.PAIff left (project r prop) (cons k1 (cons k2 (cons k3 (cons k4 (nil GrammarProof::Keyword))))))}) (nil PAlt)) : (List PAlt)), ((first charge), (ctor Option.none [PrimitiveScan::Rejection]))))))) ((nil PAlt), (bud, (ctor Option.none [PrimitiveScan::Rejection]))) rightAlts : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: equivLeftResumeStep,
+  parameters: [ctx : PropositionTerms::Ctx, m : PMach, rest : (List PFrame), pos : Nat, depth : Nat],
+  result: PMach,
+  body: (mkP m (cons (ctor PFrame.PEquivPending pos depth (project m returned) (nil PAlt)) rest) (nil PAlt)),
+  executable: true
+}
+
+definition{
+  name: equivBareLeft,
+  parameters: [
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    head : PAlt,
+    restPending : (List PAlt),
+    acc : (List PAlt)
+  ],
+  result: PMach,
+  body: (mkP m (cons (ctor PFrame.PEquivPending pos depth restPending (prim append acc (cons head (nil PAlt)) : (List PAlt))) rest) (nil PAlt)),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: equivPendingStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    pendingLeft : (List PAlt),
+    acc : (List PAlt)
+  ],
+  result: PMach,
+  body: (match pendingLeft
+    | List.nil => (mkP m rest acc)
+    | List.cons head restPending => (match (PropositionTerms::isWord ctx (project head upto) (PropositionTerms::lit "if"))
+        | Option.none => (equivBareLeft m rest pos depth head restPending acc)
+        | Option.some k1 => (match (PropositionTerms::isWord ctx ((project head upto) + 1) (PropositionTerms::lit "and"))
+            | Option.none => (equivBareLeft m rest pos depth head restPending acc)
+            | Option.some k2 => (match (PropositionTerms::isWord ctx ((project head upto) + 2) (PropositionTerms::lit "only"))
+                | Option.none => (equivBareLeft m rest pos depth head restPending acc)
+                | Option.some k3 => (match (PropositionTerms::isWord ctx ((project head upto) + 3) (PropositionTerms::lit "if"))
+                    | Option.none => (equivBareLeft m rest pos depth head restPending acc)
+                    | Option.some k4 => (mkP m (pushImplication ((project head upto) + 4) (depth + 1) (cons (ctor PFrame.PEquivRightResume pos depth (project head upto) (project head prop) k1 k2 k3 k4 restPending acc) rest)) (nil PAlt))))))),
+  executable: true
+}
+
+definition{
+  name: equivRightResumeStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    afterLeft : Nat,
+    left : PropAst,
+    k1 : GrammarProof::Keyword,
+    k2 : GrammarProof::Keyword,
+    k3 : GrammarProof::Keyword,
+    k4 : GrammarProof::Keyword,
+    restPending : (List PAlt),
+    acc : (List PAlt)
+  ],
+  result: PMach,
+  body: (let extendedResult : ((List PAlt) * (PropositionTerms::Bud * (Option PrimitiveScan::Rejection))) := (equivAltsOf ctx (project m bud) left k1 k2 k3 k4 (project m returned)); (match (second (second extendedResult))
+    | Option.some problem => (failedP m (first (second extendedResult)) problem)
+    | Option.none => (let acc1 : (List PAlt) := (prim append acc (first extendedResult) : (List PAlt)); (let acc2 : (List PAlt) := (prim append acc1 (cons (record PAlt {upto := afterLeft, prop := left}) (nil PAlt)) : (List PAlt)); (mkPB m (cons (ctor PFrame.PEquivPending pos depth restPending acc2) rest) (nil PAlt) (first (second extendedResult))))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: condAltsOf,
+  parameters: [
+    antecedent : PropAst,
+    ifKw : GrammarProof::Keyword,
+    commaKw : GrammarProof::Keyword,
+    thenKw : GrammarProof::Keyword,
+    consequentAlts : (List PAlt)
+  ],
+  result: (List PAlt),
+  body: (prim list_fold (fun [antecedent, commaKw, ifKw, thenKw] (out : (List PAlt)) (c : PAlt) => (prim append out (cons (record PAlt {upto := (project c upto), prop := (ctor PropAst.PACond antecedent (project c prop) (cons ifKw (cons commaKw (cons thenKw (nil GrammarProof::Keyword)))))}) (nil PAlt)) : (List PAlt))) (nil PAlt) consequentAlts : (List PAlt)),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: pFinishStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    acc : (List PAlt)
+  ],
+  result: PMach,
+  body: (mkP m rest (prim append acc (project m returned) : (List PAlt))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: pConsequentResumeStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    ifKw : GrammarProof::Keyword,
+    commaKw : GrammarProof::Keyword,
+    thenKw : GrammarProof::Keyword,
+    antecedent : PropAst,
+    restPending : (List PAlt),
+    acc : (List PAlt)
+  ],
+  result: PMach,
+  body: (let acc2 : (List PAlt) := (prim append acc (condAltsOf antecedent ifKw commaKw thenKw (project m returned)) : (List PAlt)); (mkP m (cons (ctor PFrame.PAntecedentPending pos depth restPending ifKw acc2) rest) (nil PAlt))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: pAntecedentPendingStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    pendingAntecedents : (List PAlt),
+    ifKw : GrammarProof::Keyword,
+    acc : (List PAlt)
+  ],
+  result: PMach,
+  body: (match pendingAntecedents
+    | List.nil => (mkP m (pushEquivalence pos depth (cons (ctor PFrame.PFinish pos depth acc) rest)) (nil PAlt))
+    | List.cons head restPending => (match (isComma ctx (project head upto))
+        | Option.none => (mkP m (cons (ctor PFrame.PAntecedentPending pos depth restPending ifKw acc) rest) (nil PAlt))
+        | Option.some commaKw => (match (PropositionTerms::isWord ctx ((project head upto) + 1) (PropositionTerms::lit "then"))
+            | Option.none => (mkP m (cons (ctor PFrame.PAntecedentPending pos depth restPending ifKw acc) rest) (nil PAlt))
+            | Option.some thenKw => (mkP m (cons (ctor PFrame.PStart ((project head upto) + 2) (depth + 1)) (cons (ctor PFrame.PConsequentResume pos depth ifKw commaKw thenKw (project head prop) restPending acc) rest)) (nil PAlt))))),
+  executable: true
+}
+
+definition{
+  name: ifLeftResumeStep,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    m : PMach,
+    rest : (List PFrame),
+    pos : Nat,
+    depth : Nat,
+    ifKw : GrammarProof::Keyword
+  ],
+  result: PMach,
+  body: (mkP m (cons (ctor PFrame.PAntecedentPending pos depth (project m returned) ifKw (nil PAlt)) rest) (nil PAlt)),
+  executable: true
+}
+
+definition{
+  name: pStartAfterCharge,
+  parameters: [ctx : PropositionTerms::Ctx, m : PMach, rest : (List PFrame), pos : Nat, depth : Nat, bud : PropositionTerms::Bud],
+  result: PMach,
+  body: (match (isInitialWord ctx pos (PropositionTerms::lit "if") (PropositionTerms::lit "If"))
+    | Option.none => (mkPB m (pushEquivalence pos depth (cons (ctor PFrame.PFinish pos depth (nil PAlt)) rest)) (nil PAlt) bud)
+    | Option.some ifKw => (mkPB m (cons (ctor PFrame.PStart (pos + 1) (depth + 1)) (cons (ctor PFrame.PIfLeftResume pos depth ifKw) rest)) (nil PAlt) bud)),
+  executable: true
+}
+
+definition{
+  name: pStartStep,
+  parameters: [ctx : PropositionTerms::Ctx, m : PMach, rest : (List PFrame), pos : Nat, depth : Nat],
+  result: PMach,
+  body: (let charge : (PropositionTerms::Bud * (Option PrimitiveScan::Rejection)) := (PropositionTerms::chargeState ctx (project m bud)); (match (second charge)
+    | Option.some problem => (failedP m (first charge) problem)
+    | Option.none => (match (PropositionTerms::depthRefusal ctx depth pos)
+        | Option.some problem => (failedP m (first charge) problem)
+        | Option.none => (pStartAfterCharge ctx m rest pos depth (first charge))))),
+  executable: true
+}
+
+definition{
+  name: pStep,
+  parameters: [ctx : PropositionTerms::Ctx, m : PMach],
+  result: (Option PMach),
+  body: (match (project m error)
+    | Option.some problem => (ctor Option.none [PMach])
+    | Option.none => (match (project m stack)
+        | List.nil => (ctor Option.none [PMach])
+        | List.cons frame rest => (ctor Option.some [PMach] (match frame
+            | PFrame.PStart pos depth => (pStartStep ctx m rest pos depth)
+            | PFrame.PIfLeftResume pos depth ifKw => (ifLeftResumeStep ctx m rest pos depth ifKw)
+            | PFrame.PAntecedentPending pos depth pendingAntecedents ifKw acc => (pAntecedentPendingStep ctx m rest pos depth pendingAntecedents ifKw acc)
+            | PFrame.PConsequentResume pos depth ifKw commaKw thenKw antecedent restPending acc => (pConsequentResumeStep ctx m rest pos depth ifKw commaKw thenKw antecedent restPending acc)
+            | PFrame.PFinish pos depth acc => (pFinishStep ctx m rest pos depth acc)
+            | PFrame.PEquivLeftResume pos depth => (equivLeftResumeStep ctx m rest pos depth)
+            | PFrame.PEquivPending pos depth pendingLeft acc => (equivPendingStep ctx m rest pos depth pendingLeft acc)
+            | PFrame.PEquivRightResume pos depth afterLeft left k1 k2 k3 k4 restPending acc => (equivRightResumeStep ctx m rest pos depth afterLeft left k1 k2 k3 k4 restPending acc)
+            | PFrame.PImplLeftResume pos depth => (implLeftResumeStep ctx m rest pos depth)
+            | PFrame.PImplPending pos depth pendingLeft acc => (implPendingStep ctx m rest pos depth pendingLeft acc)
+            | PFrame.PImplRightResume pos depth afterLeft left kw restPending acc => (implRightResumeStep ctx m rest pos depth afterLeft left kw restPending acc)
+            | PFrame.PChainEntry isOr pos depth => (chainEntryStep ctx m rest isOr pos depth)
+            | PFrame.PChainBaseResume isOr pos depth => (chainBaseResumeStep ctx m rest isOr pos depth)
+            | PFrame.PChainRound isOr depth pending grown doneAlts => (chainRoundStep ctx m rest isOr depth pending grown doneAlts)
+            | PFrame.PChainExtendResume isOr depth items keywords kw restPending grown doneAlts => (chainExtendResumeStep ctx m rest isOr depth items keywords kw restPending grown doneAlts)
+            | PFrame.PNegStart pos depth => (negStartStep ctx m rest pos depth)
+            | PFrame.PNegNotResume pos depth notKw forallPending existsPending atomicAlts => (negNotResumeStep ctx m rest pos depth notKw forallPending existsPending atomicAlts)
+            | PFrame.PNegForAll pos depth pendingForall existsPending atomicAlts acc => (negForAllStep ctx m rest pos depth pendingForall existsPending atomicAlts acc)
+            | PFrame.PNegForAllResume pos depth binders keywords restPending existsPending atomicAlts acc => (negForAllResumeStep ctx m rest pos depth binders keywords restPending existsPending atomicAlts acc)
+            | PFrame.PNegExists pos depth pendingExists atomicAlts acc => (negExistsStep ctx m rest pos depth pendingExists atomicAlts acc)
+            | PFrame.PNegExistsResume pos depth binder unique keywords restPending atomicAlts acc => (negExistsResumeStep ctx m rest pos depth binder unique keywords restPending atomicAlts acc))))),
+  executable: true
+}
+
+definition{
+  name: completeAltsOf,
+  parameters: [tokenCount : Nat, alts : (List PAlt)],
+  result: (List PropAst),
+  body: (prim list_fold (fun [tokenCount] (out : (List PropAst)) (a : PAlt) => (if ((project a upto) =? tokenCount) then (prim append out (cons (project a prop) (nil PropAst)) : (List PropAst)) else out)) (nil PropAst) alts : (List PropAst)),
+  executable: true
+}
+
+definition{
+  name: noParseSpan,
+  parameters: [ctx : PropositionTerms::Ctx, path : Bytes],
+  result: PrimitiveScan::Place,
+  body: (match (PropositionTerms::tokenAt ctx 0)
+    | Option.some token => (PropositionTerms::placeAt ctx (GrammarProof::firstAtom token))
+    | Option.none => (wholeFilePlace path)),
+  executable: true
+}
+
+definition{
+  name: noParseOrUnknown,
+  parameters: [
+    ctx : PropositionTerms::Ctx,
+    path : Bytes,
+    atoms : (List PrimitiveScan::Atom),
+    tokens : (List GrammarProof::TextToken),
+    edges : (List (List PropositionTerms::TEdge)),
+    maxEdges : Nat,
+    maxStates : Nat,
+    maxDepth : Nat,
+    statesBefore : Nat,
+    edgesBefore : Nat
+  ],
+  result: (Result (List PropAst) PrimitiveScan::Rejection),
+  body: (match (PropositionTerms::unknownAtom path atoms tokens edges maxEdges maxStates maxDepth statesBefore edgesBefore)
+    | Result.error problem => (ctor Result.error [(List PropAst), PrimitiveScan::Rejection] problem)
+    | Result.ok found => (match found
+        | Option.some unknown => (ctor Result.error [(List PropAst), PrimitiveScan::Rejection] unknown)
+        | Option.none => (ctor Result.error [(List PropAst), PrimitiveScan::Rejection] (PropositionTerms::placed (PropositionTerms::lit "LLP2001") (PropositionTerms::lit "no parse under the controlled proposition grammar") (ctor Option.some [PrimitiveScan::Place] (noParseSpan ctx path)))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: propositionSentenceAt,
+  parameters: [
+    path : Bytes,
+    atoms : (List PrimitiveScan::Atom),
+    tokens : (List GrammarProof::TextToken),
+    edges : (List (List PropositionTerms::TEdge)),
+    maxEdges : Nat,
+    maxStates : Nat,
+    maxDepth : Nat,
+    statesBefore : Nat,
+    edgesBefore : Nat
+  ],
+  result: (Result (List PropAst) PrimitiveScan::Rejection),
+  body: (let ctx : PropositionTerms::Ctx := (PropositionTerms::context path atoms tokens edges maxEdges maxStates maxDepth); (let final : PMach := (first (prim iterate_until (fun [ctx] (m : PMach) => (pStep ctx m)) ((prim multiply (maxStates + 2) 256 : Nat) + 256) (record PMach {stack := (cons (ctor PFrame.PStart 0 1) (nil PFrame)), returned := (nil PAlt), bud := (PropositionTerms::fresh statesBefore edgesBefore), error := (ctor Option.none [PrimitiveScan::Rejection])}) : (PMach * Bool))); (match (project final error)
+    | Option.some problem => (ctor Result.error [(List PropAst), PrimitiveScan::Rejection] problem)
+    | Option.none => (let complete : (List PropAst) := (completeAltsOf (prim length tokens : Nat) (project final returned)); (match complete
+        | List.cons firstComplete laterComplete => (ctor Result.ok [(List PropAst), PrimitiveScan::Rejection] complete)
+        | List.nil => (noParseOrUnknown ctx path atoms tokens edges maxEdges maxStates maxDepth statesBefore edgesBefore)))))),
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+\end{semanticmodule}
+\end{lexlean}

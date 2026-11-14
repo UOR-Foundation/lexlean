@@ -57,6 +57,7 @@ mod core_print;
 mod core_read;
 mod grammar_math;
 mod proposition_terms;
+mod proposition_sentence;
 
 /// The module the first component lives in.
 const MODULE: &str = "LexLeanBoot.AxiomOutput";
@@ -2590,6 +2591,7 @@ fn case(id: &str) {
         "BS-40" => core_read::case(),
         "BS-42" => grammar_math::case(),
         "BS-43" => proposition_terms::case(),
+        "BS-44" => proposition_sentence::case(),
         other => panic!("no bootstrap case is wired for {other}"),
     }
 }

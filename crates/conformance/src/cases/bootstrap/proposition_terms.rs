@@ -129,11 +129,15 @@ fn category_code(category: Category) -> usize {
     }
 }
 
+/// Shared with `proposition_sentence` (`BS-44`), which embeds this module's
+/// `Term`/`Binder` values in its own `PropAst`: one `Forms` accumulator per
+/// case, not two, since a form index is only meaningful against the `edges`
+/// it was assigned from.
 #[derive(Default)]
-struct Forms(Vec<FormRef>);
+pub(super) struct Forms(Vec<FormRef>);
 
 impl Forms {
-    fn index(&mut self, form: &FormRef) -> usize {
+    pub(super) fn index(&mut self, form: &FormRef) -> usize {
         if let Some(found) = self.0.iter().position(|known| known == form) {
             return found;
         }
@@ -141,7 +145,7 @@ impl Forms {
         self.0.len() - 1
     }
 
-    fn known(&self, form: &FormRef) -> usize {
+    pub(super) fn known(&self, form: &FormRef) -> usize {
         self.0
             .iter()
             .position(|known| known == form)
@@ -218,7 +222,7 @@ fn token_value(token: &TextToken) -> Value {
     }
 }
 
-fn keywords_value(keywords: &[Keyword]) -> Value {
+pub(super) fn keywords_value(keywords: &[Keyword]) -> Value {
     list(
         keywords
             .iter()
@@ -227,7 +231,7 @@ fn keywords_value(keywords: &[Keyword]) -> Value {
     )
 }
 
-fn binder_value(binder: &BinderAst, forms: &Forms) -> Value {
+pub(super) fn binder_value(binder: &BinderAst, forms: &Forms) -> Value {
     let phrase = match &binder.type_phrase {
         TypePhraseAst::Noun { candidates, atoms } => adt(
             0,
@@ -257,7 +261,7 @@ fn binder_value(binder: &BinderAst, forms: &Forms) -> Value {
     )
 }
 
-fn term_value(term: &TermPhraseAst, forms: &Forms) -> Value {
+pub(super) fn term_value(term: &TermPhraseAst, forms: &Forms) -> Value {
     match term {
         TermPhraseAst::Island(token) => adt(0, vec![token_value(token)]),
         TermPhraseAst::NounOf {
