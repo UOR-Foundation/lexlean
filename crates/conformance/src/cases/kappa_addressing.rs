@@ -2378,11 +2378,15 @@ impl Proto {
         self
     }
     fn fixed32(&mut self, number: u64, value: u32) -> &mut Self {
-        self.tag(number, 5).0.extend_from_slice(&value.to_le_bytes());
+        self.tag(number, 5)
+            .0
+            .extend_from_slice(&value.to_le_bytes());
         self
     }
     fn fixed64(&mut self, number: u64, value: u64) -> &mut Self {
-        self.tag(number, 1).0.extend_from_slice(&value.to_le_bytes());
+        self.tag(number, 1)
+            .0
+            .extend_from_slice(&value.to_le_bytes());
         self
     }
     fn done(&mut self) -> Vec<u8> {
@@ -2650,7 +2654,9 @@ impl Seeded {
         out.varint(1, version);
         for _ in 0..self.below(3) {
             let mut opset = Proto::default();
-            let domain = self.pick(&[&b""[..], b"", b"ai.onnx.ml", b"com.x"]).to_vec();
+            let domain = self
+                .pick(&[&b""[..], b"", b"ai.onnx.ml", b"com.x"])
+                .to_vec();
             opset.bytes(1, &domain);
             opset.varint(2, *self.pick(&[0_u64, 1, 13, 17, 1 << 63]));
             let opset = opset.done();
@@ -2740,10 +2746,7 @@ fn onnx_edges() -> Vec<Vec<u8>> {
     let mut deep = Proto::default();
     let mut message = Proto::default().varint(3, 7).fixed32(1, 9).done();
     for level in 0..34 {
-        message = Proto::default()
-            .bytes(2, &message)
-            .varint(1, level)
-            .done();
+        message = Proto::default().bytes(2, &message).varint(1, level).done();
     }
     let mut info = Proto::default();
     info.bytes(1, b"x").bytes(2, &message);
@@ -2760,8 +2763,12 @@ fn onnx_edges() -> Vec<Vec<u8>> {
         onnx_model(&simple, &[(b"", 1 << 63)]),
         onnx_model(&looped, &[(b"", 13)]),
         onnx_model(&deep, &[(b"", 13)]),
-        vec![0x08, 0x89, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x00],
-        vec![0x08, 0x89, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x00],
+        vec![
+            0x08, 0x89, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x00,
+        ],
+        vec![
+            0x08, 0x89, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x00,
+        ],
         vec![0x08, 0x09, 0x03, 0x00],
         vec![0x08, 0x09, 0x3a, 0xff, 0xff, 0xff, 0xff, 0x0f],
     ];
