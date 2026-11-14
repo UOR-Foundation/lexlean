@@ -240,7 +240,8 @@ pub fn inspection_driver(
                 elements: names
                     .iter()
                     .map(|name| {
-                        // Checked name quotations reject absent declarations before inspection.
+                        // Construct names structurally so absent declarations reach the inspector;
+                        // checked quotations would reject them during elaboration.
                         name.split('.').fold(
                             ToolTerm::Construct {
                                 constructor: "Lean.Name.anonymous".to_owned(),

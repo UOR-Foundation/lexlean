@@ -166,8 +166,8 @@ pub fn inspect(engine: &Engine, request: &InspectionRequest) -> Result<Vec<u8>, 
         .end()
         .map_err(|error| refusal(format!("noisy kernel inspection: {error}")))?;
     if raw.spec != "lexlean/kernel-inspection/1"
-        || raw.lean.version != "4.32.1"
-        || raw.lean.githash != "f054605aea4b840552cca2e725580bffd1e1b704"
+        || raw.lean.version != "4.32.2"
+        || raw.lean.githash != "f3b06c705e6c85f5314019d5d3baab0fec5b580c"
         || raw.declarations.len() != request.declarations.len()
         || raw
             .declarations
