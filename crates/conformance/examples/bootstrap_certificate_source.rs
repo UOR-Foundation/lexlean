@@ -12,6 +12,11 @@ fn main() {
     let output = PathBuf::from(args.next().expect("new output directory argument"));
     assert!(args.next().is_none(), "exactly one output directory");
     std::fs::create_dir(&output).expect("output must not already exist");
+    let compiler_identity = lexlean::compiler_semantics_id_for("1.2").to_hex();
+    assert_eq!(
+        compiler_identity, "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+        "retained producer compiler identity"
+    );
 
     // Read the retained producer's lock; computing a new one would hide drift.
     let project = P::bootstrap();
@@ -57,6 +62,8 @@ fn main() {
     let summary = serde_json::json!({
         "kind": "source-generation-only",
         "accepted": false,
+        "compiler_semantics": compiler_identity,
+        "not_exercised": ["aggregate production budget", "Lean elaboration", "kernel replay", "axiom audit", "certificates B and E"],
         "producer": "9fd01c31e40bb29577833825f902fafcceedb49a",
         "retained_run": "43620506158",
         "semantic_id": identity,
