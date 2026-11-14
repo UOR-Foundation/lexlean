@@ -2512,6 +2512,9 @@ pub(crate) fn run(id: &str) {
                 "tests/production-export/*/packages/*)",
                 "Regenerate the written outputs of",
                 "superseded=()",
+                // The delete of a superseded branch is leased to the head
+                // inspected, and its pull request closes only after it.
+                "--force-with-lease=\"refs/heads/$ref:$sha\" origin \":refs/heads/$ref\"",
             ] {
                 assert!(
                     merge.contains(needed),

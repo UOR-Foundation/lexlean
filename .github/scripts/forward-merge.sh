@@ -152,7 +152,8 @@ while read -r number ref; do
   extra=$(git log --format='%ae %s' "origin/$ref" --not "origin/$next" "$source" |
     grep -v -x -E "$bot_pattern (Merge release/v[0-9.]+ into release/v[0-9.]+|Regenerate the written outputs of [0-9a-f]+)" || true)
   if [ -z "$extra" ]; then
-    superseded+=("$number")
+    # The head inspected here is the lease of its deletion below.
+    superseded+=("$number $ref $(git rev-parse "origin/$ref")")
   else
     kept+=("$number")
   fi
@@ -182,7 +183,22 @@ else
 fi
 [ "$clean" = true ] || say "Finish by hand: $(printf '`%s` ' "${unresolved[@]}")"
 [ "${#kept[@]}" -eq 0 ] || say "Left open, with work not yet in \`$next\`: $(printf '#%s ' "${kept[@]}")"
+# A branch is deleted only while its head is still the one inspected (a lease:
+# a push to it since then refuses the delete), and its pull request is closed
+# only once that delete succeeded. Any other is kept and listed.
+moved=()
 for older in "${superseded[@]}"; do
-  gh pr close "$older" --repo "$repo" --delete-branch --comment "Superseded by $url." ||
-    echo "::warning::#$older not closed"
+  read -r number ref sha <<<"$older"
+  if git push --quiet --force-with-lease="refs/heads/$ref:$sha" origin ":refs/heads/$ref"; then
+    gh pr close "$number" --repo "$repo" --comment "Superseded by $url." ||
+      gh pr comment "$number" --repo "$repo" --body "Superseded by $url." ||
+      echo "::warning::#$number not closed"
+  else
+    moved+=("$number")
+  fi
 done
+if [ "${#moved[@]}" -gt 0 ]; then
+  note="Older forward pull requests whose branch moved since this run read it, left open: $(printf '#%s ' "${moved[@]}")"
+  say "$note"
+  gh pr comment "$url" --repo "$repo" --body "$note" || true
+fi
