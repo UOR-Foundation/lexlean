@@ -449,7 +449,8 @@ pub fn is_lean_syntax(literal: &str) -> bool {
     // A tactic block: `by` and a space, then a tactic of Lean's.
     if text.split("by ").skip(1).enumerate().any(|(index, rest)| {
         let before = text.split("by ").take(index + 1).collect::<String>();
-        let word_start = before.is_empty() || before.ends_with(|c: char| c.is_whitespace() || c == '(');
+        let word_start =
+            before.is_empty() || before.ends_with(|c: char| c.is_whitespace() || c == '(');
         let word: String = rest
             .chars()
             .take_while(|c| c.is_alphanumeric() || *c == '_')
@@ -465,11 +466,8 @@ pub fn is_lean_syntax(literal: &str) -> bool {
             .map(|rest| rest.trim().to_owned())
             .filter(|rest| !rest.is_empty())
     };
-    let begins = |line: &str, words: &[&str]| {
-        words
-            .iter()
-            .any(|word| rest_after(line, word).is_some())
-    };
+    let begins =
+        |line: &str, words: &[&str]| words.iter().any(|word| rest_after(line, word).is_some());
     text.lines().any(|line| {
         // The closing of a namespace or section is `end` and one name.
         if rest_after(line, "end").is_some_and(|name| !name.contains(' ')) {
