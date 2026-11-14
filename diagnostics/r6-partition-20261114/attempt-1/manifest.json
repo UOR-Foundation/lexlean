@@ -1,0 +1,232 @@
+{
+  "accepted": false,
+  "audit": "LexLeanPreserve.Audit",
+  "certificates": [
+    "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part0",
+    "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part1",
+    "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part2",
+    "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part3",
+    "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part4",
+    "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part5",
+    "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part6",
+    "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part7",
+    "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6"
+  ],
+  "files": [
+    {
+      "module": "LexLeanRuntime.Portable",
+      "path": "LexLeanRuntime/Portable.lean",
+      "sha256": "891a955e91a7cc381fc08d733d3057446dc08421320fab76bdf43380f491ac54"
+    },
+    {
+      "module": "LexLeanRuntime.Collections",
+      "path": "LexLeanRuntime/Collections.lean",
+      "sha256": "c33aef96970873fbdcf862fcc9975aed562a758d261dde7337d0175503019527"
+    },
+    {
+      "module": "LexLeanRuntime.Models",
+      "path": "LexLeanRuntime/Models.lean",
+      "sha256": "384e23a592cd7413237b6391d7d4c47eab189189ce0fb72f51486a73f1ce598d"
+    },
+    {
+      "module": "LexLeanRuntime.Reasoning",
+      "path": "LexLeanRuntime/Reasoning.lean",
+      "sha256": "6d82c5f086c05ca2392a0b251812bfd586736a86d3e815405b75a596cd105983"
+    },
+    {
+      "module": "LexLeanRuntime.Laws",
+      "path": "LexLeanRuntime/Laws.lean",
+      "sha256": "fd58285242608c644d861c463a4aba5a7d161b4701942c27fa251114049a16fd"
+    },
+    {
+      "module": "LexLeanTarget.TargetSyntax",
+      "path": "LexLeanTarget/TargetSyntax.lean",
+      "sha256": "c0e0bb061cfcdc7e7f4434e13fc8b7298dcb701db9ea8189e012d8068e04ee0c"
+    },
+    {
+      "module": "LexLeanTarget.TargetSemantics",
+      "path": "LexLeanTarget/TargetSemantics.lean",
+      "sha256": "55206f1bafd9608b991b5181a2d2c531aca490e571143278ba05cdaa765c1cbb"
+    },
+    {
+      "module": "LexLeanTarget.RustSyntax",
+      "path": "LexLeanTarget/RustSyntax.lean",
+      "sha256": "4e01ec67d0dbebcc47a28a68dd8aee6a26bd932864398e971cd608276a475d43"
+    },
+    {
+      "module": "LexLeanTarget.RustSemantics",
+      "path": "LexLeanTarget/RustSemantics.lean",
+      "sha256": "dc7d4a58f163bfe47ed521b15942ee72dfc932c2900170cec5e30476a378dc20"
+    },
+    {
+      "module": "LexLeanPreservation.Core",
+      "path": "LexLeanPreservation/Core.lean",
+      "sha256": "6d9876077142198b56f31cbddd8de7ea3e66845cbb0853611b92c70c3fd940da"
+    },
+    {
+      "module": "LexLeanPreservation.Values",
+      "path": "LexLeanPreservation/Values.lean",
+      "sha256": "e12118d055485ca25c128d48f654279398af6476cf42bbb7d2122bba8ffacc52"
+    },
+    {
+      "module": "LexLeanPreservation.Primitives",
+      "path": "LexLeanPreservation/Primitives.lean",
+      "sha256": "8fa6a4a538c3e01686cb2a44f81915051dd82c446833a02ff1037dd4156bbadf"
+    },
+    {
+      "module": "LexLeanPreservation.Fixed",
+      "path": "LexLeanPreservation/Fixed.lean",
+      "sha256": "8752fdc6d8658c5d8e8fb9f234324748c94c81b080d770cc4c35372054ebfbb2"
+    },
+    {
+      "module": "LexLeanPreservation.Keys",
+      "path": "LexLeanPreservation/Keys.lean",
+      "sha256": "4c15f545cae3546ccedcbeb1ce8231acd6b4850f683b3704396991fd6e45e68b"
+    },
+    {
+      "module": "LexLeanPreservation.Templates",
+      "path": "LexLeanPreservation/Templates.lean",
+      "sha256": "a3317912ed87bb44d4d35fb42243ed7743bb515448ae3869d2dcb6ea7af8f66a"
+    },
+    {
+      "module": "LexLeanPreservation.Validate",
+      "path": "LexLeanPreservation/Validate.lean",
+      "sha256": "f8dbb8e74312feff770e438c94c6f4cfab7f998f92749de00ca0579ffe7d7c35"
+    },
+    {
+      "module": "LexLeanPreservation.RustBase",
+      "path": "LexLeanPreservation/RustBase.lean",
+      "sha256": "54093e76ae830f1290ee940371d19685314927d071ae6ad2ab562c717e2ca209"
+    },
+    {
+      "module": "LexLeanPreservation.RustCorr",
+      "path": "LexLeanPreservation/RustCorr.lean",
+      "sha256": "fdceb1bbcf1fffb30aa793442e355faa29266387c6fc000e84bdbd2377366213"
+    },
+    {
+      "module": "LexLeanPreservation.RustLemmas",
+      "path": "LexLeanPreservation/RustLemmas.lean",
+      "sha256": "ad9dc000f97549920e5128389aa3b101149fc727396f67bf8928398ebf2d62e1"
+    },
+    {
+      "module": "LexLeanPreservation.RustMatches",
+      "path": "LexLeanPreservation/RustMatches.lean",
+      "sha256": "03ac7a607ad9ebac26550c4ab9e1f208e3b5813046813fcd510b2d3551b56c62"
+    },
+    {
+      "module": "LexLeanPreservation.RustSound",
+      "path": "LexLeanPreservation/RustSound.lean",
+      "sha256": "c63ee25828246d491e6b9baad5bc2720586802562cb735bac2b41e9ac43e2f42"
+    },
+    {
+      "module": "LexLeanPreservation.Compose",
+      "path": "LexLeanPreservation/Compose.lean",
+      "sha256": "263e44d16ff751deb0fa9f17976876bf9f675bea51365a4411d14acb25f6d0ae"
+    },
+    {
+      "module": "LexLeanStd.Text",
+      "path": "LexLeanStd/Text.lean",
+      "sha256": "07b17ba2e5d764626c9d6f6df40357222ed0662e3406eb55581ec8b1472f8756"
+    },
+    {
+      "module": "LexLeanBoot.AxiomOutput",
+      "path": "LexLeanBoot/AxiomOutput.lean",
+      "sha256": "25ee8cf794529f05eb0fcb23c312bf33170614192504c8e9a0c98aaa82e9651d"
+    },
+    {
+      "module": "LexLeanBoot.CalculusCheck",
+      "path": "LexLeanBoot/CalculusCheck.lean",
+      "sha256": "b8a35002d3d8a974db13744551755bc07fe98cd210ab3d024f477712c3bb4d20"
+    },
+    {
+      "module": "LexLeanBoot.PrimitiveScan",
+      "path": "LexLeanBoot/PrimitiveScan.lean",
+      "sha256": "af01e355b5c8e5f4e6c344f2e0440c06efd0722cb29753d4722cff3a04cb62e7"
+    },
+    {
+      "module": "LexLeanBoot.RustValidate",
+      "path": "LexLeanBoot/RustValidate.lean",
+      "sha256": "8baf37c76dc7fbba23873d89cf9cca2e2862771742498720091a813bc277e245"
+    },
+    {
+      "module": "LexLeanBoot.TokenAudit",
+      "path": "LexLeanBoot/TokenAudit.lean",
+      "sha256": "b623976102c66fa4e532b20d5ca7112c1c233cd30f3545f24ce69d3d612242e5"
+    },
+    {
+      "module": "LexLeanStd.Buffer",
+      "path": "LexLeanStd/Buffer.lean",
+      "sha256": "b22dc66e0905c57bd8942ec543beffb6b1912b8f12c98f51bea903a7d67b6eb3"
+    },
+    {
+      "module": "LexLeanBoot.RuntimeValidate",
+      "path": "LexLeanBoot/RuntimeValidate.lean",
+      "sha256": "1aee7cc65b14fcd89773f8abd81e04c430e584fc8b7bafa2724771cecb05790c"
+    },
+    {
+      "module": "LexLeanBoot.RustAst",
+      "path": "LexLeanBoot/RustAst.lean",
+      "sha256": "4199a6e3edd46cd25af3d7e6d5775ca5e073082b8005633ef6bc2ff02b06e8dd"
+    },
+    {
+      "module": "LexLeanBoot.RustPrint",
+      "path": "LexLeanBoot/RustPrint.lean",
+      "sha256": "941913c2150c9e752c7e48143e335ba7891df8f7f76edd899f6580dccfa8f1f5"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part0",
+      "path": "LexLeanPreserve/Parts/C6ec49c97f5334c1cfee5e969876350b6/R6_Part0.lean",
+      "sha256": "5dce2ef97211552f0d321b80f11b0287b85cd4b29a284eaf65fa3838233b1ee7"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part1",
+      "path": "LexLeanPreserve/Parts/C6ec49c97f5334c1cfee5e969876350b6/R6_Part1.lean",
+      "sha256": "54644a1d0ee4763f6021cbaec1037b2d6f01e9337965f63e3fba43dcdf87aacb"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part2",
+      "path": "LexLeanPreserve/Parts/C6ec49c97f5334c1cfee5e969876350b6/R6_Part2.lean",
+      "sha256": "2b17eb30d90524911aa5811181110f904afcf22a4264791bfee616ca6c6401b0"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part3",
+      "path": "LexLeanPreserve/Parts/C6ec49c97f5334c1cfee5e969876350b6/R6_Part3.lean",
+      "sha256": "9e4472844be498eca6ded19c42caeff9e2786c415627080f7e1e182ecc802244"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part4",
+      "path": "LexLeanPreserve/Parts/C6ec49c97f5334c1cfee5e969876350b6/R6_Part4.lean",
+      "sha256": "aa881d4a21111cec94bd6129b95945bd7243bf7d8241de9cf34d80198f738822"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part5",
+      "path": "LexLeanPreserve/Parts/C6ec49c97f5334c1cfee5e969876350b6/R6_Part5.lean",
+      "sha256": "7bcc1e3d938211b325a4ab3fc63151b6d796bbe4eaa1c35ab0b8b0eb8a7bf3b6"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part6",
+      "path": "LexLeanPreserve/Parts/C6ec49c97f5334c1cfee5e969876350b6/R6_Part6.lean",
+      "sha256": "f6ffe4c593ba9a52cf8ebb55fcd898aea96e1258a622edd0b7d572c85f4455c4"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part7",
+      "path": "LexLeanPreserve/Parts/C6ec49c97f5334c1cfee5e969876350b6/R6_Part7.lean",
+      "sha256": "b2604ba98d8445acd2076a418761bcff313133280c00aabc5882a5f772e192a1"
+    },
+    {
+      "module": "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6",
+      "path": "LexLeanPreserve/C6ec49c97f5334c1cfee5e969876350b6/R6.lean",
+      "sha256": "1e19929176f82612c6fbb33b5a727796fb7620795f6cd9363d863ef6ed0e7278"
+    },
+    {
+      "module": "LexLeanPreserve.Audit",
+      "path": "LexLeanPreserve/Audit.lean",
+      "sha256": "42b2df1c134c0bf196e850226775e36c08af141db11dc2146272a0e92cc81412"
+    }
+  ],
+  "source_only": true,
+  "original_manifest_sha256": "28d8383f214fca3ccb0cdbde39ba1aec9d2e350c66d7838a875f8452ee5877d9",
+  "original_certificate_sha256": "f2b97f4fa88240086aa64c970014361a667acc9cbe4aeaa5e56828d77d22bdf4",
+  "command_count": 69,
+  "partition_source_checkpoint": "abb7ad9728a68d54d83977f35a25797756ba4bab"
+}

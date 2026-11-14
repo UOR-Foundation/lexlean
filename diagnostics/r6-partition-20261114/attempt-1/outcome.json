@@ -1,0 +1,293 @@
+{
+  "status": "failed resource bound; not proof rejection",
+  "replay": "not run",
+  "audit": "not run",
+  "compiler_accepted": false,
+  "results": [
+    {
+      "receipt": "compile-LexLeanBoot.AxiomOutput.json",
+      "sha256": "a8bf2c9b1c9b03047a8ad9ea3d091217bf2b04ea63782d6921538fe87432d860",
+      "exit": 0,
+      "reason": null,
+      "seconds": 0.7708756609999909,
+      "peak_process_tree_rss_kib": 316280
+    },
+    {
+      "receipt": "compile-LexLeanBoot.CalculusCheck.json",
+      "sha256": "ecfe29b65a78d00db701255c819daf903cfb3543842e10916dd2190605021db4",
+      "exit": 0,
+      "reason": null,
+      "seconds": 2.8198786660000223,
+      "peak_process_tree_rss_kib": 395388
+    },
+    {
+      "receipt": "compile-LexLeanBoot.PrimitiveScan.json",
+      "sha256": "bb9b0c44364ff7e64b28e9535a4ea62c828a0dcfc72ccc0c05b62536dd2a47ae",
+      "exit": 0,
+      "reason": null,
+      "seconds": 1.03445459999989,
+      "peak_process_tree_rss_kib": 328628
+    },
+    {
+      "receipt": "compile-LexLeanBoot.RuntimeValidate.json",
+      "sha256": "42c6436a66c124bf7732a21907dff7583db74b8fbc3db9c025eb9ae4ba1ab0e4",
+      "exit": 0,
+      "reason": null,
+      "seconds": 4.373049892999916,
+      "peak_process_tree_rss_kib": 427424
+    },
+    {
+      "receipt": "compile-LexLeanBoot.RustAst.json",
+      "sha256": "798ffa80dc991f471ed911b53d1db8cee6fe3aee11b0aa7fa4973883f9cf9584",
+      "exit": 0,
+      "reason": null,
+      "seconds": 0.7638570180001807,
+      "peak_process_tree_rss_kib": 320980
+    },
+    {
+      "receipt": "compile-LexLeanBoot.RustPrint.json",
+      "sha256": "74629d7e38911775ae4ec69df6ba7c0d3f362c5360540c463dab57861984b712",
+      "exit": 0,
+      "reason": null,
+      "seconds": 1.5307501579998188,
+      "peak_process_tree_rss_kib": 336792
+    },
+    {
+      "receipt": "compile-LexLeanBoot.RustValidate.json",
+      "sha256": "a2fe5fa5674e7fddf7843e71416ba756d1d4b1c567a52e508cad29cb3ec00df8",
+      "exit": 0,
+      "reason": null,
+      "seconds": 3.567610464999916,
+      "peak_process_tree_rss_kib": 429724
+    },
+    {
+      "receipt": "compile-LexLeanBoot.TokenAudit.json",
+      "sha256": "c6fb9332061fa870d05f58cfcba38745ac0554d2b7e4b0f8e082680f4670f348",
+      "exit": 0,
+      "reason": null,
+      "seconds": 1.2822511000001668,
+      "peak_process_tree_rss_kib": 330100
+    },
+    {
+      "receipt": "compile-LexLeanPreservation.Compose.json",
+      "sha256": "04e6cc8f8f3364ec92f495cc1361e7f5a803d0fcf515f27ed15d53f9a274847f",
+      "exit": 0,
+      "reason": null,
+      "seconds": 4.115732379000065,
+      "peak_process_tree_rss_kib": 782476
+    },
+    {
+      "receipt": "compile-LexLeanPreservation.Core.json",
+      "sha256": "f614a491d10d4f622561031ccda614d5f4b77b2ac76ff1d66eff7f03428455ae",
+      "exit": 0,
+      "reason": null,
+      "seconds": 5.6282393010001215,
+      "peak_process_tree_rss_kib": 795136
+    },
+    {
+      "receipt": "compile-LexLeanPreservation.Fixed.json",
+      "sha256": "da2c47fa483a9abe7d842fa24ad13f37acd5ce8b642068fb590b3d52183bd3d7",
+      "exit": 0,
+      "reason": null,
+      "seconds": 5.151060957000027,
+      "peak_process_tree_rss_kib": 776400
+    },
+    {
+      "receipt": "compile-LexLeanPreservation.Keys.json",
+      "sha256": "1c9779d943bc9a6472a99ac091242a40312cf274f49b8cea72d41146565bef45",
+      "exit": 0,
+      "reason": null,
+      "seconds": 6.670490087999951,
+      "peak_process_tree_rss_kib": 765872
+    },
+    {
+      "receipt": "compile-LexLeanPreservation.Primitives.json",
+      "sha256": "1dffafa90d5b5f4b7433296ec3de6c7703a00b47c612296a4b7c5ee511c236d6",
+      "exit": 0,
+      "reason": null,
+      "seconds": 4.433664616999977,
+      "peak_process_tree_rss_kib": 772056
+    },
+    {
+      "receipt": "compile-LexLeanPreservation.RustBase.json",
+      "sha256": "608b928d62f4b08a262d69dd4a84deec2aa7e0ab3f3ba490096a8394be4dfa1a",
+      "exit": 0,
+      "reason": null,
+      "seconds": 5.858353738000005,
+      "peak_process_tree_rss_kib": 811384
+    },
+    {
+      "receipt": "compile-LexLeanPreservation.RustCorr.json",
+      "sha256": "f29f76fc3b7cf04a85f26bdde95a9659cae57bd95aea6fcd5186abebfe3060cd",
+      "exit": 0,
+      "reason": null,
+      "seconds": 7.9259607980000055,
+      "peak_process_tree_rss_kib": 905880
+    },
+    {
+      "receipt": "compile-LexLeanPreservation.RustLemmas.json",
+      "sha256": "c8ed3fd304f8d7a496ae63ecd79fedb9680a326811f6c31356b07b751dddc887",
+      "exit": 0,
+      "reason": null,
+      "seconds": 51.828857712999934,
+      "peak_process_tree_rss_kib": 1457116
+    },
+    {
+      "receipt": "compile-LexLeanPreservation.RustMatches.json",
+      "sha256": "94b82ca5d912c4fe68e47fb5ff29a921bdc8a55e16ce65e99c219491c3515168",
+      "exit": 0,
+      "reason": null,
+      "seconds": 11.533154547000095,
+      "peak_process_tree_rss_kib": 949632
+    },
+    {
+      "receipt": "compile-LexLeanPreservation.RustSound.json",
+      "sha256": "60fe511a12d64a7c0a2695f39456bb4a0ed349727881018cb6fa476a91052d5f",
+      "exit": 0,
+      "reason": null,
+      "seconds": 10.785660908000182,
+      "peak_process_tree_rss_kib": 912176
+    },
+    {
+      "receipt": "compile-LexLeanPreservation.Templates.json",
+      "sha256": "b67a7746eb6d83a6d9ac49fb9c36e4290661a06a89f82356eed5647c2d9ed546",
+      "exit": 0,
+      "reason": null,
+      "seconds": 5.384361714000079,
+      "peak_process_tree_rss_kib": 805476
+    },
+    {
+      "receipt": "compile-LexLeanPreservation.Validate.json",
+      "sha256": "37fd50458c9201093f97a031e626255f50614b37a1654b5a035991d5fc12a74f",
+      "exit": 0,
+      "reason": null,
+      "seconds": 4.340796247000071,
+      "peak_process_tree_rss_kib": 755420
+    },
+    {
+      "receipt": "compile-LexLeanPreservation.Values.json",
+      "sha256": "36b0b2062d443be914e73277c7117eb9cb97d3fa27f53952a161a815068277fe",
+      "exit": 0,
+      "reason": null,
+      "seconds": 4.100826975000018,
+      "peak_process_tree_rss_kib": 766476
+    },
+    {
+      "receipt": "compile-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part0.json",
+      "sha256": "248fa33442c98d16fd4b2c6079b8f25d197fcbcf8af0529da1a35f2a12c68f18",
+      "exit": 0,
+      "reason": null,
+      "seconds": 14.750330251999912,
+      "peak_process_tree_rss_kib": 1759080
+    },
+    {
+      "receipt": "compile-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part1.json",
+      "sha256": "fb0d0a99b376330691cbcb1be72d323c967739eede99a73da69850b226f81284",
+      "exit": 0,
+      "reason": null,
+      "seconds": 14.073739894000028,
+      "peak_process_tree_rss_kib": 1798068
+    },
+    {
+      "receipt": "compile-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part2.json",
+      "sha256": "6b325ad566bf01859d57097aa69b17b0f0c51de361c4c5a85839da07166f4369",
+      "exit": -9,
+      "reason": "9-GiB process-tree RSS limit",
+      "seconds": 283.19670149800004,
+      "peak_process_tree_rss_kib": 9438296
+    },
+    {
+      "receipt": "compile-LexLeanRuntime.Collections.json",
+      "sha256": "ea02d030a7de9c657b9d0c558a81305eff6a012e0df1e9900f1e30a8b6f687b5",
+      "exit": 0,
+      "reason": null,
+      "seconds": 4.344959682000081,
+      "peak_process_tree_rss_kib": 745456
+    },
+    {
+      "receipt": "compile-LexLeanRuntime.Laws.json",
+      "sha256": "a806f8f7350bd698e2046e1995f1a859c09fe7c08c709209c67bd853961b46b0",
+      "exit": 0,
+      "reason": null,
+      "seconds": 5.504396664999831,
+      "peak_process_tree_rss_kib": 789276
+    },
+    {
+      "receipt": "compile-LexLeanRuntime.Models.json",
+      "sha256": "676a18cd8a308c949ea9db56df0cd5db8c32d9ed3bd4d1c74976859b5f49e5f8",
+      "exit": 0,
+      "reason": null,
+      "seconds": 4.12294013099995,
+      "peak_process_tree_rss_kib": 751716
+    },
+    {
+      "receipt": "compile-LexLeanRuntime.Portable.json",
+      "sha256": "d126ea489176511ee3d1592c0aa607e933845759218c16c45d4e51ff94197223",
+      "exit": 0,
+      "reason": null,
+      "seconds": 4.3917514069999015,
+      "peak_process_tree_rss_kib": 741248
+    },
+    {
+      "receipt": "compile-LexLeanRuntime.Reasoning.json",
+      "sha256": "65e27e380aae2c449ce6f5d63a880339364d899dc89050676b8a71af094859dc",
+      "exit": 0,
+      "reason": null,
+      "seconds": 4.116120069999852,
+      "peak_process_tree_rss_kib": 742460
+    },
+    {
+      "receipt": "compile-LexLeanStd.Buffer.json",
+      "sha256": "d001229dd41f562ba9df231d5df7dc856cd7eb453e4dfbea82f9bf5ad0aea54f",
+      "exit": 0,
+      "reason": null,
+      "seconds": 0.5130020869999043,
+      "peak_process_tree_rss_kib": 312800
+    },
+    {
+      "receipt": "compile-LexLeanStd.Text.json",
+      "sha256": "8bebcf25390906797351f90510392344c840693132822f8969fc80191bdd5c87",
+      "exit": 0,
+      "reason": null,
+      "seconds": 0.5612972740000259,
+      "peak_process_tree_rss_kib": 307104
+    },
+    {
+      "receipt": "compile-LexLeanTarget.RustSemantics.json",
+      "sha256": "44854fa21a510e8963062718250469d2291af0ac56bcc3ef011a048bbf71c1db",
+      "exit": 0,
+      "reason": null,
+      "seconds": 1.5328739589999714,
+      "peak_process_tree_rss_kib": 345400
+    },
+    {
+      "receipt": "compile-LexLeanTarget.RustSyntax.json",
+      "sha256": "632f32fe08808815911bd3a19a203bf00caacdc5ae2fe33613925e0545e406c3",
+      "exit": 0,
+      "reason": null,
+      "seconds": 1.8083914910000658,
+      "peak_process_tree_rss_kib": 353768
+    },
+    {
+      "receipt": "compile-LexLeanTarget.TargetSemantics.json",
+      "sha256": "dd4e8e312d46be87afbbb368d8718e7bbbccad73725c6c16730f09c6f609fbbc",
+      "exit": 0,
+      "reason": null,
+      "seconds": 20.267573474000073,
+      "peak_process_tree_rss_kib": 445376
+    },
+    {
+      "receipt": "compile-LexLeanTarget.TargetSyntax.json",
+      "sha256": "51a834b282075195c3e013299694ec64e98582caba50e83d1f274c101625017a",
+      "exit": 0,
+      "reason": null,
+      "seconds": 1.0535520519999864,
+      "peak_process_tree_rss_kib": 317072
+    }
+  ],
+  "next_candidate": "existing owner conditional proof fix89b8f7738, not yet qualified",
+  "source_map": {
+    "commands25and27": "callDirectArity/callDirectHeap:37 plain ifs each plus37 short-circuit conjunctions",
+    "commands26and28": "callArity/callHeap:match on call result, separately unresolved by owner"
+  }
+}
