@@ -1,0 +1,44 @@
+{
+  "attempt": "1",
+  "cargo_lock": "e616217fbfa7d9974ac114defc20077af5851d20bdb1942e981dde3ca97efa8b",
+  "carrier": "bd391b71270ed4a03c826194724e0be967e583b4",
+  "child": {
+    "cgroup": "/sys/fs/cgroup/system.slice/lexlean-43620506158-1-writer.service",
+    "result": {
+      "EXIT_CODE": "exited",
+      "EXIT_STATUS": "1",
+      "SERVICE_RESULT": "exit-code"
+    },
+    "time": 1794679639.8395276,
+    "values": {
+      "cgroup.events": "populated 1\nfrozen 0",
+      "cpu.max": "300000 100000",
+      "cpu.stat": "usage_usec 2231937427\nuser_usec 2003702994\nsystem_usec 228234432\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 24684\nnr_throttled 22\nthrottled_usec 195781\nnr_bursts 0\nburst_usec 0",
+      "memory.current": "20832256",
+      "memory.events": "low 0\nhigh 6843\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+      "memory.high": "7497056256",
+      "memory.max": "9996075008",
+      "memory.oom.group": "1",
+      "memory.peak": "7499153408",
+      "memory.swap.current": "0",
+      "memory.swap.max": "8794406912"
+    }
+  },
+  "command": [
+    "just",
+    "production-export-write"
+  ],
+  "deadline_epoch": "1794696595",
+  "error": "AssertionError()",
+  "exit": 1,
+  "export_sha256": "",
+  "export_tree": "",
+  "input": "9fd01c31e40bb29577833825f902fafcceedb49a",
+  "run": "43620506158",
+  "seconds": 2468.5157437324524,
+  "stage": "export",
+  "stage_input_tree": "ec744df3893e9648e6599c59fd27435bcc2f4877",
+  "started": 1794677171.3662608,
+  "status": "failed",
+  "tree": "ec744df3893e9648e6599c59fd27435bcc2f4877"
+}
