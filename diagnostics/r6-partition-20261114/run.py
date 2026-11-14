@@ -28,14 +28,14 @@ def prepare(stage, out):
     shutil.copytree(stage / 'src', out / 'src')
     module = original['certificates'][0]
     row = next(r for r in original['files'] if r['module'] == module)
-    text = (stage / 'src' / row['path']).read_text()
-    marker = '\nrun_cmd Lean.Elab.Command.liftCoreM (LexLeanCore.Runtime.decodeAndAdd #['
-    footer = '\nend ' + module + '\n'
+    text = (stage / 'src' / row['path']).read_bytes()
+    marker = b'\nrun_cmd Lean.Elab.Command.liftCoreM (LexLeanCore.Runtime.decodeAndAdd #['
+    footer = ('\nend ' + module + '\n').encode()
     assert text.endswith(footer)
     body = text[:-len(footer)]
     first = body.index(marker)
     header, commands = body[:first], body[first:]
-    common = header[:header.index('namespace LexLeanCore.Runtime')]
+    common = header[:header.index(b'namespace LexLeanCore.Runtime')]
     starts, at = [], 0
     while (at := commands.find(marker, at)) >= 0:
         starts.append(at)
@@ -47,17 +47,16 @@ def prepare(stage, out):
             groups.append(commands[start:at])
             start = at
     groups.append(commands[start:])
-    assert ''.join(groups) == commands and len(groups) == 8 and len(starts) == 69
-    assert commands.isascii(), 'byte-based reviewed partition boundaries'
+    assert b''.join(groups) == commands and len(groups) == 8 and len(starts) == 69
     parts = []
     previous = None
     for i, group in enumerate(groups):
         name = 'LexLeanPreserve.Parts.' + module.removeprefix('LexLeanPreserve.') + f'_Part{i}'
-        source = (header if previous is None else f'import {previous}\n{common}') + group + footer
+        source = (header if previous is None else f'import {previous}\n'.encode() + common) + group + footer
         path = name.replace('.', '/') + '.lean'
         target = out / 'src' / path
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(source)
+        target.write_bytes(source)
         parts.append({'module': name, 'path': path, 'sha256': digest(target)})
         previous = name
     wrapper = out / 'src' / row['path']

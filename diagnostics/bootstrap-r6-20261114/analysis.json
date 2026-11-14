@@ -5,11 +5,11 @@
   "command_payload_max_bytes": 1882872,
   "candidate_partition_payloads": [
     {
-      "bytes": 4135127,
+      "bytes": 4135185,
       "commands": 17
     },
     {
-      "bytes": 3985322,
+      "bytes": 3985342,
       "commands": 8
     },
     {
@@ -17,7 +17,7 @@
       "commands": 14
     },
     {
-      "bytes": 4135786,
+      "bytes": 4135842,
       "commands": 19
     },
     {
@@ -38,5 +38,6 @@
     }
   ],
   "recovered_identical": true,
-  "scope": "Static source analysis only; no elaboration, replay, axiom audit or proof of timeout cause."
+  "scope": "Static source analysis only; no elaboration, replay, axiom audit or proof of timeout cause.",
+  "measurement_correction": "Lengths now measured in UTF-8 bytes, matching Rust; prior diagnostic used character lengths. Command membership and complete recovery are unchanged."
 }
