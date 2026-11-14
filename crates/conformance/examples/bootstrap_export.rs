@@ -123,7 +123,7 @@ fn export(root: &Path, source: &Path) -> Result<(), Failure> {
         .map_err(|diagnostic| format!("toolchain preflight: {diagnostic:?}"))?;
     let tool = |tool: &lexlean::verify::toolchain::Tool| {
         json!({
-            "path": tool.path, "sha256": tool.sha256.to_hex(), "version_output": tool.version_output
+            "path": tool.path.as_str(), "sha256": tool.sha256.to_hex(), "version_output": tool.version_output
         })
     };
     let source_checkpoint = git(source, &["rev-parse", "HEAD"])?;
