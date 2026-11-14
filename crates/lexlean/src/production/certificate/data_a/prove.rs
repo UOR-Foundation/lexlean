@@ -20,6 +20,16 @@ pub(super) struct Passed {
     pub(super) proof: Pf,
 }
 
+/// The value side of an `if` the conditional selects: the result's Lean type,
+/// its encoder, and the source of each branch.
+#[derive(Clone, Copy)]
+struct Selected {
+    lean: Term,
+    encoder: Term,
+    then_src: Term,
+    else_src: Term,
+}
+
 /// How a conditional selects its value.
 pub(super) enum Selection {
     /// `if c then t else e` at a result type.
@@ -1249,6 +1259,7 @@ impl<'a> Writer<'_, 'a> {
             }
         };
         let predicate = self.b.lam_over("__b", EXPLICIT, bool, guard, fits_body);
+        let mut selection = None;
         let encoded = match &kind {
             Selection::If(result_ty) => {
                 let lean = self.lean_ty(result_ty)?;
@@ -1274,6 +1285,14 @@ impl<'a> Writer<'_, 'a> {
                         )?
                     }
                 };
+                if equations.is_none() {
+                    selection = Some(Selected {
+                        lean,
+                        encoder,
+                        then_src,
+                        else_src,
+                    });
+                }
                 self.b.app(encoder, selected)
             }
             Selection::And => {
@@ -1293,6 +1312,13 @@ impl<'a> Writer<'_, 'a> {
         let value_fn = self.b.lam_over("__b", EXPLICIT, bool, guard, encoded);
         let tru = self.tru();
         let fls = self.fls();
+        let (then_pf, else_pf) = match selection {
+            Some(selected) => (
+                self.taken(then_pf, true, (then_fits, else_fits), selected),
+                self.taken(else_pf, false, (then_fits, else_fits), selected),
+            ),
+            None => (then_pf, else_pf),
+        };
         let then_branch =
             self.guarded(condition_src, tru, then_pf, equations.map(|pair| pair.0))?;
         let else_branch =
@@ -1309,6 +1335,108 @@ impl<'a> Writer<'_, 'a> {
                 Given::Proof(else_branch.0, else_branch.1),
             ],
         )
+    }
+
+    /// A branch's derivation restated at the conditional's motives applied to
+    /// the branch's Boolean: `Rel (if b = true then tf else ef) (enc (if b =
+    /// true then ts else es))`, rewritten to the branch's own relation by
+    /// `if_pos` or `if_neg`. Without it the kernel proves the unreduced
+    /// selection equal to the branch by unfolding, and it may unfold the
+    /// branch's own computation (evaluating it as far as its closed parts go)
+    /// before it reduces the `if`. A branch whose type is not the plain
+    /// `Conv p env e (Rel fits (enc src))` keeps its derivation as it is.
+    fn taken(&mut self, pf: Pf, polarity: bool, fits: (Term, Term), selected: Selected) -> Pf {
+        if matches!(self.b.node(pf.ty), crate::ir::core::CoreNode::Let { .. }) {
+            return pf;
+        }
+        let (head, args) = self.b.spine(pf.ty);
+        let [p, env, e, observation] = args.as_slice() else {
+            return pf;
+        };
+        let (_, parts) = self.b.spine(*observation);
+        let [own_fits, own_value] = parts.as_slice() else {
+            return pf;
+        };
+        let (then_fits, else_fits) = fits;
+        let Selected {
+            lean,
+            encoder,
+            then_src,
+            else_src,
+        } = selected;
+        let (chosen_fits, chosen_src) = if polarity {
+            (then_fits, then_src)
+        } else {
+            (else_fits, else_src)
+        };
+        let chosen_value = self.b.app(encoder, chosen_src);
+        if *own_fits != chosen_fits || *own_value != chosen_value {
+            return pf;
+        }
+        let bool = self.b.konst("Bool");
+        let side = if polarity { self.tru() } else { self.fls() };
+        let tru = self.tru();
+        let condition = self.eq(bool, side, tru);
+        let decide = self.b.konst("instDecidableEqBool");
+        let decide = self.b.apps(decide, &[side, tru]);
+        let witness = if polarity {
+            let refl = self.b.konst1("Eq.refl");
+            self.b.apps(refl, &[bool, tru])
+        } else {
+            self.b.konst("Bool.false_ne_true")
+        };
+        let lemma = self.b.konst1(if polarity { "if_pos" } else { "if_neg" });
+        let fits_eq = self.b.apps(
+            lemma,
+            &[condition, decide, witness, bool, then_fits, else_fits],
+        );
+        let src_eq = self.b.apps(
+            lemma,
+            &[condition, decide, witness, lean, then_src, else_src],
+        );
+        let selected_fits = self.ite(bool, side, then_fits, else_fits);
+        let selected_src = self.ite(lean, side, then_src, else_src);
+        let selected_value = self.b.app(encoder, selected_src);
+        let value_ty = self.ts("Value");
+        let one = CoreLevel::Succ(Box::new(CoreLevel::Zero));
+        let congr_arg = self.b.konst_at("congrArg", vec![one.clone(), one.clone()]);
+        let value_eq = self.b.apps(
+            congr_arg,
+            &[lean, value_ty, selected_src, chosen_src, encoder, src_eq],
+        );
+        // F := fun x y => Conv p env e (Rel x y)
+        let (x, y) = (self.b.free(), self.b.free());
+        let related = self.rel(x, y);
+        let body = self.b.apps(head, &[*p, *env, *e, related]);
+        let over_y = self.b.lam_over("__v", EXPLICIT, value_ty, y, body);
+        let motive = self.b.lam_over("__f", EXPLICIT, bool, x, over_y);
+        let prop = self.b.prop();
+        let to_prop = self.b.pi("__v", EXPLICIT, value_ty, prop);
+        let applied_fits = self.b.apps(
+            congr_arg,
+            &[bool, to_prop, selected_fits, chosen_fits, motive, fits_eq],
+        );
+        let at_selected = self.b.app(motive, selected_fits);
+        let at_chosen = self.b.app(motive, chosen_fits);
+        let congr = self.b.konst_at("congr", vec![one.clone(), one]);
+        let equation = self.b.apps(
+            congr,
+            &[
+                value_ty,
+                prop,
+                at_selected,
+                at_chosen,
+                selected_value,
+                chosen_value,
+                applied_fits,
+                value_eq,
+            ],
+        );
+        let restated = self.rel(selected_fits, selected_value);
+        let target = self.b.apps(head, &[*p, *env, *e, restated]);
+        let mpr = self.b.konst_at("Eq.mpr", vec![CoreLevel::Zero]);
+        let proof = self.b.apps(mpr, &[target, pf.ty, equation, pf.proof]);
+        Pf { proof, ty: target }
     }
 
     /// `fun (h : cond = value) => proof`, with its type; `hypothesis` is the
