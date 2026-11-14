@@ -22,6 +22,10 @@ workspace carried at those versions without a tag.
   every diagnostic the oracle raises rather than only the first. By the maintainer's decision
   the bootstrap project's `max_file_bytes` is now 16 MiB, because the root's certificate
   restates its whole reachable closure once per function.
+- By the maintainer's decision, the bootstrap project's `child_timeout_ms` is now 600,000 (10
+  minutes), raised from 300,000: `parseEntry`'s own certificate (`BS-55`) measured at 230 s to
+  type-check and 208 s to replay on an unloaded machine, and scaling by CI's own measured
+  0.4-2.1x spread against this laptop put it plausibly past 300 s on a slow CI runner.
 - The lexicon closure's `package@version` reference is source (SPEC.md §13.1, §12.2): `BS-54`,
   the module `PackageRef`, held to `lexicon::package::PackageRef::parse` on the compiler's own
   `\useglossary` directives and lexicon manifests.

@@ -11837,13 +11837,15 @@ children by a wide margin as the two phases of `parseEntry`'s own certificate B 
 phase identified earlier): `lean` type-checking it at 229,966 ms (230 s, peak RSS 2,390,504 KiB),
 `leanchecker` replaying it at 207,939 ms (208 s, peak RSS 1,920,052 KiB); every other child in
 the run, including the general preservation library's own largest module, stayed under 85
-seconds. Both numbers are under the project's `child_timeout_ms` of 300,000, but with real
-margin, not an artifact of a contended run: scaling by the 0.4-2.1x spread a differently-shaped
-module (`LexLeanPreservation.RustLemmas`) showed across ten CI children against this same
-laptop, `parseEntry`'s certificate B could plausibly run from about 100 to 480 seconds in CI --
-past the timeout at the slow end. Whether to raise `child_timeout_ms`, raise `max_file_bytes`
-further, or shrink the certificate (sharding the composed closure, per the design task on #273)
-is a decision left to the maintainer; this entry records the measurement, not the choice.
+seconds. Both numbers were under the bootstrap project's `child_timeout_ms` of 300,000 as it
+stood at the time of this measurement, but with real margin, not an artifact of a contended
+run: scaling by the 0.4-2.1x spread a differently-shaped module (`LexLeanPreservation.RustLemmas`)
+showed across ten CI children against this same laptop (36-177 s in CI against 84.5 s locally),
+`parseEntry`'s certificate B could plausibly run from about 100 to 480 seconds in CI -- past the
+300-second timeout at the slow end. On this measurement, the maintainer decided to raise the
+bootstrap project's `child_timeout_ms` to 600,000 (10 minutes) rather than shrink the
+certificate or raise `max_file_bytes` further; `bootstrap/lexlean.toml` carries that value from
+this slice on, and the bootstrap project's `project_config_sha256` and lock move with it.
 
 ### the lexer of the authoring notation is source (BS-22)
 
