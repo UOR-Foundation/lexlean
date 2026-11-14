@@ -40,17 +40,17 @@ Feature: repository
     And the Justfile also defines the model-write and golden-write recipes plus each of the twelve gates
 
   @RP-06 @build
-  Scenario: CONFORMANCE.md and ERRORS.md are exact generated views of model files.
-    Given the model directory loaded through repo_model::Model::load
-    When CONFORMANCE.md and ERRORS.md are re-rendered from the loaded model in memory
-    Then the committed CONFORMANCE.md is byte-equal to the rendered conformance view
-    And the committed ERRORS.md is byte-equal to the rendered errors view
+  Scenario: `model/*.toml`, `CONFORMANCE.md`, and `ERRORS.md` are exact generated views of the register modules of the specification project.
+    Given the register modules of the `spec` project projected in memory and parsed through repo_model::Model::from_texts
+    When the model files, CONFORMANCE.md and ERRORS.md are re-rendered from that projection
+    Then each committed model file is byte-equal to its projection
+    And the committed CONFORMANCE.md and ERRORS.md are byte-equal to the rendered conformance and errors views
 
   @RP-07 @build
-  Scenario: The specification conformance table and model register are bijective and text-consistent.
+  Scenario: The specification conformance table, generated from the register modules of the specification project, and the model register are bijective and text-consistent.
     Given the section 31 table of SPEC.md parsed into id, suite, and statement rows
     When the table is zipped against the model ids register in order
-    Then both hold exactly 211 rows
+    Then both hold the same number of rows, the register's
     And each row's ID, suite, and statement text is equal in the table and the register
 
   @RP-08 @build
@@ -72,6 +72,7 @@ Feature: repository
     Given every file under language, schemas, tests/golden/axiom-parser, and tests/golden/canonical-json sorted by path bytes
     When lexlean::artifact::content_id::tree_digest recomputes the tree digest from those files
     Then the recomputed digest equals lexlean::compiler_semantics_id()
+    And the recomputed language-1.2 digest equals lexlean::LANGUAGE_1_2_SEMANTICS_ID, which a build without the production-data feature reports
 
   @RP-11 @build
   Scenario: Every public README capability claim is tied to a registered model ID and honesty level.
@@ -98,13 +99,13 @@ Feature: repository
     And the test lists of the parts of the bdd plan, each taken with the part's harness filters, are disjoint and their union equals the bdd recipe's list, so that a test two parts run or a test no part runs fails the inventory
 
   @RP-14 @build
-  Scenario: The normative CI job runs every recipe of just vv in parallel legs that each start from a clean checkout on the standard ubuntu-24.04 runner, each recipe exactly once but bdd, which runs once per part of its committed plan on the row that names the part, the examples leg at the verification resource profile its matrix row names and without UOR Atlas, which the Atlas jobs of the same run verify as the shards of the committed plan and a join at that profile, every process once and nothing across runs, and the other legs at the default, with no cache, path filter, or skipped recipe, and each job uploads its CI evidence; a plan job decides what a run is from the event alone: a draft pull request runs the rest leg and no other job, a ready pull request, a request, and a push to main or to a release line run every job, and a push to main or to a release line that merges a head whose tree it equals runs none when the whole gate passed on that head, and runs the whole gate when any job of that run did not pass, was skipped, or is missing.
+  Scenario: The normative CI job runs every recipe of just vv in parallel legs that each start from a clean checkout on the standard ubuntu-24.04 runner, each recipe exactly once but bdd, which runs once per part of its committed plan on the row that names the part, the examples leg at the verification resource profile its matrix row names and without UOR Atlas, which the Atlas jobs of the same run verify as the shards of the committed plan and a join at that profile, every process once and nothing across runs, and the other legs at the default, with no cache, path filter, or skipped recipe, and each job uploads its CI evidence; a plan job decides what a run is from the event alone: a draft pull request, and a ready pull request whose base is neither main nor a release line, run honesty then the rest leg and no other gate job, a ready pull request into main or a release line, a request, and a push to main or to a release line run every job, and a push to main or to a release line that merges a head whose tree it equals runs none when the whole gate passed on that head, and runs the whole gate when any job of that run did not pass, was skipped, or is missing.
     Given .github/workflows/ci.yml, .github/vv-rows.json, .github/ci-plan.sh, .github/verify-shards.json, and .github/bdd-parts.json
     When the runner, the environment, the job steps, and the plan are read, and the plan script is run against planted events
-    Then every gate job runs on ubuntu-24.04 with the 360-minute limit, and each verification profile variable is set once per job, from the leg's matrix row or as the examples profile on an Atlas job
+    Then every gate job runs on ubuntu-24.04, honesty has a 30-minute limit and precedes the expensive jobs, proof jobs have the 360-minute limit, and each verification profile variable is set once per job, from the leg's matrix row or as the examples profile on an Atlas job
     And the leg that runs examples names width 2, a 12 GiB budget, and the committed hints, which the verifier parses, verifies every example but uor-atlas, and every other leg names no profile and no example part, and the legs run the recipes of vv, each exactly once but bdd, which runs once per part of the bdd plan on the one row that names the part, in the order of vv within a leg, through the one gate command
     And the Atlas jobs run every shard of the plan exactly once, each after the jobs of the shards it needs, from the one executable the prefix job built, the join asserts that Atlas verified, and the plan elaborates and replays every Atlas module exactly once with every import elaborated by the shard or by one it needs
-    And the vv job has no path filter, no cache action, and no condition on a recipe, the Atlas jobs and the host matrix run only when the plan names the whole gate, and each job uploads its ci-evidence under a name of its own, and the plan script names the rest leg alone for a draft pull request and the whole gate for a ready one, a request, and a push to main or to a release line, and names no job for a merge whose tree is its second parent's only when a run of that parent passed every job, the Atlas join, every host, and every leg, and for a skipped or failed job, a missing join, host, or leg, a failed call, a changed tree, and a push that merges nothing it names the whole gate
+    And the vv job has no path filter, no cache action, and no condition on a recipe, the Atlas jobs and the host matrix run only when the plan names the whole gate, and each job uploads its ci-evidence under a name of its own, and the plan script names honesty then the rest leg for a draft pull request and for a ready one whose base is neither main nor a release line, and the whole gate for a ready one into main or a release line, a request, and a push to main or to a release line, and names no job for a merge whose tree is its second parent's only when a run of that parent passed every job, the Atlas join, every host, and every leg, and for a skipped or failed job, a missing join, host, or leg, a failed call, a changed tree, and a push that merges nothing it names the whole gate
 
   @RP-15 @build
   Scenario: Every match over a closed semantic enum (the IR, the production realization calculus, and its Rust AST) that names at least five of the enum's variants names all of them, with no wildcard or binding catch-all arm, so that a variant added to the enum is a compile error in each Lean, LaTeX, validation, charge, and calculus consumer and never a silent fallback; the audit rejects a catch-all planted in each consumer group and fails when a consumer it must read has no such match left.
@@ -121,6 +122,14 @@ Feature: repository
     And it installs no other toolchain and selects no unpinned default
     And a Dockerfile that names another version of either, a second toolchain, or an unpinned default is refused
 
+  @RP-17 @build
+  Scenario: `cargo xtask release-check` reads the completion release from §2.3 and the version report from §30.3 as the chapter modules of the specification project state them, and refuses a workspace version §2.3 does not name, a version report or semantics-ID list that is not the §30.3 report for the release version and each language's ID, and a §30.3 report whose languages are not the languages the compiler supports, a plant in either chapter item changing what it refuses.
+    Given the committed chapter modules, and a scratch tree with the workspace at version 0.5.0, a changelog entry for it, the chapter modules, and the version report and semantics-ID list the release binary produces
+    When the release criterion is read from the chapter modules and the release check runs on the committed tree and on the scratch tree
+    Then the criterion names the completion releases 0.5.0 and 1.0.0 and a report of the languages 1.0, 1.1 and 1.2, which are the languages the compiler supports, and the committed tree at 0.3.0 is refused naming source-tag and the completion releases
+    And the scratch tree is refused for none of source-tag, semantics-id, and version-output
+    And a §2.3 plant that names another completion release refuses source-tag, a §30.3 plant that reports another language refuses version-output naming the supported languages, a four-line version report refuses version-output, a semantics-ID list without a language refuses semantics-id, a list giving a language an ID that is not the compiler's refuses semantics-id naming the compiler's ID, and a list and report that agree on such an ID are refused as semantics-id and version-output, each on the scratch tree
+
   @RP-18 @build
   Scenario: The release workflow packages the lexlean crate twice to the same bytes, runs cargo publish --dry-run, and refuses a crate whose SHA-256 differs from the one release/checksums.txt lists for it or from the bytes cargo would upload, or whose archive lacks the metadata and size crates.io requires, and uploads to crates.io only when a CARGO_REGISTRY_TOKEN secret or trusted publishing authorises it; a commit of a release line release/vX.Y is published as the pre-release X.Y.0-dev.N, N being its number of first-parent commits, and a plant in each of these checks is refused.
     Given .github/workflows/release.yml, .github/workflows/crate.yml, and .github/crate-publication.sh
@@ -128,3 +137,12 @@ Feature: repository
     Then the crate is packaged twice to the same bytes and dry-run on every run, and the crate cargo would upload is the crate release/lexlean.crate holds and release/checksums.txt lists
     And the only step that uploads to crates.io runs after those checks, and only when a token or trusted publishing is present
     And a commit of a release line is named X.Y.0-dev.N, and a package, checksum, metadata, version, or credential check that is removed or planted is refused
+
+  @RP-19 @build
+  Scenario: A build of the lexlean crate without its default production-data feature embeds no file of language/preservation-1.2/library/, reports the compiler-semantics IDs of a default build and its version report with a fifth line naming the check-only variant, gives check and lock the same exit code, diagnostics, and lock bytes as a default build, and refuses production build and the verify of a project with a production root with LLC0205 before any build, verification, or export is published.
+    Given the lexlean binary built with --no-default-features and the default build this harness links
+    When both lock and check the committed examples nat-add-zero, semantic-1.1, language-1.2, and production, and check three language-1.2 negative fixtures, and the binary runs verify and production build on the production example
+    Then the binary holds no file of language/preservation-1.2/library/ and does hold language/preservation-1.2/library.toml
+    And --version of the binary is the default report followed by the line variant check-only
+    And every exit code, every JSON diagnostic, and every written lexlean.lock are byte-equal between the two
+    And verify and production build exit 2 with LLC0205 and publish no build, verified, or production directory

@@ -22,17 +22,16 @@
 use std::collections::BTreeMap;
 use std::io::Write;
 
-use camino::{Utf8Path, Utf8PathBuf};
-use serde::Deserialize;
-use sha2::{Digest, Sha256};
-
 use super::{acquire_lock, host_failure, CheckRequest, Engine, LockRequest};
+use crate::artifact::content_id::Sha256Digest;
 use crate::code;
 use crate::config::{toml_string, LexiconSource};
 use crate::diagnostic::{Diagnostic, Span};
 use crate::error::LexLeanError;
 use crate::project::Selection;
 use crate::sdk::{self, ModuleKind};
+use camino::{Utf8Path, Utf8PathBuf};
+use serde::Deserialize;
 
 /// The schema tag of a language-1.1 semantic module and the one language 1.2
 /// reads in its place.
@@ -222,8 +221,10 @@ struct Plan {
     manifests: Vec<String>,
 }
 
+// The compiler's own digest (`SL-06`), never the `sha2` crate the shipped
+// crate no longer depends on.
 fn fingerprint(bytes: &[u8]) -> [u8; 32] {
-    Sha256::digest(bytes).into()
+    Sha256Digest::of(bytes).0
 }
 
 /// The raw bytes of a project file and the text the migration reads from them.

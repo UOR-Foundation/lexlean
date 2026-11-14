@@ -10,9 +10,12 @@ use std::process::ExitCode;
 use camino::Utf8PathBuf;
 
 mod audit;
+mod bump;
 mod ci;
 mod codegen;
+mod counts;
 mod release_manifest;
+mod spec;
 mod spec_links;
 
 /// A gate failure, reported with the rule it broke.
@@ -29,13 +32,17 @@ fn main() -> ExitCode {
     let result = match task.as_str() {
         "validate-model" => codegen::check_model(&root, write),
         "validate-spec-links" => spec_links::validate(&root),
+        "spec" => spec::run(&root, &std::env::args().skip(2).collect::<Vec<_>>()),
         "verify-examples" => verify_examples(&root, write),
         "check-golden" => check_golden(&root, write),
         "check-reproducibility" => check_reproducibility(&root),
         "check-fixtures" => check_fixtures(&root, write),
         "check-calculus" => check_calculus(&root, write),
         "check-production-export" => check_production_export(write),
+        "check-freshness" => check_freshness(&root),
+        "export-bootstrap" => export_bootstrap(&std::env::args().skip(2).collect::<Vec<_>>()),
         "check-package" => check_package(&root),
+        "counts" => counts::counts(&root, write),
         "check-test-inventory" => ci::check_test_inventory(&root),
         "bdd" => ci::bdd(&root),
         "ci-summary" => ci::ci_summary(&root, &std::env::args().skip(2).collect::<Vec<_>>()),
@@ -43,6 +50,7 @@ fn main() -> ExitCode {
         "ci-shards" => ci::ci_shards(&root),
         "release-artifacts" => release_artifacts(&root),
         "release-check" => release_check(&root),
+        "bump-version" => bump::bump_version(&root, &std::env::args().skip(2).collect::<Vec<_>>()),
         "validate" => codegen::check_model(&root, false).and_then(|()| spec_links::validate(&root)),
         _ => {
             eprintln!(
@@ -50,6 +58,8 @@ fn main() -> ExitCode {
                  \n\
                  validate-model          R1, R2, R4, R5, R6, R8: model, documents, meta-gate, audits\n\
                  validate-spec-links     RP-07: the §31 table and the register are bijective\n\
+                 spec                    NS-07: edit the chapter modules of spec/ by item (replace-block,\n\
+                                         insert-after, port); verified on a scratch copy before it writes\n\
                  verify-examples         §28.6: every example formats, locks, checks, builds, verifies;\n\
                                          normalized verification records equal expected/verify (§29.5)\n\
                  check-golden            §28.3: build outputs equal the committed oracles\n\
@@ -58,8 +68,15 @@ fn main() -> ExitCode {
                  check-calculus          §17.14-§17.16: the compiler project's modules, the target and\n\
                                          GNAF fixtures, the Rust packages, and configuration equal\n\
                                          their generator\n\
+                 counts                  §17.23: write the counts a bootstrap case reported under\n\
+                                         LEXLEAN_COUNTS=fast|report into its constants and statements\n\
                  check-production-export §24.7: the consumer's exported packages equal the committed\n\
                                          packages under tests/production-export\n\
+                 check-freshness         §9.4: every committed build oracle's recorded inputs, every lock,
+                                         and every committed export package are current (no Lean)
+                 export-bootstrap        §9.4: export the bootstrap project once for a CI run, require
+                                         its committed packages, and write the bundle with its custody
+                                         record (--output DIR)
                  check-package          §30.3, RP-12: package lexlean crate, verify offline build & identity\n\
                  check-test-inventory    RP-13: the `test` and `bdd` recipes partition the workspace tests,\n\
                                          and the parts of .github/bdd-parts.json partition `bdd`\n\
@@ -72,6 +89,8 @@ fn main() -> ExitCode {
                                          runs every process once in import order\n\
                  release-artifacts       §30.3: derive the release/ artifact set from the repository\n\
                  release-check           RP-12: refuse release until §30.3/§30.4 are fully satisfied\n\
+                 bump-version X.Y.Z      §2.3, §9.4: move every site of the workspace version and the\n\
+                                         lock's workspace rows to X.Y.Z (a release cut, `cut.yml`)\n\
                  validate                validate-model then validate-spec-links\n\
                  \n\
                  --write                 validate-model / check-golden / check-fixtures / check-calculus /\n\
@@ -124,6 +143,35 @@ fn check_production_export(write: bool) -> Result<(), Fail> {
     Ok(())
 }
 
+/// §9.4: the committed generated files are current, checked in honesty
+/// before the expensive roots (`repo_conformance::freshness`).
+fn check_freshness(root: &Path) -> Result<(), Fail> {
+    let root = camino::Utf8Path::from_path(root).ok_or("the repository path is UTF-8")?;
+    let summary = repo_conformance::freshness::check(root)?;
+    println!(
+        "check-freshness: {} build oracles ({} recorded inputs), their locks, and {} committed export packages are current (§9.4)",
+        summary.projects, summary.inputs, summary.packages
+    );
+    Ok(())
+}
+
+/// §9.4: the bootstrap production export, run once for a CI run by the
+/// `bootstrap-export` job, which uploads what this writes for the run's other
+/// jobs (`repo_conformance::export_custody`).
+fn export_bootstrap(arguments: &[String]) -> Result<(), Fail> {
+    let output = arguments
+        .iter()
+        .position(|argument| argument == "--output")
+        .and_then(|index| arguments.get(index + 1))
+        .ok_or("export-bootstrap --output DIR")?;
+    let custody = repo_conformance::export_custody::publish(camino::Utf8Path::new(output))?;
+    println!(
+        "export-bootstrap: the bootstrap project exported once for run {} attempt {} (commit {}); its packages equal the committed packages (§24.7); bundle sha256 {} ({} files) in {output}",
+        custody.run_id, custody.run_attempt, custody.commit, custody.bundle_sha256, custody.bundle_files
+    );
+    Ok(())
+}
+
 fn example_dirs(root: &Path) -> Result<Vec<PathBuf>, Fail> {
     let mut dirs = Vec::new();
     for entry in std::fs::read_dir(root.join("examples"))? {
@@ -163,6 +211,13 @@ fn example_dirs(root: &Path) -> Result<Vec<PathBuf>, Fail> {
         }
         dirs.push(directory);
     }
+    // The κ-addressing package (§17.22, `KA-01`) is a project of the
+    // workspace beside the standard library, under the same gates.
+    let kappa = root.join("kappa");
+    if !kappa.join("lexlean.toml").exists() {
+        return Err("§17.22: the `kappa` project is missing".into());
+    }
+    dirs.push(kappa);
     // The bootstrap project (§17.23) holds the compiler's own components as
     // language-1.2 source under the same gates.
     let bootstrap = root.join("bootstrap");
@@ -1009,14 +1064,15 @@ fn workspace_version(root: &Path) -> Result<String, Fail> {
 /// `release/sbom.json`, and the evidence that `just vv` passed on the tagged
 /// commit as `release/vv-evidence.txt` — and this task derives everything
 /// else from the repository itself: the packaged crate, the
-/// compiler-semantics ID, the exact four-line `--version` output, the
-/// documents §30.3 names, and the checksum manifest over all of them.
+/// compiler-semantics ID of every supported language, the exact `--version`
+/// report, the documents §30.3 names, and the checksum manifest over all of
+/// them.
 ///
 /// Assembling is not releasing. `release-check` reads what this produced and
 /// refuses while any §30.3 artifact or §30.4 criterion is unmet, naming each
-/// one; §2.3 fixes the first release satisfying the complete specification at
-/// `1.0.0`, so before then the version criteria cannot hold and the refusal
-/// is the honest answer rather than a failure to be worked around.
+/// one; §2.3 names the completion release, the first release satisfying the
+/// complete specification, so before it the version criterion cannot hold and
+/// the refusal is the honest answer rather than a failure to be worked around.
 fn release_artifacts(root: &Path) -> Result<(), Fail> {
     let canonical_root = release_manifest::directory_root(root)?;
     let root = canonical_root.as_path();
@@ -1026,7 +1082,7 @@ fn release_artifacts(root: &Path) -> Result<(), Fail> {
     // Refuse aliases before overwriting any previously staged release asset.
     release_manifest::tree_files(&release)?;
 
-    // The four-line identity, from the binary this repository builds (§30.3).
+    // The version report, from the binary this repository builds (§30.3).
     let utf8_root = utf8(root)?;
     let mut stdout = Vec::new();
     let mut stderr = Vec::new();
@@ -1045,14 +1101,32 @@ fn release_artifacts(root: &Path) -> Result<(), Fail> {
     }
     let version_output = String::from_utf8(stdout)?;
     release_manifest::write_asset(&release, "version-output.txt", version_output.as_bytes())?;
-    let semantics = version_output
-        .lines()
-        .find_map(|line| line.strip_prefix("compiler-semantics "))
-        .ok_or("`lexlean --version` prints no compiler-semantics line (§30.3)")?;
+    // Each `language` line is followed by that language's semantics ID; the
+    // artifact lists them as `<language> <ID>`, one line each, in that order.
+    let mut languages: Vec<(String, String)> = Vec::new();
+    let mut lines = version_output.lines();
+    while let Some(line) = lines.next() {
+        if let Some(language) = line.strip_prefix("language ") {
+            let id = lines
+                .next()
+                .and_then(|next| next.strip_prefix("compiler-semantics "))
+                .ok_or(format!(
+                    "`lexlean --version` prints no compiler-semantics line after language {language} (§30.3)"
+                ))?;
+            languages.push((language.to_owned(), id.to_owned()));
+        }
+    }
+    let Some((_, semantics)) = languages.first().cloned() else {
+        return Err("`lexlean --version` reports no language (§30.3)".into());
+    };
+    let semantics_ids: String = languages
+        .iter()
+        .map(|(language, id)| format!("{language} {id}\n"))
+        .collect();
     release_manifest::write_asset(
         &release,
         "compiler-semantics-id.txt",
-        format!("{semantics}\n").as_bytes(),
+        semantics_ids.as_bytes(),
     )?;
 
     // The packaged crate, built by cargo from a clean tree: a release
@@ -1102,6 +1176,10 @@ fn release_artifacts(root: &Path) -> Result<(), Fail> {
         "package": "lexlean",
         "version": version,
         "compiler_semantics_id": semantics,
+        "compiler_semantics_ids": languages
+            .iter()
+            .map(|(language, id)| (language.clone(), serde_json::Value::from(id.as_str())))
+            .collect::<serde_json::Map<String, serde_json::Value>>(),
         "lean_toolchain": "leanprover/lean4:v4.32.1",
         "crate_sha256": crate_sha256,
         "manifest_sha256": manifest_sha256,
@@ -1152,7 +1230,7 @@ fn release_artifacts(root: &Path) -> Result<(), Fail> {
 
 /// RP-12: the release gate, plus the crate packaging round trip that needs
 /// cargo: the packaged crate builds standalone offline and reports the same
-/// four-line identity as the in-repository binary (§30.3).
+/// version report as the in-repository binary (§30.3).
 fn release_check(root: &Path) -> Result<(), Fail> {
     let (_, hidden_tests) = repo_conformance::workspace_test_names_with_flags(root);
     let mut unmet: Vec<String> = match repo_model::release::check(root, &hidden_tests) {
@@ -1194,7 +1272,7 @@ fn release_check(root: &Path) -> Result<(), Fail> {
 }
 
 /// §30.3, RP-12: verify the packaged crate builds standalone offline
-/// and reports byte-identical four-line identity matching in-repository binary.
+/// and reports the version report of the in-repository binary byte for byte.
 fn check_package(root: &Path) -> Result<(), Fail> {
     let utf8_root = utf8(root)?;
     let version = workspace_version(root)?;
