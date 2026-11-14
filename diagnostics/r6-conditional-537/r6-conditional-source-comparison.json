@@ -1,0 +1,392 @@
+{
+  "source_checkpoint": "76e400a6553a7d135891c27aed18941578bfffc8",
+  "source_receipt_sha256": "37120628b07394d522658bf3ea10432eb65b81ea0d457c6f917d2d45291f6414",
+  "generator_sha256": "ff52ce68e8aab62c72e871ce9c8e65ad9b32e956c11e11ea0b30474d83ef011f",
+  "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+  "semantic_id": "6ec49c97f5334c1cfee5e969876350b6c733b13fe29268c49fc4c10e4e689249",
+  "files": {
+    "program.json": {
+      "old_bytes": 637857,
+      "new_bytes": 637857,
+      "old_sha256": "a8dee6a41e11e4170ce3adacecb50b59e3b1ea290f6dce4b139876e8bd4f1427",
+      "new_sha256": "a8dee6a41e11e4170ce3adacecb50b59e3b1ea290f6dce4b139876e8bd4f1427",
+      "identical": true
+    },
+    "R6.lean": {
+      "old_bytes": 27486279,
+      "new_bytes": 28594616,
+      "old_sha256": "f2b97f4fa88240086aa64c970014361a667acc9cbe4aeaa5e56828d77d22bdf4",
+      "new_sha256": "107393098b35f250b3dae2c7da8f5d42696accec36d9559571d53f80550a16b6",
+      "identical": false
+    },
+    "R6.lex.tex": {
+      "old_bytes": 7861853,
+      "new_bytes": 8150188,
+      "old_sha256": "d8dae493ba5af7fb90b9ea2ca80a363f03701b0e8e966f6ce186bd07295dce57",
+      "new_sha256": "69aefd28187a541ef090e2fdedc91e27fcad9bece63b9a0f780fc0e8ef52d58d",
+      "identical": false
+    }
+  },
+  "decoder_commands": 71,
+  "commands_covering_old_part2_declarations": [
+    {
+      "command": 26,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_238"
+      ],
+      "nodes": 27863,
+      "bytes_excluding_marker": 1022218,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 0,
+        "if_neg": 1,
+        "Eq.mpr": 1,
+        "congr": 1,
+        "congrArg": 1
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 74,
+        "Eq.mpr": 36
+      }
+    },
+    {
+      "command": 27,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_196"
+      ],
+      "nodes": 779,
+      "bytes_excluding_marker": 30711,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 1,
+        "if_neg": 0,
+        "Eq.mpr": 1,
+        "congr": 1,
+        "congrArg": 1
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 1,
+        "Eq.mpr": 1
+      }
+    },
+    {
+      "command": 28,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_239"
+      ],
+      "nodes": 27103,
+      "bytes_excluding_marker": 994557,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 1,
+        "if_neg": 1,
+        "Eq.mpr": 1,
+        "congr": 1,
+        "congrArg": 1
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 74,
+        "Eq.mpr": 74
+      }
+    },
+    {
+      "command": 29,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_193"
+      ],
+      "nodes": 846,
+      "bytes_excluding_marker": 33182,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 1,
+        "if_neg": 1,
+        "Eq.mpr": 1,
+        "congr": 1,
+        "congrArg": 1
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 1,
+        "Eq.mpr": 2
+      }
+    },
+    {
+      "command": 30,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_252",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_144",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_251",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_244",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_205",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_247",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_214",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_159"
+      ],
+      "nodes": 3870,
+      "bytes_excluding_marker": 150385,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 1,
+        "if_neg": 1,
+        "Eq.mpr": 1,
+        "congr": 1,
+        "congrArg": 1
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 5,
+        "Eq.mpr": 10
+      }
+    },
+    {
+      "command": 31,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_26",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_177",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_127",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_250",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_234",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_179",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_130",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_198"
+      ],
+      "nodes": 5043,
+      "bytes_excluding_marker": 190718,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 1,
+        "if_neg": 1,
+        "Eq.mpr": 1,
+        "congr": 1,
+        "congrArg": 1
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 3,
+        "Eq.mpr": 3
+      }
+    },
+    {
+      "command": 32,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_27",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_15",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_123",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_161"
+      ],
+      "nodes": 8521,
+      "bytes_excluding_marker": 318451,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 1,
+        "if_neg": 1,
+        "Eq.mpr": 1,
+        "congr": 1,
+        "congrArg": 1
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 8,
+        "Eq.mpr": 11
+      }
+    },
+    {
+      "command": 33,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_36",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_28",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_30",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_19"
+      ],
+      "nodes": 5405,
+      "bytes_excluding_marker": 203368,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 1,
+        "if_neg": 1,
+        "Eq.mpr": 1,
+        "congr": 1,
+        "congrArg": 1
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 2,
+        "Eq.mpr": 4
+      }
+    },
+    {
+      "command": 34,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_56",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_58",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_5",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_38",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_29",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_17",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_42",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_103"
+      ],
+      "nodes": 4096,
+      "bytes_excluding_marker": 156592,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 1,
+        "if_neg": 1,
+        "Eq.mpr": 1,
+        "congr": 1,
+        "congrArg": 1
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 7,
+        "Eq.mpr": 10
+      }
+    },
+    {
+      "command": 35,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_61",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_6",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_59",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_60",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_133",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_143",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_213",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_43"
+      ],
+      "nodes": 9739,
+      "bytes_excluding_marker": 363930,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 1,
+        "if_neg": 1,
+        "Eq.mpr": 1,
+        "congr": 1,
+        "congrArg": 1
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 16,
+        "Eq.mpr": 21
+      }
+    },
+    {
+      "command": 36,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_114",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_120",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_106",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_46"
+      ],
+      "nodes": 2898,
+      "bytes_excluding_marker": 110352,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 1,
+        "if_neg": 1,
+        "Eq.mpr": 1,
+        "congr": 1,
+        "congrArg": 1
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 4,
+        "Eq.mpr": 7
+      }
+    },
+    {
+      "command": 37,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_57",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_34",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_24",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_132"
+      ],
+      "nodes": 8261,
+      "bytes_excluding_marker": 308933,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 1,
+        "if_neg": 1,
+        "Eq.mpr": 1,
+        "congr": 1,
+        "congrArg": 1
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 5,
+        "Eq.mpr": 4
+      }
+    },
+    {
+      "command": 38,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_14",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_3",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_62",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_63",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_64",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_65",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_66",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_53"
+      ],
+      "nodes": 2752,
+      "bytes_excluding_marker": 108188,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 1,
+        "if_neg": 1,
+        "Eq.mpr": 1,
+        "congr": 1,
+        "congrArg": 1
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 3,
+        "Eq.mpr": 5
+      }
+    },
+    {
+      "command": 39,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_7",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_67",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_68",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_69",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_70",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_71",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_73",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_212"
+      ],
+      "nodes": 6099,
+      "bytes_excluding_marker": 229382,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 1,
+        "if_pos": 0,
+        "if_neg": 0,
+        "Eq.mpr": 0,
+        "congr": 0,
+        "congrArg": 0
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 1,
+        "Eq.mpr": 0
+      }
+    },
+    {
+      "command": 40,
+      "declarations": [
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_74",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_240",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_197",
+        "LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.__rel_145"
+      ],
+      "nodes": 4641,
+      "bytes_excluding_marker": 174587,
+      "proof_constants": {
+        "LexLeanPreservation.conv_cond": 0,
+        "if_pos": 0,
+        "if_neg": 0,
+        "Eq.mpr": 0,
+        "congr": 0,
+        "congrArg": 0
+      },
+      "full_application_dag_nodes": {
+        "LexLeanPreservation.conv_cond": 0,
+        "Eq.mpr": 0
+      }
+    }
+  ],
+  "uncovered_old_part2_declarations": [],
+  "acceptance": false
+}

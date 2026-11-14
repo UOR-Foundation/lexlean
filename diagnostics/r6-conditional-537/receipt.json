@@ -1,0 +1,20 @@
+{
+  "kind": "source-only candidate evidence checkpoint",
+  "accepted": false,
+  "source_checkpoint": "76e400a6553a7d135891c27aed18941578bfffc8",
+  "source_checked_clean_after_generation": true,
+  "owner_fix_source_commit": "89b8f7738ed4781ba75bcc62ebb09cfcc7a42c40",
+  "attributed_cherry_pick": "c4d3485df9dfc30c758f35291ab183c440af3858",
+  "base": "9fd01c31e40bb29577833825f902fafcceedb49a",
+  "source_receipt_sha256": "37120628b07394d522658bf3ea10432eb65b81ea0d457c6f917d2d45291f6414",
+  "archive_sha256": "073f3602c836a5e69e9cc8e807bdb73582b66a8c924f9fdbf2fa41ad689a7efb",
+  "not_exercised": [
+    "Lean elaboration",
+    "kernel replay",
+    "axiom audit",
+    "certificates B and E",
+    "aggregate production budget",
+    "compiler acceptance"
+  ],
+  "scope": "Only the owner conditional proof restatement and diagnostic differ from base before this evidence commit. No #537 generated products, bridge changes, compiler pins, or releases adopted."
+}

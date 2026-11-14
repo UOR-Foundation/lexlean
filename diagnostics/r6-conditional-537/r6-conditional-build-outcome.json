@@ -1,0 +1,17 @@
+{
+  "source": "76e400a6553a7d135891c27aed18941578bfffc8",
+  "command": [
+    "cargo",
+    "build",
+    "--locked",
+    "-p",
+    "repo-conformance",
+    "--example",
+    "bootstrap_certificate_source"
+  ],
+  "exit": 0,
+  "seconds": 195.90860259200008,
+  "max_rss_kib": 2855328,
+  "source_stayed_clean": true,
+  "source_stayed_same": true
+}

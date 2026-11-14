@@ -1,0 +1,15 @@
+{
+  "source": "76e400a6553a7d135891c27aed18941578bfffc8",
+  "command": [
+    "timeout",
+    "--kill-after=10s",
+    "600s",
+    "/workspace/lexlean-conditional-target/debug/examples/bootstrap_certificate_source",
+    "/workspace/lexlean-evidence/r6-conditional-source"
+  ],
+  "exit": 0,
+  "seconds": 37.74356164899973,
+  "max_rss_kib": 850284,
+  "source_stayed_clean": true,
+  "source_stayed_same": true
+}

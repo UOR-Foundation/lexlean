@@ -1,0 +1,34 @@
+{
+  "reviewer": "/root/diagnostic_review",
+  "review": "independent pre-build source review of conditional R6 diagnostic",
+  "at_utc": "2026-11-14T20:02:29.839577+00:00",
+  "checkpoint": "76e400a6553a7d135891c27aed18941578bfffc8",
+  "source_tree": "152fef06c739d424206a38e82f788623a5b91b24",
+  "base": "9fd01c31e40bb29577833825f902fafcceedb49a",
+  "owner_fix": "89b8f7738ed4781ba75bcc62ebb09cfcc7a42c40",
+  "proof_blob": "566aac14bd881ec5254c6f41b3962c268eef4365",
+  "source_hashes": {
+    "crates/conformance/examples/bootstrap_certificate_source.rs": "1fc6d088fee0698cc8dcb7f4db4f172884cff893b065503e8ef37f0e52fdf3b8",
+    "crates/lexlean/src/production/certificate/data_a/prove.rs": "85985b0019225345ce1667db042121debfa159073d9b42460db5c8c1090f460b"
+  },
+  "bundle_sha256": "a2a48f474076bb967803af82ebd96f5214ef99086143ace43449baef89e8f6eb",
+  "verdict": "No blocking source defect found for bounded source-only candidate generation",
+  "findings": [
+    "Clean source checkpoint differs from producer only by exact owner prove.rs blob and separate diagnostic example; owner author and cherry-pick provenance retained.",
+    "Conditional restatement applies only ordinary Selection::If with no dependent branch equations. And/Or and dependent cases retain existing path.",
+    "taken leaves let-headed, mismatched-arity or nonmatching relation arguments unchanged. For matching branch derivations it constructs equality using if_pos/if_neg, congrArg/congr, then Eq.mpr; no axiom/policy/check removal appears.",
+    "The equality direction is target-at-selected-Boolean = original branch proposition, matching Eq.mpr applied to the original proof. Kernel validation remains necessary.",
+    "Diagnostic asserts clean actual Git HEAD equals compile-time LEXLEAN_DIAGNOSTIC_SOURCE, records Git tree, requires producer ancestry and exact owner proof blob, and streams generator executable SHA256.",
+    "Diagnostic retains original current-lock validation, original lowering and certificate byte limits, compiler semantics59f64e and exact retained R6 semantic-prefix checks.",
+    "Output must be a new directory; writes source/notation/program plus receipt with actual candidate provenance and explicit nonacceptance. No Lean/export/replay/audit path invoked by diagnostic."
+  ],
+  "proof_applicability": "Mechanism addresses definitional unfolding at ordinary conditionals; source review does not establish that guarded Part2 failure is caused by this mechanism or that this patch resolves it.",
+  "remaining_checks": [
+    "Build with exact clean reviewed HEAD in LEXLEAN_DIAGNOSTIC_SOURCE and separate target directory.",
+    "Bounded source generation must finish and compare produced source/shape with retained candidate.",
+    "Any later Lean elaboration/kernel replay/exact axiom audit must be separately qualified; this review grants no proof or compiler acceptance."
+  ],
+  "runtime_executed_by_reviewer": false,
+  "blocking_findings": [],
+  "qualification": false
+}
