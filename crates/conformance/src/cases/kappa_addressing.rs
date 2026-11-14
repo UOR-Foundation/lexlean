@@ -5,10 +5,10 @@
 //! case and is a defect of the package, of the pipeline, or of the oracle, and
 //! nothing here adopts the oracle's output.
 //!
-//! The package writes the JSON realization, all five hash axes, and the five
-//! categorical compositions on each axis (`KA-02`..`KA-06`). The GGUF and ONNX
-//! realizations remain outside the package; their committed fixtures are
-//! checked only for label form by `KA-02`.
+//! The package writes the JSON realization, all five hash axes, the five
+//! categorical compositions on each axis (`KA-02`..`KA-06`), and the GGUF v3
+//! realization (`KA-07`). The ONNX realization remains outside the package;
+//! its committed fixtures are checked only for label form by `KA-02`.
 
 use std::collections::BTreeMap;
 
@@ -31,11 +31,12 @@ const LABEL: &str = "LexLeanKappa.Label";
 const JSON: &str = "LexLeanKappa.Json";
 const COMPOSE: &str = "LexLeanKappa.Compose";
 const AXIS: &str = "LexLeanKappa.Axis";
+const GGUF: &str = "LexLeanKappa.Gguf";
 
 /// The roots in the order their modules declare them, each with the effects
 /// its declaration admits, which are exactly the effects its closure
 /// realizes.
-const ROOTS: [(&str, &str, &[&str]); 18] = [
+const ROOTS: [(&str, &str, &[&str]); 21] = [
     (LABEL, "kappaLabel", &["allocation", "overflow"]),
     (LABEL, "isLabel", &["allocation", "overflow"]),
     (LABEL, "handleWire", &["allocation", "overflow"]),
@@ -54,6 +55,9 @@ const ROOTS: [(&str, &str, &[&str]); 18] = [
     (COMPOSE, "composeE6", &["allocation", "overflow"]),
     (COMPOSE, "composeE7", &["allocation", "overflow"]),
     (COMPOSE, "composeE8", &["allocation", "overflow"]),
+    (GGUF, "canonicalGguf", &["allocation", "overflow"]),
+    (GGUF, "ggufLabel", &["allocation", "overflow"]),
+    (GGUF, "ggufLabelOn", &["allocation", "overflow"]),
 ];
 
 /// The σ-axes the package writes, with the width of their raw digests in
@@ -141,8 +145,8 @@ const FIXTURES: [(&str, &str, &str); 12] = [
 ];
 
 /// The five committed `.kappa-label` files of uor-addr's GGUF and ONNX
-/// fixtures (v0.2.0, `tests/fixtures/`), vendored under `tests/kappa/`. The
-/// package writes neither realization, so these hold only the label form.
+/// fixtures (v0.2.0, `tests/fixtures/`), vendored under `tests/kappa/`, read
+/// for label form by `KA-02`; the GGUF ones are also the fixtures of `KA-07`.
 const COMMITTED_LABELS: [&str; 5] = [
     "gguf/aligned-256.kappa-label",
     "gguf/empty-metadata.kappa-label",
@@ -956,6 +960,7 @@ fn corpus(member: &str, runs: usize) -> Vec<Run> {
         "composeG2On" | "composeF4On" | "composeE6On" | "composeE7On" | "composeE8On" => {
             compose_on_corpus(member, runs)
         }
+        "canonicalGguf" | "ggufLabel" | "ggufLabelOn" => gguf_corpus(member, runs),
         other => panic!("`{other}` is not a root of the package"),
     }
 }
@@ -1136,6 +1141,7 @@ pub fn run(id: &str) {
         "KA-04" => composition(),
         "KA-05" => hash_axes(),
         "KA-06" => axis_composition(),
+        "KA-07" => gguf(),
         other => panic!("no kappa-addressing case is wired for {other}"),
     }
 }
@@ -1171,7 +1177,7 @@ fn package(id: &str) {
     project.check_ok();
     let built = project.build_ok();
     let build_id = built.build_id.expect("built");
-    for module in ["Label", "Json", "Axis", "Compose"] {
+    for module in ["Label", "Json", "Axis", "Compose", "Gguf"] {
         let report: Json = serde_json::from_slice(
             &std::fs::read(
                 project
@@ -1549,6 +1555,7 @@ fn rustc_runs(member: &str) -> usize {
         "composeG2On" | "composeF4On" | "composeE6On" | "composeE7On" | "composeE8On" => {
             COMPOSE_RUSTC_RUNS
         }
+        "canonicalGguf" | "ggufLabel" | "ggufLabelOn" => GGUF_RUSTC_RUNS,
         _ => RUSTC_RUNS,
     }
 }
@@ -1802,5 +1809,495 @@ fn axis_composition() {
             ),
         ],
         |member| corpus(member, COMPOSE_EVALUATOR_RUNS),
+    );
+}
+
+/// The three committed GGUF fixtures of uor-addr (v0.2.0,
+/// `tests/fixtures/gguf/`), vendored under `tests/kappa/gguf/` beside their
+/// `.kappa-label` files.
+const GGUF_FIXTURES: [&str; 3] = ["aligned-256", "empty-metadata", "synthetic-f32"];
+/// Seeded GGUF files under the evaluator.
+const GGUF_EVALUATOR_RUNS: usize = 60;
+/// Seeded GGUF files under rustc.
+const GGUF_RUSTC_RUNS: usize = 400;
+
+/// The ggml tensor types uor-addr knows: the identifier, the bytes of a
+/// block, and the elements of a block.
+const GGML_TYPES: [(u32, u64, u64); 29] = [
+    (0, 4, 1),
+    (1, 2, 1),
+    (2, 18, 32),
+    (3, 20, 32),
+    (6, 22, 32),
+    (7, 24, 32),
+    (8, 34, 32),
+    (9, 36, 32),
+    (10, 84, 256),
+    (11, 110, 256),
+    (12, 144, 256),
+    (13, 176, 256),
+    (14, 210, 256),
+    (15, 292, 256),
+    (16, 66, 256),
+    (17, 74, 256),
+    (18, 98, 256),
+    (19, 50, 256),
+    (20, 18, 32),
+    (21, 110, 256),
+    (22, 82, 256),
+    (23, 136, 256),
+    (24, 1, 1),
+    (25, 2, 1),
+    (26, 4, 1),
+    (27, 8, 1),
+    (28, 8, 1),
+    (29, 56, 256),
+    (30, 2, 1),
+];
+
+/// What the oracle says of a GGUF file: its canonical skeleton, or `None` for
+/// a refusal.
+fn oracle_gguf(raw: &[u8]) -> Option<Vec<u8>> {
+    uor_addr::gguf::canonicalize(raw).ok()
+}
+
+/// What the oracle says of a GGUF file on a σ-axis: its κ-label there, or
+/// `None` for a refusal.
+fn oracle_gguf_address(axis: &str, raw: &[u8]) -> Option<String> {
+    use uor_addr::gguf as g;
+    match axis {
+        "sha256" => g::address(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        "blake3" => g::address_blake3(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        "sha3-256" => g::address_sha3_256(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        "keccak256" => g::address_keccak256(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        "sha512" => g::address_sha512(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        _ => None,
+    }
+}
+
+fn put_u32(out: &mut Vec<u8>, value: u32) {
+    out.extend_from_slice(&value.to_le_bytes());
+}
+fn put_u64(out: &mut Vec<u8>, value: u64) {
+    out.extend_from_slice(&value.to_le_bytes());
+}
+fn put_text(out: &mut Vec<u8>, text: &[u8]) {
+    put_u64(out, u64::try_from(text.len()).expect("a length"));
+    out.extend_from_slice(text);
+}
+fn align_up(offset: u64, alignment: u64) -> u64 {
+    offset.div_ceil(alignment) * alignment
+}
+
+/// A GGUF v3 header with the counts given.
+fn gguf_header(tensors: u64, pairs: u64) -> Vec<u8> {
+    let mut out = b"GGUF".to_vec();
+    put_u32(&mut out, 3);
+    put_u64(&mut out, tensors);
+    put_u64(&mut out, pairs);
+    out
+}
+
+/// A file of one metadata value: `depth` arrays nested in one another around
+/// an empty array of `inner` elements.
+fn nested_arrays(depth: usize, inner: u32) -> Vec<u8> {
+    let mut out = gguf_header(0, 1);
+    put_text(&mut out, b"nested");
+    put_u32(&mut out, 9);
+    for _ in 1..depth {
+        put_u32(&mut out, 9);
+        put_u64(&mut out, 1);
+    }
+    put_u32(&mut out, inner);
+    put_u64(&mut out, 0);
+    out
+}
+
+/// A file of one tensor of the type, the dimensions, and the stored offset
+/// given, followed by `data` bytes of tensor data.
+fn one_tensor(kind: u32, dims: &[u64], offset: u64, data: usize) -> Vec<u8> {
+    let mut out = gguf_header(1, 0);
+    put_text(&mut out, b"t");
+    put_u32(&mut out, u32::try_from(dims.len()).expect("a rank"));
+    for dim in dims {
+        put_u64(&mut out, *dim);
+    }
+    put_u32(&mut out, kind);
+    put_u64(&mut out, offset);
+    let start = usize::try_from(align_up(out.len() as u64, 32)).expect("a size");
+    out.resize(start + data, 0x5a);
+    out
+}
+
+/// Files at the edges of the form: what the oracle accepts and refuses at
+/// each bound it checks.
+fn gguf_edges() -> Vec<Vec<u8>> {
+    let mut edges = vec![
+        Vec::new(),
+        b"GGUF".to_vec(),
+        gguf_header(0, 0)[..23].to_vec(),
+        gguf_header(0, 0),
+        nested_arrays(64, 0),
+        nested_arrays(65, 0),
+        nested_arrays(2, 13),
+        one_tensor(0, &[4, 2], 0, 32),
+        one_tensor(0, &[4, 2], 0, 31),
+        one_tensor(0, &[4, 2], 1, 32),
+        one_tensor(0, &[4, 2], u64::MAX, 32),
+        one_tensor(4, &[4], 0, 64),
+        one_tensor(2, &[33], 0, 64),
+        one_tensor(2, &[32], 0, 18),
+        one_tensor(0, &[1, 1, 1, 1, 1], 0, 64),
+        one_tensor(0, &[], 0, 4),
+        one_tensor(0, &[0], 0, 0),
+        one_tensor(0, &[1 << 32, 1 << 32], 0, 4),
+        one_tensor(15, &[1 << 40, 1 << 24], 0, 4),
+    ];
+    let mut version = gguf_header(0, 0);
+    version[4] = 2;
+    edges.push(version);
+    let mut magic = gguf_header(0, 0);
+    magic[0] = b'g';
+    edges.push(magic);
+    edges.push(gguf_header(0, u64::MAX));
+    edges.push(gguf_header(u64::MAX, 0));
+    for (tag, value) in [
+        (4_u32, 4_u64),
+        (4, 8),
+        (4, 7),
+        (4, 0),
+        (4, 48),
+        (4, 1 << 31),
+        (10, 7),
+    ] {
+        let mut out = gguf_header(0, 1);
+        put_text(&mut out, b"general.alignment");
+        put_u32(&mut out, tag);
+        if tag == 4 {
+            put_u32(&mut out, u32::try_from(value).expect("a u32"));
+        } else {
+            put_u64(&mut out, value);
+        }
+        edges.push(out);
+    }
+    let mut string = gguf_header(0, 1);
+    put_text(&mut string, b"s");
+    put_u32(&mut string, 8);
+    put_u64(&mut string, u64::MAX);
+    edges.push(string);
+    edges
+}
+
+impl Seeded {
+    /// One metadata value of the type tag, written at `depth`.
+    fn gguf_value(&mut self, out: &mut Vec<u8>, tag: u32, depth: usize) {
+        let width = match tag {
+            0 | 1 | 7 => 1,
+            2 | 3 => 2,
+            4..=6 => 4,
+            10..=12 => 8,
+            8 => {
+                let text: Vec<u8> = (0..self.below(12))
+                    .map(|_| *self.pick(b"abcz.\x00\xff"))
+                    .collect();
+                put_text(out, &text);
+                return;
+            }
+            _ => {
+                let element = if depth < 2 {
+                    *self.pick(&[0_u32, 4, 6, 8, 9, 10, 7])
+                } else {
+                    *self.pick(&[0_u32, 4, 8])
+                };
+                let count = self.below(4);
+                put_u32(out, element);
+                put_u64(out, count as u64);
+                for _ in 0..count {
+                    self.gguf_value(out, element, depth + 1);
+                }
+                return;
+            }
+        };
+        for _ in 0..width {
+            out.push(self.below(256) as u8);
+        }
+    }
+
+    /// A seeded GGUF v3 file: metadata of every type tag, keys and tensor
+    /// names in any order and repeated, an alignment of the metadata valid or
+    /// not, tensors of every ggml type, and, one time in three, one defect.
+    fn gguf_document(&mut self) -> Vec<u8> {
+        const KEYS: [&[u8]; 7] = [
+            b"general.name",
+            b"general.architecture",
+            b"a",
+            b"ab",
+            b"b",
+            b"tokenizer.ggml.tokens",
+            b"",
+        ];
+        const NAMES: [&[u8]; 5] = [b"t", b"token_embd.weight", b"a", b"blk.0.attn_q", b"t"];
+        let alignment: Option<u64> = self
+            .chance(40)
+            .then(|| *self.pick(&[8_u64, 16, 32, 64, 256, 4, 7, 48]));
+        let pairs = self.below(5);
+        let alignment = alignment.filter(|_| pairs > 0);
+        let mut body = Vec::new();
+        let mut count = 0_u64;
+        for index in 0..pairs {
+            if alignment.is_some() && index == pairs / 2 {
+                put_text(&mut body, b"general.alignment");
+                put_u32(&mut body, 4);
+                put_u32(
+                    &mut body,
+                    u32::try_from(alignment.unwrap_or(32)).expect("a u32"),
+                );
+                count += 1;
+            }
+            put_text(&mut body, self.pick(&KEYS));
+            let tag = u32::try_from(self.below(13)).expect("a tag");
+            put_u32(&mut body, tag);
+            self.gguf_value(&mut body, tag, 0);
+            count += 1;
+        }
+        let effective = alignment
+            .filter(|value| *value >= 8 && value.is_power_of_two())
+            .unwrap_or(32);
+        let tensors = self.below(4);
+        let mut end = 0_u64;
+        let mut next = 0_u64;
+        for _ in 0..tensors {
+            let (kind, block, elements) = *self.pick(&GGML_TYPES);
+            let rank = self.below(4);
+            let mut dims = Vec::new();
+            for axis in 0..rank {
+                dims.push(if axis == 0 {
+                    elements * (1 + self.below(2) as u64)
+                } else {
+                    1 + self.below(2) as u64
+                });
+            }
+            let product: u64 = dims.iter().product();
+            let size = product / elements * block;
+            let offset = if self.chance(20) {
+                self.below(usize::try_from(next + 1).expect("an offset")) as u64
+            } else {
+                next
+            };
+            next = align_up(offset + size, effective);
+            end = end.max(offset + size);
+            put_text(&mut body, self.pick(&NAMES));
+            put_u32(&mut body, u32::try_from(rank).expect("a rank"));
+            for dim in dims {
+                put_u64(&mut body, dim);
+            }
+            put_u32(&mut body, kind);
+            put_u64(&mut body, offset);
+        }
+        let mut out = gguf_header(tensors as u64, count);
+        out.extend_from_slice(&body);
+        let start = usize::try_from(align_up(out.len() as u64, effective)).expect("a start");
+        out.resize(start, 0);
+        for _ in 0..end {
+            out.push(self.below(256) as u8);
+        }
+        if self.chance(33) && !out.is_empty() {
+            match self.below(5) {
+                0 => {
+                    let cut = self.below(out.len());
+                    out.truncate(cut);
+                }
+                1 => {
+                    let at = self.below(out.len());
+                    out[at] ^= 1 << self.below(8);
+                }
+                2 => out.extend_from_slice(b"trailing"),
+                3 => out[16] = out[16].wrapping_add(1),
+                _ => out[8] = out[8].wrapping_add(1),
+            }
+        }
+        out
+    }
+}
+
+/// The GGUF files of a corpus: the three committed fixtures, the edges, and
+/// `runs` seeded files.
+fn gguf_subjects(runs: usize, seed: u64) -> Vec<Vec<u8>> {
+    let root = repo_root().join("tests/kappa/gguf");
+    let mut subjects: Vec<Vec<u8>> = GGUF_FIXTURES
+        .iter()
+        .map(|name| {
+            std::fs::read(root.join(format!("{name}.gguf")).as_std_path())
+                .unwrap_or_else(|error| panic!("{name}.gguf: {error}"))
+        })
+        .collect();
+    subjects.extend(gguf_edges());
+    let mut seeded = Seeded(seed);
+    subjects.extend((0..runs).map(|_| seeded.gguf_document()));
+    subjects
+}
+
+/// The corpus of a root of the module `Gguf`: the oracle's skeleton, its
+/// κ-label, or its κ-label on each axis and on a name that is no axis.
+fn gguf_corpus(member: &str, runs: usize) -> Vec<Run> {
+    let mut out = Vec::new();
+    match member {
+        "canonicalGguf" => {
+            for subject in gguf_subjects(runs, 0x4b41_0007_0000_0001) {
+                let expected = oracle_gguf(&subject);
+                record(
+                    &mut out,
+                    vec![bytes(&subject)],
+                    &option_bytes(expected.as_deref()),
+                );
+            }
+        }
+        "ggufLabel" => {
+            for subject in gguf_subjects(runs, 0x4b41_0007_0000_0002) {
+                let expected = oracle_gguf_address("sha256", &subject);
+                record(
+                    &mut out,
+                    vec![bytes(&subject)],
+                    &option_bytes(expected.as_deref().map(str::as_bytes)),
+                );
+            }
+        }
+        _ => {
+            let subjects = gguf_subjects(runs / 5, 0x4b41_0007_0000_0003);
+            for (index, subject) in subjects.iter().enumerate() {
+                let axis = if index % 11 == 10 {
+                    "sha256x"
+                } else {
+                    AXES[index % AXES.len()].0
+                };
+                let expected = oracle_gguf_address(axis, subject);
+                record(
+                    &mut out,
+                    vec![bytes(axis.as_bytes()), bytes(subject)],
+                    &option_bytes(expected.as_deref().map(str::as_bytes)),
+                );
+            }
+        }
+    }
+    out
+}
+
+/// `KA-07`: the GGUF realization.
+fn gguf() {
+    let project = P::workspace_project("kappa", &MEMBERS);
+    project.check_ok();
+    let members = ["canonicalGguf", "ggufLabel", "ggufLabelOn"];
+    let lowered = lowered_roots(&project, &members);
+    // The three committed fixtures: the committed label, the oracle's, and
+    // the package's, as the evaluator computes it.
+    let root = repo_root().join("tests/kappa/gguf");
+    let label = &lowered["ggufLabel"];
+    for name in GGUF_FIXTURES {
+        let raw = std::fs::read(root.join(format!("{name}.gguf")).as_std_path())
+            .unwrap_or_else(|error| panic!("{name}.gguf: {error}"));
+        let committed =
+            std::fs::read_to_string(root.join(format!("{name}.kappa-label")).as_std_path())
+                .unwrap_or_else(|error| panic!("{name}.kappa-label: {error}"));
+        let committed = committed.trim_end();
+        assert_eq!(
+            oracle_gguf_address("sha256", &raw).as_deref(),
+            Some(committed),
+            "KA-07: {name}: the oracle gives the committed label"
+        );
+        let outcome = interp::run(&label.program, FUEL, label.entry(), &[bytes(&raw)]);
+        let observed = rust::observable(&outcome).expect("an observable");
+        assert_eq!(
+            observed,
+            serde_json::to_value(option_bytes(Some(committed.as_bytes()))).expect("json"),
+            "KA-07: {name}: the package gives the committed label"
+        );
+        eprintln!("KA-07: {name}: {committed}");
+    }
+    let refusal = serde_json::to_value(Value::None).expect("a value is JSON");
+    for member in members {
+        let runs = corpus(member, GGUF_EVALUATOR_RUNS);
+        assert!(
+            runs.iter().any(|(_, expected)| *expected == refusal)
+                && runs.iter().any(|(_, expected)| *expected != refusal),
+            "KA-07: {member}: the corpus holds both skeletons and refusals"
+        );
+        let disagreements = evaluate(&lowered[member], &runs);
+        assert!(
+            disagreements.is_empty(),
+            "KA-07: {member}: the evaluator and uor-addr disagree on {} of {} runs: {:?}",
+            disagreements.len(),
+            runs.len(),
+            &disagreements[..disagreements.len().min(5)]
+        );
+    }
+    rustc_differential(&lowered, &members);
+    // The gate is armed: metadata in reverse key order, tensors in reverse
+    // name order, a default alignment of sixteen, an alignment of four
+    // admitted, a string digested from its length field, canonical offsets
+    // left unaligned, a data section that starts unaligned, and an array
+    // depth bound one deeper are each detected.
+    detect_plants(
+        "KA-07",
+        &[
+            (
+                "Gguf",
+                "(if (Json::lessKey key (first item)) then",
+                "(if (Json::lessKey (first item) key) then",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "(if (Json::lessKey (project tensor name) (project item name)) then",
+                "(if (Json::lessKey (project item name) (project tensor name)) then",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "alignment := 32, entries",
+                "alignment := 16, entries",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "(if ((8 <=? alignment) && (isPowerOfTwo alignment))",
+                "(if ((4 <=? alignment) && (isPowerOfTwo alignment))",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "(digest (LexLeanStd.Text::sliceOr subject (at + 8)",
+                "(digest (LexLeanStd.Text::sliceOr subject (at + 4)",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "offset := (alignUp ((project state offset) + (project tensor size)) alignment)",
+                "offset := ((project state offset) + (project tensor size))",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "(let start : Nat := (alignUp (project tensors position) alignment);",
+                "(let start : Nat := (project tensors position);",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "(64 <=? (project top depth))",
+                "(65 <=? (project top depth))",
+                "canonicalGguf",
+            ),
+        ],
+        |member| corpus(member, GGUF_EVALUATOR_RUNS),
     );
 }
