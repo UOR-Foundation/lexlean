@@ -89,10 +89,10 @@ pub use ir::semantic::{
     SemanticConstructor as SnapshotConstructor, SemanticDeclaration as SnapshotSemanticDeclaration,
     SemanticEdge as SnapshotEdge, SemanticField as SnapshotField,
     SemanticInteger as SnapshotInteger, SemanticMapEntry as SnapshotMapEntry,
-    SemanticModule as SnapshotSemanticModule, SemanticParameter as SnapshotParameter,
-    SemanticPrimitive as SnapshotPrimitive, SemanticProduction as SnapshotProduction,
-    SemanticProof as SnapshotProof, SemanticProofBranch as SnapshotProofBranch,
-    SemanticReflection as SnapshotReflection,
+    SemanticModule as SnapshotSemanticModule, SemanticNestedMember as SnapshotNestedMember,
+    SemanticParameter as SnapshotParameter, SemanticPrimitive as SnapshotPrimitive,
+    SemanticProduction as SnapshotProduction, SemanticProof as SnapshotProof,
+    SemanticProofBranch as SnapshotProofBranch, SemanticReflection as SnapshotReflection,
     SemanticReflectionComparison as SnapshotReflectionComparison,
     SemanticReflectionField as SnapshotReflectionField, SemanticTerm as SnapshotTerm,
     SemanticTermination as SnapshotTermination, SemanticType as SnapshotType,
@@ -207,10 +207,35 @@ fn is_v1_2_file(path: &str) -> bool {
 #[doc(hidden)]
 #[must_use]
 pub fn identity_bytes<'a>(path: &str, bytes: &'a [u8]) -> std::borrow::Cow<'a, [u8]> {
-    surface::identity::data_form(path, bytes).map_or(std::borrow::Cow::Borrowed(bytes), |data| {
-        std::borrow::Cow::Owned(data)
-    })
+    // A module of a hundred functions nests as deeply as its list, and reading
+    // it to its data form recurses with it, so the reading has a stack of its
+    // own rather than the two megabytes of the thread that asks (a test's, or
+    // a debug build's worker).
+    // A thread that cannot be had reads on the caller's stack, which is slower
+    // to fail on a deep module but never a panic; a panic of the reader itself
+    // is the reader's, and is passed on as it was raised.
+    let data = std::thread::scope(|scope| {
+        match std::thread::Builder::new()
+            .stack_size(READER_STACK)
+            .spawn_scoped(scope, || surface::identity::data_form(path, bytes))
+        {
+            Ok(reader) => reader
+                .join()
+                .unwrap_or_else(|panic| std::panic::resume_unwind(panic)),
+            Err(_) => surface::identity::data_form(path, bytes),
+        }
+    });
+    data.map_or(std::borrow::Cow::Borrowed(bytes), std::borrow::Cow::Owned)
 }
+
+/// The stack of a thread that reads a module of kernel terms or semantic data
+/// whose lists are long: the reader recurses once per level of the data's
+/// nesting, and a list of n elements nests n levels. The runtime module
+/// (110 functions, `language/rust-runtime-1.2/RustRuntime.lex.tex`) reads to
+/// 1.14 MB of data nested 119 levels, and a debug build overflows the two
+/// megabytes of a default thread reading it (about 17 KB a level) and reads it
+/// in four; this is sixteen times that, for modules that grow with the runtime.
+pub const READER_STACK: usize = 64 * 1024 * 1024;
 
 /// The §11.5 tree digest of the files of the embedded tree selected by `keep`.
 fn embedded_digest(keep: impl Fn(&str) -> bool) -> Sha256Digest {
@@ -253,6 +278,16 @@ fn embedded_digest(keep: impl Fn(&str) -> bool) -> Sha256Digest {
     tree_digest(&files)
 }
 
+/// The language-1.2 compiler-semantics ID of the full embedded tree, checked
+/// in for a build without the `production-data` feature, which lacks part of
+/// that tree and so cannot compute it (SPEC.md §8.4, §21.2). A build with the
+/// feature computes the ID and never reads this. RP-10 recomputes the ID from
+/// disk and fails when this differs: a wrong value here would lock and check
+/// consistently with itself, so agreement on verdicts could not reveal it.
+/// The 1.0 and 1.1 IDs need no constant: no file they cover is left out.
+pub const LANGUAGE_1_2_SEMANTICS_ID: &str =
+    "ffc1e1cacb27d7cd8b75ce85c4c16b9baa6154818d6277ba3eae750fab3819b8";
+
 /// The compiler-semantics ID for one selected language. Language 1.0 excludes
 /// all files introduced solely for 1.1 and 1.2, and Language 1.1 excludes
 /// all files introduced solely for 1.2, preserving historical identities.
@@ -267,7 +302,14 @@ pub fn compiler_semantics_id_for(language: &str) -> Sha256Digest {
             *V1_0.get_or_init(|| embedded_digest(|path| !is_v1_1_file(path) && !is_v1_2_file(path)))
         }
         LANGUAGE_1_1 => *V1_1.get_or_init(|| embedded_digest(|path| !is_v1_2_file(path))),
-        LANGUAGE_1_2 => *V1_2.get_or_init(|| embedded_digest(|_| true)),
+        LANGUAGE_1_2 => *V1_2.get_or_init(|| {
+            if embedded::PRODUCTION_DATA {
+                embedded_digest(|_| true)
+            } else {
+                Sha256Digest::from_hex(LANGUAGE_1_2_SEMANTICS_ID)
+                    .expect("RP-10 parses the checked-in language-1.2 ID")
+            }
+        }),
         // An unsupported language never shares an identity with a supported
         // one; configuration rejects it before any identity is published.
         other => Sha256Digest::of(format!("unsupported-language\0{other}").as_bytes()),

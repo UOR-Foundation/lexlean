@@ -10,8 +10,10 @@ use std::process::ExitCode;
 use camino::Utf8PathBuf;
 
 mod audit;
+mod bump;
 mod ci;
 mod codegen;
+mod counts;
 mod release_manifest;
 mod spec;
 mod spec_links;
@@ -37,7 +39,10 @@ fn main() -> ExitCode {
         "check-fixtures" => check_fixtures(&root, write),
         "check-calculus" => check_calculus(&root, write),
         "check-production-export" => check_production_export(write),
+        "check-freshness" => check_freshness(&root),
+        "export-bootstrap" => export_bootstrap(&std::env::args().skip(2).collect::<Vec<_>>()),
         "check-package" => check_package(&root),
+        "counts" => counts::counts(&root, write),
         "check-test-inventory" => ci::check_test_inventory(&root),
         "bdd" => ci::bdd(&root),
         "ci-summary" => ci::ci_summary(&root, &std::env::args().skip(2).collect::<Vec<_>>()),
@@ -45,6 +50,7 @@ fn main() -> ExitCode {
         "ci-shards" => ci::ci_shards(&root),
         "release-artifacts" => release_artifacts(&root),
         "release-check" => release_check(&root),
+        "bump-version" => bump::bump_version(&root, &std::env::args().skip(2).collect::<Vec<_>>()),
         "validate" => codegen::check_model(&root, false).and_then(|()| spec_links::validate(&root)),
         _ => {
             eprintln!(
@@ -62,8 +68,15 @@ fn main() -> ExitCode {
                  check-calculus          §17.14-§17.16: the compiler project's modules, the target and\n\
                                          GNAF fixtures, the Rust packages, and configuration equal\n\
                                          their generator\n\
+                 counts                  §17.23: write the counts a bootstrap case reported under\n\
+                                         LEXLEAN_COUNTS=fast|report into its constants and statements\n\
                  check-production-export §24.7: the consumer's exported packages equal the committed\n\
                                          packages under tests/production-export\n\
+                 check-freshness         §9.4: every committed build oracle's recorded inputs, every lock,
+                                         and every committed export package are current (no Lean)
+                 export-bootstrap        §9.4: export the bootstrap project once for a CI run, require
+                                         its committed packages, and write the bundle with its custody
+                                         record (--output DIR)
                  check-package          §30.3, RP-12: package lexlean crate, verify offline build & identity\n\
                  check-test-inventory    RP-13: the `test` and `bdd` recipes partition the workspace tests,\n\
                                          and the parts of .github/bdd-parts.json partition `bdd`\n\
@@ -76,6 +89,8 @@ fn main() -> ExitCode {
                                          runs every process once in import order\n\
                  release-artifacts       §30.3: derive the release/ artifact set from the repository\n\
                  release-check           RP-12: refuse release until §30.3/§30.4 are fully satisfied\n\
+                 bump-version X.Y.Z      §2.3, §9.4: move every site of the workspace version and the\n\
+                                         lock's workspace rows to X.Y.Z (a release cut, `cut.yml`)\n\
                  validate                validate-model then validate-spec-links\n\
                  \n\
                  --write                 validate-model / check-golden / check-fixtures / check-calculus /\n\
@@ -128,6 +143,35 @@ fn check_production_export(write: bool) -> Result<(), Fail> {
     Ok(())
 }
 
+/// §9.4: the committed generated files are current, checked in honesty
+/// before the expensive roots (`repo_conformance::freshness`).
+fn check_freshness(root: &Path) -> Result<(), Fail> {
+    let root = camino::Utf8Path::from_path(root).ok_or("the repository path is UTF-8")?;
+    let summary = repo_conformance::freshness::check(root)?;
+    println!(
+        "check-freshness: {} build oracles ({} recorded inputs), their locks, and {} committed export packages are current (§9.4)",
+        summary.projects, summary.inputs, summary.packages
+    );
+    Ok(())
+}
+
+/// §9.4: the bootstrap production export, run once for a CI run by the
+/// `bootstrap-export` job, which uploads what this writes for the run's other
+/// jobs (`repo_conformance::export_custody`).
+fn export_bootstrap(arguments: &[String]) -> Result<(), Fail> {
+    let output = arguments
+        .iter()
+        .position(|argument| argument == "--output")
+        .and_then(|index| arguments.get(index + 1))
+        .ok_or("export-bootstrap --output DIR")?;
+    let custody = repo_conformance::export_custody::publish(camino::Utf8Path::new(output))?;
+    println!(
+        "export-bootstrap: the bootstrap project exported once for run {} attempt {} (commit {}); its packages equal the committed packages (§24.7); bundle sha256 {} ({} files) in {output}",
+        custody.run_id, custody.run_attempt, custody.commit, custody.bundle_sha256, custody.bundle_files
+    );
+    Ok(())
+}
+
 fn example_dirs(root: &Path) -> Result<Vec<PathBuf>, Fail> {
     let mut dirs = Vec::new();
     for entry in std::fs::read_dir(root.join("examples"))? {
@@ -158,6 +202,22 @@ fn example_dirs(root: &Path) -> Result<Vec<PathBuf>, Fail> {
         return Err("§17.22: the standard library project is missing".into());
     }
     dirs.push(stdlib);
+    // The library's two source packages (§17.22) are projects of their own
+    // under the same gates.
+    for package in ["std-models", "std-reasoning"] {
+        let directory = root.join(package);
+        if !directory.join("lexlean.toml").exists() {
+            return Err(format!("§17.22: the `{package}` project is missing").into());
+        }
+        dirs.push(directory);
+    }
+    // The κ-addressing package (§17.22, `KA-01`) is a project of the
+    // workspace beside the standard library, under the same gates.
+    let kappa = root.join("kappa");
+    if !kappa.join("lexlean.toml").exists() {
+        return Err("§17.22: the `kappa` project is missing".into());
+    }
+    dirs.push(kappa);
     // The bootstrap project (§17.23) holds the compiler's own components as
     // language-1.2 source under the same gates.
     let bootstrap = root.join("bootstrap");
@@ -740,6 +800,12 @@ fn published_build(
 /// §28.3: the published build tree of every example equals its committed
 /// oracle byte for byte; golden outputs change only through `--write`.
 fn check_golden(root: &Path, write: bool) -> Result<(), Fail> {
+    let transcript = repo_conformance::cases::check_runtime_transcript(root, write)?;
+    if write {
+        println!("check-golden: wrote the runtime transcript ({transcript} labels)");
+    } else {
+        println!("check-golden: the runtime transcript ({transcript} labels) equals the printed runtime's (R10)");
+    }
     for dir in example_dirs(root)? {
         let name = dir
             .file_name()

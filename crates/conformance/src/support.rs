@@ -261,11 +261,26 @@ fn term(value: &SnapshotTerm) -> usize {
 
 fn prove(value: &SnapshotProof) -> usize {
     match value {
-        SnapshotProof::Reflexivity | SnapshotProof::Decide | SnapshotProof::Congruence => 1,
+        SnapshotProof::Reflexivity
+        | SnapshotProof::Decide
+        | SnapshotProof::RegionCheck
+        | SnapshotProof::Congruence => 1,
         SnapshotProof::LinearArithmetic { definitions } => 1 + definitions.len(),
+        SnapshotProof::TermCases { definitions, .. } => 2 + definitions.len(),
         SnapshotProof::Simplify { definitions, .. } => definitions.len(),
         SnapshotProof::Constructor { branches } => branches.iter().map(prove).sum(),
         SnapshotProof::Cases { branches, .. } | SnapshotProof::Induction { branches, .. } => branches.iter().map(|v| prove(&v.proof)).sum(),
+        SnapshotProof::NestedInduction { branches, members, .. } => {
+            branches.iter().map(|v| prove(&v.proof)).sum::<usize>()
+                + members
+                    .iter()
+                    .map(|m| {
+                        ty(&m.r#type)
+                            + term(&m.statement)
+                            + m.branches.iter().map(|v| prove(&v.proof)).sum::<usize>()
+                    })
+                    .sum::<usize>()
+        }
         SnapshotProof::BooleanReflection { reflection } => match reflection {
             lexlean::SnapshotReflection::List { .. } => 1,
             lexlean::SnapshotReflection::Record { fields, .. } => fields.len(),
@@ -607,6 +622,95 @@ impl P {
         .expect("the workspace file");
         let root = Utf8PathBuf::from_path_buf(temp.path().join("bootstrap")).expect("utf8");
         Self { temp, root }
+    }
+
+    /// A fresh copy of the project at the repository-relative `project`
+    /// beside the `members` it needs (`project` among them) and the
+    /// repository's workspace file, without build output or expected records.
+    /// The copies keep their repository-relative paths, so the workspace file
+    /// resolves a package here exactly as it does in the checkout (SPEC.md
+    /// §10.5).
+    #[must_use]
+    pub fn workspace_project(project: &str, members: &[&str]) -> Self {
+        assert!(
+            members.contains(&project),
+            "`{project}` is one of the members copied"
+        );
+        let temp = tempfile::Builder::new()
+            .prefix("lexlean-workspace-case-")
+            .tempdir()
+            .expect("tempdir");
+        for member in members {
+            let source = repo_root().join(member);
+            assert!(
+                source.is_dir(),
+                "the committed `{member}` project is required"
+            );
+            copy_tree(
+                source.as_std_path(),
+                &temp.path().join(member),
+                &[".lexlean", "expected"],
+            );
+        }
+        std::fs::copy(
+            repo_root().join("lexlean-workspace.toml").as_std_path(),
+            temp.path().join("lexlean-workspace.toml"),
+        )
+        .expect("the workspace file");
+        let root = Utf8PathBuf::from_path_buf(temp.path().join(project)).expect("utf8");
+        Self { temp, root }
+    }
+
+    /// The repository-relative directories a project needs beside itself: its
+    /// own, then every source package it declares and every package those
+    /// declare (SPEC.md §10.5), read from the manifests as `xtask` stages them.
+    #[must_use]
+    pub fn package_members(project: &str) -> Vec<String> {
+        let read = |directory: &str| {
+            let bytes = std::fs::read(
+                repo_root()
+                    .join(directory)
+                    .join("lexlean.toml")
+                    .as_std_path(),
+            )
+            .unwrap_or_else(|error| panic!("{directory}/lexlean.toml: {error}"));
+            lexlean::config::parse_project("lexlean.toml", &bytes)
+                .unwrap_or_else(|error| panic!("{directory}: {error:?}"))
+        };
+        let mut members = vec![project.to_owned()];
+        let mut pending: Vec<String> = read(project)
+            .source_packages
+            .iter()
+            .map(|package| package.path.clone())
+            .collect();
+        while let Some(path) = pending.pop() {
+            if members.contains(&path) {
+                continue;
+            }
+            pending.extend(
+                read(&path)
+                    .source_packages
+                    .iter()
+                    .map(|package| package.path.clone()),
+            );
+            members.push(path);
+        }
+        members
+    }
+
+    /// A fresh copy of the example `name`: alone when it declares no source
+    /// package, and beside the workspace file and the packages it imports
+    /// when it does, since a project outside a workspace cannot declare one
+    /// (`LLC0108`).
+    #[must_use]
+    pub fn example_with_packages(name: &str) -> Self {
+        let project = format!("examples/{name}");
+        let members = Self::package_members(&project);
+        if members.len() == 1 {
+            return Self::copy_example(name);
+        }
+        let members: Vec<&str> = members.iter().map(String::as_str).collect();
+        Self::workspace_project(&project, &members)
     }
 
     /// Assert that a link-time failure also refuses `build` and leaves no
@@ -3159,6 +3263,74 @@ pub fn packaged_crate_version(root: &Utf8Path) -> Result<String, String> {
         "lexlean"
     });
     run(binary.as_str(), &["--version"], &unpacked, &[])
+}
+
+/// RP-19 (§8.4): build the `lexlean` binary without its default
+/// `production-data` feature and return its path. The build has a directory
+/// of its own (`target/check-only-verify`): the workspace build directory is
+/// held by the running test, and RP-12 builds a default binary at the same
+/// path under `target/package-verify`.
+///
+/// # Errors
+///
+/// The build failing, with its output.
+pub fn check_only_binary(root: &Utf8Path) -> Result<Utf8PathBuf, String> {
+    let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned());
+    let target_dir = root.join("target/check-only-verify");
+    let output = std::process::Command::new(&cargo)
+        .args([
+            "build",
+            "--offline",
+            "--locked",
+            "-p",
+            "lexlean",
+            "--bin",
+            "lexlean",
+            "--no-default-features",
+        ])
+        .current_dir(root.as_std_path())
+        .env("CARGO_TARGET_DIR", target_dir.as_str())
+        // Debug info is not what is compared; leaving it out keeps the
+        // directory small.
+        .env("CARGO_PROFILE_DEV_DEBUG", "0")
+        .output()
+        .map_err(|error| format!("{cargo} build: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "{cargo} build --no-default-features exited {:?}\n{}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    Ok(target_dir.join("debug").join(if cfg!(windows) {
+        "lexlean.exe"
+    } else {
+        "lexlean"
+    }))
+}
+
+/// Run a `lexlean` executable in `directory` and return its exit code,
+/// stdout, and stderr, as [`cli_in`] does for the library linked here.
+///
+/// # Panics
+///
+/// When the executable cannot be started.
+#[must_use]
+pub fn cli_binary_in(
+    binary: &Utf8Path,
+    directory: &Utf8Path,
+    arguments: &[&str],
+) -> (i32, String, String) {
+    let output = std::process::Command::new(binary.as_std_path())
+        .args(arguments)
+        .current_dir(directory.as_std_path())
+        .output()
+        .unwrap_or_else(|error| panic!("{binary}: {error}"));
+    (
+        output.status.code().unwrap_or(-1),
+        String::from_utf8_lossy(&output.stdout).into_owned(),
+        String::from_utf8_lossy(&output.stderr).into_owned(),
+    )
 }
 
 /// Run the pinned `lean` on a tiny module with `#print axioms` commands and

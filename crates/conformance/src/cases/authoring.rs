@@ -24,12 +24,28 @@ use lexlean::{FormatRequest, Selection};
 
 use crate::support::{self, repo_root, P};
 
-/// Run the case for one authoring ID.
+/// Run the case for one authoring ID. The committed corpus includes the
+/// runtime module (`language/rust-runtime-1.2/RustRuntime.lex.tex`), whose
+/// lists nest over a hundred levels and overflow a default test thread's two
+/// megabytes in a debug build, so every authoring case runs on a thread sized
+/// by [`lexlean::READER_STACK`].
 ///
 /// # Panics
 ///
 /// When the case's assertion fails, or for an unwired ID.
 pub fn run(id: &str) {
+    let id = id.to_owned();
+    std::thread::scope(|scope| {
+        std::thread::Builder::new()
+            .stack_size(lexlean::READER_STACK)
+            .spawn_scoped(scope, || check(&id))
+            .expect("a thread for the authoring case")
+            .join()
+            .unwrap_or_else(|panic| std::panic::resume_unwind(panic));
+    });
+}
+
+fn check(id: &str) {
     match id {
         "AU-01" => round_trip(),
         "AU-02" => equivalence(),
@@ -460,6 +476,53 @@ fn fails_closed() {
                 .as_ref()
                 .unwrap_or_else(|| panic!("{what}: the diagnostic has no position"));
             assert!(span.line_start >= 1, "{what}: no line");
+        }
+    }
+    // Recursive readable forms bypass the generic reader; their own bound
+    // must fire before either serde's recursion limit or a host stack abort.
+    for (prefix, leaf, position) in [
+        ("(cons 1 ", "(nil Nat)", "body"),
+        ("(List ", "Nat", "result"),
+    ] {
+        let nested = format!("{}{}{}", prefix.repeat(50_000), leaf, ")".repeat(50_000));
+        let declaration = if position == "body" {
+            format!(
+                "definition{{name: deep, parameters: [], result: (List Nat), body: {nested}}}\n"
+            )
+        } else {
+            format!("definition{{name: deep, parameters: [], result: {nested}, body: 0}}\n")
+        };
+        for text in [
+            declaration.clone(),
+            declaration.replacen(&nested, &nested.replace(')', ""), 1),
+        ] {
+            put_body(&project, &text);
+            let error = project.check_err();
+            let diagnostic = &error.diagnostics[0];
+            assert_eq!(diagnostic.code.as_str(), "LLP2001");
+            assert!(
+                diagnostic.message.contains("nested more deeply"),
+                "{diagnostic:?}"
+            );
+            let span = diagnostic.primary.as_ref().expect("notation position");
+            assert_eq!(span.path.as_str(), MAIN);
+            assert!(span.column_start > 256);
+            let (exit, _, stderr) = project.cli(&["check"]);
+            assert_eq!(exit, 1, "{stderr}");
+            assert!(
+                stderr.contains("LLP2001") && stderr.contains(MAIN),
+                "{stderr}"
+            );
+            let (exit, stdout, stderr) = project.cli(&["check", "--diagnostic-format", "json"]);
+            assert_eq!(exit, 1, "{stderr}");
+            let result: serde_json::Value =
+                serde_json::from_str(&stdout).expect("JSON command result");
+            assert_eq!(result["diagnostics"][0]["code"], "LLP2001");
+            assert_eq!(result["diagnostics"][0]["primary"]["path"], MAIN);
+            assert_eq!(
+                result["diagnostics"][0]["primary"]["column_start"],
+                span.column_start
+            );
         }
     }
     put_body(&project, &original);

@@ -24,10 +24,20 @@ pub const STDLIB: &str = "stdlib";
 /// The bootstrap project (§17.23), exported as the examples are.
 pub const BOOTSTRAP: &str = "bootstrap";
 
+/// The helpdesk application (`EX-09`), whose project imports three source
+/// packages and so is exported from a copy of its workspace.
+pub const HELPDESK: &str = "helpdesk";
+
 /// Every project the consumer exports: the examples, the standard library,
-/// and the bootstrap project, whose packages `check-production-export`
-/// compares.
-pub const EXPORTED: [&str; 4] = ["production", "production-coverage", STDLIB, BOOTSTRAP];
+/// the bootstrap project, and the helpdesk application, whose packages
+/// `check-production-export` compares.
+pub const EXPORTED: [&str; 5] = [
+    "production",
+    "production-coverage",
+    STDLIB,
+    BOOTSTRAP,
+    HELPDESK,
+];
 
 /// The root the GNAF evidence is built for, and where it is written.
 pub const GNAF_ROOT: &str = "Production.Main.sumAll";
@@ -238,6 +248,10 @@ pub fn export(example: &str) -> Result<Exported, String> {
     let project = match example {
         STDLIB => P::stdlib(),
         BOOTSTRAP => P::bootstrap(),
+        HELPDESK => P::workspace_project(
+            "examples/helpdesk",
+            &["examples/helpdesk", "std-models", "std-reasoning", "stdlib"],
+        ),
         _ => P::copy_example(example),
     };
     let gnaf = (example == "production").then(|| gnaf_evidence(&project));
@@ -298,14 +312,29 @@ pub fn exported(example: &str) -> &'static Exported {
     static COVERAGE: OnceLock<Exported> = OnceLock::new();
     static STANDARD: OnceLock<Exported> = OnceLock::new();
     static BOOT: OnceLock<Exported> = OnceLock::new();
+    static DESK: OnceLock<Exported> = OnceLock::new();
     let cell = match example {
         "production" => &PRODUCTION,
         "production-coverage" => &COVERAGE,
         STDLIB => &STANDARD,
         BOOTSTRAP => &BOOT,
+        HELPDESK => &DESK,
         other => panic!("`{other}` is not an exported example"),
     };
-    cell.get_or_init(|| export(example).unwrap_or_else(|reason| panic!("{reason}")))
+    cell.get_or_init(|| {
+        // In a CI run that exports the bootstrap project once (SPEC.md §9.4),
+        // the job's harness takes that export instead of running it again.
+        if example == BOOTSTRAP {
+            if let Some(directory) = std::env::var(crate::export_custody::VARIABLE)
+                .ok()
+                .filter(|value| !value.is_empty())
+            {
+                return crate::export_custody::take(Utf8Path::new(&directory))
+                    .unwrap_or_else(|reason| panic!("§9.4: the run's bootstrap export: {reason}"));
+            }
+        }
+        export(example).unwrap_or_else(|reason| panic!("{reason}"))
+    })
 }
 
 /// Every file under `root`, by `/`-separated relative path.
@@ -327,6 +356,28 @@ pub fn tree(root: &Utf8Path) -> BTreeMap<String, Vec<u8>> {
         }
     }
     out
+}
+
+/// Every difference between one export's packages and the committed expected
+/// packages of `example`, one line each.
+#[must_use]
+pub fn differences(example: &str, exported: &Exported) -> Vec<String> {
+    let packages = tree(&exported.bundle().join("packages"));
+    let expected = tree(&fixture_dir(example).join("packages"));
+    let mut unmet = Vec::new();
+    for (relative, bytes) in &packages {
+        match expected.get(relative) {
+            Some(committed) if committed == bytes => {}
+            Some(_) => unmet.push(format!("{example}: packages/{relative} differs")),
+            None => unmet.push(format!("{example}: packages/{relative} is not committed")),
+        }
+    }
+    for relative in expected.keys() {
+        if !packages.contains_key(relative) {
+            unmet.push(format!("{example}: packages/{relative} was not exported"));
+        }
+    }
+    unmet
 }
 
 /// Compare every exported package with the committed expected packages, or
@@ -351,19 +402,7 @@ pub fn check(write: bool) -> Result<(), String> {
             }
             continue;
         }
-        let expected = tree(&expected_root);
-        for (relative, bytes) in &packages {
-            match expected.get(relative) {
-                Some(committed) if committed == bytes => {}
-                Some(_) => unmet.push(format!("{example}: packages/{relative} differs")),
-                None => unmet.push(format!("{example}: packages/{relative} is not committed")),
-            }
-        }
-        for relative in expected.keys() {
-            if !packages.contains_key(relative) {
-                unmet.push(format!("{example}: packages/{relative} was not exported"));
-            }
-        }
+        unmet.extend(differences(example, &exported));
     }
     if unmet.is_empty() {
         Ok(())

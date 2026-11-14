@@ -574,6 +574,9 @@ mod types {
 
     /// Read a type.
     pub(super) fn read(reader: &mut Reader<'_>, depth: usize) -> Result<Json, SurfaceError> {
+        if depth > super::MAX_DEPTH {
+            return Err(reader.error("nested more deeply than the notation reads"));
+        }
         let offset = reader.offset();
         match reader.peek() {
             Some(Token::Word(word)) => {
@@ -1150,6 +1153,9 @@ mod terms {
 
     /// Read a term.
     pub(super) fn read(reader: &mut Reader<'_>, depth: usize) -> Result<Json, SurfaceError> {
+        if depth > super::MAX_DEPTH {
+            return Err(reader.error("nested more deeply than the notation reads"));
+        }
         let offset = reader.offset();
         match reader.peek() {
             Some(Token::Str(text)) => {
@@ -1294,7 +1300,20 @@ mod terms {
                         ],
                     ));
                 }
-                match word.as_str() {
+                // A keyword followed by `{` is the generic spelling of a node of
+                // that kind (a `match` holding a variable named like a keyword is
+                // written so), not the keyword's own form. The one keyword whose
+                // own form continues with a `{` is `let`, whose binder may be
+                // written `{name: x, type: T}`; that binder's first member is
+                // `name`, which no `let` node has, so it stays a `let`.
+                let generic_binder = word == "let"
+                    && matches!(reader.peek_at(2), Some(Token::Word(first)) if first == "name");
+                let keyword = if reader.peek_at(1) == Some(&Token::LBrace) && !generic_binder {
+                    ""
+                } else {
+                    word.as_str()
+                };
+                match keyword {
                     "not" | "first" | "second" => {
                         reader.bump();
                         let value = sub(reader)?;
@@ -1842,6 +1861,34 @@ mod tests {
         text
     }
 
+    #[test]
+    fn readable_nesting_has_an_explicit_bound() {
+        std::thread::Builder::new()
+            .stack_size(crate::READER_STACK)
+            .spawn(|| {
+                for (position, prefix, leaf, bound) in [
+                    (Position::Term, "(not ", "true", 255),
+                    (Position::Term, "(cons 1 ", "(nil Nat)", 254),
+                    (Position::Type, "(List ", "Nat", 255),
+                ] {
+                    let at_bound = format!("{}{}{}", prefix.repeat(bound), leaf, ")".repeat(bound));
+                    assert!(parse_at(&at_bound, position).is_ok());
+                    let beyond = format!(
+                        "{}{}{}",
+                        prefix.repeat(bound + 1),
+                        leaf,
+                        ")".repeat(bound + 1)
+                    );
+                    let error = parse_at(&beyond, position).expect_err("nesting must be bounded");
+                    assert_eq!(error.message, "nested more deeply than the notation reads");
+                    assert!(error.offset > 0 && error.offset < beyond.len());
+                }
+            })
+            .expect("reader thread")
+            .join()
+            .expect("reader must not panic");
+    }
+
     /// The readable forms print as the SPEC says they do, and parse back.
     #[test]
     fn readable_forms() {
@@ -1924,6 +1971,56 @@ mod tests {
             let text = round_trip(&json(generic), position);
             assert!(text.contains('{'), "{text} is written generically");
         }
+    }
+
+    /// A node whose kind is a keyword of the notation (`match`, `not`, `first`)
+    /// and that a readable form cannot carry is written generically inside a
+    /// parenthesised operand and reads back: a `match` with a variable named
+    /// like a keyword in a branch is the case the SDK stdlib has.
+    #[test]
+    fn a_keyword_kind_written_generically_reads_back_in_parentheses() {
+        let cases = [
+            r#"and{left: bool{value: true}, right: match{scrutinee: var{name: x}, branches: [{binders: [], body: var{name: first}, constructor: {name: Option.none}}]}}"#,
+            r#"and{left: bool{value: true}, right: not{value: var{name: first}, extra: true}}"#,
+            r#"and{left: bool{value: true}, right: first{value: var{name: x}, extra: true}}"#,
+        ];
+        for generic in cases {
+            let text = round_trip(&json(generic), Position::Term);
+            assert!(text.contains('{'), "{text} is written generically");
+        }
+    }
+
+    /// The generic node that reaches the keyword guard is the one first after
+    /// a `(`: a left operand, which `paren` reads before any other form. A
+    /// right operand is read by `terms::read`, which always took `kw{`, so
+    /// only these cases fail without the guard.
+    #[test]
+    fn a_generic_keyword_node_first_after_a_parenthesis_reads_back() {
+        let cases = [
+            r#"and{left: not{value: var{name: first}, extra: true}, right: bool{value: true}}"#,
+            r#"and{left: first{value: var{name: x}, extra: true}, right: bool{value: true}}"#,
+        ];
+        for generic in cases {
+            let text = round_trip(&json(generic), Position::Term);
+            assert!(
+                text.starts_with("(not{") || text.starts_with("(first{"),
+                "{text} opens with the generic node"
+            );
+        }
+    }
+
+    /// A hand-written `let` whose binder is the generic `{name: x, type: T}`
+    /// is a `let`, not a generic node: the guard leaves it alone.
+    #[test]
+    fn a_let_with_a_generic_binder_still_reads() {
+        let value = parse_at("(let {name: x, type: nat{}} := 1; x)", Position::Term)
+            .expect("a let with a generic binder reads");
+        assert_eq!(
+            value,
+            json(
+                r#"let{binder: {name: x, type: nat{}}, value: nat{value: "1"}, body: var{name: x}}"#
+            )
+        );
     }
 
     /// Malformed notation is an error with an offset, never a panic.
