@@ -2,7 +2,9 @@
 # `just relock-identity` (SPEC.md §9.2, §9.4): what a change that moves the
 # compiler-semantics ID (§8.4, §21.2) moves in turn, written from the tree.
 #
-#   1. Builds the compiler of the tree.
+#   1. Writes the Rust backend records of `language/semantics-1.2.toml`
+#      (`cargo xtask semantics-records --write`, §17.16), which the ID
+#      covers, then builds the compiler of the tree.
 #   2. Relocks every tracked `lexlean.lock` and keeps the new lock only when
 #      the one line it changed is `compiler_semantics`, moving from the ID its
 #      language had at HEAD (the value most locks of that language carry).
@@ -21,6 +23,7 @@ set -euo pipefail
 root=$(git rev-parse --show-toplevel)
 cd "$root"
 
+cargo xtask semantics-records --write
 cargo build --quiet -p lexlean --bin lexlean
 target_dir=$(cargo metadata --format-version 1 --no-deps | python3 -c 'import json,sys; print(json.load(sys.stdin)["target_directory"])')
 lexlean="$target_dir/debug/lexlean"
@@ -86,10 +89,10 @@ for request in $(git ls-files -- 'tests/*/project/request.json'); do
 done
 
 # Nothing else is written: build roots these runs created are removed, and a
-# tracked file outside the three kinds above is put back.
+# tracked file outside the four kinds above is put back.
 git ls-files --others --ignored --exclude-standard --directory \
     | { grep -E '(^|/)\.lexlean/$' || true; } \
     | while read -r created; do rm -rf "$created"; done
 git diff --name-only \
-    | { grep -v -E '(^|/)lexlean\.lock$|^crates/lexlean/src/lib\.rs$|/project/request\.json$' || true; } \
+    | { grep -v -E '(^|/)lexlean\.lock$|^crates/lexlean/src/lib\.rs$|/project/request\.json$|^language/semantics-1\.2\.toml$' || true; } \
     | while read -r touched; do git checkout --quiet -- "$touched"; done

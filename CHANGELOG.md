@@ -18,8 +18,9 @@ and Unreleased holds what has landed since.
 
 ## Unreleased
 
-- `just relock-identity` writes what a moved compiler-semantics ID moves: it builds the
-  compiler, keeps each relocked `lexlean.lock` whose only change is its `compiler_semantics`
+- `just relock-identity` writes what a moved compiler-semantics ID moves: it writes the Rust
+  backend records of `language/semantics-1.2.toml` (`cargo xtask semantics-records --write`,
+  new), builds the compiler, keeps each relocked `lexlean.lock` whose only change is its `compiler_semantics`
   line, rewrites `LANGUAGE_1_2_SEMANTICS_ID` and repins the production requests' descriptor
   digests. `regenerate.yml` runs it in a first job, `identity`, whose patch every writer starts
   from and `combine` applies first, so an identity-moving pull request regenerates in one push
