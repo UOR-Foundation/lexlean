@@ -1,0 +1,58 @@
+{
+  "previous_bridge": "04e257d10f552b9fe4def6d1d9b028c00944929f",
+  "composition_source_checkpoint": "7a1f6f400f4e668db91ceed90ae9cd0f6f686ed9",
+  "owner_fix": "89b8f7738ed4781ba75bcc62ebb09cfcc7a42c40",
+  "proof_blobs": {
+    "composed": "566aac14bd881ec5254c6f41b3962c268eef4365",
+    "owner": "566aac14bd881ec5254c6f41b3962c268eef4365",
+    "r6_tested_source": "566aac14bd881ec5254c6f41b3962c268eef4365"
+  },
+  "changed_paths": [
+    "crates/lexlean/src/production/certificate/data_a/prove.rs"
+  ],
+  "unchanged_paths_or_subtrees_checked": [
+    "language",
+    "schemas",
+    "spec",
+    "model",
+    "crates/lexlean/src/api",
+    "crates/lexlean/src/production/lcnf.rs",
+    "crates/lexlean/src/production/preserve.rs",
+    "crates/lexlean/src/verify/mod.rs",
+    "crates/conformance/src/lcnf_adapter.rs",
+    "crates/conformance/src/lcnf_inspection.rs",
+    "crates/conformance/src/cases/verification.rs"
+  ],
+  "acceptance": false,
+  "scope": "Source composition only. Prior VR28 runtime evidence remains bound to864d45d1c; prior R6 result remains bound to76e400a65 plus parent partition runner.",
+  "check": {
+    "command": [
+      "timeout",
+      "--kill-after=10s",
+      "300s",
+      "cargo",
+      "check",
+      "--locked",
+      "-p",
+      "lexlean",
+      "--lib"
+    ],
+    "exit": 0,
+    "cargo_reported_seconds": 23.88,
+    "log": "Checking lexlean v0.4.0 (/workspace/lexlean-rule30-bridge/crates/lexlean)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 23.88s"
+  },
+  "runtime_evidence_binding": {
+    "inspection_strict_VR28": "864d45d1c7e7e331e7524be5ce29392aa72c9a6a (receipts committed at04e257d10)",
+    "R6_conditional_source": "76e400a6553a7d135891c27aed18941578bfffc8 plus separately reviewed parent partition/adoption runner; not this composed compiler"
+  },
+  "not_run": [
+    "VR28 replay",
+    "full writer",
+    "production export",
+    "full compiler gate",
+    "merge",
+    "release",
+    "compiler pin adoption"
+  ],
+  "remaining": "The composed compiler remains unqualified; prior269language1.2locks/old products remain unchanged. This receipt is source-composition readiness only."
+}
