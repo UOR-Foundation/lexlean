@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "/workspace/lexlean-bridge-target/debug/examples/bootstrap_root_stage",
+    "6",
+    "/workspace/lexlean-evidence/composed-bootstrap-R6"
+  ],
+  "exit": 0,
+  "reason": null,
+  "seconds": 134.1446204899994,
+  "peak_rss_kib": 940256,
+  "generator_sha256": "9b2710409e60bb9d4a6dc87cc06abcf3a8db9361d1b0280b52dd8875979d58e6",
+  "log_sha256": "2cc66c48e4b7cdc27180222bf24cdc898a13c7fa8d688e2514ab7c31a6481dcc"
+}

@@ -1,0 +1,63 @@
+{
+  "event": "adopted-existing-environment-elaboration",
+  "source_receipt_sha256": "ea02d030a7de9c657b9d0c558a81305eff6a012e0df1e9900f1e30a8b6f687b5",
+  "source_receipt": {
+    "dependencies": {
+      "LexLeanRuntime.Portable": {
+        "build/LexLeanRuntime/Portable.ir": "a523b1d528eb31516793aed0ab6f4913122ff2c9a8d4c96afc43fea1b0ea41c5",
+        "build/LexLeanRuntime/Portable.olean": "b70c6c1c22d66ee6004253f61946d177f082e767b5f7c268ee380025bbeb31da",
+        "build/LexLeanRuntime/Portable.olean.private": "f0af6c076c2dc93db2d4ebb0396e5766145f51ef97049c989422583d44553784",
+        "build/LexLeanRuntime/Portable.olean.server": "141a4219aa4d413887f3713948fc548bf812088ffa0d57aa28a985230a194420"
+      }
+    },
+    "silent": true,
+    "key": {
+      "toolchain_libraries": "29f15c162d9f1dcd25767f18883b597fcc90f640a7dc3044935d19afb2dee44c",
+      "python": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+      "manifest": "5d22cdbaf4aa6cfc763f963399f202974c0afe0297864644d83cce3c9e79e24a",
+      "runner": "a5dfe29afbbce3663e288174e2dcbea4ab9dad201ab502fc947b8bc45ddc7cd1",
+      "lean": "e8baaa71855a616dc351028f3ad2200051b0671f423a1696a100e809302d5550",
+      "leanchecker": "c7c51e296d28dd443ed60f9414feef41253ede89dea76dbb2adde29768c3ed5f",
+      "audit_helper": "53422311fc67019f7abcba8abe3932b3508abd554045cf743f71f59ac51a598b",
+      "retained_receipt": "178fd32041599b1ed9f02ec19c52c99cd6b39b8036b1d3a93d9c5a60a29b4bc3",
+      "environment": "c7f613f69df94d151cb6f1891a54389ec028eb991fbaae99491d5a4edf400236"
+    },
+    "argv": [
+      "/workspace/toolchains/elan/toolchains/leanprover--lean4---v4.32.2/bin/lean",
+      "-R",
+      "/workspace/lexlean-evidence/r6-partitioned-v2/src",
+      "-o",
+      "/workspace/lexlean-evidence/r6-partitioned-v2/build/LexLeanRuntime/Collections.olean",
+      "/workspace/lexlean-evidence/r6-partitioned-v2/src/LexLeanRuntime/Collections.lean"
+    ],
+    "exit": 0,
+    "reason": null,
+    "seconds": 4.344959682000081,
+    "peak_process_tree_rss_kib": 745456,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifact_inventory": {
+      "build/LexLeanRuntime/Collections.ir": "1e3595bae922ec32a576fb32553e1830a7f8cdbe0f2be889f98cf4fd72bcd8d2",
+      "build/LexLeanRuntime/Collections.olean": "a5b3515f687a94c5178245b57336012e502a3965dff19cd1c849d77d92f82a93",
+      "build/LexLeanRuntime/Collections.olean.private": "2a273fb4eb516f6dadd0527126a30709c11732bc3f8107b0fb712403c9fb2473",
+      "build/LexLeanRuntime/Collections.olean.server": "bdd1558b2164c6356ed5969c3d96f243a5cf84ba2344741bb8b39488d141aec1"
+    }
+  },
+  "target_key": {
+    "toolchain_libraries": "29f15c162d9f1dcd25767f18883b597fcc90f640a7dc3044935d19afb2dee44c",
+    "python": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+    "manifest": "6bf29fe92e7d0e84929ffd3c3f44d42acdbbf659312a05ed1491f3c52421da50",
+    "runner": "c616c204c3125fe1e346412454b141776def3582203cd7f28b42489b905f48a8",
+    "lean": "e8baaa71855a616dc351028f3ad2200051b0671f423a1696a100e809302d5550",
+    "leanchecker": "c7c51e296d28dd443ed60f9414feef41253ede89dea76dbb2adde29768c3ed5f",
+    "audit_helper": "9b2710409e60bb9d4a6dc87cc06abcf3a8db9361d1b0280b52dd8875979d58e6",
+    "source_checkpoint": "0224f18f5e6c401c7a9dee9409ad1e02cb1e9748",
+    "environment": "2ecd6a5b777c8acc18a485b77188553a20c205c915f6d3fa4a6dc0fedb6e1951",
+    "reused_environment_manifest": "5d22cdbaf4aa6cfc763f963399f202974c0afe0297864644d83cce3c9e79e24a"
+  },
+  "artifact_inventory": {
+    "build/LexLeanRuntime/Collections.ir": "1e3595bae922ec32a576fb32553e1830a7f8cdbe0f2be889f98cf4fd72bcd8d2",
+    "build/LexLeanRuntime/Collections.olean": "a5b3515f687a94c5178245b57336012e502a3965dff19cd1c849d77d92f82a93",
+    "build/LexLeanRuntime/Collections.olean.private": "2a273fb4eb516f6dadd0527126a30709c11732bc3f8107b0fb712403c9fb2473",
+    "build/LexLeanRuntime/Collections.olean.server": "bdd1558b2164c6356ed5969c3d96f243a5cf84ba2344741bb8b39488d141aec1"
+  }
+}

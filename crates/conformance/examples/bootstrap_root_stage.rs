@@ -1,6 +1,6 @@
 //! Bounded source staging for one bootstrap root; no compiler acceptance.
-use lexlean::calculus::rust::{Profile, lower};
-use lexlean::production::certificate::{Certificate, certificate};
+use lexlean::calculus::rust::{lower, Profile};
+use lexlean::production::certificate::{certificate, Certificate};
 use lexlean::production::lower::{linked_modules, lower_root, roots};
 use lexlean::production::preserve;
 use lexlean::production::rust_cert::{certificate_b, module_for};
@@ -9,6 +9,7 @@ use repo_conformance::support::{self, P};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sha2::{Digest, Sha256};
+use std::io::{BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -154,16 +155,18 @@ fn main() {
     assert!(args.len() == 2 || args.len() == 3);
     let output = PathBuf::from(&args[1]);
     if args[0] == "audit" {
-        let manifest: serde_json::Value =
-            serde_json::from_reader(std::fs::File::open(output.join("manifest.json")).unwrap())
-                .unwrap();
+        let manifest: serde_json::Value = serde_json::from_reader(BufReader::new(
+            std::fs::File::open(output.join("manifest.json")).unwrap(),
+        ))
+        .unwrap();
         assert_eq!(
             manifest["generator_sha256"],
             sha(&std::env::current_exe().unwrap())
         );
         assert_eq!(
             manifest["source_checkpoint"],
-            env!("LEXLEAN_DIAGNOSTIC_SOURCE")
+            option_env!("LEXLEAN_DIAGNOSTIC_SOURCE")
+                .expect("build with the clean source checkpoint")
         );
         assert_eq!(
             manifest["compiler_semantics"],
@@ -197,7 +200,8 @@ fn main() {
             let path = output.join(row["path"].as_str().unwrap());
             assert_eq!(sha(&path), row["sha256"].as_str().unwrap());
             let s: SavedCertificate =
-                serde_json::from_reader(std::fs::File::open(path).unwrap()).unwrap();
+                serde_json::from_reader(BufReader::new(std::fs::File::open(path).unwrap()))
+                    .unwrap();
             assert_eq!(s.module, expected[certs.len()]);
             assert_eq!(row["module"], s.module);
             assert_eq!(row["theorem"], s.theorem);
@@ -226,7 +230,10 @@ fn main() {
         .unwrap();
     assert!(git(repo, &["status", "--porcelain", "--untracked-files=normal"]).is_empty());
     let head = git(repo, &["rev-parse", "HEAD"]);
-    assert_eq!(head, env!("LEXLEAN_DIAGNOSTIC_SOURCE"));
+    assert_eq!(
+        head,
+        option_env!("LEXLEAN_DIAGNOSTIC_SOURCE").expect("build with the clean source checkpoint")
+    );
     std::fs::create_dir(&output).expect("new output directory");
     let project = P::bootstrap();
     // Qualification uses the composed compiler identity; retain the newly computed lock.
@@ -270,7 +277,9 @@ fn main() {
             data: c.data,
             source: c.source,
         };
-        serde_json::to_writer(std::fs::File::create(&path).unwrap(), &s).unwrap();
+        let mut writer = BufWriter::new(std::fs::File::create(&path).unwrap());
+        serde_json::to_writer(&mut writer, &s).unwrap();
+        writer.flush().unwrap();
         saved.push(json!({"path":name,"sha256":sha(&path),"module":s.module,"theorem":s.theorem}));
     }
     let manifest = json!({"accepted":false,"source_only":true,"source_checkpoint":head,"source_tree":git(repo,&["rev-parse","HEAD^{tree}"]),"generator_sha256":sha(&std::env::current_exe().unwrap()),"compiler_semantics":lexlean::compiler_semantics_id_for("1.2").to_hex(),"semantic_id":checked.semantic_id.to_hex(),"root_index":selected,"roots":root_names,"root":certified[0].root,"targets":certified[0].targets,"lock_sha256":sha(&output.join("lexlean.lock")),"files":files,"certificates":staged.certificates,"audit":staged.audit.module,"saved_certificates":saved,"not_qualified":["aggregate production budget","full production verification and export","full compiler acceptance"]});

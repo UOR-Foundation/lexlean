@@ -1,0 +1,360 @@
+{
+  "accepted": false,
+  "audit": "LexLeanPreserve.Audit",
+  "certificates": [
+    "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part0",
+    "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part1",
+    "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part2",
+    "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part3",
+    "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part4",
+    "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part5",
+    "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part6",
+    "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part7",
+    "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6",
+    "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part0",
+    "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part1",
+    "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part2",
+    "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part3",
+    "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part4",
+    "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd",
+    "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.Compose.RustStd"
+  ],
+  "compiler_semantics": "b6c666bbad446ffded2244b5f88430d601c5068cfd6915187e2cc49dbf8746f3",
+  "files": [
+    {
+      "module": "LexLeanRuntime.Portable",
+      "path": "LexLeanRuntime/Portable.lean",
+      "sha256": "891a955e91a7cc381fc08d733d3057446dc08421320fab76bdf43380f491ac54"
+    },
+    {
+      "module": "LexLeanRuntime.Collections",
+      "path": "LexLeanRuntime/Collections.lean",
+      "sha256": "c33aef96970873fbdcf862fcc9975aed562a758d261dde7337d0175503019527"
+    },
+    {
+      "module": "LexLeanRuntime.Models",
+      "path": "LexLeanRuntime/Models.lean",
+      "sha256": "384e23a592cd7413237b6391d7d4c47eab189189ce0fb72f51486a73f1ce598d"
+    },
+    {
+      "module": "LexLeanRuntime.Reasoning",
+      "path": "LexLeanRuntime/Reasoning.lean",
+      "sha256": "6d82c5f086c05ca2392a0b251812bfd586736a86d3e815405b75a596cd105983"
+    },
+    {
+      "module": "LexLeanRuntime.Laws",
+      "path": "LexLeanRuntime/Laws.lean",
+      "sha256": "fd58285242608c644d861c463a4aba5a7d161b4701942c27fa251114049a16fd"
+    },
+    {
+      "module": "LexLeanTarget.TargetSyntax",
+      "path": "LexLeanTarget/TargetSyntax.lean",
+      "sha256": "c0e0bb061cfcdc7e7f4434e13fc8b7298dcb701db9ea8189e012d8068e04ee0c"
+    },
+    {
+      "module": "LexLeanTarget.TargetSemantics",
+      "path": "LexLeanTarget/TargetSemantics.lean",
+      "sha256": "55206f1bafd9608b991b5181a2d2c531aca490e571143278ba05cdaa765c1cbb"
+    },
+    {
+      "module": "LexLeanTarget.RustSyntax",
+      "path": "LexLeanTarget/RustSyntax.lean",
+      "sha256": "4e01ec67d0dbebcc47a28a68dd8aee6a26bd932864398e971cd608276a475d43"
+    },
+    {
+      "module": "LexLeanTarget.RustSemantics",
+      "path": "LexLeanTarget/RustSemantics.lean",
+      "sha256": "dc7d4a58f163bfe47ed521b15942ee72dfc932c2900170cec5e30476a378dc20"
+    },
+    {
+      "module": "LexLeanPreservation.Core",
+      "path": "LexLeanPreservation/Core.lean",
+      "sha256": "6d9876077142198b56f31cbddd8de7ea3e66845cbb0853611b92c70c3fd940da"
+    },
+    {
+      "module": "LexLeanPreservation.Values",
+      "path": "LexLeanPreservation/Values.lean",
+      "sha256": "e12118d055485ca25c128d48f654279398af6476cf42bbb7d2122bba8ffacc52"
+    },
+    {
+      "module": "LexLeanPreservation.Primitives",
+      "path": "LexLeanPreservation/Primitives.lean",
+      "sha256": "8fa6a4a538c3e01686cb2a44f81915051dd82c446833a02ff1037dd4156bbadf"
+    },
+    {
+      "module": "LexLeanPreservation.Fixed",
+      "path": "LexLeanPreservation/Fixed.lean",
+      "sha256": "8752fdc6d8658c5d8e8fb9f234324748c94c81b080d770cc4c35372054ebfbb2"
+    },
+    {
+      "module": "LexLeanPreservation.Keys",
+      "path": "LexLeanPreservation/Keys.lean",
+      "sha256": "4c15f545cae3546ccedcbeb1ce8231acd6b4850f683b3704396991fd6e45e68b"
+    },
+    {
+      "module": "LexLeanPreservation.Templates",
+      "path": "LexLeanPreservation/Templates.lean",
+      "sha256": "a3317912ed87bb44d4d35fb42243ed7743bb515448ae3869d2dcb6ea7af8f66a"
+    },
+    {
+      "module": "LexLeanPreservation.Validate",
+      "path": "LexLeanPreservation/Validate.lean",
+      "sha256": "f8dbb8e74312feff770e438c94c6f4cfab7f998f92749de00ca0579ffe7d7c35"
+    },
+    {
+      "module": "LexLeanPreservation.RustBase",
+      "path": "LexLeanPreservation/RustBase.lean",
+      "sha256": "54093e76ae830f1290ee940371d19685314927d071ae6ad2ab562c717e2ca209"
+    },
+    {
+      "module": "LexLeanPreservation.RustCorr",
+      "path": "LexLeanPreservation/RustCorr.lean",
+      "sha256": "fdceb1bbcf1fffb30aa793442e355faa29266387c6fc000e84bdbd2377366213"
+    },
+    {
+      "module": "LexLeanPreservation.RustLemmas",
+      "path": "LexLeanPreservation/RustLemmas.lean",
+      "sha256": "ad9dc000f97549920e5128389aa3b101149fc727396f67bf8928398ebf2d62e1"
+    },
+    {
+      "module": "LexLeanPreservation.RustMatches",
+      "path": "LexLeanPreservation/RustMatches.lean",
+      "sha256": "03ac7a607ad9ebac26550c4ab9e1f208e3b5813046813fcd510b2d3551b56c62"
+    },
+    {
+      "module": "LexLeanPreservation.RustSound",
+      "path": "LexLeanPreservation/RustSound.lean",
+      "sha256": "c63ee25828246d491e6b9baad5bc2720586802562cb735bac2b41e9ac43e2f42"
+    },
+    {
+      "module": "LexLeanPreservation.Compose",
+      "path": "LexLeanPreservation/Compose.lean",
+      "sha256": "263e44d16ff751deb0fa9f17976876bf9f675bea51365a4411d14acb25f6d0ae"
+    },
+    {
+      "module": "LexLeanStd.Text",
+      "path": "LexLeanStd/Text.lean",
+      "sha256": "07b17ba2e5d764626c9d6f6df40357222ed0662e3406eb55581ec8b1472f8756"
+    },
+    {
+      "module": "LexLeanBoot.AxiomOutput",
+      "path": "LexLeanBoot/AxiomOutput.lean",
+      "sha256": "25ee8cf794529f05eb0fcb23c312bf33170614192504c8e9a0c98aaa82e9651d"
+    },
+    {
+      "module": "LexLeanBoot.CalculusCheck",
+      "path": "LexLeanBoot/CalculusCheck.lean",
+      "sha256": "b8a35002d3d8a974db13744551755bc07fe98cd210ab3d024f477712c3bb4d20"
+    },
+    {
+      "module": "LexLeanBoot.PrimitiveScan",
+      "path": "LexLeanBoot/PrimitiveScan.lean",
+      "sha256": "af01e355b5c8e5f4e6c344f2e0440c06efd0722cb29753d4722cff3a04cb62e7"
+    },
+    {
+      "module": "LexLeanBoot.RustValidate",
+      "path": "LexLeanBoot/RustValidate.lean",
+      "sha256": "8baf37c76dc7fbba23873d89cf9cca2e2862771742498720091a813bc277e245"
+    },
+    {
+      "module": "LexLeanBoot.TokenAudit",
+      "path": "LexLeanBoot/TokenAudit.lean",
+      "sha256": "b623976102c66fa4e532b20d5ca7112c1c233cd30f3545f24ce69d3d612242e5"
+    },
+    {
+      "module": "LexLeanStd.Buffer",
+      "path": "LexLeanStd/Buffer.lean",
+      "sha256": "b22dc66e0905c57bd8942ec543beffb6b1912b8f12c98f51bea903a7d67b6eb3"
+    },
+    {
+      "module": "LexLeanBoot.RuntimeValidate",
+      "path": "LexLeanBoot/RuntimeValidate.lean",
+      "sha256": "1aee7cc65b14fcd89773f8abd81e04c430e584fc8b7bafa2724771cecb05790c"
+    },
+    {
+      "module": "LexLeanBoot.RustAst",
+      "path": "LexLeanBoot/RustAst.lean",
+      "sha256": "4199a6e3edd46cd25af3d7e6d5775ca5e073082b8005633ef6bc2ff02b06e8dd"
+    },
+    {
+      "module": "LexLeanBoot.RustPrint",
+      "path": "LexLeanBoot/RustPrint.lean",
+      "sha256": "941913c2150c9e752c7e48143e335ba7891df8f7f76edd899f6580dccfa8f1f5"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part0",
+      "path": "LexLeanPreserve/Parts/Ca1b3f82ef026302f9be4604f05da4919/R6_Part0.lean",
+      "sha256": "53b9210971b5f010db25e857d03316383a1e4825bc2fe7fefbb3c0e0f8951651"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part1",
+      "path": "LexLeanPreserve/Parts/Ca1b3f82ef026302f9be4604f05da4919/R6_Part1.lean",
+      "sha256": "1bcfdc2540fe743e4fc89a67a824e9cd123622a56c43ec144d3acf97cdbaff1e"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part2",
+      "path": "LexLeanPreserve/Parts/Ca1b3f82ef026302f9be4604f05da4919/R6_Part2.lean",
+      "sha256": "4e4345a88da6d929b434beb223645646cdf6ad5d34baee0b7248abe1e4c6daa9"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part3",
+      "path": "LexLeanPreserve/Parts/Ca1b3f82ef026302f9be4604f05da4919/R6_Part3.lean",
+      "sha256": "4011f2a11ab448d2d4098dc3d89565b13766ddd75559c33750e4a28e54a764a8"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part4",
+      "path": "LexLeanPreserve/Parts/Ca1b3f82ef026302f9be4604f05da4919/R6_Part4.lean",
+      "sha256": "8e4165253d82619357855078be68e25bde185b2963bfc19fc1332a121d164c49"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part5",
+      "path": "LexLeanPreserve/Parts/Ca1b3f82ef026302f9be4604f05da4919/R6_Part5.lean",
+      "sha256": "862bd5c2338b1cdb28058684c105cf1704ce41eae4e43746a434008ad0aaa248"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part6",
+      "path": "LexLeanPreserve/Parts/Ca1b3f82ef026302f9be4604f05da4919/R6_Part6.lean",
+      "sha256": "f80f94bf6f502866512cfc3e2a99890e9e4447bb673278065dbc38aa0aa2fa40"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part7",
+      "path": "LexLeanPreserve/Parts/Ca1b3f82ef026302f9be4604f05da4919/R6_Part7.lean",
+      "sha256": "0e063fbe31f50bb21b612e915ec28b1907a8118f4674fb9d8b3617d45429f856"
+    },
+    {
+      "module": "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6",
+      "path": "LexLeanPreserve/Ca1b3f82ef026302f9be4604f05da4919/R6.lean",
+      "sha256": "12618248956fe3bb3a8b59a2692cac8cb57972457b7a9dcc9e448b1231fe2004"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part0",
+      "path": "LexLeanPreserve/Parts/Ca1b3f82ef026302f9be4604f05da4919/R6/RustStd_Part0.lean",
+      "sha256": "5f678bcbc1c57976b8fb9172c2653aac40b1bbd43fe8ca8f158a52cf1ac264b2"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part1",
+      "path": "LexLeanPreserve/Parts/Ca1b3f82ef026302f9be4604f05da4919/R6/RustStd_Part1.lean",
+      "sha256": "66e9d7cae293802d495e26f580e1caf4720a756330dbb8e51d2b326d66fd9229"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part2",
+      "path": "LexLeanPreserve/Parts/Ca1b3f82ef026302f9be4604f05da4919/R6/RustStd_Part2.lean",
+      "sha256": "701f39d64a92c7e9195c83da47f61ce6da79ce4a81e67cfb64b2db1c8308839f"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part3",
+      "path": "LexLeanPreserve/Parts/Ca1b3f82ef026302f9be4604f05da4919/R6/RustStd_Part3.lean",
+      "sha256": "67864497790930c2fa7b91217a1298a7964dcd6743d80782aa6b449f58660391"
+    },
+    {
+      "module": "LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part4",
+      "path": "LexLeanPreserve/Parts/Ca1b3f82ef026302f9be4604f05da4919/R6/RustStd_Part4.lean",
+      "sha256": "130f4a23ebf6153a1532ae51a85c977efb0716bfc302975f878a457940feb56d"
+    },
+    {
+      "module": "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd",
+      "path": "LexLeanPreserve/Ca1b3f82ef026302f9be4604f05da4919/R6/RustStd.lean",
+      "sha256": "48eb295d1983edd1b2a5ed0b151cc35f75272025a4bdf8a70d762b743d872141"
+    },
+    {
+      "module": "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.Compose.RustStd",
+      "path": "LexLeanPreserve/Ca1b3f82ef026302f9be4604f05da4919/R6/Compose/RustStd.lean",
+      "sha256": "db43370570eb18df5342297b1ea233d83a236127c96f96cd312146aa356e9b3e"
+    },
+    {
+      "module": "LexLeanPreserve.Audit",
+      "path": "LexLeanPreserve/Audit.lean",
+      "sha256": "e90e6564914e08f6b088c671de3072f88e0816db395fa331f279692a2a4c71c1"
+    }
+  ],
+  "generator_sha256": "9b2710409e60bb9d4a6dc87cc06abcf3a8db9361d1b0280b52dd8875979d58e6",
+  "lock_sha256": "a80d34e58ae58dc6a6a43e57112af3e5bf8302c83c8442180a1d1ebc8dc3e1ca",
+  "not_qualified": [
+    "aggregate production budget",
+    "full production verification and export",
+    "full compiler acceptance"
+  ],
+  "root": "LexLeanBoot.RuntimeValidate.validateRuntime",
+  "root_index": 6,
+  "roots": [
+    {
+      "index": 0,
+      "root": "LexLeanBoot.AxiomOutput.isClosedLeanName"
+    },
+    {
+      "index": 1,
+      "root": "LexLeanBoot.AxiomOutput.parseAuditOutput"
+    },
+    {
+      "index": 2,
+      "root": "LexLeanBoot.CalculusCheck.checkProgram"
+    },
+    {
+      "index": 3,
+      "root": "LexLeanBoot.CalculusCheck.checkArguments"
+    },
+    {
+      "index": 4,
+      "root": "LexLeanBoot.PrimitiveScan.scanSource"
+    },
+    {
+      "index": 5,
+      "root": "LexLeanBoot.PrimitiveScan.rejectAtoms"
+    },
+    {
+      "index": 6,
+      "root": "LexLeanBoot.RuntimeValidate.validateRuntime"
+    },
+    {
+      "index": 7,
+      "root": "LexLeanBoot.RustPrint.printCrate"
+    },
+    {
+      "index": 8,
+      "root": "LexLeanBoot.RustPrint.printExpr"
+    },
+    {
+      "index": 9,
+      "root": "LexLeanBoot.RustValidate.validateCrate"
+    },
+    {
+      "index": 10,
+      "root": "LexLeanBoot.RustValidate.correspondCrate"
+    },
+    {
+      "index": 11,
+      "root": "LexLeanBoot.TokenAudit.lex"
+    },
+    {
+      "index": 12,
+      "root": "LexLeanBoot.TokenAudit.auditTokens"
+    }
+  ],
+  "saved_certificates": [
+    {
+      "module": "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6",
+      "path": "certificate-0.json",
+      "sha256": "ba82794f1fc66815aa3168dafdb0f8fd6c766cefcb2ecf588a8fa4e0b5e3d789",
+      "theorem": "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.root"
+    },
+    {
+      "module": "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd",
+      "path": "certificate-1.json",
+      "sha256": "7db0941497ca71ad22565ca46a43d996b1a7cdada313edfa678400927e088a94",
+      "theorem": "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd.root"
+    },
+    {
+      "module": "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.Compose.RustStd",
+      "path": "certificate-2.json",
+      "sha256": "e7d456a7698c436d5ef62d19fd2040b4b07d2326d81a6a53a0d8bb9488327d6b",
+      "theorem": "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.Compose.RustStd.root"
+    }
+  ],
+  "semantic_id": "a1b3f82ef026302f9be4604f05da49193dd90579925b7d775f8dfe95495d08da",
+  "source_checkpoint": "0224f18f5e6c401c7a9dee9409ad1e02cb1e9748",
+  "source_only": true,
+  "source_tree": "8d7ef86ddba30b7acc3fb6808f6b9374195e0ccb",
+  "targets": [
+    "rust-std"
+  ]
+}

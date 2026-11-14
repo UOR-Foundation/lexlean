@@ -1,0 +1,225 @@
+{
+  "event": "adopted-existing-environment-elaboration",
+  "source_receipt_sha256": "d001229dd41f562ba9df231d5df7dc856cd7eb453e4dfbea82f9bf5ad0aea54f",
+  "source_receipt": {
+    "dependencies": {
+      "LexLeanRuntime.Portable": {
+        "build/LexLeanRuntime/Portable.ir": "a523b1d528eb31516793aed0ab6f4913122ff2c9a8d4c96afc43fea1b0ea41c5",
+        "build/LexLeanRuntime/Portable.olean": "b70c6c1c22d66ee6004253f61946d177f082e767b5f7c268ee380025bbeb31da",
+        "build/LexLeanRuntime/Portable.olean.private": "f0af6c076c2dc93db2d4ebb0396e5766145f51ef97049c989422583d44553784",
+        "build/LexLeanRuntime/Portable.olean.server": "141a4219aa4d413887f3713948fc548bf812088ffa0d57aa28a985230a194420"
+      },
+      "LexLeanRuntime.Collections": {
+        "build/LexLeanRuntime/Collections.ir": "1e3595bae922ec32a576fb32553e1830a7f8cdbe0f2be889f98cf4fd72bcd8d2",
+        "build/LexLeanRuntime/Collections.olean": "a5b3515f687a94c5178245b57336012e502a3965dff19cd1c849d77d92f82a93",
+        "build/LexLeanRuntime/Collections.olean.private": "2a273fb4eb516f6dadd0527126a30709c11732bc3f8107b0fb712403c9fb2473",
+        "build/LexLeanRuntime/Collections.olean.server": "bdd1558b2164c6356ed5969c3d96f243a5cf84ba2344741bb8b39488d141aec1"
+      },
+      "LexLeanRuntime.Models": {
+        "build/LexLeanRuntime/Models.ir": "f9d9fbc3c623c5a01eb1d57e3da8106394739d266bc1940e29fd5bfb707e1ea0",
+        "build/LexLeanRuntime/Models.olean": "7f35f138dd2c62d542893c95fc01eb0f1813c5f99814bb881cb42f76e56a4988",
+        "build/LexLeanRuntime/Models.olean.private": "26f161f3ad5b29196b10521dd9a9c347e0dda6251e3b497639ab7f090e47daf8",
+        "build/LexLeanRuntime/Models.olean.server": "0fa57ef38775e8fbc854d8c24e38c5c11b6cb3da610f0c6d02ace451016eed75"
+      },
+      "LexLeanRuntime.Reasoning": {
+        "build/LexLeanRuntime/Reasoning.ir": "8c256cf5244257497bbe25cb52fa963fcaca2bf315beac9e0b48509377ab4f4e",
+        "build/LexLeanRuntime/Reasoning.olean": "24f4bdb9656d5fdf4899053d982e819882c92caad2a316562cbf9a1353319782",
+        "build/LexLeanRuntime/Reasoning.olean.private": "4b015d46a038d3ba50fd69a3bb4731c2f609b25c1ef3a79c23c0aee46c515e37",
+        "build/LexLeanRuntime/Reasoning.olean.server": "f1008612256e1179f8752b0de3d8b5eacd129300d7b9d70acd6e48c210e1849b"
+      },
+      "LexLeanRuntime.Laws": {
+        "build/LexLeanRuntime/Laws.ir": "bad0e7368032d767e3ef6646f3455df9f8f14e4e23ad88756464fa59a31a642f",
+        "build/LexLeanRuntime/Laws.olean": "54ef624443e501cbebf732172a44f7abd3dae869c3713d05edd90ed8fd7a3568",
+        "build/LexLeanRuntime/Laws.olean.private": "8fc469a8ef2f9924683e9ee80896cfb531e2159353643b4092b2fa5bb7587664",
+        "build/LexLeanRuntime/Laws.olean.server": "4de887858dd78a08d99e152318b996d1491c8f9956d90661bae7eef1ecc33670"
+      },
+      "LexLeanTarget.TargetSyntax": {
+        "build/LexLeanTarget/TargetSyntax.ir": "02ec420115a4d66652738ede7ba802b42cae4b1adf4764411d05597c2bae25d9",
+        "build/LexLeanTarget/TargetSyntax.olean": "16e719f3925b70639c9fce8e98731805e4a5f738e9e4cb37ef07fdc98157637f",
+        "build/LexLeanTarget/TargetSyntax.olean.private": "8a0dc0602f735b64c809e50e54692519212210138277da2043458e7c966f5d3d",
+        "build/LexLeanTarget/TargetSyntax.olean.server": "fbdc0028cf7db5446ec0ed04f389ff74d157c217fe35f40197e34d0155680348"
+      },
+      "LexLeanTarget.TargetSemantics": {
+        "build/LexLeanTarget/TargetSemantics.ir": "8546f0ccc0fba2dba6fb8c35047b3fa9e965ba5f5591119f31fdfa1031303f4b",
+        "build/LexLeanTarget/TargetSemantics.olean": "43b7ae504ea6a2ab257fd9eca749a6d176264e0ece267abdfc3bc007bfdc231f",
+        "build/LexLeanTarget/TargetSemantics.olean.private": "6a850f80bdf08a1abdf53e725eeb5f76bab9ddd24bad100f0703b06d4064d546",
+        "build/LexLeanTarget/TargetSemantics.olean.server": "3038fb35b95c8754ca1471dbabf1c66eee48a260cb5f8f2d5544aba8cd8a3929"
+      },
+      "LexLeanTarget.RustSyntax": {
+        "build/LexLeanTarget/RustSyntax.ir": "ab54c2ca82375ee45391c8a3d376f687e8008a07deb984f906c88d5401be1e28",
+        "build/LexLeanTarget/RustSyntax.olean": "cc20528d831e3fcb99b954660a4a009634ccc78b824e493584192fb10afa1549",
+        "build/LexLeanTarget/RustSyntax.olean.private": "c6e0518338417a26fa54be4a69ac157ec405b1b8dd0dfc0800df902747e10cfa",
+        "build/LexLeanTarget/RustSyntax.olean.server": "9360878c2812d6a19edc2e011b29d031367bbb18e9e87cc9023f926986dfefe7"
+      },
+      "LexLeanTarget.RustSemantics": {
+        "build/LexLeanTarget/RustSemantics.ir": "e61c842b544621c03a338e743eb86088e94ea8111d86c2d748f20c6b13a94f7b",
+        "build/LexLeanTarget/RustSemantics.olean": "0a8ec62b9a51e2bab3d4b4c481f75d4e84e2054ff70f9d7c7db8af122dce7e63",
+        "build/LexLeanTarget/RustSemantics.olean.private": "0ba6d154cfabb3ac598911cca0a694e55ec81335decca90623e34685d0e96153",
+        "build/LexLeanTarget/RustSemantics.olean.server": "1b8b220e14f92bea6798ba93322b0ba6117ea42ce2cf4c4ec04be64e3d25f893"
+      },
+      "LexLeanPreservation.Core": {
+        "build/LexLeanPreservation/Core.ir": "c03490c01e086b41ee578bb967edf942bae369bd0ec78ad19395ec5a5f1c689c",
+        "build/LexLeanPreservation/Core.olean": "d91175f246837b936667c9dd2349c62a21ad1fea1667d83dea7c6b2b9de76478",
+        "build/LexLeanPreservation/Core.olean.private": "10b7224794e9d834226c2f551cd0608888a1b1122a35e5d94b908243c66dbcf5",
+        "build/LexLeanPreservation/Core.olean.server": "a9b7f369340f8c0293ea453f6dd018bf0cc0cb213c62efa4998abd5d1ce31d18"
+      },
+      "LexLeanPreservation.Values": {
+        "build/LexLeanPreservation/Values.ir": "d4a906dc1c96aac8946248b6e46ea7cf60ca8ce8af85c46e0c782404736c9641",
+        "build/LexLeanPreservation/Values.olean": "e833a71f4371528ef35a09c770f40c97ce6a03d0b00bbc5a25a04fcde797d057",
+        "build/LexLeanPreservation/Values.olean.private": "71c68f1c40878ec26f80f7832becb5dbaf3f0870d0f725d6da1b79abba92498f",
+        "build/LexLeanPreservation/Values.olean.server": "e4da33769ee9b0d1e8b9d88df27522cc8ceebbc59c05d6a1f67bd902fe37a949"
+      },
+      "LexLeanPreservation.Primitives": {
+        "build/LexLeanPreservation/Primitives.ir": "1a91f3e12ba1512840c60cb7959b85357ad5cdc982233b54876d5157c289c563",
+        "build/LexLeanPreservation/Primitives.olean": "f71b80dc9866c05e63ed071d0406fc9e6febadebb989100596bd1fe786c0b981",
+        "build/LexLeanPreservation/Primitives.olean.private": "15b8034e4d853c672abf43b8ad4f27a25a26b165d02836d0bca29a25b0f99407",
+        "build/LexLeanPreservation/Primitives.olean.server": "96166a3a5c3848ee4217d9c2f41bc602dd7242ceb185b1b0b899a97b5a20ca64"
+      },
+      "LexLeanPreservation.Fixed": {
+        "build/LexLeanPreservation/Fixed.ir": "74f5a3d5de0da178af0bd80ce52155ed4f6ed5ea206d6a8a5da896691d266d17",
+        "build/LexLeanPreservation/Fixed.olean": "8f09afda9aea3d0dd29a397083f55b7c3664235aea1517d8bdb2e4d0e36ec570",
+        "build/LexLeanPreservation/Fixed.olean.private": "e141440fb3462c487cef582eabce1169727e417c790e25320f78314737f074bc",
+        "build/LexLeanPreservation/Fixed.olean.server": "5dd3cb56e323d2ec281f7c830d216daf575fa1cb23b0436e758950e74020ecc4"
+      },
+      "LexLeanPreservation.Keys": {
+        "build/LexLeanPreservation/Keys.ir": "d5db00e4b29171b058704469e5a72444547aaf8bb40155b3d0980bed83dce457",
+        "build/LexLeanPreservation/Keys.olean": "94574f9da2c5193a8cef53a5acf2405dbab78548c17d5f4caf4493e3cefc525b",
+        "build/LexLeanPreservation/Keys.olean.private": "04ef4878eed79630ec45db213a194c982455d66c629d20e862ae879073b361dd",
+        "build/LexLeanPreservation/Keys.olean.server": "5063f18284d19efa66bd8ce2ab9e30659c800d4d1079a73acea8b6a7517e7b2b"
+      },
+      "LexLeanPreservation.Templates": {
+        "build/LexLeanPreservation/Templates.ir": "ca150e813a7b84006af72aee222eecb2d6989ad2f51072573548555a2437c187",
+        "build/LexLeanPreservation/Templates.olean": "c00b28a95eeedece317dc875f8c8c012ac586550ab84b1a3929d22353c00cd62",
+        "build/LexLeanPreservation/Templates.olean.private": "f9d087bdbc33ea34f10d9b7dc618a234643a738be406ba9aff6da517573930ec",
+        "build/LexLeanPreservation/Templates.olean.server": "30f9447f0e82ed4cb3285cc32b640ef8c4e5c76a4fea72246ae0304f27c6d638"
+      },
+      "LexLeanPreservation.Validate": {
+        "build/LexLeanPreservation/Validate.ir": "2bac2255286f62812b0f0dabd27ea189ecea833caa259a00177c80b94fcce069",
+        "build/LexLeanPreservation/Validate.olean": "a94f93268a4374bd8939d41dcab4473830deafc8ae257313b12efb3aecbef86d",
+        "build/LexLeanPreservation/Validate.olean.private": "79bcbbb2280e6d786204810d9b023a505ed4e1690043836c1ba4156f226071ee",
+        "build/LexLeanPreservation/Validate.olean.server": "69a485c16cf0bc89687d9b2f5ddd9086c295c58e9c7906df61c089f8743b2b1d"
+      },
+      "LexLeanPreservation.RustBase": {
+        "build/LexLeanPreservation/RustBase.ir": "06fbdfc4754566aca14072a501daa854c2a0ab25b141f6e6430dc67cc49fc300",
+        "build/LexLeanPreservation/RustBase.olean": "30d991f65d011598abaebd21f7e0fbae38c232a3119a625d651b9ccad8f9f12c",
+        "build/LexLeanPreservation/RustBase.olean.private": "1b5f3f8ac058a8ae58b0f7a687e52bf4797e65e5ba743aa4d37227da164cb913",
+        "build/LexLeanPreservation/RustBase.olean.server": "9cdbec297f468758729a33f2c670e9200be8449be27e0e28f5b0952c0453148b"
+      },
+      "LexLeanPreservation.RustCorr": {
+        "build/LexLeanPreservation/RustCorr.ir": "4c77aa3d5d476ad9cb2cb4a5efac7a0dda95bbf8c6920dd3871066db58ee7b51",
+        "build/LexLeanPreservation/RustCorr.olean": "d48c0a364a4c6848697a5b4272b9964438e9989e405ea5bac95bb39b5566212f",
+        "build/LexLeanPreservation/RustCorr.olean.private": "f7cbbadef5db3e2163dc5bd768d2a25fee12c774d32084d78ef50f3550265789",
+        "build/LexLeanPreservation/RustCorr.olean.server": "6700ab1e1861736c3d8f67bde6f6e0505c06a4436a4e2754d584e0f629c80597"
+      },
+      "LexLeanPreservation.RustLemmas": {
+        "build/LexLeanPreservation/RustLemmas.ir": "955d335f6cf202789b9bff923907f5b63c8ff270543ad887baedd0d469df9447",
+        "build/LexLeanPreservation/RustLemmas.olean": "bac22940b943aa2fc997f25b2ef9185e4ea5c80eae6544d12d667da6fe55097d",
+        "build/LexLeanPreservation/RustLemmas.olean.private": "574afda25374846e8160c669fa374b797fc022b68347bcaca6ee9a3ac645037b",
+        "build/LexLeanPreservation/RustLemmas.olean.server": "4a63670c0dbf6c497cd91a1945ccef0821c44625335a6b550a529fbfb59ca470"
+      },
+      "LexLeanPreservation.RustMatches": {
+        "build/LexLeanPreservation/RustMatches.ir": "4d6f29ea91587090b118798381b972248365d1f9539e58b6fdad85726561a614",
+        "build/LexLeanPreservation/RustMatches.olean": "dd2582e5c43547cd1d4f30df9be1f586e8c3bbdcac4ee7d364ca2678ce5caa91",
+        "build/LexLeanPreservation/RustMatches.olean.private": "aa9e01d98df99ee5549a4835f6e33d237d4a46b957f087a3c81efaed03393808",
+        "build/LexLeanPreservation/RustMatches.olean.server": "094a354b46f01a7ac08fd436cca0b25055c92acfef2b2d4e59bf283311addaec"
+      },
+      "LexLeanPreservation.RustSound": {
+        "build/LexLeanPreservation/RustSound.ir": "f96318c4aedf4b34f0abb65ead1166be462222b4f2538b3fb19f9263886ee6c3",
+        "build/LexLeanPreservation/RustSound.olean": "4c871b6cb78f86a19040a7ff31716703b273b2e9ee3c7d74586fb2cb430bbda3",
+        "build/LexLeanPreservation/RustSound.olean.private": "fd2eca237bf560b10003c52c540b91b7057d6ca83917229ba1b73c5ffa8ecef1",
+        "build/LexLeanPreservation/RustSound.olean.server": "8a497a802cd09ae0a0de6c96fc1f85181567b663f725a7cb03b61047adf87a0d"
+      },
+      "LexLeanPreservation.Compose": {
+        "build/LexLeanPreservation/Compose.ir": "99d4098b2ad6c01c669a8f2e98f9dadbae2f98014caceb6c8c9b7dea0aa1f3eb",
+        "build/LexLeanPreservation/Compose.olean": "a95b25bd59dc92a17449fcb65858887a5b54105e323a8ccefd10dfd0521ccfdc",
+        "build/LexLeanPreservation/Compose.olean.private": "d61a653bf9a6bc6cbd3351ad30ac5fbfcb0cb43ffa55d9cf128846295f308241",
+        "build/LexLeanPreservation/Compose.olean.server": "87c4bed9a1e809823b787b537e2adad818e6a7327b804a62d220258a1ad85962"
+      },
+      "LexLeanStd.Text": {
+        "build/LexLeanStd/Text.ir": "320d71d347b0b62851ef5515e7ac013a6e4e807fe7dd1b7553ff1d11cde48c9d",
+        "build/LexLeanStd/Text.olean": "975958dd7e7aee523ab1f91a226bab5b63667b842934a3d36382b58233357781",
+        "build/LexLeanStd/Text.olean.private": "6852ed80800ee52619fab30c62100aedd84f5d1cc020d639f5a73d492c904926",
+        "build/LexLeanStd/Text.olean.server": "62edd992fc5b29b098cb63e849ca7c521715220099827c4dbf04b5892ceb371f"
+      },
+      "LexLeanBoot.AxiomOutput": {
+        "build/LexLeanBoot/AxiomOutput.ir": "9599a3a5a982fdf8d0c6146f08d74f69c263954c4ee5f051607dfe4a5609dcd9",
+        "build/LexLeanBoot/AxiomOutput.olean": "31b65a5fda18c12acef83de4b30e5f3f362d17435ef086ad316e7b2a0fcff51e",
+        "build/LexLeanBoot/AxiomOutput.olean.private": "53592a5d69598318723ae614bd289abe7be88aca0eecb6ee830178cb6602ae5e",
+        "build/LexLeanBoot/AxiomOutput.olean.server": "5697d1910517e4556fd5f336d6428695dfd49b70f996b26806955d2a5ea29592"
+      },
+      "LexLeanBoot.CalculusCheck": {
+        "build/LexLeanBoot/CalculusCheck.ir": "5bbce95b0f48f389408cadeca5b0ab41924fefde4dccd06954529dcdb72de4d3",
+        "build/LexLeanBoot/CalculusCheck.olean": "4b1349dcf7fc8eed1a384642f879eb81df010ab155d67d4990c364eebe43fd4e",
+        "build/LexLeanBoot/CalculusCheck.olean.private": "a60c2f03c8458dc5f4c5bb77f1b50923f9e207330c3ebd47d09a8502886a6e9b",
+        "build/LexLeanBoot/CalculusCheck.olean.server": "845a12f60885349cda66abcfde66386f02fc72d071ebf729b52daa630b5a0642"
+      },
+      "LexLeanBoot.PrimitiveScan": {
+        "build/LexLeanBoot/PrimitiveScan.ir": "0027b76860cecfc561f1e3fc7c687777cac8d5e4feed29877fe18910b818c84c",
+        "build/LexLeanBoot/PrimitiveScan.olean": "b921ba81714141628f2c268f2ed9f4317d36a579b38ade229cb8c58917eddff1",
+        "build/LexLeanBoot/PrimitiveScan.olean.private": "529d674b0c5a7abed27e93b9fdd3b3369e6126cfbfd123359462bcb1dc7c8d67",
+        "build/LexLeanBoot/PrimitiveScan.olean.server": "460f271a333b8345e28f98d6d819fbd344f6c83d0c2f19766165ca6a5675229c"
+      },
+      "LexLeanBoot.RustValidate": {
+        "build/LexLeanBoot/RustValidate.ir": "530f00f20e8171dc3567def6f422a0055386162d28a70363fcca1d2d64964126",
+        "build/LexLeanBoot/RustValidate.olean": "445106b172c8351d3d55c8a7497b3c813bf670d3fdeffa8ebad5012eb64c7675",
+        "build/LexLeanBoot/RustValidate.olean.private": "39d51367b25932a23942495e8e52be3fb060a80ed332e26dcdd082e939a24f90",
+        "build/LexLeanBoot/RustValidate.olean.server": "34a5c7a3d556b3fe80309435c55eac5c5d9208fefa679e26d948a6c34cd01b4f"
+      },
+      "LexLeanBoot.TokenAudit": {
+        "build/LexLeanBoot/TokenAudit.ir": "5722d9d61258f78d328dc88fe69a766a28f65dd88f05e5c02aa1f327d9e33852",
+        "build/LexLeanBoot/TokenAudit.olean": "2bcf8296e29cdcb03586b47ff154c414f6445692f69f9bcf7a71b513d3d29cdb",
+        "build/LexLeanBoot/TokenAudit.olean.private": "24ecd896315a1f09b9a438f126e9550abeb1187cf630e19df2f1f5d859c0dfeb",
+        "build/LexLeanBoot/TokenAudit.olean.server": "ae4484da901fd2232ca7522dbc4ce4eeae543adcd647cdb3fb1f7ec9aa05e697"
+      }
+    },
+    "silent": true,
+    "key": {
+      "toolchain_libraries": "29f15c162d9f1dcd25767f18883b597fcc90f640a7dc3044935d19afb2dee44c",
+      "python": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+      "manifest": "5d22cdbaf4aa6cfc763f963399f202974c0afe0297864644d83cce3c9e79e24a",
+      "runner": "a5dfe29afbbce3663e288174e2dcbea4ab9dad201ab502fc947b8bc45ddc7cd1",
+      "lean": "e8baaa71855a616dc351028f3ad2200051b0671f423a1696a100e809302d5550",
+      "leanchecker": "c7c51e296d28dd443ed60f9414feef41253ede89dea76dbb2adde29768c3ed5f",
+      "audit_helper": "53422311fc67019f7abcba8abe3932b3508abd554045cf743f71f59ac51a598b",
+      "retained_receipt": "178fd32041599b1ed9f02ec19c52c99cd6b39b8036b1d3a93d9c5a60a29b4bc3",
+      "environment": "c7f613f69df94d151cb6f1891a54389ec028eb991fbaae99491d5a4edf400236"
+    },
+    "argv": [
+      "/workspace/toolchains/elan/toolchains/leanprover--lean4---v4.32.2/bin/lean",
+      "-R",
+      "/workspace/lexlean-evidence/r6-partitioned-v2/src",
+      "-o",
+      "/workspace/lexlean-evidence/r6-partitioned-v2/build/LexLeanStd/Buffer.olean",
+      "/workspace/lexlean-evidence/r6-partitioned-v2/src/LexLeanStd/Buffer.lean"
+    ],
+    "exit": 0,
+    "reason": null,
+    "seconds": 0.5130020869999043,
+    "peak_process_tree_rss_kib": 312800,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifact_inventory": {
+      "build/LexLeanStd/Buffer.ir": "2ef4467bf423297445b154b42454707d28711ad1058f5afd1149f124f30ffde6",
+      "build/LexLeanStd/Buffer.olean": "d3c5a2e037f5a0f9731c7d2cf7dc06d82b6f0d08be5f6dc57b75140781afc834",
+      "build/LexLeanStd/Buffer.olean.private": "0373189db300854f9eeee91d044f96e79dd782b641cb0c8a2b68e93315589570",
+      "build/LexLeanStd/Buffer.olean.server": "b61b27da5d3fcd2eb0c4b61867b943f9fa7181cab3ae5c433580459d0bf2da24"
+    }
+  },
+  "target_key": {
+    "toolchain_libraries": "29f15c162d9f1dcd25767f18883b597fcc90f640a7dc3044935d19afb2dee44c",
+    "python": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+    "manifest": "6bf29fe92e7d0e84929ffd3c3f44d42acdbbf659312a05ed1491f3c52421da50",
+    "runner": "c616c204c3125fe1e346412454b141776def3582203cd7f28b42489b905f48a8",
+    "lean": "e8baaa71855a616dc351028f3ad2200051b0671f423a1696a100e809302d5550",
+    "leanchecker": "c7c51e296d28dd443ed60f9414feef41253ede89dea76dbb2adde29768c3ed5f",
+    "audit_helper": "9b2710409e60bb9d4a6dc87cc06abcf3a8db9361d1b0280b52dd8875979d58e6",
+    "source_checkpoint": "0224f18f5e6c401c7a9dee9409ad1e02cb1e9748",
+    "environment": "2ecd6a5b777c8acc18a485b77188553a20c205c915f6d3fa4a6dc0fedb6e1951",
+    "reused_environment_manifest": "5d22cdbaf4aa6cfc763f963399f202974c0afe0297864644d83cce3c9e79e24a"
+  },
+  "artifact_inventory": {
+    "build/LexLeanStd/Buffer.ir": "2ef4467bf423297445b154b42454707d28711ad1058f5afd1149f124f30ffde6",
+    "build/LexLeanStd/Buffer.olean": "d3c5a2e037f5a0f9731c7d2cf7dc06d82b6f0d08be5f6dc57b75140781afc834",
+    "build/LexLeanStd/Buffer.olean.private": "0373189db300854f9eeee91d044f96e79dd782b641cb0c8a2b68e93315589570",
+    "build/LexLeanStd/Buffer.olean.server": "b61b27da5d3fcd2eb0c4b61867b943f9fa7181cab3ae5c433580459d0bf2da24"
+  }
+}

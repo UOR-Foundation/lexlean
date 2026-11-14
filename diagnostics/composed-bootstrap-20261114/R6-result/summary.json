@@ -1,0 +1,19 @@
+{
+  "source_checkpoint": "0224f18f5e6c401c7a9dee9409ad1e02cb1e9748",
+  "status": "R6 A/B/E elaboration, replay and exact audit passed",
+  "compiler_accepted": false,
+  "fresh_children": 34,
+  "summed_child_seconds": 326.33956553199914,
+  "peak_sampled_tree_rss_MiB": 1798.80078125,
+  "reused_environment_modules": 32,
+  "certificates_archive_sha256": "6b5d4b4ce9b64615d64822ae097a6ef983c3a90d6832aaad1a8f8d04004f3353",
+  "local_full_source_archive_sha256": "3b17f5a6ae9c37e8d1c4838a69bb7a8715d8a97b6b4057805cf78388f3b94290",
+  "pending": [
+    "other12bootstrap roots",
+    "aggregate production budget",
+    "full production export",
+    "full resulting-head CI",
+    "compiler adoption"
+  ],
+  "helper_followup": "option_env runtime guard and buffered JSON are source-reviewed followups only; this result remains bound to immutable0224generator"
+}

@@ -1,0 +1,40 @@
+{
+  "reviewer": "/root/diagnostic_review",
+  "status": "independent-result-audit-passed",
+  "outcome_sha256": "8c72afb1a02d149068e57d00b0227731793b01342456bb6e514f9ab623a2c34e",
+  "key": {
+    "toolchain_libraries": "29f15c162d9f1dcd25767f18883b597fcc90f640a7dc3044935d19afb2dee44c",
+    "python": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+    "manifest": "6bf29fe92e7d0e84929ffd3c3f44d42acdbbf659312a05ed1491f3c52421da50",
+    "runner": "c616c204c3125fe1e346412454b141776def3582203cd7f28b42489b905f48a8",
+    "lean": "e8baaa71855a616dc351028f3ad2200051b0671f423a1696a100e809302d5550",
+    "leanchecker": "c7c51e296d28dd443ed60f9414feef41253ede89dea76dbb2adde29768c3ed5f",
+    "audit_helper": "9b2710409e60bb9d4a6dc87cc06abcf3a8db9361d1b0280b52dd8875979d58e6",
+    "source_checkpoint": "0224f18f5e6c401c7a9dee9409ad1e02cb1e9748",
+    "environment": "2ecd6a5b777c8acc18a485b77188553a20c205c915f6d3fa4a6dc0fedb6e1951",
+    "reused_environment_manifest": "5d22cdbaf4aa6cfc763f963399f202974c0afe0297864644d83cce3c9e79e24a"
+  },
+  "fresh_children": 34,
+  "certificate_modules": 16,
+  "environment_adoptions": 32,
+  "artifact_files": 144,
+  "toolchain_library_files": 12222,
+  "audit_requested_rows": 9122,
+  "policy_output": "Exact selected-root A/B/E axiom policies passed; compiler acceptance pending\n",
+  "total_child_seconds": 326.33956553199914,
+  "maximum_sampled_tree_rss_mib": 1798.80078125,
+  "compiler_accepted": false,
+  "limitations": [
+    "R6 A/B/E only; other roots and aggregate production budget and full export remain unqualified",
+    "Peak RSS sampled, not hard global peak",
+    "Same-kernel replay is not independent checking"
+  ],
+  "checks": [
+    "Exact complete receipt-label inventory",
+    "All actual source hashes, artifacts and companion files, log hashes and toolchain library inventory",
+    "Exact predecessor dependencies for every compile and interleaved replay",
+    "Original successful silent environment adoption receipts",
+    "Exact Lean and policy audit argv and log dependency",
+    "Audit output covers every requested axiom name"
+  ]
+}

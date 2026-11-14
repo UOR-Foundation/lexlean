@@ -1,0 +1,66 @@
+adopt-environment LexLeanRuntime.Portable
+adopt-environment LexLeanRuntime.Collections
+adopt-environment LexLeanRuntime.Models
+adopt-environment LexLeanRuntime.Reasoning
+adopt-environment LexLeanRuntime.Laws
+adopt-environment LexLeanTarget.TargetSyntax
+adopt-environment LexLeanTarget.TargetSemantics
+adopt-environment LexLeanTarget.RustSyntax
+adopt-environment LexLeanTarget.RustSemantics
+adopt-environment LexLeanPreservation.Core
+adopt-environment LexLeanPreservation.Values
+adopt-environment LexLeanPreservation.Primitives
+adopt-environment LexLeanPreservation.Fixed
+adopt-environment LexLeanPreservation.Keys
+adopt-environment LexLeanPreservation.Templates
+adopt-environment LexLeanPreservation.Validate
+adopt-environment LexLeanPreservation.RustBase
+adopt-environment LexLeanPreservation.RustCorr
+adopt-environment LexLeanPreservation.RustLemmas
+adopt-environment LexLeanPreservation.RustMatches
+adopt-environment LexLeanPreservation.RustSound
+adopt-environment LexLeanPreservation.Compose
+adopt-environment LexLeanStd.Text
+adopt-environment LexLeanBoot.AxiomOutput
+adopt-environment LexLeanBoot.CalculusCheck
+adopt-environment LexLeanBoot.PrimitiveScan
+adopt-environment LexLeanBoot.RustValidate
+adopt-environment LexLeanBoot.TokenAudit
+adopt-environment LexLeanStd.Buffer
+adopt-environment LexLeanBoot.RuntimeValidate
+adopt-environment LexLeanBoot.RustAst
+adopt-environment LexLeanBoot.RustPrint
+compile-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part0 0 16.46 None
+replay-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part0 0 2.93 None
+compile-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part1 0 3.24 None
+replay-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part1 0 1.91 None
+compile-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part2 0 2.7 None
+replay-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part2 0 1.56 None
+compile-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part3 0 3.65 None
+replay-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part3 0 2.35 None
+compile-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part4 0 4.22 None
+replay-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part4 0 4.31 None
+compile-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part5 0 6.62 None
+replay-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part5 0 4.78 None
+compile-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part6 0 5.53 None
+replay-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part6 0 4.47 None
+compile-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part7 0 3.95 None
+replay-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6_Part7 0 2.91 None
+compile-LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6 0 1.32 None
+replay-LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6 0 1.05 None
+compile-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part0 0 8.81 None
+replay-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part0 0 3.91 None
+compile-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part1 0 9.32 None
+replay-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part1 0 13.22 None
+compile-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part2 0 26.34 None
+replay-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part2 0 23.12 None
+compile-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part3 0 17.42 None
+replay-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part3 0 14.65 None
+compile-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part4 0 24.85 None
+replay-LexLeanPreserve.Parts.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd_Part4 0 15.33 None
+compile-LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd 0 3.35 None
+replay-LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd 0 2.2 None
+compile-LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.Compose.RustStd 0 5.46 None
+replay-LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.Compose.RustStd 0 3.0 None
+audit-lean 0 8.01 None
+audit-policies 0 73.42 None

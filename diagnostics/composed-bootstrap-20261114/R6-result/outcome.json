@@ -1,0 +1,22 @@
+{
+  "key": {
+    "toolchain_libraries": "29f15c162d9f1dcd25767f18883b597fcc90f640a7dc3044935d19afb2dee44c",
+    "python": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+    "manifest": "6bf29fe92e7d0e84929ffd3c3f44d42acdbbf659312a05ed1491f3c52421da50",
+    "runner": "c616c204c3125fe1e346412454b141776def3582203cd7f28b42489b905f48a8",
+    "lean": "e8baaa71855a616dc351028f3ad2200051b0671f423a1696a100e809302d5550",
+    "leanchecker": "c7c51e296d28dd443ed60f9414feef41253ede89dea76dbb2adde29768c3ed5f",
+    "audit_helper": "9b2710409e60bb9d4a6dc87cc06abcf3a8db9361d1b0280b52dd8875979d58e6",
+    "source_checkpoint": "0224f18f5e6c401c7a9dee9409ad1e02cb1e9748",
+    "environment": "2ecd6a5b777c8acc18a485b77188553a20c205c915f6d3fa4a6dc0fedb6e1951",
+    "reused_environment_manifest": "5d22cdbaf4aa6cfc763f963399f202974c0afe0297864644d83cce3c9e79e24a"
+  },
+  "status": "selected-root-A-B-E-elaboration-replay-audit-passed",
+  "compiler_accepted": false,
+  "not_tested": [
+    "other roots",
+    "aggregate production budget",
+    "full production verification and export",
+    "full compiler qualification"
+  ]
+}

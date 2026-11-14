@@ -1,0 +1,7 @@
+{
+  "LEAN_PATH": "/workspace/lexlean-evidence/composed-bootstrap-R6/build",
+  "PATH": "/workspace/toolchains/elan/toolchains/leanprover--lean4---v4.32.2/bin:/bin:/usr/bin",
+  "LANG": "C.UTF-8",
+  "LC_ALL": "C.UTF-8",
+  "HOME": "/home/agent"
+}

@@ -1,0 +1,40 @@
+{
+  "reviewer": "/root/diagnostic_review",
+  "status": "source-manifest-and-saved-certificate-completeness-passed",
+  "manifest_sha256": "6bf29fe92e7d0e84929ffd3c3f44d42acdbbf659312a05ed1491f3c52421da50",
+  "checkpoint": "0224f18f5e6c401c7a9dee9409ad1e02cb1e9748",
+  "compiler_semantics": "b6c666bbad446ffded2244b5f88430d601c5068cfd6915187e2cc49dbf8746f3",
+  "certificate_sizes": [
+    {
+      "module": "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6",
+      "text_bytes": 28594616,
+      "source_bytes": 8150188
+    },
+    {
+      "module": "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.RustStd",
+      "text_bytes": 19187487,
+      "source_bytes": 5346408
+    },
+    {
+      "module": "LexLeanPreserve.Ca1b3f82ef026302f9be4604f05da4919.R6.Compose.RustStd",
+      "text_bytes": 161639,
+      "source_bytes": 191178
+    }
+  ],
+  "checked_source_modules": 49,
+  "saved_original_certificates": 3,
+  "partition_modules_including_wrappers": 16,
+  "unchanged_environment_modules": 32,
+  "compiler_accepted": false,
+  "run_result_review": "pending completion",
+  "limitations": [
+    "No full export or aggregate generated-byte acceptance",
+    "Other twelve roots not qualified by this review"
+  ],
+  "partition_reconstruction": "Byte-exact complete command recovery and exact headers/import chain/footer/wrappers against all saved original certificates",
+  "partition_groups": [
+    8,
+    5,
+    0
+  ]
+}
