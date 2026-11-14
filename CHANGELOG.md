@@ -31,6 +31,78 @@ workspace carried at those versions without a tag.
   for the digest's reader, which reads on the calling thread when no thread
   can be had. `CL-25` builds the target and compares it with the native
   executable under Node's `node:wasi`; the register is 494.
+- Canonical JSON refuses duplicate keys that differ only in their escapes (SPEC.md §21.7,
+  `AR-11`, #475). The duplicate check compared each key as written, so `{"a":1,"\u0061":2}`
+  passed it and `Json::parse` returned `{"a":2}`, dropping the first member; keys are now
+  compared after escape decoding. Equal keys in distinct objects stay admitted, and no valid
+  canonical document is affected.
+- Every part of a verification names its toolchain by address (SPEC.md
+  §22.11, §9.4). A shard writes `toolchain.json` (`lexlean/verify-toolchain/1`)
+  beside its output: the SHA-256 of the `lean`, `lake`, and `leanchecker` its
+  preflight hashed, of the running `lexlean`, and the address of the `rustc`
+  that compiled it (its executable and `rustc_driver` library, which the build
+  script hashes). A part that reads another refuses it (`LLI9001`, naming the
+  part, the tool, and both addresses) unless all five equal its own. A record
+  names only the executable it ran, so a part that ran another `lake`,
+  `lexlean`, or `rustc` was accepted before. `VR-23` plants another `lake`
+  address in a shard's output, and on unix a join whose own `lake` differs by
+  one byte. The bootstrap export's custody record becomes
+  `lexlean/ci-bootstrap-export/2`: it also names the SHA-256 of the pinned
+  `lake`, `lean`, and `leanchecker` and the address of the `rustc` that built
+  the exporting binary, and a leg whose own differ refuses the export (`RP-14`
+  plants another `leanchecker` and another `rustc`). Published directories,
+  attestations, and `expected/verify` are unchanged.
+- Releases and regeneration need no hand steps (SPEC.md §9.4). `regenerate.yml`
+  gains the job `deliver`: when the regenerated commit heads one open pull
+  request of this repository, the patch is committed on it, pushed to the pull
+  request's branch as a fast-forward, the gate is dispatched there, and the
+  `regenerate/` branch is deleted; the patch is still the run's artifact
+  otherwise. `ci.yml`'s plan treats a dispatch on a pull request's head branch
+  as that pull request (draft: honesty then `rest`), and a passed dispatched run
+  of a merged head lets the merge push run nothing, as a pull request run does.
+  A release is cut by pushing the line's head to `cut/vX.Y.Z`: `cut.yml` runs
+  the new `cargo xtask bump-version X.Y.Z` (every site of the workspace
+  version, the changelog's `## Unreleased` heading, and `Cargo.lock`), opens the
+  pull request, and regenerates it; `tag.yml` tags the merge once its gate
+  passes, dispatches `release.yml`, and opens the pull request into `main`.
+- Decision regions (SPEC.md §17.12, `PF-24`, UOR-Foundation/PrismPM#605; no
+  new diagnostic code; changes the language-1.2 identity). The runtime gains a
+  sixth native module, `LexLeanRuntime.Regions`: a checker of local box
+  obligations for first-match decisions over natural-number fields, and
+  `LexLeanRegions.holds`, its soundness theorem, within `propext` and
+  `Quot.sound` (`tests/runtime-library/REGIONS.md`). The language-1.2 proof
+  form `region_check` proves a property `breaks request = false` of such a
+  decision with one kernel-decided obligation and that theorem; the lowered
+  data is definitionally the module's own definitions, so the lowering is not
+  trusted. Verdant Resonance (35 rules, 15 properties), which
+  `linear_arithmetic` could not prove, verifies. The register is 496 IDs.
+- A check-only build of the crate, #495. The `lexlean` crate's
+  `production-data` feature, on by default, embeds
+  `language/preservation-1.2/library/`, the native preservation library that
+  only certificate generation reads (32.2 of the 36.4 MB of embedded data).
+  Built with `--no-default-features`, the crate leaves it out and reports the
+  language-1.2 compiler-semantics ID from `LANGUAGE_1_2_SEMANTICS_ID`, which
+  `RP-10` now requires to equal the ID recomputed from disk; a project's
+  `check`, `lock`, `fmt`, and `build` behave as in a default build, and
+  `production build` and the `verify` of a project with a production root are
+  refused with the new `LLC0205` before anything is published (`RP-19`).
+  Its version report adds the line `variant check-only`: it shares the
+  compiler-semantics IDs of a full build, not its executable identity.
+  SPEC.md §8.4 names this feature as the one exception to its rule that no
+  feature disables a normative capability. A default build is unchanged.
+  A landing that moves the language-1.2 ID now also updates the constant;
+  `RP-10` names the new value when it is stale.
+
+- `RB-24`, the driver of a command root (#271). A `rust-std` root of the type of a
+  command's step gets `src/main.rs` beside `src/lib.rs`: a loop, printed from the
+  new language-1.2 module `RuntimeHost`, that calls the step and carries out each
+  request with one standard-library call (no signal API, no third-party crate).
+  The package manifest gains `entry`, the provenance gains `entry` and the digest
+  of `src/main.rs`, `RuntimeSyntax` gains the `cfgItem` item, the closed table of
+  the standard library grows from 51 to 121 names, and the validator gains the
+  rules `hidden-effect`, `cfg-condition`, `cfg-item`, and `cfg-pair`. The
+  language-1.2 compiler-semantics ID moves; 1.0 and 1.1 do not.
+  The register is 494 IDs.
 - A one-pass writer for the counts of the bootstrap count cases, #92.
   Under `LEXLEAN_COUNTS=fast` each of `BS-05` to `BS-08` and `BS-11` to
   `BS-15` records every count it checks in `target/count-report/` instead of
@@ -41,6 +113,10 @@ workspace carried at those versions without a tag.
   lists every number it cannot place unambiguously. A landing that moved
   the counts took a run and a hand mirror per stage of the cases; it takes
   one pass. Unset, the cases assert as before. The register is unchanged.
+- The bootstrap project configures `max_child_output_bytes = 268435456` (SPEC.md
+  §17.23, the maintainer's decision): with `RB-24`'s runtime validator, Lean's
+  extraction of the project writes more than the 33,554,432 bytes it allowed. A
+  semantic input, so its lock and every package move.
 - The bootstrap project configures `max_total_source_bytes = 536870912` (SPEC.md
   §17.23): with `BS-27` its production export is 135,273,215 bytes, beyond the
   134,217,728 it configured. A semantic input, so its lock and every package move.

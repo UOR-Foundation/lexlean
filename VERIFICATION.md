@@ -41,7 +41,61 @@ Outside `vv`:
 
 ## Falsifiability records
 
+### semantic snapshot nesting can fail
+
+Before the correction for #430, the focused
+`artifact::snapshot::tests` library filter ran two cases: existing shallow
+snapshot bytes passed, while serializing a 160-level linked value panicked
+at `snapshot.rs` with `recursion limit exceeded`. The snapshot DTO had
+already been constructed; its redundant byte parse imposed serde_json's
+raw-reader nesting limit on that structured value.
+
+Snapshot serialization now converts its structured value directly into the
+canonical JSON domain. The checks excluding null and non-integer numbers
+remain shared with raw parsing; raw parsing still checks duplicate keys.
+The deep regression round-trips the complete snapshot and its content digest,
+and the shallow regression compares exact bytes with the previous recipe.
+All 221 LexLean library tests pass on release/v0.4 with ordinary test stacks.
+This is library evidence, not a complete `vv` or consuming-app attestation.
+
+
 Each gate below was made to fail by planting a defect, running the gate's command, recording the failure, and removing the defect. The observed lines are verbatim gate output (paths abbreviated to the repository root). `cargo xtask release-check` requires a `### <gate> can fail` record for every gate and audit named in `repo_model::release::GATES`.
+
+### BS-15 render corpus materialization
+
+Issue #457 changes only the construction of the two render vectors in
+`crates/conformance/src/cases/bootstrap/rust_package.rs`. The previous code
+encoded every full-library render, filtered the evaluator vector, then
+replaced the large native inputs with their existing 4,096-byte prefixes.
+The discarded full runs were inputs to neither differential. The direct
+assembler retains the same order: accepted manifests, shaped inputs, then
+seeded render mutants. At or below 16,384 bytes it uses the unchanged run and
+expected files in both vectors; above that boundary it constructs only the
+same native prefix and recipe outcome. The complete-library recipe assertion
+against `package::package` in `accepted` is unchanged.
+
+The construction change alters no corpus generation, seed, count, negative
+fixture, planted defect, native comparison, certificate limit, export check,
+host condition, timeout, or compiler-semantics input. On the original
+`cf76090d` base, the native render vector contains 735 runs and the evaluator
+vector 241; 494 full-library argument encodings that neither vector consumed
+are no longer materialized. After accepted `BS-21` (#395, `c66f83d`) adds its
+package, the same construction retains 737 native renders and 241 evaluator
+renders, avoiding 496 unused full-library encodings. These are work-count
+deductions, not measured CI speedups; the accepted member's corpus and count
+changes are retained.
+
+The library unit regression `render_corpora_preserve_inputs_and_outcomes`
+compares both vectors with the previous assembler on both profiles, distinct
+supplied package outcomes, recipe outcomes, and libraries of 0, 4,096,
+16,383, 16,384, 16,385 and 32,768 bytes. Local validation in the authoring
+environment passed whitespace checks and an independent assembly model:
+24 evaluator and 36 native results were identical in order and bytes across
+27 empty/mixed collection cases, and changes to the boundary, prefix and
+supplied-outcome routing were detected. That model does not execute Rust or
+the package renderer. Rust formatting, Clippy, the library regression and the
+complete release gate were not run locally because the environment has no
+Rust toolchain; they remain required acceptance evidence on the final tree.
 
 ### Intel host partition custody and complete evidence
 
@@ -1705,6 +1759,40 @@ past its literal. `conformance_pf_22` refuses a doubled fold equated to a sum
 and a count, the reverse's sum equated to a count, and a map's entries summed
 as its keys twice. `conformance_pf_23` refuses the pair law applied to a
 swapped statement. Each assertion names exactly the refused theorems.
+
+### decision regions can fail
+
+The decision-regions module and the `region_check` form (PrismPM#605,
+`PF-24`). Each defect was planted in the working tree, the case named was run
+with `cargo test -p repo-conformance --test conformance -- <case>` (Windows
+x86-64, GNU toolchain 1.97.1, pinned Lean 4.32.1 under `ELAN_HOME`, so the
+Lean-backed branch ran), and the plant was reverted. The case passes on the
+reverted tree.
+
+Planted (a): the lowering reads `c < x` with the code of `x < c` (the `Blt`
+arm's codes `(0, 2)` made `(0, 0)`). `conformance_pf_24` refuses the rendered
+proof of `noHeatWhenEmpty`. The same compiler run by `lexlean verify` on a copy
+of `examples/decision-regions` shows that the lowering is not trusted: the
+lowered `breaks` is no longer the module's, and Lean refuses.
+
+```text
+error[LLV7002]: Lean rejected `DecisionRegions.Main` (error): Type mismatch
+  --> src/Main.lex.tex:57:1
+error[LLV7002]: Lean rejected `DecisionRegions.Main` (error): Type mismatch
+  --> src/Main.lex.tex:72:1
+error[LLV7002]: Lean rejected `DecisionRegions.Main` (error): Type mismatch
+  --> src/Main.lex.tex:87:1
+error[LLV7002]: Lean rejected `DecisionRegions.Main` (error): Tactic `decide` proved that the proposition
+```
+
+Planted (b): the check that a rule uses no `!=` removed. `conformance_pf_24`:
+the copy whose `drying` rule tests `humidity != 70` links.
+
+```text
+thread 'conformance_pf_24' panicked at crates\conformance\src\support.rs:874:14:
+check fails
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 482 filtered out
+```
 
 ### a derived row is made by the pinned Lean and never stored (SM-34)
 
@@ -12506,6 +12594,12 @@ the first panic message, trimmed.
 
 | `SP-32` | `backend/semantic.rs`: the clause is written only for a mutual group | `` `paramsOf` matches a parameter before its argument and states the argument ``, the generated definition with no clause; the issue's project on that binary: `LLV7013` in `__rel_1` |
 | `SP-33` | `calculus/rust/lower.rs`: `fold` does not read `Expr::Clone` | `the arm reads the box and binds nothing`, the arm being `Let { pat: Bind(Local(2)), value: Unbox(Boxed(2)) }` then `Move(Local(2))`; the issue's project on that binary: `LLV7015` at `Corr.mCons` in `fun1` |
+| `RB-24` | `crates/lexlean/src/calculus/rust/package.rs`: the output of the driver is printed as `leave(status, &errors, &output)` | `the fixture command runs to its fixed result` (status `3`, standard output `err`, standard error `out`) |
+| `RB-24` | `compiler/src/RuntimeHost.lex.tex`: `process_wait` records `status.code()` as `None` | `a child's status dropped` (the driver exits `90`, not `3`) |
+| `RB-24` | `compiler/src/RuntimeHost.lex.tex`: `drive` passes `None` as the state of every step | `the state of the previous step passed to the next` (no result within 120 seconds) |
+| `RB-24` | `compiler/src/RuntimeHost.lex.tex`: `files_list` reverses the sorted names | `a listing in the reverse of byte order` (the driver exits `90`, not `3`) |
+| `RB-24` | `compiler/src/RuntimeHost.lex.tex`: `processOn` validated by a root that admits only `files` | `hidden-effect` (`Command` realizes `process`, which the root does not admit) |
+| `RB-24` | `compiler/src/RuntimeHost.lex.tex`: the `not_unix` twin of `end_group` removed | `cfg-pair` |
 | `TC-01` | `calculus/mod.rs`: `canonical` binds parameters but keeps their spelling | `assertion left == right failed: adt-evaluation` (alpha variant bytes differ) |
 | `TC-02` | `calculus/check.rs`: the match exhaustiveness test made `false &&` | `an invalid program loads: expected `the match is not exhaustive: Adt { constructor: 2 } is not covered`` |
 | `MD-01` | `ir/semantic.rs`: the language-1.1 gate `first_language_1_2_construct` made `&& false` | `tests/negative/model-under-1.1: expected "`contract declaration` is a language-1.2 construct"` |
@@ -14482,3 +14576,49 @@ repository gate have not run here. This branch is source preparation for a draft
 PR, with existing generated records untouched; its source changes are not
 qualified by those preceding records. Coordinate the single identity/writer wave
 with the release owner before readiness, merge or downstream SDK adoption.
+
+### the check-only build's excluded inventory and its constant can fail (RP-19, RP-10)
+
+A build without `production-data` (§8.4) embeds no file of
+`language/preservation-1.2/library/` and reports the language-1.2
+compiler-semantics ID from `LANGUAGE_1_2_SEMANTICS_ID`. Neither holds by
+construction once a binary exists, so `RP-19` reads the built image against the
+complete excluded inventory and `RP-10` reads the constant against the tree.
+
+Planted, the inventory: `build.rs` keeps out every file of the library except
+`src/Values.lex.tex` (70,609 bytes), while the largest, `src/RustLemmas.lex.tex`
+(17,189,578 bytes), stays out --- so an assertion that read the largest file
+alone would have passed. Command: `cargo test -p repo-conformance
+--all-features --test conformance -- conformance_rp_19 --exact`. Observed:
+
+```text
+test conformance_rp_19 ... FAILED
+RP-19: the build without production-data embeds ["language/preservation-1.2/library/src/Values.lex.tex"] of `language/preservation-1.2/library/`
+test result: FAILED. 0 passed; 1 failed
+```
+
+Read directly, that planted binary (77,585,088 bytes, the debug build the case
+makes) holds the witness of `src/Values.lex.tex` and not the witness of
+`src/RustLemmas.lex.tex`.
+
+Planted, the constant: its last digit, `...680b` to `...680c`, in
+`crates/lexlean/src/lib.rs`. A wrong constant changes no verdict, because such
+a build locks and checks consistently with itself, so it is held twice ---
+against the tree by `RP-10`, and against the default build's lock bytes by
+`RP-19`. Command: `cargo test -p repo-conformance --all-features --test
+conformance -- conformance_rp_10 conformance_rp_19 --exact --test-threads=1`.
+Observed:
+
+```text
+test conformance_rp_10 ... FAILED
+test conformance_rp_19 ... FAILED
+RP-10: lexlean::LANGUAGE_1_2_SEMANTICS_ID is stale; the tree's language-1.2 ID is 06639c99a4cb1dbcb7fc9c0c87544ee05c599079d85272d8af66c8045900680b
+  left: "06639c99a4cb1dbcb7fc9c0c87544ee05c599079d85272d8af66c8045900680c"
+ right: "06639c99a4cb1dbcb7fc9c0c87544ee05c599079d85272d8af66c8045900680b"
+RP-19: language-1.2: lexlean.lock bytes
+test result: FAILED. 0 passed; 2 failed
+```
+
+`RP-19` failed at the first language-1.2 lock, whose `compiler_semantics` line
+carried the planted digit while the default build's carried the tree's. With
+each plant removed, `conformance_rp_10` and `conformance_rp_19` pass.
