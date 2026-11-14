@@ -861,69 +861,61 @@ pub enum Fn0 {
 }
 
 impl Fn0 {
-    pub fn apply(&self, p0: Option<Bytes>, p1: Bytes) -> Option<Bytes> {
+    pub fn apply(&self, p0: Option<Bytes>, p1: (Bytes, Bytes)) -> Option<Bytes> {
         match self {
             Fn0::F2(k0) => f2(k0.clone(), p0, p1),
         }
     }
 }
 
-pub fn f0(v0: List<Bytes>, v1: Bytes) -> Bytes {
-    let m1 = f1(Fn0::F2(v1), None::<Bytes>, v0);
-    match m1 {
-        None => {
-            Bytes::lit(&[])
-        }
-        Some(v2) => {
-            v2
-        }
-    }
+pub fn f0(v0: List<(Bytes, Bytes)>, v1: Bytes) -> Option<Bytes> {
+    f1(Fn0::F2(v1), None::<Bytes>, v0)
 }
 
-pub fn f1(v0: Fn0, p5: Option<Bytes>, p6: List<Bytes>) -> Option<Bytes> {
-    let m4 = (p5, p6);
+pub fn f1(v0: Fn0, p4: Option<Bytes>, p5: List<(Bytes, Bytes)>) -> Option<Bytes> {
+    let m3 = (p4, p5);
     {
-        let mut m4 = m4;
+        let mut m3 = m3;
         loop {
             let step = {
-                let (v1, v2) = m4;
-                let m2 = v2;
-                match m2.uncons() {
+                let (v1, v2) = m3;
+                let m1 = v2;
+                match m1.uncons() {
                     None => {
-                        Err::<(Option<Bytes>, List<Bytes>), Option<Bytes>>(v1)
+                        Err::<(Option<Bytes>, List<(Bytes, Bytes)>), Option<Bytes>>(v1)
                     }
                     Some((v3, v4)) => {
-                        Ok::<(Option<Bytes>, List<Bytes>), Option<Bytes>>(({
-                            let c3: Fn0 = v0.clone();
-                            c3.apply(v1, v3)
+                        Ok::<(Option<Bytes>, List<(Bytes, Bytes)>), Option<Bytes>>(({
+                            let c2: Fn0 = v0.clone();
+                            c2.apply(v1, v3)
                         }, v4))
                     }
                 }
             };
             match step {
-                Ok(next) => { m4 = next; }
+                Ok(next) => { m3 = next; }
                 Err(done) => break done,
             }
         }
     }
 }
 
-pub fn f2(v0: Bytes, v1: Option<Bytes>, v2: Bytes) -> Option<Bytes> {
-    let m7 = v1;
-    match m7 {
-        None => {
-            Some(v2)
-        }
-        Some(v3) => {
-            Some({
-                let a10 = {
-                    let a8 = v3;
-                    let a9 = v0;
-                    append_bytes(a8, a9)
-                };
-                let a11 = v2;
-                append_bytes(a10, a11)
-            })
-        }
+pub fn f2(v0: Bytes, v1: Option<Bytes>, v2: (Bytes, Bytes)) -> Option<Bytes> {
+    f3(v0, v1, v2)
+}
+
+pub fn f3(v0: Bytes, v1: Option<Bytes>, v2: (Bytes, Bytes)) -> Option<Bytes> {
+    let a7 = v0;
+    let a8 = {
+        let (h6, _) = v2;
+        h6
+    };
+    if equal(a7, a8) {
+        Some({
+            let (_, h9) = v2;
+            h9
+        })
+    } else {
+        v1
     }
 }

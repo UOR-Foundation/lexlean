@@ -63,3 +63,10 @@ Feature: production
     Given a general production root whose body adds and multiplies naturals, with a prior theorem stating the generated bound, and copies that remove the bound, narrow it to miss one operation, place an operation under an `if`, and state another obligation
     When each is checked and its eligibility report read
     Then the bounded root is admitted without `overflow` and the report names its bound, the copy without the bound requires `overflow` again, and each other copy is refused with LLT4017 naming the operation
+
+  @PD-10 @build
+  Scenario: The registry holds the effects `files` and `process` and one row per constructor of `LexLeanStd.Host::Request` naming the effect it realizes, so a production root whose closure builds a request admits that request's effect, and a root that does not, or that is declared for a target without allocation, fails with `LLT4005`.
+    Given the production registry, the standard library's `Host` module, and the `host-effects` fixture
+    When the request rows are compared with the module's constructors and a stated table, and the fixture's roots are analysed
+    Then each root realizes exactly the effects of the requests it builds, through a call in another module too, and a root that only reads a request or builds `exit` realizes neither
+    And a root that does not admit the effect of a request it builds, and a root that builds one for `rust-core`, each fail with `LLT4005`, and a type named `Request` in another module realizes nothing

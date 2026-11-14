@@ -69,6 +69,14 @@ definition{
 }
 
 definition{
+  name: pd10,
+  parameters: [],
+  result: Rows::IdRow,
+  body: (record Rows::IdRow {id := "PD-10", level := "build", suite := "production", statement := "The registry holds the effects `files` and `process` and one row per constructor of `LexLeanStd.Host::Request` naming the effect it realizes, so a production root whose closure builds a request admits that request's effect, and a root that does not, or that is declared for a target without allocation, fails with `LLT4005`.", sections := "§17.13, §17.22"}),
+  executable: true
+}
+
+definition{
   name: pd09,
   parameters: [],
   result: Rows::IdRow,
