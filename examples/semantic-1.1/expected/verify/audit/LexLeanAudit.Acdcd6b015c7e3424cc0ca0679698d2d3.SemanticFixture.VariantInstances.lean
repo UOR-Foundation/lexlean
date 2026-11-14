@@ -1,4 +1,0 @@
-module
-import SemanticFixture.VariantInstances
-#print axioms SemanticFixture.VariantInstances.UsesDefault
-#print axioms SemanticFixture.VariantInstances.natUsesDefault

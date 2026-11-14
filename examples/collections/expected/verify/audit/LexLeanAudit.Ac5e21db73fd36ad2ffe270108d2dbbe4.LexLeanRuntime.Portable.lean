@@ -158,6 +158,5 @@ import LexLeanRuntime.Portable
 #print axioms LexLeanRuntime.slice
 #print axioms LexLeanRuntime.splitExact
 #print axioms LexLeanRuntime.subtract
-#print axioms LexLeanRuntime.update
 #print axioms LexLeanRuntime.utf8Decode
 #print axioms LexLeanRuntime.utf8Encode

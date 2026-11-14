@@ -1,4 +1,0 @@
-module
-import SemanticFixture.KernelReductionDefinitions
-#print axioms SemanticFixture.KernelReductionDefinitions.importedAppend
-#print axioms SemanticFixture.KernelReductionDefinitions.importedLength

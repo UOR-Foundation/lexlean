@@ -1,3 +1,0 @@
-module
-import SemanticFixture.KernelReductionProofs
-#print axioms SemanticFixture.KernelReductionProofs.importedAppendLengthIsFour

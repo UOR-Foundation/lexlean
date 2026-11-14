@@ -123,7 +123,6 @@ public inductive Prim where
   | compare
   | convert (_ : IntKind)
   | parseDecimal (_ : Ty)
-  | update
 
 mutual
 public inductive Expr where
