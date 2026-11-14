@@ -403,5 +403,14 @@
     "width": "",
     "memory_kib": "",
     "hints": ""
+  },
+  {
+    "part": "bdd-bootstrap-lexicon-entry",
+    "recipes": "bdd",
+    "examples_part": "",
+    "bdd_part": "bootstrap-lexicon-entry",
+    "width": "",
+    "memory_kib": "",
+    "hints": ""
   }
 ]

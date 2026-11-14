@@ -70,3 +70,6 @@ SPEC.md §13.1, §13.2, and §12.3.
 `src/PackageRef.lex.tex` (SPEC.md §17.23, `BS-54`) imports `LexiconLse` (`BS-25`), whose package
 IDs it checks, and the standard library's `Numeral` and `Text`: a `package@version` reference
 of SPEC.md §13.1 and §12.2.
+`src/LexiconEntry.lex.tex` (SPEC.md §17.23, `BS-55`) imports `TomlRead` (`BS-53`), `LexiconLse`
+(`BS-25`), `LexiconLre` (`BS-26`), `LexiconSchema` (`BS-50`), `LseScopes` (`BS-51`), and
+`PrimitiveScan` (`BS-03`): a lexicon entry of SPEC.md §13.1 to §13.6.

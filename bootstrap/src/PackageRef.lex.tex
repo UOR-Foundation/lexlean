@@ -9,10 +9,7 @@ structure{
   name: PackageRef,
   type_parameters: [],
   parameters: [],
-  fields: [
-    {name: package, type: Bytes},
-    {name: version, type: Bytes}
-  ]
+  fields: [{name: package, type: Bytes}, {name: version, type: Bytes}]
 }
 
 definition{
@@ -137,11 +134,11 @@ definition{
   result: Bool,
   body: (match (LexLeanStd.Text::find version (lit "+"))
     | Option.some plusAt => (let mainPart : Bytes := (LexLeanStd.Text::sliceOr version 0 plusAt); (let buildPart : Bytes := (LexLeanStd.Text::sliceOr version (plusAt + 1) (prim subtract (prim length version : Nat) (plusAt + 1) : Nat)); (if (allBuildSegments (LexLeanStd.Text::splitOn buildPart (46 : UInt8))) then (match (LexLeanStd.Text::find mainPart (lit "-"))
-        | Option.some dashAt => ((isSemverCore (LexLeanStd.Text::sliceOr mainPart 0 dashAt)) && (allPrereleaseSegments (LexLeanStd.Text::splitOn (LexLeanStd.Text::sliceOr mainPart (dashAt + 1) (prim subtract (prim length mainPart : Nat) (dashAt + 1) : Nat)) (46 : UInt8))))
-        | Option.none => (isSemverCore mainPart)) else false)))
+      | Option.some dashAt => ((isSemverCore (LexLeanStd.Text::sliceOr mainPart 0 dashAt)) && (allPrereleaseSegments (LexLeanStd.Text::splitOn (LexLeanStd.Text::sliceOr mainPart (dashAt + 1) (prim subtract (prim length mainPart : Nat) (dashAt + 1) : Nat)) (46 : UInt8))))
+      | Option.none => (isSemverCore mainPart)) else false)))
     | Option.none => (match (LexLeanStd.Text::find version (lit "-"))
-        | Option.some dashAt => ((isSemverCore (LexLeanStd.Text::sliceOr version 0 dashAt)) && (allPrereleaseSegments (LexLeanStd.Text::splitOn (LexLeanStd.Text::sliceOr version (dashAt + 1) (prim subtract (prim length version : Nat) (dashAt + 1) : Nat)) (46 : UInt8))))
-        | Option.none => (isSemverCore version))),
+      | Option.some dashAt => ((isSemverCore (LexLeanStd.Text::sliceOr version 0 dashAt)) && (allPrereleaseSegments (LexLeanStd.Text::splitOn (LexLeanStd.Text::sliceOr version (dashAt + 1) (prim subtract (prim length version : Nat) (dashAt + 1) : Nat)) (46 : UInt8))))
+      | Option.none => (isSemverCore version))),
   axioms: [Quot.sound, propext],
   executable: true
 }

@@ -17,6 +17,11 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- A lexicon entry is source (SPEC.md §13.1 to §13.6): `BS-55`, the module `LexiconEntry`, held
+  to `lexicon::entry::parse_entry` on the compiler's own committed lexicon packages, returning
+  every diagnostic the oracle raises rather than only the first. By the maintainer's decision
+  the bootstrap project's `max_file_bytes` is now 16 MiB, because the root's certificate
+  restates its whole reachable closure once per function.
 - The lexicon closure's `package@version` reference is source (SPEC.md §13.1, §12.2): `BS-54`,
   the module `PackageRef`, held to `lexicon::package::PackageRef::parse` on the compiler's own
   `\useglossary` directives and lexicon manifests.

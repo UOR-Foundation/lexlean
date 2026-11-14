@@ -11737,6 +11737,69 @@ and each of the 5 planted defects is detected by its own vector. The case then s
 stack-bound step, `bootstrap/parse_package_ref is no package of the committed exports`, as each
 bootstrap member does before its regeneration, which produces the package.
 
+### a lexicon entry is source (BS-55)
+
+`BS-55` holds the one production root of `LexLeanBoot.LexiconEntry`
+(`bootstrap/src/LexiconEntry.lex.tex`) to `lexicon::entry::parse_entry`: the entry, or every
+diagnostic the oracle raises, in the oracle's own order. The root does not collapse to
+`Option Entry`: past its four hard gates it keeps validating every remaining section (header,
+signature, denotation, forms, render, calculation, eliminator) and returns the full diagnostic
+list, never only the first, reproducing the oracle's own "keep validating to report every
+problem" behavior on the paths where the oracle does that. The root admits `recursion`, reached
+through `LexiconLse::printLse`.
+
+One message is approximated, in the style `BS-25` and `BS-26` state their own boundaries: the
+text of `toml::from_str::<RawEntry>`'s own error stays in the host. Rust's `parse_entry` collapses
+two different causes to this one message, `format!("invalid entry file: {parse_error}")` --
+the text is not TOML at all, or the TOML does not have `RawEntry`'s shape (a required key
+missing, an unknown key present, or a value of the wrong type) -- because `serde`'s one call
+reports both through the same `toml::de::Error`. `LexiconEntry.lex.tex` has no such detail to
+report for either cause and emits the bare literal `invalid entry file` at both of its own hard
+gates (the first, on `TomlRead::tomlParse`; the second, on its own shape extraction). For these
+two causes only: the code and the refusal (`kind`) are exact, and the message is exact up to
+this fixed prefix, which is also the whole of the Lean side's message. Every other diagnostic's
+code, refusal, and message are exact, byte for byte.
+
+The shape boundary -- the specification against which the second cause is checked -- is this
+table, read from `RawEntry` and its nested `Raw*` types in `entry.rs`. Checked individually:
+every one of the seven -- `RawEntry`, `RawDenotation`, `RawForm`, `RawRender`, `RawCalculation`,
+`RawEliminator`, `RawEliminatorConstructor` -- carries its own `#[serde(deny_unknown_fields)]`
+(`entry.rs` has exactly seven `#[serde(...)]` attributes in the whole file, one per struct, and
+none of the other six is anything else); so an unlisted key at any of these tables is also a
+hard-gate failure, same as a required key missing or a value of the wrong type, at every one of
+them, not just some. No field of any of the seven carries `#[serde(rename)]`, `alias`, or
+`flatten`: every Rust field name is the TOML key verbatim, so the table below names both with
+one column.
+
+| Table | Field | Rust requirement | Lean extraction |
+| --- | --- | --- | --- |
+| root | `spec`, `id`, `category`, `surface_arity`, `frame` | required scalar | `getStr`/`getNat`; `Option.none` on absence or the wrong `Value` variant |
+| root | `signature`, `associativity` | `Option<String>` | `getOptStr`; `Option.some Option.none` on absence, never a hard failure by itself |
+| root | `universes` | `Option<Vec<String>>` | `getOptArr` |
+| root | `precedence` | `Option<u32>` | `getOptNat` |
+| root | `denotation` | required table | `TomlRead::docSection ["denotation"]`; `Option.none` if the table is absent |
+| root | `form` | required `Vec<RawForm>` (no `#[serde(default)]`) | `formRowsOrEmpty`: a `[[form]]`-shaped section if one exists, else a root-level `form = []` row read as zero forms, else `Option.none` -- neither representation present is the shape failure, not either one alone |
+| root | `render`, `calculation`, `eliminator` | `Option<table>` | absent is `Option.none` at the Lean level too, never a failure |
+| `[denotation]` | `kind` | required scalar | `extractDenotationRow`'s `getStr`; checked against `denotationAllowedKeys` first |
+| `[denotation]` | `constructor`, `module`, `name`, `component`, `value` | `Option<String>` | `getOptStr` |
+| `[[form]]` row | `id`, `channel`, `surface`, `canonical_source`, `features` | required (scalar or array) | `extractForm`; checked against `formAllowedKeys` first |
+| `[render]` | `math`, `text` | `Option<String>` | `getOptStr`; an absent `[render]` table reads as an all-`Option.none` row, not a failure |
+| `[calculation]` | `kind` | required scalar | `getStr`, only when `[calculation]` is present at all |
+| `[eliminator]` | `cases_lean_name`, `induction_lean_name` | required scalar | `getStr`; checked against `eliminatorAllowedKeys` first |
+| `[eliminator]` | `constructor` | required `Vec<RawEliminatorConstructor>` (no default) | `constructorRowsOrEmpty`, the same three-way read as root `form`: `[[eliminator.constructor]]` sections, or a `constructor = []` row inside `[eliminator]`'s own row, or neither (the shape failure) |
+| `[[eliminator.constructor]]` row | `entry`, `lean_name`, `fields`, `induction_hypotheses` | required (scalar or array) | `extractConstructor`; checked against `eliminatorConstructorAllowedKeys` first |
+
+Every row whose Lean extraction reads "checked against ... first" or is itself a required-field
+read that returns `Option.none` on absence or a type mismatch propagates that `Option.none` up
+through `extractRaw`, reproducing the same single hard-gate failure `toml::from_str` would raise
+in Rust for the same input, before any diagnostic of the accumulating pass is considered. The
+case holds hand-built vectors to a representative of every row of this table that can fail it: a
+missing required scalar, an entry omitting `form` under both representations, an eliminator
+omitting `constructor` under both representations, an unknown key, and a value of the wrong
+type -- each refused at the one approximated message, and `form = []` held separately, as the
+one case in the table's `form` row that is in-shape and reaches the ordinary "an entry declares
+at least one form" diagnostic rather than the shape failure.
+
 ### the lexer of the authoring notation is source (BS-22)
 
 `BS-22` holds the two production roots of `LexLeanBoot.SurfaceLex`

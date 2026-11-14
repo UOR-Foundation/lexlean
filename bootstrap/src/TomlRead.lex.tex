@@ -55,11 +55,7 @@ structure{
   name: Es,
   type_parameters: [],
   parameters: [],
-  fields: [
-    {name: pos, type: Nat},
-    {name: out, type: (List Bytes)},
-    {name: status, type: Nat}
-  ]
+  fields: [{name: pos, type: Nat}, {name: out, type: (List Bytes)}, {name: status, type: Nat}]
 }
 
 structure{
@@ -129,10 +125,10 @@ definition{
   result: (Option Es),
   body: (if (prim equal (project st status) 0 : Bool) then (let position : Nat := (skipWs line (project st pos)); (if (position <? n) then (match (LexLeanStd.Text::byteAt line position)
     | Option.some b => (if (prim equal b (34 : UInt8) : Bool) then (match (parseString line position)
-        | Option.some pair => (let afterPos : Nat := (skipWs line (second pair)); (if (afterPos <? n) then (match (LexLeanStd.Text::byteAt line afterPos)
-            | Option.some cb => (if (prim equal cb (44 : UInt8) : Bool) then (ctor Option.some [Es] (record Es {pos := (skipWs line (afterPos + 1)), out := (cons (first pair) (project st out)), status := 0})) else (ctor Option.some [Es] (record Es {pos := afterPos, out := (cons (first pair) (project st out)), status := 2})))
-            | Option.none => (ctor Option.none [Es])) else (ctor Option.some [Es] (record Es {pos := afterPos, out := (cons (first pair) (project st out)), status := 1}))))
-        | Option.none => (ctor Option.some [Es] (record Es {pos := position, out := (project st out), status := 2}))) else (ctor Option.some [Es] (record Es {pos := position, out := (project st out), status := 2})))
+      | Option.some pair => (let afterPos : Nat := (skipWs line (second pair)); (if (afterPos <? n) then (match (LexLeanStd.Text::byteAt line afterPos)
+        | Option.some cb => (if (prim equal cb (44 : UInt8) : Bool) then (ctor Option.some [Es] (record Es {pos := (skipWs line (afterPos + 1)), out := (cons (first pair) (project st out)), status := 0})) else (ctor Option.some [Es] (record Es {pos := afterPos, out := (cons (first pair) (project st out)), status := 2})))
+        | Option.none => (ctor Option.none [Es])) else (ctor Option.some [Es] (record Es {pos := afterPos, out := (cons (first pair) (project st out)), status := 1}))))
+      | Option.none => (ctor Option.some [Es] (record Es {pos := position, out := (project st out), status := 2}))) else (ctor Option.some [Es] (record Es {pos := position, out := (project st out), status := 2})))
     | Option.none => (ctor Option.none [Es])) else (ctor Option.some [Es] (record Es {pos := position, out := (project st out), status := 1})))) else (ctor Option.none [Es])),
   executable: true
 }
@@ -221,7 +217,12 @@ definition{
 
 definition{
   name: mergeInto,
-  parameters: [sections : (List Section), path : (List Bytes), isArr : Bool, row : (List (Bytes * Value))],
+  parameters: [
+    sections : (List Section),
+    path : (List Bytes),
+    isArr : Bool,
+    row : (List (Bytes * Value))
+  ],
   result: (List Section),
   body: (LexLeanStd.Order::reverseList [Section] (prim list_fold (fun [isArr, path, row] (acc : (List Section)) (sec : Section) => (cons (appendRowToSection sec path isArr row) acc)) (nil Section) sections : (List Section))),
   executable: true
@@ -229,7 +230,12 @@ definition{
 
 definition{
   name: appendNew,
-  parameters: [sections : (List Section), path : (List Bytes), isArr : Bool, row : (List (Bytes * Value))],
+  parameters: [
+    sections : (List Section),
+    path : (List Bytes),
+    isArr : Bool,
+    row : (List (Bytes * Value))
+  ],
   result: (List Section),
   body: (LexLeanStd.Order::reverseList [Section] (cons (record Section {path := path, isArray := isArr, rows := (cons row (nil (List (Bytes * Value))))}) (LexLeanStd.Order::reverseList [Section] sections))),
   executable: true
@@ -245,7 +251,12 @@ definition{
 
 definition{
   name: closeRow,
-  parameters: [rawClosures : (List RawClose), path : (List Bytes), isArr : Bool, row : (List (Bytes * Value))],
+  parameters: [
+    rawClosures : (List RawClose),
+    path : (List Bytes),
+    isArr : Bool,
+    row : (List (Bytes * Value))
+  ],
   result: (List RawClose),
   body: (cons (record RawClose {path := path, isArray := isArr, row := (LexLeanStd.Order::reverseList [(Bytes * Value)] row)}) rawClosures),
   executable: true
@@ -255,28 +266,13 @@ definition{
   name: classifyAndStep,
   parameters: [st : Pst, key : Bytes, valText : Bytes],
   result: Pst,
-  body:
-   (if (prim equal valText (lit "true") : Bool) then
-      (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (cons (key, (ctor Value.VBool true)) (project st curRow)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false})
-    else (if (prim equal valText (lit "false") : Bool) then
-      (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (cons (key, (ctor Value.VBool false)) (project st curRow)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false})
-    else (if (LexLeanStd.Text::startsWith valText (lit "\"")) then
-      (match (parseString valText 0)
-        | Option.some pair => (if ((second pair) =? (prim length valText : Nat)) then
-            (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (cons (key, (ctor Value.VStr (first pair))) (project st curRow)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false})
-          else (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true}))
-        | Option.none => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true}))
-    else (if (LexLeanStd.Text::startsWith valText (lit "[")) then
-      (if (prim equal valText (lit "[") : Bool) then
-         (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.some [Bytes] key), pendingVals := (nil Bytes), failed := false})
-       else (if (LexLeanStd.Text::endsWith valText (lit "]")) then
-         (match (parseStringArray (LexLeanStd.Text::sliceOr valText 1 (prim subtract (prim length valText : Nat) 2 : Nat)))
-           | Option.some items => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (cons (key, (ctor Value.VArr items)) (project st curRow)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false})
-           | Option.none => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true}))
-        else (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true})))
-    else (match (LexLeanStd.Numeral::parseDecimal valText)
-      | Option.some num => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (cons (key, (ctor Value.VNat num)) (project st curRow)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false})
-      | Option.none => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true})))))),
+  body: (if (prim equal valText (lit "true") : Bool) then (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (cons (key, (ctor Value.VBool true)) (project st curRow)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false}) else (if (prim equal valText (lit "false") : Bool) then (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (cons (key, (ctor Value.VBool false)) (project st curRow)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false}) else (if (LexLeanStd.Text::startsWith valText (lit "\"")) then (match (parseString valText 0)
+    | Option.some pair => (if ((second pair) =? (prim length valText : Nat)) then (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (cons (key, (ctor Value.VStr (first pair))) (project st curRow)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false}) else (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true}))
+    | Option.none => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true})) else (if (LexLeanStd.Text::startsWith valText (lit "[")) then (if (prim equal valText (lit "[") : Bool) then (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.some [Bytes] key), pendingVals := (nil Bytes), failed := false}) else (if (LexLeanStd.Text::endsWith valText (lit "]")) then (match (parseStringArray (LexLeanStd.Text::sliceOr valText 1 (prim subtract (prim length valText : Nat) 2 : Nat)))
+    | Option.some items => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (cons (key, (ctor Value.VArr items)) (project st curRow)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false})
+    | Option.none => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true})) else (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true}))) else (match (LexLeanStd.Numeral::parseDecimal valText)
+    | Option.some num => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (cons (key, (ctor Value.VNat num)) (project st curRow)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false})
+    | Option.none => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true})))))),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -285,47 +281,17 @@ definition{
   name: tomlLineStep,
   parameters: [st : Pst, line : Bytes],
   result: Pst,
-  body:
-   (if (project st failed) then st
-    else (match (project st pendingKey)
-      | Option.some key =>
-          (let t : Bytes := (LexLeanStd.Text::trim line);
-           (if (prim equal t (lit "]") : Bool) then
-              (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray),
-                curRow := (cons (key, (ctor Value.VArr (LexLeanStd.Order::reverseList [Bytes] (project st pendingVals)))) (project st curRow)),
-                pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false})
-            else (let closing : Bool := (LexLeanStd.Text::endsWith t (lit "]"));
-              (let body : Bytes := (if closing then (LexLeanStd.Text::sliceOr t 0 (prim subtract (prim length t : Nat) 1 : Nat)) else t);
-               (match (parseStringArray body)
-                 | Option.some more =>
-                     (let grown : (List Bytes) := (prim list_fold (fun (acc : (List Bytes)) (item : Bytes) => (cons item acc)) (project st pendingVals) more : (List Bytes));
-                      (if closing then
-                         (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray),
-                           curRow := (cons (key, (ctor Value.VArr (LexLeanStd.Order::reverseList [Bytes] grown))) (project st curRow)),
-                           pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false})
-                       else
-                         (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray),
-                           curRow := (project st curRow), pendingKey := (ctor Option.some [Bytes] key), pendingVals := grown, failed := false})))
-                 | Option.none => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray),
-                     curRow := (project st curRow), pendingKey := (project st pendingKey), pendingVals := (project st pendingVals), failed := true}))))))
-      | Option.none =>
-          (if (isBlankOrComment line) then st
-           else (let t : Bytes := (LexLeanStd.Text::trim line);
-             (if (LexLeanStd.Text::startsWith t (lit "[")) then
-                (let closed : (List RawClose) := (closeRow (project st rawClosures) (project st curPath) (project st curArray) (project st curRow));
-                 (match (parseHeader t)
-                   | Option.some pair =>
-                       (record Pst {rawClosures := closed, curPath := (first pair), curArray := (second pair), curRow := (nil (Bytes * Value)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false})
-                   | Option.none => (record Pst {rawClosures := closed, curPath := (nil Bytes), curArray := false, curRow := (nil (Bytes * Value)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true})))
-              else
-                (match (LexLeanStd.Text::find t (lit "="))
-                  | Option.none => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true})
-                  | Option.some cut =>
-                      (let key : Bytes := (LexLeanStd.Text::trim (LexLeanStd.Text::sliceOr t 0 cut));
-                       (let valText : Bytes := (LexLeanStd.Text::trim (LexLeanStd.Text::sliceOr t (cut + 1) (prim subtract (prim length t : Nat) (cut + 1) : Nat)));
-                        (if (if ((prim length key : Nat) =? 0) then true else (match (LexLeanStd.Text::find key (lit ".")) | Option.some spot => true | Option.none => false)) then (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true})
-                         else (if (rowHasKey (project st curRow) key) then (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true})
-                          else (classifyAndStep st key valText))))))))))),
+  body: (if (project st failed) then st else (match (project st pendingKey)
+    | Option.some key => (let t : Bytes := (LexLeanStd.Text::trim line); (if (prim equal t (lit "]") : Bool) then (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (cons (key, (ctor Value.VArr (LexLeanStd.Order::reverseList [Bytes] (project st pendingVals)))) (project st curRow)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false}) else (let closing : Bool := (LexLeanStd.Text::endsWith t (lit "]")); (let body : Bytes := (if closing then (LexLeanStd.Text::sliceOr t 0 (prim subtract (prim length t : Nat) 1 : Nat)) else t); (match (parseStringArray body)
+      | Option.some more => (let grown : (List Bytes) := (prim list_fold (fun (acc : (List Bytes)) (item : Bytes) => (cons item acc)) (project st pendingVals) more : (List Bytes)); (if closing then (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (cons (key, (ctor Value.VArr (LexLeanStd.Order::reverseList [Bytes] grown))) (project st curRow)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false}) else (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.some [Bytes] key), pendingVals := grown, failed := false})))
+      | Option.none => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (project st pendingKey), pendingVals := (project st pendingVals), failed := true}))))))
+    | Option.none => (if (isBlankOrComment line) then st else (let t : Bytes := (LexLeanStd.Text::trim line); (if (LexLeanStd.Text::startsWith t (lit "[")) then (let closed : (List RawClose) := (closeRow (project st rawClosures) (project st curPath) (project st curArray) (project st curRow)); (match (parseHeader t)
+      | Option.some pair => (record Pst {rawClosures := closed, curPath := (first pair), curArray := (second pair), curRow := (nil (Bytes * Value)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false})
+      | Option.none => (record Pst {rawClosures := closed, curPath := (nil Bytes), curArray := false, curRow := (nil (Bytes * Value)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true}))) else (match (LexLeanStd.Text::find t (lit "="))
+      | Option.none => (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true})
+      | Option.some cut => (let key : Bytes := (LexLeanStd.Text::trim (LexLeanStd.Text::sliceOr t 0 cut)); (let valText : Bytes := (LexLeanStd.Text::trim (LexLeanStd.Text::sliceOr t (cut + 1) (prim subtract (prim length t : Nat) (cut + 1) : Nat))); (if (if ((prim length key : Nat) =? 0) then true else (match (LexLeanStd.Text::find key (lit "."))
+        | Option.some spot => true
+        | Option.none => false)) then (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true}) else (if (rowHasKey (project st curRow) key) then (record Pst {rawClosures := (project st rawClosures), curPath := (project st curPath), curArray := (project st curArray), curRow := (project st curRow), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := true}) else (classifyAndStep st key valText))))))))))),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -334,15 +300,9 @@ definition{
   name: tomlParse,
   parameters: [text : Bytes],
   result: (Option (List Section)),
-  body:
-   (let final : Pst := (prim list_fold (fun (st : Pst) (line : Bytes) => (tomlLineStep st line)) (record Pst {rawClosures := (nil RawClose), curPath := (nil Bytes), curArray := false, curRow := (nil (Bytes * Value)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false}) (LexLeanStd.Text::lines text) : Pst);
-    (if (project final failed) then (ctor Option.none [(List Section)])
-     else (match (project final pendingKey)
-       | Option.some k => (ctor Option.none [(List Section)])
-       | Option.none =>
-           (let allRaw : (List RawClose) := (LexLeanStd.Order::reverseList [RawClose] (closeRow (project final rawClosures) (project final curPath) (project final curArray) (project final curRow)));
-            (let grouped : (Bool * (List Section)) := (prim list_fold (fun (acc : (Bool * (List Section))) (raw : RawClose) => (groupStep acc raw)) (false, (nil Section)) allRaw : (Bool * (List Section)));
-             (if (first grouped) then (ctor Option.none [(List Section)]) else (ctor Option.some [(List Section)] (second grouped)))))))),
+  body: (let final : Pst := (prim list_fold (fun (st : Pst) (line : Bytes) => (tomlLineStep st line)) (record Pst {rawClosures := (nil RawClose), curPath := (nil Bytes), curArray := false, curRow := (nil (Bytes * Value)), pendingKey := (ctor Option.none [Bytes]), pendingVals := (nil Bytes), failed := false}) (LexLeanStd.Text::lines text) : Pst); (if (project final failed) then (ctor Option.none [(List Section)]) else (match (project final pendingKey)
+    | Option.some k => (ctor Option.none [(List Section)])
+    | Option.none => (let allRaw : (List RawClose) := (LexLeanStd.Order::reverseList [RawClose] (closeRow (project final rawClosures) (project final curPath) (project final curArray) (project final curRow))); (let grouped : (Bool * (List Section)) := (prim list_fold (fun (acc : (Bool * (List Section))) (raw : RawClose) => (groupStep acc raw)) (false, (nil Section)) allRaw : (Bool * (List Section))); (if (first grouped) then (ctor Option.none [(List Section)]) else (ctor Option.some [(List Section)] (second grouped)))))))),
   axioms: [Quot.sound, propext],
   executable: true,
   production: {effects: [allocation, overflow], targets: [rust-std]}
@@ -352,7 +312,9 @@ definition{
   name: docSection,
   parameters: [doc : (List Section), path : (List Bytes), isArr : Bool],
   result: (Option Section),
-  body: (prim list_fold (fun [isArr, path] (found : (Option Section)) (sec : Section) => (match found | Option.some s => found | Option.none => (if (sectionMatches sec path isArr) then (ctor Option.some [Section] sec) else (ctor Option.none [Section])))) (ctor Option.none [Section]) doc : (Option Section)),
+  body: (prim list_fold (fun [isArr, path] (found : (Option Section)) (sec : Section) => (match found
+    | Option.some s => found
+    | Option.none => (if (sectionMatches sec path isArr) then (ctor Option.some [Section] sec) else (ctor Option.none [Section])))) (ctor Option.none [Section]) doc : (Option Section)),
   executable: true
 }
 \end{semanticmodule}

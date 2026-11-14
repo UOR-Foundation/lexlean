@@ -599,6 +599,14 @@
         "rust-std"
       ],
       "version": "1.0.0"
+    },
+    {
+      "name": "parse_entry",
+      "root": "LexLeanBoot.LexiconEntry.parseEntry",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
     }
   ]
 }

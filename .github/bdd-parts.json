@@ -292,6 +292,9 @@
     ],
     "bootstrap-package-ref": [
       "BS-54"
+    ],
+    "bootstrap-lexicon-entry": [
+      "BS-55"
     ]
   },
   "targets": {

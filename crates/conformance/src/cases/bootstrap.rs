@@ -25,6 +25,7 @@ use crate::support::{self, P};
 mod cli_output;
 mod diagnostics;
 mod gnaf_validate;
+mod lexicon_entry;
 mod lexicon_lre;
 mod lexicon_lse;
 mod lexicon_schema;
@@ -2584,6 +2585,7 @@ fn case(id: &str) {
         "BS-52" => lse_types::case(),
         "BS-53" => toml_read::case(),
         "BS-54" => package_ref::case(),
+        "BS-55" => lexicon_entry::case(),
         other => panic!("no bootstrap case is wired for {other}"),
     }
 }
