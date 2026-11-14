@@ -622,8 +622,9 @@ fn node_available() -> bool {
 }
 
 /// The roots' lowered programs, after checking the eligibility report of the
-/// module declares exactly the nine instruction roots and their effects.
-fn lowered_roots(project: &P) -> BTreeMap<&'static str, Lowered> {
+/// module declares exactly the nine instruction roots and their effects, and
+/// the report.
+fn lowered_roots(project: &P) -> (BTreeMap<&'static str, Lowered>, Json) {
     project.check_ok();
     let built = project.build_ok();
     let build_id = built.build_id.expect("built");
@@ -637,7 +638,13 @@ fn lowered_roots(project: &P) -> BTreeMap<&'static str, Lowered> {
         .expect("the eligibility report"),
     )
     .expect("the report is JSON");
-    let reported = report["roots"].as_array().expect("roots");
+    let mut reported = report["roots"].as_array().expect("roots").clone();
+    // The tenth root prices the nine (`GN-10`); it computes no lane.
+    assert_eq!(
+        reported.pop().map(|row| row["root"].clone()),
+        Some(Json::from(format!("{MODULE}.{PRICE_ROOT}"))),
+        "the price root follows the instruction roots"
+    );
     assert_eq!(
         reported
             .iter()
@@ -647,7 +654,7 @@ fn lowered_roots(project: &P) -> BTreeMap<&'static str, Lowered> {
             .iter()
             .map(|instruction| format!("{MODULE}.{}", instruction.root))
             .collect::<Vec<_>>(),
-        "the nine roots are the module's production roots, in order"
+        "the nine instruction roots are the module's other production roots, in order"
     );
     for (row, instruction) in reported.iter().zip(&INSTRUCTIONS) {
         let declared: Vec<&str> = row["declared_effects"]
@@ -678,7 +685,7 @@ fn lowered_roots(project: &P) -> BTreeMap<&'static str, Lowered> {
         );
     }
     let checked = support::checked_project(project);
-    INSTRUCTIONS
+    let lowered = INSTRUCTIONS
         .iter()
         .map(|instruction| {
             (
@@ -686,7 +693,8 @@ fn lowered_roots(project: &P) -> BTreeMap<&'static str, Lowered> {
                 lower_in(&checked, project, MODULE, instruction.root),
             )
         })
-        .collect()
+        .collect();
+    (lowered, report)
 }
 
 /// Run the case for `GN-09`.
@@ -706,7 +714,7 @@ pub(super) fn run(id: &str) {
         ]
     );
     let project = P::stdlib();
-    let lowered = lowered_roots(&project);
+    let (lowered, _) = lowered_roots(&project);
 
     // The evaluator on the corpus of every instruction.
     let cases: Vec<Vec<Case>> = (0..INSTRUCTIONS.len()).map(corpus).collect();
@@ -880,7 +888,7 @@ pub(super) fn run(id: &str) {
 }
 
 /// The theorems of the module, which the kernel checks.
-const THEOREMS: [&str; 18] = [
+const THEOREMS: [&str; 20] = [
     "maddubs_saturates_high",
     "maddubs_saturates_low",
     "maddubs_exact",
@@ -897,6 +905,528 @@ const THEOREMS: [&str; 18] = [
     "price_reads_whole_instructions",
     "price_bytes",
     "price_empty",
+    "extmul_price_counts_products",
+    "instruction_price_names_nine",
     "worst_case_is_largest",
     "worst_case_bounded_by_operations",
 ];
+
+// ---------------------------------------------------------------------------
+// `GN-10`: the price of each instruction, held to the target.
+//
+// `GN-09` holds the semantics of an instruction to the instruction; the price
+// it states (`price`: whole instructions over the lanes, and the bytes their
+// operands read) would otherwise be held only to itself. Two oracles below
+// check it (C9): the code the pinned rustc emits for each intrinsic, which
+// fixes how many instructions one call is and how wide the registers it reads
+// are, and the instruction's own execution, which fixes how many lanes of its
+// first operand one instruction consumes.
+// ---------------------------------------------------------------------------
+
+/// The production root that prices instruction `code` over a lane count.
+const PRICE_ROOT: &str = "instructionPrice";
+
+/// The lane counts the price is read at: every count up to two and a half
+/// registers of the widest instruction.
+const PRICED_LANES: u64 = 80;
+
+/// What the module charges one instruction: the lanes of its first operand
+/// one instruction covers, and the bytes it reads.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Charge {
+    lanes: u64,
+    bytes: u64,
+}
+
+/// The mnemonic each intrinsic is, in the target's assembly syntax, and, for
+/// WebAssembly, whose text names no operand, the number of `v128` operands it
+/// pops (the SIMD proposal's signature of the instruction: two for each).
+const MNEMONICS: [(&str, &str, u64); 9] = [
+    ("_mm256_maddubs_epi16", "vpmaddubsw", 0),
+    ("_mm256_madd_epi16", "vpmaddwd", 0),
+    ("_mm256_adds_epi16", "vpaddsw", 0),
+    ("vmull_s8", "smull", 0),
+    ("vpaddlq_s16", "saddlp", 0),
+    ("vqaddq_s16", "sqadd", 0),
+    ("i16x8_extmul_low_i8x16", "i16x8.extmul_low_i8x16_s", 2),
+    ("i32x4_dot_i16x8", "i32x4.dot_i16x8_s", 2),
+    ("i16x8_add_sat", "i16x8.add_sat_s", 2),
+];
+
+/// The prices the module states, read by the evaluator from the lowered
+/// root: for every instruction, `c` and `b` at every lane count up to
+/// [`PRICED_LANES`], reduced to the charge of one instruction after checking
+/// that `c` is the whole instructions that cover the lanes and `b` is `c`
+/// times one instruction's bytes. A code past the nine has no price.
+fn charges(lowered: &Lowered) -> Result<Vec<Charge>, String> {
+    let price = |code: u64, lanes: u64| -> Json {
+        let arguments = [
+            Value::Nat {
+                value: code.to_string(),
+            },
+            Value::Nat {
+                value: lanes.to_string(),
+            },
+        ];
+        let outcome = interp::run(&lowered.program, FUEL, lowered.entry(), &arguments);
+        rust::observable(&outcome).unwrap_or_else(|| panic!("{code} {lanes}: {outcome:?}"))
+    };
+    let nat = |value: &Json| -> u64 {
+        assert_eq!(value["kind"], "nat", "a natural number: {value}");
+        value["value"]
+            .as_str()
+            .expect("digits")
+            .parse()
+            .expect("a count")
+    };
+    let mut charges = Vec::new();
+    for code in 0..INSTRUCTIONS.len() as u64 {
+        let rows: Vec<(u64, u64)> = (0..=PRICED_LANES)
+            .map(|lanes| {
+                let observed = price(code, lanes);
+                assert_eq!(
+                    observed["kind"], "some",
+                    "code {code} is priced: {observed}"
+                );
+                let pair = &observed["value"];
+                assert_eq!(pair["kind"], "pair", "a step vector: {pair}");
+                (nat(&pair["left"]), nat(&pair["right"]))
+            })
+            .collect();
+        let lanes = rows
+            .iter()
+            .rposition(|(operations, _)| *operations == 1)
+            .ok_or_else(|| format!("code {code}: no lane count is one instruction"))?
+            as u64;
+        let bytes = rows[1].1;
+        for (count, (operations, read)) in (0u64..).zip(&rows) {
+            if *operations != count.div_ceil(lanes) || *read != operations * bytes {
+                return Err(format!(
+                    "code {code}: {count} lanes cost ({operations}, {read}), not whole instructions of {lanes} lanes and {bytes} bytes"
+                ));
+            }
+        }
+        charges.push(Charge { lanes, bytes });
+    }
+    let past = price(INSTRUCTIONS.len() as u64, 1);
+    assert_eq!(
+        past["kind"], "none",
+        "a code past the nine has no price: {past}"
+    );
+    Ok(charges)
+}
+
+/// The source compiled to assembly for one target: one function per
+/// instruction, each one call of the intrinsic under `#[target_feature]`, in
+/// a crate that forbids unsafe code. `#[inline(never)]` keeps rustc from
+/// treating a small leaf as cross-crate inlinable and emitting no code for
+/// it, which it does on AArch64.
+fn kernel(target: usize) -> String {
+    let (module, feature, vector, unary) = match target {
+        0 => ("x86_64", "avx2", "__m256i", None),
+        1 => ("aarch64", "neon", "", Some(4)),
+        _ => ("wasm32", "simd128", "v128", None),
+    };
+    let mut source = format!(
+        "#![no_std]\n#![forbid(unsafe_code)]\n#![allow(dead_code, improper_ctypes_definitions)]\nuse core::arch::{module}::*;\n"
+    );
+    // The Rust ABI passes a WebAssembly `v128` through memory, and LLVM then
+    // folds a widening load into the operation (`extmul_low` becomes two
+    // `load8x8_s` and an `i16x8.mul`); the C ABI passes it as a `v128` value,
+    // so the function body is the instruction itself.
+    let abi = if target == 2 { "extern \"C\" " } else { "" };
+    for (code, instruction) in INSTRUCTIONS.iter().enumerate() {
+        if instruction.target != target {
+            continue;
+        }
+        let intrinsic = MNEMONICS[code].0;
+        let signature = match (target, code) {
+            (1, 3) => "a: int8x8_t, b: int8x8_t) -> int16x8_t".to_owned(),
+            (1, 4) => "a: int16x8_t) -> int32x4_t".to_owned(),
+            (1, _) => "a: int16x8_t, b: int16x8_t) -> int16x8_t".to_owned(),
+            _ => format!("a: {vector}, b: {vector}) -> {vector}"),
+        };
+        let call = if unary == Some(code) { "a" } else { "a, b" };
+        let _ = writeln!(
+            source,
+            "#[inline(never)]\n#[target_feature(enable = \"{feature}\")]\npub {abi}fn lexlean_price_{code}({signature} {{ {intrinsic}({call}) }}"
+        );
+    }
+    source
+}
+
+/// What the assembly of one function says about its instruction: how many
+/// times the mnemonic occurs, and the bytes of the registers each occurrence
+/// reads.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Emitted {
+    occurrences: u64,
+    bytes: Vec<u64>,
+}
+
+/// Split an operand list at the commas outside parentheses, so that an x86
+/// memory operand such as `(%rax,%rcx,2)` stays one operand.
+fn operands(text: &str) -> Vec<String> {
+    let mut parts = vec![String::new()];
+    let mut depth = 0usize;
+    for character in text.chars() {
+        match character {
+            '(' => depth += 1,
+            ')' => depth = depth.saturating_sub(1),
+            ',' if depth == 0 => {
+                parts.push(String::new());
+                continue;
+            }
+            _ => {}
+        }
+        parts.last_mut().expect("a part").push(character);
+    }
+    parts
+        .into_iter()
+        .map(|part| part.trim().to_owned())
+        .collect()
+}
+
+/// The bytes of an x86 vector register operand, or `None` for memory.
+fn x86_width(operand: &str) -> Option<u64> {
+    if operand.starts_with("%ymm") {
+        Some(32)
+    } else if operand.starts_with("%xmm") {
+        Some(16)
+    } else {
+        None
+    }
+}
+
+/// The bytes of an AArch64 vector operand in its arrangement (`v1.8b` is
+/// eight one-byte lanes).
+fn arrangement_width(operand: &str) -> u64 {
+    let (_, arrangement) = operand.split_once('.').expect("an arrangement");
+    let lanes: u64 = arrangement[..arrangement.len() - 1]
+        .parse()
+        .expect("a lane count");
+    let size = match arrangement.chars().last().expect("a lane size") {
+        'b' => 1,
+        'h' => 2,
+        's' => 4,
+        'd' => 8,
+        other => panic!("an arrangement of lane size {other}"),
+    };
+    lanes * size
+}
+
+/// The function of `code` in the assembly `text` for `target`, read as
+/// [`Emitted`].
+fn emitted(text: &str, target: usize, code: usize) -> Emitted {
+    let label = format!("lexlean_price_{code}");
+    let start = text
+        .lines()
+        .position(|line| line.ends_with(':') && line.contains(&label))
+        .unwrap_or_else(|| panic!("the assembly defines {label}"));
+    let body: Vec<&str> = text
+        .lines()
+        .skip(start + 1)
+        .take_while(|line| !line.starts_with(".Lfunc_end") && line.trim() != "end_function")
+        .collect();
+    let mnemonic = MNEMONICS[code].1;
+    let mut found = Emitted {
+        occurrences: 0,
+        bytes: Vec::new(),
+    };
+    for line in body {
+        let line = line.trim();
+        let (head, rest) = line.split_once(char::is_whitespace).unwrap_or((line, ""));
+        if head != mnemonic {
+            continue;
+        }
+        found.occurrences += 1;
+        let parts = operands(rest);
+        let read: u64 = match target {
+            // AT&T order: the sources, then the destination, whose register
+            // is the width a memory source is read at.
+            0 => {
+                let (destination, sources) = parts.split_last().expect("operands");
+                let width = x86_width(destination).expect("a vector destination");
+                sources
+                    .iter()
+                    .map(|source| x86_width(source).unwrap_or(width))
+                    .sum()
+            }
+            // The destination, then the sources.
+            1 => parts[1..]
+                .iter()
+                .map(|source| arrangement_width(source.as_str()))
+                .sum(),
+            // A stack machine: the instruction pops its `v128` operands.
+            _ => MNEMONICS[code].2 * 16,
+        };
+        found.bytes.push(read);
+    }
+    found
+}
+
+/// The assembly of every modeled instruction of `target`, compiled by the
+/// pinned rustc with optimization; `None` when the target's standard library
+/// is not installed.
+fn assembly(directory: &Path, target: usize) -> Option<String> {
+    let triple = TARGETS[target].triple;
+    if !std_installed(triple) {
+        return None;
+    }
+    let source = directory.join(format!("kernel_{target}.rs"));
+    std::fs::write(&source, kernel(target)).expect("the kernel");
+    let output = directory.join(format!("kernel_{target}.s"));
+    rustc(&[
+        "--edition=2021",
+        "--crate-type=lib",
+        "-C",
+        "opt-level=3",
+        "--emit=asm",
+        "--target",
+        triple,
+        "-o",
+        output.to_str().expect("a path"),
+        source.to_str().expect("a path"),
+    ]);
+    Some(std::fs::read_to_string(&output).expect("the assembly"))
+}
+
+/// The cases that find the lanes an instruction consumes: every lane of both
+/// operands at one, then each lane of the first operand in turn at two.
+/// Small lanes, so that no product or sum reaches a saturation or wrap edge
+/// that would hide a change.
+fn dependence_cases(code: usize) -> Vec<Case> {
+    let instruction = &INSTRUCTIONS[code];
+    let first = vec![1; instruction.first.0];
+    let second = instruction
+        .second
+        .map_or_else(Vec::new, |(lanes, _)| vec![1; lanes]);
+    let mut cases = vec![(code, first.clone(), second.clone())];
+    for lane in 0..first.len() {
+        let mut changed = first.clone();
+        changed[lane] = 2;
+        cases.push((code, changed, second.clone()));
+    }
+    cases
+}
+
+/// The lanes of the first operand whose change changes the result, from the
+/// results of [`dependence_cases`].
+fn dependent(rows: &[Vec<i64>]) -> Vec<u64> {
+    let (base, changed) = rows.split_first().expect("the base case");
+    (0u64..)
+        .zip(changed)
+        .filter(|(_, row)| *row != base)
+        .map(|(lane, _)| lane)
+        .collect()
+}
+
+/// Whether the charges agree with what the target says: one instruction per
+/// intrinsic reading the charged bytes, and exactly the charged lanes of the
+/// first operand consumed.
+fn agree(
+    charges: &[Charge],
+    emitted: &BTreeMap<usize, Emitted>,
+    consumed: &BTreeMap<usize, Vec<u64>>,
+) -> Result<(), String> {
+    for (code, charge) in charges.iter().enumerate() {
+        let root = INSTRUCTIONS[code].root;
+        if let Some(found) = emitted.get(&code) {
+            if found.occurrences != 1 || found.bytes != [charge.bytes] {
+                return Err(format!(
+                    "{root}: the module charges one instruction reading {} bytes; the pinned rustc emits `{}` {} time(s) reading {:?}",
+                    charge.bytes, MNEMONICS[code].1, found.occurrences, found.bytes
+                ));
+            }
+        }
+        if let Some(lanes) = consumed.get(&code) {
+            if *lanes != (0..charge.lanes).collect::<Vec<_>>() {
+                return Err(format!(
+                    "{root}: the module charges one instruction per {} lanes; the result depends on lanes {lanes:?} of the first operand",
+                    charge.lanes
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// The price root's lowered program, after checking in the module's
+/// eligibility `report` that it is a production root eligible for `rust-std`
+/// with exactly the effect it declares.
+fn price_root(project: &P, report: &Json) -> Lowered {
+    let name = format!("{MODULE}.{PRICE_ROOT}");
+    let row = report["roots"]
+        .as_array()
+        .expect("roots")
+        .iter()
+        .find(|row| row["root"].as_str() == Some(name.as_str()))
+        .unwrap_or_else(|| panic!("`{name}` is a production root"));
+    assert_eq!(row["declared_effects"], serde_json::json!(["overflow"]));
+    let targets = row["targets"].as_array().expect("targets");
+    assert_eq!(targets.len(), 1, "one target");
+    assert_eq!(targets[0]["target"], "rust-std");
+    assert_eq!(targets[0]["status"], "eligible");
+    let realized: Vec<&str> = targets[0]["effects"]
+        .as_array()
+        .expect("effects")
+        .iter()
+        .map(|effect| effect["effect"].as_str().expect("an effect"))
+        .collect();
+    assert_eq!(
+        realized,
+        ["overflow"],
+        "the declaration admits exactly the realized effect"
+    );
+    let checked = support::checked_project(project);
+    lower_in(&checked, project, MODULE, PRICE_ROOT)
+}
+
+/// Read the charges of a copy of the module with `site` replaced by
+/// `planted`.
+fn planted_charges(site: &str, planted: &str) -> Vec<Charge> {
+    let project = P::stdlib();
+    let text = project.read_raw("src/Target.lex.tex");
+    assert_eq!(
+        text.matches(site).count(),
+        1,
+        "the plant site `{site}` exists once"
+    );
+    project.write_raw("src/Target.lex.tex", &text.replacen(site, planted, 1));
+    let checked = support::checked_project(&project);
+    charges(&lower_in(&checked, &project, MODULE, PRICE_ROOT)).expect("the planted price reads")
+}
+
+/// Run the case for `GN-10`.
+///
+/// # Panics
+///
+/// Panics when the case's assertion fails.
+pub(super) fn run_price(id: &str) {
+    assert_eq!(id, "GN-10");
+    let project = P::stdlib();
+    let (lowered, report) = lowered_roots(&project);
+    let charges = charges(&price_root(&project, &report)).expect("the module's price reads");
+
+    let directory = tempfile::Builder::new()
+        .prefix("lexlean-target-price-")
+        .tempdir()
+        .expect("tempdir");
+
+    // The first oracle: the code the pinned rustc emits.
+    let mut emitted_by_code: BTreeMap<usize, Emitted> = BTreeMap::new();
+    for (target, description) in TARGETS.iter().enumerate() {
+        match assembly(directory.path(), target) {
+            Some(text) => {
+                for code in
+                    (0..INSTRUCTIONS.len()).filter(|code| INSTRUCTIONS[*code].target == target)
+                {
+                    emitted_by_code.insert(code, emitted(&text, target, code));
+                }
+                eprintln!(
+                    "GN-10: {} (+{}): assembly read",
+                    description.triple, description.feature
+                );
+            }
+            None => {
+                assert!(
+                    !support::normative_host(),
+                    "{}: the normative host compiles every target",
+                    description.triple
+                );
+                eprintln!(
+                    "GN-10: {} (+{}): the standard library is not installed; no assembly",
+                    description.triple, description.feature
+                );
+            }
+        }
+    }
+
+    // The second oracle: the instruction run, beside the model, on the cases
+    // that find the lanes it consumes.
+    let mut consumed: BTreeMap<usize, Vec<u64>> = BTreeMap::new();
+    for (target, description) in TARGETS.iter().enumerate() {
+        let codes: Vec<usize> = (0..INSTRUCTIONS.len())
+            .filter(|code| INSTRUCTIONS[*code].target == target)
+            .collect();
+        let cases: Vec<Vec<Case>> = codes.iter().map(|code| dependence_cases(*code)).collect();
+        for (code, cases) in codes.iter().zip(&cases) {
+            let modeled = evaluate(&lowered[INSTRUCTIONS[*code].root], cases);
+            consumed.insert(*code, dependent(&modeled));
+        }
+        let all: Vec<Case> = cases.iter().flatten().cloned().collect();
+        match run_target(directory.path(), target, &all) {
+            Ran::Executed(observed) => {
+                let mut position = 0;
+                for (code, cases) in codes.iter().zip(&cases) {
+                    let rows: Vec<Vec<i64>> = observed[position..position + cases.len()]
+                        .iter()
+                        .map(|row| row.iter().map(|lane| i64::from(*lane)).collect())
+                        .collect();
+                    position += cases.len();
+                    assert_eq!(
+                        dependent(&rows),
+                        consumed[code],
+                        "{}: the model and the instruction consume the same lanes",
+                        INSTRUCTIONS[*code].root
+                    );
+                }
+                eprintln!(
+                    "GN-10: {} (+{}): lanes consumed, executed",
+                    description.triple, description.feature
+                );
+            }
+            Ran::BuiltOnly | Ran::NotBuilt => {
+                assert!(
+                    !(target == 0 || target == 2) || !support::normative_host(),
+                    "{}: the normative host runs this target (AVX2, and Node.js for SIMD128)",
+                    description.triple
+                );
+                eprintln!(
+                    "GN-10: {} (+{}): lanes consumed by the model only; not executed on this host",
+                    description.triple, description.feature
+                );
+            }
+        }
+    }
+
+    if let Err(disagreement) = agree(&charges, &emitted_by_code, &consumed) {
+        panic!("the price disagrees with the target: {disagreement}");
+    }
+
+    // The gate is armed: SIMD128's widening product charged per sixteen
+    // lanes, as if it consumed its whole register, and an instruction charged
+    // half the bytes it reads.
+    let lanes = planted_charges("    | Op.wasmExtmul => 8\n", "    | Op.wasmExtmul => 16\n");
+    assert!(
+        agree(&lanes, &emitted_by_code, &consumed).is_err(),
+        "a planted lane count is detected"
+    );
+    // The byte count is read from assembly, which a host without the
+    // standard library of any Linux target of D4 does not produce; the
+    // normative host produces all three, so the plant is always armed there.
+    let Some((site, planted)) = [
+        (
+            "    | Op.avx2Maddubs => 64\n",
+            "    | Op.avx2Maddubs => 32\n",
+        ),
+        ("    | Op.neonMull => 16\n", "    | Op.neonMull => 8\n"),
+        ("    | Op.wasmExtmul => 32\n", "    | Op.wasmExtmul => 16\n"),
+    ]
+    .into_iter()
+    .zip([0usize, 3, 6])
+    .find(|(_, code)| emitted_by_code.contains_key(code))
+    .map(|(plant, _)| plant) else {
+        assert!(
+            !support::normative_host(),
+            "the normative host reads assembly"
+        );
+        eprintln!("GN-10: no assembly on this host; the byte plant is not armed here");
+        return;
+    };
+    let bytes = planted_charges(site, planted);
+    assert!(
+        agree(&bytes, &emitted_by_code, &consumed).is_err(),
+        "a planted byte count is detected"
+    );
+}
