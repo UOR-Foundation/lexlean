@@ -36,14 +36,14 @@ definition LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.__fits_0 : @139
   reducibility: regular{height: 1},
   transparency: semireducible
 }
-theorem LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.__rel_0 : @258 := @681 {
+theorem LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.__rel_0 : @258 := @821 {
   all: [LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.__rel_0],
   class: false,
   generated: false,
   policy: exact{axioms: [Classical.choice, Quot.sound, propext]},
   transparency: semireducible
 }
-definition LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.denote : @684 := @694 {
+definition LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.denote : @824 := @834 {
   all: [LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.denote],
   class: false,
   compiled: true,
@@ -52,7 +52,7 @@ definition LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.denote : @684 :
   reducibility: regular{height: 2},
   transparency: semireducible
 }
-theorem LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.root : @701 := @712 {
+theorem LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.root : @841 := @852 {
   all: [LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.root],
   class: false,
   generated: false,
@@ -179,10 +179,12 @@ theorem LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.root : @701 := @71
 @161 := ite.{1}
 @162 := @161 @135
 @163 := Eq.{1}
-@165 := @163 @135 @159
+@164 := @163 @135
+@165 := @164 @159
 @166 := @165 @141
 @167 := @162 @166
-@170 := instDecidableEqBool @159 @141
+@168 := instDecidableEqBool
+@170 := @168 @159 @141
 @173 := @167 @170 @141 @141
 @174 := @142 @173
 @178 := @160 (fun (flag : @135) => @174) (fun (y : @10) => @141)
@@ -198,7 +200,8 @@ theorem LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.root : @701 := @71
 @199 := @197 @198
 @200 := @193 @199
 @203 := @156 (fun ("_" : @137) => @10) @159
-@208 := @161 @10 @166 @170 @23 @73
+@204 := @161 @10
+@208 := @204 @166 @170 @23 @73
 @212 := @203 (fun (flag : @135) => @208) (fun (y : @10) => @159)
 @213 := @200 @212
 @214 := @184 @213
@@ -360,14 +363,64 @@ theorem LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.root : @701 := @71
     (fun (__b : @135) => @552)
     @159
     (@357 @571 @104 @564 (@362 (@363 @571 @104)))
-@617 := @437 (@268 (@568 (@237 @147)) (@268 (@272 (@239 @381)) (@268 (@275 (@231 #5)) @278))) @32
-@629 := @540
+@603 := Eq.mpr.{0}
+@605 := LexLeanPreservation.Conv @224
+@618 := @268 (@568 (@237 @147)) (@268 (@272 (@239 @381)) (@268 (@275 (@231 #5)) @278))
+@619 := @605 @618
+@620 := @619 @112
+@622 := @164 @141 @141
+@623 := @162 @622
+@625 := @168 @141 @141
+@628 := @623 @625 @141 @141
+@629 := @246 @628
+@633 := @204 @622 @625 @23 @73
+@634 := @63 @633
+@640 := @603 (@620 (@629 @634)) (@620 (@420 @111))
+@642 := congr.{1, 1} @227
+@643 := Sort 0
+@644 := @642 @643
+@659 := @605 (@268 (@568 (@237 @377)) (@268 (@272 (@239 #6)) (@268 (@275 (@231 #7)) @278)))
+@660 := @659 @112
+@662 := @246 @147 @159
+@665 := fun (__f : @135) => fun (__v : @227) => @660 @662
+@671 := @644 (@665 @628) (@665 @141) @634 @111
+@672 := congrArg.{1, 1}
+@675 := @672 @135 ((__v : @227) -> @643)
+@678 := @675 @628 @141 @665
+@684 := if_pos.{1} @622 @625 (@282 @135 @141)
+@689 := @671 (@678 (@684 @135 @141 @141))
+@691 := @672 @10 @227
+@700 := @640 (@689 (@691 @633 @23 @63 (@684 @10 @23 @73)))
+@702 := @437 @618 @32
+@706 := @602 (fun ("_" : @166) => @700 (@702 @111))
+@707 := Bool.false
+@708 := @165 @707
+@709 := @619 @115
+@711 := @164 @707 @141
+@712 := @162 @711
+@714 := @168 @707 @141
+@717 := @712 @714 @141 @141
+@718 := @246 @717
+@722 := @204 @711 @714 @23 @73
+@723 := @63 @722
+@729 := @603 (@709 (@718 @723)) (@709 (@420 @114))
+@733 := fun (__f : @135) => fun (__v : @227) => @659 @115 @662
+@739 := @644 (@733 @717) (@733 @141) @723 @114
+@742 := @675 @717 @141 @733
+@747 := if_neg.{1} @711 @714 Bool.false_ne_true
+@769 := @540
     (fun (flag : @135) =>
-    @558 (@582 (@602 (fun ("_" : @166) => @617 @111) (fun ("_" : @165 Bool.false) => @617 @114))))
-@634 := @239 (Except.ok.{0, 0} @135 @10 @159)
-@640 := @461 @634 @87 @94 @96 @119 @468
-@644 := @268 (@271 @92 @455) @386
-@681 := fun (v : @133) =>
+    @558
+      (@582
+        (@706
+          (fun ("_" : @708) =>
+          @729
+            (@739 (@742 (@747 @135 @141 @141)) (@691 @722 @73 @63 (@747 @10 @23 @73)))
+            (@702 @114)))))
+@774 := @239 (Except.ok.{0, 0} @135 @10 @159)
+@780 := @461 @774 @87 @94 @96 @119 @468
+@784 := @268 (@271 @92 @455) @386
+@821 := fun (v : @133) =>
   fun (r : @137) =>
   @309
     (@325
@@ -376,23 +429,23 @@ theorem LexLeanPreserve.C8a3f59f6881ae3c56e70cd31b7b7af7e.R15.root : @701 := @71
           (@524
             (fun (__a : @137) =>
             fun (__h : @527) =>
-            @629
+            @769
               (fun (y : @10) =>
-              @640
-                @644
+              @780
+                @784
                 @456
-                (@425 (@555 @634))
+                (@425 (@555 @774))
                 (@301 (@302 @94 @468 @386))
-                (@357 @644 @92 @455 (@362 (@363 @644 @92))))))
+                (@357 @784 @92 @455 (@362 (@363 @784 @92))))))
           (LexLeanPreservation.convL_nil @224 @280)))
       (LexLeanPreservation.prim_natAdd @199 @212))
-@682 := LexLeanPreservation.Obs
-@684 := (v : @133) -> (r : @137) -> @682
-@694 := fun (v : @133) =>
+@822 := LexLeanPreservation.Obs
+@824 := (v : @133) -> (r : @137) -> @822
+@834 := fun (v : @133) =>
   fun (r : @137) =>
-  cond.{1} @682 @249 (LexLeanPreservation.Obs.value @254) LexLeanPreservation.Obs.overflow
-@701 := (v : @133) -> (r : @137) -> LexLeanPreservation.RunConv @224 @18 @244 @255
-@712 := fun (v : @133) =>
+  cond.{1} @822 @249 (LexLeanPreservation.Obs.value @254) LexLeanPreservation.Obs.overflow
+@841 := (v : @133) -> (r : @137) -> LexLeanPreservation.RunConv @224 @18 @244 @255
+@852 := fun (v : @133) =>
   fun (r : @137) =>
   LexLeanPreservation.run_of_funRel
     @224
