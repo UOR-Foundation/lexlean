@@ -1386,12 +1386,14 @@ impl<'a> Writer<'_, 'a> {
             self.b.konst("Bool.false_ne_true")
         };
         let lemma = self.b.konst1(if polarity { "if_pos" } else { "if_neg" });
-        let fits_eq = self
-            .b
-            .apps(lemma, &[condition, decide, witness, bool, then_fits, else_fits]);
-        let src_eq = self
-            .b
-            .apps(lemma, &[condition, decide, witness, lean, then_src, else_src]);
+        let fits_eq = self.b.apps(
+            lemma,
+            &[condition, decide, witness, bool, then_fits, else_fits],
+        );
+        let src_eq = self.b.apps(
+            lemma,
+            &[condition, decide, witness, lean, then_src, else_src],
+        );
         let selected_fits = self.ite(bool, side, then_fits, else_fits);
         let selected_src = self.ite(lean, side, then_src, else_src);
         let selected_value = self.b.app(encoder, selected_src);
