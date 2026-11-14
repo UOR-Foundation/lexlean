@@ -1067,7 +1067,15 @@ definition{
           | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded0
           | Option.none => (ctor Option.none [SemanticTerms::STerm])
           | Option.some field0 => (let decoded1 : (Option SemanticTerms::STerm) := (match (lookup members (lit "branches"))
-            | Option.some found => (decBranchChain budget found)
+            | Option.some found => (match found
+              | LexLeanStd.Json::Json.JBool branchChainPart0 => (ctor Option.none [SemanticTerms::STerm])
+              | LexLeanStd.Json::Json.JInt branchChainPart0 branchChainPart1 => (ctor Option.none [SemanticTerms::STerm])
+              | LexLeanStd.Json::Json.JStr branchChainPart0 => (ctor Option.none [SemanticTerms::STerm])
+              | LexLeanStd.Json::Json.JArr branchChainPart0 => (decBranchChainItems budget branchChainPart0)
+              | LexLeanStd.Json::Json.JObj branchChainPart0 => (ctor Option.none [SemanticTerms::STerm])
+              | LexLeanStd.Json::Json.JNil => (ctor Option.none [SemanticTerms::STerm])
+              | LexLeanStd.Json::Json.JItem branchChainPart0 branchChainPart1 => (ctor Option.none [SemanticTerms::STerm])
+              | LexLeanStd.Json::Json.JMember branchChainPart0 branchChainPart1 branchChainPart2 => (ctor Option.none [SemanticTerms::STerm]))
             | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded1
             | Option.none => (ctor Option.none [SemanticTerms::STerm])
             | Option.some field1 => (ctor Option.some [SemanticTerms::STerm] (ctor SemanticTerms::STerm.TMatch field0 field1)))))) else (ctor Option.none [SemanticTerms::STerm])) else (if (prim equal tag (lit "eq") : Bool) then (if (closedKeys members (cons (lit "left") (cons (lit "right") (cons (lit "kind") (nil Bytes))))) then (let decoded0 : (Option SemanticTerms::STerm) := (match (lookup members (lit "left"))
@@ -1243,7 +1251,15 @@ definition{
             | Option.none => (ctor Option.none [SemanticTypes::SemanticType])); (match decoded1
             | Option.none => (ctor Option.none [SemanticTerms::STerm])
             | Option.some field1 => (let decoded2 : (Option SemanticTerms::STerm) := (match (lookup members (lit "entries"))
-              | Option.some found => (decEntryChain budget found)
+              | Option.some found => (match found
+                | LexLeanStd.Json::Json.JBool entryChainPart0 => (ctor Option.none [SemanticTerms::STerm])
+                | LexLeanStd.Json::Json.JInt entryChainPart0 entryChainPart1 => (ctor Option.none [SemanticTerms::STerm])
+                | LexLeanStd.Json::Json.JStr entryChainPart0 => (ctor Option.none [SemanticTerms::STerm])
+                | LexLeanStd.Json::Json.JArr entryChainPart0 => (decEntryChainItems budget entryChainPart0)
+                | LexLeanStd.Json::Json.JObj entryChainPart0 => (ctor Option.none [SemanticTerms::STerm])
+                | LexLeanStd.Json::Json.JNil => (ctor Option.none [SemanticTerms::STerm])
+                | LexLeanStd.Json::Json.JItem entryChainPart0 entryChainPart1 => (ctor Option.none [SemanticTerms::STerm])
+                | LexLeanStd.Json::Json.JMember entryChainPart0 entryChainPart1 entryChainPart2 => (ctor Option.none [SemanticTerms::STerm]))
               | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded2
               | Option.none => (ctor Option.none [SemanticTerms::STerm])
               | Option.some field2 => (ctor Option.some [SemanticTerms::STerm] (ctor SemanticTerms::STerm.TMapLiteral field0 field1 field2)))))))) else (ctor Option.none [SemanticTerms::STerm])) else (if (prim equal tag (lit "set_literal") : Bool) then (if (closedKeys members (cons (lit "element") (cons (lit "elements") (cons (lit "kind") (nil Bytes))))) then (let decoded0 : (Option SemanticTypes::SemanticType) := (match (lookup members (lit "element"))
@@ -1263,7 +1279,15 @@ definition{
             | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded1
             | Option.none => (ctor Option.none [SemanticTerms::STerm])
             | Option.some field1 => (let decoded2 : (Option SemanticTerms::STerm) := (match (lookup members (lit "edges"))
-              | Option.some found => (decEdgeChain budget found)
+              | Option.some found => (match found
+                | LexLeanStd.Json::Json.JBool edgeChainPart0 => (ctor Option.none [SemanticTerms::STerm])
+                | LexLeanStd.Json::Json.JInt edgeChainPart0 edgeChainPart1 => (ctor Option.none [SemanticTerms::STerm])
+                | LexLeanStd.Json::Json.JStr edgeChainPart0 => (ctor Option.none [SemanticTerms::STerm])
+                | LexLeanStd.Json::Json.JArr edgeChainPart0 => (decEdgeChainItems budget edgeChainPart0)
+                | LexLeanStd.Json::Json.JObj edgeChainPart0 => (ctor Option.none [SemanticTerms::STerm])
+                | LexLeanStd.Json::Json.JNil => (ctor Option.none [SemanticTerms::STerm])
+                | LexLeanStd.Json::Json.JItem edgeChainPart0 edgeChainPart1 => (ctor Option.none [SemanticTerms::STerm])
+                | LexLeanStd.Json::Json.JMember edgeChainPart0 edgeChainPart1 edgeChainPart2 => (ctor Option.none [SemanticTerms::STerm]))
               | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded2
               | Option.none => (ctor Option.none [SemanticTerms::STerm])
               | Option.some field2 => (ctor Option.some [SemanticTerms::STerm] (ctor SemanticTerms::STerm.TGraphLiteral field0 field1 field2)))))))) else (ctor Option.none [SemanticTerms::STerm])) else (if (prim equal tag (lit "checked_apply") : Bool) then (if (closedKeys members (cons (lit "model") (cons (lit "type_arguments") (cons (lit "arguments") (cons (lit "checks") (cons (lit "kind") (nil Bytes))))))) then (let decoded0 : (Option ((Option Bytes) * Bytes)) := (match (lookup members (lit "model"))
@@ -1301,63 +1325,15 @@ definition{
       | LexLeanStd.Json::Json.JBool part0 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JInt part0 part1 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JStr part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JArr part0 => (decTermChainItems budget part0)
-      | LexLeanStd.Json::Json.JObj part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JNil => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JItem part0 part1 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JMember part0 part1 part2 => (ctor Option.none [SemanticTerms::STerm]))),
-  executable: true,
-  mutual: Decode2,
-  recursive_argument: fuel
-}
-
-definition{
-  name: decTermChainItems,
-  parameters: [fuel : Nat, value : LexLeanStd.Json::Json],
-  result: (Option SemanticTerms::STerm),
-  body: (match fuel
-    | Nat.zero => (ctor Option.none [SemanticTerms::STerm])
-    | Nat.succ budget => (match value
-      | LexLeanStd.Json::Json.JBool part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JInt part0 part1 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JStr part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JArr part0 => (ctor Option.none [SemanticTerms::STerm])
+      | LexLeanStd.Json::Json.JArr part0 => (decTermChain budget part0)
       | LexLeanStd.Json::Json.JObj part0 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JNil => (ctor Option.some [SemanticTerms::STerm] (ctor SemanticTerms::STerm.KEnd))
       | LexLeanStd.Json::Json.JItem part0 part1 => (let head : (Option SemanticTerms::STerm) := (decTerm budget part0); (match head
         | Option.none => (ctor Option.none [SemanticTerms::STerm])
-        | Option.some headValue => (let tail : (Option SemanticTerms::STerm) := (decTermChainItems budget part1); (match tail
+        | Option.some headValue => (let tail : (Option SemanticTerms::STerm) := (decTermChain budget part1); (match tail
           | Option.none => (ctor Option.none [SemanticTerms::STerm])
           | Option.some tailValue => (ctor Option.some [SemanticTerms::STerm] (ctor SemanticTerms::STerm.KItem headValue tailValue))))))
       | LexLeanStd.Json::Json.JMember part0 part1 part2 => (ctor Option.none [SemanticTerms::STerm]))),
-  executable: true,
-  mutual: Decode2,
-  recursive_argument: fuel
-}
-
-definition{
-  name: decAssign,
-  parameters: [fuel : Nat, value : LexLeanStd.Json::Json],
-  result: (Option (Bytes * SemanticTerms::STerm)),
-  body: (match fuel
-    | Nat.zero => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
-    | Nat.succ budget => (match value
-      | LexLeanStd.Json::Json.JBool part0 => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JInt part0 part1 => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JStr part0 => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JArr part0 => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JObj part0 => (let members : LexLeanStd.Json::Json := part0; (if (closedKeys members (cons (lit "field") (cons (lit "value") (nil Bytes)))) then (let decoded0 : (Option Bytes) := (match (lookup members (lit "field"))
-        | Option.some found => (decStr found)
-        | Option.none => (ctor Option.none [Bytes])); (match decoded0
-        | Option.none => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
-        | Option.some field0 => (let decoded1 : (Option SemanticTerms::STerm) := (match (lookup members (lit "value"))
-          | Option.some found => (decTerm budget found)
-          | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded1
-          | Option.none => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
-          | Option.some field1 => (ctor Option.some [(Bytes * SemanticTerms::STerm)] (field0, field1)))))) else (ctor Option.none [(Bytes * SemanticTerms::STerm)])))
-      | LexLeanStd.Json::Json.JNil => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JItem part0 part1 => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JMember part0 part1 part2 => (ctor Option.none [(Bytes * SemanticTerms::STerm)]))),
   executable: true,
   mutual: Decode2,
   recursive_argument: fuel
@@ -1373,86 +1349,30 @@ definition{
       | LexLeanStd.Json::Json.JBool part0 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JInt part0 part1 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JStr part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JArr part0 => (decAssignChainItems budget part0)
-      | LexLeanStd.Json::Json.JObj part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JNil => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JItem part0 part1 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JMember part0 part1 part2 => (ctor Option.none [SemanticTerms::STerm]))),
-  executable: true,
-  mutual: Decode2,
-  recursive_argument: fuel
-}
-
-definition{
-  name: decAssignChainItems,
-  parameters: [fuel : Nat, value : LexLeanStd.Json::Json],
-  result: (Option SemanticTerms::STerm),
-  body: (match fuel
-    | Nat.zero => (ctor Option.none [SemanticTerms::STerm])
-    | Nat.succ budget => (match value
-      | LexLeanStd.Json::Json.JBool part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JInt part0 part1 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JStr part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JArr part0 => (ctor Option.none [SemanticTerms::STerm])
+      | LexLeanStd.Json::Json.JArr part0 => (decAssignChain budget part0)
       | LexLeanStd.Json::Json.JObj part0 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JNil => (ctor Option.some [SemanticTerms::STerm] (ctor SemanticTerms::STerm.KEnd))
-      | LexLeanStd.Json::Json.JItem part0 part1 => (let head : (Option (Bytes * SemanticTerms::STerm)) := (decAssign budget part0); (match head
+      | LexLeanStd.Json::Json.JItem part0 part1 => (let head : (Option (Bytes * SemanticTerms::STerm)) := (let assignValue : LexLeanStd.Json::Json := part0; (match assignValue
+        | LexLeanStd.Json::Json.JBool assignPart0 => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JInt assignPart0 assignPart1 => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JStr assignPart0 => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JArr assignPart0 => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JObj assignPart0 => (let members : LexLeanStd.Json::Json := assignPart0; (if (closedKeys members (cons (lit "field") (cons (lit "value") (nil Bytes)))) then (let decoded0 : (Option Bytes) := (match (lookup members (lit "field"))
+          | Option.some found => (decStr found)
+          | Option.none => (ctor Option.none [Bytes])); (match decoded0
+          | Option.none => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
+          | Option.some field0 => (let decoded1 : (Option SemanticTerms::STerm) := (match (lookup members (lit "value"))
+            | Option.some found => (decTerm budget found)
+            | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded1
+            | Option.none => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
+            | Option.some field1 => (ctor Option.some [(Bytes * SemanticTerms::STerm)] (field0, field1)))))) else (ctor Option.none [(Bytes * SemanticTerms::STerm)])))
+        | LexLeanStd.Json::Json.JNil => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JItem assignPart0 assignPart1 => (ctor Option.none [(Bytes * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JMember assignPart0 assignPart1 assignPart2 => (ctor Option.none [(Bytes * SemanticTerms::STerm)]))); (match head
         | Option.none => (ctor Option.none [SemanticTerms::STerm])
-        | Option.some headValue => (let tail : (Option SemanticTerms::STerm) := (decAssignChainItems budget part1); (match tail
+        | Option.some headValue => (let tail : (Option SemanticTerms::STerm) := (decAssignChain budget part1); (match tail
           | Option.none => (ctor Option.none [SemanticTerms::STerm])
           | Option.some tailValue => (ctor Option.some [SemanticTerms::STerm] (ctor SemanticTerms::STerm.KAssign (first headValue) (second headValue) tailValue))))))
-      | LexLeanStd.Json::Json.JMember part0 part1 part2 => (ctor Option.none [SemanticTerms::STerm]))),
-  executable: true,
-  mutual: Decode2,
-  recursive_argument: fuel
-}
-
-definition{
-  name: decBranch,
-  parameters: [fuel : Nat, value : LexLeanStd.Json::Json],
-  result: (Option (((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))),
-  body: (match fuel
-    | Nat.zero => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
-    | Nat.succ budget => (match value
-      | LexLeanStd.Json::Json.JBool part0 => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
-      | LexLeanStd.Json::Json.JInt part0 part1 => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
-      | LexLeanStd.Json::Json.JStr part0 => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
-      | LexLeanStd.Json::Json.JArr part0 => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
-      | LexLeanStd.Json::Json.JObj part0 => (let members : LexLeanStd.Json::Json := part0; (if (closedKeys members (cons (lit "constructor") (cons (lit "binders") (cons (lit "body") (nil Bytes))))) then (let decoded0 : (Option ((Option Bytes) * Bytes)) := (match (lookup members (lit "constructor"))
-        | Option.some found => (decMember budget found)
-        | Option.none => (ctor Option.none [((Option Bytes) * Bytes)])); (match decoded0
-        | Option.none => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
-        | Option.some field0 => (let decoded1 : (Option (List Bytes)) := (match (lookup members (lit "binders"))
-          | Option.some found => (decNames found)
-          | Option.none => (ctor Option.none [(List Bytes)])); (match decoded1
-          | Option.none => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
-          | Option.some field1 => (let decoded2 : (Option SemanticTerms::STerm) := (match (lookup members (lit "body"))
-            | Option.some found => (decTerm budget found)
-            | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded2
-            | Option.none => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
-            | Option.some field2 => (ctor Option.some [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))] (field0, (field1, field2))))))))) else (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])))
-      | LexLeanStd.Json::Json.JNil => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
-      | LexLeanStd.Json::Json.JItem part0 part1 => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
-      | LexLeanStd.Json::Json.JMember part0 part1 part2 => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))]))),
-  executable: true,
-  mutual: Decode2,
-  recursive_argument: fuel
-}
-
-definition{
-  name: decBranchChain,
-  parameters: [fuel : Nat, value : LexLeanStd.Json::Json],
-  result: (Option SemanticTerms::STerm),
-  body: (match fuel
-    | Nat.zero => (ctor Option.none [SemanticTerms::STerm])
-    | Nat.succ budget => (match value
-      | LexLeanStd.Json::Json.JBool part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JInt part0 part1 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JStr part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JArr part0 => (decBranchChainItems budget part0)
-      | LexLeanStd.Json::Json.JObj part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JNil => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JItem part0 part1 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JMember part0 part1 part2 => (ctor Option.none [SemanticTerms::STerm]))),
   executable: true,
   mutual: Decode2,
@@ -1472,59 +1392,31 @@ definition{
       | LexLeanStd.Json::Json.JArr part0 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JObj part0 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JNil => (ctor Option.some [SemanticTerms::STerm] (ctor SemanticTerms::STerm.KEnd))
-      | LexLeanStd.Json::Json.JItem part0 part1 => (let head : (Option (((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))) := (decBranch budget part0); (match head
+      | LexLeanStd.Json::Json.JItem part0 part1 => (let head : (Option (((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))) := (let branchValue : LexLeanStd.Json::Json := part0; (match branchValue
+        | LexLeanStd.Json::Json.JBool branchPart0 => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
+        | LexLeanStd.Json::Json.JInt branchPart0 branchPart1 => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
+        | LexLeanStd.Json::Json.JStr branchPart0 => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
+        | LexLeanStd.Json::Json.JArr branchPart0 => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
+        | LexLeanStd.Json::Json.JObj branchPart0 => (let members : LexLeanStd.Json::Json := branchPart0; (if (closedKeys members (cons (lit "constructor") (cons (lit "binders") (cons (lit "body") (nil Bytes))))) then (let decoded0 : (Option ((Option Bytes) * Bytes)) := (match (lookup members (lit "constructor"))
+          | Option.some found => (decMember budget found)
+          | Option.none => (ctor Option.none [((Option Bytes) * Bytes)])); (match decoded0
+          | Option.none => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
+          | Option.some field0 => (let decoded1 : (Option (List Bytes)) := (match (lookup members (lit "binders"))
+            | Option.some found => (decNames found)
+            | Option.none => (ctor Option.none [(List Bytes)])); (match decoded1
+            | Option.none => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
+            | Option.some field1 => (let decoded2 : (Option SemanticTerms::STerm) := (match (lookup members (lit "body"))
+              | Option.some found => (decTerm budget found)
+              | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded2
+              | Option.none => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
+              | Option.some field2 => (ctor Option.some [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))] (field0, (field1, field2))))))))) else (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])))
+        | LexLeanStd.Json::Json.JNil => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
+        | LexLeanStd.Json::Json.JItem branchPart0 branchPart1 => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))])
+        | LexLeanStd.Json::Json.JMember branchPart0 branchPart1 branchPart2 => (ctor Option.none [(((Option Bytes) * Bytes) * ((List Bytes) * SemanticTerms::STerm))]))); (match head
         | Option.none => (ctor Option.none [SemanticTerms::STerm])
         | Option.some headValue => (let tail : (Option SemanticTerms::STerm) := (decBranchChainItems budget part1); (match tail
           | Option.none => (ctor Option.none [SemanticTerms::STerm])
           | Option.some tailValue => (ctor Option.some [SemanticTerms::STerm] (ctor SemanticTerms::STerm.KBranch (first (first headValue)) (second (first headValue)) (first (second headValue)) (second (second headValue)) tailValue))))))
-      | LexLeanStd.Json::Json.JMember part0 part1 part2 => (ctor Option.none [SemanticTerms::STerm]))),
-  executable: true,
-  mutual: Decode2,
-  recursive_argument: fuel
-}
-
-definition{
-  name: decEntry,
-  parameters: [fuel : Nat, value : LexLeanStd.Json::Json],
-  result: (Option (SemanticTerms::STerm * SemanticTerms::STerm)),
-  body: (match fuel
-    | Nat.zero => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-    | Nat.succ budget => (match value
-      | LexLeanStd.Json::Json.JBool part0 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JInt part0 part1 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JStr part0 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JArr part0 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JObj part0 => (let members : LexLeanStd.Json::Json := part0; (if (closedKeys members (cons (lit "key") (cons (lit "value") (nil Bytes)))) then (let decoded0 : (Option SemanticTerms::STerm) := (match (lookup members (lit "key"))
-        | Option.some found => (decTerm budget found)
-        | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded0
-        | Option.none => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-        | Option.some field0 => (let decoded1 : (Option SemanticTerms::STerm) := (match (lookup members (lit "value"))
-          | Option.some found => (decTerm budget found)
-          | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded1
-          | Option.none => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-          | Option.some field1 => (ctor Option.some [(SemanticTerms::STerm * SemanticTerms::STerm)] (field0, field1)))))) else (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])))
-      | LexLeanStd.Json::Json.JNil => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JItem part0 part1 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JMember part0 part1 part2 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)]))),
-  executable: true,
-  mutual: Decode2,
-  recursive_argument: fuel
-}
-
-definition{
-  name: decEntryChain,
-  parameters: [fuel : Nat, value : LexLeanStd.Json::Json],
-  result: (Option SemanticTerms::STerm),
-  body: (match fuel
-    | Nat.zero => (ctor Option.none [SemanticTerms::STerm])
-    | Nat.succ budget => (match value
-      | LexLeanStd.Json::Json.JBool part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JInt part0 part1 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JStr part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JArr part0 => (decEntryChainItems budget part0)
-      | LexLeanStd.Json::Json.JObj part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JNil => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JItem part0 part1 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JMember part0 part1 part2 => (ctor Option.none [SemanticTerms::STerm]))),
   executable: true,
   mutual: Decode2,
@@ -1544,59 +1436,27 @@ definition{
       | LexLeanStd.Json::Json.JArr part0 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JObj part0 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JNil => (ctor Option.some [SemanticTerms::STerm] (ctor SemanticTerms::STerm.KEnd))
-      | LexLeanStd.Json::Json.JItem part0 part1 => (let head : (Option (SemanticTerms::STerm * SemanticTerms::STerm)) := (decEntry budget part0); (match head
+      | LexLeanStd.Json::Json.JItem part0 part1 => (let head : (Option (SemanticTerms::STerm * SemanticTerms::STerm)) := (let entryValue : LexLeanStd.Json::Json := part0; (match entryValue
+        | LexLeanStd.Json::Json.JBool entryPart0 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JInt entryPart0 entryPart1 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JStr entryPart0 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JArr entryPart0 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JObj entryPart0 => (let members : LexLeanStd.Json::Json := entryPart0; (if (closedKeys members (cons (lit "key") (cons (lit "value") (nil Bytes)))) then (let decoded0 : (Option SemanticTerms::STerm) := (match (lookup members (lit "key"))
+          | Option.some found => (decTerm budget found)
+          | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded0
+          | Option.none => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+          | Option.some field0 => (let decoded1 : (Option SemanticTerms::STerm) := (match (lookup members (lit "value"))
+            | Option.some found => (decTerm budget found)
+            | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded1
+            | Option.none => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+            | Option.some field1 => (ctor Option.some [(SemanticTerms::STerm * SemanticTerms::STerm)] (field0, field1)))))) else (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])))
+        | LexLeanStd.Json::Json.JNil => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JItem entryPart0 entryPart1 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JMember entryPart0 entryPart1 entryPart2 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)]))); (match head
         | Option.none => (ctor Option.none [SemanticTerms::STerm])
         | Option.some headValue => (let tail : (Option SemanticTerms::STerm) := (decEntryChainItems budget part1); (match tail
           | Option.none => (ctor Option.none [SemanticTerms::STerm])
           | Option.some tailValue => (ctor Option.some [SemanticTerms::STerm] (ctor SemanticTerms::STerm.KEntry (first headValue) (second headValue) tailValue))))))
-      | LexLeanStd.Json::Json.JMember part0 part1 part2 => (ctor Option.none [SemanticTerms::STerm]))),
-  executable: true,
-  mutual: Decode2,
-  recursive_argument: fuel
-}
-
-definition{
-  name: decEdge,
-  parameters: [fuel : Nat, value : LexLeanStd.Json::Json],
-  result: (Option (SemanticTerms::STerm * SemanticTerms::STerm)),
-  body: (match fuel
-    | Nat.zero => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-    | Nat.succ budget => (match value
-      | LexLeanStd.Json::Json.JBool part0 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JInt part0 part1 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JStr part0 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JArr part0 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JObj part0 => (let members : LexLeanStd.Json::Json := part0; (if (closedKeys members (cons (lit "source") (cons (lit "target") (nil Bytes)))) then (let decoded0 : (Option SemanticTerms::STerm) := (match (lookup members (lit "source"))
-        | Option.some found => (decTerm budget found)
-        | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded0
-        | Option.none => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-        | Option.some field0 => (let decoded1 : (Option SemanticTerms::STerm) := (match (lookup members (lit "target"))
-          | Option.some found => (decTerm budget found)
-          | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded1
-          | Option.none => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-          | Option.some field1 => (ctor Option.some [(SemanticTerms::STerm * SemanticTerms::STerm)] (field0, field1)))))) else (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])))
-      | LexLeanStd.Json::Json.JNil => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JItem part0 part1 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
-      | LexLeanStd.Json::Json.JMember part0 part1 part2 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)]))),
-  executable: true,
-  mutual: Decode2,
-  recursive_argument: fuel
-}
-
-definition{
-  name: decEdgeChain,
-  parameters: [fuel : Nat, value : LexLeanStd.Json::Json],
-  result: (Option SemanticTerms::STerm),
-  body: (match fuel
-    | Nat.zero => (ctor Option.none [SemanticTerms::STerm])
-    | Nat.succ budget => (match value
-      | LexLeanStd.Json::Json.JBool part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JInt part0 part1 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JStr part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JArr part0 => (decEdgeChainItems budget part0)
-      | LexLeanStd.Json::Json.JObj part0 => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JNil => (ctor Option.none [SemanticTerms::STerm])
-      | LexLeanStd.Json::Json.JItem part0 part1 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JMember part0 part1 part2 => (ctor Option.none [SemanticTerms::STerm]))),
   executable: true,
   mutual: Decode2,
@@ -1616,7 +1476,23 @@ definition{
       | LexLeanStd.Json::Json.JArr part0 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JObj part0 => (ctor Option.none [SemanticTerms::STerm])
       | LexLeanStd.Json::Json.JNil => (ctor Option.some [SemanticTerms::STerm] (ctor SemanticTerms::STerm.KEnd))
-      | LexLeanStd.Json::Json.JItem part0 part1 => (let head : (Option (SemanticTerms::STerm * SemanticTerms::STerm)) := (decEdge budget part0); (match head
+      | LexLeanStd.Json::Json.JItem part0 part1 => (let head : (Option (SemanticTerms::STerm * SemanticTerms::STerm)) := (let edgeValue : LexLeanStd.Json::Json := part0; (match edgeValue
+        | LexLeanStd.Json::Json.JBool edgePart0 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JInt edgePart0 edgePart1 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JStr edgePart0 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JArr edgePart0 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JObj edgePart0 => (let members : LexLeanStd.Json::Json := edgePart0; (if (closedKeys members (cons (lit "source") (cons (lit "target") (nil Bytes)))) then (let decoded0 : (Option SemanticTerms::STerm) := (match (lookup members (lit "source"))
+          | Option.some found => (decTerm budget found)
+          | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded0
+          | Option.none => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+          | Option.some field0 => (let decoded1 : (Option SemanticTerms::STerm) := (match (lookup members (lit "target"))
+            | Option.some found => (decTerm budget found)
+            | Option.none => (ctor Option.none [SemanticTerms::STerm])); (match decoded1
+            | Option.none => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+            | Option.some field1 => (ctor Option.some [(SemanticTerms::STerm * SemanticTerms::STerm)] (field0, field1)))))) else (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])))
+        | LexLeanStd.Json::Json.JNil => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JItem edgePart0 edgePart1 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)])
+        | LexLeanStd.Json::Json.JMember edgePart0 edgePart1 edgePart2 => (ctor Option.none [(SemanticTerms::STerm * SemanticTerms::STerm)]))); (match head
         | Option.none => (ctor Option.none [SemanticTerms::STerm])
         | Option.some headValue => (let tail : (Option SemanticTerms::STerm) := (decEdgeChainItems budget part1); (match tail
           | Option.none => (ctor Option.none [SemanticTerms::STerm])
