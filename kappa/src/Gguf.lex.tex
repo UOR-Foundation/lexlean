@@ -1,0 +1,376 @@
+\begin{lexlean}{Gguf}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{LexLeanStd.Sha256}
+\importmodule{LexLeanStd.Text}
+\importmodule{Label}
+\importmodule{Json}
+\importmodule{Axis}
+\title{Natural number addition}
+\begin{semanticmodule}
+structure{
+  name: Frame,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: tag, type: Nat},
+    {name: remaining, type: Nat},
+    {name: depth, type: Nat}
+  ]
+}
+
+structure{
+  name: Measure,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: position, type: Nat},
+    {name: ok, type: Bool},
+    {name: stack, type: (List Frame)}
+  ]
+}
+
+structure{
+  name: Section,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: position, type: Nat},
+    {name: ok, type: Bool},
+    {name: alignment, type: Nat},
+    {name: entries, type: (List (Bytes * Bytes))}
+  ]
+}
+
+structure{
+  name: Tensor,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: name, type: Bytes},
+    {name: head, type: Bytes},
+    {name: offset, type: Nat},
+    {name: size, type: Nat}
+  ]
+}
+
+structure{
+  name: Tensors,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: position, type: Nat},
+    {name: ok, type: Bool},
+    {name: entries, type: (List Tensor)}
+  ]
+}
+
+structure{
+  name: Placing,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: done, type: Bool},
+    {name: acc, type: (List (Bytes * Bytes))}
+  ]
+}
+
+structure{
+  name: TensorPlacing,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: done, type: Bool},
+    {name: acc, type: (List Tensor)}
+  ]
+}
+
+structure{
+  name: Emit,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: ok, type: Bool},
+    {name: offset, type: Nat},
+    {name: out, type: Bytes}
+  ]
+}
+
+definition{
+  name: readLe,
+  parameters: [subject : Bytes, position : Nat, width : Nat],
+  result: Nat,
+  body: (second (prim iterate (fun [position, subject] (state : (Nat * Nat)) => (let index : Nat := (prim subtract (first state) 1 : Nat); (index, ((prim multiply (second state) 256 : Nat) + (Label::byteNat subject (position + index)))))) width (width, 0) : (Nat * Nat))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: writeLe,
+  parameters: [value : Nat, width : Nat],
+  result: Bytes,
+  body: (second (prim iterate (fun (state : (Nat * Bytes)) => ((prim quotient (first state) 256 0 : Nat), (prim append (second state) (Json::byteOf (prim remainder (first state) 256 0 : Nat)) : Bytes))) width (value, 0x) : (Nat * Bytes))),
+  executable: true
+}
+
+definition{
+  name: fits,
+  parameters: [subject : Bytes, position : Nat, count : Nat],
+  result: Bool,
+  body: (let total : Nat := (prim length subject : Nat); ((position <=? total) && (count <=? (prim subtract total position : Nat)))),
+  executable: true
+}
+
+definition{
+  name: digest,
+  parameters: [message : Bytes],
+  result: Bytes,
+  body: (let hex : Bytes := (LexLeanStd.Sha256::sha256Hex message); (second (prim iterate (fun [hex] (state : (Nat * Bytes)) => (let offset : Nat := (prim multiply (first state) 2 : Nat); (((first state) + 1), (prim append (second state) (Json::byteOf ((prim multiply (Json::hexValue (Label::byteNat hex offset)) 16 : Nat) + (Json::hexValue (Label::byteNat hex (offset + 1))))) : Bytes)))) 32 (0, 0x) : (Nat * Bytes)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: alignUp,
+  parameters: [offset : Nat, alignment : Nat],
+  result: Nat,
+  body: (let rest : Nat := (prim remainder offset alignment 0 : Nat); (if (rest =? 0) then offset else (offset + (prim subtract alignment rest : Nat)))),
+  executable: true
+}
+
+definition{
+  name: isPowerOfTwo,
+  parameters: [value : Nat],
+  result: Bool,
+  body: ((first (prim iterate_until (fun (current : Nat) => (if ((1 <? current) && ((prim remainder current 2 0 : Nat) =? 0)) then (ctor Option.some [Nat] (prim quotient current 2 0 : Nat)) else (ctor Option.none [Nat]))) 64 value : (Nat * Bool))) =? 1),
+  executable: true
+}
+
+definition{
+  name: scalarWidth,
+  parameters: [tag : Nat],
+  result: Nat,
+  body: (if ((tag =? 0) || ((tag =? 1) || (tag =? 7))) then 1 else (if ((tag =? 2) || (tag =? 3)) then 2 else (if ((tag =? 4) || ((tag =? 5) || (tag =? 6))) then 4 else (if ((tag =? 10) || ((tag =? 11) || (tag =? 12))) then 8 else 0)))),
+  executable: true
+}
+
+definition{
+  name: measured,
+  parameters: [position : Nat, stack : (List Frame)],
+  result: (Option Measure),
+  body: (ctor Option.some [Measure] (record Measure {position := position, ok := true, stack := stack})),
+  executable: true
+}
+
+definition{
+  name: refused,
+  parameters: [position : Nat],
+  result: (Option Measure),
+  body: (ctor Option.some [Measure] (record Measure {position := position, ok := false, stack := (nil Frame)})),
+  executable: true
+}
+
+definition{
+  name: element,
+  parameters: [subject : Bytes, position : Nat, top : Frame, stack : (List Frame)],
+  result: (Option Measure),
+  body: (let tag : Nat := (project top tag); (let width : Nat := (scalarWidth tag); (if (0 <? width) then (if (fits subject position width) then (measured (position + width) stack) else (refused position)) else (if (tag =? 8) then (if (fits subject position 8) then (let size : Nat := (readLe subject position 8); (if (fits subject (position + 8) size) then (measured ((position + 8) + size) stack) else (refused position))) else (refused position)) else (if (tag =? 9) then (if (64 <=? (project top depth)) then (refused position) else (if (fits subject position 12) then (measured (position + 12) (cons (record Frame {tag := (readLe subject position 4), remaining := (readLe subject (position + 4) 8), depth := ((project top depth) + 1)}) stack)) else (refused position))) else (refused position)))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: measureStep,
+  parameters: [subject : Bytes, state : Measure],
+  result: (Option Measure),
+  body: (if (project state ok) then (match (project state stack)
+    | List.nil => (ctor Option.none [Measure])
+    | List.cons top rest => (if ((project top remaining) =? 0) then (measured (project state position) rest) else (element subject (project state position) top (cons (record Frame {tag := (project top tag), remaining := (prim subtract (project top remaining) 1 : Nat), depth := (project top depth)}) rest)))) else (ctor Option.none [Measure])),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: measure,
+  parameters: [subject : Bytes, position : Nat, tag : Nat],
+  result: (Bool * Nat),
+  body: (let state : Measure := (first (prim iterate_until (fun [subject] (state : Measure) => (measureStep subject state)) ((prim multiply (prim length subject : Nat) 2 : Nat) + 4) (record Measure {position := position, ok := true, stack := (cons (record Frame {tag := tag, remaining := 1, depth := 0}) (nil Frame))}) : (Measure * Bool))); (if (project state ok) then (match (project state stack)
+    | List.nil => (true, (project state position))
+    | List.cons top rest => (false, 0)) else (false, 0))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: valueBody,
+  parameters: [subject : Bytes, tag : Nat, at : Nat, span : Nat],
+  result: Bytes,
+  body: (if (0 <? (scalarWidth tag)) then (LexLeanStd.Text::sliceOr subject at span) else (if (tag =? 8) then (prim append (LexLeanStd.Text::sliceOr subject at 8) (digest (LexLeanStd.Text::sliceOr subject (at + 8) (prim subtract span 8 : Nat))) : Bytes) else (prim append (LexLeanStd.Text::sliceOr subject at 12) (digest (LexLeanStd.Text::sliceOr subject (at + 12) (prim subtract span 12 : Nat))) : Bytes))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: reversePairs,
+  parameters: [items : (List (Bytes * Bytes))],
+  result: (List (Bytes * Bytes)),
+  body: (prim list_fold (fun (reversed : (List (Bytes * Bytes))) (item : (Bytes * Bytes)) => (cons item reversed)) (nil (Bytes * Bytes)) items : (List (Bytes * Bytes))),
+  executable: true
+}
+
+definition{
+  name: placeEntry,
+  parameters: [key : Bytes, body : Bytes, items : (List (Bytes * Bytes))],
+  result: (List (Bytes * Bytes)),
+  body: (let state : Placing := (prim list_fold (fun [body, key] (state : Placing) (item : (Bytes * Bytes)) => (if (project state done) then (record Placing {done := true, acc := (cons item (project state acc))}) else (if (Json::lessKey key (first item)) then (record Placing {done := true, acc := (cons item (cons (key, body) (project state acc)))}) else (record Placing {done := false, acc := (cons item (project state acc))})))) (record Placing {done := false, acc := (nil (Bytes * Bytes))}) items : Placing); (if (project state done) then (reversePairs (project state acc)) else (reversePairs (cons (key, body) (project state acc))))),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: reverseTensors,
+  parameters: [items : (List Tensor)],
+  result: (List Tensor),
+  body: (prim list_fold (fun (reversed : (List Tensor)) (item : Tensor) => (cons item reversed)) (nil Tensor) items : (List Tensor)),
+  executable: true
+}
+
+definition{
+  name: placeTensor,
+  parameters: [tensor : Tensor, items : (List Tensor)],
+  result: (List Tensor),
+  body: (let state : TensorPlacing := (prim list_fold (fun [tensor] (state : TensorPlacing) (item : Tensor) => (if (project state done) then (record TensorPlacing {done := true, acc := (cons item (project state acc))}) else (if (Json::lessKey (project tensor name) (project item name)) then (record TensorPlacing {done := true, acc := (cons item (cons tensor (project state acc)))}) else (record TensorPlacing {done := false, acc := (cons item (project state acc))})))) (record TensorPlacing {done := false, acc := (nil Tensor)}) items : TensorPlacing); (if (project state done) then (reverseTensors (project state acc)) else (reverseTensors (cons tensor (project state acc))))),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: failSection,
+  parameters: [state : Section],
+  result: Section,
+  body: (record Section {position := (project state position), ok := false, alignment := (project state alignment), entries := (nil (Bytes * Bytes))}),
+  executable: true
+}
+
+definition{
+  name: pairStep,
+  parameters: [subject : Bytes, state : Section, key : Bytes, tag : Nat, at : Nat],
+  result: Section,
+  body: (let span : (Bool * Nat) := (measure subject at tag); (if (first span) then (let alignment : Nat := (if ((prim equal key (Label::text "general.alignment") : Bool) && (tag =? 4)) then (readLe subject at 4) else (project state alignment)); (if ((8 <=? alignment) && (isPowerOfTwo alignment)) then (record Section {position := (second span), ok := true, alignment := alignment, entries := (placeEntry key (prim append (digest key) (prim append (writeLe tag 4) (valueBody subject tag at (prim subtract (second span) at : Nat)) : Bytes) : Bytes) (project state entries))}) else (failSection state))) else (failSection state))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: sectionStep,
+  parameters: [subject : Bytes, state : Section],
+  result: Section,
+  body: (if (project state ok) then (let position : Nat := (project state position); (if (fits subject position 8) then (let size : Nat := (readLe subject position 8); (if ((fits subject (position + 8) size) && (fits subject ((position + 8) + size) 4)) then (pairStep subject state (LexLeanStd.Text::sliceOr subject (position + 8) size) (readLe subject ((position + 8) + size) 4) (((position + 8) + size) + 4)) else (failSection state))) else (failSection state))) else state),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: blockOf,
+  parameters: [kind : Nat],
+  result: (Nat * Nat),
+  body: (let table : Bytes := 0x000401000201001202001402000000000000001602001802002202002402005403006e0300900300b00300d203012403004203004a03006203003203001202006e03005203008803000101000201000401000801000801003803000201; (let at : Nat := (prim multiply kind 3 : Nat); (let code : Nat := (if (kind <? 31) then (Label::byteNat table (at + 2)) else 0); (((prim multiply (Label::byteNat table at) 256 : Nat) + (Label::byteNat table (at + 1))), (if (code =? 1) then 1 else (if (code =? 2) then 32 else (if (code =? 3) then 256 else 0))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: elements,
+  parameters: [subject : Bytes, at : Nat, count : Nat],
+  result: (Bool * Nat),
+  body: (second (prim iterate (fun [at, subject] (state : (Nat * (Bool * Nat))) => (let dimension : Nat := (readLe subject (at + (prim multiply (first state) 8 : Nat)) 8); (let product : Nat := (second (second state)); (let fitting : Bool := ((first (second state)) && ((dimension =? 0) || (product <=? (prim quotient 18446744073709551615 dimension 0 : Nat)))); (((first state) + 1), (fitting, (if fitting then (prim multiply product dimension : Nat) else 0))))))) count (0, (true, 1)) : (Nat * (Bool * Nat)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: failTensors,
+  parameters: [state : Tensors],
+  result: Tensors,
+  body: (record Tensors {position := (project state position), ok := false, entries := (nil Tensor)}),
+  executable: true
+}
+
+definition{
+  name: tensorInfo,
+  parameters: [subject : Bytes, state : Tensors, name : Bytes, at : Nat],
+  result: Tensors,
+  body: (let rank : Nat := (readLe subject at 4); (if ((rank <=? 4) && (fits subject (at + 4) ((prim multiply rank 8 : Nat) + 12))) then (let count : (Bool * Nat) := (elements subject (at + 4) rank); (let kindAt : Nat := ((at + 4) + (prim multiply rank 8 : Nat)); (let layout : (Nat * Nat) := (blockOf (readLe subject kindAt 4)); (let per : Nat := (second layout); (if ((first count) && ((0 <? per) && ((prim remainder (second count) per 0 : Nat) =? 0))) then (let blocks : Nat := (prim quotient (second count) per 0 : Nat); (if (blocks <=? (prim quotient 18446744073709551615 (first layout) 0 : Nat)) then (record Tensors {position := (kindAt + 12), ok := true, entries := (placeTensor (record Tensor {name := name, head := (LexLeanStd.Text::sliceOr subject at ((prim multiply rank 8 : Nat) + 8)), offset := (readLe subject (kindAt + 4) 8), size := (prim multiply blocks (first layout) : Nat)}) (project state entries))}) else (failTensors state))) else (failTensors state)))))) else (failTensors state))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: tensorStep,
+  parameters: [subject : Bytes, state : Tensors],
+  result: Tensors,
+  body: (if (project state ok) then (let position : Nat := (project state position); (if (fits subject position 8) then (let size : Nat := (readLe subject position 8); (if ((fits subject (position + 8) size) && (fits subject ((position + 8) + size) 4)) then (tensorInfo subject state (LexLeanStd.Text::sliceOr subject (position + 8) size) ((position + 8) + size)) else (failTensors state))) else (failTensors state))) else state),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: emitTensor,
+  parameters: [subject : Bytes, start : Nat, alignment : Nat, state : Emit, tensor : Tensor],
+  result: Emit,
+  body: (if ((project state ok) && (((project tensor offset) <=? (prim length subject : Nat)) && ((project state offset) <=? (prim subtract 18446744073709551615 (project tensor size) : Nat)))) then (let begin : Nat := (start + (project tensor offset)); (if (fits subject begin (project tensor size)) then (record Emit {ok := true, offset := (alignUp ((project state offset) + (project tensor size)) alignment), out := (prim append (project state out) (prim append (digest (project tensor name)) (prim append (project tensor head) (prim append (writeLe (project state offset) 8) (digest (LexLeanStd.Text::sliceOr subject begin (project tensor size))) : Bytes) : Bytes) : Bytes) : Bytes)}) else (record Emit {ok := false, offset := 0, out := 0x}))) else (record Emit {ok := false, offset := 0, out := 0x})),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: pairBytes,
+  parameters: [entries : (List (Bytes * Bytes))],
+  result: Bytes,
+  body: (prim list_fold (fun (out : Bytes) (entry : (Bytes * Bytes)) => (prim append out (second entry) : Bytes)) 0x entries : Bytes),
+  executable: true
+}
+
+definition{
+  name: skeleton,
+  parameters: [subject : Bytes, section : Section, tensors : Tensors],
+  result: (Option Bytes),
+  body: (let alignment : Nat := (project section alignment); (let start : Nat := (alignUp (project tensors position) alignment); (let emitted : Emit := (prim list_fold (fun [alignment, start, subject] (state : Emit) (tensor : Tensor) => (emitTensor subject start alignment state tensor)) (record Emit {ok := true, offset := 0, out := 0x}) (project tensors entries) : Emit); (if (project emitted ok) then (ctor Option.some [Bytes] (prim append (LexLeanStd.Text::sliceOr subject 0 24) (prim append (writeLe alignment 8) (prim append (pairBytes (project section entries)) (project emitted out) : Bytes) : Bytes) : Bytes)) else (ctor Option.none [Bytes]))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: canonicalGguf,
+  parameters: [subject : Bytes],
+  result: (Option Bytes),
+  body: (let total : Nat := (prim length subject : Nat); (if ((24 <=? total) && (prim equal (LexLeanStd.Text::sliceOr subject 0 8) 0x4747554603000000 : Bool)) then (let tensorCount : Nat := (readLe subject 8 8); (let pairCount : Nat := (readLe subject 16 8); (if ((pairCount <=? total) && (tensorCount <=? total)) then (let section : Section := (prim iterate (fun [subject] (state : Section) => (sectionStep subject state)) pairCount (record Section {position := 24, ok := true, alignment := 32, entries := (nil (Bytes * Bytes))}) : Section); (if (project section ok) then (let tensors : Tensors := (prim iterate (fun [subject] (state : Tensors) => (tensorStep subject state)) tensorCount (record Tensors {position := (project section position), ok := true, entries := (nil Tensor)}) : Tensors); (if (project tensors ok) then (skeleton subject section tensors) else (ctor Option.none [Bytes]))) else (ctor Option.none [Bytes]))) else (ctor Option.none [Bytes])))) else (ctor Option.none [Bytes]))),
+  axioms: [Quot.sound, propext],
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: ggufLabel,
+  parameters: [subject : Bytes],
+  result: (Option Bytes),
+  body: (match (canonicalGguf subject)
+    | Option.some canonical => (ctor Option.some [Bytes] (Label::kappaLabel canonical))
+    | Option.none => (ctor Option.none [Bytes])),
+  axioms: [Quot.sound, propext],
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: ggufLabelOn,
+  parameters: [axis : Bytes, subject : Bytes],
+  result: (Option Bytes),
+  body: (match (canonicalGguf subject)
+    | Option.some canonical => (Axis::labelOn axis canonical)
+    | Option.none => (ctor Option.none [Bytes])),
+  axioms: [Quot.sound, propext],
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+\end{semanticmodule}
+\end{lexlean}
