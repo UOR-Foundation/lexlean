@@ -94,20 +94,29 @@ def run(root, bin_dir, helper, retained):
     manifest = json.loads((root / 'manifest.json').read_text())
     for row in manifest['files']:
         assert digest(root / 'src' / row['path']) == row['sha256']
-    key = {'manifest': digest(root / 'manifest.json'), 'runner': digest(Path(__file__)),
+    toolchain_libraries = {str(p.relative_to(bin_dir.parent)): digest(p) for p in sorted((bin_dir.parent / 'lib').rglob('*')) if p.is_file()}
+    assert toolchain_libraries, 'pinned library inventory must be nonempty'
+    save(root / 'toolchain-libraries.json', toolchain_libraries)
+    key = {'toolchain_libraries': digest(root / 'toolchain-libraries.json'), 'python': digest(sys.executable), 'manifest': digest(root / 'manifest.json'), 'runner': digest(Path(__file__)),
            'lean': digest(bin_dir / 'lean'), 'leanchecker': digest(bin_dir / 'leanchecker'),
            'audit_helper': digest(helper), 'retained_receipt': digest(retained / 'source-receipt.json')}
     logs = root / 'results'
     logs.mkdir(exist_ok=True)
-    env = dict(os.environ, LEAN_PATH=str(root / 'build'), PATH=str(bin_dir) + os.pathsep + os.environ['PATH'])
+    env = {'LEAN_PATH': str(root / 'build'), 'PATH': str(bin_dir) + os.pathsep + os.defpath,
+           'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8', 'HOME': os.environ['HOME']}
+    save(root / 'environment.json', env)
+    key['environment'] = digest(root / 'environment.json')
     rows = {r['module']: r for r in manifest['files']}
 
-    def child(label, argv, artifact=None):
+    def artifact_inventory(artifact):
+        return {str(p.relative_to(root)): digest(p) for p in sorted(artifact.parent.glob(artifact.stem + '.*')) if p.is_file()}
+
+    def child(label, argv, artifact=None, dependencies=None, silent=False):
         receipt = logs / (label + '.json')
         if receipt.exists():
             old = json.loads(receipt.read_text())
-            if old.get('exit') == 0 and old.get('key') == key and old.get('argv') == argv:
-                if artifact is None or (artifact.exists() and digest(artifact) == old.get('artifact_sha256')):
+            if old.get('exit') == 0 and old.get('reason') is None and old.get('key') == key and old.get('argv') == argv and old.get('dependencies') == dependencies and old.get('silent') == silent:
+                if artifact is None or (artifact.exists() and artifact_inventory(artifact) == old.get('artifact_inventory')):
                     assert digest(logs / (label + '.log')) == old['log_sha256']
                     print('reuse', label, flush=True)
                     return
@@ -132,25 +141,32 @@ def run(root, bin_dir, helper, retained):
             code = proc.wait()
         if log.stat().st_size > 16 * 1024 * 1024:
             reason = '16-MiB child output limit'
-        record = {'key': key, 'argv': argv, 'exit': code, 'reason': reason,
+        if silent and log.stat().st_size:
+            reason = 'non-silent compilation'
+        record = {'dependencies': dependencies, 'silent': silent, 'key': key, 'argv': argv, 'exit': code, 'reason': reason,
                   'seconds': time.monotonic() - started, 'peak_process_tree_rss_kib': peak,
-                  'log_sha256': digest(log), 'artifact_sha256': digest(artifact) if code == 0 and artifact else None}
+                  'log_sha256': digest(log), 'artifact_inventory': artifact_inventory(artifact) if code == 0 and artifact else None}
         save(receipt, record)
         print(label, code, round(record['seconds'], 2), reason, flush=True)
         if code or reason:
             raise RuntimeError(f'{label} failed; retained {receipt}')
 
+    compiled = {}
     for row in manifest['files']:
         if row['module'] == manifest['audit']:
             continue
         target = root / 'build' / Path(row['path']).with_suffix('.olean')
         target.parent.mkdir(parents=True, exist_ok=True)
-        child('compile-' + row['module'], [str(bin_dir / 'lean'), '-R', str(root / 'src'), '-o', str(target), str(root / 'src' / row['path'])], target)
+        child('compile-' + row['module'], [str(bin_dir / 'lean'), '-R', str(root / 'src'), '-o', str(target), str(root / 'src' / row['path'])], target, dict(compiled), silent=True)
+        compiled[row['module']] = artifact_inventory(target)
+    expected_outputs = {path for outputs in compiled.values() for path in outputs}
+    actual_outputs = {str(p.relative_to(root)) for p in (root / 'build').rglob('*') if p.is_file()}
+    assert expected_outputs == actual_outputs, 'unaccounted compiled artifact'
     for module in manifest['certificates']:
-        child('replay-' + module, [str(bin_dir / 'leanchecker'), module])
+        child('replay-' + module, [str(bin_dir / 'leanchecker'), module], dependencies=compiled)
     audit = root / 'src' / rows[manifest['audit']]['path']
-    child('audit-lean', [str(bin_dir / 'lean'), '-R', str(root / 'src'), str(audit)])
-    child('audit-policies', [str(helper), str(retained), str(root), str(logs / 'audit-lean.log')])
+    child('audit-lean', [str(bin_dir / 'lean'), '-R', str(root / 'src'), str(audit)], dependencies=compiled)
+    child('audit-policies', [str(helper), str(retained), str(root), str(logs / 'audit-lean.log')], dependencies=dict(compiled, audit_log=digest(logs / 'audit-lean.log')))
     save(root / 'outcome.json', {'key': key, 'status': 'R6-A-elaboration-replay-audit-passed', 'compiler_accepted': False,
                                'not_tested': ['certificates B and E', 'other roots', 'full production export', 'full compiler qualification']})
 
