@@ -17,6 +17,12 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- Each push to a release line is merged forward by `forward.yml` (SPEC.md §9.4, `RP-14`):
+  the push is merged into the next line on `forward/vXY-to-vX(Y+1)-<head8>`, a conflict in a
+  generated projection or a lock takes the next line's side for `regenerate.yml` to rewrite,
+  SPEC.md and register changes of a line without `spec/` are carried into the next line's
+  modules by `cargo xtask spec port --register`, and any other conflict opens the pull
+  request as a draft naming its paths. A newer push supersedes the older forward branch.
 - Canonical JSON refuses duplicate keys that differ only in their escapes (SPEC.md §21.7,
   `AR-11`, #475). The duplicate check compared each key as written, so `{"a":1,"\u0061":2}`
   passed it and `Json::parse` returned `{"a":2}`, dropping the first member; keys are now

@@ -2251,6 +2251,30 @@ pub(crate) fn run(id: &str) {
                     "§9.4: {workflow} runs on a push to `main` and to a release line"
                 );
             }
+            // §9.4: the forward merge runs on every push to a release line,
+            // superseded by a newer one, and hands its merge to the
+            // regeneration on the forward branch, whose `deliver` commits there.
+            let forward = root_file(".github/workflows/forward.yml");
+            for needed in [
+                "  push:\n    branches: [\"release/**\"]\n",
+                "  group: forward-${{ github.ref }}\n  cancel-in-progress: true\n",
+                "run: .github/scripts/forward-merge.sh",
+                "uses: ./.github/workflows/regenerate.yml",
+                "ref: ${{ needs.merge.outputs.commit }}",
+                "branch: ${{ needs.merge.outputs.branch }}",
+            ] {
+                assert!(forward.contains(needed), "§9.4: forward.yml has `{needed}`");
+            }
+            let merge = root_file(".github/scripts/forward-merge.sh");
+            for needed in [
+                "git merge --quiet --no-ff --no-commit",
+                "cargo xtask spec port",
+                "--register",
+                "--draft",
+                "compare/$next...$branch",
+            ] {
+                assert!(merge.contains(needed), "§9.4: forward-merge.sh has `{needed}`");
+            }
             for forbidden in [
                 "actions/cache",
                 "paths:",

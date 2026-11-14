@@ -1,0 +1,63 @@
+# The forward merge of a release line (SPEC.md §9.4): every push to
+# `release/vX.Y` is merged, by merge commit, into `release/vX.(Y+1)` when that
+# line exists, on the branch `forward/vXY-to-vX(Y+1)-<head8>`, with its pull
+# request (`.github/scripts/forward-merge.sh`). A merge whose conflicts lie in
+# generated projections and locks is opened ready, and `regenerate.yml` writes
+# those files from the merged tree, delivers them to the branch, and
+# dispatches the gate there. Any other conflict is committed as the next
+# line's side and opened as a draft naming its paths, for an agent to finish
+# and push to `regenerate/<name>`. A newer push to the line cancels a run still
+# working and closes the older forward pull request.
+name: forward
+
+on:
+  push:
+    branches: ["release/**"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: forward-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  merge:
+    name: forward merge
+    if: github.repository == 'UOR-Foundation/LexLean'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      branch: ${{ steps.merge.outputs.branch }}
+      commit: ${{ steps.merge.outputs.commit }}
+      clean: ${{ steps.merge.outputs.clean }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+      - name: Merge the line into the next and open the pull request
+        id: merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: .github/scripts/forward-merge.sh
+
+  regenerate:
+    name: regenerate
+    needs: merge
+    if: needs.merge.outputs.clean == 'true'
+    uses: ./.github/workflows/regenerate.yml
+    # A reusable workflow is validated against what its caller grants before
+    # any of its jobs starts: `deliver` pushes and dispatches.
+    permissions:
+      contents: write
+      actions: write
+      pull-requests: read
+    with:
+      ref: ${{ needs.merge.outputs.commit }}
+      branch: ${{ needs.merge.outputs.branch }}
