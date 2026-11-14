@@ -2273,7 +2273,10 @@ pub(crate) fn run(id: &str) {
                 "--draft",
                 "compare/$next...$branch",
             ] {
-                assert!(merge.contains(needed), "§9.4: forward-merge.sh has `{needed}`");
+                assert!(
+                    merge.contains(needed),
+                    "§9.4: forward-merge.sh has `{needed}`"
+                );
             }
             for forbidden in [
                 "actions/cache",
