@@ -1,4 +1,4 @@
-//! SM-39: native policies, explicit boundary observations and preservation.
+//! SM-43: native policies, explicit boundary observations and preservation.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -294,7 +294,7 @@ fn false_lowering(project: &P, root: &Path) {
                 "phase preservation: the lowering of a primitive is not a primitive"
             );
             eprintln!(
-                "SM-39 false-output lowering: checked derivation refused before Lean: {}",
+                "SM-43 false-output lowering: checked derivation refused before Lean: {}",
                 error.message
             );
         }
@@ -321,7 +321,7 @@ fn false_lowering(project: &P, root: &Path) {
                 Some("__rel_0"),
                 "targeted formatter relation: {text}"
             );
-            eprintln!("SM-39 false-output lowering: Lean rejected formatter relation __rel_0");
+            eprintln!("SM-43 false-output lowering: Lean rejected formatter relation __rel_0");
         }
     }
 }
@@ -402,7 +402,7 @@ pub(super) fn run() {
     let accepted = project(SOURCE);
     accepted.check_ok();
     // This intentionally fails with fixed-width LLV7005 before implementation.
-    let Some(verified) = support::verify_ok_backed("SM-39", &accepted) else {
+    let Some(verified) = support::verify_ok_backed("SM-43", &accepted) else {
         return;
     };
     policies(&verified);
