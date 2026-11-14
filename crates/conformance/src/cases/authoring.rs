@@ -44,6 +44,9 @@ pub fn run(id: &str) {
     });
 }
 
+/// The most reader threads AU-08 runs at once (about 1 GiB each at peak).
+const READERS: usize = 4;
+
 fn check(id: &str) {
     match id {
         "AU-01" => round_trip(),
@@ -1470,7 +1473,12 @@ fn authoring_api() {
             }
         }
     };
-    let width = std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get);
+    // At most `READERS` threads: each holds up to one module on its reader
+    // stack, about 1 GiB at peak, so the case stays near 4 GiB beside the
+    // other cases of its leg on a 16 GB runner.
+    let width = std::thread::available_parallelism()
+        .map_or(1, std::num::NonZeroUsize::get)
+        .min(READERS);
     std::thread::scope(|scope| {
         let threads: Vec<_> = (0..width)
             .map(|_| {
