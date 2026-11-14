@@ -2,7 +2,7 @@
 //! of the preservation library per construct, applied at the program
 //! expression the lowering produced for it.
 
-use super::super::element_of;
+use super::super::{element_of, REFUSED_IN};
 use super::{LocalTerm, Pf, Scope, Writer, EXPLICIT};
 use crate::calculus::{Expr, Shape};
 use crate::ir::core::CoreLevel;
@@ -172,14 +172,28 @@ impl<'a> Writer<'_, 'a> {
 
     // --- Derivations ------------------------------------------------------
 
-    /// The proof of `term`, lowered to `expr`.
-    #[allow(clippy::too_many_lines)]
+    /// The proof of `term`, lowered to `expr`. A refusal names the function
+    /// whose body is being related, once, at the innermost derivation that
+    /// refuses: a lowering that no longer follows the source is caught here,
+    /// before Lean sees it, and a plant is caught where it was made only if
+    /// the refusal says where that is (`conformance_sp_02`).
     pub(super) fn prove(
         &mut self,
         term: &SemanticTerm,
         expr: &'a Expr,
         scope: &Scope,
     ) -> Result<Pf, String> {
+        self.derive(term, expr, scope).map_err(|reason| {
+            if reason.starts_with(REFUSED_IN) {
+                reason
+            } else {
+                format!("{REFUSED_IN}{}: {reason}", scope.ctx.function)
+            }
+        })
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn derive(&mut self, term: &SemanticTerm, expr: &'a Expr, scope: &Scope) -> Result<Pf, String> {
         let site = scope.ctx.site.clone();
         let (p, env) = (self.prog, scope.env);
         match term {

@@ -4,6 +4,7 @@ use std::collections::BTreeSet;
 use std::sync::OnceLock;
 
 use lexlean::calculus::Outcome;
+use lexlean::production::certificate::REFUSED_IN;
 use lexlean::production::lower::{linked_modules, lower_root, roots};
 use lexlean::production::preserve::{self, audit, audit_tokens};
 use serde_json::Value as Json;
@@ -82,24 +83,93 @@ fn assert_not_a_limit(what: &str, output: &str, text_len: usize) {
     );
 }
 
+/// The first literal along the application spine from node `at`, whichever
+/// side of an application holds it, raised by one; the nodes above it are
+/// rebuilt on fresh indices, so no other row sees the forged literal. The
+/// index of the rebuilt node, or `None` when the spine holds no literal.
+fn forge_first_literal(nodes: &mut Vec<lexlean::ir::core::CoreNode>, at: usize) -> Option<usize> {
+    use lexlean::ir::core::CoreNode;
+    match nodes[at].clone() {
+        CoreNode::Nat { v } => {
+            let v = v.parse::<u64>().expect("a small literal") + 1;
+            nodes.push(CoreNode::Nat { v: v.to_string() });
+            Some(nodes.len() - 1)
+        }
+        CoreNode::App { f, x } => {
+            let (f, x) = match forge_first_literal(nodes, f) {
+                Some(f) => (f, x),
+                None => (f, forge_first_literal(nodes, x)?),
+            };
+            nodes.push(CoreNode::App { f, x });
+            Some(nodes.len() - 1)
+        }
+        _ => None,
+    }
+}
+
 /// The failure of a planted mutation is targeted: Lean's first error lies in
 /// the relation of the function the mutation changed, or, for a function of
 /// a library template, whose relation the certificate states where the
 /// template is instantiated, in the relation of a caller; not in the library,
 /// the environment, or an unrelated function.
 fn assert_targeted(plant: &preservation::Planted) {
-    if plant.refused.is_some() {
+    if let Some(refusal) = &plant.refused {
         // The generator refused the mutated lowering while writing the
         // certificate (it derives the lowering and the source in lockstep),
-        // which is earlier than the kernel; the function must still own a
-        // relation the mutation could have falsified.
+        // which is earlier than the kernel. That counts as a catch only when
+        // the refusal says where: it names a function whose body it was
+        // relating, and that function is the one the mutation changed, or one
+        // whose relation states it (a library template's callers), and its
+        // reason is the lockstep's, a construct of the source whose lowering
+        // is another (`the lowering of X is not a Y`, `a call of function A
+        // lowered to B`). A refusal of anything else, or of another function,
+        // is not evidence about this plant.
+        let located = refusal
+            .strip_prefix("phase preservation: ")
+            .and_then(|rest| rest.strip_prefix(REFUSED_IN))
+            .and_then(|rest| rest.split_once(": "))
+            .unwrap_or_else(|| {
+                panic!(
+                    "{} {:?} in function {}: the refusal names no function: {refusal}",
+                    plant.root, plant.mutation, plant.function
+                )
+            });
+        let (named, reason) = located;
         assert!(
-            !plant.expected.is_empty(),
-            "{} {:?}: function {} ({:?}) has no relation to fail in",
+            plant
+                .expected
+                .iter()
+                .any(|name| *name == format!("__rel_{named}")),
+            "{} {:?} in function {} ({:?}): the refusal lies in function {named}, not in the relations {:?}: {refusal}",
             plant.root,
             plant.mutation,
             plant.function,
-            plant.origin
+            plant.origin,
+            plant.expected
+        );
+        // The reason is the one the mutated construct at the planted site
+        // gives, not any lockstep refusal of the function: a slice's bounds
+        // are the buffer plant's two sites (the first bound is a variable,
+        // the second a literal), a swapped branch leaves a variable bound
+        // where the source has another, and a swapped call names the callee
+        // it lowered to.
+        let variable = |reason: &str| {
+            reason
+                .strip_prefix("the lowering of `")
+                .is_some_and(|rest| rest.ends_with("` is not a variable"))
+        };
+        let fits = match (plant.mutation, plant.ordinal) {
+            (Mutation::Buffer, 0) | (Mutation::Branches, _) => variable(reason),
+            (Mutation::Buffer, 1) => reason == "the lowering of a literal is not a value",
+            (Mutation::Recursion, _) => {
+                reason.starts_with("a call of function ") && reason.contains(" lowered to ")
+            }
+            _ => false,
+        };
+        assert!(
+            fits,
+            "{} {:?} at site {} of function {}: the refusal is not the one this construct gives: {refusal}",
+            plant.root, plant.mutation, plant.ordinal, plant.function
         );
         return;
     }
@@ -4136,30 +4206,8 @@ pub fn run(id: &str) {
                     .and_then(|row| row.value)
                     .expect("the program row");
                 let mut planted = data.clone();
-                // The first literal along the application spine, whichever
-                // side of an application holds it; the nodes above it are
-                // rebuilt on fresh indices.
-                fn forge(nodes: &mut Vec<lexlean::ir::core::CoreNode>, at: usize) -> Option<usize> {
-                    use lexlean::ir::core::CoreNode;
-                    match nodes[at].clone() {
-                        CoreNode::Nat { v } => {
-                            let v = v.parse::<u64>().expect("a small literal") + 1;
-                            nodes.push(CoreNode::Nat { v: v.to_string() });
-                            Some(nodes.len() - 1)
-                        }
-                        CoreNode::App { f, x } => {
-                            let (f, x) = match forge(nodes, f) {
-                                Some(f) => (f, x),
-                                None => (f, forge(nodes, x)?),
-                            };
-                            nodes.push(CoreNode::App { f, x });
-                            Some(nodes.len() - 1)
-                        }
-                        _ => None,
-                    }
-                }
-                let replacement =
-                    forge(&mut planted.nodes, program).expect("the program's row holds a literal");
+                let replacement = forge_first_literal(&mut planted.nodes, program)
+                    .expect("the program's row holds a literal");
                 for row in &mut planted.declarations {
                     if row.name == format!("{}.__prog", certificate.module) {
                         row.value = Some(replacement);
@@ -4638,16 +4686,37 @@ pub fn run(id: &str) {
                 }
                 refused("ChangedStatement", &planted)
             };
-            // A forged program literal: the crate's addition is a subtraction,
-            // so no derivation relates the crate to the program.
-            let forged_program = refused(
-                "ForgedProgram",
+            // A forged crate: the crate's addition is a subtraction, so no
+            // derivation relates the crate to the program. This forges the
+            // `krate` row's term; the plant below forges the `program` row.
+            let forged_crate = refused(
+                "ForgedCrate",
                 &rename(
                     data,
                     "LexLeanTarget.RustSyntax.Item.natAdd",
                     "LexLeanTarget.RustSyntax.Item.natSub",
                 ),
             );
+            // A forged program literal: one literal of the `program` row,
+            // rebuilt on a fresh path so no other row sees it, so the crate
+            // the derivations relate no longer realizes the program they state.
+            let forged_program = {
+                let program = data
+                    .declarations
+                    .iter()
+                    .find(|row| row.name == format!("{}.program", certificate.module))
+                    .and_then(|row| row.value)
+                    .expect("the program row");
+                let mut planted = data.clone();
+                let replacement = forge_first_literal(&mut planted.nodes, program)
+                    .expect("the program's row holds a literal");
+                for row in &mut planted.declarations {
+                    if row.name == format!("{}.program", certificate.module) {
+                        row.value = Some(replacement);
+                    }
+                }
+                refused("ForgedProgram", &planted)
+            };
             // An added axiom: `sorryAx` as the root's proof is refused by the
             // data audit before any Lean runs.
             let mut with_axiom = data.clone();
@@ -4716,7 +4785,7 @@ pub fn run(id: &str) {
                 "the audit names the lying row: {lying_policy}"
             );
             eprintln!(
-                "SP-16 plants refused:\n  wrong lemma: {wrong_lemma}\n  changed statement: {changed_statement}\n  forged program: {forged_program}\n  added axiom: {audit_refusal}\n  lying policy: {lying_policy}"
+                "SP-16 plants refused:\n  wrong lemma: {wrong_lemma}\n  changed statement: {changed_statement}\n  forged crate: {forged_crate}\n  forged program: {forged_program}\n  added axiom: {audit_refusal}\n  lying policy: {lying_policy}"
             );
         }
         "SP-17" => {

@@ -200,6 +200,11 @@ fn failure(reason: String) -> Diagnostic {
     }
 }
 
+/// What a refusal of the lockstep derivation says before the function it
+/// refused in: the generator relates the lowering of each function to the
+/// source, and names the function whose body no longer follows it.
+pub const REFUSED_IN: &str = "in function ";
+
 fn internal(reason: impl std::fmt::Display) -> Diagnostic {
     Diagnostic::new(code!("LLI9001"), format!("phase preservation: {reason}"))
 }
