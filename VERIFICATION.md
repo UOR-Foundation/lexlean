@@ -21755,3 +21755,27 @@ regeneration, a final-head full acceptance gate, merge, publication or issue
 closure. Those decisions require the actual final composition and ownership,
 including the separately owned #405 forward integration; no old workflow job
 count or earlier prepared head substitutes for that acceptance.
+
+Merged onto `release/v0.5` at `6c36829120` (after the #405 forward merge), the
+case passes on the merge: `conformance_gl_22` ran with one passed, none failed
+(521 filtered out) in 44.94 s, pinned Lean 4.32.1. The merge needed one change
+to the source of that candidate: the `match` of `term_kind` in
+`crates/lexlean/src/elaborate/semantic.rs` ended in a wildcard arm, which
+`audit-classifications` (RP-15) refuses; it now names every `SemanticTerm`
+variant.
+
+Planted on that merge: the comparison of the glossary signature with the
+semantic declaration's type in `validate_semantic_signature`
+(`crates/lexlean/src/elaborate/expressions.rs`) disabled by prefixing its
+condition with `false &&`. Command: `cargo test -p repo-conformance --test
+conformance -- conformance_gl_22`. Expected: the entry whose implicit mode
+disagrees with `Colors::generic` is no longer refused.
+
+```text
+GL22 negative implicit-mode: expect LLT4001
+thread 'conformance_gl_22' panicked at crates/conformance/src/support.rs:895:14:
+check fails
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 521 filtered out
+```
+
+Removed: the edit was restored and the case passes.
