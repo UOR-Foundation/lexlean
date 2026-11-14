@@ -629,7 +629,7 @@ and Unreleased holds what has landed since.
   counting the copy, when it is shared; the Lean runtime uses `ByteArray.set!`, in place when unique.
   It gives programs an O(1) table write (match finders, adaptive models) where a persistent tree was
   O(log n) with an allocation per write. The item is `update_bytes` (`Item.updateBytes`,
-  `Machine.bytesUpdate`, family 40), with its refinement theorem `refines_update_bytes` (`SP-29`), its
+  `Machine.bytesUpdate`, machine family 44), with its refinement theorem `refines_update_bytes` (`SP-29`), its
   certificate-A lemma `prim_update_bytes`, the bootstrap twins, and the `update_bytes` section of the
   std differential (`RB-20`). The preservation library's `RustCorr`, `RustLemmas`, and `Primitives`
   modules gain the cases of the new constructors; the compiler-semantics ID moves, and the records
