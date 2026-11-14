@@ -1,0 +1,22 @@
+{
+  "key": {
+    "toolchain_libraries": "29f15c162d9f1dcd25767f18883b597fcc90f640a7dc3044935d19afb2dee44c",
+    "python": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+    "manifest": "17d918aa7b73e0655975ae90ae198e411df9f2477645da537f6e989a437e3db9",
+    "runner": "d4a8a1b52058211016d384e76e899a75f99346d7706716895b239c187c56be96",
+    "lean": "e8baaa71855a616dc351028f3ad2200051b0671f423a1696a100e809302d5550",
+    "leanchecker": "c7c51e296d28dd443ed60f9414feef41253ede89dea76dbb2adde29768c3ed5f",
+    "audit_helper": "fa3303fb348c8a206a5b81af768c78cf3a357586167dfbe4a98a44ba33f00c78",
+    "retained_receipt": "37120628b07394d522658bf3ea10432eb65b81ea0d457c6f917d2d45291f6414",
+    "environment": "ced1d9b200156cd4faec95c3aa0313a0729b46f07148aa51fb108786a8b19a9d",
+    "reused_environment_manifest": "5d22cdbaf4aa6cfc763f963399f202974c0afe0297864644d83cce3c9e79e24a"
+  },
+  "status": "R6-A-elaboration-replay-audit-passed",
+  "compiler_accepted": false,
+  "not_tested": [
+    "certificates B and E",
+    "other roots",
+    "full production export",
+    "full compiler qualification"
+  ]
+}

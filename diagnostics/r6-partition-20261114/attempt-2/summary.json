@@ -1,0 +1,164 @@
+{
+  "qualification": "R6 certificate A only; compiler not accepted",
+  "source_candidate": "76e400a6553a7d135891c27aed18941578bfffc8",
+  "source_archive_checkpoint": "48d37b8046c5d39d7c1ea59dcde05575fb41c8db",
+  "owner_fix": "89b8f7738ed4781ba75bcc62ebb09cfcc7a42c40",
+  "new_child_count": 20,
+  "new_child_seconds": 85.73657267599947,
+  "peak_sampled_process_tree_rss_kib": 1745360,
+  "environment_adoptions": 32,
+  "steps": [
+    {
+      "receipt": "audit-lean.json",
+      "seconds": 3.1279031270000814,
+      "peak_process_tree_rss_kib": 1730216,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "audit-policies.json",
+      "seconds": 16.654249994999645,
+      "peak_process_tree_rss_kib": 425884,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "compile-LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.json",
+      "seconds": 1.0234326879999571,
+      "peak_process_tree_rss_kib": 1511900,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "compile-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part0.json",
+      "seconds": 13.153882143999908,
+      "peak_process_tree_rss_kib": 1745360,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "compile-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part1.json",
+      "seconds": 2.8617118729998765,
+      "peak_process_tree_rss_kib": 1646928,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "compile-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part2.json",
+      "seconds": 2.3039482910003244,
+      "peak_process_tree_rss_kib": 1650140,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "compile-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part3.json",
+      "seconds": 3.6738466389997484,
+      "peak_process_tree_rss_kib": 1674444,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "compile-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part4.json",
+      "seconds": 4.433506069000032,
+      "peak_process_tree_rss_kib": 1668436,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "compile-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part5.json",
+      "seconds": 5.665242622999813,
+      "peak_process_tree_rss_kib": 1705840,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "compile-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part6.json",
+      "seconds": 5.1405244789998505,
+      "peak_process_tree_rss_kib": 1708752,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "compile-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part7.json",
+      "seconds": 3.8579703909999807,
+      "peak_process_tree_rss_kib": 1695820,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "replay-LexLeanPreserve.C6ec49c97f5334c1cfee5e969876350b6.R6.json",
+      "seconds": 1.0380007560002014,
+      "peak_process_tree_rss_kib": 1382980,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "replay-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part0.json",
+      "seconds": 2.8122188500001357,
+      "peak_process_tree_rss_kib": 1401532,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "replay-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part1.json",
+      "seconds": 1.5359866389999297,
+      "peak_process_tree_rss_kib": 1405652,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "replay-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part2.json",
+      "seconds": 1.5309789749999254,
+      "peak_process_tree_rss_kib": 1392268,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "replay-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part3.json",
+      "seconds": 2.324446238999826,
+      "peak_process_tree_rss_kib": 1396892,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "replay-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part4.json",
+      "seconds": 3.0856794740002442,
+      "peak_process_tree_rss_kib": 1410368,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "replay-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part5.json",
+      "seconds": 4.594858120000026,
+      "peak_process_tree_rss_kib": 1447748,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "replay-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part6.json",
+      "seconds": 4.094537262999893,
+      "peak_process_tree_rss_kib": 1449372,
+      "exit": 0,
+      "reason": null
+    },
+    {
+      "receipt": "replay-LexLeanPreserve.Parts.C6ec49c97f5334c1cfee5e969876350b6.R6_Part7.json",
+      "seconds": 2.8236480410000695,
+      "peak_process_tree_rss_kib": 1447704,
+      "exit": 0,
+      "reason": null
+    }
+  ],
+  "local_complete_compiled_cache": {
+    "path": "/workspace/lexlean-evidence/r6-owner-compiled-evidence.tar.gz",
+    "bytes": 54982545,
+    "sha256": "c9dd145232d292254ef6459585c9645bf63137956c0e79e95eef1f41755d699d"
+  },
+  "remaining": [
+    "R6 certificates B/E",
+    "other roots and coherent producer results",
+    "new bridge1.2 locks and products",
+    "exact composed-head full qualification"
+  ],
+  "no_pin_merge_release": true
+}
