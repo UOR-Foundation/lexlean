@@ -20,6 +20,7 @@
     "Inhabited",
     "Inhabited.default",
     "Inhabited.mk",
+    "Lean.BinderInfo.casesOn",
     "Lean.Compiler.LCNF.Alt.casesOn",
     "Lean.Compiler.LCNF.Arg.casesOn",
     "Lean.Compiler.LCNF.Cases.casesOn",
@@ -85,8 +86,10 @@
     "Lean.InductiveVal.isRec",
     "Lean.InductiveVal.numIndices",
     "Lean.InductiveVal.numParams",
+    "Lean.Level.casesOn",
     "Lean.Level.instBEq",
     "Lean.Level.instToString",
+    "Lean.Literal.casesOn",
     "Lean.LocalContext.mk",
     "Lean.Meta.Cache.mk",
     "Lean.Meta.Context.mk",
@@ -107,6 +110,7 @@
     "Lean.MetavarContext.mk",
     "Lean.MonadError.mk",
     "Lean.MonadQuotation.toMonadRef",
+    "Lean.Name.casesOn",
     "Lean.Name.instBEq",
     "Lean.ParserDescr.binary",
     "Lean.ParserDescr.cat",
@@ -306,10 +310,26 @@
       }
     },
     {
-      "constructors": [],
+      "constructors": [
+        {
+          "fields": [],
+          "name": "default"
+        },
+        {
+          "fields": [],
+          "name": "implicit"
+        },
+        {
+          "fields": [],
+          "name": "strictImplicit"
+        },
+        {
+          "fields": [],
+          "name": "instImplicit"
+        }
+      ],
       "kind": "type",
       "name": "Lean.BinderInfo",
-      "opaque": true,
       "parameters": [],
       "source": {
         "file": "src/lean/Lean/Expr.lean",
@@ -3283,10 +3303,95 @@
       }
     },
     {
-      "constructors": [],
+      "constructors": [
+        {
+          "fields": [],
+          "name": "zero"
+        },
+        {
+          "fields": [
+            {
+              "name": "f0",
+              "type": {
+                "arguments": [],
+                "kind": "const",
+                "name": "Lean.Level"
+              }
+            }
+          ],
+          "name": "succ"
+        },
+        {
+          "fields": [
+            {
+              "name": "f0",
+              "type": {
+                "arguments": [],
+                "kind": "const",
+                "name": "Lean.Level"
+              }
+            },
+            {
+              "name": "f1",
+              "type": {
+                "arguments": [],
+                "kind": "const",
+                "name": "Lean.Level"
+              }
+            }
+          ],
+          "name": "max"
+        },
+        {
+          "fields": [
+            {
+              "name": "f0",
+              "type": {
+                "arguments": [],
+                "kind": "const",
+                "name": "Lean.Level"
+              }
+            },
+            {
+              "name": "f1",
+              "type": {
+                "arguments": [],
+                "kind": "const",
+                "name": "Lean.Level"
+              }
+            }
+          ],
+          "name": "imax"
+        },
+        {
+          "fields": [
+            {
+              "name": "f0",
+              "type": {
+                "arguments": [],
+                "kind": "const",
+                "name": "Lean.Name"
+              }
+            }
+          ],
+          "name": "param"
+        },
+        {
+          "fields": [
+            {
+              "name": "f0",
+              "type": {
+                "arguments": [],
+                "kind": "const",
+                "name": "Lean.LMVarId"
+              }
+            }
+          ],
+          "name": "mvar"
+        }
+      ],
       "kind": "type",
       "name": "Lean.Level",
-      "opaque": true,
       "parameters": [],
       "source": {
         "file": "src/lean/Lean/Level.lean",
@@ -3305,10 +3410,36 @@
       }
     },
     {
-      "constructors": [],
+      "constructors": [
+        {
+          "fields": [
+            {
+              "name": "val",
+              "type": {
+                "arguments": [],
+                "kind": "const",
+                "name": "Nat"
+              }
+            }
+          ],
+          "name": "natVal"
+        },
+        {
+          "fields": [
+            {
+              "name": "val",
+              "type": {
+                "arguments": [],
+                "kind": "const",
+                "name": "String"
+              }
+            }
+          ],
+          "name": "strVal"
+        }
+      ],
       "kind": "type",
       "name": "Lean.Literal",
-      "opaque": true,
       "parameters": [],
       "source": {
         "file": "src/lean/Lean/Expr.lean",
@@ -5248,6 +5379,35 @@
       "source": {
         "file": "src/lean/Lean/Compiler/LCNF/Types.lean",
         "sha256": "66faec7a6974d2ab29b302a06ceed44d5af1c40f009ac700a088eec6c1f8d0ae"
+      }
+    },
+    {
+      "kind": "call",
+      "name": "Lean.ConstantInfo.levelParams",
+      "role": "a Lean operation the adapter calls",
+      "signature": {
+        "codomain": {
+          "arguments": [
+            {
+              "kind": "const",
+              "name": "Lean.Name"
+            }
+          ],
+          "function": {
+            "kind": "const",
+            "name": "List"
+          },
+          "kind": "app"
+        },
+        "domain": {
+          "kind": "const",
+          "name": "Lean.ConstantInfo"
+        },
+        "kind": "arrow"
+      },
+      "source": {
+        "file": "src/lean/Lean/Declaration.lean",
+        "sha256": "ca8ef13f4bb13725ebf7bc23c7de72ff1e0af75580a7007f5d3a7c69cc4004de"
       }
     },
     {
@@ -8110,6 +8270,53 @@
     },
     {
       "kind": "call",
+      "name": "Nat.log2",
+      "role": "a Lean operation the adapter calls",
+      "signature": {
+        "codomain": {
+          "kind": "const",
+          "name": "Nat"
+        },
+        "domain": {
+          "kind": "const",
+          "name": "Nat"
+        },
+        "kind": "arrow"
+      },
+      "source": {
+        "file": "src/lean/Init/Data/Nat/Log2.lean",
+        "sha256": "afef53e5ebc17001038c5f4c9000e8e2856d3976bec23019266840f91743da6b"
+      }
+    },
+    {
+      "kind": "call",
+      "name": "Nat.sub",
+      "role": "a Lean operation the adapter calls",
+      "signature": {
+        "codomain": {
+          "codomain": {
+            "kind": "const",
+            "name": "Nat"
+          },
+          "domain": {
+            "kind": "const",
+            "name": "Nat"
+          },
+          "kind": "arrow"
+        },
+        "domain": {
+          "kind": "const",
+          "name": "Nat"
+        },
+        "kind": "arrow"
+      },
+      "source": {
+        "file": "src/lean/Init/Prelude.lean",
+        "sha256": "44f86ebbb9ab743a05c6ebe2c674aadbf2c822bee874f1b16d7e6c8d56318dc9"
+      }
+    },
+    {
+      "kind": "call",
       "name": "Nat.toDigits",
       "role": "a Lean operation the adapter calls",
       "signature": {
@@ -9259,6 +9466,26 @@
       "source": {
         "file": "src/lean/Init/Meta/Defs.lean",
         "sha256": "cc77057abfcaf2cfbe2b9b21bce7512a451a3c9e912fffb74518a25a6f467898"
+      }
+    },
+    {
+      "kind": "call",
+      "name": "String.utf8ByteSize",
+      "role": "a Lean operation the adapter calls",
+      "signature": {
+        "codomain": {
+          "kind": "const",
+          "name": "Nat"
+        },
+        "domain": {
+          "kind": "const",
+          "name": "String"
+        },
+        "kind": "arrow"
+      },
+      "source": {
+        "file": "src/lean/Init/Prelude.lean",
+        "sha256": "44f86ebbb9ab743a05c6ebe2c674aadbf2c822bee874f1b16d7e6c8d56318dc9"
       }
     },
     {

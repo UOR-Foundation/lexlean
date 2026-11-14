@@ -1,0 +1,61 @@
+{
+  "review": "independent bounded source review of reconstructed Rule30 inspection bridge",
+  "reviewer": "/root/diagnostic_review",
+  "reviewed_at_utc": "2026-11-14T19:31:01.300003+00:00",
+  "base": "9fd01c31e40bb29577833825f902fafcceedb49a",
+  "checkpoint": "ad8118d7047b6b4deab4c21ced1abb0a189d8ffa",
+  "worktree_clean": true,
+  "reviewed_source_sha256": {
+    "Cargo.toml": "7fa3c5b06e737fda782d19392f3581e7987ca1677a6834f051d667eb9c61659c",
+    "crates/conformance/examples/adapter_source_diagnostic.rs": "1a9cd138ff1a052761f12f0228d7403681011a12f62137c37603d7650bd6ee54",
+    "crates/conformance/src/cases/verification.rs": "68a781a07564a1496260ab8d42997e0a4d8eb1fa9eb21e4a6e28c7a72913677e",
+    "crates/conformance/src/lcnf_adapter.rs": "7f8773ae90b9b22c756f15a78492045055727bcd942758665fc41114f9666cd6",
+    "crates/conformance/src/lcnf_inspection.rs": "6e53679bf17c922a7a7b7e8bbeee130f5cfb876255bae30ad94a3052fd11c68b",
+    "crates/conformance/src/lib.rs": "ebbbcdd7a0e2a8561a21fca48c4e0c8a5381273a35bd83c3781537ccfbcdd045",
+    "crates/conformance/tests/conformance.rs": "e3b5748d08baadd6e155fb922e7a3333517c5a931b7b6a475bf7999283ab9c56",
+    "crates/lexlean/src/api.rs": "506cea7cd41ac94d598bbb0d57fcb6b48e3e87ac8dfd8f1fbf19dc2d06afa71c",
+    "crates/lexlean/src/api/inspection.rs": "55858d0214e134436b92c99f8ea6dfd15bf48aa92ec9aa6cfa1c86bdc66c8e1e",
+    "crates/lexlean/src/api/inspection_core.rs": "35d91781c956ce4a1cafbf99770b7de294d8aa24771f314c7a2b99b7845116d8",
+    "crates/lexlean/src/cli.rs": "8071f294aeaa939bf1b5431e6f9e0901278b14b64add089e24a59538dd3cc588",
+    "crates/lexlean/src/production/lcnf.rs": "65509cea2ee1523c266d4dbc8a48f04dffc6b48ce22bec5f4b4b880afcb39c62",
+    "crates/lexlean/src/production/preserve.rs": "a6f0e6f546e0a66ded8d94d12a438f86580613c05b75908a9b91fca1e85d1ac1",
+    "crates/lexlean/src/verify/mod.rs": "5da5a67f1e28f323c50e42d37c4fa1de0827b087c46b1db2e8e2314ef8983e9a",
+    "features/suites/verification.feature": "ef96b875a702dd0d4ff6531da5ce139045e6b35cf233bcbfcadcfd1a0036c3a5",
+    "language/lcnf-1.2/tooling/src/Extract.lex.tex": "e84394f2b1af10b66147e9665229a5b861b867f04fe153b02be8d73cc84f5ebe",
+    "spec/src/Chapter22.lex.tex": "217b72cb7c6655f1166df71c850d7fb4b71004d68349d46c51a3facbabe51f07",
+    "spec/src/IdsVR.lex.tex": "f7ddc243f672835514dfbbd87afc4e90f1acfb6bccdb4ab5ad13c94697b3c7ef"
+  },
+  "verdict": "No blocking source defect found within reviewed scope; not accepted or qualified",
+  "scope": [
+    "certificate partition boundaries, stage/workspace inclusion and complete replay routing",
+    "inspection request/process limits, structural budget accounting and absent declaration behavior",
+    "native-core refusal boundaries and preservation of large natural numbers",
+    "fixed Lean identity and adapter signature/schema validation",
+    "authoring generator registration and new-output-only adapter diagnostic"
+  ],
+  "supporting_findings": [
+    "Certificate text is audited before splitting; only complete renderer decodeAndAdd command boundaries are split. All command groups and original source record are retained.",
+    "All part files and final wrapper enter stage.certificates. Existing verifier loop compiles and leanchecker-replays each part, then retains exact original certificate axiom audit. Workspace helper also exposes every part in its certificate list.",
+    "Parts live outside original certificate module prefixes. Failure routing normalizes LexLeanPreserve.Parts back to original owner before B/E classification; segment boundaries avoid R1/R10 attribution collisions.",
+    "Request count/name/node/depth bounds and child output cap are enforced; adapter shares traversal fuel across names, levels and expressions across all rows, refusing unresolved fvar/mvar/level metavariables and exhausted budgets.",
+    "Absent names consume traversal budget and emit null type with empty parameters; Rust yields unrepresentable without a native candidate. Malformed or unsupported structural conversion also yields unrepresentable.",
+    "Adapter remains parsed by closed tooling schema and typechecked. Driver still executes owned signature and registry checks; inspection changes only the final entry call.",
+    "Inspection validates Lean 4.32.2 and f3b06c705e6c85f5314019d5d3baab0fec5b580c, matching embedded adapter authority.",
+    "Fifteen authored inspection functions are appended to the existing adapter authoring generator; unit assertion checks exact function values in embedded source and required registry seeds.",
+    "New adapter diagnostic writes only a new output tree and labels acceptance false; it invokes existing registry derivation rather than production export."
+  ],
+  "limitations": [
+    "No Lean compilation, kernel replay, axiom audit or production qualification run performed by reviewer.",
+    "Partition unit test uses synthetic command groups; real A/B/E part elaboration/replay plus negative refusals remain required.",
+    "VR28 runtime positive/absent/budget-negative tests remain required.",
+    "Changed embedded authoring source moves compiler identity. Generated registry, adapter source equality, projections, locks and final products need coherent qualification; no current compiler pin may be adopted from this source review.",
+    "Global serde_json arbitrary_precision feature is needed for inspected large naturals but downstream regression effects were not exhaustively evaluated.",
+    "Not restoration or acceptance of the lost f01 candidate."
+  ],
+  "changes_made_by_reviewer": [
+    "this review receipt only"
+  ],
+  "qualification": false,
+  "denials": [],
+  "uncertain_mutations": []
+}

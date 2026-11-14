@@ -1,0 +1,50 @@
+{
+  "source_checkpoint": "ad8118d7047b6b4deab4c21ced1abb0a189d8ffa",
+  "base": "9fd01c31e40bb29577833825f902fafcceedb49a",
+  "candidate": "rule30-inspection-b02",
+  "acceptance": false,
+  "restored_old_candidate": false,
+  "archive_sha256": "6ae344bcae91568feab2c8c864d90df0ada2bb9a3ed9953cccfde1975a44f8dc",
+  "checks": {
+    "bridge-core-tests.log": "running 6 tests\ntest ir::core::canonical_syntax_tests::canonical_json_is_checked_without_a_value_tree ... ok\ntest ir::core::version_2_tests::version_2_is_language_1_2_only ... ok\ntest ir::core::version_2_tests::version_1_refuses_every_version_2_construct ... ok\ntest ir::core::version_2_tests::a_core_source_yields_its_one_payload ... ok\ntest ir::core::version_2_tests::version_2_names_carry_numeric_components_and_escapes ... ok\ntest ir::core::version_2_tests::version_2_rows_are_checked_against_their_kind ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 219 filtered out; finished in 0.00s\n\n",
+    "bridge-inspection-tests.log": "running 4 tests\ntest api::inspection_core::tests::absent_declaration_has_no_native_goal ... ok\ntest api::inspection_core::tests::unresolved_terms_cannot_become_native_candidates ... ok\ntest api::inspection_core::tests::binder_visibility_and_large_naturals_are_preserved ... ok\ntest api::inspection_core::tests::structural_name_components_remain_distinct ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 221 filtered out; finished in 0.00s\n\n",
+    "bridge-partition-tests.log": "running 1 test\ntest production::preserve::tests::certificate_partition_preserves_every_command_and_replay_dependency ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 224 filtered out; finished in 0.00s\n\n",
+    "bridge-authoring-tests.log": "running 1 test\n\nthread 'lcnf_inspection::tests::inspector_authoring_matches_embedded_functions_and_registry_seeds' (10724) panicked at crates/conformance/src/lcnf_inspection.rs:65:13:\nopaque:Lean.LevelMVarId\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\ntest lcnf_inspection::tests::inspector_authoring_matches_embedded_functions_and_registry_seeds ... FAILED\n\nfailures:\n\nfailures:\n    lcnf_inspection::tests::inspector_authoring_matches_embedded_functions_and_registry_seeds\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 41 filtered out; finished in 0.13s\n\nerror: test failed, to rerun pass `-p repo-conformance --lib`\n",
+    "bridge-authoring-tests-2.log": "running 1 test\ntest lcnf_inspection::tests::inspector_authoring_matches_embedded_functions_and_registry_seeds ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 41 filtered out; finished in 0.14s\n\n"
+  },
+  "cargo_check": "cargo check --locked -p repo-conformance --tests --all-features passed",
+  "format": "cargo fmt --all -- --check passed",
+  "test_correction": "Removed incorrect direct opaque:Lean.LevelMVarId seed expectation: registry exports this transitively via Lean.Level; all15 AST equalities and7 direct seed assertions pass. Production authoring unchanged.",
+  "remaining": [
+    "official model projection and new VR-28 registration closure",
+    "new compiler identity products/locks",
+    "Lean-backed inspection/refusal conformance and exact resulting-tree full acceptance"
+  ],
+  "adopted_generated_files": [
+    "language/lcnf-1.2/tooling/src/Extract.lex.tex",
+    "tests/lcnf/registry.json"
+  ],
+  "generated_source_review": "All79 function ASTs (15inspectors), imports, authority, spec unchanged. Official exporter aligns Lean.Level.mvar field type to pinned Lean.LMVarId alias and removes redundant hand-added opaque LevelMVarId; four registry call-role strings also normalized. Not whitespace-only.",
+  "generated_registry_delta": {
+    "added_calls": [
+      "Lean.ConstantInfo.levelParams",
+      "Nat.log2",
+      "Nat.sub",
+      "String.utf8ByteSize"
+    ],
+    "changed_constructor_types": [
+      "Lean.BinderInfo",
+      "Lean.Level",
+      "Lean.Literal"
+    ],
+    "added_plumbing": [
+      "Lean.BinderInfo.casesOn",
+      "Lean.Level.casesOn",
+      "Lean.Literal.casesOn",
+      "Lean.Name.casesOn"
+    ],
+    "removed_rows": [],
+    "removed_plumbing": []
+  },
+  "validation_scope": "Focused Rust checks apply to ad8118d plus only corrected test expectation. Adopted generated source had independent semantic review and official exporter/listing elaboration under exact fixed kernel; the newly embedded compiler was not rebuilt or accepted."
+}

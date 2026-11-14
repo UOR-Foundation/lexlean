@@ -60,7 +60,6 @@ mod tests {
             "inductive:Lean.BinderInfo",
             "inductive:Lean.Level",
             "inductive:Lean.Literal",
-            "opaque:Lean.LevelMVarId",
         ] {
             assert!(seeds.iter().any(|seed| seed == required), "{required}");
         }

@@ -1,0 +1,13 @@
+{
+  "command": [
+    "timeout",
+    "--kill-after=10s",
+    "300s",
+    "/workspace/lexlean-bridge-target/debug/examples/adapter_source_diagnostic",
+    "/workspace/lexlean-evidence/bridge-adapter-generated"
+  ],
+  "exit": 0,
+  "seconds": 39.99307231800003,
+  "max_rss_kib": 3575432,
+  "source": "ad8118d7047b6b4deab4c21ced1abb0a189d8ffa"
+}

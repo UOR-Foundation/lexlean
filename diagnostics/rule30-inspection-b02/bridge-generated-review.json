@@ -1,0 +1,49 @@
+{
+  "review": "independent generated adapter semantic comparison",
+  "reviewer": "/root/diagnostic_review",
+  "reviewed_at_utc": "2026-11-14T19:42:27.912223+00:00",
+  "checkpoint": "ad8118d7047b6b4deab4c21ced1abb0a189d8ffa",
+  "worktree_note": "Test-only removal of direct opaque:Lean.LevelMVarId seed assertion and untracked diagnostics receipts; no generator source delta",
+  "before_source_sha256": "8d19278f82d49d62954cb8313e4fafdee8b71738b344b1000c5254659a38b776",
+  "generated_source_sha256": "8d19278f82d49d62954cb8313e4fafdee8b71738b344b1000c5254659a38b776",
+  "generated_registry_sha256": "897cf77f45d462bc75fa7d564a621c02024975cfbf41e734ab0b0011d06d4346",
+  "generated_receipt_sha256": "d774cc0eeb674d1e9a4699c5c6e5fdd22edaa7f032306e366dd528a70ea9ed61",
+  "comparison_method": "Small external Rust parser linked to existing LexLean rlib; both complete tooling modules parsed to canonical JSON, compared by unique declaration kind/name; no Cargo rebuild or generator replay",
+  "source_declaration_counts": {
+    "before": 315,
+    "after": 314
+  },
+  "equal_authored_function_count": 79,
+  "equal_inspection_function_count": 15,
+  "unchanged": [
+    "authority",
+    "imports",
+    "spec",
+    "all79 function ASTs",
+    "all existing declarations except the explicitly listed registry alignment changes",
+    "four tooling configuration files"
+  ],
+  "differences": [
+    "Four added inspection call rows retain identical signatures and source pins; role descriptions become standard generator wording.",
+    "Lean.Level.mvar field changes from Lean.LevelMVarId to Lean.LMVarId, matching pinned source constructor.",
+    "Redundant hand-added opaque Lean.LevelMVarId row removed; existing opaque Lean.LMVarId row retained."
+  ],
+  "type_alignment_evidence": {
+    "source": "src/lean/Lean/Level.lean",
+    "sha256": "c1691a3a7491bca520600d91d74160f5772b2a7ef072ea09ab2dbb19ce586401",
+    "alias_line": 70,
+    "constructor_line": 95,
+    "alias": "abbrev LMVarId := LevelMVarId",
+    "constructor": "mvar : LMVarId -> Level"
+  },
+  "registry_delta_review": "Parent separately reviewed four calls, three constructor-visible types and four plumbing additions against producer registry. This receipt independently checks corresponding generated Extract semantic alignment.",
+  "verdict": "No blocking source issue found; supports copying generated Extract and registry into isolated candidate",
+  "acceptance": false,
+  "remaining_qualification": [
+    "real inspection VR28 and refusal checks",
+    "complete partition elaboration/replay and axiom audits",
+    "coherent regenerated compiler identities, locks, normative projections and products",
+    "final full acceptance before pin/adoption"
+  ],
+  "denials": []
+}
