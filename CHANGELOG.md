@@ -32,6 +32,18 @@ workspace carried at those versions without a tag.
   `source_lean_toolchain` (an exactly named earlier patch release, built with
   the pinned Lean; SPEC.md §17.19).
 
+- Intel macOS runs on the line, not on every pull request (SPEC.md §8.3,
+  §9.4). The repository has about one hosted Intel runner and the host's
+  workload takes about three hours of it, so pull requests queued six hours
+  and more for it. `ci-plan.sh` writes `intel`: a ready pull request into a
+  release line runs the whole gate without the Intel construction, lanes and
+  aggregate, unless its head is a release cut (`cut/v*`) or its base is
+  `main`; a push and a request run them. A push landing a tree whose pull
+  request run passed every job but the skipped Intel jobs runs honesty and the
+  Intel jobs only. Such a run never counts as the whole gate for the plan, a
+  dispatch or `release-gate.sh`, so a tag's evidence is still one run with
+  every host. `RP-14` and `RP-18` pin the new cases.
+
 - Canonical JSON refuses duplicate keys that differ only in their escapes (SPEC.md §21.7,
   `AR-11`, #475). The duplicate check compared each key as written, so `{"a":1,"\u0061":2}`
   passed it and `Json::parse` returned `{"a":2}`, dropping the first member; keys are now
