@@ -310,8 +310,37 @@ jobs:
             exit 0
           fi
           echo "measuring: $cases" | tee -a "$GITHUB_STEP_SUMMARY"
-          LEXLEAN_MEASURE_STACK=all cargo test -p repo-conformance --all-features --test conformance -- $cases --nocapture 2>&1 \
-            | grep -E --line-buffered 'debug [0-9]+ bytes|test result|panicked|^test '
+          # Each of these cases alone measured over 6 GiB RSS on 2026-11-14;
+          # four of them at once on this runner's 16 GiB swapped the agent
+          # to death twice (neither loss hit the step's own 360-minute
+          # timeout). Run them one at a time; run the rest at --test-threads=2.
+          heavy="conformance_bs_69 conformance_bs_70 conformance_bs_71 conformance_bs_72"
+          light=""
+          heavy_cases=""
+          for case in $cases; do
+            is_heavy=0
+            for h in $heavy; do
+              if [ "$case" = "$h" ]; then
+                is_heavy=1
+                break
+              fi
+            done
+            if [ "$is_heavy" = 1 ]; then
+              heavy_cases="$heavy_cases $case"
+            else
+              light="$light $case"
+            fi
+          done
+          if [ -n "$light" ]; then
+            echo "measuring (threads=2): $light" | tee -a "$GITHUB_STEP_SUMMARY"
+            LEXLEAN_MEASURE_STACK=all cargo test -p repo-conformance --all-features --test conformance -- $light --test-threads=2 --nocapture 2>&1 \
+              | grep -E --line-buffered 'debug [0-9]+ bytes|test result|panicked|^test '
+          fi
+          if [ -n "$heavy_cases" ]; then
+            echo "measuring (threads=1): $heavy_cases" | tee -a "$GITHUB_STEP_SUMMARY"
+            LEXLEAN_MEASURE_STACK=all cargo test -p repo-conformance --all-features --test conformance -- $heavy_cases --test-threads=1 --nocapture 2>&1 \
+              | grep -E --line-buffered 'debug [0-9]+ bytes|test result|panicked|^test '
+          fi
       - name: Return the regenerated tree
         if: ${{ !cancelled() }}
         shell: bash
