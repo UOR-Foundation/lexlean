@@ -2401,8 +2401,7 @@ pub fn run_part(
             .iter()
             .map(|module| module.lean_module.clone())
             .collect();
-        let mut stage =
-            preserve::stage(&generated_modules, &staged_certificates).map_err(fail)?;
+        let mut stage = preserve::stage(&generated_modules, &staged_certificates).map_err(fail)?;
         staged_certificates = staged_certificates
             .into_iter()
             .map(crate::production::certificate::Certificate::released)
