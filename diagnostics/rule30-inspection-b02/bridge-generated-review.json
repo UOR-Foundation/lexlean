@@ -4,7 +4,7 @@
   "reviewed_at_utc": "2026-11-14T19:42:27.912223+00:00",
   "checkpoint": "ad8118d7047b6b4deab4c21ced1abb0a189d8ffa",
   "worktree_note": "Test-only removal of direct opaque:Lean.LevelMVarId seed assertion and untracked diagnostics receipts; no generator source delta",
-  "before_source_sha256": "8d19278f82d49d62954cb8313e4fafdee8b71738b344b1000c5254659a38b776",
+  "before_source_sha256": "e84394f2b1af10b66147e9665229a5b861b867f04fe153b02be8d73cc84f5ebe",
   "generated_source_sha256": "8d19278f82d49d62954cb8313e4fafdee8b71738b344b1000c5254659a38b776",
   "generated_registry_sha256": "897cf77f45d462bc75fa7d564a621c02024975cfbf41e734ab0b0011d06d4346",
   "generated_receipt_sha256": "d774cc0eeb674d1e9a4699c5c6e5fdd22edaa7f032306e366dd528a70ea9ed61",
@@ -45,5 +45,13 @@
     "coherent regenerated compiler identities, locks, normative projections and products",
     "final full acceptance before pin/adoption"
   ],
-  "denials": []
+  "denials": [],
+  "before_source_bytes": 628980,
+  "before_source_provenance": "git show ad8118d7047b6b4deab4c21ced1abb0a189d8ffa:language/lcnf-1.2/tooling/src/Extract.lex.tex",
+  "receipt_correction": {
+    "at_utc": "2026-11-14T19:47:49.355492+00:00",
+    "field": "before_source_sha256",
+    "previous_value": "8d19278f82d49d62954cb8313e4fafdee8b71738b344b1000c5254659a38b776",
+    "reason": "Mutable worktree source was adopted before receipt hash read; original semantic comparison used captured /tmp/bridge-review-before.json. Reparsed immutable Git blob equals that complete captured AST exactly. Semantic review conclusion unchanged."
+  }
 }

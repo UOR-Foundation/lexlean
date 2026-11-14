@@ -133,7 +133,7 @@ pub(crate) fn run(id: &str) {
             serde_json::json!(["True", "LexLeanInspectionMissing.absent", "Eq.refl"])
         );
         assert!(mixed.get("attestation_id").is_none());
-        let (exit, _, _) = project.cli(&[
+        let (exit, output, errors) = project.cli(&[
             "inspect",
             "--import",
             "Init",
@@ -147,8 +147,14 @@ pub(crate) fn run(id: &str) {
             "absent-over-budget.json",
         ]);
         assert_ne!(exit, 0, "absent names must still consume the shared budget");
+        let diagnostic = format!("{output}{errors}");
+        assert!(diagnostic.contains("LLV7002"), "{diagnostic}");
+        assert!(
+            diagnostic.contains("traversal budget exhausted"),
+            "{diagnostic}"
+        );
         assert!(!project.root.join("absent-over-budget.json").exists());
-        let (exit, _, _) = project.cli(&[
+        let (exit, output, errors) = project.cli(&[
             "inspect",
             "--import",
             "Init",
@@ -162,6 +168,12 @@ pub(crate) fn run(id: &str) {
             "refused.json",
         ]);
         assert_ne!(exit, 0, "bounded inspection cannot truncate a type");
+        let diagnostic = format!("{output}{errors}");
+        assert!(diagnostic.contains("LLV7002"), "{diagnostic}");
+        assert!(
+            diagnostic.contains("traversal budget exhausted"),
+            "{diagnostic}"
+        );
         assert!(!project.root.join("refused.json").exists());
         return;
     }
