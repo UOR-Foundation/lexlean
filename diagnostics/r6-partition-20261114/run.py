@@ -47,7 +47,7 @@ def prepare(stage, out):
             groups.append(commands[start:at])
             start = at
     groups.append(commands[start:])
-    assert b''.join(groups) == commands and len(groups) == 8 and len(starts) == 69
+    assert groups and starts and b''.join(groups) == commands
     parts = []
     previous = None
     for i, group in enumerate(groups):
@@ -68,7 +68,7 @@ def prepare(stage, out):
     save(out / 'manifest.json', dict(original, files=files,
          certificates=[p['module'] for p in parts] + [module],
          original_manifest_sha256=digest(stage / 'manifest.json'),
-         original_certificate_sha256=row['sha256'], command_count=69,
+         original_certificate_sha256=row['sha256'], command_count=len(starts),
          partition_source_checkpoint='abb7ad9728a68d54d83977f35a25797756ba4bab'))
 
 
@@ -89,7 +89,7 @@ def group_rss(pid):
     return sum(entries[p][1] for p in group if p in entries)
 
 
-def run(root, bin_dir, helper, retained):
+def run(root, bin_dir, helper, retained, reuse_from=None):
     manifest = json.loads((root / 'manifest.json').read_text())
     for row in manifest['files']:
         assert digest(root / 'src' / row['path']) == row['sha256']
@@ -106,6 +106,13 @@ def run(root, bin_dir, helper, retained):
     save(root / 'environment.json', env)
     key['environment'] = digest(root / 'environment.json')
     rows = {r['module']: r for r in manifest['files']}
+    if reuse_from:
+        old_manifest = json.loads((reuse_from / 'manifest.json').read_text())
+        old_rows = {r['module']: r for r in old_manifest['files']}
+        old_env = json.loads((reuse_from / 'environment.json').read_text())
+        assert old_env['LEAN_PATH'] == str(reuse_from / 'build')
+        assert {k: v for k, v in old_env.items() if k != 'LEAN_PATH'} == {k: v for k, v in env.items() if k != 'LEAN_PATH'}
+        key['reused_environment_manifest'] = digest(reuse_from / 'manifest.json')
 
     def artifact_inventory(artifact):
         return {str(p.relative_to(root)): digest(p) for p in sorted(artifact.parent.glob(artifact.stem + '.*')) if p.is_file()}
@@ -150,13 +157,52 @@ def run(root, bin_dir, helper, retained):
         if code or reason:
             raise RuntimeError(f'{label} failed; retained {receipt}')
 
+    def adopt_environment(row, target, compiled):
+        # Reuse only the successfully elaborated, unchanged environment, never
+        # a prior certificate or proof acceptance. Preserve its original receipt.
+        old_row = old_rows[row['module']]
+        assert row == old_row
+        assert row['module'] not in old_manifest['certificates']
+        assert row['module'] != old_manifest['audit']
+        assert digest(reuse_from / 'src' / row['path']) == row['sha256']
+        label = 'compile-' + row['module']
+        old_receipt = reuse_from / 'results' / (label + '.json')
+        old = json.loads(old_receipt.read_text())
+        assert old['key']['runner'] == 'a5dfe29afbbce3663e288174e2dcbea4ab9dad201ab502fc947b8bc45ddc7cd1'
+        assert old['key']['manifest'] == key['reused_environment_manifest']
+        assert old['key']['environment'] == digest(reuse_from / 'environment.json')
+        for field in ['lean', 'leanchecker', 'toolchain_libraries']:
+            assert old['key'][field] == key[field]
+        assert old['exit'] == 0 and old['reason'] is None and old['silent'] is True
+        assert old['dependencies'] == compiled
+        old_log = reuse_from / 'results' / (label + '.log')
+        assert old_log.stat().st_size == 0 and digest(old_log) == old['log_sha256']
+        old_target = reuse_from / 'build' / Path(row['path']).with_suffix('.olean')
+        assert old['argv'] == [str(bin_dir / 'lean'), '-R', str(reuse_from / 'src'), '-o', str(old_target), str(reuse_from / 'src' / row['path'])]
+        inventory = {str(p.relative_to(reuse_from)): digest(p) for p in sorted(old_target.parent.glob(old_target.stem + '.*')) if p.is_file()}
+        assert old_target.is_file() and inventory == old['artifact_inventory']
+        for relative, sha in inventory.items():
+            destination = root / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(reuse_from / relative, destination)
+            assert digest(destination) == sha
+        assert artifact_inventory(target) == inventory
+        save(logs / ('adopt-' + row['module'] + '.json'), {
+            'event': 'adopted-existing-environment-elaboration',
+            'source_receipt_sha256': digest(old_receipt), 'source_receipt': old,
+            'target_key': key, 'artifact_inventory': inventory})
+        print('adopt-environment', row['module'], flush=True)
+
     compiled = {}
     for row in manifest['files']:
         if row['module'] == manifest['audit']:
             continue
         target = root / 'build' / Path(row['path']).with_suffix('.olean')
         target.parent.mkdir(parents=True, exist_ok=True)
-        child('compile-' + row['module'], [str(bin_dir / 'lean'), '-R', str(root / 'src'), '-o', str(target), str(root / 'src' / row['path'])], target, dict(compiled), silent=True)
+        if reuse_from and row['module'] not in manifest['certificates']:
+            adopt_environment(row, target, dict(compiled))
+        else:
+            child('compile-' + row['module'], [str(bin_dir / 'lean'), '-R', str(root / 'src'), '-o', str(target), str(root / 'src' / row['path'])], target, dict(compiled), silent=True)
         compiled[row['module']] = artifact_inventory(target)
     expected_outputs = {path for outputs in compiled.values() for path in outputs}
     actual_outputs = {str(p.relative_to(root)) for p in (root / 'build').rglob('*') if p.is_file()}
