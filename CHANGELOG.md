@@ -17,6 +17,11 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- Canonical JSON refuses duplicate keys that differ only in their escapes (SPEC.md §21.7,
+  `AR-11`, #475). The duplicate check compared each key as written, so `{"a":1,"\u0061":2}`
+  passed it and `Json::parse` returned `{"a":2}`, dropping the first member; keys are now
+  compared after escape decoding. Equal keys in distinct objects stay admitted, and no valid
+  canonical document is affected.
 - The bootstrap project configures `max_child_output_bytes = 268435456` (SPEC.md
   §17.23, §10.2), by the maintainer's decision: the extraction of its export wrote
   more than the default 33,554,432 bytes on `lean`'s output once the front end's
