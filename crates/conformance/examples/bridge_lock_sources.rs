@@ -22,8 +22,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let relative = row["path"].as_str().ok_or("lock path required")?;
         let path = root.join(relative);
         let before = std::fs::read_to_string(&path)?;
-        if relative == "tests/negative/lock-schema-language-mismatch/project/lexlean.lock" {
-            rows.push(serde_json::json!({"path":relative,"status":"preserved-deliberate-schema-mismatch"}));
+        if matches!(
+            relative,
+            "tests/negative/lock-schema-language-mismatch/project/lexlean.lock"
+                | "tests/negative/module-prefix-reserved/project/lexlean.lock"
+                | "tests/negative/module-prefix-shipped-root/project/lexlean.lock"
+        ) {
+            rows.push(serde_json::json!({"path":relative,"status":"preserved-deliberate-schema-or-configuration-refusal"}));
             continue;
         }
         if !before.contains(old) {
