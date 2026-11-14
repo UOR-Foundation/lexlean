@@ -96,6 +96,25 @@ pub fn run(root: &Path, arguments: &[String]) -> Result<(), Fail> {
             let path = option(arguments, "--merged")?;
             let merged = std::fs::read_to_string(path)
                 .map_err(|error| refusal(&format!("{path}: {error}"), false))?;
+            // `--register`: a merged `model/ids.toml`, whose changed statements
+            // are carried into their rows first (a forward merge from a line
+            // without spec/, §9.4). A scratch run leaves the modules alone.
+            if let Some(register) = arguments
+                .iter()
+                .position(|argument| argument == "--register")
+                .and_then(|at| arguments.get(at + 1))
+            {
+                let ids = std::fs::read_to_string(register)
+                    .map_err(|error| refusal(&format!("{register}: {error}"), false))?;
+                if dry_run {
+                    return Err(refusal(
+                        "--register writes the register modules; it has no --dry-run",
+                        false,
+                    ));
+                }
+                let moved = crate::counts::carry_statements(root, &ids, true)?;
+                println!("spec: carried {moved} register statement(s) from {register}");
+            }
             spec_edit::port(root, &merged)?
         }
         other => {
