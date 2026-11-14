@@ -21685,3 +21685,97 @@ test result: FAILED. 0 passed; 2 failed
 `RP-19` failed at the first language-1.2 lock, whose `compiler_semantics` line
 carried the planted digit while the default build's carried the tree's. With
 each plant removed, `conformance_rp_10` and `conformance_rp_19` pass.
+
+## GL-22 semantic declaration publication can fail (#316)
+
+The initial registered Color candidate failed `conformance_gl_22` at its first
+positive `P::check_ok`: `LLT4001`, “no type-noun interpretation survives”, at
+`src/Main.lex.tex:9:11`. This initial R3 observation preceded the typed semantic
+bridge. Its original output and independent causal review remain retained;
+later fixture-parser, diagnostic-expectation and configuration failures also
+remain evidence, not passing-baseline results.
+
+On 2026-11-10, the repaired source candidate
+`b2575046686bf7c7b9260e580976d34b7f9f2643` passed the full named case once with
+`conformance_gl_22 --exact --test-threads=1 --nocapture`, native Linux x86-64,
+pinned Lean 4.32.1 and verifier width 1: one passed, none failed or ignored,
+483 filtered out, exit 0 in 10.332162 seconds. The case checked typed semantic
+inductive/structure/definition/theorem exports, scoped signatures and Let
+comparison, direct imports and aliases, overload selection and prose ordering.
+It completed twenty labeled static-negative controls and the separate native
+false-predicate-body refusal `LLV7002`.
+
+The shared positive native verification completed before assertions that six
+named declarations had exactly empty observed axiom sets: Main's `color_refl`,
+`point_refl`, `function_use`, `generic_use`, `predicate_and_proof_use`, and
+`Colors.redRefl`, all under `LanguageTwelve`. This is completed native harness
+and assertion evidence. The temporary raw attestations were read by the case
+and dropped with its fixtures; no durable raw-attestation archive is claimed.
+The accepted frozen positive executable SHA-256 is
+`ec45814e10afb90253b8392840c5dab09f0e6d04ea5e4e698de6d7bd0771e1d3`.
+
+A distinct compiler defect then omitted exactly the successful publication of
+`Colors::Color` from the semantic export table in `link.rs`; every fixture and
+assertion and every other source path stayed unchanged. One selected mutant
+conformance build was necessary because the positive executable statically
+contains the accepted compiler. Its actual graph, selected roots, 905 embedded
+inputs and error inputs were reviewed; no additional probe or baseline build
+or run was used. The separately frozen mutant executable SHA-256 is
+`059281fa336ed768d2a8c5e7a8bf7cdb3dc38dbac76a79fcf5512666ef48ea76`.
+
+The exact same named case failed once with that mutant, exit 101 in 1.366889
+seconds. Its first positive check at `support.rs:871` reported `LLT4001` at
+Main's original Color binder, line 9, column 11:
+
+```text
+no type-noun interpretation survives: document declaration `Colors::Color` is not available here
+```
+
+That first check precedes all native verification calls; the durable diagnostic
+and unchanged source order establish this refusal before Lean. Exit 101 alone
+is not the witness. This compiler-publication omission is distinct from the
+case's false-proposition input mutation.
+
+The planted defect was removed under the same whole-phase lock by restoring
+the exact accepted `link.rs` Git preimage (SHA-256
+`e4d4daf98209abe3b5acdefaf5a05f42b94c8d25e56e756666a86ff4504b6789`).
+The full 10,878-entry accepted source inventory, Git metadata and protected
+witnesses passed restoration guards and independent review. The selected
+mutable target libraries and harness remain explicitly marked mutant/stale;
+restoring source does not restore their compiled bytes. Positive and mutant
+frozen executables, diagnostics, ledgers and independent reviews remain
+retained. No accepted baseline rebuild or rerun followed restoration.
+
+The retained result/review pairs are initial R3 `4468cc9f`/`9e8bface`, full
+positive `13beb4e5`/`05f61e9e`, mutant build `b62a14fd`/`e0cc8614`, and omission
+witness plus restoration `f8dda89f`/`2d1b5869`; the external evidence ledger
+records their complete hashes. These establish the bounded GL-22 regression
+and its compiler-omission falsifiability. They do not establish product
+regeneration, a final-head full acceptance gate, merge, publication or issue
+closure. Those decisions require the actual final composition and ownership,
+including the separately owned #405 forward integration; no old workflow job
+count or earlier prepared head substitutes for that acceptance.
+
+Merged onto `release/v0.5` at `6c36829120` (after the #405 forward merge), the
+case passes on the merge: `conformance_gl_22` ran with one passed, none failed
+(521 filtered out) in 44.94 s, pinned Lean 4.32.1. The merge needed one change
+to the source of that candidate: the `match` of `term_kind` in
+`crates/lexlean/src/elaborate/semantic.rs` ended in a wildcard arm, which
+`audit-classifications` (RP-15) refuses; it now names every `SemanticTerm`
+variant.
+
+Planted on that merge: the comparison of the glossary signature with the
+semantic declaration's type in `validate_semantic_signature`
+(`crates/lexlean/src/elaborate/expressions.rs`) disabled by prefixing its
+condition with `false &&`. Command: `cargo test -p repo-conformance --test
+conformance -- conformance_gl_22`. Expected: the entry whose implicit mode
+disagrees with `Colors::generic` is no longer refused.
+
+```text
+GL22 negative implicit-mode: expect LLT4001
+thread 'conformance_gl_22' panicked at crates/conformance/src/support.rs:895:14:
+check fails
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 521 filtered out
+```
+
+Removed: the edit was restored and the case passes.
