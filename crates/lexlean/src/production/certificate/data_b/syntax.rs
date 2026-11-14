@@ -523,6 +523,10 @@ impl Writer<'_, '_> {
             Machine::BytesCompare => "bytesCompare",
             Machine::StringSplit => "stringSplit",
             Machine::StringJoin => "stringJoin",
+            Machine::FormatDecimal(_) => "formatDecimal",
+            Machine::ParseDecimal(_) => "parseDecimal",
+            Machine::ParseDecimalInt => "parseDecimalInt",
+            Machine::FormatDecimalInt => "formatDecimalInt",
             Machine::BytesUpdate => "bytesUpdate",
         };
         match machine.width() {

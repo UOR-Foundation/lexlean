@@ -128,7 +128,6 @@ public inductive Item where
   | formatFixed (_ : LexLeanTarget.TargetSyntax.IntKind)
   | parseInt
   | parseFixed (_ : LexLeanTarget.TargetSyntax.IntKind)
-  | updateBytes
 
 public inductive Machine where
   | checkedAdd (_ : LexLeanTarget.TargetSyntax.IntKind)
@@ -171,7 +170,10 @@ public inductive Machine where
   | bytesCompare
   | stringSplit
   | stringJoin
-  | bytesUpdate
+  | formatDecimal (_ : LexLeanTarget.TargetSyntax.IntKind)
+  | parseDecimal (_ : LexLeanTarget.TargetSyntax.IntKind)
+  | parseDecimalInt
+  | formatDecimalInt
 
 public inductive Callee where
   | function (_ : Nat)

@@ -19,6 +19,20 @@ use crate::source::coverage::Origin;
 
 mod reasoning;
 
+/// The document inductive type of each theorem parameter that has one, by the
+/// parameter's name.
+type ScrutineeTypes = std::collections::BTreeMap<String, MemberRef>;
+
+fn scrutinee_types(parameters: &[SemanticParameter]) -> ScrutineeTypes {
+    parameters
+        .iter()
+        .filter_map(|parameter| match &parameter.r#type {
+            SemanticType::Named { member, .. } => Some((parameter.name.clone(), member.clone())),
+            _ => None,
+        })
+        .collect()
+}
+
 struct Render<'a> {
     prefix: &'a str,
     /// The Lean module each imported module's key names; a module not in it
@@ -35,6 +49,10 @@ struct Render<'a> {
     /// qualified: a cross-check named `E.thm` would otherwise resolve the
     /// theorem `thm` it restates to itself (§17.12, models).
     qualify: Option<&'a str>,
+    /// Each constructor with a field of an inductive type the module
+    /// declares, as `T.c` in declaration order: `term_cases` names its
+    /// injectivity lemma (§17.10, `SM-35`).
+    injective: &'a [String],
 }
 
 /// The generated name of well-founded hypothesis `index`. Semantic names
@@ -108,6 +126,8 @@ fn proof_uses(proof: &SemanticProof, local: &str) -> bool {
     };
     match proof {
         SemanticProof::Reflexivity | SemanticProof::Decide | SemanticProof::Congruence => false,
+        // The lowered request lists every field of the theorem's one parameter.
+        SemanticProof::RegionCheck => true,
         SemanticProof::LinearArithmetic { definitions }
         | SemanticProof::Simplify { definitions } => definitions
             .iter()
@@ -146,7 +166,44 @@ fn proof_uses(proof: &SemanticProof, local: &str) -> bool {
                     .iter()
                     .any(|member| member.module.is_none() && member.name == local)
         }
+        SemanticProof::NestedInduction {
+            scrutinee,
+            branches,
+            members,
+        } => {
+            scrutinee == local
+                || branch_uses(branches)
+                || members.iter().any(|member| {
+                    member.binder != local
+                        && (term_uses(&member.statement, local) || branch_uses(&member.branches))
+                })
+        }
     }
+}
+
+/// Whether a parameter before the recursive argument is matched in `body`.
+/// With no stated argument, Lean recurses on the first parameter every
+/// recursive call decreases, and a call can decrease only a parameter the body
+/// matches, so this is when Lean's choice can differ from the checked argument.
+fn matches_earlier_parameter(
+    parameters: &[SemanticParameter],
+    recursive_argument: &str,
+    body: &SemanticTerm,
+) -> bool {
+    let earlier: BTreeSet<&str> = parameters
+        .iter()
+        .map(|parameter| parameter.name.as_str())
+        .take_while(|name| *name != recursive_argument)
+        .collect();
+    let mut found = false;
+    crate::ir::semantic::visit_terms(body, &mut |term| {
+        if let SemanticTerm::Match { scrutinee, .. } = term {
+            if let SemanticTerm::Var { name } = scrutinee.as_ref() {
+                found |= earlier.contains(name.as_str());
+            }
+        }
+    });
+    found
 }
 
 pub(crate) fn term_uses(term: &SemanticTerm, local: &str) -> bool {
@@ -751,6 +808,7 @@ impl Render<'_> {
             hypotheses: std::collections::BTreeMap::new(),
             document: false,
             qualify: Some(module),
+            injective: self.injective,
         };
         let this = &qualified;
         let name = identifier(&check.name);
@@ -791,14 +849,14 @@ impl Render<'_> {
                             .collect::<Vec<_>>()
                             .join(" && ")
                     ),
-                    Some("by decide"),
+                    Some("by decide +kernel"),
                 )
             }
             CheckStatement::Lines { artifact } => {
                 let value = identifier(artifact);
                 (
                     format!("LexLeanModels.linesMatch {value} {value}.bytes = true"),
-                    Some("by decide"),
+                    Some("by decide +kernel"),
                 )
             }
             CheckStatement::Bytes { artifact } => {
@@ -808,7 +866,7 @@ impl Render<'_> {
         };
         let proof = match (&check.proof, proof) {
             (_, Some(proof)) => proof.to_owned(),
-            (CheckProof::Decide, None) => "by decide".to_owned(),
+            (CheckProof::Decide, None) => "by decide +kernel".to_owned(),
             (
                 CheckProof::Theorem {
                     theorem,
@@ -861,17 +919,26 @@ impl Render<'_> {
     ) -> String {
         let int64_result =
             matches!(result, SemanticType::Option { value } if **value == SemanticType::Int64);
-        let (head, ascription) = match spelling(operation) {
-            Spelling::Runtime {
-                int64: Some(specialized),
-                ..
-            } if int64_result => (
-                format!("LexLeanRuntime.{specialized}"),
-                "Option (Int64)".to_owned(),
-            ),
-            Spelling::Runtime { name, .. } => (format!("LexLeanRuntime.{name}"), self.ty(result)),
-            Spelling::Widening(name) => (name.to_owned(), self.ty(result)),
-            Spelling::Collection(name) => (format!("LexLeanCollections.{name}"), self.ty(result)),
+        let nat_head = operation.nat_bitwise_function(result);
+        let (head, ascription) = if let Some(nat_fn) = nat_head {
+            (nat_fn.to_owned(), self.ty(result))
+        } else {
+            match spelling(operation) {
+                Spelling::Runtime {
+                    int64: Some(specialized),
+                    ..
+                } if int64_result => (
+                    format!("LexLeanRuntime.{specialized}"),
+                    "Option (Int64)".to_owned(),
+                ),
+                Spelling::Runtime { name, .. } => {
+                    (format!("LexLeanRuntime.{name}"), self.ty(result))
+                }
+                Spelling::Widening(name) => (name.to_owned(), self.ty(result)),
+                Spelling::Collection(name) => {
+                    (format!("LexLeanCollections.{name}"), self.ty(result))
+                }
+            }
         };
         let mut out = format!("({head}");
         for argument in arguments {
@@ -1194,7 +1261,12 @@ impl Render<'_> {
         }
     }
 
-    fn proof_branch(&self, branch: &SemanticProofBranch, indent: usize) -> String {
+    fn proof_branch(
+        &self,
+        branch: &SemanticProofBranch,
+        indent: usize,
+        owners: &ScrutineeTypes,
+    ) -> Result<String, Diagnostic> {
         let binders = if branch.binders.is_empty() {
             String::new()
         } else {
@@ -1208,20 +1280,37 @@ impl Render<'_> {
                     .join(" ")
             )
         };
-        format!(
+        Ok(format!(
             "{}| {}{} =>\n{}",
             "  ".repeat(indent),
             identifier(&branch.constructor),
             binders,
-            self.proof(&branch.proof, indent + 1)
-        )
+            self.proof(&branch.proof, indent + 1, owners)?
+        ))
     }
 
-    fn proof(&self, proof: &SemanticProof, indent: usize) -> String {
+    /// `owners` names, for each theorem parameter of a document inductive
+    /// type, that type: `nested_induction` names the recursor Lean generated
+    /// for the scrutinee's type (§16.9, `SM-37`).
+    fn proof(
+        &self,
+        proof: &SemanticProof,
+        indent: usize,
+        owners: &ScrutineeTypes,
+    ) -> Result<String, Diagnostic> {
         let pad = "  ".repeat(indent);
-        match proof {
+        Ok(match proof {
             SemanticProof::Reflexivity => format!("{pad}rfl\n"),
-            SemanticProof::Decide => format!("{pad}decide\n"),
+            // The kernel evaluator shares reductions of nested data. The
+            // metaprogram evaluator can exhaust memory on ordinary closed
+            // parser traces; both still produce kernel-checked proof terms.
+            SemanticProof::Decide => format!("{pad}decide +kernel\n"),
+            SemanticProof::RegionCheck => {
+                return Err(Diagnostic::new(
+                    code!("LLI9001"),
+                    "phase lean-backend: region_check is a whole proof, never a branch",
+                ))
+            }
             SemanticProof::LinearArithmetic { definitions } => {
                 let unfolded = definitions
                     .iter()
@@ -1241,7 +1330,7 @@ impl Render<'_> {
                 let mut out = format!("{pad}constructor\n");
                 for branch in branches {
                     out.push_str(&format!("{pad}·\n"));
-                    out.push_str(&self.proof(branch, indent + 1));
+                    out.push_str(&self.proof(branch, indent + 1, owners)?);
                 }
                 out
             }
@@ -1251,7 +1340,7 @@ impl Render<'_> {
             } => {
                 let mut out = format!("{pad}cases {} with\n", identifier(scrutinee));
                 for branch in branches {
-                    out.push_str(&self.proof_branch(branch, indent));
+                    out.push_str(&self.proof_branch(branch, indent, owners)?);
                 }
                 out
             }
@@ -1277,7 +1366,56 @@ impl Render<'_> {
                     identifier(scrutinee)
                 );
                 for branch in branches {
-                    out.push_str(&self.proof_branch(branch, indent));
+                    out.push_str(&self.proof_branch(branch, indent, owners)?);
+                }
+                out
+            }
+            SemanticProof::NestedInduction {
+                scrutinee,
+                branches,
+                members,
+            } => {
+                // The recursor Lean generates for a nested inductive takes
+                // one motive for each member of the type's recursive family,
+                // `motive_1` (the goal) first. The proof states the others,
+                // and the goals that remain are the minor premises, in the
+                // order the checker put the branches in: the constructors of
+                // the type, then those of each member. Two members can share
+                // a constructor name, which `induction ... with` refuses, so
+                // the goals are named by position.
+                // The linker admits only a theorem parameter of a document
+                // inductive type, so a scrutinee with no owner is a defect.
+                let owner = owners.get(scrutinee).ok_or_else(|| {
+                    Diagnostic::new(
+                        code!("LLI9001"),
+                        format!(
+                            "phase lean-backend: nested_induction scrutinee `{scrutinee}` is not a theorem parameter of a document inductive type"
+                        ),
+                    )
+                })?;
+                let recursor = format!("{}.rec", self.member(owner));
+                let mut out = format!("{pad}induction {} using {recursor}\n", identifier(scrutinee));
+                for (index, member) in members.iter().enumerate() {
+                    out.push_str(&format!(
+                        "{pad}  (motive_{} := fun {} => {})\n",
+                        index + 2,
+                        identifier(&member.binder),
+                        self.term(&member.statement)
+                    ));
+                }
+                for branch in branches
+                    .iter()
+                    .chain(members.iter().flat_map(|member| &member.branches))
+                {
+                    let binders: String = branch
+                        .binders
+                        .iter()
+                        .map(|name| format!(" {}", identifier(name)))
+                        .collect();
+                    out.push_str(&format!(
+                        "{pad}next{binders} =>\n{}",
+                        self.proof(&branch.proof, indent + 1, owners)?
+                    ));
                 }
                 out
             }
@@ -1285,11 +1423,18 @@ impl Render<'_> {
                 scrutinee,
                 definitions,
             } => format!(
-                "{pad}set_option linter.unusedSimpArgs false in\n{pad}cases llCase : {} <;>\n{pad}  simp (config := {{decide := true}}) only [{}, llCase, ite_true, ite_false]\n",
+                "{pad}set_option linter.unusedSimpArgs false in\n{pad}cases llCase : {} <;>\n{pad}  simp (config := {{decide := true}}) only [{}]\n",
                 self.term(scrutinee),
                 definitions
                     .iter()
                     .map(|member| self.member(member))
+                    .chain(TERM_CASES_RULES.iter().map(|rule| (*rule).to_owned()))
+                    .chain(self.injective.iter().map(|constructor| {
+                        self.member(&MemberRef {
+                            module: None,
+                            name: format!("{constructor}.injEq"),
+                        })
+                    }))
                     .collect::<Vec<_>>()
                     .join(", ")
             ),
@@ -1388,9 +1533,30 @@ impl Render<'_> {
                     .collect::<String>();
                 format!("{pad}exact {}{arguments}\n", self.member(theorem))
             }
-        }
+        })
     }
 }
+
+/// The fixed rules `term_cases` names after the definitions (§17.10,
+/// `SM-35`): the case hypothesis, the conditional on a decided condition,
+/// the pinned Lean's no-confusion procedure for two different constructors,
+/// the units an injectivity equation leaves, and the injectivity lemmas of
+/// the constructors with a field of `Option`, `Result` (`Except`), and
+/// `List`. The injectivity lemmas of the module's own constructors follow.
+const TERM_CASES_RULES: &[&str] = &[
+    "llCase",
+    "ite_true",
+    "ite_false",
+    "reduceCtorEq",
+    "false_implies",
+    "imp_self",
+    "and_true",
+    "true_and",
+    "Option.some.injEq",
+    "Except.error.injEq",
+    "Except.ok.injEq",
+    "List.cons.injEq",
+];
 
 /// The fixed Boolean comparisons `linear_arithmetic` reflects into
 /// propositions, and the runtime definitions it unfolds (§17.12).
@@ -1517,6 +1683,7 @@ fn well_founded_definition(
             .collect(),
         document: false,
         qualify: base.qualify,
+        injective: base.injective,
     };
     // A parameter the measure alone mentions is used: `termination_by`
     // references it.
@@ -1911,12 +2078,31 @@ pub fn render_lean(
     });
     let runtime = elaborated.contains("\"kind\":\"primitive\"") || reasoning;
     let document = &checked.document;
+    // §17.10 (`SM-35`): the constructors whose injectivity lemma
+    // `term_cases` names, those with a field of the module's own inductives.
+    let injective: Vec<String> = module
+        .declarations
+        .iter()
+        .filter_map(|declaration| match declaration {
+            SemanticDeclaration::Inductive {
+                name, constructors, ..
+            } => Some(
+                constructors
+                    .iter()
+                    .filter(|constructor| !constructor.fields.is_empty())
+                    .map(move |constructor| format!("{name}.{}", constructor.name)),
+            ),
+            _ => None,
+        })
+        .flatten()
+        .collect();
     let base_render = Render {
         prefix: module_prefix,
         lean_imports: &document.import_lean,
         hypotheses: std::collections::BTreeMap::new(),
         document: false,
         qualify: None,
+        injective: &injective,
     };
     // A declaration a model elaborates to is named `R.x`, and Lean resolves
     // a name inside it against the namespace `R` first, so every local
@@ -1927,6 +2113,7 @@ pub fn render_lean(
         hypotheses: std::collections::BTreeMap::new(),
         document: false,
         qualify: Some(&document.lean_module),
+        injective: &injective,
     };
     // §17.12: the runtime a module uses. A language-1.2 module imports the
     // runtime modules, native modules of the embedded runtime project; a
@@ -1945,15 +2132,19 @@ pub fn render_lean(
     // module and `law` applies it, so a module with either proof uses it.
     let laws = elaborated.contains("\"kind\":\"linear_arithmetic\"")
         || elaborated.contains("\"kind\":\"law\"");
+    // §17.12 (decision regions): a `region_check` proof applies the
+    // soundness theorem of the regions module.
+    let regions = elaborated.contains("\"kind\":\"region_check\"");
     let mut text = String::from("module\npublic import Init\n");
     if language_1_2 {
-        use crate::backend::runtime::{COLLECTIONS, LAWS, MODELS, PORTABLE, REASONING};
+        use crate::backend::runtime::{COLLECTIONS, LAWS, MODELS, PORTABLE, REASONING, REGIONS};
         for (used, runtime_module) in [
             (runtime, PORTABLE),
             (collections, COLLECTIONS),
             (models, MODELS),
             (reasoning, REASONING),
             (laws, LAWS),
+            (regions, REGIONS),
         ] {
             if used {
                 text.push_str(&format!("public import {runtime_module}\n"));
@@ -2124,6 +2315,7 @@ pub fn render_lean(
                     recursive_argument,
                     mutual,
                     termination,
+                    executable,
                     ..
                 } => {
                     let type_binders = render.scoped_type_parameters(type_parameters, declaration);
@@ -2167,9 +2359,15 @@ pub fn render_lean(
                             )
                         })?;
                         text.push_str(&equations);
-                        if mutual.is_some() {
+                        if mutual.is_some()
+                            || (*executable
+                                && matches_earlier_parameter(parameters, recursive_argument, body))
+                        {
                             // §17.12: a mutual group is structurally recursive by
-                            // construction; Lean must confirm exactly that.
+                            // construction; Lean must confirm exactly that. So
+                            // must an executable definition Lean could recurse
+                            // otherwise, since its certificate A reduces the
+                            // definition on the checked argument.
                             // Only the decreasing parameter is used after `=>`;
                             // naming the others would trip Lean's unused-variable
                             // linter, which fails verification.
@@ -2188,9 +2386,9 @@ pub fn render_lean(
                                 "termination_by structural {binders} => {}\n",
                                 identifier(recursive_argument)
                             ));
-                            if group_of(index + 1) != group_of(index) {
-                                text.push_str("end\n");
-                            }
+                        }
+                        if mutual.is_some() && group_of(index + 1) != group_of(index) {
+                            text.push_str("end\n");
                         }
                     } else {
                         let name = identifier(name);
@@ -2229,11 +2427,29 @@ pub fn render_lean(
                     let binders = render.scoped_parameters(parameters, |local| {
                         term_uses(statement, local) || proof_uses(proof, local)
                     });
+                    // §17.12 (decision regions): the proof is read from the
+                    // module's prior declarations, not from the proof node.
+                    let body = if matches!(proof, SemanticProof::RegionCheck) {
+                        let lowered = crate::ir::semantic::regions::lower(
+                            &module.declarations[..index],
+                            declaration,
+                        )
+                        .map_err(|reason| {
+                            Diagnostic::new(
+                                code!("LLI9001"),
+                                format!("phase lean-backend: {reason}"),
+                            )
+                        })?;
+                        crate::ir::semantic::regions::proof_text(&lowered, "  ", |field| {
+                            format!("({}).{}", identifier(&lowered.request), identifier(field))
+                        })
+                    } else {
+                        render.proof(proof, 1, &scrutinee_types(parameters))?
+                    };
                     text.push_str(&format!(
-                        "public theorem {name}{}{binders} : {} := by\n{}",
+                        "public theorem {name}{}{binders} : {} := by\n{body}",
                         render.scoped_type_parameters(type_parameters, declaration),
                         render.term(statement),
-                        render.proof(proof, 1)
                     ));
                 }
                 SemanticDeclaration::Artifact { .. }
@@ -3083,6 +3299,7 @@ pub fn render_latex(
         hypotheses: std::collections::BTreeMap::new(),
         document: true,
         qualify: None,
+        injective: &[],
     };
     let version_2 = module.spec == "lexlean/semantic-module/2";
     let mut text = String::from(
@@ -3321,6 +3538,7 @@ mod byte_literal_tests {
             hypotheses: std::collections::BTreeMap::new(),
             document,
             qualify: None,
+            injective: &[],
         }
         .term(term)
     }

@@ -312,6 +312,10 @@ pub enum Machine {
     BytesCompare,
     StringSplit,
     StringJoin,
+    FormatDecimal(IntKind),
+    ParseDecimal(IntKind),
+    ParseDecimalInt,
+    FormatDecimalInt,
     BytesUpdate,
 }
 
@@ -348,10 +352,14 @@ impl Machine {
             Self::BytesCompare,
             Self::StringSplit,
             Self::StringJoin,
+            Self::ParseDecimalInt,
+            Self::FormatDecimalInt,
             Self::BytesUpdate,
         ];
         for kind in IntKind::ALL {
             out.extend([
+                Self::FormatDecimal(kind),
+                Self::ParseDecimal(kind),
                 Self::CheckedAdd(kind),
                 Self::CheckedSub(kind),
                 Self::CheckedMul(kind),
@@ -417,14 +425,18 @@ impl Machine {
             Self::BytesCompare => 37,
             Self::StringSplit => 38,
             Self::StringJoin => 39,
-            Self::BytesUpdate => 40,
+            Self::FormatDecimal(_) => 40,
+            Self::ParseDecimal(_) => 41,
+            Self::ParseDecimalInt => 42,
+            Self::FormatDecimalInt => 43,
+            Self::BytesUpdate => 44,
         }
     }
 
     /// One primitive of each family, at `u8` where it has a width, in the
     /// order of [`Machine::family`].
     #[must_use]
-    pub const fn families() -> [Self; 41] {
+    pub const fn families() -> [Self; 45] {
         let kind = IntKind::U8;
         [
             Self::CheckedAdd(kind),
@@ -467,11 +479,16 @@ impl Machine {
             Self::BytesCompare,
             Self::StringSplit,
             Self::StringJoin,
+            Self::FormatDecimal(kind),
+            Self::ParseDecimal(kind),
+            Self::ParseDecimalInt,
+            Self::FormatDecimalInt,
             Self::BytesUpdate,
         ]
     }
 
-    /// The width the primitive works at (the target of `TryFrom`).
+    /// The width the primitive works at (the target of `TryFrom` and
+    /// `ParseDecimal`).
     #[must_use]
     pub const fn width(self) -> Option<IntKind> {
         match self {
@@ -486,7 +503,9 @@ impl Machine {
             | Self::BitAnd(kind)
             | Self::BitOr(kind)
             | Self::BitXor(kind)
-            | Self::BitNot(kind) => Some(kind),
+            | Self::BitNot(kind)
+            | Self::FormatDecimal(kind)
+            | Self::ParseDecimal(kind) => Some(kind),
             Self::NatEq
             | Self::NatLe
             | Self::NatLt
@@ -515,6 +534,8 @@ impl Machine {
             | Self::BytesCompare
             | Self::StringSplit
             | Self::StringJoin
+            | Self::ParseDecimalInt
+            | Self::FormatDecimalInt
             | Self::BytesUpdate => None,
         }
     }
@@ -564,6 +585,10 @@ impl Machine {
             Self::BytesCompare => "bytes_compare",
             Self::StringSplit => "string_split",
             Self::StringJoin => "string_join",
+            Self::FormatDecimal(_) => "format_decimal",
+            Self::ParseDecimal(_) => "parse_decimal",
+            Self::ParseDecimalInt => "parse_decimal_int",
+            Self::FormatDecimalInt => "format_decimal_int",
             Self::BytesUpdate => "bytes_update",
         }
     }
@@ -580,7 +605,11 @@ impl Machine {
             | Self::BytesLength
             | Self::StringLength
             | Self::Utf8Encode
-            | Self::Utf8Decode => 1,
+            | Self::Utf8Decode
+            | Self::FormatDecimal(_)
+            | Self::ParseDecimal(_)
+            | Self::ParseDecimalInt
+            | Self::FormatDecimalInt => 1,
             Self::NatRem
             | Self::IntRem
             | Self::NatQuot
@@ -648,6 +677,11 @@ impl Machine {
             Self::BytesCompare => format!("Bytes::compare(&{}, &{})", args[0], args[1]),
             Self::StringSplit => format!("Str::split_exact(&{}, &{}, {})", args[0], args[1], args[2]),
             Self::StringJoin => format!("Str::join({}, &{})", args[0], args[1]),
+            Self::FormatDecimal(kind) => format!("Str::format_{}({})", kind.name(), args[0]),
+            Self::ParseDecimal(kind) => format!("Str::parse_{}(&{})", kind.name(), args[0]),
+            Self::ParseDecimalInt => format!("Str::parse_int(&{})", args[0]),
+            // The integers are `i64` in the printed runtime (`Type::Int`).
+            Self::FormatDecimalInt => format!("Str::format_i64({})", args[0]),
             Self::BytesUpdate => format!("Bytes::update({}, {}, {})", args[0], args[1], args[2]),
         }
     }

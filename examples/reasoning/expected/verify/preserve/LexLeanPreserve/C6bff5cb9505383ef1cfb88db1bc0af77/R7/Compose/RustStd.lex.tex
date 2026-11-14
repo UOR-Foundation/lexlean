@@ -1,4 +1,5 @@
 \begin{lexlean}{RustStd}
+<<<<<<<< HEAD:examples/reasoning/expected/verify/preserve/LexLeanPreserve/C6bff5cb9505383ef1cfb88db1bc0af77/R7/Compose/RustStd.lex.tex
 \title{Certificate E LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.Compose.RustStd}
 \begin{coremodule}
 imports [
@@ -9,27 +10,54 @@ imports [
 
 theorem LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.Compose.RustStd.__wt_0 : @18 := @398 {
   all: [LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.Compose.RustStd.__wt_0],
+========
+\title{Certificate E LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.Compose.RustStd}
+\begin{coremodule}
+imports [
+  LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7,
+  LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.RustStd,
+  LexLeanPreservation.Compose
+]
+
+theorem LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.Compose.RustStd.__wt_0 : @18 := @398 {
+  all: [LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.Compose.RustStd.__wt_0],
+>>>>>>>> origin/release/v0.5:examples/reasoning/expected/verify/preserve/LexLeanPreserve/C3f15ca8846e85591017df129446ee9ab/R7/Compose/RustStd.lex.tex
   class: false,
   generated: false,
   policy: exact{axioms: [propext]},
   transparency: semireducible
 }
+<<<<<<<< HEAD:examples/reasoning/expected/verify/preserve/LexLeanPreserve/C6bff5cb9505383ef1cfb88db1bc0af77/R7/Compose/RustStd.lex.tex
 theorem LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.Compose.RustStd.root : @1017 := @1018 {
   all: [LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.Compose.RustStd.root],
+========
+theorem LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.Compose.RustStd.root : @1017 := @1018 {
+  all: [LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.Compose.RustStd.root],
+>>>>>>>> origin/release/v0.5:examples/reasoning/expected/verify/preserve/LexLeanPreserve/C3f15ca8846e85591017df129446ee9ab/R7/Compose/RustStd.lex.tex
   class: false,
   generated: false,
   policy: exact{axioms: [Classical.choice, Quot.sound, propext]},
   transparency: semireducible
 }
 
+<<<<<<<< HEAD:examples/reasoning/expected/verify/preserve/LexLeanPreserve/C6bff5cb9505383ef1cfb88db1bc0af77/R7/Compose/RustStd.lex.tex
 @0 := LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.RustStd.program
 @1 := LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.RustStd.krate
 @2 := LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.RustStd.flags
+========
+@0 := LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.RustStd.program
+@1 := LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.RustStd.krate
+@2 := LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.RustStd.flags
+>>>>>>>> origin/release/v0.5:examples/reasoning/expected/verify/preserve/LexLeanPreserve/C3f15ca8846e85591017df129446ee9ab/R7/Compose/RustStd.lex.tex
 @3 := Reasoning.Budget.Spend.Step
 @4 := Nat
 @5 := @3 @4
 @6 := #0
+<<<<<<<< HEAD:examples/reasoning/expected/verify/preserve/LexLeanPreserve/C6bff5cb9505383ef1cfb88db1bc0af77/R7/Compose/RustStd.lex.tex
 @8 := LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.__enc_0 @6
+========
+@8 := LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.__enc_0 @6
+>>>>>>>> origin/release/v0.5:examples/reasoning/expected/verify/preserve/LexLeanPreserve/C3f15ca8846e85591017df129446ee9ab/R7/Compose/RustStd.lex.tex
 @9 := LexLeanPreservation.Rust.WT
 @10 := LexLeanTarget.TargetSyntax.Ty.adt
 @11 := 0
@@ -235,7 +263,11 @@ theorem LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.Compose.RustStd.roo
 @421 := LexLeanTarget.TargetSyntax.Expr.value @417 @418
 @426 := LexLeanTarget.TargetSyntax.Function.mk @416 @25 @417 @421
 @431 := List.getD.{0} @413 @415 @11 @426
+<<<<<<<< HEAD:examples/reasoning/expected/verify/preserve/LexLeanPreserve/C6bff5cb9505383ef1cfb88db1bc0af77/R7/Compose/RustStd.lex.tex
 @435 := fun (__e_n : @4) => LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.RustStd.root @6 @11
+========
+@435 := fun (__e_n : @4) => LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.RustStd.root @6 @11
+>>>>>>>> origin/release/v0.5:examples/reasoning/expected/verify/preserve/LexLeanPreserve/C3f15ca8846e85591017df129446ee9ab/R7/Compose/RustStd.lex.tex
 @436 := @286 @326
 @438 := @15 @315 @30
 @439 := @193 @67
@@ -250,12 +282,21 @@ theorem LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.Compose.RustStd.roo
 @463 := @456 @25
 @466 := (h : @328) -> (hs : @58) -> @331 @230
 @468 := @463 @399 @55
+<<<<<<<< HEAD:examples/reasoning/expected/verify/preserve/LexLeanPreserve/C6bff5cb9505383ef1cfb88db1bc0af77/R7/Compose/RustStd.lex.tex
 @469 := LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.denote
 @470 := @469 @32
 @471 := LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.__fits_0
 @472 := @471 @32
 @475 := @193 (Reasoning.Main.spendLeft @32)
 @477 := LexLeanPreserve.C6bff5cb9505383ef1cfb88db1bc0af77.R7.root @32
+========
+@469 := LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.denote
+@470 := @469 @32
+@471 := LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.__fits_0
+@472 := @471 @32
+@475 := @193 (Reasoning.Main.spendLeft @32)
+@477 := LexLeanPreserve.C3f15ca8846e85591017df129446ee9ab.R7.root @32
+>>>>>>>> origin/release/v0.5:examples/reasoning/expected/verify/preserve/LexLeanPreserve/C3f15ca8846e85591017df129446ee9ab/R7/Compose/RustStd.lex.tex
 @478 := Bool
 @479 := Ne.{1}
 @480 := LexLeanPreservation.Obs
