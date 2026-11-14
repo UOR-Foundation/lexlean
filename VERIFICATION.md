@@ -11756,9 +11756,17 @@ missing, an unknown key present, or a value of the wrong type) -- because `serde
 reports both through the same `toml::de::Error`. `LexiconEntry.lex.tex` has no such detail to
 report for either cause and emits the bare literal `invalid entry file` at both of its own hard
 gates (the first, on `TomlRead::tomlParse`; the second, on its own shape extraction). For these
-two causes only: the code and the refusal (`kind`) are exact, and the message is exact up to
-this fixed prefix, which is also the whole of the Lean side's message. Every other diagnostic's
-code, refusal, and message are exact, byte for byte.
+two causes only, over 6 named vectors of the case (one for the first cause, five for the
+second, one per class of the shape table below): the code and the refusal (`kind`) are exact,
+and the message is exact up to this fixed prefix, which is also the whole of the Lean side's
+message. Every other diagnostic of the root, over every other vector, is exact, byte for byte.
+
+The case does not compare against a hand-written prefix text: each of the 6 vectors' own
+expected value is built from the real oracle's own output, and the case asserts, before
+trimming it, that the oracle's own message starts with the fixed prefix and that its code and
+refusal are what this boundary expects -- so a change to the oracle's message that broke this
+relation would fail the case loudly, not pass it by comparing against a prefix that no longer
+holds.
 
 The shape boundary -- the specification against which the second cause is checked -- is this
 table, read from `RawEntry` and its nested `Raw*` types in `entry.rs`. Checked individually:
@@ -11799,6 +11807,43 @@ omitting `constructor` under both representations, an unknown key, and a value o
 type -- each refused at the one approximated message, and `form = []` held separately, as the
 one case in the table's `form` row that is in-shape and reaches the ordinary "an entry declares
 at least one form" diagnostic rather than the shape failure.
+
+The case was first compiled and run on the normative host (`cargo test -p repo-conformance
+--test conformance -- conformance_bs_55`). Its corpus is 35 named vectors and 1,009 committed
+lexicon entries. The evaluator agrees with the oracle on 1,194 runs, the rendered `rust-std`
+package under the pinned rustc on 2,244 runs, and each of the 5 planted defects -- the entry-ID
+check dropped, the non-core-category check dropped, the empty-eliminator-constructor-list check
+dropped, the empty-form check dropped, and the header's two checks reordered -- is detected by
+its own vector. The case then stops at the stack-bound step,
+`bootstrap/parse_entry is no package of the committed exports`, as each bootstrap member does
+before its regeneration, which produces the package.
+
+Compiling and running the case against the real `entry.rs` surfaced two defects the design
+review alone had not: `LexiconEntry.lex.tex` was missing the unconditional "an entry declares at
+least one form" diagnostic entirely (`entry.rs` raises it before its per-form loop, regardless
+of category; grepping the Lean source for the literal message found no match), fixed in
+`validateForms` by prepending it to the fold's own accumulator; and the case's own
+reordering-plant swap was asymmetric (one site's text included its own `(if ... )` wrapper, the
+other did not), which produced a dangling `then` the first time the plant was ever actually
+exercised end to end, fixed by making both sites symmetric.
+
+A single-module `lexlean verify` of `LexiconEntry.lex.tex`, with `max_file_bytes` at the current
+16,777,216 (16 MiB) and `LEXLEAN_CI_TELEMETRY` recording every child process, passed: `verified
+11 modules`, exit 0, 24 minutes 5 seconds of wall clock (1,444.83 s; `/usr/bin/time -v`: user
+1,138.05 s, system 412.53 s, 107% CPU), maximum resident set size 2,288,048 KiB (2.23 GiB), on a
+machine with 10-12 GiB free and nothing else heavy running. The telemetry's own per-process
+records (`wall_ms`, `peak_rss_kib` per `lean`/`leanchecker`/`lake` child) name the longest two
+children by a wide margin as the two phases of `parseEntry`'s own certificate B (the `R0.RustStd`
+phase identified earlier): `lean` type-checking it at 229,966 ms (230 s, peak RSS 2,390,504 KiB),
+`leanchecker` replaying it at 207,939 ms (208 s, peak RSS 1,920,052 KiB); every other child in
+the run, including the general preservation library's own largest module, stayed under 85
+seconds. Both numbers are under the project's `child_timeout_ms` of 300,000, but with real
+margin, not an artifact of a contended run: scaling by the 0.4-2.1x spread a differently-shaped
+module (`LexLeanPreservation.RustLemmas`) showed across ten CI children against this same
+laptop, `parseEntry`'s certificate B could plausibly run from about 100 to 480 seconds in CI --
+past the timeout at the slow end. Whether to raise `child_timeout_ms`, raise `max_file_bytes`
+further, or shrink the certificate (sharding the composed closure, per the design task on #273)
+is a decision left to the maintainer; this entry records the measurement, not the choice.
 
 ### the lexer of the authoring notation is source (BS-22)
 

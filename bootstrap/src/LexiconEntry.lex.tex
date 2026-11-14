@@ -990,7 +990,9 @@ definition{
     diagsIn : (List (Bytes * Bytes))
   ],
   result: FormsOut,
-  body: (let final : FormFoldState := (prim list_fold (fun [forbiddenControls, isCore] (state : FormFoldState) (raw : RawForm) => (formFoldStep isCore forbiddenControls state raw)) (record FormFoldState {diagsRev := diagsIn, formsRev := (nil Form), seenIds := (nil Bytes)}) raws : FormFoldState); (record FormsOut {diagsRev := (project final diagsRev), forms := (LexLeanStd.Order::reverseList [Form] (project final formsRev))})),
+  body: (let diags0 : (List (Bytes * Bytes)) := (appendRev diagsIn (match raws
+    | List.nil => (ctor Option.some [(Bytes * Bytes)] (errD (lit "an entry declares at least one form")))
+    | List.cons h t => (ctor Option.none [(Bytes * Bytes)]))); (let final : FormFoldState := (prim list_fold (fun [forbiddenControls, isCore] (state : FormFoldState) (raw : RawForm) => (formFoldStep isCore forbiddenControls state raw)) (record FormFoldState {diagsRev := diags0, formsRev := (nil Form), seenIds := (nil Bytes)}) raws : FormFoldState); (record FormsOut {diagsRev := (project final diagsRev), forms := (LexLeanStd.Order::reverseList [Form] (project final formsRev))}))),
   axioms: [Quot.sound, propext],
   executable: true
 }

@@ -379,21 +379,67 @@ fn entry_run(
 
 // ------------------------------------------------------------------ vectors
 
-/// The two causes `toml::from_str::<RawEntry>` collapses to one message:
-/// the text is not TOML at all, or the TOML does not have the entry's
-/// shape (a required key missing, an unknown key, or the wrong type).
-/// Nothing else is approximated; `assert_approximated` takes only a vector
-/// tagged with one of these two.
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum ApproxCause {
-    NotToml,
-    WrongShape,
+/// The labels of the vectors whose message is approximated: the two
+/// causes `toml::from_str::<RawEntry>` collapses to its one message, the
+/// text is not TOML at all, or the TOML does not have the entry's shape (a
+/// required key missing, an unknown key, or the wrong type). Checked
+/// structurally in `case()`, so the approximation cannot quietly spread to
+/// a message either side could reproduce exactly.
+const APPROXIMATED_NOT_TOML: [&str; 1] =
+    ["a malformed TOML document is refused at the first hard gate"];
+const APPROXIMATED_WRONG_SHAPE: [&str; 5] = [
+    "a missing required scalar is refused as a shape failure",
+    "an entry omitting form entirely (no sections, no flat array) is refused as a shape failure",
+    "an eliminator omitting constructor entirely is refused as a shape failure",
+    "an unknown key at the root is refused as a shape failure",
+    "a wrong-typed scalar is refused as a shape failure",
+];
+
+/// `run`'s expected message, trimmed to [`TOML_FAILURE_PREFIX`]: the real
+/// oracle's message carries parse-error or serde detail that neither
+/// `LexiconEntry.lex.tex`'s evaluator nor its rendered `rust-std` package
+/// can reproduce (both emit the bare literal, with no detail to add), so
+/// the vector's own expected value is the bare literal too. This is not a
+/// looser comparison grafted on afterward: every comparison in `case()`,
+/// including the generic rendered-package harness, stays exact, because
+/// this is what both sides actually, and correctly, produce.
+fn approximate(run: Run) -> Run {
+    let (arguments, mut expected) = run;
+    assert_eq!(expected["kind"], "error", "an approximated vector is refused");
+    let items = expected["value"]["items"]
+        .as_array_mut()
+        .expect("a diagnostic list");
+    assert_eq!(items.len(), 1, "an approximated vector carries exactly one diagnostic");
+    let code = items[0]["left"]["hex"].as_str().expect("a code").to_owned();
+    assert_eq!(
+        hex_to_text(&code),
+        "LLR3004",
+        "an approximated vector's one diagnostic is LLR3004"
+    );
+    let message_hex = items[0]["right"]["hex"].as_str().expect("a message").to_owned();
+    let message = hex_to_text(&message_hex);
+    assert!(
+        message.starts_with(TOML_FAILURE_PREFIX),
+        "the oracle's real message `{message}` does not start with the fixed prefix `{TOML_FAILURE_PREFIX}` -- \
+         the relation this approximation depends on no longer holds, so the case must not \
+         silently compare against a stale prefix"
+    );
+    items[0]["right"] = serde_json::to_value(text(TOML_FAILURE_PREFIX)).expect("a value is JSON");
+    (arguments, expected)
+}
+
+/// A `Value::Bytes` JSON node's hex, decoded back to text.
+fn hex_to_text(hex: &str) -> String {
+    let raw: Vec<u8> = (0..hex.len())
+        .step_by(2)
+        .map(|at| u8::from_str_radix(&hex[at..at + 2], 16).expect("hex digit"))
+        .collect();
+    String::from_utf8_lossy(&raw).into_owned()
 }
 
 struct Vector {
     label: &'static str,
     run: Run,
-    approx: Option<ApproxCause>,
 }
 
 const FORBIDDEN: [&str; 2] = ["\\def", "\\input"];
@@ -433,7 +479,6 @@ fn named() -> Vec<Vector> {
         out.push(Vector {
             label,
             run: entry_run(&text_input, false, &forbidden, DEPTH),
-            approx: None,
         });
     };
 
@@ -593,6 +638,15 @@ fn named() -> Vec<Vector> {
             "{PROBE}\n[eliminator]\ncases_lean_name = \"Nat.casesOn\"\ninduction_lean_name = \"Nat.rec\"\n\n[[eliminator.constructor]]\nentry = \"lexlean.std.nat::zero\"\nlean_name = \"Nat.zero\"\nfields = []\ninduction_hypotheses = []\n"
         ),
     );
+    // `constructor = []`: in-shape (reaches extractConstructors with zero
+    // rows, same as `form = []` at the root), so this reaches the ordinary
+    // "an eliminator needs at least one constructor" diagnostic -- the one
+    // vector that can actually catch the empty-eliminator-constructor-list
+    // plant, since the vector above always has one constructor.
+    add(
+        "an eliminator with constructor = [] needs at least one constructor",
+        format!("{PROBE}\n[eliminator]\ncases_lean_name = \"Nat.casesOn\"\ninduction_lean_name = \"Nat.rec\"\nconstructor = []\n"),
+    );
     add(
         "a sort-valued entry accepts an eliminator with one constructor",
         {
@@ -635,13 +689,20 @@ fn named() -> Vec<Vector> {
     // opposed to omitting `form` entirely (which is a shape failure, below).
     // It is in-shape (`form: Vec<RawForm>` accepts an empty array), so it
     // reaches the ordinary "an entry declares at least one form" diagnostic,
-    // not the approximated boundary.
+    // not the approximated boundary. `form = []` must land before
+    // `[denotation]`: TOML has no way to close a table and return to the
+    // root other than starting the next header, so a flat key placed where
+    // `[[form]]` used to be (after `[denotation]`) is read as an unknown
+    // field of `[denotation]` instead -- a bug in the vector, not in the
+    // source, caught by the oracle's own refusal on the first run.
     add(
         "form = [] reaches the declares-at-least-one-form diagnostic, not a shape failure",
-        PROBE.replace(
-            "\n[[form]]\nid = \"probe\"\nchannel = \"both\"\nsurface = \"probe\"\ncanonical_source = true\nfeatures = []\n",
-            "\nform = []\n",
-        ),
+        PROBE
+            .replace(
+                "\n[[form]]\nid = \"probe\"\nchannel = \"both\"\nsurface = \"probe\"\ncanonical_source = true\nfeatures = []\n",
+                "",
+            )
+            .replace("frame = \"atom\"\n", "frame = \"atom\"\nform = []\n"),
     );
 
     // The shape boundary (§13.1–§13.6, VERIFICATION.md "a lexicon entry's
@@ -674,21 +735,21 @@ fn named() -> Vec<Vector> {
         PROBE.replace("surface_arity = 0", "surface_arity = \"zero\""),
     );
 
-    // Tag the approximated vectors by label: the text is not TOML at all,
-    // or the TOML does not have the entry's shape. No other vector uses
-    // this comparison; `assert_approximated` only ever sees these.
+    // Trim the approximated vectors' own expected message to the fixed
+    // prefix: not a looser comparison applied later, but the vector
+    // stating the truth of what both the evaluator and the rendered
+    // package actually produce, so every comparison in `case()` -- this
+    // vector's own, and the generic rendered-package harness, which knows
+    // nothing of approximation -- stays exact.
     for vector in &mut out {
-        vector.approx = match vector.label {
-            "a malformed TOML document is refused at the first hard gate" => {
-                Some(ApproxCause::NotToml)
-            }
-            "a missing required scalar is refused as a shape failure"
-            | "an entry omitting form entirely (no sections, no flat array) is refused as a shape failure"
-            | "an eliminator omitting constructor entirely is refused as a shape failure"
-            | "an unknown key at the root is refused as a shape failure"
-            | "a wrong-typed scalar is refused as a shape failure" => Some(ApproxCause::WrongShape),
-            _ => None,
-        };
+        if APPROXIMATED_NOT_TOML.contains(&vector.label)
+            || APPROXIMATED_WRONG_SHAPE.contains(&vector.label)
+        {
+            vector.run = approximate(std::mem::replace(
+                &mut vector.run,
+                (Vec::new(), serde_json::Value::Null),
+            ));
+        }
     }
     out
 }
@@ -838,7 +899,13 @@ const PLANTS: &[Plant] = &[
         label: "an empty eliminator-constructor list is accepted",
         site: "(if ((prim length constructors : Nat) =? 0) then (ctor Option.some [(Bytes * Bytes)] (errD (lit \"an eliminator needs at least one constructor\"))) else (ctor Option.none [(Bytes * Bytes)]))",
         replacement: "(ctor Option.none [(Bytes * Bytes)])",
-        vector: "an eliminator needs a sort-valued signature",
+        vector: "an eliminator with constructor = [] needs at least one constructor",
+    },
+    Plant {
+        label: "an entry needs no form",
+        site: "(match raws\n    | List.nil => (ctor Option.some [(Bytes * Bytes)] (errD (lit \"an entry declares at least one form\")))\n    | List.cons h t => (ctor Option.none [(Bytes * Bytes)]))",
+        replacement: "(ctor Option.none [(Bytes * Bytes)])",
+        vector: "form = [] reaches the declares-at-least-one-form diagnostic, not a shape failure",
     },
 ];
 
@@ -848,7 +915,7 @@ const PLANTS: &[Plant] = &[
 /// single atomic edit (via a placeholder, since one text is not a substring
 /// of the other and both must move at once).
 const ORDER_SITE_A: &str = "(if (LexiconLse::isEntryId entryId) then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (cat (quoted entryId) (lit \" is not a valid entry ID\")))))";
-const ORDER_SITE_B: &str = "((project shape coreOnly) && (if isCore then false else true)) then (ctor Option.some [(Bytes * Bytes)] (errD (cat3 (lit \"a non-core entry cannot use category `\") categoryText (lit \"`\")))) else (ctor Option.none [(Bytes * Bytes)])";
+const ORDER_SITE_B: &str = "(if ((project shape coreOnly) && (if isCore then false else true)) then (ctor Option.some [(Bytes * Bytes)] (errD (cat3 (lit \"a non-core entry cannot use category `\") categoryText (lit \"`\")))) else (ctor Option.none [(Bytes * Bytes)]))";
 const ORDER_VECTOR: &str =
     "an entry-ID failure and a core-only-category failure fire together, in header order";
 const ORDER_PLACEHOLDER: &str = "@@BS55_ORDER_SWAP_PLACEHOLDER@@";
@@ -973,61 +1040,6 @@ fn export(lowered: &BTreeMap<&str, super::Lowered>) {
     }
 }
 
-/// A `Value::Bytes` JSON node (`{"kind":"bytes","hex":"..."}`), decoded back
-/// to text.
-fn decode_text(value: &Json2) -> String {
-    let hex = value["hex"].as_str().expect("hex");
-    let raw: Vec<u8> = (0..hex.len())
-        .step_by(2)
-        .map(|at| u8::from_str_radix(&hex[at..at + 2], 16).expect("hex digit"))
-        .collect();
-    String::from_utf8_lossy(&raw).into_owned()
-}
-
-/// Compare one run's expected value against the evaluator's observed value,
-/// approximating the one message `toml::from_str::<RawEntry>` collapses its
-/// two causes to, to its fixed prefix: the code and the refusal (`kind`)
-/// are exact, the message only up to [`TOML_FAILURE_PREFIX`]. Takes only a
-/// vector tagged with an [`ApproxCause`]; every other diagnostic compares
-/// byte for byte through the exact path in `case()`.
-fn assert_approximated(low: &super::Lowered, vector: &Vector) {
-    assert!(
-        vector.approx.is_some(),
-        "{}: assert_approximated takes only a vector tagged with an ApproxCause",
-        vector.label
-    );
-    let (arguments, expected) = &vector.run;
-    let observed = super::evaluate_once(low, arguments);
-    let expected_pairs = expected["value"]["items"].as_array().expect("a diagnostic list");
-    let observed_pairs = observed["value"]["items"].as_array().expect("a diagnostic list");
-    assert_eq!(observed["kind"], expected["kind"], "{}: refusal", vector.label);
-    assert_eq!(
-        observed_pairs.len(),
-        expected_pairs.len(),
-        "{}: diagnostic count",
-        vector.label
-    );
-    for (observed_pair, expected_pair) in observed_pairs.iter().zip(expected_pairs) {
-        assert_eq!(
-            observed_pair["left"], expected_pair["left"],
-            "{}: diagnostic code",
-            vector.label
-        );
-        let expected_message = decode_text(&expected_pair["right"]);
-        let observed_message = decode_text(&observed_pair["right"]);
-        assert!(
-            expected_message.starts_with(TOML_FAILURE_PREFIX),
-            "{}: the expected message carries the fixed prefix",
-            vector.label
-        );
-        assert!(
-            observed_message.starts_with(TOML_FAILURE_PREFIX),
-            "{}: the root's message carries the same fixed prefix: {observed_message}",
-            vector.label
-        );
-    }
-}
-
 #[allow(clippy::too_many_lines)]
 pub(super) fn case() {
     let started = std::time::Instant::now();
@@ -1048,28 +1060,17 @@ pub(super) fn case() {
         .filter(|vector| vector.run.1["kind"] == "error")
         .count();
     assert!(refused >= 15, "at least fifteen vectors are refused: {refused}");
-    let approximated: Vec<&Vector> = vectors.iter().filter(|vector| vector.approx.is_some()).collect();
-    assert_eq!(
-        approximated.len(),
-        6,
-        "exactly six approximated vectors: one not-TOML, five wrong-shape"
-    );
-    assert_eq!(
-        approximated
-            .iter()
-            .filter(|vector| vector.approx == Some(ApproxCause::NotToml))
-            .count(),
-        1,
-        "exactly one not-TOML vector"
-    );
-    assert_eq!(
-        approximated
-            .iter()
-            .filter(|vector| vector.approx == Some(ApproxCause::WrongShape))
-            .count(),
-        5,
-        "exactly five wrong-shape vectors"
-    );
+    // Structural check that the approximation stays confined to the two
+    // causes named above and cannot quietly spread to a message either
+    // side could reproduce exactly: every labeled vector exists exactly
+    // once, and no other vector's label collides with one of them.
+    for label in APPROXIMATED_NOT_TOML.iter().chain(&APPROXIMATED_WRONG_SHAPE) {
+        assert_eq!(
+            vectors.iter().filter(|vector| vector.label == *label).count(),
+            1,
+            "exactly one vector named `{label}`"
+        );
+    }
 
     let forbidden = forbidden();
     let corpus = committed();
@@ -1111,7 +1112,6 @@ pub(super) fn case() {
     if normative {
         let exact: Vec<Run> = vectors
             .iter()
-            .filter(|vector| vector.approx.is_none())
             .map(|vector| vector.run.clone())
             .chain(committed_runs.iter().cloned())
             .chain(evaluator_seeded.iter().cloned())
@@ -1121,13 +1121,9 @@ pub(super) fn case() {
             disagreements.is_empty(),
             "parseEntry and the oracle disagree: {disagreements:?}"
         );
-        for vector in &approximated {
-            assert_approximated(low, vector);
-        }
         eprintln!(
-            "BS-55: parseEntry: the evaluator agrees on {} exact runs and {} approximated ({:?})",
+            "BS-55: parseEntry: the evaluator agrees on {} runs ({:?})",
             exact.len(),
-            approximated.len(),
             started.elapsed()
         );
         plants(&vectors);
