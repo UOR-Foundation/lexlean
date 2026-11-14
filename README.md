@@ -96,7 +96,7 @@ Use it for safety critical code, audited or regulated artifacts, documents whose
 | Exact repository identity, layout, generated documents, release gate reading its criterion from the specification, total classification of every closed enum by every consumer, the devcontainer pinned to the toolchains, and a check-only build without the production data | `RP-01`..`RP-19` | `build` |
 | Closed project configuration, canonical lock file, and offline dependency policy | `CF-01`..`CF-18` | `build` |
 | Total lexical closure: every accepted atom is covered by exactly one declared origin | `LX-01`..`LX-14` | `build` |
-| Versioned lexicon packages with closed schemas, denotations, and renderer tokens | `GL-01`..`GL-18` | `build` |
+| Versioned lexicon packages with closed schemas, denotations, and renderer tokens | `GL-01`..`GL-22` | `build` |
 | Fixed structural, mathematical, and proposition grammar with closed ambiguity handling | `GR-01`..`GR-16` | `build` |
 | Typed closed IR with canonical serialization, native core modules (and the second schema of them that lossless migration of the proof library needs), portable language-1.1 application data and operations, versioned language-1.2 semantic modules, products, first-class functions, and widening conversions, ordered collections and graphs, semantic snapshots, alpha identities, recursion evidence, a split on a document term or a Boolean in a proof, bitwise and shift primitives over `Nat`, content identities, and declaration and statement IDs | `SM-01`, `SM-02`, `SM-03`, `SM-04`, `SM-05`, `SM-06`, `SM-07`, `SM-08`, `SM-09`, `SM-10`, `SM-11`, `SM-12`, `SM-13`, `SM-14`, `SM-15`, `SM-16`, `SM-17`, `SM-18`, `SM-19`, `SM-20`, `SM-21`, `SM-22`, `SM-23`, `SM-24`, `SM-25`, `SM-26`, `SM-27`, `SM-28`, `SM-29`, `SM-30`, `SM-31`, `SM-32`, `SM-33`, `SM-34`, `SM-35`, `SM-36`, `SM-37`, `SM-38`, `SM-42` | `build` |
 | Document and generic semantic declarations with exact self-application, type checking, structural recursion, recursive and mutual language-1.2 data, generic and executable higher-order definitions, mutual and well-founded recursion with semantic evidence, explicit state threading, and acyclicity rules | `DF-01`..`DF-19` | `build` |
@@ -147,7 +147,7 @@ just vv
 just release
 ```
 
-All 521 registered conformance IDs are implemented. `just vv` runs the complete normative acceptance gate (SPEC.md §9.2). `just release` runs `vv` and the §30 criterion; it is refused until 1.0.0.
+All 522 registered conformance IDs are implemented. `just vv` runs the complete normative acceptance gate (SPEC.md §9.2). `just release` runs `vv` and the §30 criterion; it is refused until 1.0.0.
 
 The [`lean4-prod`](https://github.com/UOR-Foundation/lean4-prod) differential is validation evidence only. A missing oracle fails on Linux x86 64 and prints `NOT VALIDATED` elsewhere. Releases live on `release/vX.Y`, and a tag before 1.0.0 does not claim the §30 criterion.
 
