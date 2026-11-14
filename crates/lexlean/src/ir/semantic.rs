@@ -214,6 +214,7 @@ impl SemanticPrimitive {
             | Self::Length
             | Self::Index
             | Self::Slice
+            | Self::Update
             | Self::Utf8Encode
             | Self::Utf8Decode
             | Self::CompareBytes
