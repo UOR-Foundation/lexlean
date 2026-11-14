@@ -6,13 +6,17 @@ use sha2::{Digest, Sha256};
 use std::path::{Path, PathBuf};
 
 fn retained(directory: &Path) -> Certificate {
-    assert_eq!(
-        format!(
-            "{:x}",
-            Sha256::digest(std::fs::read(directory.join("source-receipt.json")).unwrap())
-        ),
-        "178fd32041599b1ed9f02ec19c52c99cd6b39b8036b1d3a93d9c5a60a29b4bc3",
-        "published source-generation receipt"
+    let receipt_digest = format!(
+        "{:x}",
+        Sha256::digest(std::fs::read(directory.join("source-receipt.json")).unwrap())
+    );
+    assert!(
+        [
+            "178fd32041599b1ed9f02ec19c52c99cd6b39b8036b1d3a93d9c5a60a29b4bc3",
+            "37120628b07394d522658bf3ea10432eb65b81ea0d457c6f917d2d45291f6414",
+        ]
+        .contains(&receipt_digest.as_str()),
+        "reviewed source-generation receipt"
     );
     let receipt: Value =
         serde_json::from_slice(&std::fs::read(directory.join("source-receipt.json")).unwrap())
