@@ -1,0 +1,74 @@
+{
+  "reviewer": "/root/diagnostic_review",
+  "review": "independent bounded R6 partition runner source review",
+  "at_utc": "2026-11-14T19:50:43.218811+00:00",
+  "checkpoint": "ea41b2ed44ef088a77a604e862778d2190f7cd20",
+  "immutable_source_hashes": {
+    "crates/conformance/examples/bootstrap_r6_stage.rs": "536929909b6fb7f5ef5b358e312d9d2c1dc112617a2ad9278b72c2843af96413",
+    "diagnostics/r6-partition-20261114/run.py": "a5dfe29afbbce3663e288174e2dcbea4ab9dad201ab502fc947b8bc45ddc7cd1"
+  },
+  "verdict": "No blocking source defect found after cache/input/refusal repairs; supports bounded R6-only diagnostic execution",
+  "supporting_findings": [
+    "Retained helper hashes source receipt files and binds compiler identity and exact R6 module.",
+    "Staging uses preserve::workspace, which audits core/text/source and preserves exact library/certificate audit commands.",
+    "Audit mode calls original preserve::audit covering every library declaration, root theorem, core declaration policy and mutual-group union; B/E explicitly out of scope.",
+    "Python command partition matches reviewed Rust algorithm using byte indexing,69commands and8groups. Original namespace/header/footer/command bytes preserved and wrapper imports final chain.",
+    "Runner schedules every staged environment compile, every part/wrapper compile and replay, then exact audit helper. No production export replay."
+  ],
+  "runtime_executed_by_reviewer": false,
+  "qualification": false,
+  "initial_checkpoint": "dbec76b514618c86a4e5d5a94a0936e9a161b251",
+  "resolved_findings": [
+    {
+      "id": "R6-1",
+      "issue": "Cache reuse checks exit zero without requiring reason null; output cap rejection with exit zero may be reused."
+    },
+    {
+      "id": "R6-2",
+      "issue": "Compilation permits nonempty output although production compilation requires silence; enforce silence and bind that policy in cached results."
+    },
+    {
+      "id": "R6-3",
+      "issue": "Replay/audit caches not bound to actual compiled artifact digest inventory; regenerated binaries can incorrectly reuse earlier replay. Policy helper cache must also bind actual audit log."
+    },
+    {
+      "id": "R6-4",
+      "issue": "Tool binary hashes omit imported toolchain library inputs and inherited Lean environment overrides; bind library content identity and controlled environment before reusing evidence."
+    }
+  ],
+  "blocking_findings": [],
+  "repair_review": [
+    "Cache reuse requires exit0, null refusal reason, identical policy including silence, keys, arguments, dependencies, log digest and complete compile artifact inventory.",
+    "Compilation now refuses any nonempty output; this is at least as strict as production trim-based silence.",
+    "Compile cache binds earlier compiled inputs; replay and Lean audit bind complete resulting artifact inventory including companion files. Audit-policy helper additionally binds audit-log digest.",
+    "All toolchain library file hashes, Python executable, Lean/checker executables, helper, runner, source manifest and retained receipt enter cache identity.",
+    "Child environment restricted to recorded LEAN_PATH/PATH/LANG/LC_ALL/HOME.",
+    "Expected compiled-file union must exactly equal actual build-tree file inventory before replay.",
+    "Retained source receipt is now hash-pinned to published source-generation receipt."
+  ],
+  "limitations": [
+    "Source review only; no Lean processes or production tests executed by reviewer.",
+    "Process-tree RSS/output/deadline bounds are polled supervisory limits, not OS hard memory quotas.",
+    "R6 certificate A result does not establish B/E, other roots, full production export, compiler qualification or final adoption."
+  ],
+  "utf8_followup": {
+    "previous_checkpoint": "31ca297ab477681843f78c2b0a23c38cf66e7d83",
+    "change": "Partition preparation uses raw bytes throughout instead of character indexing plus ASCII assertion; matches Rust byte offsets while preserving UTF-8 payloads. Runtime/cache logic unchanged.",
+    "manifest_sha256": "5d22cdbaf4aa6cfc763f963399f202974c0afe0297864644d83cce3c9e79e24a",
+    "staged_file_hashes_checked": 42,
+    "groups": 8,
+    "commands": 69,
+    "command_groups_byte_lengths": [
+      4135185,
+      3985342,
+      4083847,
+      4135842,
+      2683657,
+      3765313,
+      3970572,
+      691671
+    ],
+    "reconstruction": "Concatenation of command bytes from all8 actual staged parts equals original command bytes exactly.",
+    "verdict": "No blocking source defect found in byte correction or prepared files; prior repaired runner review retained."
+  }
+}
