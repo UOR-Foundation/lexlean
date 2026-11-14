@@ -1,0 +1,36 @@
+{
+  "reviewer": "/root/diagnostic_review",
+  "review": "final conditional receipt binding and prepared workspace",
+  "at_utc": "2026-11-14T20:09:11.271252+00:00",
+  "checkpoint": "a00d8191dba59ea56efb71746800906305545f0e",
+  "helper_source_sha256": "5f95d9c62d9ff6f89aafdcd65dd14f68d8817c72491efe84064ee721794c554a",
+  "runner_source_sha256": "d4a8a1b52058211016d384e76e899a75f99346d7706716895b239c187c56be96",
+  "source_receipt_sha256": "37120628b07394d522658bf3ea10432eb65b81ea0d457c6f917d2d45291f6414",
+  "prepared_manifest_sha256": "17d918aa7b73e0655975ae90ae198e411df9f2477645da537f6e989a437e3db9",
+  "previous_review_sha256": "348ef101aa20f3041833d709422cdc1c9cf2bcabf7087e0298eb9d70f22313e7",
+  "verdict": "No blocking source or prepared-workspace defect found; supports bounded conditional R6-A diagnostic with explicit environment reuse",
+  "findings": [
+    "Allowlist expands only to exact reviewed new source receipt37120628... alongside original receipt; compiler/module/current lock/file hashes and exact original audit remain enforced.",
+    "New receipt matches reviewed76e400a checkpoint, immutable source tree, exact owner proof blob566aac14 and actual generator executable SHA256.",
+    "All generated source/program files match receipt byte lengths and SHA256; program bytes exactly equal original retained R6 program.",
+    "All prepared workspace files match manifest hashes. All32 environment module rows and source hashes exactly equal prior successful environment.",
+    "All71commands from actual new partition files concatenate byte-for-byte to full original candidate certificate command body. Wrapper imports final part.",
+    "Runner unchanged from reviewed c8388a239; explicit adoption still checks original successful environment receipts and dependencies, and all new certificate compile/replay/audit steps remain required."
+  ],
+  "environment_modules_equal": 32,
+  "command_count": 71,
+  "part_count": 8,
+  "part_command_byte_lengths": [
+    3739873,
+    2775799,
+    3210497,
+    4006488,
+    4100710,
+    4081338,
+    3819959,
+    2825102
+  ],
+  "runtime_executed_by_reviewer": false,
+  "blocking_findings": [],
+  "qualification": false
+}
