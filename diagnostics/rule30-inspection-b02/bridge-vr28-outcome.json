@@ -1,0 +1,15 @@
+{
+  "source": "39303896db4f3cac0082ed9bbe3d3af165cffa18",
+  "command": [
+    "timeout",
+    "--kill-after=10s",
+    "300s",
+    "/workspace/lexlean-bridge-target/debug/deps/conformance-f91038edb0165b7a",
+    "conformance_vr_28",
+    "--exact",
+    "--nocapture"
+  ],
+  "exit": 0,
+  "seconds": 25.780519353000045,
+  "max_rss_kib": 851408
+}

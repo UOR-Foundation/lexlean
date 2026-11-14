@@ -1,0 +1,56 @@
+{
+  "source_checkpoint": "864d45d1c7e7e331e7524be5ce29392aa72c9a6a",
+  "projection_checkpoint": "39303896db4f3cac0082ed9bbe3d3af165cffa18",
+  "acceptance": false,
+  "model_projection": {
+    "command": "cargo run --locked -p xtask -- validate-model --write",
+    "exit": 0,
+    "changed_paths": [
+      "CONFORMANCE.md",
+      "SPEC.md",
+      "model/ids.toml"
+    ],
+    "capability_rows": 487
+  },
+  "read_only_checks": {
+    "validate-spec-links": "validate-spec-links: 487 table rows bijective with the register (RP-07)",
+    "validate-model": "validate-model: documents current, 487 ids, 86 codes, meta-gate and audits clean (R1)"
+  },
+  "strict_inspection_conformance": {
+    "source": "864d45d1c7e7e331e7524be5ce29392aa72c9a6a",
+    "command": [
+      "timeout",
+      "--kill-after=10s",
+      "300s",
+      "/workspace/lexlean-bridge-target/debug/deps/conformance-f91038edb0165b7a",
+      "conformance_vr_28",
+      "--exact",
+      "--nocapture"
+    ],
+    "exit": 0,
+    "seconds": 24.12509323900008,
+    "max_rss_kib": 848664
+  },
+  "checked_behavior": [
+    "Eq.refl actual kernel type, universe parameters and implicit binder visibility",
+    "ordered mixed present/absent/present inspection rows, absent null type and no native arena",
+    "both present and absent traversal budgets refuse with LLV7002 and traversal-budget reason",
+    "both refusal outputs absent; no verification attestation issued"
+  ],
+  "environment_resolution": "Initial unchanged test failed normative host discovery because host gate intentionally ignores ELAN_HOME. First bounded additional-permission symlink attempt failed read-only without mutation. Normal escalation succeeded creating /home/agent/.elan -> /workspace/toolchains/elan. HOME and the gate were unchanged. Subsequent tests used exact verified Lean4.32.2 binaries. No action denied.",
+  "binary_hashes": {
+    "compiler_sha256": "0e791407ce8126984300b3d9511a1a59608b6c713920b3b62d0795c474465f54",
+    "conformance_sha256": "0b29ce753ad556fb04f563e2c9598d8dfd12a4f29355333ec3f027bcbe5abc2e"
+  },
+  "projected_sha256": {
+    "CONFORMANCE.md": "569f373ccdefdb462af5f0359678e7eafae4070dc8eb3cda42f653bb4c348bfd",
+    "SPEC.md": "d7e82cf166427a7da28b5f96cc9e83d20dcff2b6f4de3b33d1b885dba560ef71",
+    "model/ids.toml": "e0cf259c11bc02cae11e3a042fe6e06778e23e1c8fa74ad7670b5e3cce518d24"
+  },
+  "identity_inventory": "bridge-identity-inventory.json",
+  "remaining": [
+    "269 language1.2 locks retain producer identity;456 tracked files contain previous1.2 identity. No broad writer was run.",
+    "Candidate compiler products/proof receipts/full exact-tree acceptance remain unqualified. Successful production exports were not replayed."
+  ],
+  "adoption": "No Rule30 compiler pin, merge, or release; no changes to #518 or Rule30."
+}

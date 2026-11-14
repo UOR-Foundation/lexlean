@@ -1,0 +1,15 @@
+
+running 1 test
+
+thread 'conformance_vr_28' (15961) panicked at crates/conformance/src/support.rs:2892:5:
+VR-28: the normative host (Linux x86-64) must have leanprover/lean4:v4.32.2 installed; a Lean-backed case never passes vacuously here (§8.3)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test conformance_vr_28 ... FAILED
+
+failures:
+
+failures:
+    conformance_vr_28
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 486 filtered out; finished in 0.01s
+

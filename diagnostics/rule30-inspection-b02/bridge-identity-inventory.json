@@ -1,0 +1,1824 @@
+{
+  "source": "39303896db4f3cac0082ed9bbe3d3af165cffa18",
+  "candidate_semantics": {
+    "1.0": "2c86ef849ec7b6e7cbae927ddf49126d781ce5003c7ecad5c379946c8169ee4c",
+    "1.1": "e5f20a7b75f37d979fade759a4873fb5a029be5128dd5689bb9754a4d0b203a5",
+    "1.2": "b6c666bbad446ffded2244b5f88430d601c5068cfd6915187e2cc49dbf8746f3"
+  },
+  "producer_semantics_from_representative_locks": {
+    "1.0": "2c86ef849ec7b6e7cbae927ddf49126d781ce5003c7ecad5c379946c8169ee4c",
+    "1.1": "e5f20a7b75f37d979fade759a4873fb5a029be5128dd5689bb9754a4d0b203a5",
+    "1.2": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587"
+  },
+  "older_language_identity_unchanged": true,
+  "language_1_2_lock_count": 269,
+  "lock_identity_counts": {
+    "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587": 269
+  },
+  "locks": [
+    {
+      "path": "bootstrap/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "compiler/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "examples/collections/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "examples/fold-laws/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "examples/helpdesk/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "examples/higher-order/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "examples/language-1.2/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "examples/models/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "examples/performance-corpus/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "examples/production-coverage/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "examples/production/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "examples/reasoning/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "examples/recursion/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "examples/recursive-data/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "kappa/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "spec/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "std-models/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "std-reasoning/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "stdlib/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/fixtures/command-driver/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/fixtures/host-effects/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/application-arity/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/application-non-function/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/binder-bool-literal-name/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/binder-capture/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/binder-pattern-constructor-name/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/cases-bool-branch-binder/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/cases-bool-branch-repeated/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/cases-bool-induction/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/cases-bool-missing-branch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/certificate-b-rejected/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/certificate-e-rejected/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/certificate-generation-limit/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/certificate-heartbeat-rejected/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/certificate-rejected/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/certificate-resource-exhausted/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/certificate-size-limit/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/certificates-total-limit/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/collection-duplicate-key/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/collection-fold-type-mismatch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/collection-literal-limit/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/collection-noncanonical-key/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/collection-nonliteral-key/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/collection-out-of-range-key/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/collection-unbounded-iteration/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/collection-unordered-key/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/cross-version-glossary/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/declaration-lean-name/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/eligibility-report-limit/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/eligibility-reports-total-limit/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/escaping-closure-in-data/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/escaping-closure-parameter/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/escaping-closure-structure/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/escaping-closure/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/executable-calls-formal/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/extraction-authority-drift/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/extraction-rejected/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/extraction-uncompiled-external/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/gnaf-certificate-malformed/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/gnaf-request-malformed/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/graph-duplicate-edge/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/graph-invalid-reference/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/lambda-capture-extra/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/lambda-capture-missing/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/lambda-type-mismatch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/lock-schema-language-mismatch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/lowering-depth-limit/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/lowering-size-limit/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/member-generated-name/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-artifact-decode-budget/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-artifact-digest-mismatch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-artifact-invalid-utf8/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-artifact-length-mismatch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-artifact-missing/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-artifact-over-limit/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-artifact-rank-overflow/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-artifact-role-violation/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-artifact-schema-violation/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-artifact-shape-mismatch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-artifact-symlink/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-artifact-unconfigured/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-check-without-validator/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-composition-forged-junction/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-composition-missing-junction/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-composition-type-mismatch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-contract-realization-mismatch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-encoder-width-forged/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-false-evidence/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-float-descriptor/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-foreign-evidence/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-forged-evidence/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-missing-entry/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-opaque-member/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-predicate-signature/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-realization-bypass/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-unregistered-claim/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-unvalidated-boundary/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-unvalidated-postcondition/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-vacuous-claim/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/model-validator-unsound-statement/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/module-name-dotted-first/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/module-name-dotted-last/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/module-name-lean-namespace/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/module-prefix-reserved/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/module-prefix-shipped-root/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/module-prefix-target-production/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/mutual-group-noncontiguous/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/mutual-label-shared/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/nat-bitwise-complement/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/nat-bitwise-mixed-operands/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/nat-bitwise-production-root/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/nat-bitwise-shift-amount/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/polymorphic-ambiguity/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/polymorphic-recursion/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/preservation-drift/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-effect-mismatch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-expectation-stale/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-formal-only-dependency/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-hidden-dependency/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-higher-order-escape/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-literal-width/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-named-type-boundary/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-package-name-keyword/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-phantom-type-parameter/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-polymorphic-root/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-request-malformed/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-root-not-executable/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-root-unknown/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-runtime-incompatible-type/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-target-unregistered/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-unbounded-type/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-universe-boundary/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/production-unknown-target/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-accept-bypass-alias/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-accept-bypass-invariant/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-accept-bypass-observation/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-accept-bypass-ref/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-answer-correct-inexact/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-answer-correct-unsorted/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-answer-invariant-without-initial/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-answer-type/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-binder-reserved/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-budget-not-nat/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-claims-duplicate/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-claims-unsorted/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-conclude-bypass-invariant/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-conclude-bypass-observation/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-deduplicate-unordered-state/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-duplicate-rule/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-elaboration-over-limit/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-extract-bypass-alias/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-extract-bypass-branch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-extract-bypass-invariant/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-extract-bypass-reasoner/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-extract-bypass-ref/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-false-answer-correct/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-false-invariant-answer-correct/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-false-observation-answer-correct/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-forged-trace/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-formal-rule/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-forward-without-fuel/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-frontier-not-nat/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-fuel-bound-inexact/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-fuel-not-nat/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-generate-claims/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-generate-subject-mismatch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-generate-with-logic/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-generate-with-rules/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-generate-without-budget/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-generator-type/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-inconsistent-verifier/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-initial-inexact/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-initial-without-invariant/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-insufficient-fuel/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-interface-rebound/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-invalid-rule-application/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-invariant-signature/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-invariant-unpreserved/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-logic-type-parameters/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-no-rules/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-nonterminating-rule/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-observation-initial-inexact/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-observation-invariant-signature/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-observation-preserved-inexact/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-observation-type/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-observation-unsorted/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-opaque-member/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-progress-without-ranking/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-ranking-signature/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-reasoner-rule-type-arguments/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-relation-not-definition/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-relation-signature/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-reserved-declaration-name/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-reserved-declaration-namespace/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-bypass-alias/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-bypass-branch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-bypass-generator/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-bypass-guard/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-bypass-iterate/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-bypass-lambda/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-bypass-observe/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-bypass-ref/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-bypass/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-candidates-type/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-conclusion-type/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-foreign-logic/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-guard-type/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-progress-inexact/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-soundness-inexact/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-type-arguments/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rule-unknown-logic/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-rules-without-logic/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-search-accept-bypass-invariant/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-search-step-bypass-invariant/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-search-without-frontier/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-specification-signature/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-terminates-without-initial/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-terminates-without-progress/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-terminates-without-ranking/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-terminating-search/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-unknown-rule/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-unknown-verifier/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-unregistered-claim/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-unregistered-strategy/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-unverified-answer/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-verifier-formal-check/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-verifier-inexact/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-verifier-signature/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-verifier-subject-mismatch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-verifier-type-mismatch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/reasoning-zero-frontier/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-cyclic-measure/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-evidence-omits-match/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-false-evidence/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-forged-evidence/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-member-under-lambda/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-missing-case/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-missing-evidence/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-mixed-families/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-mutual-cyclic-measure/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-mutual-disconnected/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-mutual-member-without-call/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-mutual-mixed/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-nondecreasing/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-under-lambda/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-well-founded-reference/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursion-wrong-argument/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursive-constructor-mismatch/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursive-match-foreign-constructor/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursive-mutual-uninhabited/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursive-structure/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursive-type-arguments/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursive-type-forward/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursive-type-nonuniform/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursive-type-positivity/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/recursive-type-uninhabited/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/semantic-module-v1-under-1.2/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/term-cases-definition-absent/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/term-cases-definition-repeated/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/term-cases-definitions-unsorted/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/term-cases-empty-definitions/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/term-cases-reserved-name/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/term-cases-scrutinee-not-inductive/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/text-window-zero-capacity/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/tooling-module-in-user-project/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/type-argument-universe/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/negative/type-parameter-capture/project/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/preservation-certificates/lists/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    },
+    {
+      "path": "tests/rust-backend/loop-ends/lexlean.lock",
+      "compiler_semantics": "59f64efe727898bcf6a337630c38eb4ea7ffc08cd83a49a0ea669c61c3b23587",
+      "matches_candidate": false
+    }
+  ],
+  "tracked_paths_containing_previous_1_2_identity": [
+    "bootstrap/expected/build/manifest.json",
+    "bootstrap/lexlean.lock",
+    "compiler/expected/build/manifest.json",
+    "compiler/lexlean.lock",
+    "compiler/rust/rust-core/boolean-shapes/provenance.json",
+    "compiler/rust/rust-core/closure-captures/provenance.json",
+    "compiler/rust/rust-core/closure-inline/provenance.json",
+    "compiler/rust/rust-core/closure-uninhabited/provenance.json",
+    "compiler/rust/rust-core/convert/provenance.json",
+    "compiler/rust/rust-core/fallible-condition-value/provenance.json",
+    "compiler/rust/rust-core/fixed-width-i16/provenance.json",
+    "compiler/rust/rust-core/fixed-width-i32/provenance.json",
+    "compiler/rust/rust-core/fixed-width-i64/provenance.json",
+    "compiler/rust/rust-core/fixed-width-i8/provenance.json",
+    "compiler/rust/rust-core/fixed-width-u16/provenance.json",
+    "compiler/rust/rust-core/fixed-width-u32/provenance.json",
+    "compiler/rust/rust-core/fixed-width-u64/provenance.json",
+    "compiler/rust/rust-core/fixed-width-u8-passing/provenance.json",
+    "compiler/rust/rust-core/fixed-width-u8/provenance.json",
+    "compiler/rust/rust-core/function-shapes/provenance.json",
+    "compiler/rust/rust-core/int-overflow-mul/provenance.json",
+    "compiler/rust/rust-core/int-overflow-neg/provenance.json",
+    "compiler/rust/rust-core/int-overflow-quot/provenance.json",
+    "compiler/rust/rust-core/int-overflow-sub/provenance.json",
+    "compiler/rust/rust-core/iterate-until-bounded/provenance.json",
+    "compiler/rust/rust-core/iterate-until/provenance.json",
+    "compiler/rust/rust-core/iterate/provenance.json",
+    "compiler/rust/rust-core/match-shapes/provenance.json",
+    "compiler/rust/rust-core/nat-overflow-add/provenance.json",
+    "compiler/rust/rust-core/nat-overflow-mul/provenance.json",
+    "compiler/rust/rust-core/nat-overflow-nested/provenance.json",
+    "compiler/rust/rust-core/nat-overflow-succ/provenance.json",
+    "compiler/rust/rust-core/reasoning-gnaf-goal/provenance.json",
+    "compiler/rust/rust-core/reasoning-gnaf-priority/provenance.json",
+    "compiler/rust/rust-core/reasoning-gnaf-sweep/provenance.json",
+    "compiler/rust/rust-core/reasoning-grade-shock/provenance.json",
+    "compiler/rust/rust-core/reasoning-grade-well/provenance.json",
+    "compiler/rust/rust-core/reasoning-review-exhausted/provenance.json",
+    "compiler/rust/rust-core/reasoning-review-rejected/provenance.json",
+    "compiler/rust/rust-core/reasoning-triage-shock/provenance.json",
+    "compiler/rust/rust-core/reasoning-triage-well/provenance.json",
+    "compiler/rust/rust-core/record-fields/provenance.json",
+    "compiler/rust/rust-core/sum-to-exhausted/provenance.json",
+    "compiler/rust/rust-core/sum-to/provenance.json",
+    "compiler/rust/rust-core/unit-closures/provenance.json",
+    "compiler/rust/rust-core/unit-values/provenance.json",
+    "compiler/rust/rust-core/wide-shapes/provenance.json",
+    "compiler/rust/rust-std/adt-evaluation/provenance.json",
+    "compiler/rust/rust-std/binding-and-shapes/provenance.json",
+    "compiler/rust/rust-std/boolean-shapes/provenance.json",
+    "compiler/rust/rust-std/booleans/provenance.json",
+    "compiler/rust/rust-std/boxed-field/provenance.json",
+    "compiler/rust/rust-std/byte-compare/provenance.json",
+    "compiler/rust/rust-std/byte-order/provenance.json",
+    "compiler/rust/rust-std/byte-slices/provenance.json",
+    "compiler/rust/rust-std/bytes-and-text/provenance.json",
+    "compiler/rust/rust-std/closure-captures/provenance.json",
+    "compiler/rust/rust-std/closure-dispatch/provenance.json",
+    "compiler/rust/rust-std/closure-inline/provenance.json",
+    "compiler/rust/rust-std/closure-recursive/provenance.json",
+    "compiler/rust/rust-std/closure-uninhabited/provenance.json",
+    "compiler/rust/rust-std/closures/provenance.json",
+    "compiler/rust/rust-std/convert/provenance.json",
+    "compiler/rust/rust-std/decimal-overflow-wide/provenance.json",
+    "compiler/rust/rust-std/decimal-overflow/provenance.json",
+    "compiler/rust/rust-std/decimal/provenance.json",
+    "compiler/rust/rust-std/equality/provenance.json",
+    "compiler/rust/rust-std/fallible-condition-value/provenance.json",
+    "compiler/rust/rust-std/fixed-bits-signed/provenance.json",
+    "compiler/rust/rust-std/fixed-bits-unsigned/provenance.json",
+    "compiler/rust/rust-std/fixed-checked-narrow/provenance.json",
+    "compiler/rust/rust-std/fixed-checked-signed/provenance.json",
+    "compiler/rust/rust-std/fixed-checked-wide/provenance.json",
+    "compiler/rust/rust-std/fixed-decimal-i16/provenance.json",
+    "compiler/rust/rust-std/fixed-decimal-i32/provenance.json",
+    "compiler/rust/rust-std/fixed-decimal-i64/provenance.json",
+    "compiler/rust/rust-std/fixed-decimal-i8/provenance.json",
+    "compiler/rust/rust-std/fixed-decimal-u16/provenance.json",
+    "compiler/rust/rust-std/fixed-decimal-u32/provenance.json",
+    "compiler/rust/rust-std/fixed-decimal-u64/provenance.json",
+    "compiler/rust/rust-std/fixed-decimal-u8/provenance.json",
+    "compiler/rust/rust-std/fixed-width-i16/provenance.json",
+    "compiler/rust/rust-std/fixed-width-i32/provenance.json",
+    "compiler/rust/rust-std/fixed-width-i64/provenance.json",
+    "compiler/rust/rust-std/fixed-width-i8/provenance.json",
+    "compiler/rust/rust-std/fixed-width-u16/provenance.json",
+    "compiler/rust/rust-std/fixed-width-u32/provenance.json",
+    "compiler/rust/rust-std/fixed-width-u64/provenance.json",
+    "compiler/rust/rust-std/fixed-width-u8-passing/provenance.json",
+    "compiler/rust/rust-std/fixed-width-u8/provenance.json",
+    "compiler/rust/rust-std/function-shapes/provenance.json",
+    "compiler/rust/rust-std/graph-reachable-absent/provenance.json",
+    "compiler/rust/rust-std/graph-reachable-inner/provenance.json",
+    "compiler/rust/rust-std/graph-reachable/provenance.json",
+    "compiler/rust/rust-std/graph-successors-absent/provenance.json",
+    "compiler/rust/rust-std/graph-successors/provenance.json",
+    "compiler/rust/rust-std/graph-topological-cycle/provenance.json",
+    "compiler/rust/rust-std/graph-topological/provenance.json",
+    "compiler/rust/rust-std/int-arithmetic/provenance.json",
+    "compiler/rust/rust-std/int-overflow-mul/provenance.json",
+    "compiler/rust/rust-std/int-overflow-neg/provenance.json",
+    "compiler/rust/rust-std/int-overflow-quot/provenance.json",
+    "compiler/rust/rust-std/int-overflow-sub/provenance.json",
+    "compiler/rust/rust-std/iterate-until-bounded/provenance.json",
+    "compiler/rust/rust-std/iterate-until/provenance.json",
+    "compiler/rust/rust-std/iterate/provenance.json",
+    "compiler/rust/rust-std/list-append-long/provenance.json",
+    "compiler/rust/rust-std/list-fold/provenance.json",
+    "compiler/rust/rust-std/lists-borrowed/provenance.json",
+    "compiler/rust/rust-std/lists/provenance.json",
+    "compiler/rust/rust-std/literals/provenance.json",
+    "compiler/rust/rust-std/map-contains/provenance.json",
+    "compiler/rust/rust-std/map-fold/provenance.json",
+    "compiler/rust/rust-std/map-insert-last/provenance.json",
+    "compiler/rust/rust-std/map-insert-replace/provenance.json",
+    "compiler/rust/rust-std/map-insert/provenance.json",
+    "compiler/rust/rust-std/map-keys/provenance.json",
+    "compiler/rust/rust-std/map-lookup-absent/provenance.json",
+    "compiler/rust/rust-std/map-lookup/provenance.json",
+    "compiler/rust/rust-std/map-remove-absent/provenance.json",
+    "compiler/rust/rust-std/map-remove/provenance.json",
+    "compiler/rust/rust-std/map-values/provenance.json",
+    "compiler/rust/rust-std/match-shapes/provenance.json",
+    "compiler/rust/rust-std/nat-arithmetic/provenance.json",
+    "compiler/rust/rust-std/nat-overflow-add/provenance.json",
+    "compiler/rust/rust-std/nat-overflow-mul/provenance.json",
+    "compiler/rust/rust-std/nat-overflow-nested/provenance.json",
+    "compiler/rust/rust-std/nat-overflow-succ/provenance.json",
+    "compiler/rust/rust-std/ordering/provenance.json",
+    "compiler/rust/rust-std/pair-and-list-match/provenance.json",
+    "compiler/rust/rust-std/reasoning-dose-120/provenance.json",
+    "compiler/rust/rust-std/reasoning-dose-60/provenance.json",
+    "compiler/rust/rust-std/reasoning-gnaf-goal/provenance.json",
+    "compiler/rust/rust-std/reasoning-gnaf-priority/provenance.json",
+    "compiler/rust/rust-std/reasoning-gnaf-sweep/provenance.json",
+    "compiler/rust/rust-std/reasoning-grade-shock/provenance.json",
+    "compiler/rust/rust-std/reasoning-grade-well/provenance.json",
+    "compiler/rust/rust-std/reasoning-plan-2/provenance.json",
+    "compiler/rust/rust-std/reasoning-plan-5/provenance.json",
+    "compiler/rust/rust-std/reasoning-review-exhausted/provenance.json",
+    "compiler/rust/rust-std/reasoning-review-rejected/provenance.json",
+    "compiler/rust/rust-std/reasoning-screen-0/provenance.json",
+    "compiler/rust/rust-std/reasoning-screen-100/provenance.json",
+    "compiler/rust/rust-std/reasoning-screen-60/provenance.json",
+    "compiler/rust/rust-std/reasoning-spend-2/provenance.json",
+    "compiler/rust/rust-std/reasoning-triage-shock/provenance.json",
+    "compiler/rust/rust-std/reasoning-triage-traced/provenance.json",
+    "compiler/rust/rust-std/reasoning-triage-well/provenance.json",
+    "compiler/rust/rust-std/record-fields/provenance.json",
+    "compiler/rust/rust-std/set-contains-absent/provenance.json",
+    "compiler/rust/rust-std/set-contains/provenance.json",
+    "compiler/rust/rust-std/set-difference/provenance.json",
+    "compiler/rust/rust-std/set-fold/provenance.json",
+    "compiler/rust/rust-std/set-insert-bool/provenance.json",
+    "compiler/rust/rust-std/set-insert-int/provenance.json",
+    "compiler/rust/rust-std/set-insert-int8/provenance.json",
+    "compiler/rust/rust-std/set-insert-nat/provenance.json",
+    "compiler/rust/rust-std/set-insert-product/provenance.json",
+    "compiler/rust/rust-std/set-insert-string/provenance.json",
+    "compiler/rust/rust-std/set-intersection/provenance.json",
+    "compiler/rust/rust-std/set-remove-absent/provenance.json",
+    "compiler/rust/rust-std/set-remove/provenance.json",
+    "compiler/rust/rust-std/set-union/provenance.json",
+    "compiler/rust/rust-std/split-and-join/provenance.json",
+    "compiler/rust/rust-std/string-escapes/provenance.json",
+    "compiler/rust/rust-std/sum-to-exhausted/provenance.json",
+    "compiler/rust/rust-std/sum-to/provenance.json",
+    "compiler/rust/rust-std/unit-closures/provenance.json",
+    "compiler/rust/rust-std/unit-values/provenance.json",
+    "compiler/rust/rust-std/wide-shapes/provenance.json",
+    "examples/collections/expected/build/manifest.json",
+    "examples/collections/lexlean.lock",
+    "examples/fold-laws/expected/build/manifest.json",
+    "examples/fold-laws/lexlean.lock",
+    "examples/helpdesk/expected/build/manifest.json",
+    "examples/helpdesk/lexlean.lock",
+    "examples/higher-order/expected/build/manifest.json",
+    "examples/higher-order/lexlean.lock",
+    "examples/language-1.2/expected/build/manifest.json",
+    "examples/language-1.2/lexlean.lock",
+    "examples/models/expected/build/manifest.json",
+    "examples/models/lexlean.lock",
+    "examples/performance-corpus/expected/build/manifest.json",
+    "examples/performance-corpus/lexlean.lock",
+    "examples/production-coverage/expected/build/manifest.json",
+    "examples/production-coverage/lexlean.lock",
+    "examples/production/expected/build/manifest.json",
+    "examples/production/lexlean.lock",
+    "examples/reasoning/expected/build/manifest.json",
+    "examples/reasoning/lexlean.lock",
+    "examples/recursion/expected/build/manifest.json",
+    "examples/recursion/lexlean.lock",
+    "examples/recursive-data/expected/build/manifest.json",
+    "examples/recursive-data/lexlean.lock",
+    "kappa/expected/build/manifest.json",
+    "kappa/lexlean.lock",
+    "spec/lexlean.lock",
+    "std-models/expected/build/manifest.json",
+    "std-models/lexlean.lock",
+    "std-reasoning/expected/build/manifest.json",
+    "std-reasoning/lexlean.lock",
+    "stdlib/expected/build/manifest.json",
+    "stdlib/lexlean.lock",
+    "tests/fixtures/command-driver/lexlean.lock",
+    "tests/fixtures/host-effects/lexlean.lock",
+    "tests/negative/application-arity/project/lexlean.lock",
+    "tests/negative/application-non-function/project/lexlean.lock",
+    "tests/negative/binder-bool-literal-name/project/lexlean.lock",
+    "tests/negative/binder-capture/project/lexlean.lock",
+    "tests/negative/binder-pattern-constructor-name/project/lexlean.lock",
+    "tests/negative/cases-bool-branch-binder/project/lexlean.lock",
+    "tests/negative/cases-bool-branch-repeated/project/lexlean.lock",
+    "tests/negative/cases-bool-induction/project/lexlean.lock",
+    "tests/negative/cases-bool-missing-branch/project/lexlean.lock",
+    "tests/negative/certificate-b-rejected/project/lexlean.lock",
+    "tests/negative/certificate-e-rejected/project/lexlean.lock",
+    "tests/negative/certificate-generation-limit/project/lexlean.lock",
+    "tests/negative/certificate-heartbeat-rejected/project/lexlean.lock",
+    "tests/negative/certificate-rejected/project/lexlean.lock",
+    "tests/negative/certificate-resource-exhausted/project/lexlean.lock",
+    "tests/negative/certificate-size-limit/project/lexlean.lock",
+    "tests/negative/certificates-total-limit/project/lexlean.lock",
+    "tests/negative/collection-duplicate-key/project/lexlean.lock",
+    "tests/negative/collection-fold-type-mismatch/project/lexlean.lock",
+    "tests/negative/collection-literal-limit/project/lexlean.lock",
+    "tests/negative/collection-noncanonical-key/project/lexlean.lock",
+    "tests/negative/collection-nonliteral-key/project/lexlean.lock",
+    "tests/negative/collection-out-of-range-key/project/lexlean.lock",
+    "tests/negative/collection-unbounded-iteration/project/lexlean.lock",
+    "tests/negative/collection-unordered-key/project/lexlean.lock",
+    "tests/negative/cross-version-glossary/project/lexlean.lock",
+    "tests/negative/declaration-lean-name/project/lexlean.lock",
+    "tests/negative/eligibility-report-limit/project/lexlean.lock",
+    "tests/negative/eligibility-reports-total-limit/project/lexlean.lock",
+    "tests/negative/escaping-closure-in-data/project/lexlean.lock",
+    "tests/negative/escaping-closure-parameter/project/lexlean.lock",
+    "tests/negative/escaping-closure-structure/project/lexlean.lock",
+    "tests/negative/escaping-closure/project/lexlean.lock",
+    "tests/negative/executable-calls-formal/project/lexlean.lock",
+    "tests/negative/extraction-authority-drift/project/lexlean.lock",
+    "tests/negative/extraction-rejected/project/lexlean.lock",
+    "tests/negative/extraction-uncompiled-external/project/lexlean.lock",
+    "tests/negative/gnaf-certificate-malformed/project/lexlean.lock",
+    "tests/negative/gnaf-request-malformed/project/lexlean.lock",
+    "tests/negative/graph-duplicate-edge/project/lexlean.lock",
+    "tests/negative/graph-invalid-reference/project/lexlean.lock",
+    "tests/negative/lambda-capture-extra/project/lexlean.lock",
+    "tests/negative/lambda-capture-missing/project/lexlean.lock",
+    "tests/negative/lambda-type-mismatch/project/lexlean.lock",
+    "tests/negative/lock-schema-language-mismatch/project/lexlean.lock",
+    "tests/negative/lowering-depth-limit/project/lexlean.lock",
+    "tests/negative/lowering-size-limit/project/lexlean.lock",
+    "tests/negative/member-generated-name/project/lexlean.lock",
+    "tests/negative/model-artifact-decode-budget/project/lexlean.lock",
+    "tests/negative/model-artifact-digest-mismatch/project/lexlean.lock",
+    "tests/negative/model-artifact-invalid-utf8/project/lexlean.lock",
+    "tests/negative/model-artifact-length-mismatch/project/lexlean.lock",
+    "tests/negative/model-artifact-missing/project/lexlean.lock",
+    "tests/negative/model-artifact-over-limit/project/lexlean.lock",
+    "tests/negative/model-artifact-rank-overflow/project/lexlean.lock",
+    "tests/negative/model-artifact-role-violation/project/lexlean.lock",
+    "tests/negative/model-artifact-schema-violation/project/lexlean.lock",
+    "tests/negative/model-artifact-shape-mismatch/project/lexlean.lock",
+    "tests/negative/model-artifact-symlink/project/lexlean.lock",
+    "tests/negative/model-artifact-unconfigured/project/lexlean.lock",
+    "tests/negative/model-check-without-validator/project/lexlean.lock",
+    "tests/negative/model-composition-forged-junction/project/lexlean.lock",
+    "tests/negative/model-composition-missing-junction/project/lexlean.lock",
+    "tests/negative/model-composition-type-mismatch/project/lexlean.lock",
+    "tests/negative/model-contract-realization-mismatch/project/lexlean.lock",
+    "tests/negative/model-encoder-width-forged/project/lexlean.lock",
+    "tests/negative/model-false-evidence/project/lexlean.lock",
+    "tests/negative/model-float-descriptor/project/lexlean.lock",
+    "tests/negative/model-foreign-evidence/project/lexlean.lock",
+    "tests/negative/model-forged-evidence/project/lexlean.lock",
+    "tests/negative/model-missing-entry/project/lexlean.lock",
+    "tests/negative/model-opaque-member/project/lexlean.lock",
+    "tests/negative/model-predicate-signature/project/lexlean.lock",
+    "tests/negative/model-realization-bypass/project/lexlean.lock",
+    "tests/negative/model-unregistered-claim/project/lexlean.lock",
+    "tests/negative/model-unvalidated-boundary/project/lexlean.lock",
+    "tests/negative/model-unvalidated-postcondition/project/lexlean.lock",
+    "tests/negative/model-vacuous-claim/project/lexlean.lock",
+    "tests/negative/model-validator-unsound-statement/project/lexlean.lock",
+    "tests/negative/module-name-dotted-first/project/lexlean.lock",
+    "tests/negative/module-name-dotted-last/project/lexlean.lock",
+    "tests/negative/module-name-lean-namespace/project/lexlean.lock",
+    "tests/negative/module-prefix-reserved/project/lexlean.lock",
+    "tests/negative/module-prefix-shipped-root/project/lexlean.lock",
+    "tests/negative/module-prefix-target-production/project/lexlean.lock",
+    "tests/negative/mutual-group-noncontiguous/project/lexlean.lock",
+    "tests/negative/mutual-label-shared/project/lexlean.lock",
+    "tests/negative/nat-bitwise-complement/project/lexlean.lock",
+    "tests/negative/nat-bitwise-mixed-operands/project/lexlean.lock",
+    "tests/negative/nat-bitwise-production-root/project/lexlean.lock",
+    "tests/negative/nat-bitwise-shift-amount/project/lexlean.lock",
+    "tests/negative/polymorphic-ambiguity/project/lexlean.lock",
+    "tests/negative/polymorphic-recursion/project/lexlean.lock",
+    "tests/negative/preservation-drift/project/lexlean.lock",
+    "tests/negative/production-effect-mismatch/project/lexlean.lock",
+    "tests/negative/production-expectation-stale/project/lexlean.lock",
+    "tests/negative/production-formal-only-dependency/project/lexlean.lock",
+    "tests/negative/production-hidden-dependency/project/lexlean.lock",
+    "tests/negative/production-higher-order-escape/project/lexlean.lock",
+    "tests/negative/production-literal-width/project/lexlean.lock",
+    "tests/negative/production-named-type-boundary/project/lexlean.lock",
+    "tests/negative/production-package-name-keyword/project/lexlean.lock",
+    "tests/negative/production-phantom-type-parameter/project/lexlean.lock",
+    "tests/negative/production-polymorphic-root/project/lexlean.lock",
+    "tests/negative/production-request-malformed/project/lexlean.lock",
+    "tests/negative/production-root-not-executable/project/lexlean.lock",
+    "tests/negative/production-root-unknown/project/lexlean.lock",
+    "tests/negative/production-runtime-incompatible-type/project/lexlean.lock",
+    "tests/negative/production-target-unregistered/project/lexlean.lock",
+    "tests/negative/production-unbounded-type/project/lexlean.lock",
+    "tests/negative/production-universe-boundary/project/lexlean.lock",
+    "tests/negative/production-unknown-target/project/lexlean.lock",
+    "tests/negative/reasoning-accept-bypass-alias/project/lexlean.lock",
+    "tests/negative/reasoning-accept-bypass-invariant/project/lexlean.lock",
+    "tests/negative/reasoning-accept-bypass-observation/project/lexlean.lock",
+    "tests/negative/reasoning-accept-bypass-ref/project/lexlean.lock",
+    "tests/negative/reasoning-answer-correct-inexact/project/lexlean.lock",
+    "tests/negative/reasoning-answer-correct-unsorted/project/lexlean.lock",
+    "tests/negative/reasoning-answer-invariant-without-initial/project/lexlean.lock",
+    "tests/negative/reasoning-answer-type/project/lexlean.lock",
+    "tests/negative/reasoning-binder-reserved/project/lexlean.lock",
+    "tests/negative/reasoning-budget-not-nat/project/lexlean.lock",
+    "tests/negative/reasoning-claims-duplicate/project/lexlean.lock",
+    "tests/negative/reasoning-claims-unsorted/project/lexlean.lock",
+    "tests/negative/reasoning-conclude-bypass-invariant/project/lexlean.lock",
+    "tests/negative/reasoning-conclude-bypass-observation/project/lexlean.lock",
+    "tests/negative/reasoning-deduplicate-unordered-state/project/lexlean.lock",
+    "tests/negative/reasoning-duplicate-rule/project/lexlean.lock",
+    "tests/negative/reasoning-elaboration-over-limit/project/lexlean.lock",
+    "tests/negative/reasoning-extract-bypass-alias/project/lexlean.lock",
+    "tests/negative/reasoning-extract-bypass-branch/project/lexlean.lock",
+    "tests/negative/reasoning-extract-bypass-invariant/project/lexlean.lock",
+    "tests/negative/reasoning-extract-bypass-reasoner/project/lexlean.lock",
+    "tests/negative/reasoning-extract-bypass-ref/project/lexlean.lock",
+    "tests/negative/reasoning-false-answer-correct/project/lexlean.lock",
+    "tests/negative/reasoning-false-invariant-answer-correct/project/lexlean.lock",
+    "tests/negative/reasoning-false-observation-answer-correct/project/lexlean.lock",
+    "tests/negative/reasoning-forged-trace/project/lexlean.lock",
+    "tests/negative/reasoning-formal-rule/project/lexlean.lock",
+    "tests/negative/reasoning-forward-without-fuel/project/lexlean.lock",
+    "tests/negative/reasoning-frontier-not-nat/project/lexlean.lock",
+    "tests/negative/reasoning-fuel-bound-inexact/project/lexlean.lock",
+    "tests/negative/reasoning-fuel-not-nat/project/lexlean.lock",
+    "tests/negative/reasoning-generate-claims/project/lexlean.lock",
+    "tests/negative/reasoning-generate-subject-mismatch/project/lexlean.lock",
+    "tests/negative/reasoning-generate-with-logic/project/lexlean.lock",
+    "tests/negative/reasoning-generate-with-rules/project/lexlean.lock",
+    "tests/negative/reasoning-generate-without-budget/project/lexlean.lock",
+    "tests/negative/reasoning-generator-type/project/lexlean.lock",
+    "tests/negative/reasoning-inconsistent-verifier/project/lexlean.lock",
+    "tests/negative/reasoning-initial-inexact/project/lexlean.lock",
+    "tests/negative/reasoning-initial-without-invariant/project/lexlean.lock",
+    "tests/negative/reasoning-insufficient-fuel/project/lexlean.lock",
+    "tests/negative/reasoning-interface-rebound/project/lexlean.lock",
+    "tests/negative/reasoning-invalid-rule-application/project/lexlean.lock",
+    "tests/negative/reasoning-invariant-signature/project/lexlean.lock",
+    "tests/negative/reasoning-invariant-unpreserved/project/lexlean.lock",
+    "tests/negative/reasoning-logic-type-parameters/project/lexlean.lock",
+    "tests/negative/reasoning-no-rules/project/lexlean.lock",
+    "tests/negative/reasoning-nonterminating-rule/project/lexlean.lock",
+    "tests/negative/reasoning-observation-initial-inexact/project/lexlean.lock",
+    "tests/negative/reasoning-observation-invariant-signature/project/lexlean.lock",
+    "tests/negative/reasoning-observation-preserved-inexact/project/lexlean.lock",
+    "tests/negative/reasoning-observation-type/project/lexlean.lock",
+    "tests/negative/reasoning-observation-unsorted/project/lexlean.lock",
+    "tests/negative/reasoning-opaque-member/project/lexlean.lock",
+    "tests/negative/reasoning-progress-without-ranking/project/lexlean.lock",
+    "tests/negative/reasoning-ranking-signature/project/lexlean.lock",
+    "tests/negative/reasoning-reasoner-rule-type-arguments/project/lexlean.lock",
+    "tests/negative/reasoning-relation-not-definition/project/lexlean.lock",
+    "tests/negative/reasoning-relation-signature/project/lexlean.lock",
+    "tests/negative/reasoning-reserved-declaration-name/project/lexlean.lock",
+    "tests/negative/reasoning-reserved-declaration-namespace/project/lexlean.lock",
+    "tests/negative/reasoning-rule-bypass-alias/project/lexlean.lock",
+    "tests/negative/reasoning-rule-bypass-branch/project/lexlean.lock",
+    "tests/negative/reasoning-rule-bypass-generator/project/lexlean.lock",
+    "tests/negative/reasoning-rule-bypass-guard/project/lexlean.lock",
+    "tests/negative/reasoning-rule-bypass-iterate/project/lexlean.lock",
+    "tests/negative/reasoning-rule-bypass-lambda/project/lexlean.lock",
+    "tests/negative/reasoning-rule-bypass-observe/project/lexlean.lock",
+    "tests/negative/reasoning-rule-bypass-ref/project/lexlean.lock",
+    "tests/negative/reasoning-rule-bypass/project/lexlean.lock",
+    "tests/negative/reasoning-rule-candidates-type/project/lexlean.lock",
+    "tests/negative/reasoning-rule-conclusion-type/project/lexlean.lock",
+    "tests/negative/reasoning-rule-foreign-logic/project/lexlean.lock",
+    "tests/negative/reasoning-rule-guard-type/project/lexlean.lock",
+    "tests/negative/reasoning-rule-progress-inexact/project/lexlean.lock",
+    "tests/negative/reasoning-rule-soundness-inexact/project/lexlean.lock",
+    "tests/negative/reasoning-rule-type-arguments/project/lexlean.lock",
+    "tests/negative/reasoning-rule-unknown-logic/project/lexlean.lock",
+    "tests/negative/reasoning-rules-without-logic/project/lexlean.lock",
+    "tests/negative/reasoning-search-accept-bypass-invariant/project/lexlean.lock",
+    "tests/negative/reasoning-search-step-bypass-invariant/project/lexlean.lock",
+    "tests/negative/reasoning-search-without-frontier/project/lexlean.lock",
+    "tests/negative/reasoning-specification-signature/project/lexlean.lock",
+    "tests/negative/reasoning-terminates-without-initial/project/lexlean.lock",
+    "tests/negative/reasoning-terminates-without-progress/project/lexlean.lock",
+    "tests/negative/reasoning-terminates-without-ranking/project/lexlean.lock",
+    "tests/negative/reasoning-terminating-search/project/lexlean.lock",
+    "tests/negative/reasoning-unknown-rule/project/lexlean.lock",
+    "tests/negative/reasoning-unknown-verifier/project/lexlean.lock",
+    "tests/negative/reasoning-unregistered-claim/project/lexlean.lock",
+    "tests/negative/reasoning-unregistered-strategy/project/lexlean.lock",
+    "tests/negative/reasoning-unverified-answer/project/lexlean.lock",
+    "tests/negative/reasoning-verifier-formal-check/project/lexlean.lock",
+    "tests/negative/reasoning-verifier-inexact/project/lexlean.lock",
+    "tests/negative/reasoning-verifier-signature/project/lexlean.lock",
+    "tests/negative/reasoning-verifier-subject-mismatch/project/lexlean.lock",
+    "tests/negative/reasoning-verifier-type-mismatch/project/lexlean.lock",
+    "tests/negative/reasoning-zero-frontier/project/lexlean.lock",
+    "tests/negative/recursion-cyclic-measure/project/lexlean.lock",
+    "tests/negative/recursion-evidence-omits-match/project/lexlean.lock",
+    "tests/negative/recursion-false-evidence/project/lexlean.lock",
+    "tests/negative/recursion-forged-evidence/project/lexlean.lock",
+    "tests/negative/recursion-member-under-lambda/project/lexlean.lock",
+    "tests/negative/recursion-missing-case/project/lexlean.lock",
+    "tests/negative/recursion-missing-evidence/project/lexlean.lock",
+    "tests/negative/recursion-mixed-families/project/lexlean.lock",
+    "tests/negative/recursion-mutual-cyclic-measure/project/lexlean.lock",
+    "tests/negative/recursion-mutual-disconnected/project/lexlean.lock",
+    "tests/negative/recursion-mutual-member-without-call/project/lexlean.lock",
+    "tests/negative/recursion-mutual-mixed/project/lexlean.lock",
+    "tests/negative/recursion-nondecreasing/project/lexlean.lock",
+    "tests/negative/recursion-under-lambda/project/lexlean.lock",
+    "tests/negative/recursion-well-founded-reference/project/lexlean.lock",
+    "tests/negative/recursion-wrong-argument/project/lexlean.lock",
+    "tests/negative/recursive-constructor-mismatch/project/lexlean.lock",
+    "tests/negative/recursive-match-foreign-constructor/project/lexlean.lock",
+    "tests/negative/recursive-mutual-uninhabited/project/lexlean.lock",
+    "tests/negative/recursive-structure/project/lexlean.lock",
+    "tests/negative/recursive-type-arguments/project/lexlean.lock",
+    "tests/negative/recursive-type-forward/project/lexlean.lock",
+    "tests/negative/recursive-type-nonuniform/project/lexlean.lock",
+    "tests/negative/recursive-type-positivity/project/lexlean.lock",
+    "tests/negative/recursive-type-uninhabited/project/lexlean.lock",
+    "tests/negative/semantic-module-v1-under-1.2/project/lexlean.lock",
+    "tests/negative/term-cases-definition-absent/project/lexlean.lock",
+    "tests/negative/term-cases-definition-repeated/project/lexlean.lock",
+    "tests/negative/term-cases-definitions-unsorted/project/lexlean.lock",
+    "tests/negative/term-cases-empty-definitions/project/lexlean.lock",
+    "tests/negative/term-cases-reserved-name/project/lexlean.lock",
+    "tests/negative/term-cases-scrutinee-not-inductive/project/lexlean.lock",
+    "tests/negative/text-window-zero-capacity/project/lexlean.lock",
+    "tests/negative/tooling-module-in-user-project/project/lexlean.lock",
+    "tests/negative/type-argument-universe/project/lexlean.lock",
+    "tests/negative/type-parameter-capture/project/lexlean.lock",
+    "tests/preservation-certificates/lists/lexlean.lock",
+    "tests/rust-backend/loop-ends/lexlean.lock",
+    "tests/tooling/commands/expected/build/manifest.json",
+    "tests/tooling/core/expected/build/manifest.json",
+    "tests/tooling/traversal/expected/build/manifest.json"
+  ],
+  "interpretation": "Inventory only. Negative fixtures can intentionally carry mismatches; historical verification/export evidence is not adopted or rewritten. No compiler acceptance is inferred."
+}
