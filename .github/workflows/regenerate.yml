@@ -260,6 +260,11 @@ jobs:
           # cores go to a plain file under a zero limit: none is written.
           sudo sysctl -w kernel.core_pattern=core
           ulimit -c 0
+          # A runner that runs out of memory loses its agent and leaves no log
+          # of why, so the free memory goes to the log once a minute.
+          ( while true; do echo "memory $(date -u +%H:%M:%S) $(free -m | awk '/^Mem:/ {print "used=" $3 "M available=" $7 "M"} /^Swap:/ {print "swap=" $3 "M"}' | tr '\n' ' ')"; sleep 60; done ) &
+          trace=$!
+          trap 'kill "$trace" 2>/dev/null || true' EXIT
           # Rows for packages no longer in the exports are dropped; for each
           # recursive package without a row, the case whose source names its
           # root runs whole and measures it (`LEXLEAN_MEASURE_STACK=all`).
@@ -310,8 +315,37 @@ jobs:
             exit 0
           fi
           echo "measuring: $cases" | tee -a "$GITHUB_STEP_SUMMARY"
-          LEXLEAN_MEASURE_STACK=all cargo test -p repo-conformance --all-features --test conformance -- $cases --nocapture 2>&1 \
-            | grep -E --line-buffered 'debug [0-9]+ bytes|test result|panicked|^test '
+          # Three runs on 2026-11-14 lost their runner while several of these
+          # cases measured at once. Alone, BS-36 left 7 GiB of this runner's
+          # 16 GiB available and BS-72 measured 10 to 12 GiB, so these run one
+          # at a time and the rest two at a time.
+          heavy="conformance_bs_36 conformance_bs_69 conformance_bs_70 conformance_bs_71 conformance_bs_72"
+          light=""
+          heavy_cases=""
+          for case in $cases; do
+            is_heavy=0
+            for h in $heavy; do
+              if [ "$case" = "$h" ]; then
+                is_heavy=1
+                break
+              fi
+            done
+            if [ "$is_heavy" = 1 ]; then
+              heavy_cases="$heavy_cases $case"
+            else
+              light="$light $case"
+            fi
+          done
+          if [ -n "$light" ]; then
+            echo "measuring (threads=2): $light" | tee -a "$GITHUB_STEP_SUMMARY"
+            LEXLEAN_MEASURE_STACK=all cargo test -p repo-conformance --all-features --test conformance -- $light --test-threads=2 --nocapture 2>&1 \
+              | grep -E --line-buffered 'debug [0-9]+ bytes|test result|panicked|^test '
+          fi
+          if [ -n "$heavy_cases" ]; then
+            echo "measuring (threads=1): $heavy_cases" | tee -a "$GITHUB_STEP_SUMMARY"
+            LEXLEAN_MEASURE_STACK=all cargo test -p repo-conformance --all-features --test conformance -- $heavy_cases --test-threads=1 --nocapture 2>&1 \
+              | grep -E --line-buffered 'debug [0-9]+ bytes|test result|panicked|^test '
+          fi
       - name: Return the regenerated tree
         if: ${{ !cancelled() }}
         shell: bash
