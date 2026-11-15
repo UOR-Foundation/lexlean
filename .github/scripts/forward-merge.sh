@@ -169,7 +169,7 @@ else
   draft=(--draft)
 fi
 if [ "${#kept[@]}" -gt 0 ]; then
-  body+=$'\n\n'"Older forward pull requests with work not yet in \`$next\`, left open: $(printf '#%s ' "${kept[@]}")"
+  body+=$'\n\n'"Older forward pull requests with work missing from \`$next\`, left open: $(printf '#%s ' "${kept[@]}")"
 fi
 if url=$(gh pr create --repo "$repo" --base "$next" --head "$branch" "${draft[@]}" \
     --title "$title" --body "$body" 2>&1); then
@@ -182,7 +182,7 @@ else
   superseded=()
 fi
 [ "$clean" = true ] || say "Finish by hand: $(printf '`%s` ' "${unresolved[@]}")"
-[ "${#kept[@]}" -eq 0 ] || say "Left open, with work not yet in \`$next\`: $(printf '#%s ' "${kept[@]}")"
+[ "${#kept[@]}" -eq 0 ] || say "Left open, with work missing from \`$next\`: $(printf '#%s ' "${kept[@]}")"
 # A branch is deleted only while its head is still the one inspected (a lease:
 # a push to it since then refuses the delete), and its pull request is closed
 # only once that delete succeeded. Any other is kept and listed.
