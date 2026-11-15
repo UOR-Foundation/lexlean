@@ -2725,18 +2725,21 @@ expected values are canonical Nat literals. The backend emits fixed natural
 deduction using primitive Nat direction lemmas and locally proved Boolean
 conjunction/reflexivity bridges. It does not invoke `propext` or a general
 tactic.
-An `evaluation` proof (language 1.2) closes an equality by the kernel alone:
+An `evaluation` proof (language 1.2) closes an equality goal by the kernel alone:
 it lowers to `run_tac _root_.Lean.Elab.Tactic.liftMetaFinishingTactic fun llGoal => _root_.Lean.MVarId.refl llGoal (check := false)`,
 which assigns `Eq.refl` of the left side without the elaborator's unifier
 comparing the two sides, and the kernel checks the theorem by reduction when it
 is added, so a statement that does not hold is rejected there (a kernel
 declaration type mismatch). A module with such a proof imports, as `meta`,
-exactly `Lean.Elab.Tactic.Basic` and `Lean.Meta.Tactic.Refl`. It is admitted
-because the unifier compares unevaluated subterms of the two sides lazily and
-can need memory exponential in an evaluation's length (two runs of a step
-machine that store unevaluated bytes), where the kernel's reduction of the same
-closed terms is linear; it carries no tactic name, option, or argument, and adds
-no axiom: the theorem's policy states the set the kernel observes.
+exactly `Lean.Elab.Tactic.Basic` and `Lean.Meta.Tactic.Refl`. Validation admits
+it in language 1.2 and does not otherwise restrict the statement; its intended
+workload is a closed equality between two evaluations. It exists because the
+elaborator's unifier can exhaust memory comparing unevaluated subterms of such
+sides where the kernel's check of the same statement completes (measured:
+equalities between long step-machine runs whose bytes are not literals); no
+general complexity bound is claimed for either. It carries no tactic name,
+option, or argument, and adds no axiom: the theorem's policy states the set the
+kernel observes.
 An `apply` proof names one prior theorem and supplies exactly its ordered,
 type-checked semantic arguments; it lowers to one `exact` application and
 cannot carry a proof-term or tactic string.

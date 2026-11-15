@@ -624,8 +624,9 @@ and Unreleased holds what has landed since.
 
 ### Added
 
-- The `evaluation` proof (language 1.2, `{"kind":"evaluation"}`, notation `evaluation{}`): a closed
-  equality checked by the kernel alone. It lowers to `MVarId.refl (check := false)` through `run_tac`,
+- The `evaluation` proof (language 1.2, `{"kind":"evaluation"}`, notation `evaluation{}`): an
+  equality goal checked by the kernel alone (validation gates the language version only), and the
+  `semantic-module-v2` schema's proof alternative for it. It lowers to `MVarId.refl (check := false)` through `run_tac`,
   so the elaborator's unifier never compares the two sides and the kernel decides the theorem when it is
   added. Reflexivity over two runs of a step machine whose state holds unevaluated bytes needed more
   than 13 GB in the unifier; the kernel checks the same theorems in seconds, and rejects a false one.
