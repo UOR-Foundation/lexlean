@@ -81,11 +81,19 @@ mod wasi;
 /// the case ends, by panic as well, and a failure to write it is dropped.
 /// How many of the heaviest bootstrap cases run at once in one process.
 /// Each checks its own copy of the whole bootstrap project and then works
-/// over the committed corpus: BS-07 alone passes 4 GiB, BS-05 with BS-07
-/// passes 10 GiB, and BS-05..BS-08 together were OOM-killed on the 16 GiB
-/// aarch64 runner. The harness runs one thread per processor, so without a
-/// bound the processors, not the memory, decide how many overlap. A case
-/// waits here before it starts, so its recorded wall time excludes the wait.
+/// over the committed corpus. Measured on a 4-processor host with 16 GiB
+/// (`MemTotal` 16473776 KiB) under a 13.4 GiB memory limit: BS-07 alone
+/// peaks at 4.4 GiB, BS-05 with BS-07 was OOM-killed past 10 GiB, and
+/// BS-05..BS-08 together within a minute. The harness runs one thread per
+/// processor, so without a bound the processors, not the memory, decide how
+/// many overlap. A case waits here before it starts, so its recorded wall
+/// time excludes the wait.
+///
+/// The bound is a planning figure for this process alone, not a guarantee:
+/// it reads the host's total memory once per admission and ignores cgroup
+/// limits, current pressure, other processes, and the other cases, and where
+/// `/proc/meminfo` is unreadable (macOS, Windows, whose lanes already run
+/// these cases apart) it admits every case.
 mod heavy {
     use std::sync::{Condvar, Mutex};
 
@@ -93,8 +101,10 @@ mod heavy {
     /// Intel hosts.
     const HEAVY: [&str; 4] = ["BS-05", "BS-06", "BS-07", "BS-08"];
 
-    /// The memory one of them is given.
-    const BUDGET_KIB: u64 = 8 * 1024 * 1024;
+    /// The memory one of them is planned for: more than a measured pair, so
+    /// a host with less than 20 GiB, the 16 GiB runners whatever their exact
+    /// `MemTotal`, runs one at a time.
+    const BUDGET_KIB: u64 = 10 * 1024 * 1024;
 
     static RUNNING: Mutex<usize> = Mutex::new(0);
     static FREED: Condvar = Condvar::new();
