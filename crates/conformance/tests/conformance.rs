@@ -846,6 +846,11 @@ fn conformance_pf_27() {
 }
 
 #[test]
+fn conformance_pf_28() {
+    repo_conformance::cases::run("PF-28");
+}
+
+#[test]
 fn conformance_ln_01() {
     repo_conformance::cases::run("LN-01");
 }
@@ -2618,4 +2623,9 @@ fn conformance_ns_07() {
 #[test]
 fn conformance_sl_12() {
     repo_conformance::cases::run("SL-12");
+}
+
+#[test]
+fn conformance_sm_43() {
+    repo_conformance::cases::run("SM-43");
 }

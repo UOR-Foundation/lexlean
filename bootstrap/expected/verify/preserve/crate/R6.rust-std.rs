@@ -867,7 +867,7 @@ pub enum Adt1 {
 
 #[derive(Clone)]
 pub enum Adt2 {
-    C0(Bytes, Adt1),
+    C0(Bytes, std::rc::Rc<Adt1>),
 }
 
 #[derive(Clone)]
@@ -882,13 +882,13 @@ pub enum Adt4 {
 
 #[derive(Clone)]
 pub enum Fn0 {
-    F3(Adt4),
+    F3(std::rc::Rc<Adt4>),
 }
 
 impl Fn0 {
     pub fn apply(&self, p0: Bytes, p1: Adt0) -> Bytes {
         match self {
-            Fn0::F3(k0) => f3(k0.clone(), p0, p1),
+            Fn0::F3(k0) => f3((**k0).clone(), p0, p1),
         }
     }
 }
@@ -960,7 +960,7 @@ impl Fn5 {
 
 pub fn f0(v0: List<Adt0>, v1: bool) -> Bytes {
     let v2: Adt4 = f1(v1);
-    f2(Fn0::F3(v2), Bytes::lit(&[]), v0)
+    f2(Fn0::F3(std::rc::Rc::new(v2)), Bytes::lit(&[]), v0)
 }
 
 pub fn f1(v0: bool) -> Adt4 {
@@ -1149,7 +1149,7 @@ pub fn f13(v0: Bytes, v1: Adt2) -> Bytes {
         }
     }), f6(Str::lit(" ("))), f7(match v1 {
         Adt2::C0(_, h32) => {
-            h32
+            (*h32).clone()
         }
     })), f4(f6(Str::lit(")")), Bytes::lit(&[0x0a]))))
 }

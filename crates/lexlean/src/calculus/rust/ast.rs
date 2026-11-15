@@ -316,6 +316,7 @@ pub enum Machine {
     ParseDecimal(IntKind),
     ParseDecimalInt,
     FormatDecimalInt,
+    BytesUpdate,
 }
 
 impl Machine {
@@ -353,6 +354,7 @@ impl Machine {
             Self::StringJoin,
             Self::ParseDecimalInt,
             Self::FormatDecimalInt,
+            Self::BytesUpdate,
         ];
         for kind in IntKind::ALL {
             out.extend([
@@ -427,13 +429,14 @@ impl Machine {
             Self::ParseDecimal(_) => 41,
             Self::ParseDecimalInt => 42,
             Self::FormatDecimalInt => 43,
+            Self::BytesUpdate => 44,
         }
     }
 
     /// One primitive of each family, at `u8` where it has a width, in the
     /// order of [`Machine::family`].
     #[must_use]
-    pub const fn families() -> [Self; 44] {
+    pub const fn families() -> [Self; 45] {
         let kind = IntKind::U8;
         [
             Self::CheckedAdd(kind),
@@ -480,6 +483,7 @@ impl Machine {
             Self::ParseDecimal(kind),
             Self::ParseDecimalInt,
             Self::FormatDecimalInt,
+            Self::BytesUpdate,
         ]
     }
 
@@ -531,7 +535,8 @@ impl Machine {
             | Self::StringSplit
             | Self::StringJoin
             | Self::ParseDecimalInt
-            | Self::FormatDecimalInt => None,
+            | Self::FormatDecimalInt
+            | Self::BytesUpdate => None,
         }
     }
 
@@ -584,6 +589,7 @@ impl Machine {
             Self::ParseDecimal(_) => "parse_decimal",
             Self::ParseDecimalInt => "parse_decimal_int",
             Self::FormatDecimalInt => "format_decimal_int",
+            Self::BytesUpdate => "bytes_update",
         }
     }
 
@@ -610,6 +616,7 @@ impl Machine {
             | Self::CheckedIntQuot
             | Self::ListSlice
             | Self::BytesSlice
+            | Self::BytesUpdate
             | Self::StringSplit => 3,
             _ => 2,
         }
@@ -675,6 +682,7 @@ impl Machine {
             Self::ParseDecimalInt => format!("Str::parse_int(&{})", args[0]),
             // The integers are `i64` in the printed runtime (`Type::Int`).
             Self::FormatDecimalInt => format!("Str::format_i64({})", args[0]),
+            Self::BytesUpdate => format!("Bytes::update({}, {}, {})", args[0], args[1], args[2]),
         }
     }
 }

@@ -889,22 +889,22 @@ pub enum Adt1 {
 
 #[derive(Clone)]
 pub enum Adt2 {
-    C0(Adt0, Adt3),
+    C0(std::rc::Rc<Adt0>, std::rc::Rc<Adt3>),
     C1(u64),
-    C2(u64, Adt0, std::rc::Rc<Adt2>, std::rc::Rc<Adt2>),
+    C2(u64, std::rc::Rc<Adt0>, std::rc::Rc<Adt2>, std::rc::Rc<Adt2>),
     C3(std::rc::Rc<Adt2>, std::rc::Rc<Adt2>, std::rc::Rc<Adt2>),
-    C4(Adt0, std::rc::Rc<Adt2>, std::rc::Rc<Adt2>),
-    C5(Adt5, Adt0, std::rc::Rc<Adt2>),
+    C4(std::rc::Rc<Adt0>, std::rc::Rc<Adt2>, std::rc::Rc<Adt2>),
+    C5(std::rc::Rc<Adt5>, std::rc::Rc<Adt0>, std::rc::Rc<Adt2>),
     C6(u64, std::rc::Rc<Adt2>),
     C7(u64, std::rc::Rc<Adt2>),
     C8(std::rc::Rc<Adt2>, std::rc::Rc<Adt2>),
-    C9(Adt6, std::rc::Rc<Adt2>),
+    C9(std::rc::Rc<Adt6>, std::rc::Rc<Adt2>),
     C10(std::rc::Rc<Adt2>),
     C11(std::rc::Rc<Adt2>),
     C12(std::rc::Rc<Adt2>, u64),
     C13,
     C14(std::rc::Rc<Adt2>, std::rc::Rc<Adt2>),
-    C15(Adt5, List<u64>, std::rc::Rc<Adt2>),
+    C15(std::rc::Rc<Adt5>, List<u64>, std::rc::Rc<Adt2>),
 }
 
 #[derive(Clone)]
@@ -1006,12 +1006,12 @@ pub enum Adt6 {
     C38,
     C39,
     C40(Adt1),
-    C41(Adt0),
+    C41(std::rc::Rc<Adt0>),
 }
 
 #[derive(Clone)]
 pub enum Adt7 {
-    C0(Bytes, Adt0, List<List<u64>>, Adt0, Adt0, Adt2),
+    C0(Bytes, std::rc::Rc<Adt0>, List<List<u64>>, std::rc::Rc<Adt0>, std::rc::Rc<Adt0>, std::rc::Rc<Adt2>),
 }
 
 #[derive(Clone)]
@@ -1050,7 +1050,7 @@ impl Fn1 {
 }
 
 pub fn f0(v0: Bytes, v1: Adt0, v2: List<List<u64>>, v3: Adt0, v4: Adt0, v5: Adt2, v6: u64, v7: Adt3) -> R<Result<(), Bytes>> {
-    let v8: Adt7 = Adt7::C0(v0, v1, v2, v3, v4, v5);
+    let v8: Adt7 = Adt7::C0(v0, std::rc::Rc::new(v1), v2, std::rc::Rc::new(v3), std::rc::Rc::new(v4), std::rc::Rc::new(v5));
     let m1 = f1(v8.clone(), v6);
     match m1 {
         None => {
@@ -1073,7 +1073,7 @@ pub fn f0(v0: Bytes, v1: Adt0, v2: List<List<u64>>, v3: Adt0, v4: Adt0, v5: Adt2
 pub fn f1(v0: Adt7, v1: u64) -> Option<Adt0> {
     f9(match v0 {
         Adt7::C0(_, _, _, h4, _, _) => {
-            h4
+            (*h4).clone()
         }
     }, v1)
 }
@@ -2794,7 +2794,7 @@ pub fn f38(v0: Adt0) -> Option<Adt0> {
 pub fn f39(v0: Adt7, v1: u64) -> Option<Adt0> {
     f9(match v0 {
         Adt7::C0(_, h244, _, _, _, _) => {
-            h244
+            (*h244).clone()
         }
     }, v1)
 }

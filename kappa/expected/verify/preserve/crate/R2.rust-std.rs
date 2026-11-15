@@ -902,7 +902,7 @@ pub enum Adt8 {
 
 #[derive(Clone)]
 pub enum Adt9 {
-    C0(u32, u32, u32, u32, u32, u32, u32, u32, Adt8, u64),
+    C0(u32, u32, u32, u32, u32, u32, u32, u32, std::rc::Rc<Adt8>, u64),
 }
 
 #[derive(Clone)]
@@ -912,7 +912,7 @@ pub enum Adt10 {
 
 #[derive(Clone)]
 pub enum Adt11 {
-    C0(u64, u64, u64, u64, u64, u64, u64, u64, Adt10, u64),
+    C0(u64, u64, u64, u64, u64, u64, u64, u64, std::rc::Rc<Adt10>, u64),
 }
 
 #[derive(Clone)]
@@ -927,7 +927,7 @@ pub enum Adt13 {
 
 #[derive(Clone)]
 pub enum Adt14 {
-    C0(Adt3, u64, List<Adt3>),
+    C0(std::rc::Rc<Adt3>, u64, List<Adt3>),
 }
 
 #[derive(Clone)]
@@ -3261,7 +3261,7 @@ pub fn f67(v0: Adt5, v1: Adt8) -> R<Adt5> {
         Adt5::C0(_, _, _, _, _, _, _, h621) => {
             h621
         }
-    }, v1, 0u64))?;
+    }, std::rc::Rc::new(v1), 0u64))?;
     Ok(Adt5::C0(f97(match v0.clone() {
         Adt5::C0(h622, _, _, _, _, _, _, _) => {
             h622
@@ -3473,7 +3473,7 @@ pub fn f72(v0: Adt2, v1: Adt10) -> R<Adt2> {
         Adt2::C0(_, _, _, _, _, _, _, h685) => {
             h685
         }
-    }, v1, 0u64))?;
+    }, std::rc::Rc::new(v1), 0u64))?;
     Ok(Adt2::C0(f102(match v0.clone() {
         Adt2::C0(h686, _, _, _, _, _, _, _) => {
             h686
@@ -4792,7 +4792,7 @@ pub fn f103(v0: Bytes, v1: u64, v2: u64, v3: u64) -> R<u64> {
 }
 
 pub fn f104(v0: (u64, List<Adt3>), v1: Adt3) -> R<(u64, List<Adt3>)> {
-    let v2: Adt14 = f134(Fn17::F135, 40u64, Adt14::C0(v1, {
+    let v2: Adt14 = f134(Fn17::F135, 40u64, Adt14::C0(std::rc::Rc::new(v1), {
         let a1115 = {
             let (h1114, _) = v0.clone();
             h1114
@@ -4812,7 +4812,7 @@ pub fn f104(v0: (u64, List<Adt3>), v1: Adt3) -> R<(u64, List<Adt3>)> {
         nat_add(a1119, a1120)?
     }, List::cons(match v2.clone() {
         Adt14::C0(h1121, _, _) => {
-            h1121
+            (*h1121).clone()
         }
     }, match v2 {
         Adt14::C0(_, _, h1122) => {
@@ -5251,7 +5251,7 @@ pub fn f122(v0: Adt9) -> R<Adt9> {
     }), f97(v1, {
         let m1245 = match v0.clone() {
             Adt9::C0(_, _, _, _, _, _, _, _, h1244, _) => {
-                h1244
+                (*h1244).clone()
             }
         };
         match m1245 {
@@ -5305,11 +5305,11 @@ pub fn f122(v0: Adt9) -> R<Adt9> {
         Adt9::C0(_, _, _, _, _, _, h1256, _, _, _) => {
             h1256
         }
-    }, f148(match v0.clone() {
+    }, std::rc::Rc::new(f148(match v0.clone() {
         Adt9::C0(_, _, _, _, _, _, _, _, h1257, _) => {
-            h1257
+            (*h1257).clone()
         }
-    }), {
+    })), {
         let a1259 = match v0 {
             Adt9::C0(_, _, _, _, _, _, _, _, _, h1258) => {
                 h1258
@@ -5458,7 +5458,7 @@ pub fn f128(v0: Adt11) -> R<Adt11> {
     }), f102(v1, {
         let m1303 = match v0.clone() {
             Adt11::C0(_, _, _, _, _, _, _, _, h1302, _) => {
-                h1302
+                (*h1302).clone()
             }
         };
         match m1303 {
@@ -5512,11 +5512,11 @@ pub fn f128(v0: Adt11) -> R<Adt11> {
         Adt11::C0(_, _, _, _, _, _, h1314, _, _, _) => {
             h1314
         }
-    }, f157(match v0.clone() {
+    }, std::rc::Rc::new(f157(match v0.clone() {
         Adt11::C0(_, _, _, _, _, _, _, _, h1315, _) => {
-            h1315
+            (*h1315).clone()
         }
-    }), {
+    })), {
         let a1317 = match v0 {
             Adt11::C0(_, _, _, _, _, _, _, _, _, h1316) => {
                 h1316
@@ -7289,11 +7289,11 @@ pub fn f161(v0: Adt14) -> Adt14 {
                 v0
             }
             Some((v1, v2)) => {
-                Adt14::C0(f113(v1, match v0.clone() {
+                Adt14::C0(std::rc::Rc::new(f113(v1, match v0.clone() {
                     Adt14::C0(h1876, _, _) => {
-                        h1876
+                        (*h1876).clone()
                     }
-                }, false), {
+                }, false)), {
                     let a1878 = match v0 {
                         Adt14::C0(_, h1877, _) => {
                             h1877

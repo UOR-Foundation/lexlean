@@ -857,7 +857,7 @@ pub fn format_int(p0: i64) -> Str {
 
 #[derive(Clone)]
 pub enum Adt0 {
-    C0(Bytes, Bytes, Bytes, List<Bytes>, List<Bytes>, Bytes, Bytes, Bytes, List<Adt1>, List<Adt2>, List<Adt3>, Adt4, Option<Adt5>),
+    C0(Bytes, Bytes, Bytes, List<Bytes>, List<Bytes>, Bytes, Bytes, Bytes, List<Adt1>, List<Adt2>, List<Adt3>, std::rc::Rc<Adt4>, Option<Adt5>),
 }
 
 #[derive(Clone)]
@@ -1140,7 +1140,7 @@ pub fn f0(v0: Adt0) -> R<Bytes> {
         }
     })?), v2), v3), f12(match v0 {
         Adt0::C0(_, _, _, _, _, _, _, _, _, _, _, h14, _) => {
-            h14
+            (*h14).clone()
         }
     })?), v5))
 }

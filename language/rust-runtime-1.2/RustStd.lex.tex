@@ -231,10 +231,17 @@ definition{
 }
 
 definition{
+  name: updateBytesFunction,
+  parameters: [],
+  result: RustSyntax::ItemDef,
+  body: (ctor RustSyntax::ItemDef.function (ctor RustSyntax::Ident.exported "update_bytes") (cons (record RustSyntax::Parameter {pattern := (ctor RustSyntax::Pat.bind (ctor RustSyntax::Ident.generated (ctor RustSyntax::IdentKind.param) 0)), type := (ctor RustSyntax::RustType.bytes)}) (cons (record RustSyntax::Parameter {pattern := (ctor RustSyntax::Pat.bind (ctor RustSyntax::Ident.generated (ctor RustSyntax::IdentKind.param) 1)), type := (ctor RustSyntax::RustType.nat)}) (cons (record RustSyntax::Parameter {pattern := (ctor RustSyntax::Pat.bind (ctor RustSyntax::Ident.generated (ctor RustSyntax::IdentKind.param) 2)), type := (ctor RustSyntax::RustType.fixed (ctor TargetSyntax::IntKind.u8))}) (nil RustSyntax::Parameter)))) (ctor RustSyntax::RustType.option (ctor RustSyntax::RustType.bytes)) (ctor RustSyntax::Block.mk (nil RustSyntax::Let) (ctor RustSyntax::Expr.call (ctor RustSyntax::Callee.machine (ctor RustSyntax::Machine.bytesUpdate)) (cons (ctor RustSyntax::Expr.move (ctor RustSyntax::Ident.generated (ctor RustSyntax::IdentKind.param) 0)) (cons (ctor RustSyntax::Expr.move (ctor RustSyntax::Ident.generated (ctor RustSyntax::IdentKind.param) 1)) (cons (ctor RustSyntax::Expr.move (ctor RustSyntax::Ident.generated (ctor RustSyntax::IdentKind.param) 2)) (nil RustSyntax::Expr)))) false)))
+}
+
+definition{
   name: stdCrate,
   parameters: [],
   result: RustSyntax::Crate,
-  body: (record RustSyntax::Crate {profile := (ctor RustSyntax::Profile.std), items := (cons (appendListFunction) (cons (lengthListFunction) (cons (indexListFunction) (cons (sliceListFunction) (cons (appendBytesFunction) (cons (lengthBytesFunction) (cons (lengthStringFunction) (cons (indexBytesFunction) (cons (sliceBytesFunction) (cons (utf8EncodeFunction) (cons (utf8DecodeFunction) (cons (compareBytesFunction) (cons (splitExactFunction) (cons (joinFunction) (cons (formatU8Function) (cons (parseU8Function) (cons (formatU16Function) (cons (parseU16Function) (cons (formatU32Function) (cons (parseU32Function) (cons (formatU64Function) (cons (parseU64Function) (cons (formatI8Function) (cons (parseI8Function) (cons (formatI16Function) (cons (parseI16Function) (cons (formatI32Function) (cons (parseI32Function) (cons (formatI64Function) (cons (parseI64Function) (cons (parseIntFunction) (cons (formatIntFunction) (nil RustSyntax::ItemDef)))))))))))))))))))))))))))))))))})
+  body: (record RustSyntax::Crate {profile := (ctor RustSyntax::Profile.std), items := (cons (appendListFunction) (cons (lengthListFunction) (cons (indexListFunction) (cons (sliceListFunction) (cons (appendBytesFunction) (cons (lengthBytesFunction) (cons (lengthStringFunction) (cons (indexBytesFunction) (cons (sliceBytesFunction) (cons (utf8EncodeFunction) (cons (utf8DecodeFunction) (cons (compareBytesFunction) (cons (splitExactFunction) (cons (joinFunction) (cons (formatU8Function) (cons (parseU8Function) (cons (formatU16Function) (cons (parseU16Function) (cons (formatU32Function) (cons (parseU32Function) (cons (formatU64Function) (cons (parseU64Function) (cons (formatI8Function) (cons (parseI8Function) (cons (formatI16Function) (cons (parseI16Function) (cons (formatI32Function) (cons (parseI32Function) (cons (formatI64Function) (cons (parseI64Function) (cons (parseIntFunction) (cons (formatIntFunction) (cons (updateBytesFunction) (nil RustSyntax::ItemDef))))))))))))))))))))))))))))))))))})
 }
 
 theorem{
@@ -304,6 +311,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -379,6 +387,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -454,6 +463,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -529,6 +539,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -604,6 +615,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -679,6 +691,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -754,6 +767,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -829,6 +843,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -904,6 +919,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -979,6 +995,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -1054,6 +1071,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -1129,6 +1147,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -1204,6 +1223,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -1279,6 +1299,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -1354,6 +1375,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -1429,6 +1451,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -1504,6 +1527,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -1579,6 +1603,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -1654,6 +1679,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -1729,6 +1755,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -1804,6 +1831,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -1879,6 +1907,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -1954,6 +1983,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -2029,6 +2059,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -2104,6 +2135,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -2179,6 +2211,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -2254,6 +2287,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -2329,6 +2363,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -2404,6 +2439,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -2479,6 +2515,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -2554,6 +2591,7 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
@@ -2629,10 +2667,87 @@ theorem{
       sliceListFunction,
       splitExactFunction,
       stdCrate,
+      updateBytesFunction,
       utf8DecodeFunction,
       utf8EncodeFunction
     ],
     scrutinee: (TargetSemantics::primitive (ctor TargetSyntax::Prim.formatDecimal) (cons (ctor TargetSyntax::Value.int x) (nil TargetSyntax::Value)))
+  },
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: refines_update_bytes,
+  parameters: [a : Bytes, at : Nat, byte : UInt8],
+  statement: ((RustSemantics::runExport 12 (stdCrate) "update_bytes" (cons (ctor TargetSyntax::Value.bytes a) (cons (ctor TargetSyntax::Value.nat at) (cons (ctor TargetSyntax::Value.u8 byte) (nil TargetSyntax::Value))))) = (RustSemantics::runItem (ctor RustSyntax::Profile.std) (ctor RustSyntax::Item.updateBytes) (cons (ctor TargetSyntax::Value.bytes a) (cons (ctor TargetSyntax::Value.nat at) (cons (ctor TargetSyntax::Value.u8 byte) (nil TargetSyntax::Value)))))),
+  proof: term_cases{
+    definitions: [
+      RustSemantics::allWidth,
+      RustSemantics::bindPattern,
+      RustSemantics::bindPatterns,
+      RustSemantics::constructValue,
+      RustSemantics::eval,
+      RustSemantics::evalArms,
+      RustSemantics::evalBlock,
+      RustSemantics::evalList,
+      RustSemantics::findFunction,
+      RustSemantics::finished,
+      RustSemantics::hasWidth,
+      RustSemantics::invoke,
+      RustSemantics::isBytes,
+      RustSemantics::isList,
+      RustSemantics::isString,
+      RustSemantics::itemAccepts,
+      RustSemantics::itemOperands,
+      RustSemantics::itemPrimitive,
+      RustSemantics::itemTakes,
+      RustSemantics::itemWidth,
+      RustSemantics::literal,
+      RustSemantics::lookup,
+      RustSemantics::machineAccepts,
+      RustSemantics::machinePrimitive,
+      RustSemantics::machineWidth,
+      RustSemantics::patternsOf,
+      RustSemantics::returned,
+      RustSemantics::runExport,
+      RustSemantics::runItem,
+      RustSemantics::runMachine,
+      appendBytesFunction,
+      appendListFunction,
+      compareBytesFunction,
+      formatI16Function,
+      formatI32Function,
+      formatI64Function,
+      formatI8Function,
+      formatIntFunction,
+      formatU16Function,
+      formatU32Function,
+      formatU64Function,
+      formatU8Function,
+      indexBytesFunction,
+      indexListFunction,
+      joinFunction,
+      lengthBytesFunction,
+      lengthListFunction,
+      lengthStringFunction,
+      parseI16Function,
+      parseI32Function,
+      parseI64Function,
+      parseI8Function,
+      parseIntFunction,
+      parseU16Function,
+      parseU32Function,
+      parseU64Function,
+      parseU8Function,
+      sliceBytesFunction,
+      sliceListFunction,
+      splitExactFunction,
+      stdCrate,
+      updateBytesFunction,
+      utf8DecodeFunction,
+      utf8EncodeFunction
+    ],
+    scrutinee: (TargetSemantics::primitive (ctor TargetSyntax::Prim.update) (cons (ctor TargetSyntax::Value.bytes a) (cons (ctor TargetSyntax::Value.nat at) (cons (ctor TargetSyntax::Value.u8 byte) (nil TargetSyntax::Value)))))
   },
   axioms: [Classical.choice, Quot.sound, propext]
 }
