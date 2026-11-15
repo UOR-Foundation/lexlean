@@ -25,6 +25,8 @@ workspace carried at those versions without a tag.
   job mid-run. On that runner they now run one at a time. A waiting case is
   not timed.
 
+## 0.4.3
+
 - A semantic module nests as deeply as the project's `max_scope_depth` allows
   (SPEC.md §17.17, §17.21.3, `SM-12`; no new diagnostic code; no language
   identity moves). The front end read a module's JSON with a fixed 128-level
