@@ -15,6 +15,7 @@ mod ci;
 mod codegen;
 mod counts;
 mod release_manifest;
+mod semantics_records;
 mod spec;
 mod spec_links;
 
@@ -43,6 +44,7 @@ fn main() -> ExitCode {
         "export-bootstrap" => export_bootstrap(&std::env::args().skip(2).collect::<Vec<_>>()),
         "check-package" => check_package(&root),
         "counts" => counts::counts(&root, write),
+        "semantics-records" => semantics_records::semantics_records(&root, write),
         "check-test-inventory" => ci::check_test_inventory(&root),
         "bdd" => ci::bdd(&root),
         "ci-summary" => ci::ci_summary(&root, &std::env::args().skip(2).collect::<Vec<_>>()),
@@ -70,6 +72,8 @@ fn main() -> ExitCode {
                                          their generator\n\
                  counts                  §17.23: write the counts a bootstrap case reported under\n\
                                          LEXLEAN_COUNTS=fast|report into its constants and statements\n\
+                 semantics-records       §17.16: the Rust backend digests language/semantics-1.2.toml\n\
+                                         records (rust_renderer, rust_runtime_core, rust_runtime_std)\n\
                  check-production-export §24.7: the consumer's exported packages equal the committed\n\
                                          packages under tests/production-export\n\
                  check-freshness         §9.4: every committed build oracle's recorded inputs, every lock,

@@ -18,6 +18,14 @@ and Unreleased holds what has landed since.
 
 ## Unreleased
 
+- `just relock-identity` writes what a moved compiler-semantics ID moves: it writes the Rust
+  backend records of `language/semantics-1.2.toml` (`cargo xtask semantics-records --write`,
+  new), builds the compiler, keeps each relocked `lexlean.lock` whose only change is its `compiler_semantics`
+  line, rewrites `LANGUAGE_1_2_SEMANTICS_ID` and moves each production-request pin of a moved
+  target descriptor (read from `lexlean production targets` before and after). It refuses a
+  tree with tracked changes and removes only the build roots it created. `regenerate.yml` runs it in a first job, `identity`, whose patch every writer starts
+  from and `combine` applies first, so an identity-moving pull request regenerates in one push
+  (§9.4).
 - release/v0.4 is merged forward into release/v0.5 (#404, #405). Both lines had registered
   `PF-24` and `SM-38` for different claims; the released maintenance line keeps its numbers
   (`PF-24` decision regions, `SM-38` declaration IDs) and the v0.5 claims move unchanged to
