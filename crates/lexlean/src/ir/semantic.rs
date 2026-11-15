@@ -693,6 +693,13 @@ pub enum SemanticReflection {
 #[serde(deny_unknown_fields)]
 pub enum SemanticProof {
     Reflexivity,
+    /// Language 1.2: a closed equality between two evaluations, checked by
+    /// the kernel alone. The elaborator's unifier never compares the two
+    /// sides: the proof is `Eq.refl` of the left side, and the kernel
+    /// decides it by reduction when the theorem is added. Lean's unifier
+    /// compares unevaluated subterms lazily and can need memory exponential
+    /// in a long run's length where the kernel's reduction is linear.
+    Evaluation,
     Decide,
     /// Language 1.2: closed linear natural-number arithmetic. It introduces
     /// the goal's hypotheses, rewrites the fixed Boolean comparisons
@@ -2273,6 +2280,7 @@ fn term_node_count(term: &SemanticTerm) -> u64 {
 fn proof_node_count(proof: &SemanticProof) -> u64 {
     1 + match proof {
         SemanticProof::Reflexivity
+        | SemanticProof::Evaluation
         | SemanticProof::Decide
         | SemanticProof::LinearArithmetic { .. }
         | SemanticProof::Congruence
@@ -3035,6 +3043,7 @@ fn declaration_types(declaration: &SemanticDeclaration, visit: &mut impl FnMut(&
 fn proof_terms(proof: &SemanticProof, visit: &mut impl FnMut(&SemanticTerm)) {
     match proof {
         SemanticProof::Reflexivity
+        | SemanticProof::Evaluation
         | SemanticProof::Decide
         | SemanticProof::LinearArithmetic { .. }
         | SemanticProof::Simplify { .. }
@@ -3062,6 +3071,7 @@ fn proof_terms(proof: &SemanticProof, visit: &mut impl FnMut(&SemanticTerm)) {
 fn proof_terms_mut(proof: &mut SemanticProof, visit: &mut impl FnMut(&mut SemanticTerm)) {
     match proof {
         SemanticProof::Reflexivity
+        | SemanticProof::Evaluation
         | SemanticProof::Decide
         | SemanticProof::LinearArithmetic { .. }
         | SemanticProof::Simplify { .. }
@@ -3206,6 +3216,7 @@ pub const BACKEND_BARE_NAMES: [&str; 44] = [
 fn proof_binders(proof: &SemanticProof, visit: &mut impl FnMut(&str)) {
     match proof {
         SemanticProof::Reflexivity
+        | SemanticProof::Evaluation
         | SemanticProof::Decide
         | SemanticProof::Simplify { .. }
         | SemanticProof::Congruence
@@ -3495,6 +3506,7 @@ fn type_mentions_parameter(ty: &SemanticType, name: &str) -> bool {
 fn proof_type_arguments(proof: &SemanticProof, visit: &mut impl FnMut(&SemanticType)) {
     match proof {
         SemanticProof::Reflexivity
+        | SemanticProof::Evaluation
         | SemanticProof::LinearArithmetic { .. }
         | SemanticProof::Decide
         | SemanticProof::Simplify { .. }
@@ -8300,6 +8312,7 @@ fn check_proof(
 ) -> Result<(), String> {
     match proof {
         SemanticProof::Reflexivity | SemanticProof::Decide | SemanticProof::Congruence => Ok(()),
+        SemanticProof::Evaluation => require_language_1_2(env, "evaluation proof"),
         SemanticProof::LinearArithmetic { definitions } => {
             require_language_1_2(env, "linear_arithmetic proof")?;
             if definitions
@@ -9829,6 +9842,31 @@ mod tests {
         format!(
             r#"{{"declarations":[{{"axioms":{axioms},"kind":"theorem","name":"zero_refl","parameters":[],"proof":{{"kind":"reflexivity"}},"statement":{{"kind":"eq","left":{{"kind":"nat","value":"0"}},"right":{{"kind":"nat","value":"0"}}}}}}],"spec":"lexlean/semantic-module/1"}}"#
         )
+    }
+
+    #[test]
+    fn evaluation_proof_is_language_1_2_only() {
+        let module = |spec: &str| {
+            EMPTY_POLICY
+                .replace(r#"{"kind":"reflexivity"}"#, r#"{"kind":"evaluation"}"#)
+                .replace("lexlean/semantic-module/1", spec)
+                .replace(r#""kind":"theorem","#, r#""axioms":[],"kind":"theorem","#)
+        };
+        let parse = |text: &str, language: &str| {
+            SemanticModule::parse(
+                text,
+                language,
+                "Test",
+                &[],
+                &BTreeMap::new(),
+                &super::model::ArtifactStore::new(u64::MAX, u64::MAX),
+            )
+        };
+        let rejected = parse(&module("lexlean/semantic-module/1"), "1.1")
+            .expect_err("a language-1.1 module has no evaluation proof");
+        assert!(format!("{rejected:?}").contains("evaluation proof"), "{rejected:?}");
+        parse(&module("lexlean/semantic-module/2"), "1.2")
+            .expect("a language-1.2 theorem may be closed by evaluation");
     }
 
     #[test]

@@ -19,6 +19,11 @@ workspace carried at those versions without a tag.
 
 ### Added
 
+- The `evaluation` proof (language 1.2, `{"kind":"evaluation"}`, notation `evaluation{}`): a closed
+  equality checked by the kernel alone. It lowers to `MVarId.refl (check := false)` through `run_tac`,
+  so the elaborator's unifier never compares the two sides and the kernel decides the theorem when it is
+  added. Reflexivity over two runs of a step machine whose state holds unevaluated bytes needed more
+  than 13 GB in the unifier; the kernel checks the same theorems in seconds, and rejects a false one.
 - The byte update primitive `prim update` (`TargetSyntax.Prim.update`): `update bytes at byte` is the
   byte string with the byte at `at` replaced, or `none` past its end. The `rust-std` runtime renders it
   as `Bytes::update`, which writes in place when the buffer is unique (`Rc::get_mut`) and copies it,
