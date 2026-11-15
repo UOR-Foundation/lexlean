@@ -78,10 +78,15 @@ const CORE_SPEC: &str = "lexlean/core-module/2";
 /// Every semantic module of a committed source, as canonical JSON, with the
 /// file it is in. A module that is not well formed is a negative fixture's
 /// business and is left out.
-fn corpus() -> Vec<(String, Json)> {
+///
+/// The modules are read one at a time, as the walk reaches them, and each is
+/// dropped when the caller is done with it: the corpus includes modules of
+/// tens of megabytes, and held whole as values it peaked at over 11 GiB of a
+/// debug test process, most of the 16 GB runner its CI leg shares with the
+/// part's other cases (§9.4).
+fn corpus() -> impl Iterator<Item = (String, Json)> {
     let root = repo_root();
-    let mut modules = Vec::new();
-    for entry in walkdir::WalkDir::new(root.as_std_path())
+    walkdir::WalkDir::new(root.as_std_path())
         .into_iter()
         .filter_entry(|entry| {
             let name = entry.file_name().to_string_lossy();
@@ -91,21 +96,16 @@ fn corpus() -> Vec<(String, Json)> {
                 && !support::holds_cache_tag(entry)
         })
         .flatten()
-    {
-        let path = entry.path();
-        if !path.to_string_lossy().ends_with(".lex.tex") {
-            continue;
-        }
-        let Ok(text) = std::fs::read_to_string(path) else {
-            continue;
-        };
-        if let Ok(value) = support::try_module_json(&text) {
-            if let Ok(json) = Json::parse(value.to_string().as_bytes()) {
-                modules.push((path.display().to_string(), json));
+        .filter_map(|entry| {
+            let path = entry.path();
+            if !path.to_string_lossy().ends_with(".lex.tex") {
+                return None;
             }
-        }
-    }
-    modules
+            let text = std::fs::read_to_string(path).ok()?;
+            let value = support::try_module_json(&text).ok()?;
+            let json = Json::parse(value.to_string().as_bytes()).ok()?;
+            Some((path.display().to_string(), json))
+        })
 }
 
 // ---------------------------------------------------------------------------

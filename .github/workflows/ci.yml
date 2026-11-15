@@ -103,8 +103,12 @@ jobs:
   # pull request into one of those, a request (planned as the pull request whose
   # head it names, when there is one), and a push to `main` run the whole
   # gate, except a push that merges a head whose tree it equals and whose whole
-  # gate passed (it runs nothing and names the run). `.github/ci-plan.sh` is the
-  # decision, and RP-14 runs it against planted events.
+  # gate passed (it runs nothing and names the run). A pull request into a
+  # line runs the Intel macOS jobs only when it is a release cut (`cut/v*`) or
+  # its base is `main`; the push that lands any other runs them, alone after
+  # honesty when its tree is the one the pull request verified (`intel`).
+  # `.github/ci-plan.sh` is the decision, and RP-14 runs it against planted
+  # events.
   plan:
     name: plan
     runs-on: ubuntu-24.04
@@ -117,6 +121,7 @@ jobs:
       rows: ${{ steps.plan.outputs.rows }}
       honesty: ${{ steps.plan.outputs.honesty }}
       fanout: ${{ steps.plan.outputs.fanout }}
+      intel: ${{ steps.plan.outputs.intel }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -129,6 +134,7 @@ jobs:
           EVENT: ${{ github.event_name }}
           DRAFT: ${{ github.event.pull_request.draft }}
           BASE: ${{ github.event.pull_request.base.ref }}
+          HEAD: ${{ github.event.pull_request.head.ref }}
           REPO: ${{ github.repository }}
           REF: ${{ github.ref_name }}
         run: .github/ci-plan.sh
@@ -1205,10 +1211,14 @@ jobs:
   # conformance binary embeds its checkout path and builds generated packages
   # offline, so its same-run handoff includes those explicit dependencies.
   # No build cache, credentials, or evidence from another run is admitted.
+  #
+  # Intel macOS has about one hosted runner here, and these jobs take about
+  # three hours of it, so they run when the plan's `intel` is set: on the line,
+  # on a release cut, and on a pull request into `main` (§9.4).
   intel-construction:
     name: Intel test construction and local targets
     needs: [plan, honesty]
-    if: ${{ needs.plan.outputs.full == 'true' }}
+    if: ${{ needs.plan.outputs.intel == 'true' }}
     runs-on: macos-15-intel
     timeout-minutes: 240
     outputs:
@@ -1231,7 +1241,7 @@ jobs:
   intel-part:
     name: Intel conformance (${{ matrix.lane }})
     needs: [plan, intel-construction]
-    if: ${{ needs.plan.outputs.full == 'true' }}
+    if: ${{ needs.plan.outputs.intel == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -1262,7 +1272,7 @@ jobs:
   intel-join:
     name: build and non-Lean tests (x86_64-apple-darwin)
     needs: [plan, intel-construction, intel-part]
-    if: ${{ always() && needs.plan.outputs.full == 'true' }}
+    if: ${{ always() && needs.plan.outputs.intel == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
