@@ -203,6 +203,7 @@ fn proof(
 ) -> Result<(), SemanticFailure> {
     let (scrutinee, branches, induction) = match proof {
         SemanticProof::Reflexivity
+        | SemanticProof::Evaluation
         | SemanticProof::Decide
         | SemanticProof::RegionCheck
         | SemanticProof::Congruence
