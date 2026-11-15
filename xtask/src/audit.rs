@@ -913,6 +913,7 @@ pub fn audit_deferral(root: &Path, model: &repo_model::Model) -> Result<(), Fail
             "tooling",
             ".github",
             ".devcontainer",
+            crate::bump::FRAGMENTS,
         ],
         &[
             ".rs",
