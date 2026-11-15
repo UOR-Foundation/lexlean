@@ -94,23 +94,56 @@ pub const FRAGMENTS: &str = "changes";
 const CHANGELOG: &str = "CHANGELOG.md";
 const UNRELEASED: &str = "\n## Unreleased\n";
 
-/// Why a fragment cannot be folded: it must hold an entry, and a heading of
-/// level one or two would open a section of CHANGELOG.md of its own.
+/// Why a fragment cannot be folded: it must hold an entry, a heading of level
+/// one or two would open a section of CHANGELOG.md of its own, and a code
+/// fence left open would swallow every section after it. Fences and ATX
+/// headings are read as CommonMark does: up to three spaces of indentation,
+/// a fence of three or more backticks or tildes closed only by a run of the
+/// same character at least as long with nothing after it.
 fn fragment_fault(text: &str) -> Option<&'static str> {
     if text.trim().is_empty() {
         return Some("is empty");
     }
-    let mut fenced = false;
+    // An indentation of at most three spaces, and the rest of the line.
+    fn block(line: &str) -> Option<&str> {
+        let rest = line.trim_start_matches(' ');
+        (line.len() - rest.len() <= 3).then_some(rest)
+    }
+    fn fence_run(rest: &str) -> Option<(char, usize)> {
+        let marker = rest.chars().next().filter(|c| *c == '`' || *c == '~')?;
+        let length = rest.chars().take_while(|c| *c == marker).count();
+        (length >= 3).then_some((marker, length))
+    }
+    let mut open: Option<(char, usize)> = None;
     for line in text.lines() {
-        if line.trim_start().starts_with("```") {
-            fenced = !fenced;
-        } else if !fenced
-            && (line.starts_with("# ") || line.starts_with("## ") || line == "#" || line == "##")
-        {
-            return Some("holds a `#` or `##` heading");
+        let Some(rest) = block(line) else { continue };
+        match open {
+            Some((marker, length)) => {
+                if let Some((close, run)) = fence_run(rest) {
+                    if close == marker && run >= length && rest[run..].trim().is_empty() {
+                        open = None;
+                    }
+                }
+            }
+            None => {
+                if let Some((marker, length)) = fence_run(rest) {
+                    // A backtick fence's info string holds no backtick.
+                    if marker != '`' || !rest[length..].contains('`') {
+                        open = Some((marker, length));
+                        continue;
+                    }
+                }
+                let hashes = rest.chars().take_while(|c| *c == '#').count();
+                let after = &rest[hashes..];
+                if (1..=2).contains(&hashes)
+                    && (after.is_empty() || after.starts_with(' ') || after.starts_with('\t'))
+                {
+                    return Some("holds a `#` or `##` heading");
+                }
+            }
         }
     }
-    None
+    open.map(|_| "leaves a code fence open")
 }
 
 /// Every fragment under `changes/`, in file-name order, as (published path,
@@ -337,7 +370,7 @@ pub fn bump_version(root: &Path, arguments: &[String]) -> Result<(), Fail> {
 
 #[cfg(test)]
 mod tests {
-    use super::{commit, fold, fragments, parse, CHANGELOG};
+    use super::{commit, fold, fragment_fault, fragments, parse, CHANGELOG};
 
     const BEFORE: &str =
         "# Changelog\n\nPreamble.\n\n## Unreleased\n\n- Existing entry.\n\n## 0.4.0\n\n- Old.\n";
@@ -437,6 +470,29 @@ mod tests {
         assert!(faults[0].starts_with("changes/empty.md"));
         assert!(faults[1].starts_with("changes/heading.md"));
         assert!(faults[2].starts_with("changes/typo.txt"));
+        for (text, fault) in [
+            ("- Entry.\n```\n## 0.9.0\n", "leaves a code fence open"),
+            (
+                "- Entry.\n````\n```\n## 0.9.0\n",
+                "leaves a code fence open",
+            ),
+            (
+                "- Entry.\n````\n```\n````\n   ## 0.9.0\n",
+                "holds a `#` or `##` heading",
+            ),
+            ("- Entry.\n  ## 0.9.0\n", "holds a `#` or `##` heading"),
+            ("- Entry.\n~~~\n## x\n```\n", "leaves a code fence open"),
+        ] {
+            assert_eq!(fragment_fault(text), Some(fault), "{text:?}");
+        }
+        for text in [
+            "- Entry.\n````\n```\n## inside\n```\n````\n",
+            "- Entry.\n~~~ text\n## inside\n~~~\n",
+            "- Entry.\n    ## indented code, not a heading\n",
+            "- Entry.\n#hashtag, not a heading\n### Sub\n",
+        ] {
+            assert_eq!(fragment_fault(text), None, "{text:?}");
+        }
         assert!(
             fold("# Changelog\n", "0.4.2", &[]).is_err(),
             "no `## Unreleased` refuses"
