@@ -18,6 +18,13 @@ and Unreleased holds what has landed since.
 
 ## Unreleased
 
+- The `evaluation` proof (language 1.2, `{"kind":"evaluation"}`, notation `evaluation{}`): an
+  equality goal checked by the kernel alone (validation gates the language version only), with
+  its `semantic-module-v2` schema alternative and the conformance case `SM-44` (the register holds 522 IDs). It lowers to `MVarId.refl (check := false)` through `run_tac`,
+  so the elaborator's unifier never compares the two sides and the kernel decides the theorem when it is
+  added. Reflexivity over two runs of a step machine whose state holds unevaluated bytes needed more
+  than 13 GB in the unifier; the kernel checks the same theorems in seconds, and rejects a false one.
+
 - release/v0.4 is merged forward into release/v0.5 (#404, #405). Both lines had registered
   `PF-24` and `SM-38` for different claims; the released maintenance line keeps its numbers
   (`PF-24` decision regions, `SM-38` declaration IDs) and the v0.5 claims move unchanged to
@@ -619,17 +626,6 @@ and Unreleased holds what has landed since.
   now holds the list match under `rust-core` with a crate by hand, since the
   mutants reach it too rarely to rely on. The register is 468 IDs.
 
-
-## Unreleased
-
-### Added
-
-- The `evaluation` proof (language 1.2, `{"kind":"evaluation"}`, notation `evaluation{}`): an
-  equality goal checked by the kernel alone (validation gates the language version only), and the
-  `semantic-module-v2` schema's proof alternative for it. It lowers to `MVarId.refl (check := false)` through `run_tac`,
-  so the elaborator's unifier never compares the two sides and the kernel decides the theorem when it is
-  added. Reflexivity over two runs of a step machine whose state holds unevaluated bytes needed more
-  than 13 GB in the unifier; the kernel checks the same theorems in seconds, and rejects a false one.
 ## 0.4.0
 
 Release `0.4.0` is cut at the downstream boundary (#92, 2026-10-25): what the
