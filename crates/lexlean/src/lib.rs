@@ -245,6 +245,33 @@ pub fn identity_bytes<'a>(path: &str, bytes: &'a [u8]) -> std::borrow::Cow<'a, [
 /// in four; this is sixteen times that, for modules that grow with the runtime.
 pub const READER_STACK: usize = 64 * 1024 * 1024;
 
+/// Run `work` on a thread of `stack_bytes`, for work that recurses once per
+/// level of data the compile thread admitted (§25.5) but that runs after it,
+/// on a caller's thread of unknown size. A thread that cannot be had runs the
+/// work on the caller's stack; a panic of the work is passed on as raised.
+pub(crate) fn on_stack<T: Send>(stack_bytes: usize, work: impl FnOnce() -> T + Send) -> T {
+    let slot = std::sync::Mutex::new(Some(work));
+    let run = || {
+        slot.lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .take()
+            .map(|work| work())
+    };
+    std::thread::scope(|scope| {
+        match std::thread::Builder::new()
+            .name("lexlean-deep".to_owned())
+            .stack_size(stack_bytes)
+            .spawn_scoped(scope, run)
+        {
+            Ok(thread) => thread
+                .join()
+                .unwrap_or_else(|panic| std::panic::resume_unwind(panic)),
+            Err(_) => run(),
+        }
+    })
+    .expect("the work runs exactly once")
+}
+
 /// The §11.5 tree digest of the files of the embedded tree selected by `keep`.
 fn embedded_digest(keep: impl Fn(&str) -> bool) -> Sha256Digest {
     let selected: Vec<(&'static str, &'static [u8])> = embedded::FILES
@@ -263,15 +290,24 @@ fn embedded_digest(keep: impl Fn(&str) -> bool) -> Sha256Digest {
     let workers = std::thread::available_parallelism()
         .map_or(1, usize::from)
         .min(8);
+    let read = || loop {
+        let at = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let Some((path, bytes)) = selected.get(at) else {
+            break;
+        };
+        let _ = slots[at].set(identity_bytes(path, bytes));
+    };
     std::thread::scope(|scope| {
         for _ in 0..workers {
-            scope.spawn(|| loop {
-                let at = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                let Some((path, bytes)) = selected.get(at) else {
-                    break;
-                };
-                let _ = slots[at].set(identity_bytes(path, bytes));
-            });
+            // A host without threads (WASI) reads every file on this one, as
+            // `identity_bytes` does; the rows, and so the digest, are the same.
+            if std::thread::Builder::new()
+                .spawn_scoped(scope, read)
+                .is_err()
+            {
+                read();
+                break;
+            }
         }
     });
     let rows: Vec<(&str, std::borrow::Cow<'static, [u8]>)> = selected

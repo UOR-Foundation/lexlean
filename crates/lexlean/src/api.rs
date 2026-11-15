@@ -249,8 +249,20 @@ fn file_row(kind: &str, path: &str, bytes: &[u8]) -> FileRow {
 
 /// Render the complete platform-independent build artifact set from a
 /// checked project (§21.5, §21.6). No Lean process runs here (CL-05).
-#[allow(clippy::too_many_lines)]
+/// The printers recurse once per level of what the compile thread admitted,
+/// so they run on a stack of the same size (§25.5).
 pub fn render_build(
+    project: &Project,
+    checked: &CheckedProject,
+) -> Result<RenderedBuild, LexLeanError> {
+    crate::on_stack(
+        project.config.limits.compile_stack_plan().stack_bytes,
+        || render_build_inline(project, checked),
+    )
+}
+
+#[allow(clippy::too_many_lines)]
+fn render_build_inline(
     project: &Project,
     checked: &CheckedProject,
 ) -> Result<RenderedBuild, LexLeanError> {
@@ -566,6 +578,7 @@ pub(crate) struct MutationGuard {
 
 /// Acquire the project mutation lock at `<build_root>/.lock` (§21.8). The
 /// build root's components are checked for symlinks first (§25.1).
+#[cfg(not(target_os = "wasi"))]
 fn acquire_lock(project: &Project) -> Result<MutationGuard, LexLeanError> {
     use fs4::fs_std::FileExt;
     let build_root = project
@@ -590,6 +603,17 @@ fn acquire_lock(project: &Project) -> Result<MutationGuard, LexLeanError> {
     file.lock_exclusive()
         .map_err(|io_error| host_failure(format!("{lock_relative}: {io_error}")))?;
     Ok(MutationGuard { _file: file })
+}
+
+/// WASI has no file lock, and a WASI host may share its directories with
+/// other processes, so a command that changes the project is refused there
+/// before it touches anything rather than run without the lock (§8.3, §21.8).
+#[cfg(target_os = "wasi")]
+fn acquire_lock(project: &Project) -> Result<MutationGuard, LexLeanError> {
+    Err(host_failure(format!(
+        "{}/.lock: this host has no file lock, so it runs no command that changes the project",
+        project.config.build_root
+    )))
 }
 
 /// Publish a rendered build atomically at its content-addressed path
