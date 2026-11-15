@@ -1,0 +1,5 @@
+   Compiling lexlean v0.4.0 (/workspace/lexlean-rule30-bridge/crates/lexlean)
+   Compiling repo-model v0.4.0 (/workspace/lexlean-rule30-bridge/crates/model)
+   Compiling repo-conformance v0.4.0 (/workspace/lexlean-rule30-bridge/crates/conformance)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 33s
+  Executable tests/conformance.rs (/workspace/lexlean-bridge-target/debug/deps/conformance-f91038edb0165b7a)

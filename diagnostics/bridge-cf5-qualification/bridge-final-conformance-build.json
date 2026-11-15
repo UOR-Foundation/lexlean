@@ -1,0 +1,19 @@
+{
+  "head": "cf5b2bc8bab4233acd3cca04a26e14e3b058aaa7",
+  "argv": [
+    "timeout",
+    "--kill-after=10s",
+    "600s",
+    "cargo",
+    "test",
+    "--locked",
+    "-p",
+    "repo-conformance",
+    "--test",
+    "conformance",
+    "--no-run"
+  ],
+  "exit": 0,
+  "seconds": 93.6809220330033,
+  "maxrss_kib": 2302744
+}

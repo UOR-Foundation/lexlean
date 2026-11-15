@@ -1,0 +1,23 @@
+{
+  "head": "cf5b2bc8bab4233acd3cca04a26e14e3b058aaa7",
+  "argv": [
+    "/workspace/lexlean-bridge-target/debug/deps/conformance-f91038edb0165b7a",
+    "--exact",
+    "conformance_vr_29",
+    "conformance_sp_17",
+    "conformance_rp_10",
+    "conformance_rp_11",
+    "conformance_pk_05",
+    "conformance_ns_01",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "exit": 0,
+  "reason": null,
+  "all_six_named_tests_passed": false,
+  "seconds": 145.73973631099943,
+  "peak_session_rss_kib": 1339696,
+  "executable_sha256": "e4c81a17493969a2ceb35a42ddff883c9bc8810a19a6fedf135a7369bec46781",
+  "log_sha256": "a9651baad30efa1cf3a02a48cf04e7d10ec04e83321dae8c4661fec25b61dea7",
+  "compiler_accepted": false
+}

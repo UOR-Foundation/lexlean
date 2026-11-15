@@ -1,0 +1,47 @@
+{
+  "reviewer": "/root/diagnostic_review",
+  "helper_checkpoint": "894cc7c33",
+  "helper_sha256": "ccb9e8723cd420196374b39a08c5f0c8f224ea8426c52b01880748d86b3097d2",
+  "helper_verdict": "source followup approved; no execution attributed to new helper",
+  "helper_findings": [
+    "option_env runtime refusal keeps source and audit provenance checks mandatory",
+    "BufReader changes transport only; certificate data and policies unchanged",
+    "BufWriter explicitly flushed before file hash read; failures propagated",
+    "R6 summary binds successful run to original 0224 executable and marks followups unexecuted"
+  ],
+  "supervisor_sha256": "6550c6eec19ef2d7ff929790712e07d100ffdb4050df4bea9f99a3dc2ed6d36f",
+  "supervisor_verdict": "source approved for bounded bootstrap export",
+  "blocking_findings": [],
+  "compiler_accepted": false,
+  "previous_supervisor_sha256": "a267e0c44e6bdde83457179d5ac8959cc364900f4c5576945daa83b91ec6986c",
+  "previous_blocking_findings": [
+    "killpg(export_pid) misses Lean children in their own process groups (verify/child.rs:455); terminate and confirm all owned session descendants",
+    "Final output size must be checked after child completion to cover fast output+exit",
+    "Existing supervisor-start receipt must not be overwritten"
+  ],
+  "supervisor_dependency_sha256": "c616c204c3125fe1e346412454b141776def3582203cd7f28b42489b905f48a8",
+  "resolved_findings": [
+    "Owned-session scan covers helper and separately grouped Lean descendants; freezes then kills all owned groups, checks live survivors, treats lingering descendants after normal exit as failure",
+    "Final output size checked after process exit",
+    "Existing start receipt refused"
+  ],
+  "regression_receipt_sha256": "8e78ecff31b3670cee77ad4bf59ccb85cc260757dab7d69ed30059c01f337502",
+  "regression_evidence": {
+    "test": "terminate separately grouped descendants in owned session",
+    "groups_before": 2,
+    "root_exit": -9,
+    "remaining_live_owned_processes": 0,
+    "passed": true
+  },
+  "limits": {
+    "overall_seconds": 3600,
+    "sampled_owned_session_rss_gib": 9,
+    "output_mib": 16,
+    "original_project_child_seconds": 600
+  },
+  "limitations": [
+    "RSS sampled every 250ms, not kernel-enforced memory cap",
+    "Ownership covers this known production implementation: children create process groups but do not escape the launched session",
+    "Source review and supplied retained regression receipt; reviewer did not execute export or regression"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "qualified_source": "cf5b2bc8bab4233acd3cca04a26e14e3b058aaa7",
+  "compiler_accepted": false,
+  "completed": [
+    "six current-source conformance checks",
+    "225 library tests on exact unchanged Rust source cone"
+  ],
+  "pending": [
+    "full bootstrap export active; no result yet",
+    "other exports",
+    "full upstream gate"
+  ],
+  "evidence_branch_only": "This commit retains evidence and is not the compiled source head."
+}

@@ -1,0 +1,15 @@
+
+running 6 tests
+test conformance_ns_01 ... ok
+test conformance_pk_05 ... ok
+test conformance_rp_10 ... ok
+test conformance_rp_11 ... ok
+test conformance_sp_17 ... SP-17 planted in production/preserve.rs: line 2296 `theorem t (n : Nat) : n = {x} := by decide`
+SP-17 planted in production/certificate.rs: line 3146 `theorem t (n : Nat) : n = {x} := by decide`
+SP-17 planted in production/lower.rs: line 3858 `theorem t (n : Nat) : n = {x} := by decide`
+SP-17 planted in backend/lean.rs: line 2714 `namespace Planted\nend Planted\n`
+ok
+test conformance_vr_29 ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 481 filtered out; finished in 145.66s
+
