@@ -17,6 +17,20 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- `lexlean check` builds and runs on `wasm32-wasip1`, #494 (SPEC.md §8.3,
+  `CL-25`). WASI has no threads, no file lock, and no processes: the check
+  pipeline runs on the instance's stack, a command that changes the project
+  is refused with `LLV7010` before it touches it, and the compiler-semantics
+  digest reads its files on the one thread. A file's identity there is the
+  device and inode WASI reports, read through `rustix`, so `LLC0104` still
+  refuses one file under two names; `fs4` and `same-file` are dependencies of
+  the other targets only. The executable is linked there with the 80 MiB
+  stack the depth plan assumes (`config::WASI_STACK_BYTES`, read by
+  `build.rs` and the plan alike), so deep input is `LLS8002` on WASI too, at a
+  hosted depth of 1,024. Native code is unchanged but
+  for the digest's reader, which reads on the calling thread when no thread
+  can be had. `CL-25` builds the target and compares it with the native
+  executable under Node's `node:wasi`; the register is 494.
 - Breaking security update: replace the single Lean 4.32.1 pin with
   `leanprover/lean4:v4.32.2`, source commit
   `f3b06c705e6c85f5314019d5d3baab0fec5b580c` (SPEC.md §8.2). The
