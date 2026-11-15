@@ -883,7 +883,7 @@ pub enum Adt3 {
 
 #[derive(Clone)]
 pub enum Adt4 {
-    C0(Adt5, Option<Adt0>, Option<Adt2>),
+    C0(std::rc::Rc<Adt5>, Option<Adt0>, Option<Adt2>),
 }
 
 #[derive(Clone)]
@@ -949,7 +949,7 @@ impl Fn3 {
 }
 
 pub fn f0(v0: Bytes, v1: List<Adt0>, v2: List<Bytes>) -> R<Option<Adt2>> {
-    let v3: Adt4 = f1(Fn0::F2(v2, v0), Adt4::C0(Adt5::C0(false, 0u64, false, false, 0u64, 0u64), None::<Adt0>, None::<Adt2>), v1)?;
+    let v3: Adt4 = f1(Fn0::F2(v2, v0), Adt4::C0(std::rc::Rc::new(Adt5::C0(false, 0u64, false, false, 0u64, 0u64)), None::<Adt0>, None::<Adt2>), v1)?;
     match v3 {
         Adt4::C0(_, _, h1) => {
             Ok(h1)
@@ -999,7 +999,7 @@ pub fn f3(v0: Bytes, v1: List<Bytes>, v2: Adt4, v3: Adt0) -> R<Adt4> {
         None => {
             let v5: Adt5 = match v2.clone() {
                 Adt4::C0(h9, _, _) => {
-                    h9
+                    (*h9).clone()
                 }
             };
             let v6: Option<Adt2> = f4(v0, v3.clone(), match v2 {
@@ -1008,7 +1008,7 @@ pub fn f3(v0: Bytes, v1: List<Bytes>, v2: Adt4, v3: Adt0) -> R<Adt4> {
                 }
             }, v5.clone(), v1)?;
             let v7: Adt5 = f5(v5, v3.clone())?;
-            Ok(Adt4::C0(v7, Some(v3), v6))
+            Ok(Adt4::C0(std::rc::Rc::new(v7), Some(v3), v6))
         }
         Some(_) => {
             Ok(v2)

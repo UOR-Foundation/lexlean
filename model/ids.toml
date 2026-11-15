@@ -1721,6 +1721,12 @@ suite = "production"
 statement = "The registry holds the effects `files` and `process` and one row per constructor of `LexLeanStd.Host::Request` naming the effect it realizes, so a production root whose closure builds a request admits that request's effect, and a root that does not, or that is declared for a target without allocation, fails with `LLT4005`."
 
 [[id]]
+id = "PD-09"
+level = "build"
+suite = "production"
+statement = "A production root may name a bound, a prior theorem of its module whose statement is exactly the obligation linking generates from the root: under the hypothesis that every `nat` and `int` parameter lies in the target width, each operation of the root's own body whose registry row names its result representation stays in that width, in evaluation order; with the bound, eligibility discharges `overflow` from the effects it requires of the root and records the bound in the report, removing the bound restores the effect, and a bound that does not cover an operation, because its theorem states another obligation, the operation lies under a match, an `if`, or a lambda or in a callee, or its primitive is not one the rule covers, is refused with LLT4017 naming the operation; nothing is inferred by an optimizer or checked at run time."
+
+[[id]]
 id = "NE-01"
 level = "build"
 suite = "extraction"
@@ -2235,6 +2241,12 @@ id = "SP-33"
 level = "build"
 suite = "preservation"
 statement = "A match arm whose whole body is a binder of a boxed field renders as the read of the box, with no binding, in a function that cannot overflow: `fold` of the Rust lowering of SPEC.md §17.16 and `returnedLet` of `RustBodies` fold a returned clone as they fold a returned move or copy, which is the arm that `foldB` of certificate B's `mCons` states, so that the kernel accepts certificate B of a production root whose closure has such an arm."
+
+[[id]]
+id = "SP-31"
+level = "build"
+suite = "preservation"
+statement = "Certificate A of a production root with a bound states, and the kernel checks from the bound's theorem, that the root's width predicate holds on every argument in the target width (`bounded`) and that the lowered program converges to the encoded value of the root on every such argument (`root_value`), each with its axioms pinned exactly within the certificate axioms; a bound theorem whose conclusions do not match the width predicate's checks in evaluation order, a forged bound without a kernel proof, and a bound narrowed to miss an operation fail verification or linking rather than certify the root."
 
 [[id]]
 id = "MD-01"

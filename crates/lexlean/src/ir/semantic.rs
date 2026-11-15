@@ -9,6 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
+pub mod bound;
 pub mod laws;
 pub mod model;
 pub mod reasoning;
@@ -76,6 +77,10 @@ pub enum SemanticPrimitive {
     Length,
     Index,
     Slice,
+    /// The byte string with one in-range position replaced, or none when
+    /// the position is out of range; realized in place when the string is
+    /// uniquely held.
+    Update,
     Utf8Encode,
     Utf8Decode,
     CompareBytes,
@@ -210,6 +215,7 @@ impl SemanticPrimitive {
             | Self::Length
             | Self::Index
             | Self::Slice
+            | Self::Update
             | Self::Utf8Encode
             | Self::Utf8Decode
             | Self::CompareBytes
@@ -282,6 +288,7 @@ impl SemanticPrimitive {
             | Self::Length
             | Self::Index
             | Self::Slice
+            | Self::Update
             | Self::Utf8Encode
             | Self::Utf8Decode
             | Self::CompareBytes
@@ -807,6 +814,16 @@ pub enum SemanticProof {
     },
     Simplify {
         definitions: Vec<MemberRef>,
+        /// Language 1.2 (§17.12): names for the leading premises of the
+        /// goal, in order. They are introduced and added to the `simp only`
+        /// set before the definitions, so a prior theorem whose rewrite holds
+        /// under a condition rewrites where a named hypothesis discharges it.
+        #[serde(
+            default,
+            skip_serializing_if = "Vec::is_empty",
+            deserialize_with = "simplify_hypotheses"
+        )]
+        hypotheses: Vec<String>,
     },
     Constructor {
         branches: Vec<Self>,
@@ -892,6 +909,28 @@ pub struct SemanticTermination {
 pub struct SemanticProduction {
     pub targets: Vec<String>,
     pub effects: Vec<String>,
+    /// §17.13: the prior theorem of the module that bounds every operation
+    /// of the root's own body that can overflow, so that eligibility
+    /// discharges `overflow` and certificate A proves the width predicate
+    /// from it; absent, the registry's answer stands. Left out of the
+    /// canonical form when absent, so every earlier module keeps its bytes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bound: Option<MemberRef>,
+}
+
+// An omitted member keeps the legacy empty default; a supplied member obeys
+// the schema's nonempty-array contract before defaults can erase its presence.
+fn simplify_hypotheses<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let hypotheses = Vec::<String>::deserialize(deserializer)?;
+    if hypotheses.is_empty() {
+        return Err(serde::de::Error::custom(
+            "simplify hypotheses must be nonempty when present",
+        ));
+    }
+    Ok(hypotheses)
 }
 
 /// Language 1.2 (§17.12, models): the closed role an artifact plays. The
@@ -3372,13 +3411,15 @@ fn proof_binders(proof: &SemanticProof, visit: &mut impl FnMut(&str)) {
         SemanticProof::Reflexivity
         | SemanticProof::Decide
         | SemanticProof::RegionCheck
-        | SemanticProof::Simplify { .. }
         | SemanticProof::Congruence
         | SemanticProof::BooleanReflection { .. }
         | SemanticProof::LinearArithmetic { .. }
         | SemanticProof::TermCases { .. }
         | SemanticProof::Law { .. }
         | SemanticProof::Apply { .. } => {}
+        SemanticProof::Simplify { hypotheses, .. } => {
+            hypotheses.iter().for_each(|name| visit(name));
+        }
         SemanticProof::Constructor { branches } => {
             for branch in branches {
                 proof_binders(branch, visit);
@@ -7720,6 +7761,16 @@ fn infer_primitive(
                 value: Box::new(first),
             })
         }
+        P::Update => {
+            require_observed(
+                arguments,
+                &[SemanticType::Bytes, SemanticType::Nat, SemanticType::UInt8],
+                operation,
+            )?;
+            exact_result(SemanticType::Option {
+                value: Box::new(SemanticType::Bytes),
+            })
+        }
         P::Utf8Encode => {
             require_observed(arguments, &[SemanticType::String], operation)?;
             exact_result(SemanticType::Bytes)
@@ -8683,6 +8734,7 @@ fn check_proof(
     proof: &SemanticProof,
     locals: &BTreeMap<String, SemanticType>,
     env: &Environment<'_>,
+    goal: Option<&SemanticTerm>,
 ) -> Result<(), String> {
     match proof {
         SemanticProof::Reflexivity | SemanticProof::Decide | SemanticProof::Congruence => Ok(()),
@@ -8835,7 +8887,13 @@ fn check_proof(
             }
             Ok(())
         }
-        SemanticProof::Simplify { definitions } => {
+        SemanticProof::Simplify {
+            definitions,
+            hypotheses,
+        } => {
+            if !hypotheses.is_empty() {
+                check_simplify_hypotheses(hypotheses, goal, locals, env)?;
+            }
             if definitions.is_empty() {
                 return Err("simplify requires at least one named definition".to_owned());
             }
@@ -8871,14 +8929,14 @@ fn check_proof(
                 return Err("constructor proof requires branches".to_owned());
             }
             for branch in branches {
-                check_proof(branch, locals, env)?;
+                check_proof(branch, locals, env, None)?;
             }
             Ok(())
         }
         SemanticProof::Cases {
             scrutinee,
             branches,
-        } => check_elimination_proof(scrutinee, branches, false, locals, env),
+        } => check_elimination_proof(scrutinee, branches, false, locals, env, goal),
         SemanticProof::Induction {
             scrutinee,
             generalizing,
@@ -8899,7 +8957,7 @@ fn check_proof(
                 }
                 previous = Some(name);
             }
-            check_elimination_proof(scrutinee, branches, true, locals, env)
+            check_elimination_proof(scrutinee, branches, true, locals, env, goal)
         }
         SemanticProof::NestedInduction {
             scrutinee,
@@ -8907,6 +8965,44 @@ fn check_proof(
             members,
         } => check_nested_induction(scrutinee, branches, members, locals, env),
     }
+}
+
+/// Language 1.2 (§17.12): the hypotheses a `simplify` names are leading
+/// premises of its goal, which is the theorem's statement (the proof itself or
+/// a branch of `cases` or `induction`), at most as many as the goal has leading
+/// implications, each a fresh name used once.
+fn check_simplify_hypotheses(
+    hypotheses: &[String],
+    goal: Option<&SemanticTerm>,
+    locals: &BTreeMap<String, SemanticType>,
+    env: &Environment<'_>,
+) -> Result<(), String> {
+    require_language_1_2(env, "simplify hypotheses")?;
+    let mut goal = goal.ok_or_else(|| {
+        "simplify names hypotheses only where its goal is the theorem's statement: the proof itself or a branch of cases or induction"
+            .to_owned()
+    })?;
+    let mut premises = 0usize;
+    while let SemanticTerm::Implies { conclusion, .. } = goal {
+        premises += 1;
+        goal = conclusion;
+    }
+    if hypotheses.len() > premises {
+        return Err(format!(
+            "simplify names {} hypothesis(es), but its goal has {premises} leading premise(s)",
+            hypotheses.len()
+        ));
+    }
+    let mut seen = BTreeSet::new();
+    for name in hypotheses {
+        check_name(name, "simplify hypothesis")?;
+        if locals.contains_key(name) || !seen.insert(name.as_str()) {
+            return Err(format!(
+                "simplify hypothesis `{name}` is already in scope or repeated"
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// The hypothesis name `term_cases` introduces (§17.10, `SM-35`).
@@ -9177,7 +9273,8 @@ fn check_nested_branches(
                 return Err(format!("shadowed proof binder `{binder}`"));
             }
         }
-        check_proof(&branch.proof, &nested, env)?;
+        // A member branch proves its member's motive, not the statement.
+        check_proof(&branch.proof, &nested, env, None)?;
     }
     if let Some((missing, _)) = expected.iter().find(|(name, _)| !observed.contains(name)) {
         return Err(format!(
@@ -9298,6 +9395,7 @@ fn check_elimination_proof(
     induction: bool,
     locals: &BTreeMap<String, SemanticType>,
     env: &Environment<'_>,
+    goal: Option<&SemanticTerm>,
 ) -> Result<(), String> {
     let expected = elimination_binder_types(scrutinee, induction, locals, env)?;
     let mut observed = BTreeMap::new();
@@ -9330,7 +9428,7 @@ fn check_elimination_proof(
                 return Err(format!("shadowed proof binder `{binder}`"));
             }
         }
-        check_proof(&branch.proof, &nested, env)?;
+        check_proof(&branch.proof, &nested, env, goal)?;
     }
     if observed.keys().collect::<Vec<_>>() != expected.keys().collect::<Vec<_>>() {
         return Err(format!(
@@ -10093,6 +10191,9 @@ impl SemanticModule {
                     );
                     env.derived = false;
                     checked?;
+                    for row in &lowered {
+                        bound::check_production_bound(row, &env)?;
+                    }
                     for (position, row) in self.declarations.iter().enumerate() {
                         if let Some(at) = rows
                             .iter()
@@ -10108,6 +10209,7 @@ impl SemanticModule {
                     let checked = check_definition(&lowered, &mut env);
                     env.derived = false;
                     checked?;
+                    bound::check_production_bound(&lowered, &env)?;
                     elaboration.lower(index, vec![lowered]);
                 }
                 SemanticDeclaration::Theorem { .. } => {
@@ -10346,7 +10448,7 @@ fn check_theorem(
         .iter()
         .map(|parameter| parameter.name.clone())
         .collect();
-    check_proof(proof, &typed_locals(parameters), env)?;
+    check_proof(proof, &typed_locals(parameters), env, Some(statement))?;
     env.theorems.insert(
         name.to_owned(),
         (
@@ -10674,6 +10776,79 @@ mod tests {
     }
 
     #[test]
+    fn simplify_hypotheses_source_contract() {
+        use super::SemanticProof;
+        use crate::surface::semantic::{parse_at, Position};
+
+        let omitted = parse_at("simplify{definitions: [Nat.beq_eq]}", Position::Proof)
+            .expect("existing authoring form");
+        let omitted = omitted.to_canonical_string();
+        let decoded: SemanticProof = serde_json::from_str(&omitted).expect("omitted hypotheses");
+        assert!(
+            matches!(decoded, SemanticProof::Simplify { hypotheses, .. } if hypotheses.is_empty())
+        );
+        let named = parse_at(
+            "simplify{definitions: [Nat.beq_eq], hypotheses: [h]}",
+            Position::Proof,
+        )
+        .expect("named authoring form");
+        let decoded: SemanticProof =
+            serde_json::from_str(&named.to_canonical_string()).expect("nonempty hypotheses");
+        assert!(
+            matches!(decoded, SemanticProof::Simplify { hypotheses, .. } if hypotheses == ["h"])
+        );
+
+        let module = EMPTY_POLICY.replace(r#"{"kind":"reflexivity"}"#, &omitted);
+        SemanticModule::parse(
+            &module,
+            "1.1",
+            "Test",
+            &[],
+            &BTreeMap::new(),
+            &super::model::ArtifactStore::new(u64::MAX, u64::MAX),
+        )
+        .expect("omitted hypotheses retain the existing semantic-module/1 form");
+        let mut v2: serde_json::Value = serde_json::from_str(&module).expect("module JSON");
+        v2["spec"] = serde_json::json!("lexlean/semantic-module/2");
+        let equality = v2["declarations"][0]["statement"].clone();
+        v2["declarations"][0]["statement"] = serde_json::json!({
+            "kind": "implies", "premise": equality, "conclusion": equality,
+        });
+        for hypotheses in [
+            None,
+            Some(serde_json::json!(["h"])),
+            Some(serde_json::json!([])),
+        ] {
+            let proof = v2["declarations"][0]["proof"]
+                .as_object_mut()
+                .expect("proof");
+            proof.remove("hypotheses");
+            if let Some(names) = &hypotheses {
+                proof.insert("hypotheses".to_owned(), names.clone());
+            }
+            let parsed = SemanticModule::parse(
+                &serde_json::to_string(&v2).expect("canonical JSON"),
+                "1.2",
+                "Test",
+                &[],
+                &BTreeMap::new(),
+                &super::model::ArtifactStore::new(u64::MAX, u64::MAX),
+            );
+            if hypotheses == Some(serde_json::json!([])) {
+                let error = parsed.expect_err("explicit v2 hypotheses must be nonempty");
+                assert!(
+                    error
+                        .reason
+                        .contains("simplify hypotheses must be nonempty when present"),
+                    "{error}"
+                );
+            } else {
+                parsed.expect("v2 omitted and nonempty hypotheses retain their semantics");
+            }
+        }
+    }
+
+    #[test]
     fn semantic_bool_match_is_typed_and_exhaustive() {
         SemanticModule::parse(
             BOOL_MATCH,
@@ -10821,6 +10996,7 @@ mod tests {
         accepts(P::Length, &[T::String], T::Nat);
         accepts(P::Index, &[T::Bytes, T::Nat], option(T::UInt8));
         accepts(P::Slice, &[T::Bytes, T::Nat, T::Nat], option(T::Bytes));
+        accepts(P::Update, &[T::Bytes, T::Nat, T::UInt8], option(T::Bytes));
         accepts(P::Utf8Encode, &[T::String], T::Bytes);
         accepts(P::Utf8Decode, &[T::Bytes], option(T::String));
         accepts(P::CompareBytes, &[T::Bytes, T::Bytes], T::Ordering);

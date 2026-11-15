@@ -129,7 +129,7 @@ fn proof_uses(proof: &SemanticProof, local: &str) -> bool {
         // The lowered request lists every field of the theorem's one parameter.
         SemanticProof::RegionCheck => true,
         SemanticProof::LinearArithmetic { definitions }
-        | SemanticProof::Simplify { definitions } => definitions
+        | SemanticProof::Simplify { definitions, .. } => definitions
             .iter()
             .any(|member| member.module.is_none() && member.name == local),
         SemanticProof::Constructor { branches } => {
@@ -503,6 +503,10 @@ fn spelling(operation: SemanticPrimitive) -> Spelling {
         },
         SemanticPrimitive::Slice => Spelling::Runtime {
             name: "slice",
+            int64: None,
+        },
+        SemanticPrimitive::Update => Spelling::Runtime {
+            name: "update",
             int64: None,
         },
         SemanticPrimitive::Utf8Encode => Spelling::Runtime {
@@ -1314,14 +1318,29 @@ impl Render<'_> {
                     .collect::<Vec<_>>();
                 linear_arithmetic(&pad, &unfolded)
             }
-            SemanticProof::Simplify { definitions } => format!(
-                "{pad}simp only [{}]\n",
-                definitions
+            SemanticProof::Simplify {
+                definitions,
+                hypotheses,
+            } => {
+                // §17.12: the named hypotheses are introduced and lead the
+                // closed rule set, so a conditional rule's side condition
+                // is discharged from them and from nothing else.
+                let hypotheses = hypotheses
                     .iter()
-                    .map(|member| self.member(member))
+                    .map(|name| identifier(name))
+                    .collect::<Vec<_>>();
+                let intro = if hypotheses.is_empty() {
+                    String::new()
+                } else {
+                    format!("{pad}intro {}\n", hypotheses.join(" "))
+                };
+                let rules = hypotheses
+                    .into_iter()
+                    .chain(definitions.iter().map(|member| self.member(member)))
                     .collect::<Vec<_>>()
-                    .join(", ")
-            ),
+                    .join(", ");
+                format!("{intro}{pad}simp only [{rules}]\n")
+            }
             SemanticProof::Constructor { branches } => {
                 let mut out = format!("{pad}constructor\n");
                 for branch in branches {

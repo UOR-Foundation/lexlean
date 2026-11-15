@@ -841,8 +841,36 @@ fn source_string(text: &str) -> String {
 /// Carry the rewritten register statements and SPEC.md prose into the modules
 /// of `spec/`, then write the projections from them.
 fn write_sources(root: &Path, texts: &Texts) -> Result<(), Fail> {
+    carry_statements(root, &texts.ids, false)?;
+    let outcome = repo_model::spec_edit::port(root, &texts.spec)?;
+    repo_model::spec_edit::apply(root, &outcome)?;
+    crate::codegen::check_model(root, true)
+}
+
+/// Carry every register statement that `ids`, a text of `model/ids.toml`,
+/// states differently from the committed register into its row of the
+/// modules of `spec/` (NS-03), and return how many moved. When `strict`, an ID
+/// the text adds or lacks is refused, since a row is written in its module by
+/// hand; otherwise such an ID is passed over.
+pub(crate) fn carry_statements(root: &Path, ids: &str, strict: bool) -> Result<usize, Fail> {
     let before = statements_of(&std::fs::read_to_string(root.join("model/ids.toml"))?)?;
-    let after = statements_of(&texts.ids)?;
+    let after = statements_of(ids)?;
+    if strict {
+        let added: Vec<&String> = after
+            .keys()
+            .filter(|id| !before.contains_key(*id))
+            .collect();
+        let removed: Vec<&String> = before
+            .keys()
+            .filter(|id| !after.contains_key(*id))
+            .collect();
+        if !added.is_empty() || !removed.is_empty() {
+            return Err(format!(
+                "spec: the register adds {added:?} and removes {removed:?}; a row is written in its module of spec/src by hand"
+            )
+            .into());
+        }
+    }
     let mut modules: BTreeMap<PathBuf, String> = BTreeMap::new();
     for entry in std::fs::read_dir(root.join("spec/src"))? {
         let path = entry?.path();
@@ -856,6 +884,7 @@ fn write_sources(root: &Path, texts: &Texts) -> Result<(), Fail> {
         }
     }
     let mut changed: BTreeSet<PathBuf> = BTreeSet::new();
+    let mut moved = 0;
     for (id, statement) in &after {
         let Some(old) = before.get(id) else { continue };
         if old == statement {
@@ -870,7 +899,7 @@ fn write_sources(root: &Path, texts: &Texts) -> Result<(), Fail> {
             let end = text[at..].find('\n').map_or(text.len(), |n| at + n);
             if text[at..end].matches(&from).count() != 1 {
                 return Err(format!(
-                    "counts: the row of {id} in {} does not hold its projected statement",
+                    "the row of {id} in {} does not hold its projected statement",
                     path.display()
                 )
                 .into());
@@ -879,18 +908,17 @@ fn write_sources(root: &Path, texts: &Texts) -> Result<(), Fail> {
             text.replace_range(at..end, &line);
             changed.insert(path.clone());
             found = true;
+            moved += 1;
             break;
         }
         if !found {
-            return Err(format!("counts: no register module holds the row of {id}").into());
+            return Err(format!("no register module holds the row of {id}").into());
         }
     }
     for path in &changed {
         std::fs::write(path, &modules[path])?;
     }
-    let outcome = repo_model::spec_edit::port(root, &texts.spec)?;
-    repo_model::spec_edit::apply(root, &outcome)?;
-    crate::codegen::check_model(root, true)
+    Ok(moved)
 }
 
 #[cfg(test)]

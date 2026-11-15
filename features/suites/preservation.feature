@@ -208,6 +208,12 @@ Feature: preservation
     Then every runtime item is stated by exactly one theorem, at its profile, on the function the generated code calls for it, or is a trait item with the theorems of SP-25
     And a theorem left out, a statement of another item, a statement at the other profile, an item called as another function, and a trait item without its theorems are each refused naming the item
 
+  @SP-31 @build
+  Scenario: Certificate A of a production root with a bound states, and the kernel checks from the bound's theorem, that the root's width predicate holds on every argument in the target width (`bounded`) and that the lowered program converges to the encoded value of the root on every such argument (`root_value`), each with its axioms pinned exactly within the certificate axioms; a bound theorem whose conclusions do not match the width predicate's checks in evaluation order, a forged bound without a kernel proof, and a bound narrowed to miss an operation fail verification or linking rather than certify the root.
+    Given the committed bounded root of the production-coverage corpus and copies whose bound theorem is forged, narrowed, or stated out of order
+    When certificate A is generated and checked by the pinned Lean
+    Then the certificate states `bounded` and `root_value` with exactly the certificate axioms, and each copy fails verification or linking
+
   @SP-32 @build
   Scenario: A structurally recursive executable definition recurses in its generated Lean on the argument its source declares: where a parameter written before `recursive_argument` is matched in the body, which is the one case in which Lean's own search could take that parameter instead, the definition states the argument with `termination_by structural`, so that the kernel accepts certificate A of a production root that reaches it; an executable definition with no such parameter, and a definition that is not executable, generate the bytes they generated before.
     Given the `recursive-argument` fixture, whose `paramsOf` matches a list written before its declared recursive argument
