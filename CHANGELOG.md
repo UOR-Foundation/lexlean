@@ -44,6 +44,16 @@ workspace carried at those versions without a tag.
   dispatch or `release-gate.sh`, so a tag's evidence is still one run with
   every host. `RP-14` and `RP-18` pin the new cases.
 
+- `AU-01` reads the committed corpus one module at a time (SPEC.md §9.4). It
+  collected every semantic module of the repository as a value before checking
+  any, and the corpus holds modules of tens of megabytes, so the case alone
+  peaked at 11.2 GiB of resident memory in a debug test process. The
+  `bdd-verification` leg runs it on four test threads beside `AU-08`, `AU-09`
+  and the Lean processes of `NE-01` and the `VR` cases on a 16 GB runner, and
+  the leg intermittently exhausted memory and swap and lost the runner, failing
+  whichever case was running then. The case checks the same modules with the
+  same assertions; each is dropped once checked.
+
 - Canonical JSON refuses duplicate keys that differ only in their escapes (SPEC.md §21.7,
   `AR-11`, #475). The duplicate check compared each key as written, so `{"a":1,"\u0061":2}`
   passed it and `Json::parse` returned `{"a":2}`, dropping the first member; keys are now
