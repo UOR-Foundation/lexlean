@@ -1239,7 +1239,8 @@ fn append_core_command(
                 .map_err(|error| internal(format!("cannot encode core node batch: {error}")))
         })
         .collect::<Result<Vec<_>, _>>()?;
-    text.push_str("\nrun_cmd Lean.Elab.Command.liftCoreM (LexLeanCore.Runtime.decodeAndAdd #[\n");
+    text.push_str(CORE_COMMAND_START);
+    text.push('\n');
     for (index, batch) in node_batches.iter().enumerate() {
         text.push_str("  ");
         append_string_expression(text, batch, "    ");
@@ -1252,6 +1253,61 @@ fn append_core_command(
     append_string_expression(text, &payload, "  ");
     text.push_str(")\n");
     Ok(())
+}
+
+/// The boundary emitted by the core command renderer, before its first data row.
+const CORE_COMMAND_START: &str =
+    "\nrun_cmd Lean.Elab.Command.liftCoreM (LexLeanCore.Runtime.decodeAndAdd #[";
+
+fn legacy_scope_footer(scope: &str) -> String {
+    format!("\nend {scope}\n")
+}
+
+/// Borrowed renderer sections for partitioning an already audited legacy module.
+pub(crate) struct LegacyCommandSections<'a> {
+    /// Imports, options, scope, and the decoder for the first partition.
+    pub header: &'a str,
+    /// Imports, options, and scope, without redeclaring the decoder.
+    pub common: &'a str,
+    /// The original complete-command sequence.
+    pub commands: &'a str,
+    /// Byte offsets of complete commands in `commands`.
+    pub starts: Vec<usize>,
+    /// The original closing scope bytes.
+    pub footer: &'a str,
+}
+
+/// Locate boundaries defined by this renderer without changing any source bytes.
+/// The caller must first audit the text against the core renderer.
+///
+/// # Errors
+///
+/// Refuses text missing its scope terminator, core commands, or decoder.
+pub(crate) fn legacy_command_sections<'a>(
+    text: &'a str,
+    scope: &str,
+) -> Result<LegacyCommandSections<'a>, &'static str> {
+    let expected_footer = legacy_scope_footer(scope);
+    let body = text
+        .strip_suffix(&expected_footer)
+        .ok_or("a native certificate lacks its rendered namespace terminator")?;
+    let first = body
+        .find(CORE_COMMAND_START)
+        .ok_or("a native certificate lacks its rendered core commands")?;
+    let (header, commands) = body.split_at(first);
+    let decoder = header
+        .find("namespace LexLeanCore.Runtime")
+        .ok_or("a native certificate lacks its rendered core decoder")?;
+    Ok(LegacyCommandSections {
+        header,
+        common: &header[..decoder],
+        commands,
+        starts: commands
+            .match_indices(CORE_COMMAND_START)
+            .map(|(at, _)| at)
+            .collect(),
+        footer: &text[body.len()..],
+    })
 }
 
 /// The Lean text a native core module renders to: its imports, the decoder
@@ -1328,7 +1384,7 @@ set_option synthInstance.maxHeartbeats 0
         append_core_command(&mut text, core, &chunk, index + 1 == ranges.len())?;
     }
     if let Some(scope) = legacy_scope {
-        text.push_str(&format!("\nend {scope}\n"));
+        text.push_str(&legacy_scope_footer(scope));
     }
     Ok(text)
 }

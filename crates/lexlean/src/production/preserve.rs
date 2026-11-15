@@ -1300,21 +1300,14 @@ fn certificate_files_with_limit(
     }
     // audit_certificate has compared this text with the core renderer. These
     // boundaries are complete renderer commands, never lines inside JSON data.
-    let marker = "\nrun_cmd Lean.Elab.Command.liftCoreM (LexLeanCore.Runtime.decodeAndAdd #[";
-    let footer = format!("\nend {}\n", certificate.module);
-    let body = certificate
-        .text
-        .strip_suffix(&footer)
-        .ok_or_else(|| internal("a native certificate lacks its rendered namespace terminator"))?;
-    let first = body
-        .find(marker)
-        .ok_or_else(|| internal("a native certificate lacks its rendered core commands"))?;
-    let (header, commands) = body.split_at(first);
-    let decoder = header
-        .find("namespace LexLeanCore.Runtime")
-        .ok_or_else(|| internal("a native certificate lacks its rendered core decoder"))?;
-    let common = &header[..decoder];
-    let starts: Vec<usize> = commands.match_indices(marker).map(|(at, _)| at).collect();
+    let crate::backend::core::LegacyCommandSections {
+        header,
+        common,
+        commands,
+        starts,
+        footer,
+    } = crate::backend::core::legacy_command_sections(&certificate.text, &certificate.module)
+        .map_err(internal)?;
     let mut groups = Vec::new();
     let mut start = 0;
     for (index, at) in starts.iter().copied().enumerate() {
@@ -1329,7 +1322,7 @@ fn certificate_files_with_limit(
         return Ok(vec![original()]);
     }
     let mut files = Vec::new();
-    let mut previous = None;
+    let mut previous: Option<String> = None;
     for (index, group) in groups.into_iter().enumerate() {
         // leanchecker selects descendants, too. Keep parts outside every
         // original certificate's prefix, including certificate A's prefix
@@ -1342,7 +1335,14 @@ fn certificate_files_with_limit(
         let module = format!("LexLeanPreserve.Parts.{owner}_Part{index}");
         let text = match &previous {
             None => format!("{header}{group}{footer}"),
-            Some(import) => format!("import {import}\n{common}{group}{footer}"),
+            Some(import) => {
+                let (imports, _) = crate::backend::lean::AuxiliaryModule {
+                    imports: vec![import.clone()],
+                    commands: Vec::new(),
+                }
+                .render_over_unheaded();
+                format!("{imports}{common}{group}{footer}")
+            }
         };
         files.push(StagedFile {
             path: module_path(&module),
@@ -1354,7 +1354,12 @@ fn certificate_files_with_limit(
     }
     let mut final_file = original();
     let previous = previous.ok_or_else(|| internal("empty certificate command groups"))?;
-    final_file.text = format!("import {previous}\n");
+    final_file.text = crate::backend::lean::AuxiliaryModule {
+        imports: vec![previous],
+        commands: Vec::new(),
+    }
+    .render_over_unheaded()
+    .0;
     files.push(final_file);
     Ok(files)
 }
@@ -2065,6 +2070,22 @@ mod tests {
                 file.text[start..]
                     .strip_suffix(&footer)
                     .expect("closed namespace"),
+            );
+            let expected_header = if index == 0 {
+                header.clone()
+            } else {
+                format!(
+                    "import {}\nimport Lean\nnamespace {module}\n",
+                    files[index - 1].module
+                )
+            };
+            assert_eq!(
+                file.text,
+                format!(
+                    "{expected_header}{}{footer}",
+                    commands[index * 2..(index * 2 + 2).min(commands.len())].concat()
+                ),
+                "canonical rendering preserves every partition byte",
             );
             assert!(file.source.is_none());
         }
