@@ -876,7 +876,7 @@ definition{
 }
 
 definition{
-  name: cyclic,
+  name: cycles,
   parameters: [
     known : CalculusCheck::Ty,
     edges : Edges,
@@ -885,6 +885,69 @@ definition{
   ],
   result: Bool,
   body: (anyHeld owner edges (inPlace known (ctor CalculusCheck::Ty.TNil) ty)),
+  executable: true
+}
+
+definition{
+  name: fielded,
+  parameters: [constructors : CalculusCheck::Ty],
+  result: Bool,
+  body: (match constructors
+    | CalculusCheck::Ty.TUnit => false
+    | CalculusCheck::Ty.TBool => false
+    | CalculusCheck::Ty.TNat => false
+    | CalculusCheck::Ty.TInt => false
+    | CalculusCheck::Ty.TFixed d0 => false
+    | CalculusCheck::Ty.TString => false
+    | CalculusCheck::Ty.TBytes => false
+    | CalculusCheck::Ty.TOrdering => false
+    | CalculusCheck::Ty.TOption d0 => false
+    | CalculusCheck::Ty.TResult d0 d1 => false
+    | CalculusCheck::Ty.TList d0 => false
+    | CalculusCheck::Ty.TPair d0 d1 => false
+    | CalculusCheck::Ty.TAdt d0 => false
+    | CalculusCheck::Ty.TFn d0 d1 => false
+    | CalculusCheck::Ty.TNil => false
+    | CalculusCheck::Ty.TCons head tail => (if (CalculusCheck::tyEq head (ctor CalculusCheck::Ty.TNil)) then (fielded tail) else true)),
+  executable: true,
+  recursive_argument: constructors
+}
+
+definition{
+  name: markShared,
+  parameters: [program : CalculusCheck::Program, owners : CalculusCheck::Ty, edges : Edges],
+  result: Edges,
+  body: (match owners
+    | CalculusCheck::Ty.TUnit => edges
+    | CalculusCheck::Ty.TBool => edges
+    | CalculusCheck::Ty.TNat => edges
+    | CalculusCheck::Ty.TInt => edges
+    | CalculusCheck::Ty.TFixed d0 => edges
+    | CalculusCheck::Ty.TString => edges
+    | CalculusCheck::Ty.TBytes => edges
+    | CalculusCheck::Ty.TOrdering => edges
+    | CalculusCheck::Ty.TOption d0 => edges
+    | CalculusCheck::Ty.TResult d0 d1 => edges
+    | CalculusCheck::Ty.TList d0 => edges
+    | CalculusCheck::Ty.TPair d0 d1 => edges
+    | CalculusCheck::Ty.TAdt d0 => edges
+    | CalculusCheck::Ty.TFn d0 d1 => edges
+    | CalculusCheck::Ty.TNil => edges
+    | CalculusCheck::Ty.TCons head tail => (markShared program tail (if (fielded (variantsOf program (ctor Clos.ClNil) head)) then (ctor Edges.EdgeCons head (ctor CalculusCheck::Ty.TUnit) edges) else edges))),
+  executable: true,
+  recursive_argument: owners
+}
+
+definition{
+  name: cyclic,
+  parameters: [
+    known : CalculusCheck::Ty,
+    edges : Edges,
+    owner : CalculusCheck::Ty,
+    ty : CalculusCheck::Ty
+  ],
+  result: Bool,
+  body: (if (cycles known edges owner ty) then true else (edgeHas edges ty (ctor CalculusCheck::Ty.TUnit))),
   executable: true
 }
 
@@ -914,7 +977,7 @@ definition{
     | CalculusCheck::Ty.TAdt d0 => true
     | CalculusCheck::Ty.TFn d0 d1 => true
     | CalculusCheck::Ty.TNil => true
-    | CalculusCheck::Ty.TCons head tail => (if (if (cyclic known edges owner head) then true else (visible head inhabited)) then (fieldsOk known edges inhabited owner tail) else false)),
+    | CalculusCheck::Ty.TCons head tail => (if (if (cycles known edges owner head) then true else (visible head inhabited)) then (fieldsOk known edges inhabited owner tail) else false)),
   executable: true,
   recursive_argument: fields
 }
@@ -1214,7 +1277,7 @@ definition{
     type: Collect,
     fields: [{field: known, value: registered}, {field: closures, value: (ctor Clos.ClNil)}],
     type_arguments: []
-  } bodies 0 (nil Bool) sites); (let known : CalculusCheck::Ty := (project initial known); (let owners : CalculusCheck::Ty := (tyAppend (adtOwners (CalculusCheck::tyChainLength adts)) known); (let direct : Edges := (allEdges program known (project initial closures) owners (ctor Edges.EdgeNil)); (let edges : Edges := (closeEdges direct (1 + (prim multiply (CalculusCheck::tyChainLength owners) (CalculusCheck::tyChainLength owners) : Nat))); (let live : Liveness := (first (prim iterate_until (fun [bodies, edges, known, owners, program, sites] (state : Liveness) => (livenessStep program bodies known edges owners sites state)) (1 + count) record{
+  } bodies 0 (nil Bool) sites); (let known : CalculusCheck::Ty := (project initial known); (let owners : CalculusCheck::Ty := (tyAppend (adtOwners (CalculusCheck::tyChainLength adts)) known); (let direct : Edges := (allEdges program known (project initial closures) owners (ctor Edges.EdgeNil)); (let edges : Edges := (markShared program owners (closeEdges direct (1 + (prim multiply (CalculusCheck::tyChainLength owners) (CalculusCheck::tyChainLength owners) : Nat)))); (let live : Liveness := (first (prim iterate_until (fun [bodies, edges, known, owners, program, sites] (state : Liveness) => (livenessStep program bodies known edges owners sites state)) (1 + count) record{
     type: Liveness,
     fields: [
       {field: dead, value: (falses count)},
@@ -1688,7 +1751,7 @@ definition{
     type: Collect,
     fields: [{field: known, value: known}, {field: closures, value: (ctor Clos.ClNil)}],
     type_arguments: []
-  } bodies 0 dead sites); (let owners : CalculusCheck::Ty := (tyAppend (adtOwners (CalculusCheck::tyChainLength adts)) known); (let direct : Edges := (allEdges program known (project numbered closures) owners (ctor Edges.EdgeNil)); (let edges : Edges := (closeEdges direct (1 + (prim multiply (CalculusCheck::tyChainLength owners) (CalculusCheck::tyChainLength owners) : Nat))); (adtDefs known edges adts 0 (fnDefs known edges (revClos (project live closures) (ctor Clos.ClNil)) (project numbered closures) fallible known 0 (ctor RustAst::Def.DNil)))))))))),
+  } bodies 0 dead sites); (let owners : CalculusCheck::Ty := (tyAppend (adtOwners (CalculusCheck::tyChainLength adts)) known); (let direct : Edges := (allEdges program known (project numbered closures) owners (ctor Edges.EdgeNil)); (let edges : Edges := (markShared program owners (closeEdges direct (1 + (prim multiply (CalculusCheck::tyChainLength owners) (CalculusCheck::tyChainLength owners) : Nat)))); (adtDefs known edges adts 0 (fnDefs known edges (revClos (project live closures) (ctor Clos.ClNil)) (project numbered closures) fallible known 0 (ctor RustAst::Def.DNil)))))))))),
   executable: true,
   production: {effects: [allocation, overflow, recursion], targets: [rust-std]}
 }
