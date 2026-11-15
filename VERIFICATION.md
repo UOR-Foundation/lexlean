@@ -20026,26 +20026,36 @@ script's output to that function, so the file the gate job writes is the file
 | the script no longer writes the gate line | same | `the evidence satisfies the release criterion` failed: `Err(["release/vv-evidence.txt does not record the gate passing"])` |
 | the criterion accepts the legs' lines | `cargo test -p repo-model the_ci_evidence_criterion` | `left: Ok(())` against the refusal |
 
-## κ-addressing in LexLean (`KA-01`..`KA-06`, #127)
+## κ-addressing in LexLean (`KA-01`..`KA-08`, #127)
 
 The `kappa` project (decision D7 of #110) writes the sha256 axis of uor-addr's
 κ-label, the data handle of decision D3 (`kind@label`), uor-addr's JSON
 canonical form, the five categorical compositions of uor-addr on the sha256
 axis (`KA-04`), the other four hash axes of uor-addr, blake3, sha3-256,
 keccak256 and sha512 (`KA-05`), and the five compositions on all five axes
-(`KA-06`). uor-addr 0.2.0 is the oracle of the cases: a dependency of
+(`KA-06`), and the GGUF v3 (`KA-07`) and ONNX (`KA-08`) realizations of
+uor-addr, `canonicalGguf`, `ggufLabel`, `ggufLabelOn`, `canonicalOnnx`,
+`onnxLabel` and `onnxLabelOn`. uor-addr 0.2.0 is the oracle of the cases: a dependency of
 `repo-conformance` that can falsify the package and never establishes it, and
 a disagreement fails the case and is not resolved by adopting the oracle's
 output. `conformance_ka_01` holds the project, its roots, and the identities
 it does not move; `conformance_ka_02` holds the label, the handle and the
 twelve committed JSON fixtures under the evaluator and under the pinned
 rustc; `conformance_ka_03` holds `canonicalJson` to `uor_addr::json::canonicalize`
-on a seeded corpus under both. What the package does not do is stated in the
-rows: the GGUF and ONNX forms are not written (slice 2 added the compositions
-on the sha256 axis, slice 3 the four other hash axes and the compositions on
-them), so the acceptance sentence of #127 (every committed fixture yields the
-same label) holds for the twelve JSON fixtures and, for the five GGUF and
-ONNX `.kappa-label` files, only for the label form (`isLabel`).
+on a seeded corpus under both. `conformance_ka_07` and `conformance_ka_08` hold the GGUF and ONNX roots
+to `uor_addr::gguf` and `uor_addr::onnx` (`canonicalize`, `address` and the
+`address_*` axes) under the evaluator and under the pinned rustc, on the three
+committed GGUF and the two committed ONNX fixtures, inputs at each bound the
+crate checks, and seeded corpora. With them the acceptance sentence of #127
+(every committed fixture yields the same label) holds for all 17 fixtures of
+uor-addr 0.2.0, the twelve JSON fixtures and the five GGUF and ONNX
+`.kappa-label` files, by the label itself and not only by its form. What the
+package does not do is stated in the rows: the pin is uor-addr 0.2.0 (GGUF and
+ONNX canonical form v2), so upstream's later sixth pair
+(`onnx/empty-name-tiebreak`, form v3) and its duplicate-name refusal for JSON
+are outside it; the Python reference encoders of uor-addr agree with the five
+binary labels at the pin and are not run; and the `rust-std` certificate of
+`onnxLabelOn` needs the project's `max_file_bytes` of 16 MiB.
 
 ### the kappa differentials can fail
 
@@ -20053,6 +20063,12 @@ Each plant below is made on a copy of the project by the case itself, on every
 run, and the case fails when a plant is not detected. The lines are the case's
 own report on this host (`cargo test -p repo-conformance --test conformance
 conformance_ka_0 -- --nocapture --test-threads=1`); no committed file was edited.
+The `KA-07` and `KA-08` lines are those of the passing local runs at the
+implementation commits `db30364850` (2026-11-14T21:12Z, 38.9 s) and
+`f7671b182e` (2026-11-14T22:01Z, 225.3 s), where the case also printed the
+committed label of each fixture; the gate does not print them, and no run of
+`conformance_ka_07` or `conformance_ka_08` before the implementation, the
+initial red of R3, was recorded.
 
 | Plant | Case | Observed |
 | --- | --- | --- |
@@ -20085,6 +20101,23 @@ conformance_ka_0 -- --nocapture --test-threads=1`); no committed file was edited
 | `composeE6On` tags the degree-6 class with the remainder nine for eight | `KA-06` | 50 of 371 runs disagree, the first `sha256:083b…` |
 | `composeE7On` takes quarters of 16 digits for a quarter of the width | `KA-06` | 54 of 371 runs disagree, the first a `sha512` label (the 64-digit axes are unchanged) |
 | `composeE6On` reads the degree at offset 7 for the length of the axis prefix | `KA-06` | 20 of 371 runs disagree, the first a `sha3-256` label (the prefixes of `sha256`, `blake3` and `sha512` are 7 bytes) |
+| metadata kept in reverse key order (`lessKey (first item) key`) | `KA-07` | 21 of 94 runs of `canonicalGguf` disagree |
+| tensors kept in reverse name order | `KA-07` | 13 of 94 runs disagree |
+| a default alignment of 16 for 32 | `KA-07` | 34 of 94 runs disagree |
+| an alignment of 4 admitted (`4 <=? alignment` for `8`) | `KA-07` | 5 of 94 runs disagree |
+| a string digested from inside its length (`at + 4` for `at + 8`) | `KA-07` | 7 of 94 runs disagree |
+| canonical offsets left unaligned | `KA-07` | 15 of 94 runs disagree |
+| a data section that starts unaligned | `KA-07` | 23 of 94 runs disagree |
+| an array depth bound one deeper (`65` for `64`) | `KA-07` | 1 of 94 runs disagree |
+| the first of tied ready nodes taken for the last | `KA-08` | 1 of 69 runs of `canonicalOnnx` disagree |
+| a node order that ignores readiness | `KA-08` | 12 of 69 runs disagree |
+| a message digested in wire order (a frame at depth 0 over the fields as read) | `KA-08` | 5 of 69 runs disagree |
+| a message digested one level deep (`depth <? 1`) | `KA-08` | 3 of 69 runs disagree |
+| a subgraph bound one deeper (`65`) | `KA-08` | 1 of 69 runs disagree |
+| attributes left in wire order | `KA-08` | 4 of 69 runs disagree |
+| initializers left in wire order | `KA-08` | 2 of 69 runs disagree |
+| another external-data marker | `KA-08` | 3 of 69 runs disagree |
+| an opset of version zero admitted | `KA-08` | 3 of 69 runs disagree |
 
 The corpus of `KA-03` holds 78 refusals and 42 accepted documents of 120
 (malformed texts and the proper prefixes and extensions of documents, which
