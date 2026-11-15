@@ -30,8 +30,11 @@ const MODULE: &str = "LexLeanBoot.CoreRead";
 const SOURCE: &str = "src/CoreRead.lex.tex";
 const ROOTS: [(&str, &[&str]); 1] = [("readCoreModule", &["allocation", "overflow"])];
 
-/// The most a part of a certificate of a root may be, as the row states.
-const CERTIFICATE_BUDGET: u64 = 3_145_728;
+/// The most a part of a certificate of a root may be, as the row states:
+/// `readCoreModule`'s certificate B measured 6,006,217 bytes, past the
+/// default; raised to 95.83% of `max_file_bytes`, rounded up to a 64 KiB
+/// multiple.
+const CERTIFICATE_BUDGET: u64 = 6_029_312;
 /// Committed core modules of at most this many bytes of notation are read under
 /// the evaluator (one in `EVALUATOR_EVERY`), and under rustc those at most the
 /// second bound.

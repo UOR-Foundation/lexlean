@@ -64,7 +64,7 @@ The root workspace metadata MUST be:
 
 ```toml
 [workspace.package]
-version = "0.4.0"
+version = "0.4.3"
 edition = "2021"
 rust-version = "1.97"
 license = "MIT OR Apache-2.0"
@@ -284,6 +284,8 @@ The completed repository MUST have this layout. Additional files are allowed onl
 │   └── workflows/
 │       ├── ci.yml
 │       └── reproducibility.yml
+├── assets/
+│   └── lexlean-logo.svg
 ├── AGENTS.md
 ├── CONFORMANCE.md
 ├── ERRORS.md
@@ -534,7 +536,7 @@ The workspace uses Rust edition 2021 and MSRV 1.97. The shipped crate MUST compi
 LexLean language 1.0 is pinned to:
 
 ```text
-leanprover/lean4:v4.32.1
+leanprover/lean4:v4.32.2
 ```
 
 The repository-root `lean-toolchain` file MUST contain exactly that line followed by LF.
@@ -542,10 +544,10 @@ The repository-root `lean-toolchain` file MUST contain exactly that line followe
 The corresponding Lean tag resolves to source commit:
 
 ```text
-f054605aea4b840552cca2e725580bffd1e1b704
+f3b06c705e6c85f5314019d5d3baab0fec5b580c
 ```
 
-LexLean MUST reject a verification environment whose reported Lean version is not 4.32.1. The verification attestation records the SHA-256 digest of the actual `lean`, `lake`, and `leanchecker` executables used, so platform-specific executable bytes do not need to be assumed identical.
+LexLean MUST reject a verification environment whose reported Lean version is not 4.32.2. The verification attestation records the SHA-256 digest of the actual `lean`, `lake`, and `leanchecker` executables used, so platform-specific executable bytes do not need to be assumed identical.
 
 ### 8.3 Supported hosts
 
@@ -557,17 +559,19 @@ The Rust crate MUST build and its non-Lean tests MUST pass on:
 - macOS AArch64;
 - Windows x86-64.
 
-`ci.yml` checks these hosts in every run that is the whole gate (§9.4). The normative full verification and reproducibility gate runs on Linux x86-64. The Linux AArch64 and macOS AArch64 legs each run one `cargo test --locked --workspace --all-features --no-fail-fast`, which builds the library and binary in the same locked, all-features test profile and reports every failing test binary rather than stopping at the first. These two legs are unchanged by the partitions below. Each execution job MUST check the actual Rust host triple against the host it claims. Other hosts produce platform-bound attestations and MUST obey the same source, manifest, and policy formats.
+`ci.yml` checks these hosts in every run that is the whole gate (§9.4), except macOS x86-64 on a pull request into a release line that is not a release cut, which the push that lands it checks instead (§9.4). The normative full verification and reproducibility gate runs on Linux x86-64. The Linux AArch64 and macOS AArch64 legs each run one `cargo test --locked --workspace --all-features --no-fail-fast`, which builds the library and binary in the same locked, all-features test profile and reports every failing test binary rather than stopping at the first. These two legs are unchanged by the partitions below. Each execution job MUST check the actual Rust host triple against the host it claims. Other hosts produce platform-bound attestations and MUST obey the same source, manifest, and policy formats.
 
 On macOS x86-64, one construction job and one conformance execution job per committed lane partition that same complete workspace test workload. Construction MUST compile all workspace test targets once from a clean checkout with the pinned Rust toolchain, locked dependencies, all features and the default test profile, and discover the executable test targets from Cargo's machine-readable output. It MUST execute every non-conformance test target, including the `repo-conformance` library, complete `bdd` meta target and other integration targets, and all workspace doctests. It MUST record each execution's outcome and continue independent executions after a test failure. A local test or doctest failure MUST NOT prevent the conformance jobs from running after successful construction; it remains a failure of the host aggregate.
 
 All conformance execution jobs MUST run the same constructed `repo-conformance` conformance executable, without rebuilding it. `.github/intel-host-lanes.json` defines a nonempty set of lanes, grouping complete existing parts of `.github/bdd-parts.json`; no fixture-sharing part is split. The conformance executable's actual harness inventory and its filtered inventories MUST prove that each test belongs to exactly one lane and that their union is the complete executable's inventory. Unknown, empty, duplicate or overlapping assignments MUST fail. The remainder owns future conformance tests until assigned, rather than a copied fixed test-name list omitting them. The constructed artifact MUST bind the repository, source commit and tree, workflow run and attempt, checkout path, actual Rust version and pin, native target, profile, features, lockfile, both plans, executable bytes and mode, and exact inventories and filters. Only the executable, its actual runtime dynamic-library closure, and dependency data required by its tests may be transferred; no target build cache, proof result or artifact from another run or attempt is accepted. Consumers MUST verify this custody and inventory before executing their filters, record the subprocess outcome and complete harness results, and bind their receipts and logs to the construction identity.
 
-The aggregate MUST require the construction result and exactly one successful receipt for each committed lane, reject missing, duplicate, foreign, changed, failed or incomplete evidence, and run even when a prerequisite failed or was cancelled so absence cannot become success. Its check context MUST remain exactly `build and non-Lean tests (x86_64-apple-darwin)`. The other auxiliary contexts remain exactly `build and non-Lean tests (aarch64-unknown-linux-gnu)`, `build and non-Lean tests (aarch64-apple-darwin)` and `build and non-Lean tests (x86_64-pc-windows-msvc)`. Previous-run and release evidence MUST require each of these four exact contexts once, not infer complete coverage from the number of matrix rows or accept a partition context in place of a host. The partition changes scheduling and custody only: it reduces no test, changes no assertion or corpus, and raises no host timeout.
+The aggregate MUST require the construction result and exactly one successful receipt for each committed lane, reject missing, duplicate, foreign, changed, failed or incomplete evidence, and run even when a prerequisite failed or a lane was cancelled so absence cannot become success; only the cancellation of the whole run, which a newer push to the same pull request makes and which leaves no evidence, skips it. Its check context MUST remain exactly `build and non-Lean tests (x86_64-apple-darwin)`. The other auxiliary contexts remain exactly `build and non-Lean tests (aarch64-unknown-linux-gnu)`, `build and non-Lean tests (aarch64-apple-darwin)` and `build and non-Lean tests (x86_64-pc-windows-msvc)`. Previous-run and release evidence MUST require each of these four exact contexts once and passed, a skipped Intel context being absent evidence, not infer complete coverage from the number of matrix rows or accept a partition context in place of a host. The partition changes scheduling and custody only: it reduces no test, changes no assertion or corpus, and raises no host timeout.
 
 On Windows x86-64 that same complete workspace test workload runs as lanes of one run (`.github/scripts/host_lanes.py`): the conformance lanes of `.github/intel-host-lanes.json`, each running the conformance harness with that lane's filters, and a `producer` lane running every other test target of the workspace, the `repo-conformance` library, `bdd` meta target and other integration targets among them, and every doctest. Each lane is a job of its own clean checkout that builds with the pinned toolchain, locked dependencies, all features and the default test profile, checks its host triple, and records the commit, tree, run and attempt, the harness's listing, the producer's listing of the whole workspace, and every test it executed. The aggregate, whose check context remains exactly `build and non-Lean tests (x86_64-pc-windows-msvc)`, runs even when a lane failed or was cancelled, and passes only with exactly one passing receipt for each lane of the run and commit, lanes that listed the same harness, and executed tests whose union is the whole listing with each test once. It reduces no test, changes no assertion, and raises no host timeout.
 
 Non-UTF-8 project paths are outside language 1.0 and produce a registered environment diagnostic.
+
+The `lexlean` executable MUST also build for `wasm32-wasip1` with the pinned toolchain, so that `check` runs where a WASI host is the only host, such as a browser worker over a file system held in memory. Run by a WASI host, `check` MUST give the native executable's exit code and JSON output on the same project. WASI has no threads, no file lock, and no processes, and three things follow on that target alone. The check pipeline runs on the instance's one stack rather than on a thread, and the executable is linked with the stack `Limits::compile_stack_plan` plans on there, `lexlean::config::WASI_STACK_BYTES` (80 MiB, which hosts a depth of 1,024), so nesting beyond the configured or the hosted depth is `LLS8002` as on every host (§25.5). The host supplies the rest of the instance's call stack; Node 22's default is sufficient at the hosted depth, and a host whose call stack ends sooner stops the instance with a trap, which is never a verdict. An embedder that links the library into a module of its own links it with at least that stack. A command that changes the project is refused with `LLV7010` before it touches the project, since the exclusive lock of §21.8 cannot be taken; `check` takes no lock. `verify` starts no toolchain process. A file's identity (§25.1) is the device and inode WASI reports for it, so a host that gives one file two names is refused with `LLC0104` there as well. `CL-25` builds the executable for the target from the tree under test and runs it under Node's `node:wasi`, over the real file system, beside the native executable on every single-step `check` fixture of §28.2 that sets no toolchain, overlay, or environment, and on every example.
 
 ### 8.4 Cargo dependency rules
 
@@ -604,9 +608,9 @@ Every dependency the shipped crate declares, for any target and of any kind but 
 | --- | --- |
 | `camino` | UTF-8 path handling |
 | `clap` | CLI parsing |
-| `fs4` | file locking |
-| `rustix` | process-group signalling (`kill` of a group, without an external `kill`; safe wrappers, the crate forbids unsafe code) |
-| `same-file` | file identity |
+| `fs4` | file locking (every target but WASI, which has no file lock; §8.3) |
+| `rustix` | process-group signalling (`kill` of a group, without an external `kill`; safe wrappers, the crate forbids unsafe code), and file identity on WASI (the device and inode of `stat`; §8.3) |
+| `same-file` | file identity (every target but WASI, where it refuses every path; §8.3) |
 | `semver` | semantic-version parsing |
 | `serde` | JSON and TOML deserialization and serialization |
 | `serde_json` | JSON parsing and serialization |
@@ -680,24 +684,24 @@ The development container MUST install:
 - `just`;
 - `cargo-deny`;
 - `elan`;
-- `leanprover/lean4:v4.32.1`;
+- `leanprover/lean4:v4.32.2`;
 - the Rust Analyzer and Lean 4 editor extensions.
 
 Its image MUST install the pinned Rust and Lean toolchains at build, so that nothing is fetched when a session starts, and MUST NOT select an unpinned default; `RP-16` reads the Dockerfile against `rust-toolchain.toml` and `lean-toolchain`. The container configuration is development support; verification still performs its own version and digest preflight.
 
 ### 9.4 Continuous integration
 
-`ci.yml` MUST run every recipe of `just vv` from a clean checkout on Linux x86-64. It MUST install the exact Rust toolchain, Lean 4.32.1 through `elan`, `just`, and `cargo-deny`.
+`ci.yml` MUST run every recipe of `just vv` from a clean checkout on Linux x86-64. It MUST install the exact Rust toolchain, Lean 4.32.2 through `elan`, `just`, and `cargo-deny`.
 
-**What a run is.** `ci.yml` starts with the job `plan`, which decides from the event and the repository alone, through `.github/ci-plan.sh`, what the run is before any job that costs a runner starts. A pull request that is a draft runs the initial honesty part then the `rest` leg: a head pushed again before it is final costs these two jobs and not the full gate, the run is a development signal, and a draft is not mergeable on it; marking the pull request ready, and every push to it after, run the whole gate. So is a ready pull request whose base branch is neither `main` nor a `release/*` line (a stacked pull request, whose base is another feature branch): only a pull request into `main` or a release line can land on a line, that pull request runs the whole gate on the tree it lands, and the stacked run says in its step summary that the base is why it runs honesty then the `rest` leg. A ready pull request into `main` or a release line, a `workflow_dispatch`, and a push to `main` or to a release line are the whole gate, every job below. A `workflow_dispatch` on the head branch of exactly one open pull request of this repository is planned as that pull request, by its draft flag and base, because `regenerate.yml` commits to that branch with the workflow token, whose push starts no `pull_request` run, and dispatches the gate there instead; a dispatch on any other branch, or one whose pull request the plan cannot read, is the whole gate. A dispatch planned as a ready pull request whose head's tree such a run already verified, by the same walk down equal-tree merges from the head itself, runs no job but the plan, which records the run. One push to `main` or to a release line is not: when it is a merge commit whose tree is the tree of its second parent (a pull request head that already contained `main`) and a run of this workflow passed every job for that parent as a pull request of this repository or dispatched on its branch (or, while the parent is itself a merge whose tree is its second parent's, for that second parent, at most four merges down, as when a release merge that landed a regenerated head is carried to `main`), with none skipped, the join of Atlas, every host of §8.3, and every leg of `.github/vv-rows.json` among them, the push runs no job but the plan, which records the run: the tree it lands is byte for byte the tree that run verified, on the same runners and with the same pins. Any other push to `main` or to a release line, including one the plan cannot decide (a failed query, no run, a run of a draft, a merge that changed the tree, a push that is no merge), is the whole gate. `release.yml` consumes the complete same-tree gate evidence described below. `RP-14` runs the script against planted events, among them a ready pull request into a feature branch, into a release line, and into `main`, and a dispatch on a draft's head, on a ready head, and on a branch with no pull request, and a plant in it fails the case, and reads the CI and reproducibility workflows' push triggers, which name `main` and `release/**`.
+**What a run is.** `ci.yml` starts with the job `plan`, which decides from the event and the repository alone, through `.github/ci-plan.sh`, what the run is before any job that costs a runner starts. A pull request that is a draft runs the initial honesty part then the `rest` leg: a head pushed again before it is final costs these two jobs and not the full gate, the run is a development signal, and a draft is not mergeable on it; marking the pull request ready, and every push to it after, run the whole gate. So is a ready pull request whose base branch is neither `main` nor a `release/*` line (a stacked pull request, whose base is another feature branch): only a pull request into `main` or a release line can land on a line, that pull request runs the whole gate on the tree it lands, and the stacked run says in its step summary that the base is why it runs honesty then the `rest` leg. A ready pull request into `main` or a release line, a `workflow_dispatch`, and a push to `main` or to a release line are the whole gate, every job below, except that a ready pull request into a release line runs no Intel macOS job (the construction, its lanes and their aggregate, §8.3) unless its head branch is a release cut, `cut/v*`: Intel macOS has about one hosted runner for this repository and its workload takes about three hours of it, so a pull request that waited for it waited for hours, and the push that lands the pull request runs those jobs on the tree it lands. The plan names this in the output `intel`, which is set on every whole gate but those pull requests, and the Intel jobs run when it is set; a pull request into `main` and a release cut run them, so the run that verified a tag's tree (§30.3) still holds every host. A `workflow_dispatch` on the head branch of exactly one open pull request of this repository is planned as that pull request, by its draft flag and base, because `regenerate.yml` commits to that branch with the workflow token, whose push starts no `pull_request` run, and dispatches the gate there instead; a dispatch on any other branch, or one whose pull request the plan cannot read, is the whole gate. A dispatch planned as a ready pull request whose head's tree such a run already verified, by the same walk down equal-tree merges from the head itself, runs no job but the plan, which records the run. One push to `main` or to a release line is not: when it is a merge commit whose tree is the tree of its second parent (a pull request head that already contained `main`) and a run of this workflow passed every job for that parent as a pull request of this repository or dispatched on its branch (or, while the parent is itself a merge whose tree is its second parent's, for that second parent, at most four merges down, as when a release merge that landed a regenerated head is carried to `main`), with none skipped, the join of Atlas, every host of §8.3, and every leg of `.github/vv-rows.json` among them, the push runs no job but the plan, which records the run: the tree it lands is byte for byte the tree that run verified, on the same runners and with the same pins. When the run of that parent passed every job but the Intel macOS jobs, which it skipped, with the Intel context once and skipped and every other host, leg and the join of Atlas passed, the push runs honesty and the Intel jobs only, and the plan records the run; such a run never counts as the whole gate, for the plan, a dispatch, or the release's evidence. Any other push to `main` or to a release line, including one the plan cannot decide (a failed query, no run, a run of a draft, a merge that changed the tree, a push that is no merge), is the whole gate. `release.yml` consumes the complete same-tree gate evidence described below. `RP-14` runs the script against planted events, among them a ready pull request into a feature branch, into a release line, and into `main`, a release cut, a dispatch on a draft's head, on a ready head, on a cut's head, and on a branch with no pull request, and a push landing a tree a run verified without the Intel jobs, and a plant in it fails the case, and reads the CI and reproducibility workflows' push triggers, which name `main` and `release/**`.
 
 **Release lines.** A release line is the branch `release/vX.Y` of the release X.Y: it is cut from `main` when work on X.Y begins, every pull request for the milestone X.Y targets it, each `vX.Y.Z` tag is made from it, and it is merged forward, by merge commit, into the next release line after each landing so that the next line carries every fix of the one before it. `main` is the newest released line: a release line is merged into `main` when its release is tagged, and nothing else lands on `main`. A release line is held to the same gate as `main`: a push to it is the whole gate under the rule above, and a pull request against it is a pull request of this repository.
 
-**Cutting a release.** A release `X.Y.Z` is cut by one push of the line's head to the branch `cut/vX.Y.Z`. `cut.yml` refuses a name that is not a version, a commit not on `release/vX.Y`, and a version already tagged; it runs `cargo xtask bump-version X.Y.Z`, which moves every site of the workspace version together (the `[workspace.package]` version and the workspace's path dependencies in `Cargo.toml`, the §2.3 block above, the identity literals of `RP-01` and `RP-12`, the changelog's `## Unreleased` heading, which becomes `## X.Y.Z`, and the workspace rows of `Cargo.lock`), refuses to write anything when a site does not read as it expects or the version does not follow the workspace's, and puts every file back when the lock cannot be updated, commits that on the pushed commit, opens the pull request into the line, and calls `regenerate.yml` on the commit, which writes what the version moves and delivers it to the branch. Merging that pull request is the decision to release. `tag.yml` runs on every push to a release line and stops at once unless the push changed the workspace version from its first parent's to one with no tag and a `## X.Y.Z` changelog entry; then it waits for this push's run of `ci.yml`, and only when that run passed it tags the commit `vX.Y.Z`, dispatches `release.yml` on the tag (a tag pushed with the workflow token starts no run), opens the pull request that merges the line into `main`, dispatches `ci.yml` on the line (a pull request opened with the workflow token starts no run), whose plan finds the run that verified the tagged tree and runs nothing again, and enables auto-merge, since the line contains `main` and the merge lands that tree. A tag pushed by hand starts `release.yml` itself; nothing here changes what a release publishes or what evidence it requires.
+**Cutting a release.** A release `X.Y.Z` is cut by one push of the line's head to the branch `cut/vX.Y.Z`. `cut.yml` refuses a name that is not a version, a commit not on `release/vX.Y`, and a version already tagged; it runs `cargo xtask bump-version X.Y.Z`, which moves every site of the workspace version together (the `[workspace.package]` version and the workspace's path dependencies in `Cargo.toml`, the §2.3 block above, the identity literals of `RP-01` and `RP-12`, the changelog's `## Unreleased` heading, which becomes `## X.Y.Z` under a new empty `## Unreleased`, and the workspace rows of `Cargo.lock`), refuses to write anything when a site does not read as it expects or the version does not follow the workspace's, and puts every file back when the lock cannot be updated, commits that on the pushed commit, opens the pull request into the line, and calls `regenerate.yml` on the commit, which writes what the version moves and delivers it to the branch. The cut is the decision to release, and nothing after it waits for a person. `regenerate.yml` returns the head it delivered and dispatched `ci.yml` on; `cut.yml` waits for that run (in two jobs of at most six hours each, because the gate runs for hours) and lands the cut only when `.github/release-gate.sh` accepts it as the whole gate with every job passed, the evidence `release.yml` will attach. It then merges the pull request with a merge commit of exactly that head onto the line's head, which must be an ancestor of it, and pushes the merge with a lease on that line head, so a line that moves meanwhile refuses the push and the merge's tree is always the head's; a merge made with the workflow token starts no run, so `cut.yml` calls `tag.yml` on that merge itself. `tag.yml` also runs on every push to a release line, which is how a person's merge of a cut releases. It stops at once unless the commit changed the workspace version from its first parent's to one with no tag and a `## X.Y.Z` changelog entry; then it accepts the commit's tree as verified when `release-gate.sh` finds that run (on the commit, or, while it is a merge whose tree is its second parent's, on that parent), and otherwise waits for the push's own run of `ci.yml` (a call has none and stops); only when the tree is verified it tags the commit `vX.Y.Z`, dispatches `release.yml` on the tag (a tag pushed with the workflow token starts no run), opens the pull request that merges the line into `main`, dispatches `ci.yml` on the line (a pull request opened with the workflow token starts no run), whose plan finds the run that verified the tagged tree and runs nothing again, and merges that pull request, only while the line's head is still the tagged commit, when the line contains `main` (one such merge at a time across every line, since `main` takes changes only through a pull request and GitHub's merge cannot be bound to the base; the merge is then checked to have the `main` it examined as its first parent and the tagged tree as its tree, and fails loudly otherwise), so the merge lands that tree; when `main` has commits the line lacks, the pull request is left for a person. What stops the landing leaves the cut's pull request open, and merging it by hand releases as above: a gate that failed (re-running its failed jobs and then the cut run's failed jobs lands the cut), a gate with no verdict after both waits, no pull request, a line that moved since the cut, or a head pushed since the gate ran. A tag pushed by hand starts `release.yml` itself; nothing here changes what a release publishes or what evidence it requires.
 
 **The release's evidence.** `release.yml` runs no recipe of the gate. The CI evidence a release attaches (§30.3) is a run of `ci.yml` that was the whole gate and passed every job, on the tagged commit or, while the commit is a merge whose tree is the tree of its second parent, on that parent, at most four merges down (the walk the plan makes); `.github/release-gate.sh` finds it under the rule `plan` applies to a push, and refuses, naming the commits it looked at, when no such run exists. The evidence names the run, every job of it with its conclusion, and the transcript of every leg the run still retains. The gate run whole on one hosted runner exceeds the six-hour job limit (the `bdd` recipe alone takes over four hours there, and Atlas follows it), so a release gate that re-ran it would never conclude, and the run of the line has already verified the tree.
 
-In a run that is the whole gate, the jobs run the recipes as the rows of `.github/vv-rows.json`, each from its own clean checkout: `examples`, which verifies every example but UOR Atlas; `honesty`, which runs `fmt-check model spec-links bdd` before any expensive root; `rest`, the other recipes in the order of `vv`; and one `bdd-<part>` row for each named part of the `bdd` plan below, which runs `bdd` alone. Each leg runs `just` with its recipes, which stops at the first that fails, as `vv` does. The part of `examples` a job runs is named by its matrix row through `LEXLEAN_EXAMPLES_PART` and by nothing else: `without:uor-atlas` on the leg, `shard:uor-atlas:<shard>` and `join:uor-atlas` on the Atlas jobs below; unset or empty, which is what `just vv` runs, the recipe verifies every example whole. After honesty succeeds, the remaining rows run as one matrix and the supported-host matrix, Intel construction, the bootstrap export and Atlas prefix may start; a failed or skipped honesty part starts none of these expensive roots. Together the legs and the Atlas jobs run every recipe of `vv`, every example, and every test of `bdd` exactly once, and the run passes only when every job passes, so it proves what one run of `just vv` proves; no recipe depends on another having run, and every recipe owns the files it builds. Its wall time is the longest path through the jobs rather than the sum. `just vv` remains the acceptance recipe of §9.2 for every other run, and release acceptance requires the complete same-tree run.
+In a run that is the whole gate, the jobs run the recipes as the rows of `.github/vv-rows.json`, each from its own clean checkout: `examples`, which verifies every example but UOR Atlas and the bootstrap project; `honesty`, which runs `fmt-check model spec-links bdd` before any expensive root; `rest`, the other recipes in the order of `vv`; and one `bdd-<part>` row for each named part of the `bdd` plan below, which runs `bdd` alone. Each leg runs `just` with its recipes, which stops at the first that fails, as `vv` does. The part of `examples` a job runs is named by its matrix row through `LEXLEAN_EXAMPLES_PART` and by nothing else: `without:uor-atlas,bootstrap` on the leg, `shard:uor-atlas:<shard>` and `join:uor-atlas` on the Atlas jobs below; unset or empty, which is what `just vv` runs, the recipe verifies every example whole. After honesty succeeds, the remaining rows run as one matrix and the supported-host matrix, Intel construction, the bootstrap export and Atlas prefix may start; a failed or skipped honesty part starts none of these expensive roots. Together the legs, the bootstrap export and the Atlas jobs run every recipe of `vv`, every example, and every test of `bdd` exactly once, and the run passes only when every job passes, so it proves what one run of `just vv` proves; no recipe depends on another having run, and every recipe owns the files it builds. Its wall time is the longest path through the jobs rather than the sum. `just vv` remains the acceptance recipe of §9.2 for every other run, and release acceptance requires the complete same-tree run.
 
 UOR Atlas is verified as the parts of one run. `.github/verify-shards.json` partitions its verification into shards, each naming the shards it needs, the modules it elaborates, and the modules it replays and audits, one of them named `join`; `cargo xtask ci-shards` checks, as the verifier would when a part ran, that every module is elaborated by exactly one shard and replayed by exactly one, that every import of a module a shard elaborates or replays is elaborated by that shard or by one it needs, directly or through another, and that `join` needs every other shard. Each shard is a job of its own clean checkout that runs the verifier's prelude whole (certificate generation, the preflights, staging, the generated-source audit, the probe), then elaborates, replays, and audits only the modules of its plan, reading the `.olean` files of the modules it imports from the output the jobs of the shards it needs uploaded in the same run, and uploads its own `.olean` files and process records as its output. The join runs the modules of its plan, reads every shard's records, requires each to name the executable the join itself hashed for the tool that produced it (`lean` for an elaboration or an audit member, `leanchecker` for a replay), requires every shard's output to name the join's own toolchain addresses (§22.11), judges each as the stage that produced it judges its own, and continues through policy, the attestation over every record in the canonical order of §22.11, publication, and the comparison of every normalized record with `expected/verify` (§29.5): what it publishes is what the whole verification publishes, record for record and attestation identity included (`VR-23`). A module without a record from any part, a record of a process no module owns, a record whose `executable_sha256` is not the join's digest of its tool (`LLI9001`, naming the record and both digests), a shard whose output names no toolchain addresses or another address of any tool (`LLI9001`, naming the part, the tool, and both addresses), or a shard whose plan leaves a module without the `.olean` it imports fails the run. Every process of the verification runs exactly once per run. The executable the Atlas jobs run is the one the `prefix` job built from its clean checkout, carried to the other jobs of the run as an artifact beside the shards' output; it, the output, and the records cross no run, and a job reads the artifacts of its own run only. The Atlas jobs run after the jobs of the shards they need, at the profile of the `examples` leg, and only in a run that is the whole gate.
 
@@ -705,15 +709,15 @@ The `bdd` recipe runs as the parts of one run as well. `.github/bdd-parts.json` 
 
 Every normative gate job runs on the standard GitHub-hosted runner, `ubuntu-24.04`; no larger runner is part of the gate. The supported-host execution jobs run on their named hosts (§8.3); the Intel and Windows aggregates run on `ubuntu-24.04` and execute no host test. The verification resource profile (§22.11) of a job is named by its matrix row, or on an Atlas job by the job itself, and by nothing else, no repository or workflow variable and no input: the `examples` leg and every Atlas job verify at width 2, with the scheduling hints committed in `.github/verify-hints.json` (derived from a run's telemetry by `cargo xtask ci-hints`) and a memory budget of 12 GiB (12582912 KiB) for the summed expected peaks of the proof processes running at once; the other legs name no profile and run at the default. A profile is a schedule and never a verdict: every elaboration, replay, and audit member still runs on the pinned toolchain, the directory each project publishes is byte for byte the one of width 1 without hints or a budget (§22.11), and the leg and the join still require every example's normalized verification records to equal `expected/verify` (§29.5), so a profile that changed a byte would fail the gate rather than pass a different one. A stale hint reorders processes and never skips one. Local `just vv` verifies UOR Atlas whole at width 1 with no profile. The budget is below the runner's 16 GB, with the 4 GiB swap file of the job as overflow, so two processes run together only when their expected peaks fit, and a process whose expected peak alone passes the budget runs alone. The gate has no path filter, no cache of a build directory, object, verification tree, attestation, or proof result, and no condition that skips a recipe of `just vv` but the plan's, which decides only what a run is, as above; the artifacts the jobs of one run exchange are read by that run alone, and every job starts from a clean checkout with the exact pinned toolchains. Each proof or fan-out job writes its performance telemetry (§22.12) to `ci-evidence/` and uploads that directory as the artifact named after it, `acceptance-gate-evidence-<leg>` or `acceptance-gate-evidence-atlas-<shard>`: the gate log (`just --timestamp` stamps each recipe's first command on a leg, which is how a recipe is timed without changing it; an Atlas job's log is the recipe's own output), the host's memory and swap sampled every five seconds, the verifier's telemetry, and a summary of the wall time of each recipe and verification stage, the slowest modules and audit members, and the peak resident set and swap of the proof processes. The summary step also prints that summary to the job log and appends it to the step summary, and runs when the job failed, because an uploaded artifact cannot be read from the log; each table lists only its slowest rows and the part appended to the step summary is cut at 512 KiB, half of what GitHub accepts. The initial honesty job retains its recipe timing and summary in the same evidence format, without Lean processes or proof-resource samples. None of it is an input of any recipe, and a timing is never a claim about a semantic property.
 
-The bootstrap production export (§24.7) is made once per run. Every bootstrap case compares the packages of the bootstrap project's export with the committed packages, and a test process that needs the export exports the project, which verifies it whole; each part that ran a bootstrap case ran that verification. In a run that is the whole gate, the job `bootstrap-export` runs `cargo xtask export-bootstrap` from its clean checkout after honesty, at the profile of the `examples` leg, requires every exported package to equal the committed package, and uploads the bundle as the artifact `bootstrap-export` with a custody record (`lexlean/ci-bootstrap-export/2`) that names the repository, the run and its attempt, the commit and its tree, the SHA-256 of `rust-toolchain.toml`, `lean-toolchain` and `Cargo.lock`, what `rustc -vV` and `lean --version` report, the SHA-256 of the pinned toolchain's `lake`, `lean` and `leanchecker` executables and the address of the `rustc` that compiled the job's own binary (§22.11), the bundle's project-relative path, and the digest of its files. The legs do not wait for that job to start: each leg of such a run starts `.github/scripts/take-bootstrap-export.sh`, which asks nothing until a case of the leg needs the export, then downloads that artifact of its own run, or records that the export job ended without it, and the case fails with that reason. The harness names the directory it waits in through `LEXLEAN_BOOTSTRAP_EXPORT`; before any case reads the bundle it requires the record to name the leg's own repository, run, commit, tree, pins, toolchains and executable addresses, an attempt at most the leg's (a rerun of failed jobs keeps the export that passed, on the same commit), the digest of the files it received, and a path below the project, and it replays the bundle (§24.7). A record that differs in any of these fails the case. Unset or empty, as in `just vv` and in a run that is not the whole gate, each process that needs the export runs it itself. The export crosses no run, as the Atlas parts do not; `RP-14` checks the job, the legs' fetcher, and the record against planted changes.
+The bootstrap production export (§24.7) is made once per run. Every bootstrap case compares the packages of the bootstrap project's export with the committed packages, and a test process that needs the export exports the project, which verifies it whole; each part that ran a bootstrap case ran that verification. In a run that is the whole gate, the job `bootstrap-export` runs `cargo xtask export-bootstrap` from its clean checkout after honesty, at the profile of the `examples` leg, requires every exported package to equal the committed package, and uploads the bundle as the artifact `bootstrap-export` with a custody record (`lexlean/ci-bootstrap-export/2`) that names the repository, the run and its attempt, the commit and its tree, the SHA-256 of `rust-toolchain.toml`, `lean-toolchain` and `Cargo.lock`, what `rustc -vV` and `lean --version` report, the SHA-256 of the pinned toolchain's `lake`, `lean` and `leanchecker` executables and the address of the `rustc` that compiled the job's own binary (§22.11), the bundle's project-relative path, and the digest of its files. The legs do not wait for that job to start: each leg of such a run starts `.github/scripts/take-bootstrap-export.sh`, which asks nothing until a case of the leg needs the export, then downloads that artifact of its own run, or records that the export job ended without it, and the case fails with that reason. The harness names the directory it waits in through `LEXLEAN_BOOTSTRAP_EXPORT`; before any case reads the bundle it requires the record to name the leg's own repository, run, commit, tree, pins, toolchains and executable addresses, an attempt at most the leg's (a rerun of failed jobs keeps the export that passed, on the same commit), the digest of the files it received, and a path below the project, and it replays the bundle (§24.7). A record that differs in any of these fails the case. Unset or empty, as in `just vv` and in a run that is not the whole gate, each process that needs the export runs it itself. The export crosses no run, as the Atlas parts do not; `RP-14` checks the job, the legs' fetcher, and the record against planted changes. The export verifies the bootstrap project whole through the same `verify`, over the same selection and at the same profile, that the `examples` recipe runs, so the job is also the bootstrap project's part of that recipe and the `examples` leg does not verify it a second time: before exporting, `export-bootstrap` formats, locks, checks and builds a clean copy of the project as the recipe does (`fmt --check`, `lock --check`, `check`, `build`), and after it requires the export's verified directory to hold no performance telemetry (§22.12) and its normalized verification records to equal `bootstrap/expected/verify` (§29.5), printing the recipe's lines, which the job asserts.
 
-The Intel host factory is separate from the normative BDD and Atlas partitions above: it transfers only the same-run host test construction and dependency data of §8.3. Construction requires successful honesty; consumers require construction; the aggregate requires all of them and cannot skip an incomplete result. The factory's behavioral tests run in the initial honesty job, before the expensive roots, and exercise inventory completeness, custody and fail-closed result joins without needing an Intel runner. These tests do not substitute for execution of the complete workload on Intel macOS.
+The Intel host factory is separate from the normative BDD and Atlas partitions above: it transfers only the same-run host test construction and dependency data of §8.3. Construction requires successful honesty and the plan's `intel`; consumers require construction; the aggregate requires all of them and cannot skip an incomplete result. A run whose plan does not set `intel` skips all three, and its Intel context is skipped, never passed, so that run is not evidence of the Intel host for the plan or the release. The factory's behavioral tests run in the initial honesty job, before the expensive roots, and exercise inventory completeness, custody and fail-closed result joins without needing an Intel runner. These tests do not substitute for execution of the complete workload on Intel macOS.
 
 `ci.yml` MUST expose the initial `honesty` job (retaining the previous check context) separately so claim drift is distinguishable from code failure. It runs the existing format, model and specification-link recipes and the complete BDD meta-gate target, without Lean. Before them it runs `cargo xtask check-freshness`, also without Lean: every input a committed build oracle (`expected/build/manifest.json`) records still has its recorded digest and length, every such project's lock passes `lexlean lock --check`, every oracle and every committed package under `tests/production-export/` names this compiler's semantics, and every such package names its project's committed semantic ID. A tree committed without regenerating what its change moves fails there in minutes, before the expensive roots; the check adds a precondition and replaces no check of the gate, which still compares every generated byte. The remaining rows, supported hosts, the bootstrap export and Atlas prefix MUST require its success; these recipes and meta tests run once in the normative gate. Both the plan's previous-run evidence and release evidence MUST require the honesty row, including its successful conclusion; missing, failed or skipped honesty never establishes full acceptance. The separate `honesty.yml` workflow is subsumed by this same-run job.
 
 `reproducibility.yml` MUST perform two builds in distinct absolute directories and compare every platform-independent artifact byte-for-byte after path normalization.
 
-`regenerate.yml` is not part of the gate: it runs the write recipes of §9.2 on runners, so that a change which moves committed output is regenerated from a clean checkout rather than on a workstation. A push to a branch under `regenerate/`, or a `workflow_dispatch` on a ref, starts three jobs at once, each from its own clean checkout of that commit: `production-export-write`; `verify-write` over every example but UOR Atlas, or over every example when the branch is under `regenerate/atlas/` or the `atlas` input is set; and `golden-write fixtures-write calculus-write model-write`. They verify with the profile of the `examples` leg, which changes no byte of what is written (§22.11). Each returns what its recipes wrote as a binary patch, and the job `combine` applies the patches in turn to a clean checkout of the same commit, failing when two write one path. The job `finish` then applies that tree and writes what follows from it: the counts the bootstrap count cases assert, by `cargo xtask counts --write` over runs of the parts of `.github/bdd-parts.json` that hold a `crate::counts!` check under `LEXLEAN_COUNTS=fast`; the model documents, by `validate-model --write`; and the row of `tests/stack-bounds.json` of each recursive package of the bootstrap and stdlib exports that has none (`PD-08`), measured by a whole run under `LEXLEAN_MEASURE_STACK=all` of the case whose source names the package's root, which also checks the counts just written, while a row of a package no longer exported is dropped. It returns the result as one patch with the list of its paths, the counts the writer reported, and the commit it applies to. Its writers read the repository and write nothing to it (`contents: read`, no persisted credentials). The job `deliver` then commits the patch on the commit it was made from and pushes that commit, as a fast-forward, to the branch the commit heads: the head branch of the one open pull request of this repository whose head is the commit, or the branch a caller (`cut.yml`) names; a branch pushed again in the meantime rejects the push and is left alone. It dispatches `ci.yml` on that branch and deletes the `regenerate/` branch that started the run when that branch still names the commit. With no such pull request it pushes nothing and the patch stays the run's artifact. The delivered commit is reviewed in its pull request like any other written output (§28.3), and the gate then verifies the tree that carries it.
+`regenerate.yml` is not part of the gate: it runs the write recipes of §9.2 on runners, so that a change which moves committed output is regenerated from a clean checkout rather than on a workstation. A push to a branch under `regenerate/`, or a `workflow_dispatch` on a ref, starts three jobs at once, each from its own clean checkout of that commit: `production-export-write`; `verify-write` over every example but UOR Atlas, or over every example when the branch is under `regenerate/atlas/` or the `atlas` input is set; and `golden-write fixtures-write calculus-write model-write`. They verify with the profile of the `examples` leg, which changes no byte of what is written (§22.11). Each returns what its recipes wrote as a binary patch, and the job `combine` applies the patches in turn to a clean checkout of the same commit, failing when two write one path. The job `finish` then applies that tree and writes what follows from it: the counts the bootstrap count cases assert, by `cargo xtask counts --write` over runs of the parts of `.github/bdd-parts.json` that hold a `crate::counts!` check under `LEXLEAN_COUNTS=fast`; the model documents, by `validate-model --write`; and the row of `tests/stack-bounds.json` of each recursive package of the bootstrap and stdlib exports that has none (`PD-08`), measured by a whole run under `LEXLEAN_MEASURE_STACK=all` of the case whose source names the package's root, which also checks the counts just written, while a row of a package no longer exported is dropped. It returns the result as one patch with the list of its paths, the counts the writer reported, and the commit it applies to. Its writers read the repository and write nothing to it (`contents: read`, no persisted credentials). The job `deliver` then commits the patch on the commit it was made from and pushes that commit, as a fast-forward, to the branch the commit heads: the head branch of the one open pull request of this repository whose head is the commit, or the branch a caller (`cut.yml`) names; a branch pushed again in the meantime rejects the push and is left alone. It dispatches `ci.yml` on that branch and deletes the `regenerate/` branch that started the run when that branch still names the commit. When the patch is empty and a caller named the branch, it dispatches `ci.yml` there all the same. With no such pull request it pushes nothing and the patch stays the run's artifact. The delivered commit is reviewed in its pull request like any other written output (§28.3), and the gate then verifies the tree that carries it.
 
 ---
 
@@ -746,7 +750,7 @@ entrypoints = ["src/Main.lex.tex"]
 build_root = ".lexlean"
 lockfile = "lexlean.lock"
 lean_workspace = "."
-lean_toolchain = "leanprover/lean4:v4.32.1"
+lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[lexicon_source]]
 package = "lexlean.std.nat"
@@ -917,7 +921,7 @@ spec = "lexlean/lock/1"
 language = "1.0"
 compiler_semantics = "64-lowercase-hex-digits"
 project_config_sha256 = "64-lowercase-hex-digits"
-lean_toolchain = "leanprover/lean4:v4.32.1"
+lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[workspace_file]]
 path = "lean-toolchain"
@@ -2739,7 +2743,7 @@ constructors of two members can share a name (`nil` of `List Json` and of
 `List (String * Json)`), which `induction … with` refuses. LexLean synthesizes no induction
 principle: it names the one Lean generated, as §16.9 says for `induction`, and the proof
 carries no tactic, option, or lemma. It adds no axiom of its own: the theorem's policy states
-the exact set the pinned Lean observes, which for the example's theorem under Lean 4.32.1 is
+the exact set the pinned Lean observes, which for the example's theorem under Lean 4.32.2 is
 `propext` and `Quot.sound`. The linker refuses, as `LLT4001`, a use in language
 1.1; a scrutinee that is not a theorem parameter whose type is a document inductive that
 holds itself under a container and lies in no mutual group (a type with no nested field is
@@ -3087,7 +3091,7 @@ Termination evidence is semantic data, never tactic or backend text; no
    so `Rose Item | node : Item -> List (Rose Item)` at `Rose (Rose Nat)` has
    the two members `Rose (Rose Nat)` and `List (Rose (Rose Nat))`, as
    `Rose.rec` has two motives at any instantiation. These are the motives of the recursor the
-   pinned Lean 4.32.1 generates for the group (`#check @T.rec`), in its
+   pinned Lean 4.32.2 generates for the group (`#check @T.rec`), in its
    order: for `Json` with `array (List Json)` and `object (List (String *
    Json))`, `Json`, `List Json`, `List (String * Json)`, and `String *
    Json`, so a group may decrease on any of the four, and a list of pairs
@@ -5555,14 +5559,19 @@ because they bound what verification can be given. Checking a project holds
 memory that grows linearly with the number of its functions when they are
 independent (1500, 3000, 7000, and 14000 trivial functions take 56, 101, 223,
 and 435 MB), before any limit of this section or of `max_ir_nodes` is reached;
-a chain of calls is the case above. And a semantic module is JSON read with the
-reader's recursion limit of 128 levels: a term nested deeper than that (a chain
-of 130 nested `let`s) is `LLT4001` for excessive JSON nesting, whatever
-`max_scope_depth` says; a chain of 100 is read.
-The `LLT4001` nesting diagnostic names the unchanged 128-level bound and
-recommends splitting long lists into smaller definitions joined by `prim append`.
-It locates the semantic-module body, not the nested term; it does not report
-coordinates in generated JSON as positions in the authored source.
+a chain of calls is the case above. And a semantic module nests as deeply as
+the project's `max_scope_depth` allows, as the compile thread's stack hosts it
+(§25.5), in its notation and in the JSON the notation reads to; a list of n
+elements nests about n levels, and a chain of n nested `let`s about n. Notation
+nested deeper is `LLP2001`, and JSON nested deeper is `LLT4001`, each naming
+`max_scope_depth`; the JSON diagnostic also recommends splitting long lists
+into smaller definitions joined by `prim append`. Both locate the
+semantic-module body, not the nested term; neither reports coordinates in
+generated JSON as positions in the authored source. Every later reading of
+what the linker admitted (the rendering of a build, declaration IDs, the
+semantic snapshot and its canonical bytes) reads it to the same depth, on a
+stack sized for it, never on its caller's: a list of 1000 elements checks,
+builds, verifies, and has a snapshot (`SM-12`).
 
 **Proof.** The proof follows the source term construct by construct through
 the library's compatibility lemmas. A recursive definition's relation is
@@ -6981,7 +6990,10 @@ carry. Nothing of the oracle is therefore vendored; it is *acquired*. The
 pin's `rust_toolchain` and `lean_toolchain` are LexLean's own, and must equal
 the channel of `rust-toolchain.toml` and the content of `lean-toolchain`; so
 must the `lean/lean-toolchain` of the oracle's own files, which the digest
-covers. A bump of either toolchain that leaves the pin behind makes the oracle
+covers, unless the pin's optional `source_lean_toolchain` names exactly the
+release that file names, which must be an earlier patch release of the same
+Lean version as `lean_toolchain` (a pin naming any other value is malformed);
+the oracle is then built with `lean_toolchain` all the same. A bump of either toolchain that leaves the pin behind makes the oracle
 *unavailable* with a message that names both values (a toolchain drift, to be
 repaired by repinning below), not a build that fails somewhere else.
 
@@ -7488,8 +7500,13 @@ with that member left out. Members are written in the order `name`,
 `type_parameters`, `parameters`, `type`, `result`, `statement`, `fields`,
 `constructors`, `arguments`, `body`, `proof`, `axioms`, then the others in
 key order, and are read in any order; a member written twice, an integer
-beyond 64 bits, a value nested deeper than 256 levels, and a word that is not
-a name where a string is expected are errors. Because the generic notation
+beyond 64 bits, a value nested deeper than its reader reads, and a word that
+is not a name where a string is expected are errors. A project's semantic
+module is read to its `max_scope_depth` (§17.17, the limits of the front end);
+the authoring library (§24.8) reads a semantic module to 1024 levels, the
+`max_scope_depth` a project is created with, on a stack sized for them; any
+other text read with no project, to 256 levels.
+Because the generic notation
 covers every value, no value of any schema is unspellable, and a variant added
 to a schema has a notation the day it is added.
 
@@ -9813,7 +9830,7 @@ entry_schema = "lexlean/entry/1"
 lean_backend = "3"
 latex_backend = "2"
 proof_lowering = "1"
-axiom_parser = "lean-4.32.1/2"
+axiom_parser = "lean-4.32.2/2"
 canonical_json = "1"
 ```
 
@@ -9916,7 +9933,7 @@ SHA256(
   "lexlean-semantic-v1\0"
   || frame("compiler-semantics", compiler_semantics_digest_bytes)
   || frame("language", "1.0")
-  || frame("toolchain", "leanprover/lean4:v4.32.1")
+  || frame("toolchain", "leanprover/lean4:v4.32.2")
   || frame("linked-ir", canonical_linked_ir_json)
   || frame("lexicon-closure", canonical_linked_lexicon_json)
 )
@@ -9979,7 +9996,7 @@ and its distinction from the verification evidence of §22.
   "source_id": "...",
   "semantic_id": "...",
   "build_id": "...",
-  "lean_toolchain": "leanprover/lean4:v4.32.1",
+  "lean_toolchain": "leanprover/lean4:v4.32.2",
   "selection": [],
   "modules": [],
   "inputs": [],
@@ -10060,7 +10077,7 @@ group_digest(G) = SHA256(
   "lexlean-declaration-group-v1 "
   || frame("compiler-semantics", compiler_semantics_digest_bytes)
   || frame("language", "1.2")
-  || frame("toolchain", "leanprover/lean4:v4.32.1")
+  || frame("toolchain", "leanprover/lean4:v4.32.2")
   || for each member of G in (module, name) order:
        frame("declaration", canonical_declaration_json)
   || for each reference from a member of G to a declaration outside G,
@@ -10085,7 +10102,7 @@ statement_id(T) = SHA256(
   "lexlean-statement-v1 "
   || frame("compiler-semantics", compiler_semantics_digest_bytes)
   || frame("language", "1.2")
-  || frame("toolchain", "leanprover/lean4:v4.32.1")
+  || frame("toolchain", "leanprover/lean4:v4.32.2")
   || frame("statement", canonical_declaration_json_without_proof)
   || for each reference of that JSON, other than T itself, in (module, name)
      order, framed as for a group
@@ -10182,7 +10199,7 @@ This replay checks the newly loaded environment through Lean's kernel and is int
 
 ### 22.5 Axiom output
 
-With Lean 4.32.1, the accepted normalized payloads for one declaration are exactly:
+With Lean 4.32.2, the accepted normalized payloads for one declaration are exactly:
 
 ```text
 '<name>' does not depend on any axioms
@@ -10327,7 +10344,7 @@ There is no timestamp in the hashed attestation. Digital signing is outside lang
 
 A LexLean-authored compiler consumes verified generated Lean only through
 Lean's own compiler front end, at one explicit authority boundary. Lean's
-behavior there is an external authority (`LEAN-LCNF-4-32-1`), cited and pinned,
+behavior there is an external authority (`LEAN-LCNF-4-32-2`), cited and pinned,
 never a LexLean-proved fact.
 
 **Authority interface.** The adapter is a *tooling module* (§17.20): the one
@@ -10336,8 +10353,8 @@ the closed interface of every constant the adapter's own definitions use. Each
 is exactly one row, in one class:
 
 - a *call* (a definition of Lean's `Lean` namespace other than a projection,
-  recursor, instance, or matcher) names its exact signature at Lean 4.32.1
-  (`f054605aea4b840552cca2e725580bffd1e1b704`), the defining source file at
+  recursor, instance, or matcher) names its exact signature at Lean 4.32.2
+  (`f3b06c705e6c85f5314019d5d3baab0fec5b580c`), the defining source file at
   that revision with its SHA-256, and its role;
 - a *type* names its complete constructor list in Lean's order with every
   field typed, or is *opaque* when no definition of the adapter matches,
@@ -11256,10 +11273,10 @@ The initial repository has no `open` implementation claim. An open research or p
 
 | Authority ID | Subject |
 |---|---|
-| `LEAN-REL-4-32-1` | Lean 4.32.1 release/tag and source commit |
-| `LAKE-4-32-1` | Lake distributed with Lean 4.32.1 |
-| `LEANCHECKER-4-32-1` | `leanchecker` replay behavior and its stated non-independent status |
-| `PRINT-AXIOMS-4-32-1` | Lean 4.32.1 `#print axioms` output behavior |
+| `LEAN-REL-4-32-2` | Lean 4.32.2 release/tag and source commit |
+| `LAKE-4-32-2` | Lake distributed with Lean 4.32.2 |
+| `LEANCHECKER-4-32-2` | `leanchecker` replay behavior and its stated non-independent status |
+| `PRINT-AXIOMS-4-32-2` | Lean 4.32.2 `#print axioms` output behavior |
 
 Corresponding ledger claims are `some-true`. LexLean tests realize compatibility with those authorities but do not re-register Lean's guarantees as LexLean proofs.
 
@@ -11663,7 +11680,7 @@ entrypoints = ["src/Main.lex.tex"]
 build_root = ".lexlean"
 lockfile = "lexlean.lock"
 lean_workspace = "."
-lean_toolchain = "leanprover/lean4:v4.32.1"
+lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[lexicon_source]]
 package = "lexlean.std.nat"
@@ -11686,7 +11703,7 @@ child_timeout_ms = 300000
 `examples/nat-add-zero/lean-toolchain`:
 
 ```text
-leanprover/lean4:v4.32.1
+leanprover/lean4:v4.32.2
 ```
 
 `examples/nat-add-zero/lakefile.toml`:
@@ -11843,7 +11860,7 @@ Release binaries MUST report:
 lexlean 1.0.0
 language 1.0
 compiler-semantics <digest>
-lean-toolchain leanprover/lean4:v4.32.1
+lean-toolchain leanprover/lean4:v4.32.2
 ```
 
 A build without the `production-data` feature (§8.4) is never a release binary. It reports these four lines followed by `variant check-only`.
@@ -11921,7 +11938,7 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `CF-11` | `configuration-lock` | Check, build, format, and verify resolve only locked locally available dependencies. | §11.4 |
 | `CF-12` | `configuration-lock` | Network package acquisition occurs only through lock --allow-network and only for an exact configured commit. | §11.4, §25.3 |
 | `CF-13` | `configuration-lock` | The Lake workspace contains exactly one supported Lake configuration and the recorded workspace files match. | §10.4 |
-| `CF-14` | `configuration-lock` | Language 1.0 accepts only leanprover/lean4:v4.32.1 for verification. | §8.2, §10.1 |
+| `CF-14` | `configuration-lock` | Language 1.0 accepts only leanprover/lean4:v4.32.2 for verification. | §8.2, §10.1 |
 | `CF-15` | `configuration-lock` | Duplicate logical modules and case-folded path or module collisions are rejected. | §23.3 |
 | `CF-16` | `configuration-lock` | Language 1.1 has a parallel exact builtin closure and rejects a language-1.0 lock or package without altering language-1.0 identities. | §10.1 |
 | `CF-17` | `configuration-lock` | Language 1.2 declaration support accepts language 1.2 and rejects unsupported or malformed language versions. | §10.1 |
@@ -11985,14 +12002,14 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `SM-09` | `semantic-ir` | Linked IR has stable schema-tagged canonical JSON with alpha-safe binder serialization. | §17.9 |
 | `SM-10` | `semantic-ir` | Source ID and semantic ID use exactly the specified framed hash inputs. | §21.3, §21.4 |
 | `SM-11` | `semantic-ir` | Linked project result sets contain every selected module and imported module exactly once in stable order. | §17.5, §23.3 |
-| `SM-12` | `semantic-ir` | No semantic IR node can contain opaque prose, raw backend text, or an unknown extension. Semantic modules retain the 128-level JSON nesting limit and an over-deep list is refused with LLT4001 naming smaller definitions joined by prim append as the remedy. | §6 I4, §17 |
+| `SM-12` | `semantic-ir` | No semantic IR node can contain opaque prose, raw backend text, or an unknown extension. A semantic module nests as deeply as the project's max_scope_depth allows, in its notation and in its data: a list of 1000 elements checks and builds, and its snapshot is written, and the authoring API reads and writes it, on a caller's default stack without a panic, while a list nested past the bound is refused, with LLP2001 in the notation and LLT4001 in the data, naming max_scope_depth. | §6 I4, §17 |
 | `SM-13` | `semantic-ir` | Inherited section parameters are represented explicitly and emitted only on declarations that use them. | §17.5, §18.3 |
 | `SM-14` | `semantic-ir` | A numeral without a unique expected type is rejected rather than defaulted. | §15.5 |
 | `SM-15` | `semantic-ir` | A native core module is closed typed DAG data shared by both backends, carries explicit declaration policies, and accepts no backend source text. | §17.10 |
 | `SM-16` | `semantic-ir` | The language-1.1 semantic snapshot contains every closed declaration, term, recursion, match, instance, proof variant, and exact theorem axiom policy without paths or backend text. | §17.11 |
 | `SM-17` | `semantic-ir` | Language 1.1 has distinct mathematical Int, fixed-width signed and unsigned integer, UTF-8 string, byte-sequence, Option, and Result semantic types with canonical literals. | §17.11 |
 | `SM-18` | `semantic-ir` | Portable arithmetic, conversion, bitwise, bounded-shift, collection, UTF-8, byte-order, split/join, and decimal operations form one closed typed primitive vocabulary. | §17.11 |
-| `SM-19` | `semantic-ir` | Portable semantic operations generate deterministic Lean 4.32.1 definitions that elaborate and replay with exact declared computational axiom policies. | §17.11, §18, §22.6 |
+| `SM-19` | `semantic-ir` | Portable semantic operations generate deterministic Lean 4.32.2 definitions that elaborate and replay with exact declared computational axiom policies. | §17.11, §18, §22.6 |
 | `SM-20` | `semantic-ir` | Noncanonical, out-of-range, invalid-byte, ill-typed, and unbounded fixed-width values fail before either backend runs. | §17.11 |
 | `SM-21` | `semantic-ir` | Structural recursion admits byte/list values and closed Option and Result inductives while preserving termination and exhaustiveness checks. | §17.11 |
 | `SM-22` | `semantic-ir` | The public owned snapshot DTO and schemas cover every portable type, literal, primitive, and explicit definition axiom policy without backend text. | §17.11, §21 |
@@ -12010,7 +12027,7 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `SM-34` | `semantic-ir` | A version 2 core-module row may be derived, stating its name, kind, and extension state, and for a sparse casesOn its recipe, and no universe parameters, type, or value: the decoder makes the constant with the pinned Lean's own construction at the row's place in the order, and refuses the module when the name is not one the pinned Lean reserves and the row states no sparse casesOn recipe, when the construction does not make the name, or when the constant it makes is not a theorem, definition, or abbreviation as the row says; the notation writes a derived row without a type, the schema and the linker refuse a derived row that states what the construction decides, a stored row is still checked against the construction, the decoder checks that the constructors a recipe names are constructors of the type and are named once, that the module states every sparse casesOn its construction makes, and that every derived sparse casesOn is referred to by the type or value of a row, and the content of a derived row is checked by its uses alone, so that a recipe naming other valid constructors of the type is not distinguished where the use accepts it; and the shipped preservation library states every row that carries a sparse casesOn record or is named like an equation, an unfolding equation, a splitter, or an else equation as a derived row. | §17.10 |
 | `SM-35` | `semantic-ir` | A language-1.2 theorem may be proved by `term_cases`, a split on the value of a document term: the proof names a term and a nonempty, strictly sorted, duplicate-free list of prior document definitions, the term's type is an inductive type of the document, and the backend lowers the proof to a split of the goal on every constructor of that type with the hypothesis that equates the term to the constructor, then `simp only` over the named definitions, that hypothesis, and the reduction of a conditional on a decided condition, with closed propositions decided, which uses exactly the axioms the theorem's policy states; the schema, the linker, the notation, the Lean backend, the canonical LaTeX, and the formatter accept it, and a use in language 1.1, a term whose type is not an inductive type of the document, an empty list, an unsorted or repeated name, a name that is not a prior definition, and a theorem parameter that takes the hypothesis's name are each refused. | §17.10 |
 | `SM-36` | `semantic-ir` | A language-1.2 `cases` proof may split a local of type `Bool` into its two constructors: the proof names the local and gives a branch for `false` and one for `true`, each with no binders, the backend lowers it to `cases` on the local with those two alternatives, the theorem verifies with exactly the axioms its policy states, and the schema, the linker, the notation, the formatter, and the canonical LaTeX accept it; a use in language 1.1, a missing branch, a repeated branch, a branch with a binder, and an `induction` on a Boolean are each refused. | §17.10 |
-| `SM-37` | `semantic-ir` | A language-1.2 theorem may be proved by `nested_induction`, an induction over a nested inductive type of the document, one that holds a member of itself under `List`, `Option`, `Result`, or a product and is in no mutual group: the proof names a parameter of the theorem, states one proposition for each auxiliary member of the type's recursive family in the order the pinned Lean's recursor takes them, and gives a branch for every constructor of the type and of each auxiliary member, each binding the constructor's fields followed by one hypothesis for each field that is a member of the family, in field order; the backend lowers it to `induction` over the recursor the pinned Lean generates for the type, with the propositions as its auxiliary motives and the goals taken in the order of its minor premises, so that a theorem over every value of a type with a constructor that holds a `List` of the type verifies under the pinned Lean 4.32.1 with exactly the axioms `propext` and `Quot.sound`, the set its build observes; the schema, the linker, the notation, the formatter, and the canonical LaTeX accept it, and a use in language 1.1, a local whose type is not a nested inductive of the document or lies in a mutual group, an auxiliary member that is missing, repeated, or out of order, a missing or repeated branch, a branch with the wrong number of binders, a proposition that is not well typed, and an `induction` proof on a nested type are each refused as LLT4001. | §16.9, §17.10, §17.12 |
+| `SM-37` | `semantic-ir` | A language-1.2 theorem may be proved by `nested_induction`, an induction over a nested inductive type of the document, one that holds a member of itself under `List`, `Option`, `Result`, or a product and is in no mutual group: the proof names a parameter of the theorem, states one proposition for each auxiliary member of the type's recursive family in the order the pinned Lean's recursor takes them, and gives a branch for every constructor of the type and of each auxiliary member, each binding the constructor's fields followed by one hypothesis for each field that is a member of the family, in field order; the backend lowers it to `induction` over the recursor the pinned Lean generates for the type, with the propositions as its auxiliary motives and the goals taken in the order of its minor premises, so that a theorem over every value of a type with a constructor that holds a `List` of the type verifies under the pinned Lean 4.32.2 with exactly the axioms `propext` and `Quot.sound`, the set its build observes; the schema, the linker, the notation, the formatter, and the canonical LaTeX accept it, and a use in language 1.1, a local whose type is not a nested inductive of the document or lies in a mutual group, an auxiliary member that is missing, repeated, or out of order, a missing or repeated branch, a branch with the wrong number of binders, a proposition that is not well typed, and an `induction` proof on a nested type are each refused as LLT4001. | §16.9, §17.10, §17.12 |
 | `SM-38` | `semantic-ir` | A language-1.2 build publishes, for every semantic module, a declaration ID for each declaration and a statement ID for each theorem: the declaration ID is a framed SHA-256 of the declaration's canonical JSON and of the declaration IDs of the project declarations it references, with declarations that reference one another hashed as one group, and the statement ID omits the theorem's proof; changing one literal of one definition changes the declaration IDs of exactly that definition and of the declarations that reach it by reference, changing a theorem's proof alone leaves its statement ID unchanged, adding or reordering independent declarations changes no ID, the IDs equal their recomputation from the specified framed inputs, the file validates against `api/schemas/declarations.schema.json`, and a language-1.0 or 1.1 build publishes none. | §21.9 |
 | `DF-01` | `declarations` | A valid type-definition sentence emits one nonrecursive sort-valued Lean def linked to its document entry. | §15.7, §18.6 |
 | `DF-02` | `declarations` | A valid term-definition sentence emits one nonrecursive explicitly typed Lean def. | §15.7, §18.6 |
@@ -12140,6 +12157,7 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `CL-22` | `cli-api` | A host that embeds the library ends every child process group the library started and has not seen exit through the public function `lexlean::verify::end_live_children`, which installs no signal handler, alters no signal disposition, never signals the host's own process or group, reports each group as ended, already gone, or failing with the OS error, and refuses a later child start with LLV7018 until the host re-enables it, and the `lexlean` executable ends its interrupted children through the same function. | §17.17, §24.6 |
 | `CL-23` | `cli-api` | lexlean production targets prints the canonical target-descriptor document in either output mode, production build --request publishes the bundle its request names and reports the bundle and the project's source, semantic, build, and attestation IDs in its command result, production verify-artifact replays a bundle with no project, and each maps a malformed request, a refused request, and a rejected replay to the exact exit code of its registered class. | §24.7 |
 | `CL-24` | `cli-api` | lexlean migrate --to 1.2 migrates a language-1.1 data-form project to language 1.2 in one command: it rewrites every module to the authoring notation through lexlean::sdk::to_notation with the same declarations, names, statements, and axiom policies, moves the builtin glossary references of every source and the imports of every path lexicon package to 1.2.0, rewrites the language row, and regenerates the lock as lexlean/lock/2, so the result checks, has a current lock, and is canonical; --check proves the migration and writes nothing; and a project that is not language 1.1 is refused with LLC0103 and a module that is not a language-1.1 data-form semantic module, a data form that is not canonical JSON included, with LLP2003, each leaving every file of the project unchanged. | §17.12, §23.4 |
+| `CL-25` | `cli-api` | The lexlean executable builds for wasm32-wasip1 with the pinned toolchain and, run by a WASI host, gives the native executable's exit code and JSON output for check on every single-step check fixture and every example; there a module with two names of one file is refused with LLC0104, nesting beyond the depth its linked stack hosts is refused with LLS8002, and a command that changes the project is refused with LLV7010 and leaves the project unchanged. | §8.3, §21.8, §25.1 |
 | `SE-01` | `security` | Source, package, workspace, resource, and output paths are confined and symlinks are rejected. | §25.1 |
 | `SE-02` | `security` | Special files, duplicate filesystem identities, and case-fold collisions are rejected before processing. | §25.1 |
 | `SE-03` | `security` | All child processes use direct executable and argv invocation with no shell. | §25.2 |
@@ -12399,7 +12417,7 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `LM-09` | `language-models` | No prompt is code: no member of the closed language maps `string` or `bytes` to a function, a term, or source — every operation of the primitive registry that takes a `string` or `bytes` operand is classified by the audit with a data result, the registry's schema enumeration and the production registry's primitive rows equal one another and equal that classified set, and the text declarations of `lexlean/semantic-module/2` state no `string`-typed member, so a prompt reaches a model only as the tokens `encodeText` makes of it; a planted operation or text member of that shape is caught by the audit with its name. | §17.12 |
 | `LM-13` | `language-models` | The text laws a tokenizer elaborates through are LexLean source and not authored text: the module that states them is one language-1.2 native core module of the embedded `language/text-1.2` project, the project holds no file of Lean source, no independently authored Lean file anywhere in the release tree declares the `LexLeanText` namespace or lies under its module root, and the one-time migration input is absent; the registry lists only that module, the declarations and their exact axiom policies are read from its native data, which the compiler embeds and hashes into the language-1.2 semantics, and a module that declares a text component imports the generated module rather than splicing any Lean text. | §17.10, §17.12 |
 
-**Total required capability IDs:** 507.
+**Total required capability IDs:** 508.
 
 No row may be downgraded to `some-true` or `open`. Upstream Lean facts are ledger/authority rows, not substitutions for these build behaviors.
 

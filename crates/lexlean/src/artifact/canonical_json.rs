@@ -111,7 +111,9 @@ impl Json {
         Self::from_serde(&value)
     }
 
-    fn from_serde(value: &serde_json::Value) -> Result<Self, String> {
+    /// Convert an already structured value while retaining the canonical domain checks.
+    /// Raw byte inputs must use `parse` so duplicate keys are checked before decoding.
+    pub(crate) fn from_serde(value: &serde_json::Value) -> Result<Self, String> {
         match value {
             serde_json::Value::Null => Err("canonical JSON has no null".to_owned()),
             serde_json::Value::Bool(b) => Ok(Self::Bool(*b)),
@@ -156,6 +158,18 @@ fn write_escaped(text: &str, out: &mut String) {
         }
     }
     out.push('"');
+}
+
+/// `serde_json::from_str` without its 128-level limit on nesting, for text
+/// whose depth the caller has bounded and whose stack it has sized for it.
+pub(crate) fn from_str_unbounded<T: serde::de::DeserializeOwned>(
+    text: &str,
+) -> Result<T, serde_json::Error> {
+    let mut reader = serde_json::Deserializer::from_str(text);
+    reader.disable_recursion_limit();
+    let value = T::deserialize(&mut reader)?;
+    reader.end()?;
+    Ok(value)
 }
 
 /// A streaming duplicate-key check over raw JSON bytes: every object level

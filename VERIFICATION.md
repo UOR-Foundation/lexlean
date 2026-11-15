@@ -16,7 +16,7 @@ How this repository's claims are checked, which recipe enforces which rule, and 
 | `features` | `cargo check --workspace --all-features --all-targets` | every target compiles |
 | `bdd` | `cargo xtask bdd` | `cargo test -p repo-conformance --all-features`, or in CI the part of `.github/bdd-parts.json` that `LEXLEAN_BDD_PART` names (§9.4). R3, §27.7, §27.8: the sole owner of the complete `repo-conformance` suite — its library tests, the `bdd` meta-gate target (register ↔ scenario ↔ test bijection and its own falsifiability test), and the `conformance` target with every registered conformance test, which include the §28.2 fixture suite (`conformance_ex_07`) and the crate-packaging round trip (`conformance_rp_12`) |
 | `inventory` | `cargo xtask check-test-inventory` | RP-13: the tests listed by `test` and by `bdd` (`cargo test … -- --list`) are disjoint and their union is the list of `cargo test --workspace --all-features`: no test lost, none run twice; the lists of the parts of `.github/bdd-parts.json`, each with its harness filters, are disjoint and their union is `bdd`'s list |
-| `examples` | `cargo xtask verify-examples` | §28.6, EX-01: every example directory and the `compiler` project (§17.14, §17.15) format, lock, check, build, and verify with real Lean 4.32.1; when an example commits `expected/verify/`, its normalized verification records must equal it (§29.5) |
+| `examples` | `cargo xtask verify-examples` | §28.6, EX-01: every example directory and the `compiler` project (§17.14, §17.15) format, lock, check, build, and verify with real Lean 4.32.2; when an example commits `expected/verify/`, its normalized verification records must equal it (§29.5) |
 | `golden` | `cargo xtask check-golden` | R10, §28.3: the *published* build tree of a real `build` in a fresh directory equals the committed oracles byte for byte |
 | `repro` | `cargo xtask check-reproducibility` | AR-13, §28.4: two clean `build`s in distinct absolute directories publish byte-identical trees with no absolute path inside |
 | `deny` | `cargo deny --all-features check` | advisories, bans, licenses, sources |
@@ -33,13 +33,31 @@ Outside `vv`:
 ## What the claims mean
 
 - Every §31 conformance ID is level `build` (§27.3): constructed here and validated against its oracle by the test `conformance_<id>`. Evidence, not a proof.
-- Facts about Lean 4.32.1, Lake, `leanchecker`, and `#print axioms` output are `some-true` rows in `model/ledger.toml`: reproduced from the cited authority rows in `model/authorities.toml`, not established here.
+- Facts about Lean 4.32.2, Lake, `leanchecker`, and `#print axioms` output are `some-true` rows in `model/ledger.toml`: reproduced from the cited authority rows in `model/authorities.toml`, not established here.
 - `lexlean verify` is the only command that runs Lean; its attestation records toolchain hashes, per-process records, and per-declaration observed axiom sets, and its ID is recomputed by `conformance_vr_14`.
 - Lean-backed conformance cases detect the host at run time (`repo_conformance::support::lean_backed`): on Linux x86-64 the pinned toolchain is mandatory and a missing toolchain fails the case; on another supported host without the toolchain the case runs only its platform-independent assertions and prints that it did (§8.3). A verified fixture is reached only through `example_backed`, `corpus_backed`, `f1_backed`, or `verify_ok_backed`, so a case that forgets the gate fails on every non-normative host rather than claiming a verification it never ran. The generated Lean and LaTeX of those same fixtures are `build` products and are asserted byte for byte on every supported host.
 - The cases whose subject is an external program written as `#!/bin/sh` take the same shape through `posix_shell_backed`, and a unix-only half of any other case reports itself through `unix_only` rather than dropping its assertions in silence.
 - Two host properties are measured rather than inferred from the target triple, because they vary by filesystem and not by operating system: `case_sensitive_backed` writes two names differing only in case and reads back whether both survived (§23.3's collision cannot be built where they do not), and `non_utf8_names_backed` writes a name carrying a byte that is not valid UTF-8 (§8.3's environment diagnostic cannot be provoked where the filesystem refuses it). Each reports the host it declined on.
 
 ## Falsifiability records
+
+### semantic snapshot nesting can fail
+
+Before the correction for #430, the focused
+`artifact::snapshot::tests` library filter ran two cases: existing shallow
+snapshot bytes passed, while serializing a 160-level linked value panicked
+at `snapshot.rs` with `recursion limit exceeded`. The snapshot DTO had
+already been constructed; its redundant byte parse imposed serde_json's
+raw-reader nesting limit on that structured value.
+
+Snapshot serialization now converts its structured value directly into the
+canonical JSON domain. The checks excluding null and non-integer numbers
+remain shared with raw parsing; raw parsing still checks duplicate keys.
+The deep regression round-trips the complete snapshot and its content digest,
+and the shallow regression compares exact bytes with the previous recipe.
+All 221 LexLean library tests pass on release/v0.4 with ordinary test stacks.
+This is library evidence, not a complete `vv` or consuming-app attestation.
+
 
 Each gate below was made to fail by planting a defect, running the gate's command, recording the failure, and removing the defect. The observed lines are verbatim gate output (paths abbreviated to the repository root). `cargo xtask release-check` requires a `### <gate> can fail` record for every gate and audit named in `repo_model::release::GATES`.
 
@@ -939,6 +957,42 @@ Planted: `mentions_family_group` ignored the arguments again (the comparison
 ```text
 test ir::semantic::family_order_tests::a_group_instantiated_at_its_own_type_has_two_motives ... FAILED
 ```
+
+### check on WASI can trap, merge two names of a file, or differ (CL-25)
+
+`CL-25` holds `lexlean check` on `wasm32-wasip1` (§8.3). `conformance_cl_25`
+builds the executable for the target in the release profile, runs it under
+Node's `node:wasi` over the real file system, and compares it with
+`lexlean::cli::run`. It covers every single-step `check` fixture with no
+toolchain, overlay or environment of its own, and every example: 277 projects
+on the first run, each with the same exit code and byte-identical stdout and
+stderr. A hard-linked module is `LLC0104` on both builds. `fmt` on WASI exits 3
+with `LLV7010` and leaves the project as it was. With `max_scope_depth =
+100000000`, nesting 1,000 is identical on both, and nesting 1,040 is `LLS8002`
+(exit 4) on WASI, where the linked 80 MiB stack hosts 1,024. The case ran in
+435 s, the module build excluded, on a shared Linux x86-64 host.
+
+Planted defect: `build.rs` without the line that links the executable with
+`WASI_STACK_BYTES`, so it gets Rust's default 1 MiB stack. `cargo test -p
+repo-conformance --all-features --test conformance conformance_cl_25` still
+agreed on all 277 projects, then failed in 393 s at the depth vector:
+
+```text
+assertion `left == right` failed: CL-25: nesting 1000 on WASI
+  left: (1, "", "... RuntimeError: memory access out of bounds
+    at ...lexlean7grammar4mathNtB2_7MathAst5atoms ...
+```
+
+With the line restored, the case passes. Before the stack was linked, the
+same depth was measured directly: on WASI, nesting 512 checked and nesting 1,024
+trapped when the project allowed it, while natively both checked. This is the
+trap the depth vector exists to catch.
+
+Node 22 collects garbage inside its fast call of WASI `path_filestat_get`
+and dies with SIGSEGV on a language-1.2 project. The backtrace runs from
+`uvwasi_path_filestat_get` through `MallocImpl` to `Heap::CollectGarbage`. The
+case runs Node with `--no-turbo-fast-api-calls`, under which every project
+checks.
 
 ### a declaration ID can miss a reference or keep a proof (SM-38)
 
@@ -11973,6 +12027,14 @@ reruns with the regeneration. The case then stops at the stack-bound step, as
 each bootstrap member did before its regeneration, which produces the
 `bootstrap/print_at` and `bootstrap/print_semantic_module` packages. The branch
 is based on `release/v0.4` and stacks on nothing.
+
+On the `batch/bs35-52` merge with `release/v0.4` at `fa271080` (issue #532), a
+direct measurement (`lexlean verify` with `max_file_bytes` lowered to isolate
+the first oversized part, no Lean child reached) found `printAt`'s
+certificate B at 3,812,490 bytes and `printSemanticModule`'s at 3,874,213
+bytes, both past the case's default `CERTIFICATE_BUDGET` of 3,145,728; the
+case now configures `CERTIFICATE_BUDGET = 3,932,160` (62.49% of
+`max_file_bytes`, rounded up to a 64 KiB multiple).
 ### the reader of the semantic notation is source (BS-37)
 
 `BS-37` holds the production roots `LexLeanBoot.SemanticRead.parseAt`,
@@ -12013,6 +12075,15 @@ host's out-of-memory killer stopped a harness build for another job; it reruns
 with the regeneration. The case then stops at the stack-bound step, as each
 bootstrap member did before its regeneration. The branch is based on
 `release/v0.4` and stacks on nothing.
+
+On the `batch/bs35-52` merge with `release/v0.4` at `fa271080` (issue #532), a
+direct measurement (`lexlean verify` with `max_file_bytes` lowered to isolate
+each oversized part in turn, no Lean child reached) found `parseAt`'s
+certificate B at 5,160,254 bytes, `parseSemanticModule`'s at 5,178,538, and
+`semanticSpans`'s at 5,208,013, all past the case's default
+`CERTIFICATE_BUDGET` of 3,145,728; the case now configures
+`CERTIFICATE_BUDGET = 5,242,880` (83.35% of `max_file_bytes`, rounded up to
+a 64 KiB multiple).
 ### the canonical JSON of a core module is source (BS-38)
 
 `BS-38` holds the production root `LexLeanBoot.CoreJson.coreJson`
@@ -12080,6 +12151,14 @@ to write both lambdas inside one statement. The case then stops at the
 stack-bound step, `bootstrap/print_core_module is no package of the committed
 exports`, as each bootstrap member did before its regeneration. The branch is
 stacked on `BS-38`.
+
+On the `batch/bs35-52` merge with `release/v0.4` at `fa271080` (issue #532), a
+direct measurement (`lexlean verify` with `max_file_bytes` lowered to isolate
+the oversized part, no Lean child reached) found `printCoreModule`'s
+certificate B at 4,215,238 bytes, past the case's default
+`CERTIFICATE_BUDGET` of 3,145,728; the case now configures
+`CERTIFICATE_BUDGET = 4,259,840` (67.70% of `max_file_bytes`, rounded up to
+a 64 KiB multiple).
 ### the reader of the core notation is source (BS-40)
 
 `BS-40` holds the production root `LexLeanBoot.CoreRead.readCoreModule`
@@ -12129,6 +12208,15 @@ number, and a plant needed a reference to the node being written. The rendered p
 (520 s).
 The case then stops at the stack-bound step, as each bootstrap member did before
 its regeneration. The branch is stacked on `BS-39`.
+
+On the `batch/bs35-52` merge with `release/v0.4` at `fa271080` (issue #532), a
+direct measurement (`lexlean verify` with `max_file_bytes` lowered to isolate
+the oversized part, no Lean child reached) found `readCoreModule`'s
+certificate B at 6,006,217 bytes, past the case's default
+`CERTIFICATE_BUDGET` of 3,145,728; the case now configures
+`CERTIFICATE_BUDGET = 6,029,312` (95.83% of `max_file_bytes`, rounded up to
+a 64 KiB multiple) -- the tightest margin of the eight new roots, 262,144
+bytes under `max_file_bytes` itself.
 ### the grammar of a mathematical island is source (BS-42)
 
 `BS-42` holds the production root `LexLeanBoot.GrammarMath.parseMath`
@@ -13892,6 +13980,64 @@ The nesting diagnostic retains the existing `recursion limit exceeded` category,
 which the `SP-02` 130-level let-chain refusal also asserts. Only its generated
 JSON coordinates are replaced by the bound and workaround advice.
 
+## A semantic module nests to `max_scope_depth` (`SM-12`)
+
+This supersedes the record above: the 128-level limit is gone. A consumer
+application whose acceptance vectors are one closed list could not carry more
+than about 115 of them, and its design does not admit splitting the list.
+
+Before the change, on a Windows host with the debug compiler, a language-1.2
+project whose one definition is a list of n `Nat` cells: n = 100 and 120
+checked and their `build` overflowed the main thread's stack (the renderer ran
+on the caller's thread); n = 130 was `LLT4001` from the 128-level JSON reader;
+and past the snapshot's own bounded re-read (`SemanticSnapshot::to_json`) a
+snapshot panicked writing its bytes, which is where the consumer stopped at
+about 115. The notation had a fixed 256-level bound of its own behind that.
+
+The change bounds the notation and the JSON of a project's module by its
+`max_scope_depth` as the compile thread's stack hosts it, read on that thread;
+every later reading of what the linker admitted reads to the same depth on a
+stack sized for it: `render_build` on a thread of the compile stack's size,
+and the snapshot (`from_checked`, `to_json`, `canonical_bytes`) on one of the
+largest compile stack's size, so a caller on any stack gets its bytes. The
+re-reads of the linker's own data (document JSON, declaration IDs, definition
+digests, the snapshot's values) read without the 128-level limit. Readers with
+no project keep their bounds: `SemanticModule::parse` 127 levels, the
+authoring library's notation 256, tooling modules 128 (`LLT4013`).
+
+After it, with the same compiler: n = 130, 256, and 1000 check and build, and
+n = 1100 is `LLP2001` naming `max_scope_depth` 1024. `lexlean verify` with the
+pinned Lean 4.32.1 verified n = 256 (45 s) and n = 1000 (29 s), so the
+ceiling is the project's bound, not Lean's. `cargo xtask check-golden` passed
+for every project (no published artifact moved), and the diff touches no
+identity input (`language/`, `schemas/`, the embedded goldens).
+
+`conformance_sm_12` passes (4 s). It checks and builds the 1000-cell fixture,
+writes its snapshot on a 2 MiB thread and requires the snapshot ID to be the
+digest of the bytes and the bytes to nest past 1000 levels; refuses the
+1100-cell fixtures with `LLP2001`; and under `max_scope_depth = 150` checks 145
+cells and refuses 146 and 147 with `LLT4001` and 148 with `LLP2001`, so both
+bounds are the project's. Three planted defects, each restored:
+
+| Planted defect | `conformance_sm_12` |
+| --- | --- |
+| the linker reads the data with `parse` (127 levels) | fails: the 1000-cell list is refused |
+| `to_json` re-reads with the bounded `Json::parse` | fails: `recursion limit exceeded` panic in the snapshot |
+| `canonical_bytes` runs on its caller's stack | fails: `STATUS_STACK_OVERFLOW` on the 2 MiB thread |
+| the authoring API reads the notation to 256 levels | fails: the 1000-cell list is not read |
+| the authoring API runs on its caller's stack | fails: `STATUS_STACK_OVERFLOW` on the 2 MiB thread |
+
+The authoring API had the same limits on its caller's stack (notation 256,
+JSON 128), so `conformance_au_08`, which reads every committed module through
+it, failed on the 1000-cell fixture in the gate. It now reads a semantic
+module to 1024 levels on a stack of its own; `conformance_sm_12` reads,
+converts both ways, and writes the fixture on a 2 MiB thread and refuses the
+1100-cell one, and `conformance_au_08` passes.
+
+`SP-02` asserted the 130-level let-chain refusal; it now asserts that the
+chain checks. `conformance_au_01`, `conformance_au_03` (a 50,000-level
+notation is still `LLP2001`), and `conformance_au_06` pass.
+
 ## Release evidence consumes the whole jobs listing (RP-18, #408)
 
 The release gate piped the jobs listing into quiet `grep` with `pipefail`
@@ -15010,3 +15156,44 @@ test result: FAILED. 0 passed; 2 failed
 `RP-19` failed at the first language-1.2 lock, whose `compiler_semantics` line
 carried the planted digit while the default build's carried the tree's. With
 each plant removed, `conformance_rp_10` and `conformance_rp_19` pass.
+
+## The `bdd` legs' evaluator and the remainder's parts (2026-11-13)
+
+On green run 43433085919 the gate took 205 minutes and 1,738 runner-minutes;
+the `bdd` legs were 688 of them. Two causes are addressed here, neither of
+which changes what a case asserts.
+
+**The reference interpreter copied every value it touched.**
+`calculus::interp` cloned the whole environment, deep, at every `let` and
+call, deep-copied a value at every variable read and field, and copied a
+list's tail at every `Cons` match. Its values now share their parts
+(`Rc`), the environment is a list whose extension shares the scope it
+extends, and a list's tail shares its items. Lookup still walks the
+bindings innermost first and charges the same depth, and every step and
+weight is charged as before, so every outcome is the one the step-for-step
+transcription of `TargetSemantics.eval` gave. Measured locally on a loaded
+4-CPU host in the debug profile the gate builds, `BS-15`'s evaluator phase
+(2,531 header and 241 render runs) took 239 s against about 800 s before; the
+evaluator, not rustc, was most of `BS-15`'s 3,880 s on that run, and every
+bootstrap, stdlib, preservation and calculus differential runs on it.
+
+**The remainder held a fixture's waiters and a duplicate fixture.** On that
+run the `rest` leg's `bdd` took 59.7 of its 76.7 minutes. Four `SL` cases
+spent about 15 minutes each blocked on one `OnceLock` (the `stdlib` export),
+holding three of the four test threads, and `MD-13` verified `models` again
+although `verified_models` is the fixture of the `MD` cases in `production`
+(it reached the remainder by default when it was registered). Two parts are
+added and `MD-13` joins its fixture's part:
+
+| Part | Cases | Case seconds on that run |
+| --- | --- | ---: |
+| `stdlib` | `SL-*` (the `stdlib` export) and `EX-09` (the `helpdesk` export), whose exports run side by side | 4,595 |
+| `language-models` | `LM-*`, each verifying its own copy of `models` | 3,043 |
+| `production` | gains `MD-13`, which now reads the fixture the part already builds | (765 in `rest`) |
+
+The remainder keeps about 5,800 case seconds, so its `bdd` falls from
+about 60 to about 24 minutes and the leg from 77 to about 42; the new legs
+are about 20 minutes each. Both new parts run in the Intel and Windows
+`moves` lane, which held them as part of `rest`, so no host lane's work
+changes. `check-test-inventory` reports the 545 tests of `bdd` as the 41
+parts, disjoint and complete (RP-13).

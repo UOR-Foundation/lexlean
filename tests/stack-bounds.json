@@ -48,6 +48,9 @@
     "bootstrap/check_value": {
       "debug": 2228224
     },
+    "bootstrap/core_json": {
+      "debug": 1835008
+    },
     "bootstrap/correspond_crate": {
       "debug": 4915200
     },
@@ -83,6 +86,9 @@
     },
     "bootstrap/parse_audit_output": {
       "debug": 6291456
+    },
+    "bootstrap/print_core_module": {
+      "debug": 2555904
     },
     "bootstrap/print_crate": {
       "debug": 7077888

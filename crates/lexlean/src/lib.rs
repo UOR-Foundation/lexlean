@@ -139,15 +139,15 @@ pub fn supports_language(language: &str) -> bool {
 }
 
 /// The exact pinned Lean toolchain string (SPEC.md §8.2).
-pub const LEAN_TOOLCHAIN: &str = "leanprover/lean4:v4.32.1";
+pub const LEAN_TOOLCHAIN: &str = "leanprover/lean4:v4.32.2";
 
 /// The Lean version a verification environment must report (SPEC.md §8.2).
-pub const LEAN_VERSION: &str = "4.32.1";
+pub const LEAN_VERSION: &str = "4.32.2";
 
 /// The source commit of the pinned Lean release (SPEC.md §8.2). The tooling
 /// registry cites it and `conformance_tl_02` equates it with the pin in
 /// `model/authorities.toml`.
-pub const LEAN_GITHASH: &str = "f054605aea4b840552cca2e725580bffd1e1b704";
+pub const LEAN_GITHASH: &str = "f3b06c705e6c85f5314019d5d3baab0fec5b580c";
 
 /// The compiler crate version.
 pub const COMPILER_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -245,6 +245,33 @@ pub fn identity_bytes<'a>(path: &str, bytes: &'a [u8]) -> std::borrow::Cow<'a, [
 /// in four; this is sixteen times that, for modules that grow with the runtime.
 pub const READER_STACK: usize = 64 * 1024 * 1024;
 
+/// Run `work` on a thread of `stack_bytes`, for work that recurses once per
+/// level of data the compile thread admitted (§25.5) but that runs after it,
+/// on a caller's thread of unknown size. A thread that cannot be had runs the
+/// work on the caller's stack; a panic of the work is passed on as raised.
+pub(crate) fn on_stack<T: Send>(stack_bytes: usize, work: impl FnOnce() -> T + Send) -> T {
+    let slot = std::sync::Mutex::new(Some(work));
+    let run = || {
+        slot.lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .take()
+            .map(|work| work())
+    };
+    std::thread::scope(|scope| {
+        match std::thread::Builder::new()
+            .name("lexlean-deep".to_owned())
+            .stack_size(stack_bytes)
+            .spawn_scoped(scope, run)
+        {
+            Ok(thread) => thread
+                .join()
+                .unwrap_or_else(|panic| std::panic::resume_unwind(panic)),
+            Err(_) => run(),
+        }
+    })
+    .expect("the work runs exactly once")
+}
+
 /// The §11.5 tree digest of the files of the embedded tree selected by `keep`.
 fn embedded_digest(keep: impl Fn(&str) -> bool) -> Sha256Digest {
     let selected: Vec<(&'static str, &'static [u8])> = embedded::FILES
@@ -263,15 +290,24 @@ fn embedded_digest(keep: impl Fn(&str) -> bool) -> Sha256Digest {
     let workers = std::thread::available_parallelism()
         .map_or(1, usize::from)
         .min(8);
+    let read = || loop {
+        let at = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let Some((path, bytes)) = selected.get(at) else {
+            break;
+        };
+        let _ = slots[at].set(identity_bytes(path, bytes));
+    };
     std::thread::scope(|scope| {
         for _ in 0..workers {
-            scope.spawn(|| loop {
-                let at = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                let Some((path, bytes)) = selected.get(at) else {
-                    break;
-                };
-                let _ = slots[at].set(identity_bytes(path, bytes));
-            });
+            // A host without threads (WASI) reads every file on this one, as
+            // `identity_bytes` does; the rows, and so the digest, are the same.
+            if std::thread::Builder::new()
+                .spawn_scoped(scope, read)
+                .is_err()
+            {
+                read();
+                break;
+            }
         }
     });
     let rows: Vec<(&str, std::borrow::Cow<'static, [u8]>)> = selected
@@ -294,7 +330,7 @@ fn embedded_digest(keep: impl Fn(&str) -> bool) -> Sha256Digest {
 /// consistently with itself, so agreement on verdicts could not reveal it.
 /// The 1.0 and 1.1 IDs need no constant: no file they cover is left out.
 pub const LANGUAGE_1_2_SEMANTICS_ID: &str =
-    "a82990b56aa082f57e3bf3e2d6494d75a8170f26e269448de19110f5459655ad";
+    "4b3ed2378d6c43bb32a41d466cf140337e8b1cedc5e1f345aaf3395f488f63a9";
 
 /// The compiler-semantics ID for one selected language. Language 1.0 excludes
 /// all files introduced solely for 1.1 and 1.2, and Language 1.1 excludes
