@@ -86,3 +86,12 @@ shape of a semantic expression of SPEC.md §13.8.
 `src/LseTypes.lex.tex` (SPEC.md §17.23, `BS-52`) imports `LexiconLse` (`BS-25`), whose
 expressions it checks and prints, and the standard library's `Numeral` and `Order`: the
 conservative checker of semantic expressions of SPEC.md §13.7.
+`src/TomlRead.lex.tex` (SPEC.md §17.23, `BS-53`) imports the standard library's `Text`,
+`Numeral`, and `Order`: a reader for the TOML subset the compiler's own committed files use of
+SPEC.md §13.1, §13.2, and §12.3.
+`src/PackageRef.lex.tex` (SPEC.md §17.23, `BS-54`) imports `LexiconLse` (`BS-25`), whose package
+IDs it checks, and the standard library's `Numeral` and `Text`: a `package@version` reference
+of SPEC.md §13.1 and §12.2.
+`src/LexiconEntry.lex.tex` (SPEC.md §17.23, `BS-55`) imports `TomlRead` (`BS-53`), `LexiconLse`
+(`BS-25`), `LexiconLre` (`BS-26`), `LexiconSchema` (`BS-50`), `LseScopes` (`BS-51`), and
+`PrimitiveScan` (`BS-03`): a lexicon entry of SPEC.md §13.1 to §13.6.

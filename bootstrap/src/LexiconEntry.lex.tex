@@ -1,0 +1,1334 @@
+\begin{lexlean}{LexiconEntry}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{LexiconLse}
+\importmodule{LexiconLre}
+\importmodule{LexiconSchema}
+\importmodule{LseScopes}
+\importmodule{PrimitiveScan}
+\importmodule{TomlRead}
+\importmodule{LexLeanStd.Numeral}
+\importmodule{LexLeanStd.Order}
+\importmodule{LexLeanStd.Sha256}
+\importmodule{LexLeanStd.Text}
+\title{Natural number addition}
+\begin{semanticmodule}
+structure{
+  name: Form,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: Bytes},
+    {name: channel, type: Nat},
+    {name: surface, type: Bytes},
+    {name: atoms, type: (List PrimitiveScan::Atom)},
+    {name: canonicalSource, type: Bool},
+    {name: features, type: (List Bytes)}
+  ]
+}
+
+inductive{
+  name: Denotation,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: DCore, fields: [Bytes]},
+    {name: DLean, fields: [Bytes, Bytes]},
+    {name: DDocument, fields: [Bytes, Bytes]},
+    {name: DDefined, fields: [LexiconLse::Lse, Bytes]}
+  ]
+}
+
+structure{
+  name: EliminatorConstructor,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: package, type: Bytes},
+    {name: entry, type: Bytes},
+    {name: leanName, type: Bytes},
+    {name: fields, type: (List Bytes)},
+    {name: inductionHypotheses, type: (List Bytes)}
+  ]
+}
+
+structure{
+  name: Eliminator,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: casesLeanName, type: Bytes},
+    {name: inductionLeanName, type: Bytes},
+    {name: constructors, type: (List EliminatorConstructor)}
+  ]
+}
+
+structure{
+  name: Entry,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: Bytes},
+    {name: category, type: Nat},
+    {name: frame, type: Nat},
+    {name: surfaceArity, type: Nat},
+    {name: signature, type: (Option LexiconLse::Lse)},
+    {name: signatureCanonical, type: (Option Bytes)},
+    {name: signatureHash, type: (Option Bytes)},
+    {name: universes, type: (List Bytes)},
+    {name: precedence, type: (Option Nat)},
+    {name: associativity, type: (Option Nat)},
+    {name: denotation, type: Denotation},
+    {name: forms, type: (List Form)},
+    {name: renderMath, type: (Option LexiconLre::Render)},
+    {name: renderText, type: (Option LexiconLre::Render)},
+    {name: calculation, type: Bool},
+    {name: eliminator, type: (Option Eliminator)}
+  ]
+}
+
+structure{
+  name: RawDenotationFields,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: kind, type: Bytes},
+    {name: constructor, type: (Option Bytes)},
+    {name: module, type: (Option Bytes)},
+    {name: name, type: (Option Bytes)},
+    {name: component, type: (Option Bytes)},
+    {name: value, type: (Option Bytes)}
+  ]
+}
+
+structure{
+  name: RawForm,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: Bytes},
+    {name: channel, type: Bytes},
+    {name: surface, type: Bytes},
+    {name: canonicalSource, type: Bool},
+    {name: features, type: (List Bytes)}
+  ]
+}
+
+structure{
+  name: RawConstructor,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: entry, type: Bytes},
+    {name: leanName, type: Bytes},
+    {name: fields, type: (List Bytes)},
+    {name: inductionHypotheses, type: (List Bytes)}
+  ]
+}
+
+structure{
+  name: RawEliminator,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: casesLeanName, type: Bytes},
+    {name: inductionLeanName, type: Bytes},
+    {name: constructors, type: (List RawConstructor)}
+  ]
+}
+
+structure{
+  name: RawEntry,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: spec, type: Bytes},
+    {name: id, type: Bytes},
+    {name: category, type: Bytes},
+    {name: signature, type: (Option Bytes)},
+    {name: universes, type: (Option (List Bytes))},
+    {name: surfaceArity, type: Nat},
+    {name: frame, type: Bytes},
+    {name: precedence, type: (Option Nat)},
+    {name: associativity, type: (Option Bytes)},
+    {name: dKind, type: Bytes},
+    {name: dConstructor, type: (Option Bytes)},
+    {name: dModule, type: (Option Bytes)},
+    {name: dName, type: (Option Bytes)},
+    {name: dComponent, type: (Option Bytes)},
+    {name: dValue, type: (Option Bytes)},
+    {name: forms, type: (List RawForm)},
+    {name: hasRender, type: Bool},
+    {name: renderMath, type: (Option Bytes)},
+    {name: renderText, type: (Option Bytes)},
+    {name: hasCalculation, type: Bool},
+    {name: calcKind, type: Bytes},
+    {name: eliminator, type: (Option RawEliminator)}
+  ]
+}
+
+definition{
+  name: lit,
+  parameters: [literal : String],
+  result: Bytes,
+  body: (prim utf8_encode literal : Bytes),
+  executable: true
+}
+
+definition{
+  name: cat,
+  parameters: [left : Bytes, right : Bytes],
+  result: Bytes,
+  body: (prim append left right : Bytes),
+  executable: true
+}
+
+definition{
+  name: cat3,
+  parameters: [a : Bytes, b : Bytes, c : Bytes],
+  result: Bytes,
+  body: (cat (cat a b) c),
+  executable: true
+}
+
+definition{
+  name: quoted,
+  parameters: [text : Bytes],
+  result: Bytes,
+  body: (cat3 (lit "`") text (lit "`")),
+  executable: true
+}
+
+definition{
+  name: errD,
+  parameters: [message : Bytes],
+  result: (Bytes * Bytes),
+  body: ((lit "LLR3004"), message),
+  executable: true
+}
+
+definition{
+  name: formUnsafeD,
+  parameters: [message : Bytes],
+  result: (Bytes * Bytes),
+  body: ((lit "LLR3006"), message),
+  executable: true
+}
+
+definition{
+  name: limitD,
+  parameters: [message : Bytes],
+  result: (Bytes * Bytes),
+  body: ((lit "LLS8002"), message),
+  executable: true
+}
+
+definition{
+  name: appendRev,
+  parameters: [revAcc : (List (Bytes * Bytes)), item : (Option (Bytes * Bytes))],
+  result: (List (Bytes * Bytes)),
+  body: (match item | Option.some d => (cons d revAcc) | Option.none => revAcc),
+  executable: true
+}
+
+definition{
+  name: getStr,
+  parameters: [row : (List (Bytes * TomlRead::Value)), key : Bytes],
+  result: (Option Bytes),
+  body: (match (TomlRead::rowGet row key)
+    | Option.some v => (match v
+      | TomlRead::Value.VStr s => (ctor Option.some [Bytes] s)
+      | TomlRead::Value.VBool b => (ctor Option.none [Bytes])
+      | TomlRead::Value.VNat n => (ctor Option.none [Bytes])
+      | TomlRead::Value.VArr a => (ctor Option.none [Bytes]))
+    | Option.none => (ctor Option.none [Bytes])),
+  executable: true
+}
+
+definition{
+  name: getOptStr,
+  parameters: [row : (List (Bytes * TomlRead::Value)), key : Bytes],
+  result: (Option (Option Bytes)),
+  body: (match (TomlRead::rowGet row key)
+    | Option.none => (ctor Option.some [(Option Bytes)] (ctor Option.none [Bytes]))
+    | Option.some v => (match v
+      | TomlRead::Value.VStr s => (ctor Option.some [(Option Bytes)] (ctor Option.some [Bytes] s))
+      | TomlRead::Value.VBool b => (ctor Option.none [(Option Bytes)])
+      | TomlRead::Value.VNat n => (ctor Option.none [(Option Bytes)])
+      | TomlRead::Value.VArr a => (ctor Option.none [(Option Bytes)]))),
+  executable: true
+}
+
+definition{
+  name: getNat,
+  parameters: [row : (List (Bytes * TomlRead::Value)), key : Bytes],
+  result: (Option Nat),
+  body: (match (TomlRead::rowGet row key)
+    | Option.some v => (match v
+      | TomlRead::Value.VStr s => (ctor Option.none [Nat])
+      | TomlRead::Value.VBool b => (ctor Option.none [Nat])
+      | TomlRead::Value.VNat n => (ctor Option.some [Nat] n)
+      | TomlRead::Value.VArr a => (ctor Option.none [Nat]))
+    | Option.none => (ctor Option.none [Nat])),
+  executable: true
+}
+
+definition{
+  name: getOptNat,
+  parameters: [row : (List (Bytes * TomlRead::Value)), key : Bytes],
+  result: (Option (Option Nat)),
+  body: (match (TomlRead::rowGet row key)
+    | Option.none => (ctor Option.some [(Option Nat)] (ctor Option.none [Nat]))
+    | Option.some v => (match v
+      | TomlRead::Value.VStr s => (ctor Option.none [(Option Nat)])
+      | TomlRead::Value.VBool b => (ctor Option.none [(Option Nat)])
+      | TomlRead::Value.VNat n => (ctor Option.some [(Option Nat)] (ctor Option.some [Nat] n))
+      | TomlRead::Value.VArr a => (ctor Option.none [(Option Nat)]))),
+  executable: true
+}
+
+definition{
+  name: getBool,
+  parameters: [row : (List (Bytes * TomlRead::Value)), key : Bytes],
+  result: (Option Bool),
+  body: (match (TomlRead::rowGet row key)
+    | Option.some v => (match v
+      | TomlRead::Value.VStr s => (ctor Option.none [Bool])
+      | TomlRead::Value.VBool b => (ctor Option.some [Bool] b)
+      | TomlRead::Value.VNat n => (ctor Option.none [Bool])
+      | TomlRead::Value.VArr a => (ctor Option.none [Bool]))
+    | Option.none => (ctor Option.none [Bool])),
+  executable: true
+}
+
+definition{
+  name: getArr,
+  parameters: [row : (List (Bytes * TomlRead::Value)), key : Bytes],
+  result: (Option (List Bytes)),
+  body: (match (TomlRead::rowGet row key)
+    | Option.some v => (match v
+      | TomlRead::Value.VStr s => (ctor Option.none [(List Bytes)])
+      | TomlRead::Value.VBool b => (ctor Option.none [(List Bytes)])
+      | TomlRead::Value.VNat n => (ctor Option.none [(List Bytes)])
+      | TomlRead::Value.VArr a => (ctor Option.some [(List Bytes)] a))
+    | Option.none => (ctor Option.none [(List Bytes)])),
+  executable: true
+}
+
+definition{
+  name: getOptArr,
+  parameters: [row : (List (Bytes * TomlRead::Value)), key : Bytes],
+  result: (Option (Option (List Bytes))),
+  body: (match (TomlRead::rowGet row key)
+    | Option.none => (ctor Option.some [(Option (List Bytes))] (ctor Option.none [(List Bytes)]))
+    | Option.some v => (match v
+      | TomlRead::Value.VStr s => (ctor Option.none [(Option (List Bytes))])
+      | TomlRead::Value.VBool b => (ctor Option.none [(Option (List Bytes))])
+      | TomlRead::Value.VNat n => (ctor Option.none [(Option (List Bytes))])
+      | TomlRead::Value.VArr a => (ctor Option.some [(Option (List Bytes))] (ctor Option.some [(List Bytes)] a)))),
+  executable: true
+}
+
+definition{
+  name: firstRow,
+  parameters: [sec : TomlRead::Section],
+  result: (List (Bytes * TomlRead::Value)),
+  body: (match (project sec rows)
+    | List.cons row rest => row
+    | List.nil => (nil (Bytes * TomlRead::Value))),
+  executable: true
+}
+
+definition{
+  name: topRow,
+  parameters: [doc : (List TomlRead::Section)],
+  result: (List (Bytes * TomlRead::Value)),
+  body: (match (TomlRead::docSection doc (nil Bytes) false)
+    | Option.some sec => (firstRow sec)
+    | Option.none => (nil (Bytes * TomlRead::Value))),
+  executable: true
+}
+
+definition{
+  name: emptyArrOrNone,
+  parameters: [row : (List (Bytes * TomlRead::Value)), key : Bytes],
+  result: (Option (List (List (Bytes * TomlRead::Value)))),
+  body: (match (getArr row key)
+    | Option.none => (ctor Option.none [(List (List (Bytes * TomlRead::Value)))])
+    | Option.some arr => (match arr
+      | List.cons h t => (ctor Option.none [(List (List (Bytes * TomlRead::Value)))])
+      | List.nil => (ctor Option.some [(List (List (Bytes * TomlRead::Value)))] (nil (List (Bytes * TomlRead::Value)))))),
+  executable: true
+}
+
+definition{
+  name: formRowsOrEmpty,
+  parameters: [doc : (List TomlRead::Section), top : (List (Bytes * TomlRead::Value))],
+  result: (Option (List (List (Bytes * TomlRead::Value)))),
+  body: (match (TomlRead::docSection doc (cons (lit "form") (nil Bytes)) true)
+    | Option.some fsec => (ctor Option.some [(List (List (Bytes * TomlRead::Value)))] (project fsec rows))
+    | Option.none => (emptyArrOrNone top (lit "form"))),
+  executable: true
+}
+
+definition{
+  name: constructorRowsOrEmpty,
+  parameters: [doc : (List TomlRead::Section), elimRow : (List (Bytes * TomlRead::Value))],
+  result: (Option (List (List (Bytes * TomlRead::Value)))),
+  body: (match (TomlRead::docSection doc (cons (lit "eliminator") (cons (lit "constructor") (nil Bytes))) true)
+    | Option.some csec => (ctor Option.some [(List (List (Bytes * TomlRead::Value)))] (project csec rows))
+    | Option.none => (emptyArrOrNone elimRow (lit "constructor"))),
+  executable: true
+}
+
+definition{
+  name: hasOnlyKeys,
+  parameters: [row : (List (Bytes * TomlRead::Value)), allowed : (List Bytes)],
+  result: Bool,
+  body: (prim list_fold (fun [allowed] (ok : Bool) (key : Bytes) => (if ok then (LexiconSchema::isIn allowed key) else false)) true (TomlRead::rowKeys row) : Bool),
+  executable: true
+}
+
+definition{
+  name: rootAllowedKeys,
+  parameters: [],
+  result: (List Bytes),
+  body: (cons (lit "spec") (cons (lit "id") (cons (lit "category") (cons (lit "signature") (cons (lit "universes") (cons (lit "surface_arity") (cons (lit "frame") (cons (lit "precedence") (cons (lit "associativity") (cons (lit "form") (nil Bytes))))))))))),
+  executable: true
+}
+
+definition{
+  name: denotationAllowedKeys,
+  parameters: [],
+  result: (List Bytes),
+  body: (cons (lit "kind") (cons (lit "constructor") (cons (lit "module") (cons (lit "name") (cons (lit "component") (cons (lit "value") (nil Bytes))))))),
+  executable: true
+}
+
+definition{
+  name: formAllowedKeys,
+  parameters: [],
+  result: (List Bytes),
+  body: (cons (lit "id") (cons (lit "channel") (cons (lit "surface") (cons (lit "canonical_source") (cons (lit "features") (nil Bytes)))))),
+  executable: true
+}
+
+definition{
+  name: renderAllowedKeys,
+  parameters: [],
+  result: (List Bytes),
+  body: (cons (lit "math") (cons (lit "text") (nil Bytes))),
+  executable: true
+}
+
+definition{
+  name: calculationAllowedKeys,
+  parameters: [],
+  result: (List Bytes),
+  body: (cons (lit "kind") (nil Bytes)),
+  executable: true
+}
+
+definition{
+  name: eliminatorAllowedKeys,
+  parameters: [],
+  result: (List Bytes),
+  body: (cons (lit "cases_lean_name") (cons (lit "induction_lean_name") (cons (lit "constructor") (nil Bytes)))),
+  executable: true
+}
+
+definition{
+  name: eliminatorConstructorAllowedKeys,
+  parameters: [],
+  result: (List Bytes),
+  body: (cons (lit "entry") (cons (lit "lean_name") (cons (lit "fields") (cons (lit "induction_hypotheses") (nil Bytes))))),
+  executable: true
+}
+
+definition{
+  name: extractDenotationRow,
+  parameters: [drow : (List (Bytes * TomlRead::Value))],
+  result: (Option RawDenotationFields),
+  body: (if (hasOnlyKeys drow (denotationAllowedKeys)) then (match (getStr drow (lit "kind"))
+    | Option.none => (ctor Option.none [RawDenotationFields])
+    | Option.some dKind => (match (getOptStr drow (lit "constructor"))
+      | Option.none => (ctor Option.none [RawDenotationFields])
+      | Option.some dConstructor => (match (getOptStr drow (lit "module"))
+        | Option.none => (ctor Option.none [RawDenotationFields])
+        | Option.some dModule => (match (getOptStr drow (lit "name"))
+          | Option.none => (ctor Option.none [RawDenotationFields])
+          | Option.some dName => (match (getOptStr drow (lit "component"))
+            | Option.none => (ctor Option.none [RawDenotationFields])
+            | Option.some dComponent => (match (getOptStr drow (lit "value"))
+              | Option.none => (ctor Option.none [RawDenotationFields])
+              | Option.some dValue => (ctor Option.some [RawDenotationFields] (record RawDenotationFields {kind := dKind, constructor := dConstructor, module := dModule, name := dName, component := dComponent, value := dValue})))))))) else (ctor Option.none [RawDenotationFields])),
+  executable: true
+}
+
+definition{
+  name: extractForm,
+  parameters: [row : (List (Bytes * TomlRead::Value))],
+  result: (Option RawForm),
+  body: (if (hasOnlyKeys row (formAllowedKeys)) then (match (getStr row (lit "id"))
+    | Option.none => (ctor Option.none [RawForm])
+    | Option.some formId => (match (getStr row (lit "channel"))
+      | Option.none => (ctor Option.none [RawForm])
+      | Option.some channel => (match (getStr row (lit "surface"))
+        | Option.none => (ctor Option.none [RawForm])
+        | Option.some surface => (match (getBool row (lit "canonical_source"))
+          | Option.none => (ctor Option.none [RawForm])
+          | Option.some cs => (match (getArr row (lit "features"))
+            | Option.none => (ctor Option.none [RawForm])
+            | Option.some features => (ctor Option.some [RawForm] (record RawForm {id := formId, channel := channel, surface := surface, canonicalSource := cs, features := features}))))))) else (ctor Option.none [RawForm])),
+  executable: true
+}
+
+definition{
+  name: extractForms,
+  parameters: [rows : (List (List (Bytes * TomlRead::Value)))],
+  result: (Option (List RawForm)),
+  body: (match (prim list_fold (fun (acc : (Option (List RawForm))) (row : (List (Bytes * TomlRead::Value))) => (match acc
+      | Option.none => (ctor Option.none [(List RawForm)])
+      | Option.some soFar => (match (extractForm row)
+        | Option.none => (ctor Option.none [(List RawForm)])
+        | Option.some rf => (ctor Option.some [(List RawForm)] (cons rf soFar))))) (ctor Option.some [(List RawForm)] (nil RawForm)) rows : (Option (List RawForm)))
+    | Option.some revList => (ctor Option.some [(List RawForm)] (LexLeanStd.Order::reverseList [RawForm] revList))
+    | Option.none => (ctor Option.none [(List RawForm)])),
+  executable: true
+}
+
+definition{
+  name: extractConstructor,
+  parameters: [row : (List (Bytes * TomlRead::Value))],
+  result: (Option RawConstructor),
+  body: (if (hasOnlyKeys row (eliminatorConstructorAllowedKeys)) then (match (getStr row (lit "entry"))
+    | Option.none => (ctor Option.none [RawConstructor])
+    | Option.some entryId => (match (getStr row (lit "lean_name"))
+      | Option.none => (ctor Option.none [RawConstructor])
+      | Option.some leanName => (match (getArr row (lit "fields"))
+        | Option.none => (ctor Option.none [RawConstructor])
+        | Option.some fields => (match (getArr row (lit "induction_hypotheses"))
+          | Option.none => (ctor Option.none [RawConstructor])
+          | Option.some ihs => (ctor Option.some [RawConstructor] (record RawConstructor {entry := entryId, leanName := leanName, fields := fields, inductionHypotheses := ihs})))))) else (ctor Option.none [RawConstructor])),
+  executable: true
+}
+
+definition{
+  name: extractConstructors,
+  parameters: [rows : (List (List (Bytes * TomlRead::Value)))],
+  result: (Option (List RawConstructor)),
+  body: (match (prim list_fold (fun (acc : (Option (List RawConstructor))) (row : (List (Bytes * TomlRead::Value))) => (match acc
+      | Option.none => (ctor Option.none [(List RawConstructor)])
+      | Option.some soFar => (match (extractConstructor row)
+        | Option.none => (ctor Option.none [(List RawConstructor)])
+        | Option.some rc => (ctor Option.some [(List RawConstructor)] (cons rc soFar))))) (ctor Option.some [(List RawConstructor)] (nil RawConstructor)) rows : (Option (List RawConstructor)))
+    | Option.some revList => (ctor Option.some [(List RawConstructor)] (LexLeanStd.Order::reverseList [RawConstructor] revList))
+    | Option.none => (ctor Option.none [(List RawConstructor)])),
+  executable: true
+}
+
+definition{
+  name: extractEliminator,
+  parameters: [doc : (List TomlRead::Section)],
+  result: (Option (Option RawEliminator)),
+  body: (match (TomlRead::docSection doc (cons (lit "eliminator") (nil Bytes)) false)
+    | Option.none => (ctor Option.some [(Option RawEliminator)] (ctor Option.none [RawEliminator]))
+    | Option.some sec => (let row : (List (Bytes * TomlRead::Value)) := (firstRow sec); (if (hasOnlyKeys row (eliminatorAllowedKeys)) then (match (getStr row (lit "cases_lean_name"))
+      | Option.none => (ctor Option.none [(Option RawEliminator)])
+      | Option.some cln => (match (getStr row (lit "induction_lean_name"))
+        | Option.none => (ctor Option.none [(Option RawEliminator)])
+        | Option.some iln => (match (constructorRowsOrEmpty doc row)
+          | Option.none => (ctor Option.none [(Option RawEliminator)])
+          | Option.some constructorRows => (match (extractConstructors constructorRows)
+            | Option.none => (ctor Option.none [(Option RawEliminator)])
+            | Option.some constructors => (ctor Option.some [(Option RawEliminator)] (ctor Option.some [RawEliminator] (record RawEliminator {casesLeanName := cln, inductionLeanName := iln, constructors := constructors}))))))) else (ctor Option.none [(Option RawEliminator)])))),
+  executable: true
+}
+
+definition{
+  name: extractRaw,
+  parameters: [doc : (List TomlRead::Section)],
+  result: (Option RawEntry),
+  body: (let top : (List (Bytes * TomlRead::Value)) := (topRow doc); (if (hasOnlyKeys top (rootAllowedKeys)) then (match (getStr top (lit "spec"))
+    | Option.none => (ctor Option.none [RawEntry])
+    | Option.some spec => (match (getStr top (lit "id"))
+      | Option.none => (ctor Option.none [RawEntry])
+      | Option.some entryId => (match (getStr top (lit "category"))
+        | Option.none => (ctor Option.none [RawEntry])
+        | Option.some category => (match (getOptStr top (lit "signature"))
+          | Option.none => (ctor Option.none [RawEntry])
+          | Option.some signature => (match (getOptArr top (lit "universes"))
+            | Option.none => (ctor Option.none [RawEntry])
+            | Option.some universes => (match (getNat top (lit "surface_arity"))
+              | Option.none => (ctor Option.none [RawEntry])
+              | Option.some surfaceArity => (match (getStr top (lit "frame"))
+                | Option.none => (ctor Option.none [RawEntry])
+                | Option.some frame => (match (getOptNat top (lit "precedence"))
+                  | Option.none => (ctor Option.none [RawEntry])
+                  | Option.some precedence => (match (getOptStr top (lit "associativity"))
+                    | Option.none => (ctor Option.none [RawEntry])
+                    | Option.some associativity => (match (TomlRead::docSection doc (cons (lit "denotation") (nil Bytes)) false)
+                      | Option.none => (ctor Option.none [RawEntry])
+                      | Option.some dsec => (let drow : (List (Bytes * TomlRead::Value)) := (firstRow dsec); (match (extractDenotationRow drow)
+                        | Option.none => (ctor Option.none [RawEntry])
+                        | Option.some dfields => (let dKind : Bytes := (project dfields kind); (let dConstructor : (Option Bytes) := (project dfields constructor); (let dModule : (Option Bytes) := (project dfields module); (let dName : (Option Bytes) := (project dfields name); (let dComponent : (Option Bytes) := (project dfields component); (let dValue : (Option Bytes) := (project dfields value); (match (formRowsOrEmpty doc top)
+                          | Option.none => (ctor Option.none [RawEntry])
+                          | Option.some formRows => (match (extractForms formRows)
+                            | Option.none => (ctor Option.none [RawEntry])
+                            | Option.some forms => (let hasRender : Bool := (match (TomlRead::docSection doc (cons (lit "render") (nil Bytes)) false)
+                              | Option.some s => true
+                              | Option.none => false); (let rrow : (List (Bytes * TomlRead::Value)) := (match (TomlRead::docSection doc (cons (lit "render") (nil Bytes)) false)
+                              | Option.some s => (firstRow s)
+                              | Option.none => (nil (Bytes * TomlRead::Value))); (match (getOptStr rrow (lit "math"))
+                              | Option.none => (ctor Option.none [RawEntry])
+                              | Option.some renderMath => (match (getOptStr rrow (lit "text"))
+                                | Option.none => (ctor Option.none [RawEntry])
+                                | Option.some renderText => (let hasCalculation : Bool := (match (TomlRead::docSection doc (cons (lit "calculation") (nil Bytes)) false)
+                                  | Option.some s => true
+                                  | Option.none => false); (let crow : (List (Bytes * TomlRead::Value)) := (match (TomlRead::docSection doc (cons (lit "calculation") (nil Bytes)) false)
+                                  | Option.some s => (firstRow s)
+                                  | Option.none => (nil (Bytes * TomlRead::Value))); (match (if hasCalculation then (getStr crow (lit "kind")) else (ctor Option.some [Bytes] 0x))
+                                  | Option.none => (ctor Option.none [RawEntry])
+                                  | Option.some calcKind => (match (extractEliminator doc)
+                                    | Option.none => (ctor Option.none [RawEntry])
+                                    | Option.some eliminator => (ctor Option.some [RawEntry] (record RawEntry {spec := spec, id := entryId, category := category, signature := signature, universes := universes, surfaceArity := surfaceArity, frame := frame, precedence := precedence, associativity := associativity, dKind := dKind, dConstructor := dConstructor, dModule := dModule, dName := dName, dComponent := dComponent, dValue := dValue, forms := forms, hasRender := hasRender, renderMath := renderMath, renderText := renderText, hasCalculation := hasCalculation, calcKind := calcKind, eliminator := eliminator})))))))))))))))))))))))))))))) else (ctor Option.none [RawEntry]))),
+  executable: true
+}
+
+structure{
+  name: HeaderOut,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: diagsRev, type: (List (Bytes * Bytes))},
+    {name: precedence, type: (Option Nat)},
+    {name: associativity, type: (Option Nat)}
+  ]
+}
+
+definition{
+  name: validateHeader,
+  parameters: [
+    entryId : Bytes,
+    categoryIdx : Nat,
+    frameIdx : Nat,
+    categoryText : Bytes,
+    frameText : Bytes,
+    surfaceArity : Nat,
+    rawPrecedence : (Option Nat),
+    rawAssociativity : (Option Bytes),
+    isCore : Bool
+  ],
+  result: HeaderOut,
+  body: (let shape : LexiconSchema::Shape := (LexiconSchema::shapeFacts categoryIdx frameIdx surfaceArity); (let d1 : (List (Bytes * Bytes)) := (appendRev (nil (Bytes * Bytes)) (if (LexiconLse::isEntryId entryId) then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (cat (quoted entryId) (lit " is not a valid entry ID")))))); (let d2 : (List (Bytes * Bytes)) := (appendRev d1 (if ((project shape coreOnly) && (if isCore then false else true)) then (ctor Option.some [(Bytes * Bytes)] (errD (cat3 (lit "a non-core entry cannot use category `") categoryText (lit "`")))) else (ctor Option.none [(Bytes * Bytes)]))); (let d3 : (List (Bytes * Bytes)) := (appendRev d2 (if (project shape permitted) then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (cat (cat (lit "category `") categoryText) (lit "` does not permit frame `")) frameText) (lit "`")))))); (let d4 : (List (Bytes * Bytes)) := (appendRev d3 (match (project shape fixedArity)
+    | Option.some fixed => (if (surfaceArity =? fixed) then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (cat (cat (lit "frame `") frameText) (lit "` fixes surface_arity ")) (LexLeanStd.Numeral::decimal fixed)) (cat (lit ", found ") (LexLeanStd.Numeral::decimal surfaceArity))))))
+    | Option.none => (if (surfaceArity =? 0) then (ctor Option.some [(Bytes * Bytes)] (errD (lit "a call frame needs surface_arity >= 1"))) else (ctor Option.none [(Bytes * Bytes)])))); (let needsPrecedence : Bool := (if (frameIdx =? 2) then true else (if (frameIdx =? 3) then true else (frameIdx =? 4))); (let precPair : ((List (Bytes * Bytes)) * (Option Nat)) := (match rawPrecedence
+    | Option.some value => (if needsPrecedence then (if (value <=? 255) then (d4, (ctor Option.some [Nat] value)) else ((appendRev d4 (ctor Option.some [(Bytes * Bytes)] (errD (lit "precedence is 0..255")))), (ctor Option.none [Nat]))) else ((appendRev d4 (ctor Option.some [(Bytes * Bytes)] (errD (lit "precedence does not apply to this frame")))), (ctor Option.none [Nat])))
+    | Option.none => (if needsPrecedence then ((appendRev d4 (ctor Option.some [(Bytes * Bytes)] (errD (lit "this frame requires a precedence")))), (ctor Option.none [Nat])) else (d4, (ctor Option.none [Nat])))); (let d5 : (List (Bytes * Bytes)) := (first precPair); (let precedence : (Option Nat) := (second precPair); (let isInfix : Bool := (frameIdx =? 4); (let assocPair : ((List (Bytes * Bytes)) * (Option Nat)) := (match rawAssociativity
+    | Option.some text => (if isInfix then (if (prim equal text (lit "left") : Bool) then (d5, (ctor Option.some [Nat] 0)) else (if (prim equal text (lit "right") : Bool) then (d5, (ctor Option.some [Nat] 1)) else (if (prim equal text (lit "none") : Bool) then (d5, (ctor Option.some [Nat] 2)) else ((appendRev d5 (ctor Option.some [(Bytes * Bytes)] (errD (lit "associativity is left, right, or none")))), (ctor Option.none [Nat]))))) else ((appendRev d5 (ctor Option.some [(Bytes * Bytes)] (errD (lit "associativity applies only to infix frames")))), (ctor Option.none [Nat])))
+    | Option.none => (if isInfix then ((appendRev d5 (ctor Option.some [(Bytes * Bytes)] (errD (lit "an infix frame requires an associativity")))), (ctor Option.none [Nat])) else (d5, (ctor Option.none [Nat])))); (record HeaderOut {diagsRev := (first assocPair), precedence := precedence, associativity := (second assocPair)})))))))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: sortedUniqueStep,
+  parameters: [state : ((Option Bytes) * Bool), item : Bytes],
+  result: ((Option Bytes) * Bool),
+  body: (match (first state)
+    | Option.none => ((ctor Option.some [Bytes] item), (second state))
+    | Option.some prev => ((ctor Option.some [Bytes] item), (if (second state) then (LexLeanStd.Order::lessBytes prev item) else false))),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: isSortedUniqueStrict,
+  parameters: [items : (List Bytes)],
+  result: Bool,
+  body: (second (prim list_fold (fun (state : ((Option Bytes) * Bool)) (item : Bytes) => (sortedUniqueStep state item)) ((ctor Option.none [Bytes]), true) items : ((Option Bytes) * Bool))),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: anyNotLseIdentifier,
+  parameters: [names : (List Bytes)],
+  result: (Option Bytes),
+  body: (prim list_fold (fun (found : (Option Bytes)) (name : Bytes) => (match found
+    | Option.some n => found
+    | Option.none => (if (LexiconLse::isLseIdentifier name) then (ctor Option.none [Bytes]) else (ctor Option.some [Bytes] name)))) (ctor Option.none [Bytes]) names : (Option Bytes)),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: wrapLseFailure,
+  parameters: [what : Bytes, failure : LexiconLse::Failure],
+  result: (Bytes * Bytes),
+  body: (if ((project failure kind) =? 1) then (limitD (cat (cat what (lit ": ")) (project failure message))) else (errD (cat (cat (cat (lit "invalid ") what) (lit " LSE: ")) (project failure message)))),
+  executable: true
+}
+
+structure{
+  name: SigOut,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: diagsRev, type: (List (Bytes * Bytes))},
+    {name: universes, type: (List Bytes)},
+    {name: signature, type: (Option LexiconLse::Lse)},
+    {name: signatureCanonical, type: (Option Bytes)},
+    {name: signatureHash, type: (Option Bytes)}
+  ]
+}
+
+definition{
+  name: validateSignature,
+  parameters: [
+    entryId : Bytes,
+    categoryText : Bytes,
+    rawUniverses : (Option (List Bytes)),
+    rawSignature : (Option Bytes),
+    hasSignature : Bool,
+    surfaceArity : Nat,
+    maxScopeDepth : Nat,
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: SigOut,
+  body: (let universes : (List Bytes) := (match rawUniverses
+    | Option.some us => us
+    | Option.none => (nil Bytes)); (let d1 : (List (Bytes * Bytes)) := (appendRev diagsIn (if (isSortedUniqueStrict universes) then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (lit "universes must be sorted and unique"))))); (let d2 : (List (Bytes * Bytes)) := (match (anyNotLseIdentifier universes)
+    | Option.none => d1
+    | Option.some bad => (appendRev d1 (ctor Option.some [(Bytes * Bytes)] (errD (cat (quoted bad) (lit " is not a universe name")))))); (match rawSignature
+    | Option.some text => (if hasSignature then (match (LexiconLse::parseLse text maxScopeDepth)
+      | Result.ok parsed => (let bound : Nat := (prim length text : Nat); (let d3 : (List (Bytes * Bytes)) := (match (LseScopes::checkScopes parsed universes bound)
+        | Option.none => d2
+        | Option.some scopeErr => (appendRev d2 (ctor Option.some [(Bytes * Bytes)] (errD (cat (lit "invalid signature: ") scopeErr))))); (let shape2 : (Nat * Bool) := (LseScopes::outerShape parsed bound); (let explicit : Nat := (first shape2); (let d4 : (List (Bytes * Bytes)) := (if (surfaceArity =? explicit) then d3 else (appendRev d3 (ctor Option.some [(Bytes * Bytes)] (errD (cat3 (cat3 (quoted entryId) (lit ": surface_arity ") (LexLeanStd.Numeral::decimal surfaceArity)) (lit " does not match the ") (cat (LexLeanStd.Numeral::decimal explicit) (if (explicit =? 1) then (lit " explicit binder of the signature's outer pi") else (lit " explicit binders of the signature's outer pi")))))))); (let canonical : Bytes := (LexiconLse::printLse parsed true); (let hash : Bytes := (LexLeanStd.Sha256::sha256Hex canonical); (record SigOut {diagsRev := d4, universes := universes, signature := (ctor Option.some [LexiconLse::Lse] parsed), signatureCanonical := (ctor Option.some [Bytes] canonical), signatureHash := (ctor Option.some [Bytes] hash)}))))))))
+      | Result.error failure => (record SigOut {diagsRev := (appendRev d2 (ctor Option.some [(Bytes * Bytes)] (wrapLseFailure (lit "signature") failure))), universes := universes, signature := (ctor Option.none [LexiconLse::Lse]), signatureCanonical := (ctor Option.none [Bytes]), signatureHash := (ctor Option.none [Bytes])})) else (record SigOut {diagsRev := (appendRev d2 (ctor Option.some [(Bytes * Bytes)] (errD (cat3 (lit "category `") categoryText (lit "` does not carry a signature"))))), universes := universes, signature := (ctor Option.none [LexiconLse::Lse]), signatureCanonical := (ctor Option.none [Bytes]), signatureHash := (ctor Option.none [Bytes])}))
+    | Option.none => (if hasSignature then (record SigOut {diagsRev := (appendRev d2 (ctor Option.some [(Bytes * Bytes)] (errD (lit "every semantic entry has a complete LSE signature")))), universes := universes, signature := (ctor Option.none [LexiconLse::Lse]), signatureCanonical := (ctor Option.none [Bytes]), signatureHash := (ctor Option.none [Bytes])}) else (record SigOut {diagsRev := (appendRev d2 (match rawUniverses
+      | Option.some us => (ctor Option.some [(Bytes * Bytes)] (errD (lit "universes apply only with a signature")))
+      | Option.none => (ctor Option.none [(Bytes * Bytes)]))), universes := universes, signature := (ctor Option.none [LexiconLse::Lse]), signatureCanonical := (ctor Option.none [Bytes]), signatureHash := (ctor Option.none [Bytes])})))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: isSomeBytes,
+  parameters: [o : (Option Bytes)],
+  result: Nat,
+  body: (match o | Option.some x => 1 | Option.none => 0),
+  executable: true
+}
+
+definition{
+  name: optCount,
+  parameters: [
+    a : (Option Bytes),
+    b : (Option Bytes),
+    c : (Option Bytes),
+    d : (Option Bytes),
+    e : (Option Bytes)
+  ],
+  result: Nat,
+  body: (((((isSomeBytes a) + (isSomeBytes b)) + (isSomeBytes c)) + (isSomeBytes d)) + (isSomeBytes e)),
+  executable: true
+}
+
+definition{
+  name: validateCoreDenotation,
+  parameters: [
+    isCore : Bool,
+    dConstructor : (Option Bytes),
+    fc : Nat,
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: ((List (Bytes * Bytes)) * Denotation),
+  body: (let d1 : (List (Bytes * Bytes)) := (appendRev diagsIn (if isCore then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (lit "only lexlean.core may use a core denotation"))))); (let shapeOk : Bool := (match dConstructor
+    | Option.some c => ((fc =? 1) && (LexiconLse::isEntryId c))
+    | Option.none => false); (if shapeOk then (d1, (ctor Denotation.DCore (match dConstructor
+    | Option.some c => c
+    | Option.none => 0x))) else ((appendRev d1 (ctor Option.some [(Bytes * Bytes)] (errD (lit "a core denotation has exactly `constructor`")))), (ctor Denotation.DCore 0x))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: validateLeanDenotation,
+  parameters: [
+    dModule : (Option Bytes),
+    dName : (Option Bytes),
+    fc : Nat,
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: ((List (Bytes * Bytes)) * Denotation),
+  body: (let shapeOk : Bool := (match dModule
+    | Option.some m => (match dName
+      | Option.some n => ((fc =? 2) && ((LexiconSchema::isLeanName m) && (LexiconSchema::isLeanName n)))
+      | Option.none => false)
+    | Option.none => false); (if shapeOk then (diagsIn, (ctor Denotation.DLean (match dModule
+    | Option.some m => m
+    | Option.none => 0x) (match dName
+    | Option.some n => n
+    | Option.none => 0x))) else ((appendRev diagsIn (ctor Option.some [(Bytes * Bytes)] (errD (lit "a lean denotation has exactly `module` and `name` in the conservative ASCII Lean-name grammar")))), (ctor Denotation.DLean 0x 0x)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: validateDocumentDenotation,
+  parameters: [
+    dModule : (Option Bytes),
+    dComponent : (Option Bytes),
+    fc : Nat,
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: ((List (Bytes * Bytes)) * Denotation),
+  body: (let shapeOk : Bool := (match dModule
+    | Option.some m => (match dComponent | Option.some c => (fc =? 2) | Option.none => false)
+    | Option.none => false); (if shapeOk then (diagsIn, (ctor Denotation.DDocument (match dModule
+    | Option.some m => m
+    | Option.none => 0x) (match dComponent
+    | Option.some c => c
+    | Option.none => 0x))) else ((appendRev diagsIn (ctor Option.some [(Bytes * Bytes)] (errD (lit "a document denotation has exactly `module` and `component`")))), (ctor Denotation.DDocument 0x 0x)))),
+  executable: true
+}
+
+definition{
+  name: validateDefinedDenotation,
+  parameters: [
+    dValue : (Option Bytes),
+    fc : Nat,
+    maxScopeDepth : Nat,
+    universes : (List Bytes),
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: ((List (Bytes * Bytes)) * Denotation),
+  body: (match dValue
+    | Option.none => ((appendRev diagsIn (ctor Option.some [(Bytes * Bytes)] (errD (lit "a defined denotation has exactly `value`")))), (ctor Denotation.DDefined (ctor LexiconLse::Lse.LSortProp) 0x))
+    | Option.some valueText => (if (fc =? 1) then (match (LexiconLse::parseLse valueText maxScopeDepth)
+      | Result.ok value => (let bound : Nat := (prim length valueText : Nat); (let d2 : (List (Bytes * Bytes)) := (match (LseScopes::checkScopes value universes bound)
+        | Option.none => diagsIn
+        | Option.some scopeErr => (appendRev diagsIn (ctor Option.some [(Bytes * Bytes)] (errD (cat (lit "invalid defined value: ") scopeErr))))); (d2, (ctor Denotation.DDefined value (LexiconLse::printLse value true)))))
+      | Result.error failure => ((appendRev diagsIn (ctor Option.some [(Bytes * Bytes)] (wrapLseFailure (lit "defined value") failure))), (ctor Denotation.DDefined (ctor LexiconLse::Lse.LSortProp) 0x))) else ((appendRev diagsIn (ctor Option.some [(Bytes * Bytes)] (errD (lit "a defined denotation has exactly `value`")))), (ctor Denotation.DDefined (ctor LexiconLse::Lse.LSortProp) 0x)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: validateDenotation,
+  parameters: [
+    isCore : Bool,
+    dKind : Bytes,
+    dConstructor : (Option Bytes),
+    dModule : (Option Bytes),
+    dName : (Option Bytes),
+    dComponent : (Option Bytes),
+    dValue : (Option Bytes),
+    maxScopeDepth : Nat,
+    universes : (List Bytes),
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: ((List (Bytes * Bytes)) * Denotation),
+  body: (let fc : Nat := (optCount dConstructor dModule dName dComponent dValue); (if (prim equal dKind (lit "core") : Bool) then (validateCoreDenotation isCore dConstructor fc diagsIn) else (if (prim equal dKind (lit "lean") : Bool) then (validateLeanDenotation dModule dName fc diagsIn) else (if (prim equal dKind (lit "document") : Bool) then (validateDocumentDenotation dModule dComponent fc diagsIn) else (if (prim equal dKind (lit "defined") : Bool) then (validateDefinedDenotation dValue fc maxScopeDepth universes diagsIn) else ((appendRev diagsIn (ctor Option.some [(Bytes * Bytes)] (errD (cat (quoted dKind) (lit " is not a denotation kind"))))), (ctor Denotation.DCore 0x))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: isControlAtom,
+  parameters: [atom : PrimitiveScan::Atom],
+  result: Bool,
+  body: (match (project atom kind)
+    | PrimitiveScan::AtomClass.Control => true
+    | PrimitiveScan::AtomClass.Word => false
+    | PrimitiveScan::AtomClass.Numeral => false
+    | PrimitiveScan::AtomClass.Delimiter => false
+    | PrimitiveScan::AtomClass.AsciiSymbol => false
+    | PrimitiveScan::AtomClass.UnicodeSymbol => false
+    | PrimitiveScan::AtomClass.Whitespace => false),
+  executable: true
+}
+
+definition{
+  name: anyControlAtom,
+  parameters: [atoms : (List PrimitiveScan::Atom)],
+  result: Bool,
+  body: (prim list_fold (fun (found : Bool) (atom : PrimitiveScan::Atom) => (if found then true else (isControlAtom atom))) false atoms : Bool),
+  executable: true
+}
+
+definition{
+  name: listHasBytes,
+  parameters: [items : (List Bytes), target : Bytes],
+  result: Bool,
+  body: (prim list_fold (fun [target] (found : Bool) (item : Bytes) => (if found then true else (prim equal item target : Bool))) false items : Bool),
+  executable: true
+}
+
+definition{
+  name: forbiddenAtomDiags,
+  parameters: [
+    forbiddenControls : (List Bytes),
+    formId : Bytes,
+    atoms : (List PrimitiveScan::Atom),
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: (List (Bytes * Bytes)),
+  body: (prim list_fold (fun [forbiddenControls, formId] (acc : (List (Bytes * Bytes))) (atom : PrimitiveScan::Atom) => (if (isControlAtom atom) then (if (listHasBytes forbiddenControls (project atom text)) then (cons (errD (cat (cat (cat (lit "form `") formId) (lit "` declares the always-forbidden control `")) (cat (project atom text) (lit "` (§12.4)")))) acc) else acc) else acc)) diagsIn atoms : (List (Bytes * Bytes))),
+  executable: true
+}
+
+definition{
+  name: featureDiags,
+  parameters: [formId : Bytes, features : (List Bytes), diagsIn : (List (Bytes * Bytes))],
+  result: (List (Bytes * Bytes)),
+  body: (let d1 : (List (Bytes * Bytes)) := (if (isSortedUniqueStrict features) then diagsIn else (cons (errD (cat (cat (lit "form `") formId) (lit "`: features must be sorted and unique"))) diagsIn)); (prim list_fold (fun [formId] (acc : (List (Bytes * Bytes))) (feature : Bytes) => (if (LexiconSchema::isIn (LexiconSchema::features) feature) then acc else (cons (errD (cat (cat (cat (cat (lit "form `") formId) (lit "`: `")) feature) (lit "` is not a feature"))) acc))) d1 features : (List (Bytes * Bytes)))),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: surfaceWhitespaceBad,
+  parameters: [surface : Bytes],
+  result: Bool,
+  body: (if ((prim length surface : Nat) =? 0) then true else (if (LexLeanStd.Text::startsWith surface (lit " ")) then true else (if (LexLeanStd.Text::endsWith surface (lit " ")) then true else (if (match (LexLeanStd.Text::find surface (cat (lit " ") (lit " ")))
+    | Option.some p => true
+    | Option.none => false) then true else (match (LexLeanStd.Text::find surface 0x0a)
+    | Option.some p => true
+    | Option.none => false))))),
+  executable: true
+}
+
+structure{
+  name: FormGate,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: diagsRev, type: (List (Bytes * Bytes))},
+    {name: channelIdx, type: (Option Nat)},
+    {name: atoms, type: (List PrimitiveScan::Atom)}
+  ]
+}
+
+definition{
+  name: formGate,
+  parameters: [
+    formId : Bytes,
+    channelText : Bytes,
+    surface : Bytes,
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: FormGate,
+  body: (match (LexiconSchema::tokenIndex 2 channelText)
+    | Option.none => (record FormGate {diagsRev := (appendRev diagsIn (ctor Option.some [(Bytes * Bytes)] (errD (lit "a form channel is text, math, or both")))), channelIdx := (ctor Option.none [Nat]), atoms := (nil PrimitiveScan::Atom)})
+    | Option.some channelIdx => (if (surfaceWhitespaceBad surface) then (record FormGate {diagsRev := (appendRev diagsIn (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (lit "form `") formId) (lit "`: leading, trailing, or repeated whitespace in the surface is forbidden"))))), channelIdx := (ctor Option.none [Nat]), atoms := (nil PrimitiveScan::Atom)}) else (match (PrimitiveScan::scanSource (lit "<form>") surface (prim length surface : Nat))
+      | Result.error rejection => (record FormGate {diagsRev := (appendRev diagsIn (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (cat (lit "form `") formId) (lit "`: surface does not scan: ")) (project rejection message))))), channelIdx := (ctor Option.none [Nat]), atoms := (nil PrimitiveScan::Atom)})
+      | Result.ok atoms => (record FormGate {diagsRev := diagsIn, channelIdx := (ctor Option.some [Nat] channelIdx), atoms := atoms})))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: validateOneForm,
+  parameters: [
+    raw : RawForm,
+    isDuplicate : Bool,
+    isCore : Bool,
+    forbiddenControls : (List Bytes),
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: ((List (Bytes * Bytes)) * (Option Form)),
+  body: (let formId : Bytes := (project raw id); (let d1 : (List (Bytes * Bytes)) := (appendRev diagsIn (if (LexiconLre::isFormId formId) then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (cat (quoted formId) (lit " is not a form ID ([a-z][a-z0-9-]*)")))))); (let d2 : (List (Bytes * Bytes)) := (appendRev d1 (if isDuplicate then (ctor Option.some [(Bytes * Bytes)] (errD (cat (lit "duplicate form ID ") (quoted formId)))) else (ctor Option.none [(Bytes * Bytes)]))); (let gate : FormGate := (formGate formId (project raw channel) (project raw surface) d2); (match (project gate channelIdx)
+    | Option.none => ((project gate diagsRev), (ctor Option.none [Form]))
+    | Option.some channelIdx => (let atoms : (List PrimitiveScan::Atom) := (project gate atoms); (let d3 : (List (Bytes * Bytes)) := (forbiddenAtomDiags forbiddenControls formId atoms (project gate diagsRev)); (let isControlForm : Bool := (anyControlAtom atoms); (let d4 : (List (Bytes * Bytes)) := (appendRev d3 (if ((isControlForm && (project raw canonicalSource)) && (if isCore then false else true)) then (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (lit "form `") formId) (lit "`: control-sequence forms are aliases only for non-core entries")))) else (ctor Option.none [(Bytes * Bytes)]))); (let singleControlAlias : Bool := (((if (project raw canonicalSource) then false else true) && ((prim length atoms : Nat) =? 1)) && (anyControlAtom atoms)); (let d5 : (List (Bytes * Bytes)) := (if ((if isCore then false else true) && (if singleControlAlias then false else true)) then (match (LexiconSchema::surfaceSafety atoms channelIdx)
+      | Option.some reason => (appendRev d4 (ctor Option.some [(Bytes * Bytes)] (formUnsafeD (cat (cat (cat (cat (cat (lit "form `") formId) (lit "`: the ")) (if (project raw canonicalSource) then (lit "canonical") else (lit "alias"))) (cat (lit " surface `") (project raw surface))) (cat (lit "` is not renderer-safe: ") reason)))))
+      | Option.none => d4) else d4); (let d6 : (List (Bytes * Bytes)) := (featureDiags formId (project raw features) d5); (d6, (ctor Option.some [Form] (record Form {id := formId, channel := channelIdx, surface := (project raw surface), atoms := atoms, canonicalSource := (project raw canonicalSource), features := (project raw features)}))))))))))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+structure{
+  name: FormFoldState,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: diagsRev, type: (List (Bytes * Bytes))},
+    {name: formsRev, type: (List Form)},
+    {name: seenIds, type: (List Bytes)}
+  ]
+}
+
+definition{
+  name: formFoldStep,
+  parameters: [
+    isCore : Bool,
+    forbiddenControls : (List Bytes),
+    state : FormFoldState,
+    raw : RawForm
+  ],
+  result: FormFoldState,
+  body: (let isDup : Bool := (listHasBytes (project state seenIds) (project raw id)); (let stepOut : ((List (Bytes * Bytes)) * (Option Form)) := (validateOneForm raw isDup isCore forbiddenControls (project state diagsRev)); (record FormFoldState {diagsRev := (first stepOut), formsRev := (match (second stepOut)
+    | Option.some f => (cons f (project state formsRev))
+    | Option.none => (project state formsRev)), seenIds := (cons (project raw id) (project state seenIds))}))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+structure{
+  name: FormsOut,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: diagsRev, type: (List (Bytes * Bytes))}, {name: forms, type: (List Form)}]
+}
+
+definition{
+  name: validateForms,
+  parameters: [
+    raws : (List RawForm),
+    isCore : Bool,
+    forbiddenControls : (List Bytes),
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: FormsOut,
+  body: (let diags0 : (List (Bytes * Bytes)) := (appendRev diagsIn (match raws
+    | List.nil => (ctor Option.some [(Bytes * Bytes)] (errD (lit "an entry declares at least one form")))
+    | List.cons h t => (ctor Option.none [(Bytes * Bytes)]))); (let final : FormFoldState := (prim list_fold (fun [forbiddenControls, isCore] (state : FormFoldState) (raw : RawForm) => (formFoldStep isCore forbiddenControls state raw)) (record FormFoldState {diagsRev := diags0, formsRev := (nil Form), seenIds := (nil Bytes)}) raws : FormFoldState); (record FormsOut {diagsRev := (project final diagsRev), forms := (LexLeanStd.Order::reverseList [Form] (project final formsRev))}))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: coversChannel,
+  parameters: [formChannel : Nat, target : Nat],
+  result: Bool,
+  body: (if (formChannel =? 2) then true else (formChannel =? target)),
+  executable: true
+}
+
+definition{
+  name: anyCanonical,
+  parameters: [forms : (List Form)],
+  result: Bool,
+  body: (prim list_fold (fun (found : Bool) (form : Form) => (if found then true else (project form canonicalSource))) false forms : Bool),
+  executable: true
+}
+
+definition{
+  name: countCanonical,
+  parameters: [forms : (List Form), target : Nat],
+  result: Nat,
+  body: (prim list_fold (fun [target] (count : Nat) (form : Form) => (if ((project form canonicalSource) && (coversChannel (project form channel) target)) then (count + 1) else count)) 0 forms : Nat),
+  executable: true
+}
+
+definition{
+  name: listHasNat,
+  parameters: [items : (List Nat), target : Nat],
+  result: Bool,
+  body: (prim list_fold (fun [target] (found : Bool) (item : Nat) => (if found then true else (item =? target))) false items : Bool),
+  executable: true
+}
+
+definition{
+  name: validateCanonicalFormsForChannel,
+  parameters: [
+    categoryText : Bytes,
+    requiredChannels : (List Nat),
+    forms : (List Form),
+    target : Nat,
+    channelName : Bytes,
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: (List (Bytes * Bytes)),
+  body: (let count : Nat := (countCanonical forms target); (let d1 : (List (Bytes * Bytes)) := (appendRev diagsIn (if (1 <? count) then (ctor Option.some [(Bytes * Bytes)] (errD (cat (lit "more than one canonical source form for the ") (cat channelName (lit " channel"))))) else (ctor Option.none [(Bytes * Bytes)]))); (appendRev d1 (if ((listHasNat requiredChannels target) && (count =? 0)) then (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (lit "category `") categoryText) (cat (lit "` requires a canonical source form in the ") (cat channelName (lit " channel")))))) else (ctor Option.none [(Bytes * Bytes)]))))),
+  executable: true
+}
+
+definition{
+  name: validateCanonicalForms,
+  parameters: [
+    categoryText : Bytes,
+    needsSome : Bool,
+    requiredChannels : (List Nat),
+    forms : (List Form),
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: (List (Bytes * Bytes)),
+  body: (let d1 : (List (Bytes * Bytes)) := (appendRev diagsIn (if (needsSome && (if (anyCanonical forms) then false else true)) then (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (lit "category `") categoryText) (lit "` requires a canonical source form in the text or the math channel")))) else (ctor Option.none [(Bytes * Bytes)]))); (let d2 : (List (Bytes * Bytes)) := (validateCanonicalFormsForChannel categoryText requiredChannels forms 0 (lit "text") d1); (validateCanonicalFormsForChannel categoryText requiredChannels forms 1 (lit "math") d2))),
+  executable: true
+}
+
+definition{
+  name: wrapLreFailure,
+  parameters: [what : Bytes, failure : LexiconLse::Failure],
+  result: (Bytes * Bytes),
+  body: (if ((project failure kind) =? 1) then (limitD (cat (cat what (lit " render: ")) (project failure message))) else (errD (cat (cat (cat (lit "invalid ") what) (lit " LRE: ")) (project failure message)))),
+  executable: true
+}
+
+definition{
+  name: insertNatSorted,
+  parameters: [items : (List Nat), key : Nat],
+  result: (List Nat),
+  body: (let done : (Bool * (List Nat)) := (prim list_fold (fun [key] (state : (Bool * (List Nat))) (item : Nat) => (if (first state) then (true, (cons item (second state))) else (if (key <=? item) then (true, (cons item (cons key (second state)))) else (false, (cons item (second state)))))) (false, (nil Nat)) items : (Bool * (List Nat))); (match (first done)
+    | Bool.true => (LexLeanStd.Order::reverseList [Nat] (second done))
+    | Bool.false => (LexLeanStd.Order::reverseList [Nat] (cons key (second done))))),
+  executable: true
+}
+
+definition{
+  name: sortNats,
+  parameters: [items : (List Nat)],
+  result: (List Nat),
+  body: (prim list_fold (fun (acc : (List Nat)) (item : Nat) => (insertNatSorted acc item)) (nil Nat) items : (List Nat)),
+  executable: true
+}
+
+definition{
+  name: rangeUpTo,
+  parameters: [n : Nat],
+  result: (List Nat),
+  body: (LexLeanStd.Order::reverseList [Nat] (second (first (prim iterate_until (fun [n] (st : (Nat * (List Nat))) => (if ((first st) <? n) then (ctor Option.some [(Nat * (List Nat))] (((first st) + 1), (cons (first st) (second st)))) else (ctor Option.none [(Nat * (List Nat))]))) (n + 1) (0, (nil Nat)) : ((Nat * (List Nat)) * Bool))))),
+  executable: true
+}
+
+definition{
+  name: natListText,
+  parameters: [items : (List Nat)],
+  result: Bytes,
+  body: (prim list_fold (fun (acc : Bytes) (item : Nat) => (cat (cat acc (lit ",")) (LexLeanStd.Numeral::decimal item))) 0x items : Bytes),
+  executable: true
+}
+
+definition{
+  name: findFormById,
+  parameters: [forms : (List Form), target : Bytes],
+  result: (Option Form),
+  body: (prim list_fold (fun [target] (found : (Option Form)) (form : Form) => (match found
+    | Option.some f => found
+    | Option.none => (if (prim equal (project form id) target : Bool) then (ctor Option.some [Form] form) else (ctor Option.none [Form])))) (ctor Option.none [Form]) forms : (Option Form)),
+  executable: true
+}
+
+definition{
+  name: validateOneSelfFormRef,
+  parameters: [
+    forms : (List Form),
+    targetChannel : Nat,
+    channelName : Bytes,
+    selfForm : Bytes,
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: (List (Bytes * Bytes)),
+  body: (match (findFormById forms selfForm)
+    | Option.none => (cons (errD (cat (cat (cat channelName (lit " render references unknown self form ")) (quoted selfForm)) 0x)) diagsIn)
+    | Option.some form => (let d1 : (List (Bytes * Bytes)) := (appendRev diagsIn (if (coversChannel (project form channel) targetChannel) then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (cat channelName (lit " render references self form ")) (quoted selfForm)) (cat (lit ", which is not a ") (cat channelName (lit " form")))))))); (match (LexiconSchema::surfaceSafety (project form atoms) (project form channel))
+      | Option.none => d1
+      | Option.some reason => (appendRev d1 (ctor Option.some [(Bytes * Bytes)] (formUnsafeD (cat (cat (cat (cat (cat channelName (lit " render references self form ")) (quoted selfForm)) (lit " whose surface `")) (project form surface)) (cat (lit "` is not renderer-safe: ") reason)))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: validateSelfFormRefs,
+  parameters: [
+    selfForms : (List Bytes),
+    forms : (List Form),
+    targetChannel : Nat,
+    channelName : Bytes,
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: (List (Bytes * Bytes)),
+  body: (prim list_fold (fun [channelName, forms, targetChannel] (acc : (List (Bytes * Bytes))) (selfForm : Bytes) => (validateOneSelfFormRef forms targetChannel channelName selfForm acc)) diagsIn selfForms : (List (Bytes * Bytes))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+structure{
+  name: RenderStepOut,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: diagsRev, type: (List (Bytes * Bytes))},
+    {name: render, type: (Option LexiconLre::Render)}
+  ]
+}
+
+definition{
+  name: validateOneRender,
+  parameters: [
+    channelName : Bytes,
+    targetChannel : Nat,
+    renderSourceOpt : (Option Bytes),
+    forms : (List Form),
+    maxScopeDepth : Nat,
+    surfaceArity : Nat,
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: RenderStepOut,
+  body: (match renderSourceOpt
+    | Option.none => (record RenderStepOut {diagsRev := diagsIn, render := (ctor Option.none [LexiconLre::Render])})
+    | Option.some src => (match (LexiconLre::parseLre src maxScopeDepth)
+      | Result.error failure => (record RenderStepOut {diagsRev := (appendRev diagsIn (ctor Option.some [(Bytes * Bytes)] (wrapLreFailure channelName failure))), render := (ctor Option.none [LexiconLre::Render])})
+      | Result.ok render => (let nodes : Nat := ((prim length src : Nat) + 2); (let facts : LexiconLre::Facts := (LexiconLre::renderFacts render nodes); (let d1 : (List (Bytes * Bytes)) := (appendRev diagsIn (if (prim equal (natListText (sortNats (project facts slots))) (natListText (rangeUpTo surfaceArity)) : Bool) then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat channelName (lit " render must use every slot 0..")) (cat (LexLeanStd.Numeral::decimal surfaceArity) (lit " exactly once"))))))); (let d2 : (List (Bytes * Bytes)) := (match (project facts scriptError)
+        | Option.none => d1
+        | Option.some problem => (appendRev d1 (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat channelName (lit " render: ")) problem))))); (let d3 : (List (Bytes * Bytes)) := (if (targetChannel =? 0) then (match (project facts mathOnly)
+        | Option.none => d2
+        | Option.some construct => (appendRev d2 (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (lit "text render uses `") construct) (lit "`, a mathematical construct with no text rendering")))))) else d2); (let d4 : (List (Bytes * Bytes)) := (validateSelfFormRefs (project facts selfForms) forms targetChannel channelName d3); (record RenderStepOut {diagsRev := d4, render := (ctor Option.some [LexiconLre::Render] render)}))))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+structure{
+  name: RenderBlockOut,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: diagsRev, type: (List (Bytes * Bytes))},
+    {name: renderMath, type: (Option LexiconLre::Render)},
+    {name: renderText, type: (Option LexiconLre::Render)}
+  ]
+}
+
+definition{
+  name: isSomeBytesOpt,
+  parameters: [o : (Option Bytes)],
+  result: Bool,
+  body: (match o | Option.some x => true | Option.none => false),
+  executable: true
+}
+
+definition{
+  name: validateRenderBlock,
+  parameters: [
+    hasRender : Bool,
+    categoryIdx : Nat,
+    categoryText : Bytes,
+    needsSome : Bool,
+    requiredChannels : (List Nat),
+    renderMathText : (Option Bytes),
+    renderTextText : (Option Bytes),
+    forms : (List Form),
+    maxScopeDepth : Nat,
+    surfaceArity : Nat,
+    frameIdx : Nat,
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: RenderBlockOut,
+  body: (let d1 : (List (Bytes * Bytes)) := (if hasRender then (appendRev diagsIn (if (if (categoryIdx =? 0) then true else (categoryIdx =? 1)) then (ctor Option.some [(Bytes * Bytes)] (errD (lit "structural and grammar entries do not carry render templates"))) else (ctor Option.none [(Bytes * Bytes)]))) else diagsIn); (let hasTextCanonical : Bool := (needsSome && (0 <? (countCanonical forms 0))); (let d2 : (List (Bytes * Bytes)) := (if hasRender then (appendRev d1 (if ((isSomeBytesOpt renderTextText) && ((if (listHasNat requiredChannels 0) then false else true) && (if hasTextCanonical then false else true))) then (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (lit "category `") categoryText) (lit "` has no text canonical form, so a text render does not apply")))) else (ctor Option.none [(Bytes * Bytes)]))) else d1); (let mathStep : RenderStepOut := (validateOneRender (lit "math") 1 renderMathText forms maxScopeDepth surfaceArity d2); (let textStep : RenderStepOut := (validateOneRender (lit "text") 0 renderTextText forms maxScopeDepth surfaceArity (project mathStep diagsRev)); (let needsMathRender : Bool := (if (frameIdx =? 1) then true else (if (frameIdx =? 2) then true else (if (frameIdx =? 3) then true else (frameIdx =? 4)))); (let d3 : (List (Bytes * Bytes)) := (appendRev (project textStep diagsRev) (if (needsMathRender && (match (project mathStep render)
+    | Option.some r => false
+    | Option.none => true)) then (ctor Option.some [(Bytes * Bytes)] (errD (lit "a math frame with surface arguments requires a canonical math render"))) else (ctor Option.none [(Bytes * Bytes)]))); (record RenderBlockOut {diagsRev := d3, renderMath := (project mathStep render), renderText := (project textStep render)})))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: validateCalculation,
+  parameters: [
+    hasCalculation : Bool,
+    calcKind : Bytes,
+    categoryIdx : Nat,
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: ((List (Bytes * Bytes)) * Bool),
+  body: (if (if hasCalculation then false else true) then (diagsIn, false) else (let d1 : (List (Bytes * Bytes)) := (appendRev diagsIn (if (prim equal calcKind (lit "equality") : Bool) then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (lit "language 1.0 ships exactly the equality calculation descriptor"))))); (let d2 : (List (Bytes * Bytes)) := (appendRev d1 (if (categoryIdx =? 15) then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (lit "a calculation descriptor belongs to an infix relation"))))); (d2, true)))),
+  executable: true
+}
+
+definition{
+  name: eliminatorBinderStep,
+  parameters: [state : ((List (Bytes * Bytes)) * (List Bytes)), name : Bytes],
+  result: ((List (Bytes * Bytes)) * (List Bytes)),
+  body: (let isDup : Bool := (listHasBytes (second state) name); (let bad : Bool := (if (LexiconLse::isLseIdentifier name) then isDup else true); ((appendRev (first state) (if bad then (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (lit "invalid or duplicate eliminator binder ") (quoted name)) 0x))) else (ctor Option.none [(Bytes * Bytes)]))), (cons name (second state))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: validateEliminatorBinders,
+  parameters: [names : (List Bytes), diagsIn : (List (Bytes * Bytes))],
+  result: (List (Bytes * Bytes)),
+  body: (first (prim list_fold (fun (state : ((List (Bytes * Bytes)) * (List Bytes))) (name : Bytes) => (eliminatorBinderStep state name)) (diagsIn, (nil Bytes)) names : ((List (Bytes * Bytes)) * (List Bytes)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: qualifiedText,
+  parameters: [package : Bytes, entryName : Bytes],
+  result: Bytes,
+  body: (cat (cat package (lit "::")) entryName),
+  executable: true
+}
+
+structure{
+  name: ConstructorFoldState,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: diagsRev, type: (List (Bytes * Bytes))},
+    {name: constructorsRev, type: (List EliminatorConstructor)},
+    {name: seenQualified, type: (List Bytes)}
+  ]
+}
+
+definition{
+  name: constructorFoldStep,
+  parameters: [state : ConstructorFoldState, raw : RawConstructor],
+  result: ConstructorFoldState,
+  body: (match (LexiconLse::qualifiedId (project raw entry))
+    | Result.error failure => (record ConstructorFoldState {diagsRev := (appendRev (project state diagsRev) (ctor Option.some [(Bytes * Bytes)] (errD (project failure message)))), constructorsRev := (project state constructorsRev), seenQualified := (project state seenQualified)})
+    | Result.ok parts => (let package : Bytes := (first parts); (let entryName : Bytes := (second parts); (let qt : Bytes := (qualifiedText package entryName); (let isDup : Bool := (listHasBytes (project state seenQualified) qt); (let d1 : (List (Bytes * Bytes)) := (appendRev (project state diagsRev) (if isDup then (ctor Option.some [(Bytes * Bytes)] (errD (cat (lit "duplicate eliminator constructor ") (quoted qt)))) else (ctor Option.none [(Bytes * Bytes)]))); (let d2 : (List (Bytes * Bytes)) := (appendRev d1 (if (LexiconSchema::isLeanName (project raw leanName)) then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (cat (quoted (project raw leanName)) (lit " is not a Lean name")))))); (let d3 : (List (Bytes * Bytes)) := (validateEliminatorBinders (project raw fields) d2); (let d4 : (List (Bytes * Bytes)) := (validateEliminatorBinders (project raw inductionHypotheses) d3); (record ConstructorFoldState {diagsRev := d4, constructorsRev := (cons (record EliminatorConstructor {package := package, entry := entryName, leanName := (project raw leanName), fields := (project raw fields), inductionHypotheses := (project raw inductionHypotheses)}) (project state constructorsRev)), seenQualified := (cons qt (project state seenQualified))})))))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+structure{
+  name: EliminatorOut,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: diagsRev, type: (List (Bytes * Bytes))},
+    {name: eliminator, type: (Option Eliminator)}
+  ]
+}
+
+definition{
+  name: validateEliminator,
+  parameters: [
+    rawElim : (Option RawEliminator),
+    signatureSortValued : Bool,
+    entryId : Bytes,
+    diagsIn : (List (Bytes * Bytes))
+  ],
+  result: EliminatorOut,
+  body: (match rawElim
+    | Option.none => (record EliminatorOut {diagsRev := diagsIn, eliminator := (ctor Option.none [Eliminator])})
+    | Option.some re => (let d1 : (List (Bytes * Bytes)) := (appendRev diagsIn (if signatureSortValued then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (quoted entryId) (lit ": an eliminator descriptor belongs to a type entry, whose signature results in a sort")) 0x))))); (let d2 : (List (Bytes * Bytes)) := (appendRev d1 (if (LexiconSchema::isLeanName (project re casesLeanName)) then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (lit "eliminator cases_lean_name ") (quoted (project re casesLeanName))) (lit " is not a Lean name")))))); (let d3 : (List (Bytes * Bytes)) := (appendRev d2 (if (LexiconSchema::isLeanName (project re inductionLeanName)) then (ctor Option.none [(Bytes * Bytes)]) else (ctor Option.some [(Bytes * Bytes)] (errD (cat (cat (lit "eliminator induction_lean_name ") (quoted (project re inductionLeanName))) (lit " is not a Lean name")))))); (let folded : ConstructorFoldState := (prim list_fold (fun (state : ConstructorFoldState) (raw : RawConstructor) => (constructorFoldStep state raw)) (record ConstructorFoldState {diagsRev := d3, constructorsRev := (nil EliminatorConstructor), seenQualified := (nil Bytes)}) (project re constructors) : ConstructorFoldState); (let constructors : (List EliminatorConstructor) := (LexLeanStd.Order::reverseList [EliminatorConstructor] (project folded constructorsRev)); (let d4 : (List (Bytes * Bytes)) := (appendRev (project folded diagsRev) (if ((prim length constructors : Nat) =? 0) then (ctor Option.some [(Bytes * Bytes)] (errD (lit "an eliminator needs at least one constructor"))) else (ctor Option.none [(Bytes * Bytes)]))); (record EliminatorOut {diagsRev := d4, eliminator := (ctor Option.some [Eliminator] (record Eliminator {casesLeanName := (project re casesLeanName), inductionLeanName := (project re inductionLeanName), constructors := constructors}))})))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: parseEntry,
+  parameters: [text : Bytes, isCore : Bool, forbiddenControls : (List Bytes), maxScopeDepth : Nat],
+  result: (Result Entry (List (Bytes * Bytes))),
+  body: (match (TomlRead::tomlParse text)
+    | Option.none => (ctor Result.error [Entry, (List (Bytes * Bytes))] (cons (errD (lit "invalid entry file")) (nil (Bytes * Bytes))))
+    | Option.some doc => (match (extractRaw doc)
+      | Option.none => (ctor Result.error [Entry, (List (Bytes * Bytes))] (cons (errD (lit "invalid entry file")) (nil (Bytes * Bytes))))
+      | Option.some raw => (if (if (prim equal (project raw spec) (lit "lexlean/entry/1") : Bool) then false else true) then (ctor Result.error [Entry, (List (Bytes * Bytes))] (cons ((lit "LLC0103"), (cat (cat (lit "unsupported entry schema ") (quoted (project raw spec))) 0x)) (nil (Bytes * Bytes)))) else (match (LexiconSchema::tokenIndex 0 (project raw category))
+        | Option.none => (ctor Result.error [Entry, (List (Bytes * Bytes))] (cons (errD (cat (quoted (project raw category)) (lit " is not a category"))) (nil (Bytes * Bytes))))
+        | Option.some categoryIdx => (match (LexiconSchema::tokenIndex 1 (project raw frame))
+          | Option.none => (ctor Result.error [Entry, (List (Bytes * Bytes))] (cons (errD (cat (quoted (project raw frame)) (lit " is not a frame"))) (nil (Bytes * Bytes))))
+          | Option.some frameIdx => (let shape : LexiconSchema::Shape := (LexiconSchema::shapeFacts categoryIdx frameIdx (project raw surfaceArity)); (let headerOut : HeaderOut := (validateHeader (project raw id) categoryIdx frameIdx (project raw category) (project raw frame) (project raw surfaceArity) (project raw precedence) (project raw associativity) isCore); (let sigOut : SigOut := (validateSignature (project raw id) (project raw category) (project raw universes) (project raw signature) (project shape hasSignature) (project raw surfaceArity) maxScopeDepth (project headerOut diagsRev)); (let denOut : ((List (Bytes * Bytes)) * Denotation) := (validateDenotation isCore (project raw dKind) (project raw dConstructor) (project raw dModule) (project raw dName) (project raw dComponent) (project raw dValue) maxScopeDepth (project sigOut universes) (project sigOut diagsRev)); (let formsOut : FormsOut := (validateForms (project raw forms) isCore forbiddenControls (first denOut)); (let canonOut : (List (Bytes * Bytes)) := (validateCanonicalForms (project raw category) (project shape needsSome) (project shape requiredChannels) (project formsOut forms) (project formsOut diagsRev)); (let renderOut : RenderBlockOut := (validateRenderBlock (project raw hasRender) categoryIdx (project raw category) (project shape needsSome) (project shape requiredChannels) (project raw renderMath) (project raw renderText) (project formsOut forms) maxScopeDepth (project raw surfaceArity) frameIdx canonOut); (let calcOut : ((List (Bytes * Bytes)) * Bool) := (validateCalculation (project raw hasCalculation) (project raw calcKind) categoryIdx (project renderOut diagsRev)); (let signatureSortValued : Bool := (match (project sigOut signature)
+            | Option.none => false
+            | Option.some sig => (second (LseScopes::outerShape sig (prim length text : Nat)))); (let elimOut : EliminatorOut := (validateEliminator (project raw eliminator) signatureSortValued (project raw id) (first calcOut)); (match (project elimOut diagsRev)
+            | List.cons firstDiag rest => (ctor Result.error [Entry, (List (Bytes * Bytes))] (LexLeanStd.Order::reverseList [(Bytes * Bytes)] (project elimOut diagsRev)))
+            | List.nil => (ctor Result.ok [Entry, (List (Bytes * Bytes))] (record Entry {id := (project raw id), category := categoryIdx, frame := frameIdx, surfaceArity := (project raw surfaceArity), signature := (project sigOut signature), signatureCanonical := (project sigOut signatureCanonical), signatureHash := (project sigOut signatureHash), universes := (project sigOut universes), precedence := (project headerOut precedence), associativity := (project headerOut associativity), denotation := (second denOut), forms := (project formsOut forms), renderMath := (project renderOut renderMath), renderText := (project renderOut renderText), calculation := (second calcOut), eliminator := (project elimOut eliminator)})))))))))))))))))),
+  axioms: [Quot.sound, propext],
+  executable: true,
+  production: {effects: [allocation, overflow, recursion], targets: [rust-std]}
+}
+\end{semanticmodule}
+\end{lexlean}

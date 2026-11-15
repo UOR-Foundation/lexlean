@@ -17,6 +17,21 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- A lexicon entry is source (SPEC.md §13.1 to §13.6): `BS-55`, the module `LexiconEntry`, held
+  to `lexicon::entry::parse_entry` on the compiler's own committed lexicon packages, returning
+  every diagnostic the oracle raises rather than only the first. By the maintainer's decision
+  the bootstrap project's `max_file_bytes` is now 16 MiB, because the root's certificate
+  restates its whole reachable closure once per function.
+- By the maintainer's decision, the bootstrap project's `child_timeout_ms` is now 600,000 (10
+  minutes), raised from 300,000: `parseEntry`'s own certificate (`BS-55`) measured at 230 s to
+  type-check and 208 s to replay on an unloaded machine, and scaling by CI's own measured
+  0.4-2.1x spread against this laptop put it plausibly past 300 s on a slow CI runner.
+- The lexicon closure's `package@version` reference is source (SPEC.md §13.1, §12.2): `BS-54`,
+  the module `PackageRef`, held to `lexicon::package::PackageRef::parse` on the compiler's own
+  `\useglossary` directives and lexicon manifests.
+- The lexicon closure's reader for the TOML subset the compiler's own committed files use
+  (SPEC.md §13.1, §13.2, §12.3) is source: `BS-53`, the module `TomlRead`, held to the `toml`
+  crate on the compiler's own lexicon manifests, entry files, and language bootstrap data.
 - The bootstrap project configures `max_child_output_bytes = 268435456` (SPEC.md
   §17.23, §10.2), by the maintainer's decision: the extraction of its export wrote
   more than the default 33,554,432 bytes on `lean`'s output once the front end's
