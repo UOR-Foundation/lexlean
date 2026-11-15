@@ -36,6 +36,9 @@ workspace carried at those versions without a tag.
   is cited (`LEAN-ARRAY-4-32-2`), not established here. The design and the
   decisions left to the owners are in `docs/proposals/verified-arrays.md`.
   The register is 498 IDs.
+
+## 0.4.3
+
 - A semantic module nests as deeply as the project's `max_scope_depth` allows
   (SPEC.md §17.17, §17.21.3, `SM-12`; no new diagnostic code; no language
   identity moves). The front end read a module's JSON with a fixed 128-level
