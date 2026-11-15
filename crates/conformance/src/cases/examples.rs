@@ -171,7 +171,7 @@ pub(crate) fn run(id: &str) {
         // exactly the one prescribed diagnostic code.
         "EX-07" => {
             let root = support::repo_root();
-            let prescribed: [(&str, &str); 308] = [
+            let prescribed: [(&str, &str); 309] = [
                 ("unknown-word", "LLL1004"),
                 ("unknown-symbol", "LLL1004"),
                 ("unknown-control", "LLL1004"),
@@ -296,6 +296,8 @@ pub(crate) fn run(id: &str) {
                 ("cases-bool-branch-repeated", "LLT4001"),
                 ("cases-bool-branch-binder", "LLT4001"),
                 ("cases-bool-induction", "LLT4001"),
+                // §17.10: `evaluation` fails closed in language 1.1 (`SM-44`).
+                ("evaluation-language-11", "LLT4001"),
                 // §17.11, §17.12: bitwise primitives on Nat fail closed (`SM-42`).
                 ("nat-bitwise-language-11", "LLT4001"),
                 ("nat-bitwise-complement", "LLT4001"),
