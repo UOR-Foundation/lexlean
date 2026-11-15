@@ -857,7 +857,7 @@ pub fn format_int(p0: i64) -> Str {
 
 #[derive(Clone)]
 pub enum Adt0 {
-    C0(Bytes, Bytes, Bytes, List<Bytes>, List<Bytes>, Bytes, Bytes, Bytes, List<Adt1>, List<Adt2>, List<Adt3>, Adt4, Option<Adt5>),
+    C0(Bytes, Bytes, Bytes, List<Bytes>, List<Bytes>, Bytes, Bytes, Bytes, List<Adt1>, List<Adt2>, List<Adt3>, std::rc::Rc<Adt4>, Option<Adt5>),
 }
 
 #[derive(Clone)]
@@ -899,7 +899,7 @@ pub enum Adt7 {
 
 #[derive(Clone)]
 pub enum Adt8 {
-    C0(u32, u32, u32, u32, u32, u32, u32, u32, Adt7, u64),
+    C0(u32, u32, u32, u32, u32, u32, u32, u32, std::rc::Rc<Adt7>, u64),
 }
 
 #[derive(Clone)]
@@ -1202,7 +1202,7 @@ pub fn f2(v0: Adt0) -> R<Bytes> {
         }
     })?), v2), v3), f16(match v0 {
         Adt0::C0(_, _, _, _, _, _, _, _, _, _, _, h14, _) => {
-            h14
+            (*h14).clone()
         }
     })?), v5))
 }
@@ -1881,7 +1881,7 @@ pub fn f35(v0: Adt6, v1: Adt7) -> R<Adt6> {
         Adt6::C0(_, _, _, _, _, _, _, h202) => {
             h202
         }
-    }, v1, 0u64))?;
+    }, std::rc::Rc::new(v1), 0u64))?;
     Ok(Adt6::C0(f55(match v0.clone() {
         Adt6::C0(h203, _, _, _, _, _, _, _) => {
             h203
@@ -2576,7 +2576,7 @@ pub fn f73(v0: Adt8) -> R<Adt8> {
     }), f55(v1, {
         let m359 = match v0.clone() {
             Adt8::C0(_, _, _, _, _, _, _, _, h358, _) => {
-                h358
+                (*h358).clone()
             }
         };
         match m359 {
@@ -2630,11 +2630,11 @@ pub fn f73(v0: Adt8) -> R<Adt8> {
         Adt8::C0(_, _, _, _, _, _, h370, _, _, _) => {
             h370
         }
-    }, f91(match v0.clone() {
+    }, std::rc::Rc::new(f91(match v0.clone() {
         Adt8::C0(_, _, _, _, _, _, _, _, h371, _) => {
-            h371
+            (*h371).clone()
         }
-    }), {
+    })), {
         let a373 = match v0 {
             Adt8::C0(_, _, _, _, _, _, _, _, _, h372) => {
                 h372

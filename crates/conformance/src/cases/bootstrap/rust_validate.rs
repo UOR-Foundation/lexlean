@@ -3065,7 +3065,7 @@ const REFUSED_CORRESPOND: usize = 103;
 const EVALUATOR_CRATES: usize = 221;
 const EVALUATOR_VALIDATE: usize = 460;
 const EVALUATOR_CORRESPOND: usize = 325;
-const SEEDED_REFUSED_VALIDATE: usize = 273;
+const SEEDED_REFUSED_VALIDATE: usize = 275;
 const SEEDED_REFUSED_CORRESPOND: usize = 253;
 
 pub(super) fn case() {
