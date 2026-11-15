@@ -1126,8 +1126,8 @@ fn conformance_vr_23() {
 }
 
 #[test]
-fn conformance_vr_28() {
-    repo_conformance::cases::run("VR-28");
+fn conformance_vr_29() {
+    repo_conformance::cases::run("VR-29");
 }
 
 #[test]

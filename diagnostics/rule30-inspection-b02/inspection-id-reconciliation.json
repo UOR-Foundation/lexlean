@@ -1,0 +1,9 @@
+{
+  "old_id": "VR-28",
+  "current_id": "VR-29",
+  "reservation": "https://github.com/UOR-Foundation/lexlean/pull/482#issuecomment-6843417805",
+  "reason": "VR-28 reserved for existing replay claim; inspection already allocated VR-29 by existing coordination",
+  "historical_receipts": "Preserved under original IDs and source heads; not re-labelled as VR-29 results",
+  "projections": "Official spec replace-block and validate-model --write; validate-spec-links passed487rows",
+  "compiler_adopted": false
+}

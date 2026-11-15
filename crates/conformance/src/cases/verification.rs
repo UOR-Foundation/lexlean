@@ -36,7 +36,7 @@ const LEAN_BACKED: [&str; 14] = [
 ];
 
 pub(crate) fn run(id: &str) {
-    if id == "VR-28" {
+    if id == "VR-29" {
         let project = P::example();
         let (exit, help, errors) = project.cli(&["inspect", "--help"]);
         assert_eq!(exit, 0, "inspection is a public command: {errors}");

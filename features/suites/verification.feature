@@ -2,7 +2,7 @@ Feature: verification
 
   The fixed verification pipeline, replay, axiom audit, and attestations (§22).
 
-  @VR-28 @build
+  @VR-29 @build
   Scenario: Kernel type inspection runs an owned bounded adapter against the pinned local Lean environment, preserves structural names, universe levels and binder visibility, rejects unresolved terms and exhausted traversal budgets, and returns inspection data without a verification attestation or proof-acceptance claim.
     Given the pinned local Lean environment and the embedded typed inspection adapter
     When declarations with universe parameters and implicit binders are inspected
