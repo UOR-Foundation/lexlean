@@ -26,6 +26,20 @@ workspace carried at those versions without a tag.
   `roots.json` among them. A newer push closes an older forward pull request only when its
   branch holds nothing but the workflow's merge and regeneration, and only once the new one
   is open; one with work finished by hand stays open and is linked.
+- `lexlean check` builds and runs on `wasm32-wasip1`, #494 (SPEC.md §8.3,
+  `CL-25`). WASI has no threads, no file lock, and no processes: the check
+  pipeline runs on the instance's stack, a command that changes the project
+  is refused with `LLV7010` before it touches it, and the compiler-semantics
+  digest reads its files on the one thread. A file's identity there is the
+  device and inode WASI reports, read through `rustix`, so `LLC0104` still
+  refuses one file under two names; `fs4` and `same-file` are dependencies of
+  the other targets only. The executable is linked there with the 80 MiB
+  stack the depth plan assumes (`config::WASI_STACK_BYTES`, read by
+  `build.rs` and the plan alike), so deep input is `LLS8002` on WASI too, at a
+  hosted depth of 1,024. Native code is unchanged but
+  for the digest's reader, which reads on the calling thread when no thread
+  can be had. `CL-25` builds the target and compares it with the native
+  executable under Node's `node:wasi`; the register is 494.
 - Breaking security update: replace the single Lean 4.32.1 pin with
   `leanprover/lean4:v4.32.2`, source commit
   `f3b06c705e6c85f5314019d5d3baab0fec5b580c` (SPEC.md §8.2). The
@@ -52,6 +66,16 @@ workspace carried at those versions without a tag.
   Intel jobs only. Such a run never counts as the whole gate for the plan, a
   dispatch or `release-gate.sh`, so a tag's evidence is still one run with
   every host. `RP-14` and `RP-18` pin the new cases.
+
+- `AU-01` reads the committed corpus one module at a time (SPEC.md §9.4). It
+  collected every semantic module of the repository as a value before checking
+  any, and the corpus holds modules of tens of megabytes, so the case alone
+  peaked at 11.2 GiB of resident memory in a debug test process. The
+  `bdd-verification` leg runs it on four test threads beside `AU-08`, `AU-09`
+  and the Lean processes of `NE-01` and the `VR` cases on a 16 GB runner, and
+  the leg intermittently exhausted memory and swap and lost the runner, failing
+  whichever case was running then. The case checks the same modules with the
+  same assertions; each is dropped once checked.
 
 - Canonical JSON refuses duplicate keys that differ only in their escapes (SPEC.md §21.7,
   `AR-11`, #475). The duplicate check compared each key as written, so `{"a":1,"\u0061":2}`
