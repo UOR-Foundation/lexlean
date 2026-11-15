@@ -1,0 +1,26 @@
+check-golden: wrote the runtime transcript (150 labels)
+check-golden: wrote 16 oracle files for collections
+check-golden: wrote 21 oracle files for fold-laws
+check-golden: wrote 32 oracle files for helpdesk
+check-golden: wrote 11 oracle files for higher-order
+check-golden: wrote 6 oracle files for language-1.2
+check-golden: wrote 6 oracle files for list-induction
+check-golden: wrote 47 oracle files for models
+check-golden: wrote 6 oracle files for nat-add-zero
+check-golden: wrote 26 oracle files for peano-arithmetic
+check-golden: wrote 31 oracle files for performance-corpus
+check-golden: wrote 12 oracle files for production
+check-golden: wrote 46 oracle files for production-coverage
+check-golden: wrote 6 oracle files for propositional-logic
+check-golden: wrote 27 oracle files for reasoning
+check-golden: wrote 11 oracle files for recursion
+check-golden: wrote 11 oracle files for recursive-data
+check-golden: wrote 56 oracle files for semantic-1.1
+check-golden: wrote 431 oracle files for uor-atlas
+check-golden: wrote 86 oracle files for compiler
+check-golden: wrote 30 oracle files for stdlib
+check-golden: wrote 6 oracle files for std-models
+check-golden: wrote 6 oracle files for std-reasoning
+check-golden: wrote 55 oracle files for kappa
+check-golden: wrote 58 oracle files for bootstrap
+check-golden: wrote 18 tooling oracle files

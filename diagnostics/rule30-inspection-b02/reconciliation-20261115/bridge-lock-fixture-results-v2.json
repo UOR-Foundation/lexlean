@@ -1,0 +1,1846 @@
+[
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/application-arity/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/application-non-function/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/binder-bool-literal-name/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/binder-capture/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/binder-pattern-constructor-name/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/cases-bool-branch-binder/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/cases-bool-branch-repeated/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/cases-bool-induction/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/cases-bool-missing-branch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/certificate-b-rejected/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/certificate-e-rejected/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/certificate-generation-limit/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/certificate-heartbeat-rejected/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/certificate-rejected/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/certificate-resource-exhausted/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/certificate-size-limit/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/certificates-total-limit/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/collection-duplicate-key/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/collection-fold-type-mismatch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLS8002"
+    ],
+    "exit": 4,
+    "path": "tests/negative/collection-literal-limit/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/collection-noncanonical-key/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/collection-nonliteral-key/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/collection-out-of-range-key/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/collection-unbounded-iteration/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/collection-unordered-key/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLR3001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/cross-version-glossary/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/declaration-lean-name/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLS8002"
+    ],
+    "exit": 4,
+    "path": "tests/negative/eligibility-report-limit/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLS8002"
+    ],
+    "exit": 4,
+    "path": "tests/negative/eligibility-reports-total-limit/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/escaping-closure-in-data/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/escaping-closure-parameter/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/escaping-closure-structure/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/escaping-closure/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/executable-calls-formal/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/extraction-authority-drift/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/extraction-rejected/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/extraction-uncompiled-external/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/gnaf-certificate-malformed/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/gnaf-request-malformed/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/graph-duplicate-edge/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/graph-invalid-reference/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/lambda-capture-extra/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/lambda-capture-missing/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/lambda-type-mismatch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLC0103"
+    ],
+    "exit": 2,
+    "path": "tests/negative/lock-schema-language-mismatch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/lowering-depth-limit/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/lowering-size-limit/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/member-generated-name/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLS8002"
+    ],
+    "exit": 4,
+    "path": "tests/negative/model-artifact-decode-budget/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLR3007"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-artifact-digest-mismatch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLR3008"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-artifact-invalid-utf8/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLR3007"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-artifact-length-mismatch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLR3007"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-artifact-missing/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLS8002"
+    ],
+    "exit": 4,
+    "path": "tests/negative/model-artifact-over-limit/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLR3008"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-artifact-rank-overflow/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLR3008"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-artifact-role-violation/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLR3008"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-artifact-schema-violation/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4006"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-artifact-shape-mismatch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLS8001"
+    ],
+    "exit": 4,
+    "path": "tests/negative/model-artifact-symlink/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLR3007"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-artifact-unconfigured/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4008"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-check-without-validator/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4007"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-composition-forged-junction/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4007"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-composition-missing-junction/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4007"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-composition-type-mismatch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4006"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-contract-realization-mismatch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4006"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-encoder-width-forged/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/model-false-evidence/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-float-descriptor/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4009"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-foreign-evidence/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4009"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-forged-evidence/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4007"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-missing-entry/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-opaque-member/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4006"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-predicate-signature/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4008"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-realization-bypass/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-unregistered-claim/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4008"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-unvalidated-boundary/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4008"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-unvalidated-postcondition/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4009"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-vacuous-claim/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4006"
+    ],
+    "exit": 1,
+    "path": "tests/negative/model-validator-unsound-statement/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/module-name-dotted-first/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/module-name-dotted-last/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/module-name-lean-namespace/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLC0101"
+    ],
+    "exit": 2,
+    "path": "tests/negative/module-prefix-reserved/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLC0101"
+    ],
+    "exit": 2,
+    "path": "tests/negative/module-prefix-shipped-root/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/module-prefix-target-production/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/mutual-group-noncontiguous/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/mutual-label-shared/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/nat-bitwise-complement/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/nat-bitwise-mixed-operands/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/nat-bitwise-production-root/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/nat-bitwise-shift-amount/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/polymorphic-ambiguity/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/polymorphic-recursion/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/preservation-drift/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/production-effect-mismatch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/production-expectation-stale/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/production-formal-only-dependency/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/production-hidden-dependency/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/production-higher-order-escape/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/production-literal-width/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/production-named-type-boundary/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/production-package-name-keyword/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/production-phantom-type-parameter/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/production-polymorphic-root/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/production-request-malformed/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/production-root-not-executable/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/production-root-unknown/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/production-runtime-incompatible-type/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/production-target-unregistered/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/production-unbounded-type/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4005"
+    ],
+    "exit": 1,
+    "path": "tests/negative/production-universe-boundary/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/production-unknown-target/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-accept-bypass-alias/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-accept-bypass-invariant/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-accept-bypass-observation/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-accept-bypass-ref/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-answer-correct-inexact/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-answer-correct-unsorted/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-answer-invariant-without-initial/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-answer-type/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-binder-reserved/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4011"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-budget-not-nat/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-claims-duplicate/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-claims-unsorted/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-conclude-bypass-invariant/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-conclude-bypass-observation/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4011"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-deduplicate-unordered-state/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-duplicate-rule/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLS8002"
+    ],
+    "exit": 4,
+    "path": "tests/negative/reasoning-elaboration-over-limit/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-extract-bypass-alias/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-extract-bypass-branch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-extract-bypass-invariant/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-extract-bypass-reasoner/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-extract-bypass-ref/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/reasoning-false-answer-correct/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/reasoning-false-invariant-answer-correct/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/reasoning-false-observation-answer-correct/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "path": "tests/negative/reasoning-forged-trace/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-formal-rule/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4011"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-forward-without-fuel/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4011"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-frontier-not-nat/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-fuel-bound-inexact/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4011"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-fuel-not-nat/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-generate-claims/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-generate-subject-mismatch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-generate-with-logic/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-generate-with-rules/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4011"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-generate-without-budget/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-generator-type/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/reasoning-inconsistent-verifier/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-initial-inexact/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-initial-without-invariant/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/reasoning-insufficient-fuel/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-interface-rebound/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/reasoning-invalid-rule-application/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-invariant-signature/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-invariant-unpreserved/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-logic-type-parameters/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-no-rules/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/reasoning-nonterminating-rule/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-observation-initial-inexact/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-observation-invariant-signature/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-observation-preserved-inexact/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-observation-type/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-observation-unsorted/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-opaque-member/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-progress-without-ranking/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-ranking-signature/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-reasoner-rule-type-arguments/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-relation-not-definition/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-relation-signature/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-reserved-declaration-name/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-reserved-declaration-namespace/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-bypass-alias/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-bypass-branch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-bypass-generator/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-bypass-guard/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-bypass-iterate/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-bypass-lambda/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-bypass-observe/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-bypass-ref/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-bypass/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-candidates-type/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-conclusion-type/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-foreign-logic/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-guard-type/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-progress-inexact/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-soundness-inexact/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-type-arguments/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rule-unknown-logic/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-rules-without-logic/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-search-accept-bypass-invariant/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-search-step-bypass-invariant/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4011"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-search-without-frontier/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-specification-signature/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4011"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-terminates-without-initial/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4011"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-terminates-without-progress/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4011"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-terminates-without-ranking/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4011"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-terminating-search/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-unknown-rule/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-unknown-verifier/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-unregistered-claim/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-unregistered-strategy/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4012"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-unverified-answer/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-verifier-formal-check/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-verifier-inexact/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-verifier-signature/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-verifier-subject-mismatch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4010"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-verifier-type-mismatch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4011"
+    ],
+    "exit": 1,
+    "path": "tests/negative/reasoning-zero-frontier/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-cyclic-measure/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-evidence-omits-match/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "path": "tests/negative/recursion-false-evidence/project/lexlean.lock",
+    "status": "outside-single-check-scope"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-forged-evidence/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-member-under-lambda/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-missing-case/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-missing-evidence/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-mixed-families/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-mutual-cyclic-measure/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-mutual-disconnected/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-mutual-member-without-call/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-mutual-mixed/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-nondecreasing/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-under-lambda/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-well-founded-reference/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursion-wrong-argument/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursive-constructor-mismatch/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursive-match-foreign-constructor/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursive-mutual-uninhabited/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursive-structure/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursive-type-arguments/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursive-type-forward/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursive-type-nonuniform/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursive-type-positivity/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/recursive-type-uninhabited/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLP2003"
+    ],
+    "exit": 1,
+    "path": "tests/negative/semantic-module-v1-under-1.2/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/term-cases-definition-absent/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/term-cases-definition-repeated/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/term-cases-definitions-unsorted/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/term-cases-empty-definitions/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/term-cases-reserved-name/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/term-cases-scrutinee-not-inductive/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4016"
+    ],
+    "exit": 1,
+    "path": "tests/negative/text-window-zero-capacity/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4013"
+    ],
+    "exit": 1,
+    "path": "tests/negative/tooling-module-in-user-project/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/type-argument-universe/project/lexlean.lock",
+    "status": "passed"
+  },
+  {
+    "codes": [
+      "LLT4001"
+    ],
+    "exit": 1,
+    "path": "tests/negative/type-parameter-capture/project/lexlean.lock",
+    "status": "passed"
+  }
+]

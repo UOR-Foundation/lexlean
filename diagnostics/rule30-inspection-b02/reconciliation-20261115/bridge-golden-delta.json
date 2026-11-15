@@ -1,0 +1,1084 @@
+{
+  "count": 111,
+  "rows": [
+    {
+      "path": "bootstrap/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "9bb02f2c0213f93186b39e7f6ff67a1cdce8d29a8092b2fc6531c67f07b77e69",
+      "after_sha256": "9ebc7aa9225ed7c78468d68dbdcec87d0294609334eb2c204bd25de03c531d2a"
+    },
+    {
+      "path": "bootstrap/expected/build/maps/LexLeanBoot/AxiomOutput.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "6c4f9bab20953fcb691a9088e45125fe5e68c02725b98856ea4bc590acf4d25a",
+      "after_sha256": "77fc86c65c4d395363c98d9b36a6b0a4f74f3c1bdb65cd63277b3b61fd8c8578"
+    },
+    {
+      "path": "bootstrap/expected/build/maps/LexLeanBoot/CalculusCheck.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "9f5413e61d1e0fc79644e9b32246b46ce357493bde524df00cb706c8ed769883",
+      "after_sha256": "c0d293263848493d1dbd3efc6480dc760bac70c3e13c5cd005fb39f8c9a05cc3"
+    },
+    {
+      "path": "bootstrap/expected/build/maps/LexLeanBoot/PrimitiveScan.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "d383c3fdd17705d2923f87198efa628df7e0cc77352ac0628f61046068848381",
+      "after_sha256": "b849f33df827feec3e10b30dcac949198a201c7a8c36f4ac3c72d847f79bdbed"
+    },
+    {
+      "path": "bootstrap/expected/build/maps/LexLeanBoot/RuntimeValidate.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "fd65ebab80f480c81177c983f004a78b687f971c8010827e0d22bb9e55694893",
+      "after_sha256": "56fddbc3fc47d4393c70fdd904dd35e470b8c5d53078f26e8a349fc79e7a5def"
+    },
+    {
+      "path": "bootstrap/expected/build/maps/LexLeanBoot/RustAst.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "23d85d72e60eb7357ee5d3a2aae40aaeba27235f6eab736e763a3492693a7bdb",
+      "after_sha256": "8f832924c6286321a3019896afcc1e29a33ceaf3bbd22c4e39491c2c0ef6893b"
+    },
+    {
+      "path": "bootstrap/expected/build/maps/LexLeanBoot/RustPrint.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "0a9e89227ea589d8f411a451b68b8796be8f0c44e158f508c0a506432de49573",
+      "after_sha256": "116c72ea3ba263292146607a271ec6e8350c2ff421c3ec3120b07c52268b8308"
+    },
+    {
+      "path": "bootstrap/expected/build/maps/LexLeanBoot/RustValidate.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "40a4040a4e832426e429707801365cd565e18a815827e5ecb92353d772af70c9",
+      "after_sha256": "14b4112e1766eb67d8f6f8492995040317c6f5ac991f047535ab409efb71e4b2"
+    },
+    {
+      "path": "bootstrap/expected/build/maps/LexLeanBoot/TokenAudit.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "a02609eaf8ccca52c6f4940ddd3469faa6bd257f8c9777fc3882648c733f14b6",
+      "after_sha256": "c3f8e5e6ad57d3372149cdba228180f3946fb2848fb65882741de505d92a9a5c"
+    },
+    {
+      "path": "bootstrap/expected/build/maps/LexLeanStd/Buffer.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "0ff4704e39277b9961cbee452d97112f1945cfe7e7ca4ad1294ef15f6b40f35b",
+      "after_sha256": "0a7e1e7684d931d12b1c6a90ac8882f0ed58b18f594d243e16e266b49f9d960c"
+    },
+    {
+      "path": "bootstrap/expected/build/maps/LexLeanStd/Text.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "1f77ce89345ff12c8893db73f7a258c0ac5bc1087643b5da05a6c872ca127210",
+      "after_sha256": "0392acfeabf6b36c2d0fa37e6ce125e9750d1c1223fc42ae805c18a1edf78152"
+    },
+    {
+      "path": "compiler/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "1dd2d4c849d4ae07d5a5849d47705a8b8b057f9f5711a3b3e6c9e074ba75e313",
+      "after_sha256": "6f4a78a4a0c825a66e37c525214988ed04f832fc9defe18a25512b727c75605d"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/BudgetOracle.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "f07cf06867fd39c69bdf5de15a37d6d1d1c2428319131c56ba693c5fee678fd7",
+      "after_sha256": "cfdc567e26e07dc9ede2ec5359791c855e9bb6bf144412b66d05b7b49593033b"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/Certification.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "7313b3c4f3ff9ed3a3c16271faa9777fd2b538fcfe39f0a2b4357446130d3cda",
+      "after_sha256": "a5396cfb24aec858d0ac0655d1ef39d4d0de5d0aeb6b048cd309ededf206089b"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/Gnaf.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "1dcc82378494bdd5c0580347f0522606d94d0d38c2ee50523a1ae87a0694cea8",
+      "after_sha256": "2287f6fdfea7c5c870d026b7c0bed5bf922db900e4f30554b5369006cfb0c15d"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/GnafCertificates.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "f8b4f61ea6a571155e8f060cc6f9f4b97be17708cb7d9fc02576be3ead245d3e",
+      "after_sha256": "c176e207655593b0229bbfb4d24b5db2f76dde76d721831571971883898f19d0"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/GnafFixtures.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "4ba3de6e94fe43397d316fc95f62a6493e7e7fdf944a5c57621b181f9a35938f",
+      "after_sha256": "69936302912f6cd5cf286f0765d19b6fa6436b87b87ae57689c625b1ad4feb31"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/GradeOracle.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "944069c77fda72e5915b15883da8040aae3c950674213b947242b6235477b13e",
+      "after_sha256": "a5c1122b516150025470796a0c89906be04a9534c25685c2db6ee98dd7f2a3e7"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "8245f531feff85828312c3c1de5752c1fee83408213f578b287936c94d0035d0",
+      "after_sha256": "d3a0fd9c9f30dac68cb0e76dd220454bed363fce8080c1d4a75581c254ea6bd4"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/PlannerOracle.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "306eed2df58c4c1c9ec8b2064f702ecbd9a6b60170bd2bc3c6bbcdc50db34c10",
+      "after_sha256": "cd6c259834ac8ebf4ad382e3a089eeb496a4dde340b68bfdf43d609ac0b822a0"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/ReasoningFixtures.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "28e567df672681561e778dc2e42a402242c1916a5952e27fab770c656a168650",
+      "after_sha256": "598b9ba2b0395dca65fb4b49247830249b848c5908a7aea5fdb356ebc8fb3f2f"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/ReasoningOracle.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "6e4dfc38cfb1f70f36a2a48ff55f2c428138c5276f959404edcb90e3c21bb2ed",
+      "after_sha256": "49f88c2325a7e0951aef7b091188c41ddf0537cc5a3f0e7a9a8a67f33c683d10"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/RustSemantics.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "d081d8f98f392db80cb5ffe4dff7ffe66cb18d54a850620179bfcbcb6ea23715",
+      "after_sha256": "9361f719249c96cb371a0a9895790ae9affe683194560c28c47798fd3e121a4f"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/RustSyntax.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "8dd09ddac57dc0b5983492be5aca34d10b584b28db4aedda10d24fcc87c689cd",
+      "after_sha256": "75e2caee9b5a7236b9db635aeaadbb03e66fed3cde19fca3125e636f94b7caf0"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/ScreeningOracle.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "8e8294837a39260688c440ab3ebb45d6df10bf25d247cc886bb2ac5246dc210d",
+      "after_sha256": "f0a0533540b4becee991f313d6e354c0824c0db91b6cc12b245f869ec1937eb2"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/TargetFixtures.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "830fa954116959e91226d3f594e3d893e677e9fc44d0a845153b55b13183bf73",
+      "after_sha256": "138f9f1396e5436cd14238c4a6974f439142f84aba5be1106760ba6869da9654"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/TargetOracle.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "ff9edebd8e41dfd886eb443fd990bd72567d48a87daeeb9a77790ea37414a335",
+      "after_sha256": "97e0ae67cc8c29575066f6d27a1df883b7883e017080b5d5d7899c345e1ee03f"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/TargetSemantics.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "8ed0387eff3684e8ed7968703f436a8313dc9fbacc7460f738b7d6cd15ce70ee",
+      "after_sha256": "f35b1b1582cdb041ef6dea60eb6c5e88d8af94fd7db4dcefc14341ad90c1e812"
+    },
+    {
+      "path": "compiler/expected/build/maps/LexLeanTarget/TargetSyntax.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "46ed0349052cbfde60898d7def6cc054974afce6d30cc39705b7050b8dae5d0f",
+      "after_sha256": "9de3b91c49da16e33989f06bc73d800687a61435ef5198a008ae06cbd785d57f"
+    },
+    {
+      "path": "examples/collections/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "7e373c6a8f8d5b002dc94c167c99ac438228d9dbb0240ae8d1711297c13fcc6e",
+      "after_sha256": "8bb3c5f39ae5b7149ab10c6c26911c736101d81e2c161fbdf116d039be5ac73d"
+    },
+    {
+      "path": "examples/collections/expected/build/maps/Collections/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "f52fb10de85b5378e3fce2020c3800dfe95d97df144505f5142dbd9072de6384",
+      "after_sha256": "181a42cdc6c88de0c50f6b3e2d60b9481b6ac3e83a072e3476f6b74deb52f71b"
+    },
+    {
+      "path": "examples/collections/expected/build/maps/Collections/Measure.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "037cc482729d74fe39deec639d2668348f962a195f0928982c0e40fcf1aa3924",
+      "after_sha256": "007c2cd7c8198a49412d99a75ec62583f7e6e6afc57e1ce21ce20c87ebb9f1df"
+    },
+    {
+      "path": "examples/collections/expected/build/maps/Collections/Tables.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "8f8a55da1b21911ac829ed1e246638d07a1d1d1cd4e1133ea5a193ce2548aa12",
+      "after_sha256": "504639175144866a364dd8348c43be6c24d3639165471b1df46d02e185a06096"
+    },
+    {
+      "path": "examples/fold-laws/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "1713c6a4b23c306fccd97cf01b7ceba9a9980fac16c24987f3cbcdfbf23d0bc0",
+      "after_sha256": "49bd3b7e3a74b91718b629ee7add7415645a628d9fee6509eee73340bb56549c"
+    },
+    {
+      "path": "examples/fold-laws/expected/build/maps/FoldLaws/Folds.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "5820cabedcd79ead7e5dee5b2a4d264bfb50614f3da924e58dc8df6abd0272f5",
+      "after_sha256": "3bb9632a43d1f383391317f2a7e4d70ce3fc0345b1621c20d0383bdc2c64a7a6"
+    },
+    {
+      "path": "examples/fold-laws/expected/build/maps/FoldLaws/Guards.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "94e71efc40232b835e266d06729379cf6341734e9c4e9e54049cd0eb68d16f65",
+      "after_sha256": "89bec362a9e405d729d03373187095ea579d95f22489cf158b2e1a5b5973e887"
+    },
+    {
+      "path": "examples/fold-laws/expected/build/maps/FoldLaws/Kernels.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "6907d83461583c536a41a3a8da760aa96b6234360a535f21205177b12310d5aa",
+      "after_sha256": "c63ea813f9149db2152c6bfade6ceb2bdaf31b4c78445ec4941be872dfa15625"
+    },
+    {
+      "path": "examples/fold-laws/expected/build/maps/FoldLaws/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "302559ccee21ae2d215cf3ba379a08615bc5ace3d1d83bec1d22c79b9af9b34f",
+      "after_sha256": "2641b47f4023feced2a987e5653831dcd4f90dfbd15dd4cc5b2eb3a63c1d695f"
+    },
+    {
+      "path": "examples/helpdesk/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "5c0d48c09561b67b7f69d0888274b4c21678617dcca32a3b209b82508346c385",
+      "after_sha256": "12c05f136b51e34a24d46e2db0da26a3ec17ffb3aa757f973e5d538854e7a082"
+    },
+    {
+      "path": "examples/helpdesk/expected/build/maps/Helpdesk/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "a17ba6f0b992f75042f859afd4f21833d82a2cf91bde871160c5f53225cc6b7c",
+      "after_sha256": "9fbccca366e5620326b68cbe52ea9eda16082caa96e2f0146d3fe6de81f56df4"
+    },
+    {
+      "path": "examples/helpdesk/expected/build/maps/Helpdesk/Reply.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "dc0fabb5184d6799d512727b64461e5f11c45569614b8630416162c71a582712",
+      "after_sha256": "10fa004bc4644f71636ccd6fcd0d9ce7e458563352473b12d9fb89bd6b36d711"
+    },
+    {
+      "path": "examples/helpdesk/expected/build/maps/Helpdesk/Router.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "f256e10694417f45a6aa2f57cdba8131c2ae266eea47477629d6f3606da92160",
+      "after_sha256": "2222b9d10aa9df36a9b471002af32d61653a7c0f1efac9876ccdfd04d6f71af9"
+    },
+    {
+      "path": "examples/helpdesk/expected/build/maps/LexLeanStd/Text.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "9e55a557af5f5fde3aed8a2a4213856136e33cdf28f9db9f25c1b9cf1bdffa65",
+      "after_sha256": "9493de62de72c12d321574081291a9883f088bc3490231bde5018bcbadc63750"
+    },
+    {
+      "path": "examples/helpdesk/expected/build/maps/LexLeanStdModels/Scores.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "f4f7a3d2fd7491ef05eadab1aff462f4bc2def6b4d41034f63e6871d48a3939c",
+      "after_sha256": "7c9ff06cd016a8550b856260d69c0dc18705d2cf447ffdddb266cc4c37137d5c"
+    },
+    {
+      "path": "examples/helpdesk/expected/build/maps/LexLeanStdReasoning/Worklist.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "b9c194c508f481dc826492e461b73ab4a7360fedf5decb30a39b88f5a2bbcf8d",
+      "after_sha256": "b2395200d42657fc6a0a47c8248a9fd999c6073a3958971535fad76ec03562fb"
+    },
+    {
+      "path": "examples/higher-order/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "0aace122555bdc298a748d9cd062507255c594076639ece744efb6c9c80d7ee0",
+      "after_sha256": "e39e43ab30875456124ca55d5c91297d70d9a6b66cd7042fed5d3aab3df37ed0"
+    },
+    {
+      "path": "examples/higher-order/expected/build/maps/HigherOrder/Combinators.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "80382fe5d9a1c5979fd887ddbbd75686c2e87d9ac81cee9e6e437e51fa978f8e",
+      "after_sha256": "760b44a3492e826d9449c90112e7e7ac21df2c49fd4f6bcfd77fbcaf74a3741d"
+    },
+    {
+      "path": "examples/higher-order/expected/build/maps/HigherOrder/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "c60ad05065fd5830d12f723a57e68a216c937d030dfbcb44938e689ae6f75881",
+      "after_sha256": "bdd80dfcaef35bd36145e8efad05d4198d555ef9639ddc1c4a969ebfbfb062dc"
+    },
+    {
+      "path": "examples/language-1.2/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "ad75375ef2db389a464997a1fbb173d989372097d6cf4146f88a8c13e8e4bf78",
+      "after_sha256": "baab1b8e7cfd470d1658c5b1b21a8b7418be2f2300a451e4be29ec11b99e9e7a"
+    },
+    {
+      "path": "examples/language-1.2/expected/build/maps/LanguageTwelve/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "b089c0c862b749279644d294b567b0a59ee78ff2b0d8602561efd09ec7e25312",
+      "after_sha256": "4606178c7570a24bb0c985ec685fa4be13893982799400506be3a8a6a3e2867c"
+    },
+    {
+      "path": "examples/models/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "a52d82d54a8a1156cdd6dc71e420fdea0bde0a4fa66dd565b73d176dfb4f7af2",
+      "after_sha256": "a79227d26ee2e5bf89a93611d05be93429334dab0f876a487c97efaa11d65bb1"
+    },
+    {
+      "path": "examples/models/expected/build/maps/Models/Flows.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "95a2eebfb3044107e171db297b3238983ee41c05aaad6f7aa31eb642d75d7cda",
+      "after_sha256": "c5ff30091a1f0a8d24a20c706211f81f85773c1c759e25f5f9664d8405074c53"
+    },
+    {
+      "path": "examples/models/expected/build/maps/Models/Glyphs.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "dab361bab5dd2c1246bd7e1ab9c1c36edbeb3073a18db4eddc5b22b39de2eba9",
+      "after_sha256": "ea32079e1668b823978088197b03aae4192f4a0795edd6a7da68f6f57bf14695"
+    },
+    {
+      "path": "examples/models/expected/build/maps/Models/Ledger.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "5e580fb20923108c4d2512dd4fdb1e2421e9df829566b7f3c0138c0b2d748e6d",
+      "after_sha256": "30bfe45bfe91ea478fc264f8731530763cf7febec1e3f9835562dff36c12c37f"
+    },
+    {
+      "path": "examples/models/expected/build/maps/Models/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "e42725ab2dd0a6d0d53829d21e136b0dc0c551df590d8f4878d21d8f567e3474",
+      "after_sha256": "4837d1594be9e36442bc6af68425bc8f09dce0131fca7ecf74047d14d499bacc"
+    },
+    {
+      "path": "examples/models/expected/build/maps/Models/Pipeline.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "9c81f49af497f3420722a1397f239ede55bcc6f01f14d1c296a6388a913a35f0",
+      "after_sha256": "bb3751ff85cee444c3beb74e1d097508082b705d7152653965fbca4bd56d61af"
+    },
+    {
+      "path": "examples/models/expected/build/maps/Models/Policy.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "3f7bf15046b02783e7bc428f545ee11f1c27d26d7e08831e3c5ede2d073d81a6",
+      "after_sha256": "6b6685aeb1bbe7c487fe646f40269e6103ce7b752d9b63ef059f77d966adeb25"
+    },
+    {
+      "path": "examples/models/expected/build/maps/Models/Recognizer.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "57bd86ca904fad747bf46d7cdb4e1f84615b07b8d68a10c3463f6498eecadb34",
+      "after_sha256": "8afa796bf608b9598a0cc530b52f4738af0934889a57e7f5e2cbd09aa1c80dd2"
+    },
+    {
+      "path": "examples/models/expected/build/maps/Models/Session.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "4f65adfb6d2a8294c83e5c541b86f97e6c4206e6ae731805198ca95c7d630b29",
+      "after_sha256": "f5512bc83e8e63d07554d14843e2f50222bba2648ac93a3a11d35e2ced89eecb"
+    },
+    {
+      "path": "examples/models/expected/build/maps/Models/Triage.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "484b75fdb1e0cf9178eeeaba33d4fe591cb8e73f2576c4278900cd23f487e91e",
+      "after_sha256": "e65ad805fd98a2140816b53d3a2a658a322bed38bbaef682c73043023a2ef468"
+    },
+    {
+      "path": "examples/performance-corpus/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "88a4f689393e5e87ef4ae08343f9e4314732f1d6f61db618672c03d6ce5e4417",
+      "after_sha256": "f1809debdaadea90d91b1aae3644dcdbafbec3b48f0739fd5e7c1b36b0e0dc43"
+    },
+    {
+      "path": "examples/performance-corpus/expected/build/maps/Corpus/ByteParse.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "642ec90cb08de3d28b7bf721bb5655a0426f26513ef3f2ed0f7648a81f5063dc",
+      "after_sha256": "202201eecac1304a8d1d95b64f24c6c3215305191f70681730a4a52a7cc89957"
+    },
+    {
+      "path": "examples/performance-corpus/expected/build/maps/Corpus/IntKernels.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "6b00b442e009fe3d3b01b29d17ed9a1beba49510222eab14e03a3697cc36b9ca",
+      "after_sha256": "4abb973fa5c59b81c3589b27ad8c0a841af7dd5f47ad4c33a3a9434a231bc543"
+    },
+    {
+      "path": "examples/performance-corpus/expected/build/maps/Corpus/LongFolds.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "55dc273984717838f4ac8332faa73ce992e4ff6ec6557121a0852b81bb1bdabf",
+      "after_sha256": "c0552b6d8a449d042bcfa0c19a5bd4abff3adbae9e4fd257aa2e44dd7412b0b5"
+    },
+    {
+      "path": "examples/performance-corpus/expected/build/maps/Corpus/MapsSets.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "05e829b1bb1d9396717ae90b9cc18244494fa8e0b95adeb7d1874fff3268cb5e",
+      "after_sha256": "14af0054fefef75d10e65129e43b22ccd13bec12a97605c636411e28f10f570a"
+    },
+    {
+      "path": "examples/performance-corpus/expected/build/maps/Corpus/Recursion.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "ea07c4aef00794174c03289a1cdbf63ad8ea22d240690ced973977d30004975d",
+      "after_sha256": "c1a941820cecbb7cf3ffa28ec262de06b9deadbec4958fda78b5bb07cfdecf4f"
+    },
+    {
+      "path": "examples/production-coverage/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "2f17eb98c8491bc11e0ce54f4b02bcd12a1341d1a5d5248f8fdacdb967dc7366",
+      "after_sha256": "5a4be4fb69379f0b97fc76942f6510dce694734971484daa849eeb46a6786aa8"
+    },
+    {
+      "path": "examples/production-coverage/expected/build/maps/Coverage/Boundary.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "3286f80714c43855463e46d1adb379b6d376018c21c7d30c361afe5c8b3a7dd2",
+      "after_sha256": "a58b259c461dd524de86b6ced473e29b9d0963c084ad4ae14c5ad84ebf7209df"
+    },
+    {
+      "path": "examples/production-coverage/expected/build/maps/Coverage/Colls.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "ab5647435d46f7fe1863b7bad442432c664888377bc2955d5133114b6fab54ea",
+      "after_sha256": "16a024e18b1df801de48951eedadfd5d5985011b280db3c433d9b3a53dfff58a"
+    },
+    {
+      "path": "examples/production-coverage/expected/build/maps/Coverage/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "e9fee459e979146e25cf0a4f7a378df68397ea4c0e95dd5e4fa15a394e667ef8",
+      "after_sha256": "6ee987de6430dc73604ecd420e8d1cd7e46616bb9d723854dcce8d83c87bd436"
+    },
+    {
+      "path": "examples/production-coverage/expected/build/maps/Coverage/Prims.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "5b1a4887a90147b637b8c955ffb9b37b93f2143476eb6818d28713ddf45ca925",
+      "after_sha256": "4c52505e178b156d41a793d9e22222a263b71e6b9681199e6e6cf4245b69fcaf"
+    },
+    {
+      "path": "examples/production-coverage/expected/build/maps/Coverage/RecRoots.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "2ee665599ba3b97cf563dde20e8ad4e054bd2cd113af451582991dc8bcefc862",
+      "after_sha256": "36927460ab2a5009eba2cc769385e887f18f32954c360dfaa100a506d4f4e18d"
+    },
+    {
+      "path": "examples/production-coverage/expected/build/maps/Coverage/Recur.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "0d4ad588f33e6b4f3d19b1640b067cd107a5303b7e184a4c00946deddf434ede",
+      "after_sha256": "eec1bb9ec7c2dd79ecb35718ca0486c6349b542f5140f25aaaa9a338ec5de792"
+    },
+    {
+      "path": "examples/production-coverage/expected/build/maps/Coverage/Syntax.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "4f018298df562c0558ef7eb5c9976914fad196d7cc91cde48c75fa857f23af79",
+      "after_sha256": "611d3e3331afe44b16f1f520b1278288286243adcb64e33e9b61d3ef635a160d"
+    },
+    {
+      "path": "examples/production-coverage/expected/build/maps/Coverage/Types.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "01ee596684af03e2a2bff65947c69f08b07a703c5e18cafc90168b93608f3063",
+      "after_sha256": "c325702c8b5b4898288c54a719345e2bef7987c1ef4d65710dee59351dbb2fab"
+    },
+    {
+      "path": "examples/production/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "678971f66b0e28bab99ff5cb74e56dcb322edee7feef08336ddad9d0d06fb60c",
+      "after_sha256": "00d1fef8712eb17f6073bc8f177ec7ca19173f9205a39e29d3bd2c618164b317"
+    },
+    {
+      "path": "examples/production/expected/build/maps/Production/Kernel.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "35c5f5d2cc9032b35919a5598003efc01955919ebbc2a83d520414666fae46ef",
+      "after_sha256": "dd772b6bf717f87ddfc2a7c84a393ac04cb57c8647e666fe3f85032d5b2bb08c"
+    },
+    {
+      "path": "examples/production/expected/build/maps/Production/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "26016d749f23065e1e1d4c4c2ce4dfa9029c3adb05726f6228a1b4eec958861b",
+      "after_sha256": "572c45b538685858523c595796b16ea289f5f6d7ece5c3421d8f4f2b4b830f44"
+    },
+    {
+      "path": "examples/reasoning/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "43915f33576ccb1119bc1f41601c59ae6939d046de16a5d049ae54f972436ae4",
+      "after_sha256": "456c86a28ed9ee8937674459d976c42dd5f10f2f22203303e0e6184734fe1324"
+    },
+    {
+      "path": "examples/reasoning/expected/build/maps/Reasoning/Budget.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "2ea2a490e04f9734b9102625d2a671aeac469d835f048d5a4789b2cd1adb65d6",
+      "after_sha256": "6bf64f2a10b32fc82cc27daba4c7f39105fd6217b066e42767cf7957b05dd9cb"
+    },
+    {
+      "path": "examples/reasoning/expected/build/maps/Reasoning/Clinic.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "40fd7b70915be268b54217c0dcfc84f10fab5287b81c6f1bbf57bba7de689886",
+      "after_sha256": "a1e566d15e3d5e4c947d385695bef090eb43a3ed0fac1b1737182864b69f8e94"
+    },
+    {
+      "path": "examples/reasoning/expected/build/maps/Reasoning/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "0c5c5b10f32e007862e2b71409c69887e9b81b8b373916e363dedaec9ae3d5d7",
+      "after_sha256": "675e38f96b26630ad28a648c65262aad4b5901539a51d5013a44f09d3f935033"
+    },
+    {
+      "path": "examples/reasoning/expected/build/maps/Reasoning/Planner.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "16b0f5d572f3a89a89863e62e15b50a88a15d55edc13984b59950b83fba224ec",
+      "after_sha256": "8d088fbc3e3f375bfc0538593a49ed32d5a8514f10f9a20d3390b40f8f697f8b"
+    },
+    {
+      "path": "examples/reasoning/expected/build/maps/Reasoning/Screening.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "1357a176d1cde6bed65f281bb7a4144f5f23111314d9d80126d4ffa6528abd5f",
+      "after_sha256": "bd9ecd0bdf522520cbcc76378c8ff726386b76cc0e8686e89724a305c0a71614"
+    },
+    {
+      "path": "examples/recursion/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "90341f0206dce390ce024c85b2b832aa0b3893d75fbcae446c02b9d1963d3e34",
+      "after_sha256": "93a49eb35fff9aaea167218ed5f73caeae24595bd2451d5fd98c00012c90c874"
+    },
+    {
+      "path": "examples/recursion/expected/build/maps/Recursion/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "1ca14364effd11428be100b52e04b37d68b67723c31fc857b682506a85ecf48f",
+      "after_sha256": "a7671d2c924debed7a02ef7f457eed194cd726ca48056e3238fc20505bc645e0"
+    },
+    {
+      "path": "examples/recursion/expected/build/maps/Recursion/Syntax.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "1b9f2058902fa927116e0889feaf9998985a18a01ff629a7c27c692517fb5044",
+      "after_sha256": "7f78a6470e746df68e2d6488adf2d70384eb0a207934b191354a1413179cebaa"
+    },
+    {
+      "path": "examples/recursive-data/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "46ed1c7f6063067c1e373ffc1e78e3e7e8257484d4d2f2979a1eb2bdc2e07ebc",
+      "after_sha256": "75cf7e97c7352c4765edc3508b375154a3eac192a082be553ce393ab38b309ab"
+    },
+    {
+      "path": "examples/recursive-data/expected/build/maps/RecursiveData/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "b157e9ef3d1c8e1d0e2463c100ad061d5543bc0c9d36997e996e1ff07e4bb6de",
+      "after_sha256": "343f2a30bd5d0084001763a8d8c4fb6899374cdb10923139a5b8e17f83d3c18d"
+    },
+    {
+      "path": "examples/recursive-data/expected/build/maps/RecursiveData/Types.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "a9d70f3940f252158106b9efd522720f433c3527f125c923018d030f8a4fef6f",
+      "after_sha256": "e954c94649ede4252a6d63057eae24035d5119c98e43540f3fcc834ee9050d8b"
+    },
+    {
+      "path": "kappa/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "e96739771f05fab69f09d310e2d9f41473cee591570f4c7d1ff7b73b3a00e608",
+      "after_sha256": "de390e47dfb2e9a375f2d4cedf1de7c968c37a68b2c7d9ff3109e7f8d0796f1f"
+    },
+    {
+      "path": "kappa/expected/build/maps/LexLeanKappa/Axis.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "a74c6a24e3ed736f931c52a1c24ea5c13bd0327c3121cecda18b2ea6b19631c0",
+      "after_sha256": "068317dd4724be2dc72c5d0adfb7e83a90ad548b46414432f16b53b07c624ec8"
+    },
+    {
+      "path": "kappa/expected/build/maps/LexLeanKappa/Blake3.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "6e32767e1e1c2f2713e2de65f541a01f446bbffdd0652bf79b935895b74d63dc",
+      "after_sha256": "4ea8bb5d41030fd3b9fc92594e0648b8a0940c889ae5bed874cbd6e25b63e0db"
+    },
+    {
+      "path": "kappa/expected/build/maps/LexLeanKappa/Compose.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "6508a4738ab82f345f1e5f9cf151e83cc3840be82c93974ad129e20407352afc",
+      "after_sha256": "85c1dd6bfa84910038e9be8580d4bc4894c1872275d3f45a4c5cfd056d073335"
+    },
+    {
+      "path": "kappa/expected/build/maps/LexLeanKappa/Json.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "c43d7817bf8c3c905738de3803b7e89db2b47aa730c89ebcb790a1363983ca16",
+      "after_sha256": "c0073019d3f7111d371acd69b3fc41f93f6ce299c21ebee31a9663928fc13550"
+    },
+    {
+      "path": "kappa/expected/build/maps/LexLeanKappa/Keccak.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "91685e4d7e70af3ef5753dae55999f4863ceed1fb4da1891758d2fe7abb5624e",
+      "after_sha256": "72ca40b55b23ac998ea9fcea37965d8014c4f52d6e28c9ad510ebd9ae6c37e81"
+    },
+    {
+      "path": "kappa/expected/build/maps/LexLeanKappa/Label.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "6698074b2109d1b39368bfe239137d3c309e414cbcded19f3ca80ba67678b12d",
+      "after_sha256": "66dea394c79eaacf575be15ffef24534d9b4cd5a1585b8b8d0de6b93d699ef60"
+    },
+    {
+      "path": "kappa/expected/build/maps/LexLeanKappa/Sha512.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "baf51d5d1bc7e11e2434a7c4e729c2d9f575b82a14d01858bae653be243ea6fa",
+      "after_sha256": "1d6f195591b97d0bc8487bc90ba688e5654edbf8b8eb854cecdc8b0807984e44"
+    },
+    {
+      "path": "kappa/expected/build/maps/LexLeanKappa/Word.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "e7f70f85f23e7424c0cb040399c009d7fdc78317c288b6ad2063d760d15f2ce1",
+      "after_sha256": "7ee0991ac8ac92bf7050c8f290fcbe26aa281eb76b6e38db8d78a0b70d151682"
+    },
+    {
+      "path": "kappa/expected/build/maps/LexLeanStd/Sha256.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "7bfb1e8bfbd05b5fdd95a4b5ea3f1e9ea349234b6dd1544d2219899a1fb95aec",
+      "after_sha256": "f1e68305c1a7821baff8eea4677cbc7df726e525e599579a88eb76cd40064b79"
+    },
+    {
+      "path": "kappa/expected/build/maps/LexLeanStd/Text.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "e404d4bc6d7eb177a2d446efb7deee24bc3c1aa0f80810c0793270d469b3b7aa",
+      "after_sha256": "4cf3fa51567f0949bb6bdc305f596af0742a0fed60b1f72e0530d90a5470c270"
+    },
+    {
+      "path": "std-models/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "d366b1e3ef840b0b06033fe7ad044ec610f12986a088c5cab19d126e48255b53",
+      "after_sha256": "a125561fd8894456dd80419a71ac085dfdb8a0d83d3527bc157ae3efd378318f"
+    },
+    {
+      "path": "std-models/expected/build/maps/LexLeanStdModels/Scores.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "5bcc6a6ebf64377143463a16efae066d6ff19acfb3f323abec359274faa8b007",
+      "after_sha256": "4416236da9b3039fee5dbd4aa160948b30ef61c57f09c2595e01541240332b1d"
+    },
+    {
+      "path": "std-reasoning/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "4aed3009cf31c85d9dd8fd67b5449ada0606e07fdf3cc0e786537246e66fb744",
+      "after_sha256": "cba5e4f042c76f327bbd5388fa9644b28a0170586ddd32006fa54598c2f72ed7"
+    },
+    {
+      "path": "std-reasoning/expected/build/maps/LexLeanStdReasoning/Worklist.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "44a85988a81ef1203581323ab346f0478227275440c194a409ac206058c95df3",
+      "after_sha256": "fb39639625ddda23e8908f7793209cdd6f51b3480b8ba96bd2158a0eecaaa66c"
+    },
+    {
+      "path": "stdlib/expected/build/manifest.json",
+      "changed_keys": [
+        "/build_id",
+        "/compiler/semantics_id",
+        "/inputs/*/sha256",
+        "/outputs/*/sha256",
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "7abff6fa840a89756b576a20794f5b710f54ab43b0686926484054fcd0965ba9",
+      "after_sha256": "e4e73c34aeeb59fe74ee44ea9578b88d1d736e06dadaf4303951dcb14778d4f8"
+    },
+    {
+      "path": "stdlib/expected/build/maps/LexLeanStd/Buffer.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "13e3386a7470b95f641ec0e8a05e929dca1d861d0b690b0ace3d1455e305bd51",
+      "after_sha256": "02764d56867b46426fbe3a10fb9dab5b8714964c32dc0e51493b43dfb991eda2"
+    },
+    {
+      "path": "stdlib/expected/build/maps/LexLeanStd/Host.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "fa425b2c80eebf6b555fdb707021d3882e917d16aaee134587b4b9fecc6b6b47",
+      "after_sha256": "bf66ecb5d5f25972d98da3303e4d0203459bdc85d89ca9be14733e4dafff4fa2"
+    },
+    {
+      "path": "stdlib/expected/build/maps/LexLeanStd/Sha256.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "70b7e9b503a02c05eff13509f836392c7c5eabce6799c8dbc4eddb20b2c3d3eb",
+      "after_sha256": "f020c33ac6dab7075c783b7dbb582731b124fa249914401e1e0f7f449549c45d"
+    },
+    {
+      "path": "stdlib/expected/build/maps/LexLeanStd/Target.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "63a6d3f7ef4dcdaf0e29753c17dd7692325a4657f41a212743c331542168fa8a",
+      "after_sha256": "441e74263c81ed14d3902f8b19c8d44ab712ff2ebdde44f26688a8a2fea7abda"
+    },
+    {
+      "path": "stdlib/expected/build/maps/LexLeanStd/Text.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ],
+      "before_sha256": "59d8c884815d0141d480e078ad422f4f2f08229a40e13733c09cbaecd69b35db",
+      "after_sha256": "d4e13632828088ca36a41d77bc706bbdbd5625e7d11bc513aadffdc6c8c0008c"
+    }
+  ],
+  "changed_field_counts": {
+    "/build_id": 18,
+    "/source_id": 111,
+    "/semantic_id": 111,
+    "/compiler/semantics_id": 18,
+    "/outputs/*/sha256": 93,
+    "/inputs/*/sha256": 18
+  }
+}

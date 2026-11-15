@@ -1,0 +1,15 @@
+{
+  "source_before": "2d911b405",
+  "command": [
+    "timeout",
+    "--kill-after=10s",
+    "600s",
+    "/workspace/lexlean-bridge-target/debug/xtask",
+    "check-golden",
+    "--write"
+  ],
+  "executable_sha256": "0e1eecb7d09017a6096e29d5b0c4a567579ce3a063441366d3ab2618ce848f43",
+  "exit": 0,
+  "elapsed_seconds": 75.15301879299932,
+  "max_rss_kib": 4640932
+}

@@ -1,0 +1,2332 @@
+{
+  "generated_count": 722,
+  "changed_count": 357,
+  "deltas": [
+    {
+      "path": "compiler/rust/negative/arithmetic-invented-overflow.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/arithmetic-undeclared-overflow.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/export-arity.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/hidden-allocation-list.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/hidden-allocation-recursive-type.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/identifier-exported-twice.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/identifier-generated.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/identifier-keyword.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/identifier-not-snake-case.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/identifier-reserved-crate.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/identifier-runtime-function.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/identifier-runtime-item.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/malformed-unknown-member.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/ownership-copy-list.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/unsupported-function-boundary.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/unsupported-function-in-record.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/unsupported-uninhabited-value.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/version-noncanonical.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/negative/version-overflow.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/boolean-shapes/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/boolean-shapes/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/closure-captures/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/closure-captures/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/closure-inline/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/closure-inline/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/closure-uninhabited/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/closure-uninhabited/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/convert/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/convert/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fallible-condition-value/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fallible-condition-value/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-i16/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-i16/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-i32/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-i32/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-i64/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-i64/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-i8/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-i8/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-u16/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-u16/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-u32/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-u32/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-u64/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-u64/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-u8-passing/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-u8-passing/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-u8/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/fixed-width-u8/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/function-shapes/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/function-shapes/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/int-overflow-mul/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/int-overflow-mul/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/int-overflow-neg/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/int-overflow-neg/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/int-overflow-quot/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/int-overflow-quot/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/int-overflow-sub/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/int-overflow-sub/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/iterate-until-bounded/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/iterate-until-bounded/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/iterate-until/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/iterate-until/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/iterate/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/iterate/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/match-shapes/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/match-shapes/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/nat-overflow-add/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/nat-overflow-add/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/nat-overflow-mul/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/nat-overflow-mul/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/nat-overflow-nested/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/nat-overflow-nested/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/nat-overflow-succ/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/nat-overflow-succ/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-gnaf-goal/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-gnaf-goal/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-gnaf-priority/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-gnaf-priority/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-gnaf-sweep/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-gnaf-sweep/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-grade-shock/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-grade-shock/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-grade-well/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-grade-well/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-review-exhausted/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-review-exhausted/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-review-rejected/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-review-rejected/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-triage-shock/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-triage-shock/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-triage-well/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/reasoning-triage-well/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/record-fields/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/record-fields/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/sum-to-exhausted/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/sum-to-exhausted/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/sum-to/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/sum-to/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/unit-closures/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/unit-closures/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/unit-values/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/unit-values/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/wide-shapes/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-core/wide-shapes/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/adt-evaluation/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/adt-evaluation/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/binding-and-shapes/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/binding-and-shapes/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/boolean-shapes/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/boolean-shapes/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/booleans/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/booleans/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/boxed-field/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/boxed-field/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/byte-compare/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/byte-compare/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/byte-order/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/byte-order/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/byte-slices/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/byte-slices/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/bytes-and-text/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/bytes-and-text/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/closure-captures/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/closure-captures/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/closure-dispatch/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/closure-dispatch/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/closure-inline/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/closure-inline/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/closure-recursive/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/closure-recursive/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/closure-uninhabited/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/closure-uninhabited/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/closures/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/closures/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/convert/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/convert/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/decimal-overflow-wide/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/decimal-overflow-wide/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/decimal-overflow/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/decimal-overflow/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/decimal/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/decimal/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/equality/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/equality/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fallible-condition-value/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fallible-condition-value/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-bits-signed/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-bits-signed/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-bits-unsigned/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-bits-unsigned/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-checked-narrow/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-checked-narrow/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-checked-signed/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-checked-signed/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-checked-wide/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-checked-wide/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-i16/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-i16/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-i32/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-i32/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-i64/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-i64/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-i8/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-i8/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-u16/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-u16/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-u32/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-u32/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-u64/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-u64/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-u8/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-decimal-u8/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-i16/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-i16/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-i32/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-i32/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-i64/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-i64/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-i8/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-i8/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-u16/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-u16/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-u32/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-u32/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-u64/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-u64/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-u8-passing/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-u8-passing/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-u8/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/fixed-width-u8/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/function-shapes/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/function-shapes/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-reachable-absent/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-reachable-absent/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-reachable-inner/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-reachable-inner/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-reachable/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-reachable/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-successors-absent/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-successors-absent/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-successors/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-successors/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-topological-cycle/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-topological-cycle/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-topological/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/graph-topological/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/int-arithmetic/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/int-arithmetic/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/int-overflow-mul/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/int-overflow-mul/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/int-overflow-neg/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/int-overflow-neg/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/int-overflow-quot/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/int-overflow-quot/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/int-overflow-sub/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/int-overflow-sub/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/iterate-until-bounded/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/iterate-until-bounded/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/iterate-until/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/iterate-until/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/iterate/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/iterate/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/list-append-long/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/list-append-long/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/list-fold/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/list-fold/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/lists-borrowed/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/lists-borrowed/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/lists/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/lists/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/literals/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/literals/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-contains/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-contains/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-fold/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-fold/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-insert-last/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-insert-last/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-insert-replace/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-insert-replace/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-insert/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-insert/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-keys/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-keys/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-lookup-absent/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-lookup-absent/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-lookup/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-lookup/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-remove-absent/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-remove-absent/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-remove/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-remove/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-values/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/map-values/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/match-shapes/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/match-shapes/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/nat-arithmetic/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/nat-arithmetic/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/nat-overflow-add/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/nat-overflow-add/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/nat-overflow-mul/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/nat-overflow-mul/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/nat-overflow-nested/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/nat-overflow-nested/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/nat-overflow-succ/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/nat-overflow-succ/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/ordering/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/ordering/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/pair-and-list-match/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/pair-and-list-match/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-dose-120/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-dose-120/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-dose-60/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-dose-60/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-gnaf-goal/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-gnaf-goal/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-gnaf-priority/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-gnaf-priority/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-gnaf-sweep/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-gnaf-sweep/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-grade-shock/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-grade-shock/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-grade-well/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-grade-well/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-plan-2/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-plan-2/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-plan-5/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-plan-5/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-review-exhausted/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-review-exhausted/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-review-rejected/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-review-rejected/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-screen-0/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-screen-0/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-screen-100/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-screen-100/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-screen-60/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-screen-60/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-spend-2/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-spend-2/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-triage-shock/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-triage-shock/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-triage-traced/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-triage-traced/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-triage-well/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/reasoning-triage-well/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/record-fields/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/record-fields/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-contains-absent/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-contains-absent/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-contains/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-contains/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-difference/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-difference/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-fold/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-fold/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-insert-bool/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-insert-bool/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-insert-int/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-insert-int/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-insert-int8/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-insert-int8/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-insert-nat/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-insert-nat/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-insert-product/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-insert-product/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-insert-string/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-insert-string/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-intersection/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-intersection/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-remove-absent/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-remove-absent/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-remove/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-remove/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-union/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/set-union/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/split-and-join/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/split-and-join/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/string-escapes/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/string-escapes/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/sum-to-exhausted/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/sum-to-exhausted/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/sum-to/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/sum-to/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/unit-closures/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/unit-closures/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/unit-values/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/unit-values/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/wide-shapes/package.json",
+      "changed_keys": [
+        "/sources"
+      ]
+    },
+    {
+      "path": "compiler/rust/rust-std/wide-shapes/provenance.json",
+      "changed_keys": [
+        "/compiler_semantics",
+        "/sources"
+      ]
+    },
+    {
+      "path": "tests/tooling/commands/expected/build/manifest.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/inputs",
+        "/source_id",
+        "/compiler/semantics_id",
+        "/build_id",
+        "/outputs"
+      ]
+    },
+    {
+      "path": "tests/tooling/commands/expected/build/maps/ToolingCommands/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ]
+    },
+    {
+      "path": "tests/tooling/core/expected/build/manifest.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/inputs",
+        "/source_id",
+        "/compiler/semantics_id",
+        "/build_id",
+        "/outputs"
+      ]
+    },
+    {
+      "path": "tests/tooling/core/expected/build/maps/ToolingCore/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ]
+    },
+    {
+      "path": "tests/tooling/traversal/expected/build/manifest.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/inputs",
+        "/source_id",
+        "/compiler/semantics_id",
+        "/build_id",
+        "/outputs"
+      ]
+    },
+    {
+      "path": "tests/tooling/traversal/expected/build/maps/ToolingTraversal/Main.map.json",
+      "changed_keys": [
+        "/semantic_id",
+        "/source_id"
+      ]
+    }
+  ]
+}
