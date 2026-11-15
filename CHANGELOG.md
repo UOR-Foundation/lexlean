@@ -17,6 +17,37 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- A semantic module nests as deeply as the project's `max_scope_depth` allows
+  (SPEC.md §17.17, §17.21.3, `SM-12`; no new diagnostic code; no language
+  identity moves). The front end read a module's JSON with a fixed 128-level
+  limit and its notation with a fixed 256-level one, so a list of more than
+  about 122 elements was refused, and past about 115 the semantic snapshot
+  panicked writing its own bytes. Both readers now take the project's bound
+  on the compile thread's stack, and every later reading of what the linker
+  admitted (rendering, declaration IDs, the snapshot and its canonical bytes)
+  reads to the same depth on a stack sized for it: a list of 1000 elements
+  checks, builds, verifies, and has a snapshot. Past the bound the notation is
+  `LLP2001` and the data `LLT4001`, each naming `max_scope_depth`. The
+  authoring API (`lexlean::sdk`) reads, converts, and writes a semantic module
+  to 1024 levels, the default `max_scope_depth`, on a stack of its own, where
+  it read the notation to 256 and the JSON to 128 on its caller's. A module
+  within the old limits reads, renders, and hashes to the same bytes as
+  before. This reverses the decision of #375 to keep the 128-level limit.
+  The register is unchanged.
+- `lexlean check` builds and runs on `wasm32-wasip1`, #494 (SPEC.md §8.3,
+  `CL-25`). WASI has no threads, no file lock, and no processes: the check
+  pipeline runs on the instance's stack, a command that changes the project
+  is refused with `LLV7010` before it touches it, and the compiler-semantics
+  digest reads its files on the one thread. A file's identity there is the
+  device and inode WASI reports, read through `rustix`, so `LLC0104` still
+  refuses one file under two names; `fs4` and `same-file` are dependencies of
+  the other targets only. The executable is linked there with the 80 MiB
+  stack the depth plan assumes (`config::WASI_STACK_BYTES`, read by
+  `build.rs` and the plan alike), so deep input is `LLS8002` on WASI too, at a
+  hosted depth of 1,024. Native code is unchanged but
+  for the digest's reader, which reads on the calling thread when no thread
+  can be had. `CL-25` builds the target and compares it with the native
+  executable under Node's `node:wasi`; the register is 494.
 - Breaking security update: replace the single Lean 4.32.1 pin with
   `leanprover/lean4:v4.32.2`, source commit
   `f3b06c705e6c85f5314019d5d3baab0fec5b580c` (SPEC.md §8.2). The
@@ -43,6 +74,16 @@ workspace carried at those versions without a tag.
   Intel jobs only. Such a run never counts as the whole gate for the plan, a
   dispatch or `release-gate.sh`, so a tag's evidence is still one run with
   every host. `RP-14` and `RP-18` pin the new cases.
+
+- `AU-01` reads the committed corpus one module at a time (SPEC.md §9.4). It
+  collected every semantic module of the repository as a value before checking
+  any, and the corpus holds modules of tens of megabytes, so the case alone
+  peaked at 11.2 GiB of resident memory in a debug test process. The
+  `bdd-verification` leg runs it on four test threads beside `AU-08`, `AU-09`
+  and the Lean processes of `NE-01` and the `VR` cases on a 16 GB runner, and
+  the leg intermittently exhausted memory and swap and lost the runner, failing
+  whichever case was running then. The case checks the same modules with the
+  same assertions; each is dropped once checked.
 
 - Canonical JSON refuses duplicate keys that differ only in their escapes (SPEC.md §21.7,
   `AR-11`, #475). The duplicate check compared each key as written, so `{"a":1,"\u0061":2}`
@@ -82,6 +123,19 @@ workspace carried at those versions without a tag.
   person merges a cut. `tag.yml` still tags a person's merge of a cut, and
   accepts the run that verified a merged head's tree without waiting for the
   merge's own.
+- The whole gate verifies the bootstrap project once (SPEC.md §9.4). The
+  `bootstrap export` job, whose export already verified it whole through the
+  `examples` recipe's own `verify`, is now that project's part of the recipe:
+  `export-bootstrap` formats, locks, checks and builds a clean copy first and
+  then holds the export's verified directory to the recipe's checks (no
+  telemetry, records equal to `bootstrap/expected/verify`). The `examples` leg
+  runs `without:uor-atlas,bootstrap` and no longer spends about 53 minutes
+  verifying the project a second time; `LEXLEAN_EXAMPLES_PART=without:` takes
+  a comma-separated list. `RP-14` pins the job's assertion and the leg's.
+- The Intel and Windows aggregates no longer run in a run that was cancelled
+  (a newer push to the pull request), so a superseded head no longer reports
+  a failed host context; they still run after a failed or cancelled lane of a
+  run that goes on (SPEC.md §8.3, `RP-14`).
 - Decision regions (SPEC.md §17.12, `PF-24`, UOR-Foundation/PrismPM#605; no
   new diagnostic code; changes the language-1.2 identity). The runtime gains a
   sixth native module, `LexLeanRuntime.Regions`: a checker of local box
