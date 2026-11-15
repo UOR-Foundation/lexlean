@@ -214,6 +214,11 @@ workspace carried at those versions without a tag.
   and doctest. A join on `ubuntu-24.04` keeps the context `build and non-Lean tests
   (x86_64-pc-windows-msvc)` and passes only when the lanes' executed tests equal the host's
   listing, each once. The single Windows job took 106-126 minutes.
+- CI runs the macOS AArch64 host's tests the same way (SPEC.md §8.3): five lanes on `macos-15`,
+  the four conformance lanes of `.github/intel-host-lanes.json` and the `producer` lane, joined on
+  `ubuntu-24.04` under the unchanged context `build and non-Lean tests (aarch64-apple-darwin)`,
+  which passes only when the lanes' executed tests equal the host's listing, each once. The single
+  macOS AArch64 job took about 104 minutes. Linux AArch64 keeps its one `cargo test`.
 - Declaration IDs (SPEC.md §21.9, `SM-38`; no new diagnostic code, no change to
   any compiler-semantics ID). A language-1.2 build publishes
   `declarations/<module>.json` (`lexlean/declarations/1`, schema
