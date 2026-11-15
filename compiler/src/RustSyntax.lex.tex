@@ -160,7 +160,8 @@ inductive{
     {name: formatInt, fields: []},
     {name: formatFixed, fields: [TargetSyntax::IntKind]},
     {name: parseInt, fields: []},
-    {name: parseFixed, fields: [TargetSyntax::IntKind]}
+    {name: parseFixed, fields: [TargetSyntax::IntKind]},
+    {name: updateBytes, fields: []}
   ]
 }
 
@@ -212,7 +213,8 @@ inductive{
     {name: formatDecimal, fields: [TargetSyntax::IntKind]},
     {name: parseDecimal, fields: [TargetSyntax::IntKind]},
     {name: parseDecimalInt, fields: []},
-    {name: formatDecimalInt, fields: []}
+    {name: formatDecimalInt, fields: []},
+    {name: bytesUpdate, fields: []}
   ]
 }
 

@@ -867,7 +867,7 @@ pub enum Adt1 {
 
 #[derive(Clone)]
 pub enum Adt2 {
-    C0(Bytes, Adt1),
+    C0(Bytes, std::rc::Rc<Adt1>),
 }
 
 #[derive(Clone)]

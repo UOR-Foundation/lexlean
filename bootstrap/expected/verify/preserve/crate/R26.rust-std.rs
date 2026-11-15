@@ -883,7 +883,7 @@ pub enum Adt3 {
 
 #[derive(Clone)]
 pub enum Adt4 {
-    C0(Adt5, List<Adt0>, u64, Option<Adt2>),
+    C0(std::rc::Rc<Adt5>, List<Adt0>, u64, Option<Adt2>),
 }
 
 #[derive(Clone)]
@@ -893,7 +893,7 @@ pub enum Adt5 {
 
 #[derive(Clone)]
 pub enum Adt6 {
-    C0(Adt1, Adt5, Option<Adt2>),
+    C0(Adt1, std::rc::Rc<Adt5>, Option<Adt2>),
 }
 
 #[derive(Clone)]
@@ -958,7 +958,7 @@ pub fn f0(v0: Bytes, v1: Bytes, v2: u64) -> R<Result<List<Adt0>, Adt2>> {
             let a3 = v3;
             let a4 = 1u64;
             nat_add(a3, a4)?
-        }, Adt4::C0(Adt5::C0(0u64, 1u64, 1u64), List::<Adt0>::nil(), 0u64, None::<Adt2>))?;
+        }, Adt4::C0(std::rc::Rc::new(Adt5::C0(0u64, 1u64, 1u64)), List::<Adt0>::nil(), 0u64, None::<Adt2>))?;
         h2
     };
     let m6 = match v4.clone() {
@@ -1025,7 +1025,7 @@ pub fn f3(v0: List<Adt0>) -> List<Adt0> {
 pub fn f4(v0: Bytes, v1: Bytes, v2: u64, v3: u64, v4: Adt4) -> R<Option<Adt4>> {
     let v5: Adt5 = match v4.clone() {
         Adt4::C0(h14, _, _, _) => {
-            h14
+            (*h14).clone()
         }
     };
     let v6: u64 = match v5.clone() {
@@ -1053,7 +1053,7 @@ pub fn f4(v0: Bytes, v1: Bytes, v2: u64, v3: u64, v4: Adt4) -> R<Option<Adt4>> {
                     None => {
                         let v10: Adt5 = match v8.clone() {
                             Adt6::C0(_, h24, _) => {
-                                h24
+                                (*h24).clone()
                             }
                         };
                         let v11: Adt0 = Adt0::C0(match v8 {
@@ -1102,13 +1102,13 @@ pub fn f4(v0: Bytes, v1: Bytes, v2: u64, v3: u64, v4: Adt4) -> R<Option<Adt4>> {
                         let a38 = v12;
                         if nat_lt(a37, a38) {
                             let v13: Adt2 = f9(v0, v3)?;
-                            Ok(Some(Adt4::C0(v10, match v4 {
+                            Ok(Some(Adt4::C0(std::rc::Rc::new(v10), match v4 {
                                 Adt4::C0(_, h39, _, _) => {
                                     h39
                                 }
                             }, v12, Some(v13))))
                         } else {
-                            Ok(Some(Adt4::C0(v10, List::cons(v11, match v4 {
+                            Ok(Some(Adt4::C0(std::rc::Rc::new(v10), List::cons(v11, match v4 {
                                 Adt4::C0(_, h40, _, _) => {
                                     h40
                                 }
@@ -1116,7 +1116,7 @@ pub fn f4(v0: Bytes, v1: Bytes, v2: u64, v3: u64, v4: Adt4) -> R<Option<Adt4>> {
                         }
                     }
                     Some(v9) => {
-                        Ok(Some(Adt4::C0(v5, match v4.clone() {
+                        Ok(Some(Adt4::C0(std::rc::Rc::new(v5), match v4.clone() {
                             Adt4::C0(_, h22, _, _) => {
                                 h22
                             }
@@ -1247,7 +1247,7 @@ pub fn f7(v0: Bytes, v1: Bytes, v2: Adt5) -> R<Adt6> {
         let a66 = 10u8;
         equal(a65, a66)
     } {
-        Ok(Adt6::C0(Adt1::C6, v6, None::<Adt2>))
+        Ok(Adt6::C0(Adt1::C6, std::rc::Rc::new(v6), None::<Adt2>))
     } else {
         let a67 = v5;
         let a68 = 92u8;
@@ -1257,37 +1257,37 @@ pub fn f7(v0: Bytes, v1: Bytes, v2: Adt5) -> R<Adt6> {
             } else {
                 false
             } {
-                Ok(Adt6::C0(Adt1::C0, v15, None::<Adt2>))
+                Ok(Adt6::C0(Adt1::C0, std::rc::Rc::new(v15), None::<Adt2>))
             } else {
                 if if v12 {
                     v14
                 } else {
                     false
                 } {
-                    Ok(Adt6::C0(Adt1::C0, v16, None::<Adt2>))
+                    Ok(Adt6::C0(Adt1::C0, std::rc::Rc::new(v16), None::<Adt2>))
                 } else {
                     let v22: Adt2 = f16(v0, v2, v9.clone());
-                    Ok(Adt6::C0(Adt1::C0, v9, Some(v22)))
+                    Ok(Adt6::C0(Adt1::C0, std::rc::Rc::new(v9), Some(v22)))
                 }
             }
         } else {
             if v17 {
-                Ok(Adt6::C0(Adt1::C1, v7, None::<Adt2>))
+                Ok(Adt6::C0(Adt1::C1, std::rc::Rc::new(v7), None::<Adt2>))
             } else {
                 if v18 {
-                    Ok(Adt6::C0(Adt1::C2, v8, None::<Adt2>))
+                    Ok(Adt6::C0(Adt1::C2, std::rc::Rc::new(v8), None::<Adt2>))
                 } else {
                     if v21 {
-                        Ok(Adt6::C0(Adt1::C3, v9, None::<Adt2>))
+                        Ok(Adt6::C0(Adt1::C3, std::rc::Rc::new(v9), None::<Adt2>))
                     } else {
                         if v19 {
-                            Ok(Adt6::C0(Adt1::C4, v9, None::<Adt2>))
+                            Ok(Adt6::C0(Adt1::C4, std::rc::Rc::new(v9), None::<Adt2>))
                         } else {
                             if v20 {
                                 let v23: Adt2 = f17(v0, v1, v2.clone())?;
-                                Ok(Adt6::C0(Adt1::C0, v2, Some(v23)))
+                                Ok(Adt6::C0(Adt1::C0, std::rc::Rc::new(v2), Some(v23)))
                             } else {
-                                Ok(Adt6::C0(Adt1::C5, v9, None::<Adt2>))
+                                Ok(Adt6::C0(Adt1::C5, std::rc::Rc::new(v9), None::<Adt2>))
                             }
                         }
                     }

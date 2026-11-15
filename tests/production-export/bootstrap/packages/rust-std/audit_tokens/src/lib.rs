@@ -862,7 +862,7 @@ pub enum Adt0 {
 
 #[derive(Clone)]
 pub enum Adt1 {
-    C0(Adt2, u64, bool, u64),
+    C0(std::rc::Rc<Adt2>, u64, bool, u64),
 }
 
 #[derive(Clone)]
@@ -1373,7 +1373,7 @@ pub fn f10(v0: List<Bytes>, v1: Adt0) -> R<Option<Adt0>> {
                 Some((v5, v6)) => {
                     let m40 = match v5 {
                         Adt1::C0(h39, _, _, _) => {
-                            h39
+                            (*h39).clone()
                         }
                     };
                     match m40 {
@@ -1755,7 +1755,7 @@ pub fn f15(v0: List<Adt1>) -> bool {
         Some((v1, _)) => {
             let m132 = match v1 {
                 Adt1::C0(h131, _, _, _) => {
-                    h131
+                    (*h131).clone()
                 }
             };
             match m132 {
@@ -2011,7 +2011,7 @@ pub fn f20(v0: List<Adt1>) -> Bytes {
         Some((v1, _)) => {
             let m202 = match v1 {
                 Adt1::C0(h201, _, _, _) => {
-                    h201
+                    (*h201).clone()
                 }
             };
             match m202 {
@@ -2750,7 +2750,7 @@ pub fn f51(v0: u64, v1: u64, v2: u64, v3: u64, v4: Adt2, v5: u64, v6: bool, v7: 
         let a365 = v2;
         let a366 = v3;
         nat_add(a365, a366)?
-    }, List::cons(Adt1::C0(v4, v5, v6, v2), v7), None::<Bytes>))
+    }, List::cons(Adt1::C0(std::rc::Rc::new(v4), v5, v6, v2), v7), None::<Bytes>))
 }
 
 pub fn f52(v0: Bytes, v1: u64) -> R<Option<u64>> {

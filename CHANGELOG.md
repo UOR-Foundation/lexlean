@@ -630,6 +630,22 @@ and Unreleased holds what has landed since.
   now holds the list match under `rust-core` with a crate by hand, since the
   mutants reach it too rarely to rely on. The register is 468 IDs.
 
+## Unreleased
+
+### Added
+
+- The byte update primitive `prim update` (`TargetSyntax.Prim.update`): `update bytes at byte` is the
+  byte string with the byte at `at` replaced, or `none` past its end. The `rust-std` runtime renders it
+  as `Bytes::update`, which writes in place when the buffer is unique (`Rc::get_mut`) and copies it,
+  counting the copy, when it is shared; the Lean runtime uses `ByteArray.set!`, in place when unique.
+  It gives programs an O(1) table write (match finders, adaptive models) where a persistent tree was
+  O(log n) with an allocation per write. The item is `update_bytes` (`Item.updateBytes`,
+  `Machine.bytesUpdate`, machine family 44), with its refinement theorem `refines_update_bytes` (`SP-29`), its
+  certificate-A lemma `prim_update_bytes`, the bootstrap twins, and the `update_bytes` section of the
+  std differential (`RB-20`). The preservation library's `RustCorr`, `RustLemmas`, and `Primitives`
+  modules gain the cases of the new constructors; the compiler-semantics ID moves, and the records
+  bound to it are regenerated.
+
 ## 0.4.0
 
 Release `0.4.0` is cut at the downstream boundary (#92, 2026-10-25): what the
