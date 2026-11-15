@@ -2537,7 +2537,7 @@ pub(crate) fn run(id: &str) {
                 ("lane: [producer, lower, print, validate, moves]", "lane: [producer, lower, print, validate]"),
                 ("    needs: [plan, windows-part]", "    needs: [plan]"),
                 (
-                    "    if: ${{ always() && needs.plan.outputs.full == 'true' }}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-x86_64",
+                    "    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-x86_64",
                     "    if: ${{ needs.plan.outputs.full == 'true' }}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-x86_64",
                 ),
                 ("host_lanes.py join --target", "host_lanes.py execute --target"),
@@ -2568,7 +2568,7 @@ pub(crate) fn run(id: &str) {
                     "needs: [plan, intel-construction]",
                 ),
                 (
-                    "if: ${{ always() && needs.plan.outputs.intel == 'true' }}",
+                    "if: ${{ !cancelled() && needs.plan.outputs.intel == 'true' }}",
                     "if: ${{ needs.plan.outputs.intel == 'true' }}",
                 ),
                 (
@@ -3983,7 +3983,7 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
             "intel-join",
             &join,
             "needs: [plan, intel-construction, intel-part]",
-            "if: ${{ always() && needs.plan.outputs.intel == 'true' }}",
+            "if: ${{ !cancelled() && needs.plan.outputs.intel == 'true' }}",
         ),
     ] {
         require(body, dependencies, key)?;
@@ -4409,8 +4409,8 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
         (&join, "    needs: [plan, windows-part]\n", "the aggregate follows the lanes"),
         (
             &join,
-            "    if: ${{ always() && needs.plan.outputs.full == 'true' }}\n",
-            "the aggregate runs after a failed or cancelled lane",
+            "    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}\n",
+            "the aggregate runs after a failed or cancelled lane, not after the run is cancelled",
         ),
         (
             &join,

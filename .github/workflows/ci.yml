@@ -1272,7 +1272,7 @@ jobs:
   intel-join:
     name: build and non-Lean tests (x86_64-apple-darwin)
     needs: [plan, intel-construction, intel-part]
-    if: ${{ always() && needs.plan.outputs.intel == 'true' }}
+    if: ${{ !cancelled() && needs.plan.outputs.intel == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -1354,7 +1354,7 @@ jobs:
   windows-join:
     name: build and non-Lean tests (x86_64-pc-windows-msvc)
     needs: [plan, windows-part]
-    if: ${{ always() && needs.plan.outputs.full == 'true' }}
+    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
