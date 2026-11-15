@@ -107,7 +107,10 @@ fn proof_uses(proof: &SemanticProof, local: &str) -> bool {
         })
     };
     match proof {
-        SemanticProof::Reflexivity | SemanticProof::Decide | SemanticProof::Congruence => false,
+        SemanticProof::Reflexivity
+        | SemanticProof::Evaluation
+        | SemanticProof::Decide
+        | SemanticProof::Congruence => false,
         SemanticProof::LinearArithmetic { definitions }
         | SemanticProof::Simplify { definitions } => definitions
             .iter()
@@ -1217,6 +1220,11 @@ impl Render<'_> {
         let pad = "  ".repeat(indent);
         match proof {
             SemanticProof::Reflexivity => format!("{pad}rfl\n"),
+            // The goal is closed by `Eq.refl` of its left side without the
+            // unifier's check; the kernel checks it when the theorem is added.
+            SemanticProof::Evaluation => format!(
+                "{pad}run_tac _root_.Lean.Elab.Tactic.liftMetaFinishingTactic fun llGoal => _root_.Lean.MVarId.refl llGoal (check := false)\n"
+            ),
             SemanticProof::Decide => format!("{pad}decide\n"),
             SemanticProof::LinearArithmetic { definitions } => {
                 let unfolded = definitions
@@ -1941,7 +1949,13 @@ pub fn render_lean(
     // module and `law` applies it, so a module with either proof uses it.
     let laws = elaborated.contains("\"kind\":\"linear_arithmetic\"")
         || elaborated.contains("\"kind\":\"law\"");
+    // An `evaluation` proof runs the pinned toolchain's goal-closing tactic
+    // API, so a module with one imports exactly those two Lean modules.
+    let evaluation = elaborated.contains("\"kind\":\"evaluation\"");
     let mut text = String::from("module\npublic import Init\n");
+    if evaluation {
+        text.push_str("meta import Lean.Elab.Tactic.Basic\nmeta import Lean.Meta.Tactic.Refl\n");
+    }
     if language_1_2 {
         use crate::backend::runtime::{COLLECTIONS, LAWS, MODELS, PORTABLE, REASONING};
         for (used, runtime_module) in [

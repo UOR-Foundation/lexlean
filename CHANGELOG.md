@@ -15,6 +15,16 @@ versions. `v0.1.0` is tagged, and `v0.4.0` is tagged at the commit that carries
 this changelog; the sections for `0.1.1`, `0.2.0`, and `0.3.0` record what the
 workspace carried at those versions without a tag.
 
+
+## Unreleased
+
+### Added
+
+- The `evaluation` proof (language 1.2, `{"kind":"evaluation"}`, notation `evaluation{}`): a closed
+  equality checked by the kernel alone. It lowers to `MVarId.refl (check := false)` through `run_tac`,
+  so the elaborator's unifier never compares the two sides and the kernel decides the theorem when it is
+  added. Reflexivity over two runs of a step machine whose state holds unevaluated bytes needed more
+  than 13 GB in the unifier; the kernel checks the same theorems in seconds, and rejects a false one.
 ## 0.4.0
 
 Release `0.4.0` is cut at the downstream boundary (#92, 2026-10-25): what the
