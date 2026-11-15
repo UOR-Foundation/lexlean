@@ -864,7 +864,7 @@ pub enum Adt0 {
 
 #[derive(Clone)]
 pub enum Adt1 {
-    C0(Str, Adt0),
+    C0(Str, std::rc::Rc<Adt0>),
     C1(std::rc::Rc<Adt1>, std::rc::Rc<Adt1>),
 }
 
@@ -915,14 +915,15 @@ pub fn f2(v0: List<Adt1>) -> R<u64> {
 pub fn f3(v0: Adt1) -> R<u64> {
     let m14 = v0;
     match m14 {
-        Adt1::C0(_, v2) => {
+        Adt1::C0(_, r19) => {
+            let v2 = (*r19).clone();
             let a15 = f1(v2)?;
             let a16 = 1u64;
             nat_add(a15, a16)
         }
-        Adt1::C1(r19, r20) => {
-            let v3 = (*r19).clone();
-            let v4 = (*r20).clone();
+        Adt1::C1(r20, r21) => {
+            let v3 = (*r20).clone();
+            let v4 = (*r21).clone();
             let a17 = f3(v3)?;
             let a18 = f3(v4)?;
             nat_add(a17, a18)

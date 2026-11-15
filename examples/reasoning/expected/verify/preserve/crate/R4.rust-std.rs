@@ -857,7 +857,7 @@ pub fn format_int(p0: i64) -> Str {
 
 #[derive(Clone)]
 pub enum Adt0 {
-    C0(Option<u64>, bool, Adt1),
+    C0(Option<u64>, bool, std::rc::Rc<Adt1>),
 }
 
 #[derive(Clone)]
@@ -908,7 +908,7 @@ pub fn f1(v0: u64) -> R<Result<u64, (bool, bool)>> {
 }
 
 pub fn f2(v0: u64) -> R<Adt0> {
-    f4(Fn0::F5(v0), Adt0::C0(None::<u64>, false, Adt1::C0(0u64, 0u64, 0u64, 0u64, 0u64, 0u64)), f6(v0))
+    f4(Fn0::F5(v0), Adt0::C0(None::<u64>, false, std::rc::Rc::new(Adt1::C0(0u64, 0u64, 0u64, 0u64, 0u64, 0u64))), f6(v0))
 }
 
 pub fn f3(v0: Adt0) -> (bool, bool) {
@@ -924,7 +924,7 @@ pub fn f3(v0: Adt0) -> (bool, bool) {
             let a9 = {
                 let m8 = match v0 {
                     Adt0::C0(_, _, h7) => {
-                        h7
+                        (*h7).clone()
                     }
                 };
                 match m8 {
@@ -1008,7 +1008,7 @@ pub fn f7(v0: u64, v1: Adt0, v2: u64) -> R<Adt0> {
                 let a23 = {
                     let m22 = match v1.clone() {
                         Adt0::C0(_, _, h21) => {
-                            h21
+                            (*h21).clone()
                         }
                     };
                     match m22 {
@@ -1025,11 +1025,11 @@ pub fn f7(v0: u64, v1: Adt0, v2: u64) -> R<Adt0> {
                     Adt0::C0(_, h26, _) => {
                         h26
                     }
-                }, Adt1::C0({
+                }, std::rc::Rc::new(Adt1::C0({
                     let a30 = {
                         let m29 = match v1.clone() {
                             Adt0::C0(_, _, h28) => {
-                                h28
+                                (*h28).clone()
                             }
                         };
                         match m29 {
@@ -1044,7 +1044,7 @@ pub fn f7(v0: u64, v1: Adt0, v2: u64) -> R<Adt0> {
                     let a35 = {
                         let m34 = match v1.clone() {
                             Adt0::C0(_, _, h33) => {
-                                h33
+                                (*h33).clone()
                             }
                         };
                         match m34 {
@@ -1058,7 +1058,7 @@ pub fn f7(v0: u64, v1: Adt0, v2: u64) -> R<Adt0> {
                 }, {
                     let m39 = match v1.clone() {
                         Adt0::C0(_, _, h38) => {
-                            h38
+                            (*h38).clone()
                         }
                     };
                     match m39 {
@@ -1069,7 +1069,7 @@ pub fn f7(v0: u64, v1: Adt0, v2: u64) -> R<Adt0> {
                 }, {
                     let m42 = match v1.clone() {
                         Adt0::C0(_, _, h41) => {
-                            h41
+                            (*h41).clone()
                         }
                     };
                     match m42 {
@@ -1081,7 +1081,7 @@ pub fn f7(v0: u64, v1: Adt0, v2: u64) -> R<Adt0> {
                     let a46 = {
                         let m45 = match v1.clone() {
                             Adt0::C0(_, _, h44) => {
-                                h44
+                                (*h44).clone()
                             }
                         };
                         match m45 {
@@ -1095,7 +1095,7 @@ pub fn f7(v0: u64, v1: Adt0, v2: u64) -> R<Adt0> {
                 }, {
                     let m50 = match v1 {
                         Adt0::C0(_, _, h49) => {
-                            h49
+                            (*h49).clone()
                         }
                     };
                     match m50 {
@@ -1103,13 +1103,13 @@ pub fn f7(v0: u64, v1: Adt0, v2: u64) -> R<Adt0> {
                             h48
                         }
                     }
-                })))
+                }))))
             } else {
-                Ok(Adt0::C0(None::<u64>, true, match v1 {
+                Ok(Adt0::C0(None::<u64>, true, std::rc::Rc::new(match v1 {
                     Adt0::C0(_, _, h51) => {
-                        h51
+                        (*h51).clone()
                     }
-                }))
+                })))
             }
         }
         Some(_) => {

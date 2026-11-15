@@ -857,7 +857,7 @@ pub fn format_int(p0: i64) -> Str {
 
 #[derive(Clone)]
 pub enum Adt0 {
-    C0(Adt1, u64, bool, u64),
+    C0(std::rc::Rc<Adt1>, u64, bool, u64),
 }
 
 #[derive(Clone)]
@@ -1882,7 +1882,7 @@ pub fn f28(v0: u64, v1: u64, v2: u64, v3: u64, v4: Adt1, v5: u64, v6: bool, v7: 
         let a199 = v2;
         let a200 = v3;
         nat_add(a199, a200)?
-    }, List::cons(Adt0::C0(v4, v5, v6, v2), v7), None::<Bytes>))
+    }, List::cons(Adt0::C0(std::rc::Rc::new(v4), v5, v6, v2), v7), None::<Bytes>))
 }
 
 pub fn f29(v0: Bytes, v1: u64) -> R<Option<u64>> {
