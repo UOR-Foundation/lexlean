@@ -9849,7 +9849,10 @@ mod tests {
         };
         let rejected = parse(&module("lexlean/semantic-module/1"), "1.1")
             .expect_err("a language-1.1 module has no evaluation proof");
-        assert!(format!("{rejected:?}").contains("evaluation proof"), "{rejected:?}");
+        assert!(
+            format!("{rejected:?}").contains("evaluation proof"),
+            "{rejected:?}"
+        );
         parse(&module("lexlean/semantic-module/2"), "1.2")
             .expect("a language-1.2 theorem may be closed by evaluation");
     }
