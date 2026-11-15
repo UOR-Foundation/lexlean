@@ -118,6 +118,13 @@ calculus-write:
 verify-write:
     cargo xtask verify-examples --write
 
+# §9.4: what a change that moves the compiler-semantics ID moves in turn: the
+# identity-only lock relocks, `LANGUAGE_1_2_SEMANTICS_ID`, and the descriptor
+# pins of the production requests. Runs before the other `-write` recipes.
+# Never part of `vv`.
+relock-identity:
+    bash .github/scripts/relock-identity.sh
+
 # §30.3, RP-12: verify the packaged crate builds standalone offline and matches repository identity.
 check-package:
     cargo xtask check-package

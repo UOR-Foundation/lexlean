@@ -874,12 +874,12 @@ pub enum Adt1 {
 
 #[derive(Clone)]
 pub enum Adt2 {
-    C0(Adt3, List<Adt1>, Adt4),
+    C0(std::rc::Rc<Adt3>, List<Adt1>, std::rc::Rc<Adt4>),
 }
 
 #[derive(Clone)]
 pub enum Adt3 {
-    C0(Adt0, u64, u64, u64, u64, u64, u64, u64, u64),
+    C0(std::rc::Rc<Adt0>, u64, u64, u64, u64, u64, u64, u64, u64),
 }
 
 #[derive(Clone)]
@@ -930,7 +930,7 @@ pub fn f1(v0: Adt0) -> R<Result<(u64, List<Adt1>), (bool, bool)>> {
             };
             match m8 {
                 Adt2::C0(h6, _, _) => {
-                    h6
+                    (*h6).clone()
                 }
             }
         });
@@ -1018,7 +1018,7 @@ pub fn f4(v0: Fn0, p19: u64, p20: Adt2) -> R<(Adt2, bool)> {
 pub fn f5(v0: Adt2) -> R<Option<Adt2>> {
     let m22 = f9(match v0.clone() {
         Adt2::C0(h21, _, _) => {
-            h21
+            (*h21).clone()
         }
     })?;
     match m22 {
@@ -1028,7 +1028,7 @@ pub fn f5(v0: Adt2) -> R<Option<Adt2>> {
         Some(v1) => {
             let m24 = f10(match v0.clone() {
                 Adt2::C0(h23, _, _) => {
-                    h23
+                    (*h23).clone()
                 }
             }, v1.clone())?;
             match m24 {
@@ -1036,7 +1036,7 @@ pub fn f5(v0: Adt2) -> R<Option<Adt2>> {
                     Ok(None::<Adt2>)
                 }
                 Some(v2) => {
-                    Ok(Some(Adt2::C0(v2, {
+                    Ok(Some(Adt2::C0(std::rc::Rc::new(v2), {
                         let a26 = match v0.clone() {
                             Adt2::C0(_, h25, _) => {
                                 h25
@@ -1044,11 +1044,11 @@ pub fn f5(v0: Adt2) -> R<Option<Adt2>> {
                         };
                         let a27 = List::cons(v1, List::<Adt1>::nil());
                         append_list(a26, a27)
-                    }, Adt4::C0({
+                    }, std::rc::Rc::new(Adt4::C0({
                         let a31 = {
                             let m30 = match v0.clone() {
                                 Adt2::C0(_, _, h29) => {
-                                    h29
+                                    (*h29).clone()
                                 }
                             };
                             match m30 {
@@ -1063,7 +1063,7 @@ pub fn f5(v0: Adt2) -> R<Option<Adt2>> {
                         let a37 = {
                             let m35 = match v0.clone() {
                                 Adt2::C0(_, _, h34) => {
-                                    h34
+                                    (*h34).clone()
                                 }
                             };
                             match m35 {
@@ -1074,7 +1074,7 @@ pub fn f5(v0: Adt2) -> R<Option<Adt2>> {
                         };
                         let a38 = f11(match v0.clone() {
                             Adt2::C0(h36, _, _) => {
-                                h36
+                                (*h36).clone()
                             }
                         })?;
                         nat_add(a37, a38)?
@@ -1082,7 +1082,7 @@ pub fn f5(v0: Adt2) -> R<Option<Adt2>> {
                         let a42 = {
                             let m41 = match v0.clone() {
                                 Adt2::C0(_, _, h40) => {
-                                    h40
+                                    (*h40).clone()
                                 }
                             };
                             match m41 {
@@ -1096,7 +1096,7 @@ pub fn f5(v0: Adt2) -> R<Option<Adt2>> {
                     }, {
                         let m46 = match v0.clone() {
                             Adt2::C0(_, _, h45) => {
-                                h45
+                                (*h45).clone()
                             }
                         };
                         match m46 {
@@ -1107,7 +1107,7 @@ pub fn f5(v0: Adt2) -> R<Option<Adt2>> {
                     }, {
                         let m49 = match v0.clone() {
                             Adt2::C0(_, _, h48) => {
-                                h48
+                                (*h48).clone()
                             }
                         };
                         match m49 {
@@ -1118,7 +1118,7 @@ pub fn f5(v0: Adt2) -> R<Option<Adt2>> {
                     }, {
                         let m52 = match v0 {
                             Adt2::C0(_, _, h51) => {
-                                h51
+                                (*h51).clone()
                             }
                         };
                         match m52 {
@@ -1126,7 +1126,7 @@ pub fn f5(v0: Adt2) -> R<Option<Adt2>> {
                                 h50
                             }
                         }
-                    }))))
+                    })))))
                 }
             }
         }
@@ -1134,7 +1134,7 @@ pub fn f5(v0: Adt2) -> R<Option<Adt2>> {
 }
 
 pub fn f6(v0: Adt0) -> Adt2 {
-    Adt2::C0(f12(v0), List::<Adt1>::nil(), Adt4::C0(0u64, 0u64, 0u64, 0u64, 0u64, 0u64))
+    Adt2::C0(std::rc::Rc::new(f12(v0)), List::<Adt1>::nil(), std::rc::Rc::new(Adt4::C0(0u64, 0u64, 0u64, 0u64, 0u64, 0u64)))
 }
 
 pub fn f7(v0: Adt0, v1: Adt3) -> Option<u64> {
@@ -1449,7 +1449,7 @@ pub fn f11(v0: Adt3) -> R<u64> {
 }
 
 pub fn f12(v0: Adt0) -> Adt3 {
-    Adt3::C0(v0, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64)
+    Adt3::C0(std::rc::Rc::new(v0), 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64)
 }
 
 pub fn f13(v0: Adt0, v1: u64) -> bool {
@@ -1497,7 +1497,7 @@ pub fn f14(v0: Adt3) -> bool {
     if nat_eq(a115, a116) {
         f31(match v0 {
             Adt3::C0(h117, _, _, _, _, _, _, _, _) => {
-                h117
+                (*h117).clone()
             }
         })
     } else {
@@ -1515,7 +1515,7 @@ pub fn f15(v0: Adt3) -> bool {
     if nat_eq(a119, a120) {
         f32(match v0 {
             Adt3::C0(h121, _, _, _, _, _, _, _, _) => {
-                h121
+                (*h121).clone()
             }
         })
     } else {
@@ -1533,7 +1533,7 @@ pub fn f16(v0: Adt3) -> bool {
     if nat_eq(a123, a124) {
         f33(match v0 {
             Adt3::C0(h125, _, _, _, _, _, _, _, _) => {
-                h125
+                (*h125).clone()
             }
         })
     } else {
@@ -1551,7 +1551,7 @@ pub fn f17(v0: Adt3) -> bool {
     if nat_eq(a127, a128) {
         f34(match v0 {
             Adt3::C0(h129, _, _, _, _, _, _, _, _) => {
-                h129
+                (*h129).clone()
             }
         })
     } else {
@@ -1621,7 +1621,7 @@ pub fn f19(v0: Adt3) -> bool {
             let a154 = {
                 let m153 = match v0 {
                     Adt3::C0(h152, _, _, _, _, _, _, _, _) => {
-                        h152
+                        (*h152).clone()
                     }
                 };
                 match m153 {
@@ -1657,7 +1657,7 @@ pub fn f20(v0: Adt3) -> bool {
         if nat_eq(a160, a161) {
             f30(match v0 {
                 Adt3::C0(h162, _, _, _, _, _, _, _, _) => {
-                    h162
+                    (*h162).clone()
                 }
             })
         } else {
@@ -1853,11 +1853,11 @@ pub fn f34(v0: Adt0) -> bool {
 }
 
 pub fn f35(v0: Adt3) -> Adt3 {
-    Adt3::C0(match v0.clone() {
+    Adt3::C0(std::rc::Rc::new(match v0.clone() {
         Adt3::C0(h199, _, _, _, _, _, _, _, _) => {
-            h199
+            (*h199).clone()
         }
-    }, 1u64, match v0.clone() {
+    }), 1u64, match v0.clone() {
         Adt3::C0(_, _, h200, _, _, _, _, _, _) => {
             h200
         }
@@ -1889,11 +1889,11 @@ pub fn f35(v0: Adt3) -> Adt3 {
 }
 
 pub fn f36(v0: Adt3) -> Adt3 {
-    Adt3::C0(match v0.clone() {
+    Adt3::C0(std::rc::Rc::new(match v0.clone() {
         Adt3::C0(h207, _, _, _, _, _, _, _, _) => {
-            h207
+            (*h207).clone()
         }
-    }, match v0.clone() {
+    }), match v0.clone() {
         Adt3::C0(_, h208, _, _, _, _, _, _, _) => {
             h208
         }
@@ -1925,11 +1925,11 @@ pub fn f36(v0: Adt3) -> Adt3 {
 }
 
 pub fn f37(v0: Adt3) -> Adt3 {
-    Adt3::C0(match v0.clone() {
+    Adt3::C0(std::rc::Rc::new(match v0.clone() {
         Adt3::C0(h215, _, _, _, _, _, _, _, _) => {
-            h215
+            (*h215).clone()
         }
-    }, match v0.clone() {
+    }), match v0.clone() {
         Adt3::C0(_, h216, _, _, _, _, _, _, _) => {
             h216
         }
@@ -1961,11 +1961,11 @@ pub fn f37(v0: Adt3) -> Adt3 {
 }
 
 pub fn f38(v0: Adt3) -> Adt3 {
-    Adt3::C0(match v0.clone() {
+    Adt3::C0(std::rc::Rc::new(match v0.clone() {
         Adt3::C0(h223, _, _, _, _, _, _, _, _) => {
-            h223
+            (*h223).clone()
         }
-    }, match v0.clone() {
+    }), match v0.clone() {
         Adt3::C0(_, h224, _, _, _, _, _, _, _) => {
             h224
         }
@@ -1997,11 +1997,11 @@ pub fn f38(v0: Adt3) -> Adt3 {
 }
 
 pub fn f39(v0: Adt3) -> Adt3 {
-    Adt3::C0(match v0.clone() {
+    Adt3::C0(std::rc::Rc::new(match v0.clone() {
         Adt3::C0(h231, _, _, _, _, _, _, _, _) => {
-            h231
+            (*h231).clone()
         }
-    }, match v0.clone() {
+    }), match v0.clone() {
         Adt3::C0(_, h232, _, _, _, _, _, _, _) => {
             h232
         }
@@ -2033,11 +2033,11 @@ pub fn f39(v0: Adt3) -> Adt3 {
 }
 
 pub fn f40(v0: Adt3) -> Adt3 {
-    Adt3::C0(match v0.clone() {
+    Adt3::C0(std::rc::Rc::new(match v0.clone() {
         Adt3::C0(h239, _, _, _, _, _, _, _, _) => {
-            h239
+            (*h239).clone()
         }
-    }, match v0.clone() {
+    }), match v0.clone() {
         Adt3::C0(_, h240, _, _, _, _, _, _, _) => {
             h240
         }
@@ -2069,11 +2069,11 @@ pub fn f40(v0: Adt3) -> Adt3 {
 }
 
 pub fn f41(v0: Adt3) -> Adt3 {
-    Adt3::C0(match v0.clone() {
+    Adt3::C0(std::rc::Rc::new(match v0.clone() {
         Adt3::C0(h247, _, _, _, _, _, _, _, _) => {
-            h247
+            (*h247).clone()
         }
-    }, match v0.clone() {
+    }), match v0.clone() {
         Adt3::C0(_, h248, _, _, _, _, _, _, _) => {
             h248
         }
@@ -2105,11 +2105,11 @@ pub fn f41(v0: Adt3) -> Adt3 {
 }
 
 pub fn f42(v0: Adt3) -> R<Adt3> {
-    Ok(Adt3::C0(match v0.clone() {
+    Ok(Adt3::C0(std::rc::Rc::new(match v0.clone() {
         Adt3::C0(h255, _, _, _, _, _, _, _, _) => {
-            h255
+            (*h255).clone()
         }
-    }, match v0.clone() {
+    }), match v0.clone() {
         Adt3::C0(_, h256, _, _, _, _, _, _, _) => {
             h256
         }

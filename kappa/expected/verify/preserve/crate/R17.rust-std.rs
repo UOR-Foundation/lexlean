@@ -872,6 +872,7 @@ pub enum Adt2 {
 
 #[derive(Clone)]
 pub enum Adt3 {
+<<<<<<< HEAD
     C0(u64, Bytes, Bytes, bool),
 }
 
@@ -888,6 +889,9 @@ pub enum Adt5 {
 #[derive(Clone)]
 pub enum Adt6 {
     C0(bool, bool, List<(Bytes, Bytes)>),
+=======
+    C0(u32, u32, u32, u32, u32, u32, u32, u32, std::rc::Rc<Adt2>, u64),
+>>>>>>> origin/release/v0.5
 }
 
 #[derive(Clone)]
@@ -2304,10 +2308,17 @@ pub fn f34(v0: Adt2, v1: Adt4) -> R<Adt2> {
         Adt2::C0(_, _, _, _, _, _, _, h384) => {
             h384
         }
+<<<<<<< HEAD
     }, v1, 0u64))?;
     Ok(Adt2::C0(f48(match v0.clone() {
         Adt2::C0(h385, _, _, _, _, _, _, _) => {
             h385
+=======
+    }, std::rc::Rc::new(v1), 0u64))?;
+    Ok(Adt1::C0(f23(match v0.clone() {
+        Adt1::C0(h231, _, _, _, _, _, _, _) => {
+            h231
+>>>>>>> origin/release/v0.5
         }
     }, match v2.clone() {
         Adt5::C0(h386, _, _, _, _, _, _, _, _, _) => {
@@ -3127,10 +3138,17 @@ pub fn f60(v0: Adt5) -> R<Adt5> {
         Adt5::C0(_, _, _, _, _, _, h606, _, _, _) => {
             h606
         }
+<<<<<<< HEAD
     }), f48(v1, {
         let m609 = match v0.clone() {
             Adt5::C0(_, _, _, _, _, _, _, _, h608, _) => {
                 h608
+=======
+    }), f23(v1, {
+        let m317 = match v0.clone() {
+            Adt3::C0(_, _, _, _, _, _, _, _, h316, _) => {
+                (*h316).clone()
+>>>>>>> origin/release/v0.5
             }
         };
         match m609 {
@@ -3184,6 +3202,7 @@ pub fn f60(v0: Adt5) -> R<Adt5> {
         Adt5::C0(_, _, _, _, _, _, h620, _, _, _) => {
             h620
         }
+<<<<<<< HEAD
     }, f79(match v0.clone() {
         Adt5::C0(_, _, _, _, _, _, _, _, h621, _) => {
             h621
@@ -3192,6 +3211,16 @@ pub fn f60(v0: Adt5) -> R<Adt5> {
         let a623 = match v0 {
             Adt5::C0(_, _, _, _, _, _, _, _, _, h622) => {
                 h622
+=======
+    }, std::rc::Rc::new(f36(match v0.clone() {
+        Adt3::C0(_, _, _, _, _, _, _, _, h329, _) => {
+            (*h329).clone()
+        }
+    })), {
+        let a331 = match v0 {
+            Adt3::C0(_, _, _, _, _, _, _, _, _, h330) => {
+                h330
+>>>>>>> origin/release/v0.5
             }
         };
         let a624 = 1u64;

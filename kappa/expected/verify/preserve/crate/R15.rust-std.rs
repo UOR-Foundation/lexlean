@@ -867,6 +867,7 @@ pub enum Adt1 {
 
 #[derive(Clone)]
 pub enum Adt2 {
+<<<<<<< HEAD
     C0(Bytes, Bytes, u64, u64),
 }
 
@@ -953,6 +954,9 @@ pub enum Adt18 {
 #[derive(Clone)]
 pub enum Adt19 {
     C0(u32, u32, u32, u32),
+=======
+    C0(u32, u32, u32, u32, u32, u32, u32, u32, std::rc::Rc<Adt1>, u64),
+>>>>>>> origin/release/v0.5
 }
 
 #[derive(Clone)]
@@ -3919,10 +3923,17 @@ pub fn f86(v0: Adt6, v1: Adt12) -> R<Adt6> {
         Adt6::C0(_, _, _, _, _, _, _, h794) => {
             h794
         }
+<<<<<<< HEAD
     }, v1, 0u64))?;
     Ok(Adt6::C0(f113(match v0.clone() {
         Adt6::C0(h795, _, _, _, _, _, _, _) => {
             h795
+=======
+    }, std::rc::Rc::new(v1), 0u64))?;
+    Ok(Adt0::C0(f15(match v0.clone() {
+        Adt0::C0(h149, _, _, _, _, _, _, _) => {
+            h149
+>>>>>>> origin/release/v0.5
         }
     }, match v2.clone() {
         Adt13::C0(h796, _, _, _, _, _, _, _, _, _) => {
@@ -4905,6 +4916,7 @@ pub fn f114(v0: Bytes, v1: u64, v2: u64, v3: u64) -> R<u32> {
     }
 }
 
+<<<<<<< HEAD
 pub fn f115(v0: Bytes, v1: u64, v2: u64, v3: u64, v4: Adt7, v5: u64) -> R<Adt7> {
     f136(Adt7::C0({
         let a1101 = match v4.clone() {
@@ -4922,6 +4934,99 @@ pub fn f115(v0: Bytes, v1: u64, v2: u64, v3: u64, v4: Adt7, v5: u64) -> R<Adt7> 
         let a1106 = match v4.clone() {
             Adt7::C0(_, h1103, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) => {
                 h1103
+=======
+pub fn f17(v0: Adt2) -> R<Adt2> {
+    let v1: u32 = f23(match v0.clone() {
+        Adt2::C0(_, _, _, _, _, _, _, _, _, h227) => {
+            h227
+        }
+    });
+    let v2: u32 = f15(match v0.clone() {
+        Adt2::C0(_, _, _, _, _, _, _, h228, _, _) => {
+            h228
+        }
+    }, f15(f24(match v0.clone() {
+        Adt2::C0(_, _, _, _, h229, _, _, _, _, _) => {
+            h229
+        }
+    }), f15(f25(match v0.clone() {
+        Adt2::C0(_, _, _, _, h230, _, _, _, _, _) => {
+            h230
+        }
+    }, match v0.clone() {
+        Adt2::C0(_, _, _, _, _, h231, _, _, _, _) => {
+            h231
+        }
+    }, match v0.clone() {
+        Adt2::C0(_, _, _, _, _, _, h232, _, _, _) => {
+            h232
+        }
+    }), f15(v1, {
+        let m235 = match v0.clone() {
+            Adt2::C0(_, _, _, _, _, _, _, _, h234, _) => {
+                (*h234).clone()
+            }
+        };
+        match m235 {
+            Adt1::C0(h233, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) => {
+                h233
+            }
+        }
+    }))));
+    let v3: u32 = f15(f26(match v0.clone() {
+        Adt2::C0(h236, _, _, _, _, _, _, _, _, _) => {
+            h236
+        }
+    }), f27(match v0.clone() {
+        Adt2::C0(h237, _, _, _, _, _, _, _, _, _) => {
+            h237
+        }
+    }, match v0.clone() {
+        Adt2::C0(_, h238, _, _, _, _, _, _, _, _) => {
+            h238
+        }
+    }, match v0.clone() {
+        Adt2::C0(_, _, h239, _, _, _, _, _, _, _) => {
+            h239
+        }
+    }));
+    Ok(Adt2::C0(f15(v2, v3), match v0.clone() {
+        Adt2::C0(h240, _, _, _, _, _, _, _, _, _) => {
+            h240
+        }
+    }, match v0.clone() {
+        Adt2::C0(_, h241, _, _, _, _, _, _, _, _) => {
+            h241
+        }
+    }, match v0.clone() {
+        Adt2::C0(_, _, h242, _, _, _, _, _, _, _) => {
+            h242
+        }
+    }, f15(match v0.clone() {
+        Adt2::C0(_, _, _, h243, _, _, _, _, _, _) => {
+            h243
+        }
+    }, v2), match v0.clone() {
+        Adt2::C0(_, _, _, _, h244, _, _, _, _, _) => {
+            h244
+        }
+    }, match v0.clone() {
+        Adt2::C0(_, _, _, _, _, h245, _, _, _, _) => {
+            h245
+        }
+    }, match v0.clone() {
+        Adt2::C0(_, _, _, _, _, _, h246, _, _, _) => {
+            h246
+        }
+    }, std::rc::Rc::new(f28(match v0.clone() {
+        Adt2::C0(_, _, _, _, _, _, _, _, h247, _) => {
+            (*h247).clone()
+        }
+    })), {
+        let a249 = match v0 {
+            Adt2::C0(_, _, _, _, _, _, _, _, _, h248) => {
+                h248
+>>>>>>> origin/release/v0.5
             }
         };
         let a1107 = f137(v0.clone(), v1, v2, v3, {

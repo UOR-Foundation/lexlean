@@ -3084,39 +3084,79 @@ case is wired for SP-16`, the red step of R3.
 `conformance_sp_17` reads the Rust sources with a lexer
 (`crates/conformance/src/lean_literals.rs`): comments, plain, raw and byte
 strings, character literals and lifetimes the way the Rust lexer reads them,
-every item under `#[cfg(test)]` dropped, and each remaining string literal
-tested for Lean syntax. It covers every source under
-`crates/lexlean/src/production/` and the probe and audit module part of
-`crates/lexlean/src/backend/lean.rs` (from the section "Probe and audit
-modules"; the rest of the file renders the lexicon terms of the program a user
-wrote, which is what the backend is for).
+every escape of a plain string decoded (`\n`, `\t`, `\\`, `\"`, `\x41`,
+`\u{2192}`, the line continuation), every item under `#[cfg(test)]` dropped, and
+the string literals that remain tested for Lean syntax. It covers every source
+under `crates/lexlean/src/production/` and the whole of
+`crates/lexlean/src/backend/lean.rs` (#181; the scan used to stop at the
+section "Probe and audit modules", which left the term renderer unread).
 
-A literal is Lean syntax when it holds one of: `:=`, `=>`, `↦`, `→`, `∀`, `∃`,
-`⟨`, `⟩`, `(.`, `«`, `@[`; a `fun` binder; a line of `#print`, `#check`,
-`#eval`, `import`, `namespace`, `set_option`, `universe`, or `open` with more
-after it; a parenthesized application of a capitalized name (`(Option {})`); or,
-when the literal holds a `:`, a line of `theorem`, `def`, `example`,
-`instance`, `structure`, `inductive`, or `abbrev` with more after it. A bare
-word (`"inductive"`) is a name, and an English diagnostic carries none of the
-above. The allow-list is 11 entries, each with its reason in the source: the
-printouts of kernel terms that developers read (`kernel/ext.rs`, the
-`LEXLEAN_ROWS` and `LEXLEAN_SHOW` printouts), the quote of one segment of a Lean
-name (`certificate.rs`), and the closed commands the auxiliary module renderer
-writes (`backend/lean.rs`). The case also requires every allow-list entry to
-match a literal that exists, so an entry cannot outlive its reason.
+Literals written one after another in one expression (`concat!`, `+`, an array
+of lines, the arguments of `format!`) are tested the way RT-04 reads them: each
+alone, joined, and joined with a line break. Two literals are one expression
+when no `;`, `{` or `}` and at most 64 characters of code lie between them. An
+expression is reported once, by its first reading that is Lean syntax.
 
-Planted templates, each reported by the scan on the real source of the file
-with the template appended, and nothing else reported:
+A text is Lean syntax when it holds one of: `:=`, `=>`, `↦`, `→`, `∀`, `∃`,
+`⟨`, `⟩`, `(.`, `«`, `@[`; a `fun` binder; a tactic block (`by` and a space, then
+`decide`, `simp`, `rfl`, `omega`, `exact`, ...); a line of `#print`, `#check`,
+`#eval`, `#reduce`, `import`, `namespace`, `set_option`, `universe`, or `open`
+with more after it; `end` and one name; a parenthesized application of a
+capitalized name (`(Option {})`); or a line of `theorem`, `def`, `example`,
+`instance`, `structure`, `inductive`, `abbrev`, or `class`, after any of
+`private`, `protected`, `public`, `noncomputable`, `partial` and `unsafe`, in a
+text that holds a `:` or when the line ends in ` where`. A bare word
+(`"inductive"`) is a name, and an English diagnostic carries none of the above.
+
+The allow-list is 17 entries, each with its reason in the source, and each
+matches a whole text, never a prefix (it used to match by prefix, so the
+`" := "` entry admitted any literal that began with ` := `): the printouts of
+kernel terms that developers read (`kernel/ext.rs`), the quote of one segment of
+a Lean name (`certificate.rs`), the closed commands the auxiliary module
+renderer writes, and the tokens the term renderer writes from typed data
+(`backend/lean.rs`: `→`, `=>`, `:=`, `⟨`, `⟩`, `@[`, and the printout of a let).
+The case also requires every entry to be Lean syntax and to equal a whole text
+of its file, so an entry cannot outlive its reason.
+
+What the scan does not read, each a shape a planted defect could take: a source
+that is not a `.rs` file of `production/` or `backend/lean.rs` (the other
+compiler sources, and any file brought in by `include_str!`); text assembled from
+pieces that are not literals (a `char`, `stringify!`, a name or keyword held in a
+variable or a constant); and literals of one text split across two statements.
+RT-04 reads the runtime texts of the whole compiler for the same reason.
+
+Planted, each in the real source of the file with the code appended, reported
+once, on the planted line, and nothing else reported:
 
 ```text
-SP-17 planted in production/preserve.rs: line 2032 `theorem t (n : Nat) : n = {x} := by decide`
-SP-17 planted in production/certificate.rs: line 3139 `theorem t (n : Nat) : n = {x} := by decide`
-SP-17 planted in production/lower.rs: line 3729 `theorem t (n : Nat) : n = {x} := by decide`
-SP-17 planted in backend/lean.rs: line 2714 `namespace Planted\nend Planted\n`
+SP-17 planted in production/preserve.rs: line 2168 `theorem t (n : Nat) : n = {x} := by decide`
+SP-17 planted in production/certificate.rs: line 3146 `theorem t (n : Nat) : n = {x} := by decide`
+SP-17 planted in production/lower.rs: line 4007 `theorem t (n : Nat) : n = {x} := by decide`
+SP-17 planted in backend/lean.rs: line 2714 `namespace Planted
+end Planted
+`
+SP-17 shape `concat!`: line 2714 `theorem t : True := `
+SP-17 shape `plus`: line 2714 `import Lean`
+SP-17 shape `lines`: line 2714 `namespace Planted`
+SP-17 shape `escapes`: line 2714 `import Lean
+`
+SP-17 shape `private theorem`: line 2714 `private theorem {n} : {n} = {n}
+  by decide`
+SP-17 shape `inductive where`: line 2714 `inductive {t} where
+  | a`
+SP-17 shape `end`: line 2714 `end {ns}`
+SP-17 shape `#reduce`: line 2714 `#reduce {}`
+SP-17 shape `by simp`: line 2714 `by simp [{}]`
+SP-17 shape `allowed prefix`: line 2714 ` := by {x}`
 ```
 
+The shapes the earlier scan read past (the old scan found 2 of these 10, and 18
+literals of the unread part of the backend): split with `concat!` or `+`,
+written with escapes, a `private theorem`, an `inductive .. where`, an `end`, a
+`#reduce`, a `by simp [..]`, and a literal that begins with an allowed text.
+
 The same template under `#[cfg(test)]` is not reported, and the definition
-accepts seven Lean literals and refuses five plain ones (the case lists them).
+accepts twelve Lean literals and refuses eight plain ones (the case lists them).
 
 Before it ran, the scan found the templates the survey of #89 named, not only
 the audit module: the `render_ty`, `render_value`, `render_prim`, `render_expr`

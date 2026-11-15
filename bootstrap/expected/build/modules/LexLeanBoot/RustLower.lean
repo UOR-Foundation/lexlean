@@ -394,7 +394,45 @@ public structure Reach where
   | _owner, _edges, LexLeanBoot.CalculusCheck.Ty.TNil => false
   | owner, edges, LexLeanBoot.CalculusCheck.Ty.TCons head tail => (if LexLeanBoot.CalculusCheck.tyEq (head) (owner) then true else (if edgeHas (edges) (head) (owner) then true else anyHeld (owner) (edges) (tail)))
 
-@[expose] public def cyclic (known : LexLeanBoot.CalculusCheck.Ty) (edges : Edges) (owner : LexLeanBoot.CalculusCheck.Ty) (ty : LexLeanBoot.CalculusCheck.Ty) : Bool := anyHeld (owner) (edges) (inPlace (known) (LexLeanBoot.CalculusCheck.Ty.TNil) (ty))
+@[expose] public def cycles (known : LexLeanBoot.CalculusCheck.Ty) (edges : Edges) (owner : LexLeanBoot.CalculusCheck.Ty) (ty : LexLeanBoot.CalculusCheck.Ty) : Bool := anyHeld (owner) (edges) (inPlace (known) (LexLeanBoot.CalculusCheck.Ty.TNil) (ty))
+
+@[expose] public def fielded : (constructors : LexLeanBoot.CalculusCheck.Ty) -> Bool
+  | LexLeanBoot.CalculusCheck.Ty.TUnit => false
+  | LexLeanBoot.CalculusCheck.Ty.TBool => false
+  | LexLeanBoot.CalculusCheck.Ty.TNat => false
+  | LexLeanBoot.CalculusCheck.Ty.TInt => false
+  | LexLeanBoot.CalculusCheck.Ty.TFixed _ => false
+  | LexLeanBoot.CalculusCheck.Ty.TString => false
+  | LexLeanBoot.CalculusCheck.Ty.TBytes => false
+  | LexLeanBoot.CalculusCheck.Ty.TOrdering => false
+  | LexLeanBoot.CalculusCheck.Ty.TOption _ => false
+  | LexLeanBoot.CalculusCheck.Ty.TResult _ _ => false
+  | LexLeanBoot.CalculusCheck.Ty.TList _ => false
+  | LexLeanBoot.CalculusCheck.Ty.TPair _ _ => false
+  | LexLeanBoot.CalculusCheck.Ty.TAdt _ => false
+  | LexLeanBoot.CalculusCheck.Ty.TFn _ _ => false
+  | LexLeanBoot.CalculusCheck.Ty.TNil => false
+  | LexLeanBoot.CalculusCheck.Ty.TCons head tail => (if LexLeanBoot.CalculusCheck.tyEq (head) (LexLeanBoot.CalculusCheck.Ty.TNil) then fielded (tail) else true)
+
+@[expose] public def markShared : (program : LexLeanBoot.CalculusCheck.Program) -> (owners : LexLeanBoot.CalculusCheck.Ty) -> (edges : Edges) -> Edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TUnit, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TBool, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TNat, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TInt, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TFixed _, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TString, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TBytes, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TOrdering, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TOption _, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TResult _ _, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TList _, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TPair _ _, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TAdt _, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TFn _ _, edges => edges
+  | _program, LexLeanBoot.CalculusCheck.Ty.TNil, edges => edges
+  | program, LexLeanBoot.CalculusCheck.Ty.TCons head tail, edges => markShared (program) (tail) ((if fielded (variantsOf (program) (Clos.ClNil) (head)) then Edges.EdgeCons (head) (LexLeanBoot.CalculusCheck.Ty.TUnit) (edges) else edges))
+
+@[expose] public def cyclic (known : LexLeanBoot.CalculusCheck.Ty) (edges : Edges) (owner : LexLeanBoot.CalculusCheck.Ty) (ty : LexLeanBoot.CalculusCheck.Ty) : Bool := (if cycles (known) (edges) (owner) (ty) then true else edgeHas (edges) (ty) (LexLeanBoot.CalculusCheck.Ty.TUnit))
 
 @[expose] public def fieldsOk : (known : LexLeanBoot.CalculusCheck.Ty) -> (edges : Edges) -> (inhabited : LexLeanBoot.CalculusCheck.Ty) -> (owner : LexLeanBoot.CalculusCheck.Ty) -> (fields : LexLeanBoot.CalculusCheck.Ty) -> Bool
   | _known, _edges, _inhabited, _owner, LexLeanBoot.CalculusCheck.Ty.TUnit => true
@@ -412,7 +450,7 @@ public structure Reach where
   | _known, _edges, _inhabited, _owner, LexLeanBoot.CalculusCheck.Ty.TAdt _ => true
   | _known, _edges, _inhabited, _owner, LexLeanBoot.CalculusCheck.Ty.TFn _ _ => true
   | _known, _edges, _inhabited, _owner, LexLeanBoot.CalculusCheck.Ty.TNil => true
-  | known, edges, inhabited, owner, LexLeanBoot.CalculusCheck.Ty.TCons head tail => (if (if cyclic (known) (edges) (owner) (head) then true else visible (head) (inhabited)) then fieldsOk (known) (edges) (inhabited) (owner) (tail) else false)
+  | known, edges, inhabited, owner, LexLeanBoot.CalculusCheck.Ty.TCons head tail => (if (if cycles (known) (edges) (owner) (head) then true else visible (head) (inhabited)) then fieldsOk (known) (edges) (inhabited) (owner) (tail) else false)
 
 @[expose] public def someVariantOk : (known : LexLeanBoot.CalculusCheck.Ty) -> (edges : Edges) -> (inhabited : LexLeanBoot.CalculusCheck.Ty) -> (owner : LexLeanBoot.CalculusCheck.Ty) -> (variants : LexLeanBoot.CalculusCheck.Ty) -> Bool
   | _known, _edges, _inhabited, _owner, LexLeanBoot.CalculusCheck.Ty.TUnit => false
@@ -538,7 +576,7 @@ public structure Liveness where
 
 @[expose] public def failNext (facts : Facts) (closures : Clos) (flags : List (Bool)) : Option (List (Bool)) := (let next : List (Bool) := failStep (facts) (closures) (flags) (0); (if boolsEq (next) (flags) then Option.none else Option.some (next)))
 
-@[expose] public def deadFunctions (spec : ByteArray) (adts : LexLeanBoot.CalculusCheck.Ty) (parameters : List (List (Nat))) (types : LexLeanBoot.CalculusCheck.Ty) (results : LexLeanBoot.CalculusCheck.Ty) (bodies : LexLeanBoot.CalculusCheck.Expr) (sites : LexLeanBoot.CalculusCheck.Ty) : List (Bool) := (let program : LexLeanBoot.CalculusCheck.Program := ({ spec := spec, adts := adts, parameters := parameters, types := types, results := results, bodies := bodies } : LexLeanBoot.CalculusCheck.Program); (let count : Nat := LexLeanBoot.CalculusCheck.exprChainLength (bodies); (let registered : LexLeanBoot.CalculusCheck.Ty := register (register (register (LexLeanBoot.CalculusCheck.Ty.TNil) (types)) (results)) (adts); (let initial : Collect := collectFunctions (program) (({ known := registered, closures := Clos.ClNil } : Collect)) (bodies) (0) (([] : List (Bool))) (sites); (let known : LexLeanBoot.CalculusCheck.Ty := (initial).known; (let owners : LexLeanBoot.CalculusCheck.Ty := tyAppend (adtOwners (LexLeanBoot.CalculusCheck.tyChainLength (adts))) (known); (let direct : Edges := allEdges (program) (known) ((initial).closures) (owners) (Edges.EdgeNil); (let edges : Edges := closeEdges (direct) ((1 + (LexLeanRuntime.multiply (LexLeanBoot.CalculusCheck.tyChainLength (owners)) (LexLeanBoot.CalculusCheck.tyChainLength (owners)) : Nat))); (let live : Liveness := ((LexLeanCollections.iterateUntil ((fun (state : Liveness) => livenessStep (program) (bodies) (known) (edges) (owners) (sites) (state))) ((1 + count)) (({ dead := falses (count), closures := (initial).closures } : Liveness)) : (Prod (Liveness) (Bool)))).1; (live).dead)))))))))
+@[expose] public def deadFunctions (spec : ByteArray) (adts : LexLeanBoot.CalculusCheck.Ty) (parameters : List (List (Nat))) (types : LexLeanBoot.CalculusCheck.Ty) (results : LexLeanBoot.CalculusCheck.Ty) (bodies : LexLeanBoot.CalculusCheck.Expr) (sites : LexLeanBoot.CalculusCheck.Ty) : List (Bool) := (let program : LexLeanBoot.CalculusCheck.Program := ({ spec := spec, adts := adts, parameters := parameters, types := types, results := results, bodies := bodies } : LexLeanBoot.CalculusCheck.Program); (let count : Nat := LexLeanBoot.CalculusCheck.exprChainLength (bodies); (let registered : LexLeanBoot.CalculusCheck.Ty := register (register (register (LexLeanBoot.CalculusCheck.Ty.TNil) (types)) (results)) (adts); (let initial : Collect := collectFunctions (program) (({ known := registered, closures := Clos.ClNil } : Collect)) (bodies) (0) (([] : List (Bool))) (sites); (let known : LexLeanBoot.CalculusCheck.Ty := (initial).known; (let owners : LexLeanBoot.CalculusCheck.Ty := tyAppend (adtOwners (LexLeanBoot.CalculusCheck.tyChainLength (adts))) (known); (let direct : Edges := allEdges (program) (known) ((initial).closures) (owners) (Edges.EdgeNil); (let edges : Edges := markShared (program) (owners) (closeEdges (direct) ((1 + (LexLeanRuntime.multiply (LexLeanBoot.CalculusCheck.tyChainLength (owners)) (LexLeanBoot.CalculusCheck.tyChainLength (owners)) : Nat)))); (let live : Liveness := ((LexLeanCollections.iterateUntil ((fun (state : Liveness) => livenessStep (program) (bodies) (known) (edges) (owners) (sites) (state))) ((1 + count)) (({ dead := falses (count), closures := (initial).closures } : Liveness)) : (Prod (Liveness) (Bool)))).1; (live).dead)))))))))
 
 @[expose] public def fallibleFunctions (spec : ByteArray) (adts : LexLeanBoot.CalculusCheck.Ty) (parameters : List (List (Nat))) (types : LexLeanBoot.CalculusCheck.Ty) (results : LexLeanBoot.CalculusCheck.Ty) (bodies : LexLeanBoot.CalculusCheck.Expr) (sites : LexLeanBoot.CalculusCheck.Ty) (dead : List (Bool)) : List (Bool) := (let program : LexLeanBoot.CalculusCheck.Program := ({ spec := spec, adts := adts, parameters := parameters, types := types, results := results, bodies := bodies } : LexLeanBoot.CalculusCheck.Program); (let count : Nat := LexLeanBoot.CalculusCheck.exprChainLength (bodies); (let registered : LexLeanBoot.CalculusCheck.Ty := register (register (register (LexLeanBoot.CalculusCheck.Ty.TNil) (types)) (results)) (adts); (let initial : Collect := collectFunctions (program) (({ known := registered, closures := Clos.ClNil } : Collect)) (bodies) (0) (dead) (sites); (let facts : Facts := reachFunctions (program) (bodies) (0) (sites); ((LexLeanCollections.iterateUntil ((fun (flags : List (Bool)) => failNext (facts) ((initial).closures) (flags))) ((1 + count)) (falses (count)) : (Prod (List (Bool)) (Bool)))).1)))))
 
@@ -750,6 +788,6 @@ public structure Liveness where
   | known, LexLeanBoot.CalculusCheck.Ty.TNil => known
   | known, LexLeanBoot.CalculusCheck.Ty.TCons constructors rest => registerAdts (registerCtors (known) (constructors)) (rest)
 
-@[expose] public def lowerTypes (spec : ByteArray) (adts : LexLeanBoot.CalculusCheck.Ty) (parameters : List (List (Nat))) (types : LexLeanBoot.CalculusCheck.Ty) (results : LexLeanBoot.CalculusCheck.Ty) (bodies : LexLeanBoot.CalculusCheck.Expr) (sites : LexLeanBoot.CalculusCheck.Ty) (dead : List (Bool)) (fallible : List (Bool)) : LexLeanBoot.RustAst.Def := (let program : LexLeanBoot.CalculusCheck.Program := ({ spec := spec, adts := adts, parameters := parameters, types := types, results := results, bodies := bodies } : LexLeanBoot.CalculusCheck.Program); (let numbered : Collect := collectFunctions (program) (({ known := LexLeanBoot.CalculusCheck.Ty.TNil, closures := Clos.ClNil } : Collect)) (bodies) (0) (([] : List (Bool))) (sites); (let known : LexLeanBoot.CalculusCheck.Ty := registerAdts ((numbered).known) (adts); (let live : Collect := collectFunctions (program) (({ known := known, closures := Clos.ClNil } : Collect)) (bodies) (0) (dead) (sites); (let owners : LexLeanBoot.CalculusCheck.Ty := tyAppend (adtOwners (LexLeanBoot.CalculusCheck.tyChainLength (adts))) (known); (let direct : Edges := allEdges (program) (known) ((numbered).closures) (owners) (Edges.EdgeNil); (let edges : Edges := closeEdges (direct) ((1 + (LexLeanRuntime.multiply (LexLeanBoot.CalculusCheck.tyChainLength (owners)) (LexLeanBoot.CalculusCheck.tyChainLength (owners)) : Nat))); adtDefs (known) (edges) (adts) (0) (fnDefs (known) (edges) (revClos ((live).closures) (Clos.ClNil)) ((numbered).closures) (fallible) (known) (0) (LexLeanBoot.RustAst.Def.DNil)))))))))
+@[expose] public def lowerTypes (spec : ByteArray) (adts : LexLeanBoot.CalculusCheck.Ty) (parameters : List (List (Nat))) (types : LexLeanBoot.CalculusCheck.Ty) (results : LexLeanBoot.CalculusCheck.Ty) (bodies : LexLeanBoot.CalculusCheck.Expr) (sites : LexLeanBoot.CalculusCheck.Ty) (dead : List (Bool)) (fallible : List (Bool)) : LexLeanBoot.RustAst.Def := (let program : LexLeanBoot.CalculusCheck.Program := ({ spec := spec, adts := adts, parameters := parameters, types := types, results := results, bodies := bodies } : LexLeanBoot.CalculusCheck.Program); (let numbered : Collect := collectFunctions (program) (({ known := LexLeanBoot.CalculusCheck.Ty.TNil, closures := Clos.ClNil } : Collect)) (bodies) (0) (([] : List (Bool))) (sites); (let known : LexLeanBoot.CalculusCheck.Ty := registerAdts ((numbered).known) (adts); (let live : Collect := collectFunctions (program) (({ known := known, closures := Clos.ClNil } : Collect)) (bodies) (0) (dead) (sites); (let owners : LexLeanBoot.CalculusCheck.Ty := tyAppend (adtOwners (LexLeanBoot.CalculusCheck.tyChainLength (adts))) (known); (let direct : Edges := allEdges (program) (known) ((numbered).closures) (owners) (Edges.EdgeNil); (let edges : Edges := markShared (program) (owners) (closeEdges (direct) ((1 + (LexLeanRuntime.multiply (LexLeanBoot.CalculusCheck.tyChainLength (owners)) (LexLeanBoot.CalculusCheck.tyChainLength (owners)) : Nat)))); adtDefs (known) (edges) (adts) (0) (fnDefs (known) (edges) (revClos ((live).closures) (Clos.ClNil)) ((numbered).closures) (fallible) (known) (0) (LexLeanBoot.RustAst.Def.DNil)))))))))
 
 end LexLeanBoot.RustLower
