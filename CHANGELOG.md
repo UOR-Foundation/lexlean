@@ -17,6 +17,14 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- At most one of BS-05..BS-08 per 8 GiB of the host's memory runs at a time in
+  one test process (no SPEC, language, or identity change). Each checks its own
+  copy of the bootstrap project: BS-07 alone peaks at 4.4 GiB, BS-05 with BS-07
+  passes 10 GiB, and the four together were OOM-killed on the 16 GiB aarch64
+  runner, which lost the `build and non-Lean tests (aarch64-unknown-linux-gnu)`
+  job mid-run. On that runner they now run one at a time. A waiting case is
+  not timed.
+
 - A semantic module nests as deeply as the project's `max_scope_depth` allows
   (SPEC.md §17.17, §17.21.3, `SM-12`; no new diagnostic code; no language
   identity moves). The front end read a module's JSON with a fixed 128-level
