@@ -106,6 +106,19 @@ workspace carried at those versions without a tag.
   person merges a cut. `tag.yml` still tags a person's merge of a cut, and
   accepts the run that verified a merged head's tree without waiting for the
   merge's own.
+- The whole gate verifies the bootstrap project once (SPEC.md §9.4). The
+  `bootstrap export` job, whose export already verified it whole through the
+  `examples` recipe's own `verify`, is now that project's part of the recipe:
+  `export-bootstrap` formats, locks, checks and builds a clean copy first and
+  then holds the export's verified directory to the recipe's checks (no
+  telemetry, records equal to `bootstrap/expected/verify`). The `examples` leg
+  runs `without:uor-atlas,bootstrap` and no longer spends about 53 minutes
+  verifying the project a second time; `LEXLEAN_EXAMPLES_PART=without:` takes
+  a comma-separated list. `RP-14` pins the job's assertion and the leg's.
+- The Intel and Windows aggregates no longer run in a run that was cancelled
+  (a newer push to the pull request), so a superseded head no longer reports
+  a failed host context; they still run after a failed or cancelled lane of a
+  run that goes on (SPEC.md §8.3, `RP-14`).
 - Decision regions (SPEC.md §17.12, `PF-24`, UOR-Foundation/PrismPM#605; no
   new diagnostic code; changes the language-1.2 identity). The runtime gains a
   sixth native module, `LexLeanRuntime.Regions`: a checker of local box
