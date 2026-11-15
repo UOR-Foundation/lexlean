@@ -918,6 +918,7 @@
 'LexLeanBoot.RustLower.compose' does not depend on any axioms
 'LexLeanBoot.RustLower.composeFrom' does not depend on any axioms
 'LexLeanBoot.RustLower.copyTy' does not depend on any axioms
+'LexLeanBoot.RustLower.cycles' does not depend on any axioms
 'LexLeanBoot.RustLower.cyclic' does not depend on any axioms
 'LexLeanBoot.RustLower.deadFlags' does not depend on any axioms
 'LexLeanBoot.RustLower.deadFunctions' does not depend on any axioms
@@ -934,6 +935,7 @@
 'LexLeanBoot.RustLower.falses' does not depend on any axioms
 'LexLeanBoot.RustLower.fieldChain' does not depend on any axioms
 'LexLeanBoot.RustLower.fieldTy' does not depend on any axioms
+'LexLeanBoot.RustLower.fielded' does not depend on any axioms
 'LexLeanBoot.RustLower.fieldsOk' does not depend on any axioms
 'LexLeanBoot.RustLower.flagAt' does not depend on any axioms
 'LexLeanBoot.RustLower.fnDefs' does not depend on any axioms
@@ -949,6 +951,7 @@
 'LexLeanBoot.RustLower.kindOf' does not depend on any axioms
 'LexLeanBoot.RustLower.livenessStep' does not depend on any axioms
 'LexLeanBoot.RustLower.lowerTypes' does not depend on any axioms
+'LexLeanBoot.RustLower.markShared' does not depend on any axioms
 'LexLeanBoot.RustLower.natMember' does not depend on any axioms
 'LexLeanBoot.RustLower.primFails' does not depend on any axioms
 'LexLeanBoot.RustLower.reachFunctions' does not depend on any axioms

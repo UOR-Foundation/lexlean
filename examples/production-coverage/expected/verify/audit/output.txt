@@ -29,7 +29,7 @@
 'Coverage.Prims.fixedMiddle' depends on axioms: [propext, Quot.sound]
 'Coverage.Prims.fixedSmall' depends on axioms: [propext, Quot.sound]
 'Coverage.Prims.fixedWide' depends on axioms: [propext, Quot.sound]
-'Coverage.Prims.formats' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Coverage.Prims.formats' depends on axioms: [propext]
 'Coverage.Prims.pixels' depends on axioms: [propext, Quot.sound]
 'Coverage.Prims.sequences' does not depend on any axioms
 'Coverage.Prims.text' depends on axioms: [propext, Classical.choice, Quot.sound]
