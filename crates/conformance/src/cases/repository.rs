@@ -308,15 +308,18 @@ fn plan_decisions() {
     let path = format!("{}:{}", bin.display(), std::env::var("PATH").expect("PATH"));
     // (full, rows' parts) for one planted event; a dispatch names its branch
     // and the open pull requests `gh` lists for it, as `draft<TAB>base` lines.
-    let decide_with = |event: &str,
-                       draft: &str,
-                       base: &str,
-                       commit: &str,
-                       runs: &str,
-                       jobs: &[String],
-                       fail: bool,
-                       branch: &str,
-                       pulls: &str| {
+    // `plan_full` also names the pull request's head branch and returns
+    // whether the Intel macOS jobs run (`intel`).
+    let plan_full = |event: &str,
+                     draft: &str,
+                     base: &str,
+                     head: &str,
+                     commit: &str,
+                     runs: &str,
+                     jobs: &[String],
+                     fail: bool,
+                     branch: &str,
+                     pulls: &str| {
         git(&["checkout", "-q", "--detach", commit]);
         let out = dir.join("out");
         let _ = std::fs::remove_file(&out);
@@ -328,6 +331,7 @@ fn plan_decisions() {
             .env("EVENT", event)
             .env("DRAFT", draft)
             .env("BASE", base)
+            .env("HEAD", head)
             .env("REPO", "owner/repo")
             .env("LEXLEAN_CI_ROWS", rows_file.as_std_path())
             .env("GITHUB_OUTPUT", &out)
@@ -373,7 +377,22 @@ fn plan_decisions() {
                 .iter()
                 .map(|row| row["part"].as_str().expect("a part").to_owned())
                 .collect::<Vec<_>>(),
+            value("intel"),
         )
+    };
+    let decide_with = |event: &str,
+                       draft: &str,
+                       base: &str,
+                       commit: &str,
+                       runs: &str,
+                       jobs: &[String],
+                       fail: bool,
+                       branch: &str,
+                       pulls: &str| {
+        let (full, parts, _) = plan_full(
+            event, draft, base, "", commit, runs, jobs, fail, branch, pulls,
+        );
+        (full, parts)
     };
     let decide =
         |event: &str,
@@ -718,6 +737,212 @@ fn plan_decisions() {
         decide("push", "", "main", &direct, "4242", &green, false),
         whole
     );
+    // Intel macOS (§8.3, §9.4): a ready pull request into a release line runs
+    // the whole gate without the Intel jobs, unless its head is a release cut
+    // or its base is `main`; a draft never runs them; a push and a request do.
+    // A push that lands a tree a run verified without Intel runs honesty and
+    // the Intel jobs only, and a run without Intel never stands in for the
+    // whole gate.
+    let intel = |event: &str,
+                 draft: &str,
+                 base: &str,
+                 head: &str,
+                 commit: &str,
+                 runs: &str,
+                 jobs: &[String],
+                 branch: &str,
+                 pulls: &str| {
+        plan_full(
+            event, draft, base, head, commit, runs, jobs, false, branch, pulls,
+        )
+    };
+    let with_intel = |(full, parts): (String, Vec<String>), on: &str| (full, parts, on.to_owned());
+    for (what, base, head, expected) in [
+        (
+            "a pull request into a release line",
+            "release/v0.4",
+            "claude/x",
+            with_intel(whole.clone(), "false"),
+        ),
+        (
+            "a release cut",
+            "release/v0.4",
+            "cut/v0.4.1",
+            with_intel(whole.clone(), "true"),
+        ),
+        (
+            "a pull request into main",
+            "main",
+            "release/v0.4",
+            with_intel(whole.clone(), "true"),
+        ),
+        (
+            "a branch that only starts like a cut",
+            "release/v0.4",
+            "cutv0.4.1",
+            with_intel(whole.clone(), "false"),
+        ),
+    ] {
+        assert_eq!(
+            intel(
+                "pull_request",
+                "false",
+                base,
+                head,
+                &direct,
+                "",
+                &[],
+                "",
+                ""
+            ),
+            expected,
+            "§9.4: Intel on {what}"
+        );
+    }
+    assert_eq!(
+        intel(
+            "pull_request",
+            "true",
+            "release/v0.4",
+            "cut/v0.4.1",
+            &direct,
+            "",
+            &[],
+            "",
+            ""
+        ),
+        with_intel(draft.clone(), "false"),
+        "§9.4: a draft runs no Intel job"
+    );
+    assert_eq!(
+        intel("push", "", "main", "", &direct, "", &[], "", ""),
+        with_intel(whole.clone(), "true"),
+        "§9.4: a push runs the Intel jobs"
+    );
+    assert_eq!(
+        intel("workflow_dispatch", "", "", "", &direct, "", &[], "", ""),
+        with_intel(whole.clone(), "true"),
+        "§9.4: a request runs the Intel jobs"
+    );
+    for (what, pulls, branch, on) in [
+        (
+            "a ready head into a line",
+            "false\trelease/v0.4",
+            "claude/issue-91-h7",
+            "false",
+        ),
+        ("a cut's head", "false\trelease/v0.4", "cut/v0.4.1", "true"),
+    ] {
+        assert_eq!(
+            intel(
+                "workflow_dispatch",
+                "",
+                "",
+                "",
+                &direct,
+                "",
+                &[],
+                branch,
+                pulls
+            ),
+            with_intel(whole.clone(), on),
+            "§9.4: Intel on a dispatch on {what}"
+        );
+    }
+    // The jobs of a run that skipped the Intel jobs and passed every other.
+    let intel_job = |job: &String| {
+        job.starts_with("Intel ")
+            || job.starts_with("build and non-Lean tests (x86_64-apple-darwin)")
+    };
+    let mut linux: Vec<String> = green
+        .iter()
+        .filter(|job| !intel_job(job))
+        .cloned()
+        .collect();
+    linux.extend([
+        "Intel test construction and local targets\tskipped".to_owned(),
+        "Intel conformance (${{ matrix.lane }})\tskipped".to_owned(),
+        "build and non-Lean tests (x86_64-apple-darwin)\tskipped".to_owned(),
+    ]);
+    let honesty_only = (
+        "false".to_owned(),
+        vec!["honesty".to_owned()],
+        "true".to_owned(),
+    );
+    assert_eq!(
+        intel("push", "", "main", "", &merge_equal, "4242", &linux, "", ""),
+        honesty_only,
+        "§9.4: a push landing a tree verified without Intel runs honesty and the Intel jobs"
+    );
+    assert_eq!(
+        intel("push", "", "main", "", &merge_equal, "4242", &green, "", ""),
+        with_intel(nothing.clone(), "false"),
+        "§9.4: a push landing a tree verified with Intel runs nothing"
+    );
+    assert_eq!(
+        decide_with(
+            "workflow_dispatch",
+            "",
+            "",
+            &carried,
+            &on_regenerated,
+            &linux,
+            false,
+            "release/v0.4",
+            "false\tmain"
+        ),
+        whole,
+        "§9.4: a run without Intel never stands in for the whole gate of a head"
+    );
+    for (what, jobs) in [
+        (
+            "an Intel job that ran and failed",
+            linux
+                .iter()
+                .map(|job| {
+                    job.replace(
+                        "Intel test construction and local targets\tskipped",
+                        "Intel test construction and local targets\tfailure",
+                    )
+                })
+                .collect::<Vec<_>>(),
+        ),
+        ("a skipped job other than Intel", {
+            let mut jobs = linux.clone();
+            jobs.push("atlas (closure)\tskipped".to_owned());
+            jobs
+        }),
+        (
+            "another host missing",
+            linux
+                .iter()
+                .filter(|job| !job.starts_with("build and non-Lean tests (aarch64-apple-darwin)"))
+                .cloned()
+                .collect(),
+        ),
+        (
+            "no Intel context",
+            linux
+                .iter()
+                .filter(|job| !job.starts_with("build and non-Lean tests (x86_64-apple-darwin)"))
+                .cloned()
+                .collect(),
+        ),
+        (
+            "a leg missing",
+            linux
+                .iter()
+                .filter(|job| !job.starts_with("just vv (rest)"))
+                .cloned()
+                .collect(),
+        ),
+    ] {
+        assert_eq!(
+            intel("push", "", "main", "", &merge_equal, "4242", &jobs, "", ""),
+            with_intel(whole.clone(), "true"),
+            "§9.4: {what} is not the gate without Intel passing"
+        );
+    }
     // A run of another repository's pull request is not one of this one's.
     let script_text = root_file(".github/ci-plan.sh");
     assert!(
@@ -1902,7 +2127,8 @@ pub(crate) fn run(id: &str) {
             assert!(legs.len() >= 2, "the gate runs in legs: {legs:?}");
             // The leg that runs `examples` verifies at width 2 with the
             // committed hints and a 12 GiB budget, and every example but the
-            // one the Atlas jobs verify as parts; every other leg names no
+            // one the Atlas jobs verify as parts and the bootstrap project,
+            // which the bootstrap export verifies; every other leg names no
             // profile and no part (§9.4, §22.11). The values are the
             // verifier's to accept: a width it refuses, or hints it cannot
             // read, would fail the gate as `LLV7017` before any stage ran, so
@@ -1918,7 +2144,7 @@ pub(crate) fn run(id: &str) {
                             "2",
                             "12582912",
                             ".github/verify-hints.json",
-                            "without:uor-atlas"
+                            "without:uor-atlas,bootstrap"
                         ]
                         .map(str::to_owned),
                         "§9.4: the examples leg's profile and part"
@@ -2311,7 +2537,7 @@ pub(crate) fn run(id: &str) {
                 ("lane: [producer, lower, print, validate, moves]", "lane: [producer, lower, print, validate]"),
                 ("    needs: [plan, windows-part]", "    needs: [plan]"),
                 (
-                    "    if: ${{ always() && needs.plan.outputs.full == 'true' }}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-x86_64",
+                    "    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-x86_64",
                     "    if: ${{ needs.plan.outputs.full == 'true' }}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-x86_64",
                 ),
                 ("host_lanes.py join --target", "host_lanes.py execute --target"),
@@ -2342,7 +2568,11 @@ pub(crate) fn run(id: &str) {
                     "needs: [plan, intel-construction]",
                 ),
                 (
-                    "if: ${{ always() && needs.plan.outputs.full == 'true' }}",
+                    "if: ${{ !cancelled() && needs.plan.outputs.intel == 'true' }}",
+                    "if: ${{ needs.plan.outputs.intel == 'true' }}",
+                ),
+                (
+                    "if: ${{ needs.plan.outputs.intel == 'true' }}",
                     "if: ${{ needs.plan.outputs.full == 'true' }}",
                 ),
                 ("runs-on: macos-15-intel", "runs-on: macos-15"),
@@ -2391,6 +2621,14 @@ pub(crate) fn run(id: &str) {
                     "          name: bootstrap-bundle\n",
                 ),
                 ("    name: bootstrap export\n", "    name: export\n"),
+                (
+                    "grep -F \"verify-examples: bootstrap verified (attestation \" ci-evidence/vv.txt\n",
+                    "true\n",
+                ),
+                (
+                    "grep -E \"^verify-examples: bootstrap: [0-9]+ normalized verification records equal expected/verify \" ci-evidence/vv.txt\n",
+                    "true\n",
+                ),
             ] {
                 assert!(
                     export_job.contains(from),
@@ -2414,6 +2652,10 @@ pub(crate) fn run(id: &str) {
                 (
                     "            export LEXLEAN_BOOTSTRAP_EXPORT=\"$RUNNER_TEMP/bootstrap-export\"\n",
                     "            export LEXLEAN_BOOTSTRAP_EXPORT=\"$RUNNER_TEMP/elsewhere\"\n",
+                ),
+                (
+                    "              if grep -F \"verify-examples: bootstrap\" ci-evidence/vv.txt; then\n",
+                    "              if false; then\n",
                 ),
             ] {
                 assert!(ci.contains(from), "the plant must change the workflow: {from}");
@@ -2492,6 +2734,8 @@ pub(crate) fn run(id: &str) {
                     && plan_job.contains("        run: .github/ci-plan.sh\n")
                     && plan_job.contains("          DRAFT: ${{ github.event.pull_request.draft }}\n")
                     && plan_job.contains("          BASE: ${{ github.event.pull_request.base.ref }}\n")
+                    && plan_job.contains("          HEAD: ${{ github.event.pull_request.head.ref }}\n")
+                    && plan_job.contains("      intel: ${{ steps.plan.outputs.intel }}\n")
                     && plan_job.contains("          EVENT: ${{ github.event_name }}\n")
                     && plan_job.contains("          REF: ${{ github.ref_name }}\n"),
                 "§9.4: the plan runs the script on the event and the base branch, and may read the runs of the repository"
@@ -3727,19 +3971,19 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
             "intel-construction",
             &construction,
             "needs: [plan, honesty]",
-            "if: ${{ needs.plan.outputs.full == 'true' }}",
+            "if: ${{ needs.plan.outputs.intel == 'true' }}",
         ),
         (
             "intel-part",
             &part,
             "needs: [plan, intel-construction]",
-            "if: ${{ needs.plan.outputs.full == 'true' }}",
+            "if: ${{ needs.plan.outputs.intel == 'true' }}",
         ),
         (
             "intel-join",
             &join,
             "needs: [plan, intel-construction, intel-part]",
-            "if: ${{ always() && needs.plan.outputs.full == 'true' }}",
+            "if: ${{ !cancelled() && needs.plan.outputs.intel == 'true' }}",
         ),
     ] {
         require(body, dependencies, key)?;
@@ -3749,7 +3993,7 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
             .collect();
         if conditions != vec![condition.trim_start_matches("if: ")] {
             return Err(format!(
-                "RP-14: {key} does not follow its full-gate dependency policy"
+                "RP-14: {key} does not follow its Intel dependency policy"
             ));
         }
         for forbidden in [
@@ -3859,7 +4103,9 @@ const TAKE_EXPORT: &str = ".github/scripts/take-bootstrap-export.sh";
 /// one name the fetcher reads; a leg reads the artifacts of its own run only,
 /// takes the export only in a run that is the whole gate, and only into the
 /// directory its harness waits in; the fetcher names this run and the export
-/// job, and asks nothing before a case wants the export.
+/// job, and asks nothing before a case wants the export. The job asserts
+/// that it verified the bootstrap example for the `examples` recipe, and the
+/// `examples` leg fails when it verifies that project again.
 fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
     let job = workflow_job(ci, "bootstrap-export")?;
     let legs = workflow_job(ci, "vv")?;
@@ -3899,6 +4145,14 @@ fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
             "name: acceptance-gate-evidence-bootstrap-export\n",
             "the job's evidence",
         ),
+        (
+            "grep -F \"verify-examples: bootstrap verified (attestation \" ci-evidence/vv.txt\n",
+            "the export verified the bootstrap example",
+        ),
+        (
+            "grep -E \"^verify-examples: bootstrap: [0-9]+ normalized verification records equal expected/verify \" ci-evidence/vv.txt\n",
+            "the export's records equal the bootstrap example's expected/verify",
+        ),
     ] {
         require(&job, text, rule)?;
     }
@@ -3911,6 +4165,10 @@ fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
         (
             "          if [ \"$FULL_GATE\" = true ]; then\n            export LEXLEAN_BOOTSTRAP_EXPORT=\"$RUNNER_TEMP/bootstrap-export\"\n            .github/scripts/take-bootstrap-export.sh \"$LEXLEAN_BOOTSTRAP_EXPORT\"",
             "the fetcher fills the directory the harness waits in",
+        ),
+        (
+            "              if grep -F \"verify-examples: bootstrap\" ci-evidence/vv.txt; then\n",
+            "the examples leg does not verify the project the export verifies",
         ),
     ] {
         require(&legs, text, rule)?;
@@ -3964,7 +4222,7 @@ fn bootstrap_custody_decisions() {
     .map(|(name, digest)| (name.to_owned(), digest))
     .collect();
     let toolchains: BTreeMap<String, String> =
-        [("lean", "Lean (version 4.32.1)"), ("rustc", "rustc 1.97.1")]
+        [("lean", "Lean (version 4.32.2)"), ("rustc", "rustc 1.97.1")]
             .into_iter()
             .map(|(name, text)| (name.to_owned(), text.to_owned()))
             .collect();
@@ -4151,8 +4409,8 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
         (&join, "    needs: [plan, windows-part]\n", "the aggregate follows the lanes"),
         (
             &join,
-            "    if: ${{ always() && needs.plan.outputs.full == 'true' }}\n",
-            "the aggregate runs after a failed or cancelled lane",
+            "    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}\n",
+            "the aggregate runs after a failed or cancelled lane, not after the run is cancelled",
         ),
         (
             &join,
@@ -4321,6 +4579,23 @@ fn release_gate_decisions() {
         .filter(|job| !job.starts_with(hosts[1].as_str()))
         .cloned()
         .collect();
+    // A pull request run into a line, which skipped the Intel macOS jobs
+    // (§9.4): every other job passed, and it is still not the release's
+    // evidence.
+    let without_intel: Vec<String> = green
+        .iter()
+        .map(|job| {
+            job.replace(
+                "build and non-Lean tests (x86_64-apple-darwin)\tsuccess",
+                "build and non-Lean tests (x86_64-apple-darwin)\tskipped",
+            )
+        })
+        .chain([
+            stamp("Intel test construction and local targets", "skipped"),
+            stamp("Intel conformance (${{ matrix.lane }})", "skipped"),
+        ])
+        .collect();
+    assert_ne!(without_intel, green, "the plant skips the Intel context");
     // Every job but one leg: only the reading of every leg refuses it.
     let missing_leg: Vec<String> = green
         .iter()
@@ -4574,6 +4849,11 @@ fn release_gate_decisions() {
             "a missing host",
             vec![(head.as_str(), run_line("18"))],
             &missing_host,
+        ),
+        (
+            "a run without the Intel macOS jobs",
+            vec![(head.as_str(), run_line("31"))],
+            &without_intel,
         ),
     ] {
         let (code, evidence, stderr) = decide(&head, &runs, jobs);

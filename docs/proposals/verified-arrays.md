@@ -96,7 +96,7 @@ Nothing in the meaning of an array depends on storage. The compiled behaviour is
 - `Array.size` and `a[i]?` read in constant time (`lean_array_get_size`, `lean_array_fget`).
 - `Array.setIfInBounds` writes through `Array.set`, implemented by `lean_array_fset`, which writes in place when the array object is referenced once (`lean_is_exclusive`) and copies it first otherwise (`src/include/lean/lean.h` at the pinned commit).
 
-This is recorded as a `some-true` row, `LEAN-ARRAY-4-32-1`, and is not a LexLean claim. A document gets the in-place write by threading the array through the loop and not keeping the old one. One measurement, not a claim (pinned Lean, `lean --run`, a loaded Windows machine, one run): `n` writes to an array of `n` int8 values took 7, 9 and 21 ms for `n` = 20,000, 40,000 and 80,000 when the array was passed along, and 238, 1,323 and 3,614 ms when each old array was kept alive in a second array. The first grows linearly, the second quadratically.
+This is recorded as a `some-true` row, `LEAN-ARRAY-4-32-2`, and is not a LexLean claim. A document gets the in-place write by threading the array through the loop and not keeping the old one. One measurement, not a claim (pinned Lean, `lean --run`, a loaded Windows machine, one run): `n` writes to an array of `n` int8 values took 7, 9 and 21 ms for `n` = 20,000, 40,000 and 80,000 when the array was passed along, and 238, 1,323 and 3,614 ms when each old array was kept alive in a second array. The first grows linearly, the second quadratically.
 
 Prism builds an application by compiling the generated Lean to C, so it gets this behaviour directly.
 
@@ -116,7 +116,7 @@ This is the state text components (`declaration.tokenizer` and the three beside 
 | Production | four registry rows; eligibility keys; an error arm in every lowering and certificate match |
 | Schemas | `array` type and three operations in the module and snapshot schemas, version 2 |
 | Identity | `semantic_ir` 16 to 17, `lean_backend` 22 to 23; the language-1.2 identity moves |
-| Model | `SM-39`, authority `LEAN-ARRAY-4-32-1`, oracle overlap table version 5 |
+| Model | `SM-39`, authority `LEAN-ARRAY-4-32-2`, oracle overlap table version 5 |
 | Tests | `conformance_sm_39`, five negative fixtures, `examples/arrays` |
 
 Languages 1.0 and 1.1 are untouched. No existing language-1.2 document changes meaning or is refused: the type and the primitives are new names, and the only changed rule (`length` and `index` accept an array) applies to a type no existing document could write.
