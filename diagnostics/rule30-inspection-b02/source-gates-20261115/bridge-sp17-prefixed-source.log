@@ -1,0 +1,36 @@
+
+running 1 test
+
+thread 'conformance_sp_17' (161288) panicked at crates/conformance/src/cases/preservation.rs:4710:13:
+Lean syntax literals in the production compiler: [
+    Finding {
+        file: "production/preserve.rs",
+        line: 1303,
+        literal: "\\nrun_cmd Lean.Elab.Command.liftCoreM (LexLeanCore.Runtime.decodeAndAdd #[",
+    },
+    Finding {
+        file: "production/preserve.rs",
+        line: 1314,
+        literal: "namespace LexLeanCore.Runtime",
+    },
+    Finding {
+        file: "production/preserve.rs",
+        line: 1345,
+        literal: "import {import}\\n{common}{group}{footer}",
+    },
+    Finding {
+        file: "production/preserve.rs",
+        line: 1357,
+        literal: "import {previous}\\n",
+    },
+]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test conformance_sp_17 ... FAILED
+
+failures:
+
+failures:
+    conformance_sp_17
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 486 filtered out; finished in 0.12s
+

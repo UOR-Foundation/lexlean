@@ -1,0 +1,17 @@
+
+running 1 test
+
+thread 'conformance_pk_05' (162106) panicked at crates/conformance/src/cases/packages.rs:759:5:
+assertion `left == right` failed
+  left: ["bootstrap", "examples/helpdesk", "kappa", "spec", "std-models", "std-reasoning", "stdlib", "tests/fixtures/command-driver", "tests/fixtures/host-effects"]
+ right: ["bootstrap", "examples/helpdesk", "kappa", "spec", "std-models", "std-reasoning", "stdlib"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test conformance_pk_05 ... FAILED
+
+failures:
+
+failures:
+    conformance_pk_05
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 486 filtered out; finished in 0.01s
+

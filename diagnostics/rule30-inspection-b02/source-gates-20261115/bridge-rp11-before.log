@@ -1,0 +1,17 @@
+
+running 1 test
+
+thread 'conformance_rp_11' (161687) panicked at crates/conformance/src/cases/repository.rs:1058:29:
+assertion `left == right` failed: RP-11: the range ``VR-01`..`VR-23`` ends at the register's last VR ID
+  left: Some("VR-29")
+ right: Some("VR-23")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test conformance_rp_11 ... FAILED
+
+failures:
+
+failures:
+    conformance_rp_11
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 486 filtered out; finished in 0.05s
+

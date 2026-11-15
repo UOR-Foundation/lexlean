@@ -1,0 +1,7 @@
+{
+  "test": "terminate separately grouped descendants in owned session",
+  "groups_before": 2,
+  "root_exit": -9,
+  "remaining_live_owned_processes": 0,
+  "passed": true
+}

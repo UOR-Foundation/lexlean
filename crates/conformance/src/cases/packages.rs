@@ -765,7 +765,9 @@ fn pk_05() {
             "spec",
             "std-models",
             "std-reasoning",
-            "stdlib"
+            "stdlib",
+            "tests/fixtures/command-driver",
+            "tests/fixtures/host-effects"
         ]
     );
 

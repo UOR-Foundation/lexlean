@@ -1,0 +1,12 @@
+{
+  "compiler_adopted": false,
+  "library_tests": "225 passed on ba47322 Rust source cone; README-only followup recorded separately",
+  "source_read_checks": "SP17/RP11/NS01 used retained f910 binary against current source, not fresh whole-head acceptance",
+  "PK05": "Exact workspace inventory extended to its two existing fixture members; fresh case pending",
+  "owner_coordination": "#518 merged on release/v0.4 per parent; #503 corrections remain owner work; #537 and #482 heads unchanged in fetched metadata",
+  "remaining": [
+    "fresh current-head conformance checks",
+    "full bootstrap export",
+    "other exports and full upstream gate"
+  ]
+}

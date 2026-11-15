@@ -1,0 +1,15 @@
+
+running 1 test
+
+thread 'conformance_ns_01' (162549) panicked at crates/conformance/src/support.rs:920:14:
+fmt --check succeeds: LexLeanError { class: Language, diagnostics: [Diagnostic { code: DiagnosticCode("LLL1003"), message: "src/IdsPD.lex.tex is not canonical; run `lexlean fmt`", primary: Some(Span { path: "lexlean.toml", byte_start: 0, byte_end: 0, line_start: 1, column_start: 1, line_end: 1, column_end: 1 }), labels: [], notes: [], help: [], causes: [], detail: None }], source: None }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test conformance_ns_01 ... FAILED
+
+failures:
+
+failures:
+    conformance_ns_01
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 486 filtered out; finished in 4.19s
+

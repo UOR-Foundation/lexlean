@@ -1,0 +1,24 @@
+{
+  "checkpoint": "ba47322e7d7cb76d544bc209c253aeee877ca6bc",
+  "scope": "static byte-preservation review; not fresh Lean acceptance",
+  "reasoning": [
+    "CORE_COMMAND_START plus one newline equals the previous append_core_command literal byte-for-byte.",
+    "legacy_scope_footer uses the same newline/end/scope/newline format as both prior emitter and partitioner.",
+    "strip_suffix proves the borrowed footer equals the prior formatted footer; header/decoder boundary/command offsets use identical delimiters.",
+    "AuxiliaryModule with one import, no module header and zero commands emits exactly import + space + module + newline.",
+    "Partition grouping, owner naming, file paths, wrapper source record and audit/replay routing are unchanged."
+  ],
+  "audit_policy_changed": false,
+  "files": [
+    {
+      "path": "crates/lexlean/src/backend/core.rs",
+      "before_sha256": "c88931d594a1e3ecf3533a468484b299e8b3bd90f364b6e614a35fb4df1859c9",
+      "after_sha256": "3b5f7a6c8e0cd1e7b0c5158c13d69ac6592d8fec5103572581e65f1751cb7d55"
+    },
+    {
+      "path": "crates/lexlean/src/production/preserve.rs",
+      "before_sha256": "a6f0e6f546e0a66ded8d94d12a438f86580613c05b75908a9b91fca1e85d1ac1",
+      "after_sha256": "43caaf11b8308a19b3222d5025087f114ebed0d3ef052cc50fbbe9bcd97b3f2e"
+    }
+  ]
+}
