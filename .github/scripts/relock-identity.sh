@@ -19,9 +19,12 @@
 #      deliberate one) is left as it is. Nothing is built for a request.
 #
 # It refuses a tree with tracked changes, so it can only write over its own
-# output, and it writes nothing else: the `.lexlean/` build roots it creates
-# are removed (those that existed before stay), and any other tracked file a
-# step touched is put back. Run it before the other `-write` recipes, whose
+# output. Its write set is the tracked `lexlean.lock` files,
+# `crates/lexlean/src/lib.rs`, `language/semantics-1.2.toml`, and tracked
+# production requests; the `.lexlean/` build roots it creates are removed,
+# a root that existed before keeps its contents (the `.lock` helper a lock
+# run may add to it is removed), and any other tracked file a step touched is
+# put back. Run it before the other `-write` recipes, whose
 # outputs embed these locks and pins; `regenerate.yml` does.
 set -euo pipefail
 
@@ -38,6 +41,12 @@ build_roots() {
 }
 before_roots=$(mktemp)
 build_roots > "$before_roots"
+# A root that exists already keeps its contents; `lexlean lock` may add its
+# mutation-lock helper (`.lexlean/.lock`) to one, which is removed after.
+without_helper=$(mktemp)
+while read -r existing; do
+    [ -e "$existing.lock" ] || printf '%s\n' "$existing"
+done < "$before_roots" > "$without_helper"
 
 target_dir=$(cargo metadata --format-version 1 --no-deps | python3 -c 'import json,sys; print(json.load(sys.stdin)["target_directory"])')
 lexlean="$target_dir/debug/lexlean"
@@ -101,33 +110,61 @@ python3 - "$head_targets" "$new_targets" <<'PY'
 import json, re, subprocess, sys
 head = {t["id"]: t["digest"] for t in json.load(open(sys.argv[1]))["targets"]}
 new = {t["id"]: t["digest"] for t in json.load(open(sys.argv[2]))["targets"]}
+moved_ids = {target: new[target] for target, old in head.items() if new.get(target, old) != old}
+
+def style(text):
+    """The json.dumps arguments that reproduce `text` byte for byte, or None."""
+    data = json.loads(text)
+    trail = "\n" if text.endswith("\n") else ""
+    for indent in (None, 2, 4, "\t", 1, 3):
+        for separators in ((",", ":"), (", ", ": "), (",", ": ")):
+            for sort_keys in (False, True):
+                for ascii_ in (False, True):
+                    options = dict(indent=indent, separators=separators,
+                                   sort_keys=sort_keys, ensure_ascii=ascii_)
+                    if json.dumps(data, **options) + trail == text:
+                        return options, trail
+    return None
+
 files = subprocess.run(["git", "ls-files", "--", "*request.json"],
                        capture_output=True, text=True, check=True).stdout.split()
 for path in files:
-    text = open(path).read()
+    text = open(path, encoding="utf-8").read()
     try:
         request = json.loads(text)
     except ValueError:
         continue
-    if not str(request.get("spec", "")).startswith("lexlean/production-request/"):
+    if not isinstance(request, dict) or not str(request.get("spec", "")).startswith(
+            "lexlean/production-request/"):
         continue
-    moved = text
-    for target, old in head.items():
-        if new.get(target, old) == old:
-            continue
-        pin = '"id":"%s","digest":"%s"' % (target, old)
-        if pin in moved:
-            moved = moved.replace(pin, '"id":"%s","digest":"%s"' % (target, new[target]))
-            print(f"relock-identity: {path} pins {target} {new[target]} (was {old})")
-    if moved != text:
-        open(path, "w").write(moved)
+    changes = []
+    for root in request.get("roots") or []:
+        for pin in (root.get("targets") or []) if isinstance(root, dict) else []:
+            if not isinstance(pin, dict):
+                continue
+            target = pin.get("id")
+            if target in moved_ids and pin.get("digest") == head[target]:
+                pin["digest"] = moved_ids[target]
+                changes.append((target, head[target], moved_ids[target]))
+    if not changes:
+        continue
+    written = style(text)
+    if written is None:
+        sys.exit(f"relock-identity: {path} pins a moved descriptor, but its JSON layout is "
+                 "not one this step reproduces; repin it by hand")
+    options, trail = written
+    with open(path, "w", encoding="utf-8") as out:
+        out.write(json.dumps(request, **options) + trail)
+    for target, old, digest in changes:
+        print(f"relock-identity: {path} pins {target} {digest} (was {old})")
 PY
 
 # Nothing else is written: build roots this run created are removed, and a
 # tracked file outside the four kinds above is put back (the tree had no
 # tracked change when it started).
 comm -13 "$before_roots" <(build_roots) | while read -r created; do rm -rf "$created"; done
+while read -r existing; do rm -f "$existing.lock"; done < "$without_helper"
 git diff --name-only \
     | { grep -v -E '(^|/)lexlean\.lock$|^crates/lexlean/src/lib\.rs$|request\.json$|^language/semantics-1\.2\.toml$' || true; } \
     | while read -r touched; do git checkout --quiet -- "$touched"; done
-rm -f "$before_roots" "$head_targets" "$new_targets"
+rm -f "$before_roots" "$without_helper" "$head_targets" "$new_targets"
