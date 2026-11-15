@@ -50,11 +50,57 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Each writer runs from its own clean checkout, so the three run at once;
-  # the paths they write are disjoint, which `combine` checks.
+  # What a moved compiler-semantics ID moves before anything is written from
+  # it (`just relock-identity`): the identity-only lock relocks,
+  # `LANGUAGE_1_2_SEMANTICS_ID`, and the descriptor pins of the production
+  # requests. Every writer starts from this tree; an ID that did not move
+  # returns an empty patch.
+  identity:
+    name: relock identity
+    if: github.repository == 'UOR-Foundation/LexLean'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+      - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        with:
+          tool: just
+      # A lock records the Lean toolchain the project resolves.
+      - name: Install elan and the pinned Lean toolchain
+        run: |
+          set -euo pipefail
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/elan" toolchain install "$(cat lean-toolchain)"
+      - name: Relock and repin the moved identity
+        run: just relock-identity
+      - name: Capture what it wrote
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/identity"
+          git add --all
+          git diff --cached --binary > "$RUNNER_TEMP/identity/identity.patch"
+          git diff --cached --name-only | tee "$RUNNER_TEMP/identity/identity.files"
+          echo "identity: $(wc -l < "$RUNNER_TEMP/identity/identity.files") paths" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: regenerate-part-identity
+          path: ${{ runner.temp }}/identity
+          if-no-files-found: error
+          retention-days: 7
+
+  # Each writer runs from its own clean checkout with the identity applied, so
+  # the three run at once; the paths they write are disjoint, which `combine`
+  # checks.
   writer:
     name: write (${{ matrix.writer }})
-    if: github.repository == 'UOR-Foundation/LexLean'
+    needs: [identity]
     strategy:
       fail-fast: false
       matrix:
@@ -72,6 +118,20 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.sha }}
           persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: regenerate-part-identity
+          path: ${{ runner.temp }}/identity
+      # Committed locally, so that this writer's part is only what its own
+      # recipes wrote; `combine` applies the identity first.
+      - name: Start from the relocked identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -s "$RUNNER_TEMP/identity/identity.patch" ]; then
+            git apply --index "$RUNNER_TEMP/identity/identity.patch"
+            git -c user.name=regenerate -c user.email=regenerate@localhost commit --quiet --no-verify -m identity
+          fi
       - name: Install the pinned Rust toolchain
         run: rustup toolchain install
       - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
@@ -124,8 +184,9 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  # The parts applied in turn to a clean checkout of the same commit: two parts
-  # that write one path fail here, rather than one silently replacing the other.
+  # The parts applied in turn to a clean checkout of the same commit, the
+  # identity first: two parts that write one path fail here, rather than one
+  # silently replacing the other.
   combine:
     name: combine
     needs: [writer]
@@ -145,7 +206,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for part in production-export records oracles; do
+          for part in identity production-export records oracles; do
             # A writer that changed nothing returns an empty patch.
             if [ -s "$RUNNER_TEMP/parts/$part.patch" ]; then
               git apply --index "$RUNNER_TEMP/parts/$part.patch"

@@ -857,7 +857,7 @@ pub fn format_int(p0: i64) -> Str {
 
 #[derive(Clone)]
 pub enum Adt0 {
-    C0((), bool, u64, i64, u8, u16, u32, u64, i8, i16, i32, i64, Str, Bytes, Ordering, Option<u64>, Option<bool>, Result<u64, Str>, Result<u64, Str>, List<u64>, (u64, Str), Adt1),
+    C0((), bool, u64, i64, u8, u16, u32, u64, i8, i16, i32, i64, Str, Bytes, Ordering, Option<u64>, Option<bool>, Result<u64, Str>, Result<u64, Str>, List<u64>, (u64, Str), std::rc::Rc<Adt1>),
 }
 
 #[derive(Clone)]
@@ -867,7 +867,7 @@ pub enum Adt1 {
 }
 
 pub fn f0() -> Adt0 {
-    Adt0::C0((), true, 18446744073709551615u64, i64::MIN, 255u8, 65535u16, 4294967295u32, 18446744073709551615u64, i8::MIN, i16::MIN, i32::MIN, i64::MIN, Str::lit("snow \u{2603}"), Bytes::lit(&[0x00, 0xff, 0x7f]), Ordering::Equal, None::<u64>, Some(false), Ok::<u64, Str>(1u64), Err::<u64, Str>(Str::lit("no")), List::cons(1u64, List::cons(2u64, List::<u64>::nil())), (3u64, Str::lit("three")), Adt1::C1(5u64))
+    Adt0::C0((), true, 18446744073709551615u64, i64::MIN, 255u8, 65535u16, 4294967295u32, 18446744073709551615u64, i8::MIN, i16::MIN, i32::MIN, i64::MIN, Str::lit("snow \u{2603}"), Bytes::lit(&[0x00, 0xff, 0x7f]), Ordering::Equal, None::<u64>, Some(false), Ok::<u64, Str>(1u64), Err::<u64, Str>(Str::lit("no")), List::cons(1u64, List::cons(2u64, List::<u64>::nil())), (3u64, Str::lit("three")), std::rc::Rc::new(Adt1::C1(5u64)))
 }
 
 pub fn run() -> Adt0 {

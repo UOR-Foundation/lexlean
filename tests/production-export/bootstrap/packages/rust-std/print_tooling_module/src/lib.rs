@@ -890,7 +890,7 @@ pub enum Adt3 {
 
 #[derive(Clone)]
 pub enum Adt4 {
-    C0(u64, bool, Adt2),
+    C0(u64, bool, std::rc::Rc<Adt2>),
 }
 
 #[derive(Clone)]
@@ -1368,7 +1368,7 @@ pub fn f7(v0: Adt2, v1: u64, v2: u64) -> R<Bytes> {
             let a27 = v2;
             let a28 = 1u64;
             nat_add(a27, a28)?
-        }, Adt3::C0(List::<Bytes>::nil(), 0u64, List::cons(Adt4::C0(0u64, false, v0), List::<Adt4>::nil())))?;
+        }, Adt3::C0(List::<Bytes>::nil(), 0u64, List::cons(Adt4::C0(0u64, false, std::rc::Rc::new(v0)), List::<Adt4>::nil())))?;
         h26
     };
     Ok(f20(match v3 {
@@ -2325,7 +2325,7 @@ pub fn f56(v0: u64, v1: u64, v2: Adt3, v3: Adt4, v4: List<Adt4>) -> R<Adt3> {
     };
     let m220 = match v3 {
         Adt4::C0(_, _, h219) => {
-            h219
+            (*h219).clone()
         }
     };
     match m220 {
@@ -2366,7 +2366,7 @@ pub fn f56(v0: u64, v1: u64, v2: Adt3, v3: Adt4, v4: List<Adt4>) -> R<Adt3> {
                 Adt3::C0(_, h228, _) => {
                     h228
                 }
-            }, List::cons(Adt4::C0(v5, v6, v8), List::cons(Adt4::C0(v5, v6, v9), v4))))
+            }, List::cons(Adt4::C0(v5, v6, std::rc::Rc::new(v8)), List::cons(Adt4::C0(v5, v6, std::rc::Rc::new(v9)), v4))))
         }
         Adt2::C3(v10, r245) => {
             let v11 = (*r245).clone();
@@ -2382,7 +2382,7 @@ pub fn f56(v0: u64, v1: u64, v2: Adt3, v3: Adt4, v4: List<Adt4>) -> R<Adt3> {
                 let a231 = v5;
                 let a232 = v10;
                 nat_add(a231, a232)?
-            }, v6, v11), v4)))
+            }, v6, std::rc::Rc::new(v11)), v4)))
         }
         Adt2::C4 => {
             if v6 {
@@ -2427,7 +2427,7 @@ pub fn f56(v0: u64, v1: u64, v2: Adt3, v3: Adt4, v4: List<Adt4>) -> R<Adt3> {
                 Adt3::C0(_, h240, _) => {
                     h240
                 }
-            }, v4.clone(), Adt4::C0(v5, true, v12.clone()))?;
+            }, v4.clone(), Adt4::C0(v5, true, std::rc::Rc::new(v12.clone())))?;
             Ok(Adt3::C0(match v2.clone() {
                 Adt3::C0(h241, _, _) => {
                     h241
@@ -2436,7 +2436,7 @@ pub fn f56(v0: u64, v1: u64, v2: Adt3, v3: Adt4, v4: List<Adt4>) -> R<Adt3> {
                 Adt3::C0(_, h242, _) => {
                     h242
                 }
-            }, List::cons(Adt4::C0(v5, v13, v12), v4)))
+            }, List::cons(Adt4::C0(v5, v13, std::rc::Rc::new(v12)), v4)))
         }
     }
 }
@@ -3833,7 +3833,7 @@ pub fn f107(v0: Adt6, v1: Adt4, v2: List<Adt4>, v3: List<Adt4>) -> R<Adt6> {
     };
     let m604 = match v1 {
         Adt4::C0(_, _, h603) => {
-            h603
+            (*h603).clone()
         }
     };
     match m604 {
@@ -3850,7 +3850,7 @@ pub fn f107(v0: Adt6, v1: Adt4, v2: List<Adt4>, v3: List<Adt4>) -> R<Adt6> {
         Adt2::C2(r611, r612) => {
             let v8 = (*r611).clone();
             let v9 = (*r612).clone();
-            Ok(f106(v0, v6, List::cons(Adt4::C0(v4, v5, v8), List::cons(Adt4::C0(v4, v5, v9), v2)), v3, None::<bool>))
+            Ok(f106(v0, v6, List::cons(Adt4::C0(v4, v5, std::rc::Rc::new(v8)), List::cons(Adt4::C0(v4, v5, std::rc::Rc::new(v9)), v2)), v3, None::<bool>))
         }
         Adt2::C3(v10, r613) => {
             let v11 = (*r613).clone();
@@ -3858,7 +3858,7 @@ pub fn f107(v0: Adt6, v1: Adt4, v2: List<Adt4>, v3: List<Adt4>) -> R<Adt6> {
                 let a607 = v4;
                 let a608 = v10;
                 nat_add(a607, a608)?
-            }, v5, v11), v2), v3, None::<bool>))
+            }, v5, std::rc::Rc::new(v11)), v2), v3, None::<bool>))
         }
         Adt2::C4 => {
             if v5 {
@@ -3880,7 +3880,7 @@ pub fn f107(v0: Adt6, v1: Adt4, v2: List<Adt4>, v3: List<Adt4>) -> R<Adt6> {
         }
         Adt2::C6(r614) => {
             let v12 = (*r614).clone();
-            Ok(f106(v0, v6, List::cons(Adt4::C0(v4, true, v12), v2), v3, None::<bool>))
+            Ok(f106(v0, v6, List::cons(Adt4::C0(v4, true, std::rc::Rc::new(v12)), v2), v3, None::<bool>))
         }
     }
 }

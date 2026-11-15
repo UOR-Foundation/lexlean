@@ -859,7 +859,7 @@ pub fn format_int(p0: i64) -> Str {
 pub enum Adt0 {
     C0(u64),
     C1(std::rc::Rc<Adt0>, std::rc::Rc<Adt0>),
-    C2(Adt1, std::rc::Rc<Adt0>),
+    C2(std::rc::Rc<Adt1>, std::rc::Rc<Adt0>),
 }
 
 #[derive(Clone)]
@@ -880,8 +880,9 @@ pub fn f0(v0: Adt0) -> R<u64> {
             let a3 = f0(v3)?;
             nat_add(a2, a3)
         }
-        Adt0::C2(v4, r12) => {
-            let v5 = (*r12).clone();
+        Adt0::C2(r12, r13) => {
+            let v4 = (*r12).clone();
+            let v5 = (*r13).clone();
             let a8 = {
                 let a6 = match v4.clone() {
                     Adt1::C0(h4, _) => {
@@ -902,7 +903,7 @@ pub fn f0(v0: Adt0) -> R<u64> {
 }
 
 pub fn f1() -> R<u64> {
-    f0(Adt0::C1(std::rc::Rc::new(Adt0::C0(2u64)), std::rc::Rc::new(Adt0::C2(Adt1::C0(3u64, 4u64), std::rc::Rc::new(Adt0::C0(5u64))))))
+    f0(Adt0::C1(std::rc::Rc::new(Adt0::C0(2u64)), std::rc::Rc::new(Adt0::C2(std::rc::Rc::new(Adt1::C0(3u64, 4u64)), std::rc::Rc::new(Adt0::C0(5u64))))))
 }
 
 pub fn run() -> R<u64> {
