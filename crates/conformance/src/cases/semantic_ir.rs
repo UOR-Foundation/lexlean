@@ -9,6 +9,7 @@ use crate::support::{self, P};
 
 mod boolean;
 mod bytes;
+mod decimal_format;
 mod declaration_ids;
 mod names;
 mod nat_bitwise;
@@ -499,18 +500,21 @@ pub(crate) fn run(id: &str) {
             // and a defined type noun (`natural number list`) meets a
             // polymorphic constant in either argument order — the solved
             // metavariable's solution unfolds too.
-            support::f1_exact("SM-05", 
+            support::f1_exact(
+                "SM-05",
                 "count_add_zero",
                 "public theorem count_add_zero (llv0 : LexLeanExample.Main.count) : Eq (Nat.add llv0 0) llv0 := by\n  rfl",
             );
-            support::f1_exact("SM-05", 
+            support::f1_exact(
+                "SM-05",
                 "list_nil",
                 "public theorem list_nil (llv0 : (List Nat)) : (Eq llv0 List.nil) → Eq List.nil llv0 := by\n  intro llh0\n  rw [llh0]",
             );
             // The core arrow elaborates in math to a non-dependent `Pi`
             // (§15.6), and the canonical formatter spells it back as `→`
             // inside an island where prose cannot hold it.
-            support::f1_exact("SM-05", 
+            support::f1_exact(
+                "SM-05",
                 "arrow_or",
                 "public theorem arrow_or (llv0 : Prop) : Or (llv0 → llv0) llv0 := by\n  left\n  intro llh0\n  exact llh0",
             );
@@ -2153,7 +2157,10 @@ pub(crate) fn run(id: &str) {
                 "public def declare (table : List (Prod (String) (Nat))) (name : String) (slot : Nat) : List (Prod (String) (Nat)) := (LexLeanCollections.mapInsert (table) (name) (slot) : List (Prod (String) (Nat)))",
                 "public import LexLeanRuntime.Collections\n",
             ] {
-                assert!(tables.contains(expected), "missing {expected:?} in:\n{tables}");
+                assert!(
+                    tables.contains(expected),
+                    "missing {expected:?} in:\n{tables}"
+                );
             }
             assert!(
                 !tables.contains("namespace LexLeanCollections"),
@@ -2746,6 +2753,8 @@ pub(crate) fn run(id: &str) {
         "SM-37" => nested::run(),
         // §21.9: declaration IDs and statement IDs.
         "SM-38" => declaration_ids::run(),
+        // §17.12: decimal formatting does not inherit the axioms of parsing.
+        "SM-43" => decimal_format::run(),
         // §17.10: a theorem proved by a split on the value of a document
         // term.
         "SM-35" => {

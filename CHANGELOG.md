@@ -113,6 +113,16 @@ and Unreleased holds what has landed since.
   own (`LLR3007`, `EX-09`). Locks, records, goldens, the production
   exports, and the compiler-semantics IDs are regenerated at the landing. The
   register is 472 IDs.
+- `simplify` names the hypotheses of its statement (`PF-28`, #291; `PF-25` and `PF-26` are claimed on release/v0.4): under
+  language 1.2 a `simplify` proof may carry `hypotheses`, names for the
+  leading premises of its goal. It introduces them and puts them first in its
+  `simp only` set, so a prior theorem whose rewrite holds under a condition
+  rewrites where a named hypothesis discharges that condition, and a theorem
+  whose hypotheses do not discharge it is rejected by Lean (`LLV7002`). The
+  rule set is still exactly what the source names. The semantic-module and
+  snapshot schemas gain the optional member, and `semantic_ir` and
+  `proof_lowering` move to 16 and 4, so the language-1.2 compiler-semantics
+  ID moves and every language-1.2 record is regenerated. Register 448.
 
 - Release identity (`RP-17`, `CL-18` amended, #113). SPEC.md §2.3 names the
   completion release: `0.5.0` when it satisfies the §30.4 criterion, `1.0.0`
@@ -130,6 +140,7 @@ and Unreleased holds what has landed since.
   two staged files with each other. `release.yml` checks each host binary's
   report against the §30.3 fence, its line count included, instead of a count
   written in the workflow. Register 445.
+
 
 - SPEC.md §3 and §4 state production compilation and its guarantee (#112,
   L1.1 of #106). §3 lists the Rust package per production root and target as
@@ -618,6 +629,22 @@ and Unreleased holds what has landed since.
   move the counts `BS-05` to `BS-08` and `BS-11` to `BS-15` assert, and `BS-05`
   now holds the list match under `rust-core` with a crate by hand, since the
   mutants reach it too rarely to rely on. The register is 468 IDs.
+
+## Unreleased
+
+### Added
+
+- The byte update primitive `prim update` (`TargetSyntax.Prim.update`): `update bytes at byte` is the
+  byte string with the byte at `at` replaced, or `none` past its end. The `rust-std` runtime renders it
+  as `Bytes::update`, which writes in place when the buffer is unique (`Rc::get_mut`) and copies it,
+  counting the copy, when it is shared; the Lean runtime uses `ByteArray.set!`, in place when unique.
+  It gives programs an O(1) table write (match finders, adaptive models) where a persistent tree was
+  O(log n) with an allocation per write. The item is `update_bytes` (`Item.updateBytes`,
+  `Machine.bytesUpdate`, machine family 44), with its refinement theorem `refines_update_bytes` (`SP-29`), its
+  certificate-A lemma `prim_update_bytes`, the bootstrap twins, and the `update_bytes` section of the
+  std differential (`RB-20`). The preservation library's `RustCorr`, `RustLemmas`, and `Primitives`
+  modules gain the cases of the new constructors; the compiler-semantics ID moves, and the records
+  bound to it are regenerated.
 
 ## 0.4.0
 

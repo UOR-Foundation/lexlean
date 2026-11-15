@@ -881,7 +881,7 @@ pub enum Adt1 {
 
 #[derive(Clone)]
 pub enum Adt2 {
-    C0(List<Adt0>, Adt1),
+    C0(List<Adt0>, std::rc::Rc<Adt1>),
 }
 
 #[derive(Clone)]
@@ -985,12 +985,12 @@ pub fn f0(v0: Adt0, v1: u64) -> R<Adt1> {
             let a2 = v1;
             let a3 = 1u64;
             nat_add(a2, a3)?
-        }, Adt2::C0(List::cons(v0, List::<Adt0>::nil()), Adt1::C0(List::<u64>::nil(), List::<Bytes>::nil(), List::<(Bytes, (Bytes, Bytes))>::nil(), List::<Bytes>::nil(), List::<Bytes>::nil(), None::<Bytes>, None::<Bytes>)))?;
+        }, Adt2::C0(List::cons(v0, List::<Adt0>::nil()), std::rc::Rc::new(Adt1::C0(List::<u64>::nil(), List::<Bytes>::nil(), List::<(Bytes, (Bytes, Bytes))>::nil(), List::<Bytes>::nil(), List::<Bytes>::nil(), None::<Bytes>, None::<Bytes>))))?;
         h1
     };
     let v3: Adt1 = match v2 {
         Adt2::C0(_, h4) => {
-            h4
+            (*h4).clone()
         }
     };
     Ok(Adt1::C0(f3(match v3.clone() {
@@ -1087,7 +1087,7 @@ pub fn f6(v0: u64, v1: Adt2) -> R<Option<Adt2>> {
         Some((v2, v3)) => {
             let v4: Adt1 = match v1 {
                 Adt2::C0(_, h20) => {
-                    h20
+                    (*h20).clone()
                 }
             };
             let m21 = v2;
@@ -1389,7 +1389,7 @@ pub fn f12(v0: List<(Bytes, (Bytes, Bytes))>, v1: (Bytes, (Bytes, Bytes))) -> Li
 }
 
 pub fn f13(v0: List<Adt0>, v1: Adt1) -> Option<Adt2> {
-    Some(Adt2::C0(v0, v1))
+    Some(Adt2::C0(v0, std::rc::Rc::new(v1)))
 }
 
 pub fn f14(v0: Fn4, p85: List<Adt0>, p86: List<Adt0>) -> List<Adt0> {
