@@ -455,7 +455,7 @@ definition{
       {field: closures, value: (ctor RustLower::Clos.ClNil)}
     ],
     type_arguments: []
-  } bodies 0 (nil Bool) sites); (let known : CalculusCheck::Ty := (RustLower::registerAdts (project numbered known) adts); (let owners : CalculusCheck::Ty := (RustLower::tyAppend (RustLower::adtOwners (CalculusCheck::tyChainLength adts)) known); (let direct : RustLower::Edges := (RustLower::allEdges program known (project numbered closures) owners (ctor RustLower::Edges.EdgeNil)); (let edges : RustLower::Edges := (RustLower::closeEdges direct (1 + (prim multiply (CalculusCheck::tyChainLength owners) (CalculusCheck::tyChainLength owners) : Nat))); (match (bodyAt bodies at)
+  } bodies 0 (nil Bool) sites); (let known : CalculusCheck::Ty := (RustLower::registerAdts (project numbered known) adts); (let owners : CalculusCheck::Ty := (RustLower::tyAppend (RustLower::adtOwners (CalculusCheck::tyChainLength adts)) known); (let direct : RustLower::Edges := (RustLower::allEdges program known (project numbered closures) owners (ctor RustLower::Edges.EdgeNil)); (let edges : RustLower::Edges := (RustLower::markShared program owners (RustLower::closeEdges direct (1 + (prim multiply (CalculusCheck::tyChainLength owners) (CalculusCheck::tyChainLength owners) : Nat)))); (match (bodyAt bodies at)
     | Option.some target => (match (valueOf target)
       | Option.some found => (let lowered : RustAst::Expr := (lowerValue known edges adts (ctor CalculusCheck::Ty.TNil) 0 (second found) (first found)); (if (bad lowered) then (ctor Option.none [RustAst::Expr]) else (ctor Option.some [RustAst::Expr] lowered)))
       | Option.none => (ctor Option.none [RustAst::Expr]))
