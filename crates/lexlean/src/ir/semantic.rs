@@ -688,12 +688,14 @@ pub enum SemanticReflection {
 #[serde(deny_unknown_fields)]
 pub enum SemanticProof {
     Reflexivity,
-    /// Language 1.2: a closed equality between two evaluations, checked by
-    /// the kernel alone. The elaborator's unifier never compares the two
-    /// sides: the proof is `Eq.refl` of the left side, and the kernel
-    /// decides it by reduction when the theorem is added. Lean's unifier
-    /// compares unevaluated subterms lazily and can need memory exponential
-    /// in a long run's length where the kernel's reduction is linear.
+    /// Language 1.2: an equality checked by the kernel alone. The
+    /// elaborator's unifier never compares the two sides: the proof is
+    /// `Eq.refl` of the left side, and the kernel checks it by
+    /// definitional unfolding when the theorem is added, rejecting a
+    /// statement that does not hold. Validation gates the language version
+    /// only; it does not restrict the statement. The intended workload is a
+    /// closed equality between two evaluations, where `reflexivity` can
+    /// exhaust memory in the unifier (measured on long step-machine runs).
     Evaluation,
     Decide,
     /// Language 1.2: closed linear natural-number arithmetic. It introduces
@@ -9855,6 +9857,36 @@ mod tests {
         );
         parse(&module("lexlean/semantic-module/2"), "1.2")
             .expect("a language-1.2 theorem may be closed by evaluation");
+        // The proof reads and writes as exactly `{"kind":"evaluation"}`.
+        assert_eq!(
+            serde_json::to_string(&crate::ir::semantic::SemanticProof::Evaluation)
+                .expect("serializes"),
+            r#"{"kind":"evaluation"}"#
+        );
+        // The published v2 schema has the closed zero-argument alternative;
+        // the v1 schema does not, as language 1.1 rejects it.
+        let alternatives = |schema: &str| -> Vec<serde_json::Value> {
+            let schema: serde_json::Value = serde_json::from_str(schema).expect("a schema");
+            schema["$defs"]["proof"]["oneOf"]
+                .as_array()
+                .expect("proof alternatives")
+                .iter()
+                .filter(|alternative| alternative["properties"]["kind"]["const"] == "evaluation")
+                .cloned()
+                .collect()
+        };
+        assert_eq!(
+            alternatives(include_str!(
+                "../../../../schemas/semantic-module-v2.schema.json"
+            )),
+            vec![serde_json::json!({"additionalProperties": false,
+                "properties": {"kind": {"const": "evaluation"}},
+                "required": ["kind"], "type": "object"})]
+        );
+        assert!(alternatives(include_str!(
+            "../../../../schemas/semantic-module.schema.json"
+        ))
+        .is_empty());
     }
 
     #[test]
