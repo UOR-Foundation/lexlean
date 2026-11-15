@@ -34,6 +34,24 @@ workspace carried at those versions without a tag.
   within the old limits reads, renders, and hashes to the same bytes as
   before. This reverses the decision of #375 to keep the 128-level limit.
   The register is unchanged.
+
+- Intel macOS runs on the line, not on every pull request (SPEC.md §8.3,
+  §9.4). The repository has about one hosted Intel runner and the host's
+  workload takes about three hours of it, so pull requests queued six hours
+  and more for it. `ci-plan.sh` writes `intel`: a ready pull request into a
+  release line runs the whole gate without the Intel construction, lanes and
+  aggregate, unless its head is a release cut (`cut/v*`) or its base is
+  `main`; a push and a request run them. A push landing a tree whose pull
+  request run passed every job but the skipped Intel jobs runs honesty and the
+  Intel jobs only. Such a run never counts as the whole gate for the plan, a
+  dispatch or `release-gate.sh`, so a tag's evidence is still one run with
+  every host. `RP-14` and `RP-18` pin the new cases.
+
+- Canonical JSON refuses duplicate keys that differ only in their escapes (SPEC.md §21.7,
+  `AR-11`, #475). The duplicate check compared each key as written, so `{"a":1,"\u0061":2}`
+  passed it and `Json::parse` returned `{"a":2}`, dropping the first member; keys are now
+  compared after escape decoding. Equal keys in distinct objects stay admitted, and no valid
+  canonical document is affected.
 - Every part of a verification names its toolchain by address (SPEC.md
   §22.11, §9.4). A shard writes `toolchain.json` (`lexlean/verify-toolchain/1`)
   beside its output: the SHA-256 of the `lean`, `lake`, and `leanchecker` its
@@ -61,8 +79,12 @@ workspace carried at those versions without a tag.
   A release is cut by pushing the line's head to `cut/vX.Y.Z`: `cut.yml` runs
   the new `cargo xtask bump-version X.Y.Z` (every site of the workspace
   version, the changelog's `## Unreleased` heading, and `Cargo.lock`), opens the
-  pull request, and regenerates it; `tag.yml` tags the merge once its gate
-  passes, dispatches `release.yml`, and opens the pull request into `main`.
+  pull request, regenerates it, waits for the gate on the regenerated head,
+  merges the pull request at that head, and calls `tag.yml`, which tags the
+  merge, dispatches `release.yml`, and opens the pull request into `main`; no
+  person merges a cut. `tag.yml` still tags a person's merge of a cut, and
+  accepts the run that verified a merged head's tree without waiting for the
+  merge's own.
 - Decision regions (SPEC.md §17.12, `PF-24`, UOR-Foundation/PrismPM#605; no
   new diagnostic code; changes the language-1.2 identity). The runtime gains a
   sixth native module, `LexLeanRuntime.Regions`: a checker of local box
