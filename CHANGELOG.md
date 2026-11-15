@@ -17,6 +17,8 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+## 0.4.2
+
 - Intel macOS runs on the line, not on every pull request (SPEC.md §8.3,
   §9.4). The repository has about one hosted Intel runner and the host's
   workload takes about three hours of it, so pull requests queued six hours
