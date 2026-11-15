@@ -857,9 +857,9 @@ pub fn format_int(p0: i64) -> Str {
 
 #[derive(Clone)]
 pub enum Adt0 {
-    C0(Adt1, Adt7, Adt8),
-    C1(u64, Adt1, Adt1, bool, Adt9, Adt8),
-    C2(Adt11, Adt12, Adt1, Adt17, Adt8),
+    C0(std::rc::Rc<Adt1>, std::rc::Rc<Adt7>, std::rc::Rc<Adt8>),
+    C1(u64, std::rc::Rc<Adt1>, std::rc::Rc<Adt1>, bool, std::rc::Rc<Adt9>, std::rc::Rc<Adt8>),
+    C2(std::rc::Rc<Adt11>, std::rc::Rc<Adt12>, std::rc::Rc<Adt1>, std::rc::Rc<Adt17>, std::rc::Rc<Adt8>),
     C3,
     C4(std::rc::Rc<Adt0>, std::rc::Rc<Adt0>),
 }
@@ -925,7 +925,7 @@ pub enum Adt6 {
 #[derive(Clone)]
 pub enum Adt7 {
     C0,
-    C1(u64, Adt1, std::rc::Rc<Adt7>),
+    C1(u64, std::rc::Rc<Adt1>, std::rc::Rc<Adt7>),
 }
 
 #[derive(Clone)]
@@ -964,13 +964,13 @@ pub enum Adt11 {
 #[derive(Clone)]
 pub enum Adt12 {
     C0,
-    C1(Adt13, Adt1, std::rc::Rc<Adt12>),
+    C1(std::rc::Rc<Adt13>, std::rc::Rc<Adt1>, std::rc::Rc<Adt12>),
 }
 
 #[derive(Clone)]
 pub enum Adt13 {
     C0(Adt14),
-    C1(Adt11),
+    C1(std::rc::Rc<Adt11>),
     C2(std::rc::Rc<Adt13>),
     C3(Adt15, std::rc::Rc<Adt13>),
     C4(u64, u64, std::rc::Rc<Adt13>),
@@ -1002,23 +1002,23 @@ pub enum Adt16 {
 
 #[derive(Clone)]
 pub enum Adt17 {
-    C0(Adt18, Adt8),
-    C1(Adt19, Adt11, Adt8),
-    C2(Adt20, std::rc::Rc<Adt17>, Adt8),
-    C3(Adt21, std::rc::Rc<Adt17>, bool, Adt8),
-    C4(Adt11, std::rc::Rc<Adt17>, bool, Adt8),
-    C5(Adt23, std::rc::Rc<Adt17>, Adt8),
-    C6(std::rc::Rc<Adt17>, std::rc::Rc<Adt17>, Adt8),
-    C7(std::rc::Rc<Adt17>, std::rc::Rc<Adt17>, std::rc::Rc<Adt17>, Adt8),
-    C8(std::rc::Rc<Adt17>, std::rc::Rc<Adt17>, Adt8),
+    C0(std::rc::Rc<Adt18>, std::rc::Rc<Adt8>),
+    C1(Adt19, std::rc::Rc<Adt11>, std::rc::Rc<Adt8>),
+    C2(Adt20, std::rc::Rc<Adt17>, std::rc::Rc<Adt8>),
+    C3(std::rc::Rc<Adt21>, std::rc::Rc<Adt17>, bool, std::rc::Rc<Adt8>),
+    C4(std::rc::Rc<Adt11>, std::rc::Rc<Adt17>, bool, std::rc::Rc<Adt8>),
+    C5(std::rc::Rc<Adt23>, std::rc::Rc<Adt17>, std::rc::Rc<Adt8>),
+    C6(std::rc::Rc<Adt17>, std::rc::Rc<Adt17>, std::rc::Rc<Adt8>),
+    C7(std::rc::Rc<Adt17>, std::rc::Rc<Adt17>, std::rc::Rc<Adt17>, std::rc::Rc<Adt8>),
+    C8(std::rc::Rc<Adt17>, std::rc::Rc<Adt17>, std::rc::Rc<Adt8>),
     C9(std::rc::Rc<Adt17>),
-    C10(Adt24, Adt11, Adt8),
+    C10(Adt24, std::rc::Rc<Adt11>, std::rc::Rc<Adt8>),
     C11(std::rc::Rc<Adt17>, std::rc::Rc<Adt17>),
     C12,
     C13(std::rc::Rc<Adt17>, std::rc::Rc<Adt17>),
-    C14(Adt13, bool, Adt1, std::rc::Rc<Adt17>, Adt8, std::rc::Rc<Adt17>),
-    C15(Adt13, std::rc::Rc<Adt17>, std::rc::Rc<Adt17>),
-    C16(Adt11, std::rc::Rc<Adt17>),
+    C14(std::rc::Rc<Adt13>, bool, std::rc::Rc<Adt1>, std::rc::Rc<Adt17>, std::rc::Rc<Adt8>, std::rc::Rc<Adt17>),
+    C15(std::rc::Rc<Adt13>, std::rc::Rc<Adt17>, std::rc::Rc<Adt17>),
+    C16(std::rc::Rc<Adt11>, std::rc::Rc<Adt17>),
 }
 
 #[derive(Clone)]
@@ -1054,7 +1054,7 @@ pub enum Adt20 {
 #[derive(Clone)]
 pub enum Adt21 {
     C0(u64),
-    C1(Adt22),
+    C1(std::rc::Rc<Adt22>),
     C2(u64, Option<Adt3>),
 }
 
@@ -1065,14 +1065,14 @@ pub enum Adt22 {
 
 #[derive(Clone)]
 pub enum Adt23 {
-    C0(Adt1),
+    C0(std::rc::Rc<Adt1>),
     C1,
-    C2(Adt1, Adt1),
-    C3(Adt1, Adt1),
+    C2(std::rc::Rc<Adt1>, std::rc::Rc<Adt1>),
+    C3(std::rc::Rc<Adt1>, std::rc::Rc<Adt1>),
     C4(u64, u64),
     C5(u64, u64),
     C6,
-    C7(Adt1),
+    C7(std::rc::Rc<Adt1>),
 }
 
 #[derive(Clone)]
@@ -1085,7 +1085,7 @@ pub enum Adt24 {
 
 #[derive(Clone)]
 pub enum Adt25 {
-    C0(bool, Adt12, Adt17, u64),
+    C0(bool, std::rc::Rc<Adt12>, std::rc::Rc<Adt17>, u64),
 }
 
 pub fn f0(v0: Adt0, v1: Adt0, v2: List<Adt25>, v3: List<bool>) -> R<Adt0> {
@@ -1183,16 +1183,19 @@ pub fn f4(v0: Adt0, v1: Adt25) -> Adt0 {
         Adt0::C1(_, _, _, _, _, _) => {
             v0
         }
-        Adt0::C2(v11, _, v13, _, v15) => {
-            Adt0::C2(v11, match v1.clone() {
+        Adt0::C2(r18, _, r19, _, r20) => {
+            let v11 = (*r18).clone();
+            let v13 = (*r19).clone();
+            let v15 = (*r20).clone();
+            Adt0::C2(std::rc::Rc::new(v11), std::rc::Rc::new(match v1.clone() {
                 Adt25::C0(_, h16, _, _) => {
-                    h16
+                    (*h16).clone()
                 }
-            }, v13, match v1 {
+            }), std::rc::Rc::new(v13), std::rc::Rc::new(match v1 {
                 Adt25::C0(_, _, h17, _) => {
-                    h17
+                    (*h17).clone()
                 }
-            }, v15)
+            }), std::rc::Rc::new(v15))
         }
         Adt0::C3 => {
             v0
@@ -1203,31 +1206,31 @@ pub fn f4(v0: Adt0, v1: Adt25) -> Adt0 {
     }
 }
 
-pub fn f5(p21: List<bool>, p22: u64) -> Option<bool> {
-    let m20 = (p21, p22);
+pub fn f5(p24: List<bool>, p25: u64) -> Option<bool> {
+    let m23 = (p24, p25);
     {
-        let mut m20 = m20;
+        let mut m23 = m23;
         loop {
             let step = {
-                let (v0, v1) = m20;
-                let m18 = v0;
-                match m18.uncons() {
+                let (v0, v1) = m23;
+                let m21 = v0;
+                match m21.uncons() {
                     None => {
                         Err::<(List<bool>, u64), Option<bool>>(None::<bool>)
                     }
                     Some((v2, v3)) => {
-                        let m19 = v1;
-                        if m19 == 0 {
+                        let m22 = v1;
+                        if m22 == 0 {
                             Err::<(List<bool>, u64), Option<bool>>(Some(v2))
                         } else {
-                            let v4 = m19 - 1;
+                            let v4 = m22 - 1;
                             Ok::<(List<bool>, u64), Option<bool>>((v3, v4))
                         }
                     }
                 }
             };
             match step {
-                Ok(next) => { m20 = next; }
+                Ok(next) => { m23 = next; }
                 Err(done) => break done,
             }
         }
