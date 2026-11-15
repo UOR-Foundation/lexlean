@@ -867,7 +867,7 @@ pub enum Adt1 {
 
 #[derive(Clone)]
 pub enum Adt2 {
-    C0(Bytes, Adt1),
+    C0(Bytes, std::rc::Rc<Adt1>),
 }
 
 #[derive(Clone)]
@@ -1295,7 +1295,7 @@ pub fn f28(v0: Adt2) -> R<Bytes> {
         }
     })?)?, List::cons(f1(f2(Str::lit("span")), f4(match v0 {
         Adt2::C0(_, h53) => {
-            h53
+            (*h53).clone()
         }
     })?)?, List::<Bytes>::nil()))))
 }
