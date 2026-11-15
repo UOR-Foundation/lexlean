@@ -224,7 +224,7 @@ impl Writer<'_, '_> {
     }
 
     /// Formatting uses only ToString, without the parser's Decimal evidence.
-    fn to_string_instance(&mut self, ty: &SemanticType) -> Result<Term, String> {
+    fn tostring_instance(&mut self, ty: &SemanticType) -> Result<Term, String> {
         let name = if matches!(ty, SemanticType::Int) {
             "Int"
         } else {
@@ -560,7 +560,7 @@ impl Writer<'_, '_> {
             SemanticPrimitive::FormatDecimal => {
                 let ty = first.ok_or("a decimal format without an operand")?;
                 leading.push(self.lean_ty(ty)?);
-                leading.push(self.to_string_instance(ty)?);
+                leading.push(self.tostring_instance(ty)?);
             }
             SemanticPrimitive::Update
             | SemanticPrimitive::Utf8Encode
