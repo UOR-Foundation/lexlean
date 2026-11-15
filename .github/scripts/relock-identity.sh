@@ -45,7 +45,8 @@ build_roots > "$before_roots"
 # mutation-lock helper (`.lexlean/.lock`) to one, which is removed after.
 without_helper=$(mktemp)
 while read -r existing; do
-    [ -e "$existing.lock" ] || printf '%s\n' "$existing"
+    # A dangling symlink is a helper that exists too.
+    [ -e "$existing.lock" ] || [ -L "$existing.lock" ] || printf '%s\n' "$existing"
 done < "$before_roots" > "$without_helper"
 
 target_dir=$(cargo metadata --format-version 1 --no-deps | python3 -c 'import json,sys; print(json.load(sys.stdin)["target_directory"])')
@@ -76,7 +77,15 @@ kept_back=0
 new_1_2=""
 for lock in "${locks[@]}"; do
     dir=$(dirname "$lock")
-    (cd "$dir" && "$lexlean" lock > /dev/null 2>&1) || true
+    # A lock that does not resolve is expected of some fixtures, and its lock
+    # is put back below; a failure to take the build root's mutation lock
+    # (`.lock`) is not, and stops the run before any cleanup.
+    if ! report=$(cd "$dir" && "$lexlean" lock 2>&1); then
+        if printf '%s\n' "$report" | grep -q '/\.lock: '; then
+            printf 'relock-identity: %s: the build root lock failed; nothing cleaned up\n%s\n' "$dir" "$report" >&2
+            exit 1
+        fi
+    fi
     if git diff --quiet -- "$lock"; then
         continue
     fi
@@ -163,7 +172,11 @@ PY
 # tracked file outside the four kinds above is put back (the tree had no
 # tracked change when it started).
 comm -13 "$before_roots" <(build_roots) | while read -r created; do rm -rf "$created"; done
-while read -r existing; do rm -f "$existing.lock"; done < "$without_helper"
+# The helper is removed only where this run created it: a regular file in a
+# root that had none.
+while read -r existing; do
+    if [ -f "$existing.lock" ] && [ ! -L "$existing.lock" ]; then rm -f "$existing.lock"; fi
+done < "$without_helper"
 git diff --name-only \
     | { grep -v -E '(^|/)lexlean\.lock$|^crates/lexlean/src/lib\.rs$|request\.json$|^language/semantics-1\.2\.toml$' || true; } \
     | while read -r touched; do git checkout --quiet -- "$touched"; done
