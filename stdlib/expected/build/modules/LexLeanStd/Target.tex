@@ -144,7 +144,7 @@
 \noindent Parameters: \texttt{(op : Op)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{Nat}.\par
-\noindent Definition: \texttt{(match op with | Op.avx2Maddubs => 32 | Op.avx2Madd => 16 | Op.avx2Adds => 16 | Op.neonMull => 8 | Op.neonPaddl => 8 | Op.neonQadd => 8 | Op.wasmExtmul => 16 | Op.wasmDot => 8 | Op.wasmAddSat => 8)}.\par
+\noindent Definition: \texttt{(match op with | Op.avx2Maddubs => 32 | Op.avx2Madd => 16 | Op.avx2Adds => 16 | Op.neonMull => 8 | Op.neonPaddl => 8 | Op.neonQadd => 8 | Op.wasmExtmul => 8 | Op.wasmDot => 8 | Op.wasmAddSat => 8)}.\par
 \noindent Axiom policy: \texttt{none}.\par
 \subsection*{\texttt{readBytes}}
 \noindent Kind: \texttt{definition}.\par
@@ -159,6 +159,21 @@
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{Cost}.\par
 \noindent Definition: \texttt{(let blocks : Nat := (LexLeanRuntime.quotient ((lanes + (LexLeanRuntime.subtract (blockLanes (op)) (1) : Nat))) (blockLanes (op)) (0) : Nat); (\{ ops := blocks, bytes := (LexLeanRuntime.multiply (blocks) (readBytes (op)) : Nat) \} : Cost))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{opAt}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(code : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Op)}.\par
+\noindent Definition: \texttt{(if (Nat.beq (code) (0)) then Option.some (Op.avx2Maddubs) else (if (Nat.beq (code) (1)) then Option.some (Op.avx2Madd) else (if (Nat.beq (code) (2)) then Option.some (Op.avx2Adds) else (if (Nat.beq (code) (3)) then Option.some (Op.neonMull) else (if (Nat.beq (code) (4)) then Option.some (Op.neonPaddl) else (if (Nat.beq (code) (5)) then Option.some (Op.neonQadd) else (if (Nat.beq (code) (6)) then Option.some (Op.wasmExtmul) else (if (Nat.beq (code) (7)) then Option.some (Op.wasmDot) else (if (Nat.beq (code) (8)) then Option.some (Op.wasmAddSat) else Option.none)))))))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{instructionPrice}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(code : Nat) (lanes : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{overflow}.\par
+\noindent Type: \texttt{Option ((Prod (Nat) (Nat)))}.\par
+\noindent Definition: \texttt{(match opAt (code) with | Option.none => Option.none | Option.some op => (let cost : Cost := price (op) (lanes); Option.some (((cost).ops, (cost).bytes))))}.\par
 \noindent Axiom policy: \texttt{none}.\par
 \subsection*{\texttt{heavier}}
 \noindent Kind: \texttt{definition}.\par
@@ -252,6 +267,14 @@
 \subsection*{\texttt{price\_empty}}
 \noindent Kind: \texttt{theorem}.\par
 \noindent Statement: \texttt{((price (Op.neonQadd) (0)).bytes = 0)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{extmul\_price\_counts\_products}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((price (Op.wasmExtmul) (16)).ops = 2)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{instruction\_price\_names\_nine}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(instructionPrice (9) (1) = Option.none)}.\par
 \noindent Axiom policy: \texttt{none}.\par
 \subsection*{\texttt{worst\_case\_is\_largest}}
 \noindent Kind: \texttt{theorem}.\par

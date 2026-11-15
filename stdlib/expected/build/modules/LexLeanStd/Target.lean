@@ -61,11 +61,15 @@ public structure Cost where
   ops : Nat
   bytes : Nat
 
-@[expose] public def blockLanes (op : Op) : Nat := (match op with | Op.avx2Maddubs => 32 | Op.avx2Madd => 16 | Op.avx2Adds => 16 | Op.neonMull => 8 | Op.neonPaddl => 8 | Op.neonQadd => 8 | Op.wasmExtmul => 16 | Op.wasmDot => 8 | Op.wasmAddSat => 8)
+@[expose] public def blockLanes (op : Op) : Nat := (match op with | Op.avx2Maddubs => 32 | Op.avx2Madd => 16 | Op.avx2Adds => 16 | Op.neonMull => 8 | Op.neonPaddl => 8 | Op.neonQadd => 8 | Op.wasmExtmul => 8 | Op.wasmDot => 8 | Op.wasmAddSat => 8)
 
 @[expose] public def readBytes (op : Op) : Nat := (match op with | Op.avx2Maddubs => 64 | Op.avx2Madd => 64 | Op.avx2Adds => 64 | Op.neonMull => 16 | Op.neonPaddl => 16 | Op.neonQadd => 32 | Op.wasmExtmul => 32 | Op.wasmDot => 32 | Op.wasmAddSat => 32)
 
 @[expose] public def price (op : Op) (lanes : Nat) : Cost := (let blocks : Nat := (LexLeanRuntime.quotient ((lanes + (LexLeanRuntime.subtract (blockLanes (op)) (1) : Nat))) (blockLanes (op)) (0) : Nat); ({ ops := blocks, bytes := (LexLeanRuntime.multiply (blocks) (readBytes (op)) : Nat) } : Cost))
+
+@[expose] public def opAt (code : Nat) : Option (Op) := (if (Nat.beq (code) (0)) then Option.some (Op.avx2Maddubs) else (if (Nat.beq (code) (1)) then Option.some (Op.avx2Madd) else (if (Nat.beq (code) (2)) then Option.some (Op.avx2Adds) else (if (Nat.beq (code) (3)) then Option.some (Op.neonMull) else (if (Nat.beq (code) (4)) then Option.some (Op.neonPaddl) else (if (Nat.beq (code) (5)) then Option.some (Op.neonQadd) else (if (Nat.beq (code) (6)) then Option.some (Op.wasmExtmul) else (if (Nat.beq (code) (7)) then Option.some (Op.wasmDot) else (if (Nat.beq (code) (8)) then Option.some (Op.wasmAddSat) else Option.none)))))))))
+
+@[expose] public def instructionPrice (code : Nat) (lanes : Nat) : Option ((Prod (Nat) (Nat))) := (match opAt (code) with | Option.none => Option.none | Option.some op => (let cost : Cost := price (op) (lanes); Option.some (((cost).ops, (cost).bytes))))
 
 @[expose] public def heavier (state : Cost) (candidate : Cost) : Cost := (if (Nat.blt ((state).bytes) ((candidate).bytes)) then candidate else state)
 
@@ -121,6 +125,12 @@ public theorem price_bytes : ((price (Op.avx2Maddubs) (33)).bytes = 128) := by
   decide +kernel
 
 public theorem price_empty : ((price (Op.neonQadd) (0)).bytes = 0) := by
+  decide +kernel
+
+public theorem extmul_price_counts_products : ((price (Op.wasmExtmul) (16)).ops = 2) := by
+  decide +kernel
+
+public theorem instruction_price_names_nine : (instructionPrice (9) (1) = Option.none) := by
   decide +kernel
 
 public theorem worst_case_is_largest : ((worstCase (Op.avx2Maddubs) ((0 :: (31 :: (1024 :: (33 :: ([] : List (Nat)))))))).bytes = 2048) := by

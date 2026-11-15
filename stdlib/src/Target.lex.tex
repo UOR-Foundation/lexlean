@@ -203,7 +203,7 @@ definition{
     | Op.neonMull => 8
     | Op.neonPaddl => 8
     | Op.neonQadd => 8
-    | Op.wasmExtmul => 16
+    | Op.wasmExtmul => 8
     | Op.wasmDot => 8
     | Op.wasmAddSat => 8),
   axioms: [],
@@ -235,6 +235,27 @@ definition{
   body: (let blocks : Nat := (prim quotient (lanes + (prim subtract (blockLanes op) 1 : Nat)) (blockLanes op) 0 : Nat); (record Cost {ops := blocks, bytes := (prim multiply blocks (readBytes op) : Nat)})),
   axioms: [],
   executable: true
+}
+
+definition{
+  name: opAt,
+  parameters: [code : Nat],
+  result: (Option Op),
+  body: (if (code =? 0) then (ctor Option.some [Op] (ctor Op.avx2Maddubs)) else (if (code =? 1) then (ctor Option.some [Op] (ctor Op.avx2Madd)) else (if (code =? 2) then (ctor Option.some [Op] (ctor Op.avx2Adds)) else (if (code =? 3) then (ctor Option.some [Op] (ctor Op.neonMull)) else (if (code =? 4) then (ctor Option.some [Op] (ctor Op.neonPaddl)) else (if (code =? 5) then (ctor Option.some [Op] (ctor Op.neonQadd)) else (if (code =? 6) then (ctor Option.some [Op] (ctor Op.wasmExtmul)) else (if (code =? 7) then (ctor Option.some [Op] (ctor Op.wasmDot)) else (if (code =? 8) then (ctor Option.some [Op] (ctor Op.wasmAddSat)) else (ctor Option.none [Op])))))))))),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: instructionPrice,
+  parameters: [code : Nat, lanes : Nat],
+  result: (Option (Nat * Nat)),
+  body: (match (opAt code)
+    | Option.none => (ctor Option.none [(Nat * Nat)])
+    | Option.some op => (let cost : Cost := (price op lanes); (ctor Option.some [(Nat * Nat)] ((project cost ops), (project cost bytes))))),
+  axioms: [],
+  executable: true,
+  production: {effects: [overflow], targets: [rust-std]}
 }
 
 definition{
@@ -397,6 +418,22 @@ theorem{
   name: price_empty,
   parameters: [],
   statement: ((project (price (ctor Op.neonQadd) 0) bytes) = 0),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: extmul_price_counts_products,
+  parameters: [],
+  statement: ((project (price (ctor Op.wasmExtmul) 16) ops) = 2),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: instruction_price_names_nine,
+  parameters: [],
+  statement: ((instructionPrice 9 1) = (ctor Option.none [(Nat * Nat)])),
   proof: decide{},
   axioms: []
 }

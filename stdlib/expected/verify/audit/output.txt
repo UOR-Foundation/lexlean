@@ -435,9 +435,12 @@
 'LexLeanStd.Target.blockLanes' does not depend on any axioms
 'LexLeanStd.Target.bounded' does not depend on any axioms
 'LexLeanStd.Target.dot_wraps' depends on axioms: [propext]
+'LexLeanStd.Target.extmul_price_counts_products' does not depend on any axioms
 'LexLeanStd.Target.extmul_takes_low_eight' does not depend on any axioms
 'LexLeanStd.Target.finishPair' depends on axioms: [propext]
 'LexLeanStd.Target.heavier' does not depend on any axioms
+'LexLeanStd.Target.instructionPrice' does not depend on any axioms
+'LexLeanStd.Target.instruction_price_names_nine' does not depend on any axioms
 'LexLeanStd.Target.madd_exact' depends on axioms: [propext]
 'LexLeanStd.Target.madd_wraps' depends on axioms: [propext]
 'LexLeanStd.Target.maddubs_exact' depends on axioms: [propext]
@@ -448,6 +451,7 @@
 'LexLeanStd.Target.neonMullS8' does not depend on any axioms
 'LexLeanStd.Target.neonPaddlqS16' depends on axioms: [propext]
 'LexLeanStd.Target.neonQaddqS16' depends on axioms: [propext]
+'LexLeanStd.Target.opAt' does not depend on any axioms
 'LexLeanStd.Target.paddl_widens' depends on axioms: [propext]
 'LexLeanStd.Target.pairSums' depends on axioms: [propext]
 'LexLeanStd.Target.plus' does not depend on any axioms

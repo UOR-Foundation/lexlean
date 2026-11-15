@@ -18,6 +18,15 @@ and Unreleased holds what has landed since.
 
 ## Unreleased
 
+- The price of `LexLeanStd.Target`'s nine instructions is held to the target (#119, `GN-10`). A
+  production root `instructionPrice` reads `price` by instruction code; the pinned rustc compiles each
+  intrinsic under `#[target_feature]` to assembly, where it is exactly one instruction whose source
+  registers hold the bytes `readBytes` charges; and the lanes of the first operand the result depends
+  on, under the evaluator and under the instruction where the host executes it, are the lanes
+  `blockLanes` charges one instruction for. That oracle corrects `i16x8_extmul_low_i8x16`, which
+  multiplies only the low eight of its sixteen lanes: it is charged one instruction per eight lanes,
+  not sixteen.
+
 - release/v0.4 is merged forward into release/v0.5 (#404, #405). Both lines had registered
   `PF-24` and `SM-38` for different claims; the released maintenance line keeps its numbers
   (`PF-24` decision regions, `SM-38` declaration IDs) and the v0.5 claims move unchanged to
