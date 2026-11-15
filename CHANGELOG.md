@@ -17,6 +17,23 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- A semantic module nests as deeply as the project's `max_scope_depth` allows
+  (SPEC.md §17.17, §17.21.3, `SM-12`; no new diagnostic code; no language
+  identity moves). The front end read a module's JSON with a fixed 128-level
+  limit and its notation with a fixed 256-level one, so a list of more than
+  about 122 elements was refused, and past about 115 the semantic snapshot
+  panicked writing its own bytes. Both readers now take the project's bound
+  on the compile thread's stack, and every later reading of what the linker
+  admitted (rendering, declaration IDs, the snapshot and its canonical bytes)
+  reads to the same depth on a stack sized for it: a list of 1000 elements
+  checks, builds, verifies, and has a snapshot. Past the bound the notation is
+  `LLP2001` and the data `LLT4001`, each naming `max_scope_depth`. The
+  authoring API (`lexlean::sdk`) reads, converts, and writes a semantic module
+  to 1024 levels, the default `max_scope_depth`, on a stack of its own, where
+  it read the notation to 256 and the JSON to 128 on its caller's. A module
+  within the old limits reads, renders, and hashes to the same bytes as
+  before. This reverses the decision of #375 to keep the 128-level limit.
+  The register is unchanged.
 - `lexlean check` builds and runs on `wasm32-wasip1`, #494 (SPEC.md §8.3,
   `CL-25`). WASI has no threads, no file lock, and no processes: the check
   pipeline runs on the instance's stack, a command that changes the project

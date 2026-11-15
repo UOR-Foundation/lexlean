@@ -160,6 +160,18 @@ fn write_escaped(text: &str, out: &mut String) {
     out.push('"');
 }
 
+/// `serde_json::from_str` without its 128-level limit on nesting, for text
+/// whose depth the caller has bounded and whose stack it has sized for it.
+pub(crate) fn from_str_unbounded<T: serde::de::DeserializeOwned>(
+    text: &str,
+) -> Result<T, serde_json::Error> {
+    let mut reader = serde_json::Deserializer::from_str(text);
+    reader.disable_recursion_limit();
+    let value = T::deserialize(&mut reader)?;
+    reader.end()?;
+    Ok(value)
+}
+
 /// A streaming duplicate-key check over raw JSON bytes: every object level
 /// keeps the set of keys seen so far, compared after JSON escape decoding.
 /// The input need not be canonical yet, so `"a"` and `"\u0061"` are the same
