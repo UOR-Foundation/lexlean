@@ -260,6 +260,11 @@ jobs:
           # cores go to a plain file under a zero limit: none is written.
           sudo sysctl -w kernel.core_pattern=core
           ulimit -c 0
+          # A runner that runs out of memory loses its agent and leaves no log
+          # of why, so the free memory goes to the log once a minute.
+          ( while true; do echo "memory $(date -u +%H:%M:%S) $(free -m | awk '/^Mem:/ {print "used=" $3 "M available=" $7 "M"} /^Swap:/ {print "swap=" $3 "M"}' | tr '\n' ' ')"; sleep 60; done ) &
+          trace=$!
+          trap 'kill "$trace" 2>/dev/null || true' EXIT
           # Rows for packages no longer in the exports are dropped; for each
           # recursive package without a row, the case whose source names its
           # root runs whole and measures it (`LEXLEAN_MEASURE_STACK=all`).
@@ -310,11 +315,11 @@ jobs:
             exit 0
           fi
           echo "measuring: $cases" | tee -a "$GITHUB_STEP_SUMMARY"
-          # Each of these cases alone measured over 6 GiB RSS on 2026-11-14;
-          # four of them at once on this runner's 16 GiB swapped the agent
-          # to death twice (neither loss hit the step's own 360-minute
-          # timeout). Run them one at a time; run the rest at --test-threads=2.
-          heavy="conformance_bs_69 conformance_bs_70 conformance_bs_71 conformance_bs_72"
+          # Three runs on 2026-11-14 lost their runner while several of these
+          # cases measured at once. Alone, BS-36 left 7 GiB of this runner's
+          # 16 GiB available and BS-72 measured 10 to 12 GiB, so these run one
+          # at a time and the rest two at a time.
+          heavy="conformance_bs_36 conformance_bs_69 conformance_bs_70 conformance_bs_71 conformance_bs_72"
           light=""
           heavy_cases=""
           for case in $cases; do
@@ -331,16 +336,63 @@ jobs:
               light="$light $case"
             fi
           done
+          # A job's own 360-minute limit cancels this step outright if it is
+          # reached, and a cancelled job skips every later step, so the tree
+          # never returns and a row measured seconds before the limit is
+          # lost with everything else. Each row is instead written to
+          # tests/stack-bounds.json as it is measured (stack_bounds.rs
+          # record_row/rewrite), so a step that fails, rather than being
+          # cancelled, still returns whatever is already on disk. Stop
+          # ourselves inside a budget comfortably under the job's own limit,
+          # so a run that cannot finish everything fails cleanly instead of
+          # being cancelled, and keeps every row it reached.
+          step_start=$(date +%s)
+          deadline_s=$((320 * 60))
+          overall_status=0
+          remaining() {
+            local now elapsed left
+            now=$(date +%s)
+            elapsed=$((now - step_start))
+            left=$((deadline_s - elapsed))
+            if [ "$left" -lt 0 ]; then
+              left=0
+            fi
+            echo "$left"
+          }
           if [ -n "$light" ]; then
-            echo "measuring (threads=2): $light" | tee -a "$GITHUB_STEP_SUMMARY"
-            LEXLEAN_MEASURE_STACK=all cargo test -p repo-conformance --all-features --test conformance -- $light --test-threads=2 --nocapture 2>&1 \
-              | grep -E --line-buffered 'debug [0-9]+ bytes|test result|panicked|^test '
+            left=$(remaining)
+            if [ "$left" -gt 0 ]; then
+              echo "measuring (threads=2, budget ${left}s): $light" | tee -a "$GITHUB_STEP_SUMMARY"
+              if ! timeout "${left}s" env LEXLEAN_MEASURE_STACK=all cargo test -p repo-conformance --all-features --test conformance -- $light --test-threads=2 --nocapture 2>&1 \
+                | grep -E --line-buffered 'debug [0-9]+ bytes|test result|panicked|^test '; then
+                overall_status=1
+              fi
+            else
+              echo "no time left in the ${deadline_s}s budget; skipping: $light" | tee -a "$GITHUB_STEP_SUMMARY"
+              overall_status=1
+            fi
           fi
-          if [ -n "$heavy_cases" ]; then
-            echo "measuring (threads=1): $heavy_cases" | tee -a "$GITHUB_STEP_SUMMARY"
-            LEXLEAN_MEASURE_STACK=all cargo test -p repo-conformance --all-features --test conformance -- $heavy_cases --test-threads=1 --nocapture 2>&1 \
-              | grep -E --line-buffered 'debug [0-9]+ bytes|test result|panicked|^test '
-          fi
+          # Heavy cases already run one at a time; looping them individually
+          # (instead of one --test-threads=1 invocation over all of them)
+          # costs nothing and prints exactly when each one starts and ends.
+          for case in $heavy_cases; do
+            left=$(remaining)
+            if [ "$left" -le 0 ]; then
+              echo "no time left in the ${deadline_s}s budget; skipping: $case" | tee -a "$GITHUB_STEP_SUMMARY"
+              overall_status=1
+              continue
+            fi
+            started=$(date +%s)
+            echo "$case: started $(date -u +%H:%M:%S) (threads=1, budget ${left}s)" | tee -a "$GITHUB_STEP_SUMMARY"
+            if ! timeout "${left}s" env LEXLEAN_MEASURE_STACK=all cargo test -p repo-conformance --all-features --test conformance -- "$case" --test-threads=1 --nocapture 2>&1 \
+              | grep -E --line-buffered 'debug [0-9]+ bytes|test result|panicked|^test '; then
+              overall_status=1
+            fi
+            ended=$(date +%s)
+            mins=$(( (ended - started) / 60 ))
+            echo "$case: ended $(date -u +%H:%M:%S), ${mins}m" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+          exit "$overall_status"
       - name: Return the regenerated tree
         if: ${{ !cancelled() }}
         shell: bash
