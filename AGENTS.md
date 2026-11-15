@@ -123,6 +123,12 @@ decision: `cut.yml` regenerates the cut, waits for its gate, merges its pull
 request at the verified head, tags and publishes it (`tag.yml`,
 `release.yml`). Merge the pull request by hand only when `cut.yml` stopped
 short and says why.
+A pull request records its change in a new file `changes/<slug>.md` (one
+Keep a Changelog entry, Markdown with no `#` or `##` heading; the slug is
+usually the branch name) and never edits CHANGELOG.md: the cut
+(`cargo xtask bump-version`) folds every fragment, in file-name order, under
+the release's heading and deletes them (SPEC.md §9.4). A shared
+`## Unreleased` list made every landing conflict with every open pull request.
 A pull request that is final is marked ready with auto-merge on
 (`gh pr merge --auto --merge`), so it lands when its gate passes and its
 branch is deleted on merge.

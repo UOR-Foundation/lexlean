@@ -11,7 +11,9 @@
 # was cancelled, or passed without being the whole gate; exit 1), or
 # `pending` (no verdict in time; exit 0, or exit 1 when FINAL is `true`, the
 # last wait of the cut). A run re-run after a failure is the newest run again,
-# so re-running the cut's failed jobs waits for it afresh.
+# so re-running the cut's failed jobs waits for it afresh. A run that waits
+# for approval (`action_required`, as the `pull_request` runs a workflow-token
+# push to the cut's branch start) never ran the gate and is passed over.
 #
 # Inputs, from the environment: REPO, HEAD_SHA, WAIT_MINUTES, FINAL. `gh`
 # reads the runs and jobs (`actions: read`); the checkout is HEAD_SHA.
@@ -28,7 +30,7 @@ say() { printf '%s\n' "$1" | tee -a "$summary"; }
 deadline=$((SECONDS + wait * 60))
 while :; do
   state=$(gh api "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$head&per_page=30" \
-    --jq "[.workflow_runs[] | select(.head_repository.full_name == \"$repo\") | select(.event == \"pull_request\" or .event == \"workflow_dispatch\")][0] // empty | \"\(.status) \(.conclusion) \(.html_url)\"" \
+    --jq "[.workflow_runs[] | select(.head_repository.full_name == \"$repo\") | select(.event == \"pull_request\" or .event == \"workflow_dispatch\") | select(.conclusion != \"action_required\")][0] // empty | \"\(.status) \(.conclusion) \(.html_url)\"" \
     2>/dev/null || true)
   case "$state" in
     "completed success "*)

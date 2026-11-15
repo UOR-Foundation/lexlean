@@ -4,8 +4,9 @@
 #   git push origin release/vX.Y:refs/heads/cut/vX.Y.Z
 #
 # `version` moves every site of the workspace version to X.Y.Z
-# (`cargo xtask bump-version`), the `## Unreleased` changelog entries becoming
-# `## X.Y.Z`, commits that on the pushed commit, and opens the pull request
+# (`cargo xtask bump-version`), the `## Unreleased` changelog entries and the
+# fragments under `changes/` becoming `## X.Y.Z` (the fragments deleted),
+# commits that on the pushed commit, and opens the pull request
 # from `cut/vX.Y.Z` into `release/vX.Y`. `regenerate.yml` then writes what the
 # version moves (every build oracle names the compiler's version), delivers
 # that to the branch, and dispatches the gate there. `gate` and `gate-more`
@@ -90,7 +91,7 @@ jobs:
           git -c user.name='github-actions[bot]' \
             -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
             commit --quiet -m "Cut LexLean $VERSION" \
-            -m "cargo xtask bump-version $VERSION: the workspace version, SPEC.md §2.3, RP-01, Cargo.lock, and the changelog's unreleased entries."
+            -m "cargo xtask bump-version $VERSION: the workspace version, SPEC.md §2.3, RP-01, Cargo.lock, and the changelog's unreleased entries and fragments."
           git push origin "HEAD:refs/heads/$GITHUB_REF_NAME"
           echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           body="Cuts LexLean $VERSION on \`$LINE\` (\`cut.yml\`). \`regenerate.yml\` writes what the version moves and dispatches the gate here. Once that gate passes, \`cut.yml\` merges this pull request at the head it verified, tags the merge as \`v$VERSION\`, and \`release.yml\` publishes it; nobody needs to merge it. A push to this branch before then stops the automatic landing, and merging by hand releases as before."
