@@ -64,6 +64,7 @@ mod rust_runtime_text;
 mod rust_scaffold;
 mod rust_std;
 mod rust_support;
+mod rust_target_feature;
 mod security;
 mod semantic_ir;
 mod std_packages;

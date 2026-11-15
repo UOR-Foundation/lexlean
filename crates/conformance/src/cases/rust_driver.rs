@@ -216,6 +216,7 @@ fn export(function: u64, errors: Errors, passing: Passing) -> Export {
         name: "run".to_owned(),
         parameters: vec![passing, Passing::Own],
         errors,
+        features: vec![],
     }
 }
 

@@ -42,6 +42,22 @@ pub struct Target {
     pub integer_bits: u32,
 }
 
+/// A registered target feature (decision D4 of #109): a Rust
+/// `target_feature` an exported function may be compiled for, with the
+/// architecture whose instructions it enables and the target triple D4
+/// models it on. It is not a target: it changes neither allocation nor a
+/// width, so no root's eligibility reads it.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Feature {
+    pub id: String,
+    pub statement: String,
+    /// Rust's `target_arch` of the feature.
+    pub arch: String,
+    /// The target triple the feature is modeled on.
+    pub triple: String,
+}
+
 /// A registered effect a root may admit.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -106,6 +122,7 @@ struct RequestRow {
 struct RegistryFile {
     spec: String,
     target: Vec<Target>,
+    feature: Vec<Feature>,
     effect: Vec<Effect>,
     request: Vec<RequestRow>,
     construct: Vec<Construct>,
@@ -115,6 +132,8 @@ struct RegistryFile {
 #[derive(Debug)]
 pub struct Registry {
     pub targets: BTreeMap<String, Target>,
+    /// The target features an export may be compiled for.
+    pub features: BTreeMap<String, Feature>,
     pub effects: BTreeMap<String, Effect>,
     /// The constructors of `LexLeanStd.Host::Request`, each with the effect
     /// it realizes, if any.
@@ -132,6 +151,7 @@ fn parse_registry(text: &str) -> Result<Registry, String> {
     }
     let mut registry = Registry {
         targets: BTreeMap::new(),
+        features: BTreeMap::new(),
         effects: BTreeMap::new(),
         requests: BTreeMap::new(),
         constructs: BTreeMap::new(),
@@ -154,6 +174,18 @@ fn parse_registry(text: &str) -> Result<Registry, String> {
             .is_some()
         {
             return Err(format!("{REGISTRY_PATH}: duplicate target `{}`", target.id));
+        }
+    }
+    for feature in file.feature {
+        if registry
+            .features
+            .insert(feature.id.clone(), feature.clone())
+            .is_some()
+        {
+            return Err(format!(
+                "{REGISTRY_PATH}: duplicate feature `{}`",
+                feature.id
+            ));
         }
     }
     for effect in file.effect {

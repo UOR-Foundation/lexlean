@@ -482,17 +482,27 @@ fn enc_item_def(item: &ItemDef) -> Value {
             parameters,
             result,
             body,
+            features,
             at,
-        } => adt(
-            2,
-            vec![
-                enc_ident(name),
-                enc_params(parameters),
-                enc_type(result),
-                enc_block(body),
-                enc_origin(at),
-            ],
-        ),
+        } => {
+            // `RustAst` has no target feature (RB-25): a crate that carries
+            // one is outside the claim, and is refused here rather than
+            // encoded without it.
+            assert!(
+                features.is_empty(),
+                "a function with target features is outside the claim of the bootstrap encoding"
+            );
+            adt(
+                2,
+                vec![
+                    enc_ident(name),
+                    enc_params(parameters),
+                    enc_type(result),
+                    enc_block(body),
+                    enc_origin(at),
+                ],
+            )
+        }
     }
 }
 
@@ -869,6 +879,7 @@ fn visit_crate(krate: &mut Crate, f: &mut Visitor<'_>) {
                 parameters,
                 result,
                 body,
+                features: _,
                 at,
             } => {
                 f(Node::Ident(name));
@@ -1900,6 +1911,7 @@ fn list_match_crates() -> Vec<Crate> {
             result: Type::Unit,
             body: Block::of(Expr::Uncons(Ident::Param(0))),
             at: Origin::of("function"),
+            features: vec![],
         }],
     }]
 }
@@ -1968,6 +1980,7 @@ pub(super) fn branch_crates() -> Vec<Crate> {
                         result: Type::Unit,
                         body,
                         at: Origin::of("function"),
+                        features: vec![],
                     }],
                 });
             }
@@ -2014,6 +2027,7 @@ pub(super) fn branch_crates() -> Vec<Crate> {
                     tail: unit(),
                 },
                 at: Origin::of("function"),
+                features: vec![],
             }],
         });
     }
@@ -2040,6 +2054,7 @@ pub(super) fn machine_crates() -> Vec<Crate> {
             result: Type::Unit,
             body: Block::of(body),
             at: at("function"),
+            features: vec![],
         }],
     };
     let call = |machine: Machine, operands: usize, propagate: bool| Expr::Call {
@@ -2079,6 +2094,7 @@ pub(super) fn machine_crates() -> Vec<Crate> {
                 result: ty,
                 body: Block::of(Expr::Copy(Ident::Param(0), at("read:param"))),
                 at: at("function"),
+                features: vec![],
             }],
         });
     }
@@ -2103,6 +2119,7 @@ pub(super) fn machine_crates() -> Vec<Crate> {
                     at: at("construct:err"),
                 }),
                 at: at("function"),
+                features: vec![],
             }],
         });
     }
@@ -2212,6 +2229,7 @@ pub(super) fn loop_crates() -> Vec<Crate> {
             result,
             body: Block { lets, tail },
             at: at("function"),
+            features: vec![],
         }],
     };
     let plain =
@@ -2539,6 +2557,7 @@ pub(super) fn loop_crates() -> Vec<Crate> {
                         },
                     )),
                     at: at("function"),
+                    features: vec![],
                 },
             ],
         });
@@ -2561,6 +2580,7 @@ pub(super) fn loop_crates() -> Vec<Crate> {
             result: fallible(),
             body: Block::of(succeed(copy(local(0)))),
             at: at("function"),
+            features: vec![],
         });
         krate
     };

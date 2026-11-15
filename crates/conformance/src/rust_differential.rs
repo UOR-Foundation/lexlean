@@ -680,6 +680,7 @@ pub fn manifest(differential: &Differential, profile: Profile) -> Manifest {
                 } else {
                     Errors::None
                 },
+                features: vec![],
             })
             .collect(),
         sources: Vec::new(),

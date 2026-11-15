@@ -241,6 +241,7 @@ pub fn run(id: &str) {
                 result: RustType::Overflow,
                 body: RustBlock::of(RustExpr::Lit(RustLit::Overflow, Origin::of("function"))),
                 at: Origin::of("function"),
+                features: vec![],
             }],
         };
         let elements: std::collections::BTreeSet<String> = ["function".to_owned()].into();

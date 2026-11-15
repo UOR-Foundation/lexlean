@@ -1756,6 +1756,7 @@ pub fn execute(
                     } else {
                         Errors::None
                     },
+                    features: vec![],
                 }],
                 sources: Vec::new(),
                 effects: Vec::new(),
@@ -3152,6 +3153,7 @@ pub fn lexlean_package(accepted: &Accepted, profile: &str) -> BTreeMap<String, V
             } else {
                 Errors::None
             },
+            features: vec![],
         }],
         sources: Vec::new(),
         effects: Vec::new(),

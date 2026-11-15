@@ -152,6 +152,7 @@ pub fn manifest(name: &str, program: &Program, entry: u64, profile: Profile) -> 
             } else {
                 Errors::None
             },
+            features: vec![],
         }],
         sources: vec![compiler_semantic_id()],
         effects: Vec::new(),
