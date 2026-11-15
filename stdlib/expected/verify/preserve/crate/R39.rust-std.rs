@@ -855,24 +855,187 @@ pub fn format_int(p0: i64) -> Str {
     Str::format_i64(p0)
 }
 
-pub fn f0(v0: Bytes, v1: Bytes) -> bool {
-    let m5 = {
-        let a2 = v0;
-        let a3 = 0u64;
-        let a4 = {
-            let a1 = v1.clone();
-            length_bytes(a1)
-        };
-        slice_bytes(a2, a3, a4)
-    };
-    match m5 {
+#[derive(Clone)]
+pub enum Adt0 {
+    C0(u64, u64),
+}
+
+#[derive(Clone)]
+pub enum Adt1 {
+    C0,
+    C1,
+    C2,
+    C3,
+    C4,
+    C5,
+    C6,
+    C7,
+    C8,
+}
+
+pub fn f0(v0: u64, v1: u64) -> R<Option<(u64, u64)>> {
+    let m1 = f1(v0);
+    match m1 {
         None => {
-            false
+            Ok(None::<(u64, u64)>)
         }
         Some(v2) => {
-            let a6 = v2;
-            let a7 = v1;
-            equal(a6, a7)
+            let v3: Adt0 = f2(v2, v1)?;
+            Ok(Some((match v3.clone() {
+                Adt0::C0(h2, _) => {
+                    h2
+                }
+            }, match v3 {
+                Adt0::C0(_, h3) => {
+                    h3
+                }
+            })))
+        }
+    }
+}
+
+pub fn f1(v0: u64) -> Option<Adt1> {
+    let a4 = v0;
+    let a5 = 0u64;
+    if nat_eq(a4, a5) {
+        Some(Adt1::C0)
+    } else {
+        let a6 = v0;
+        let a7 = 1u64;
+        if nat_eq(a6, a7) {
+            Some(Adt1::C1)
+        } else {
+            let a8 = v0;
+            let a9 = 2u64;
+            if nat_eq(a8, a9) {
+                Some(Adt1::C2)
+            } else {
+                let a10 = v0;
+                let a11 = 3u64;
+                if nat_eq(a10, a11) {
+                    Some(Adt1::C3)
+                } else {
+                    let a12 = v0;
+                    let a13 = 4u64;
+                    if nat_eq(a12, a13) {
+                        Some(Adt1::C4)
+                    } else {
+                        let a14 = v0;
+                        let a15 = 5u64;
+                        if nat_eq(a14, a15) {
+                            Some(Adt1::C5)
+                        } else {
+                            let a16 = v0;
+                            let a17 = 6u64;
+                            if nat_eq(a16, a17) {
+                                Some(Adt1::C6)
+                            } else {
+                                let a18 = v0;
+                                let a19 = 7u64;
+                                if nat_eq(a18, a19) {
+                                    Some(Adt1::C7)
+                                } else {
+                                    let a20 = v0;
+                                    let a21 = 8u64;
+                                    if nat_eq(a20, a21) {
+                                        Some(Adt1::C8)
+                                    } else {
+                                        None::<Adt1>
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub fn f2(v0: Adt1, v1: u64) -> R<Adt0> {
+    let v2: u64 = {
+        let a26 = {
+            let a24 = v1;
+            let a25 = {
+                let a22 = f3(v0.clone());
+                let a23 = 1u64;
+                nat_sub(a22, a23)
+            };
+            nat_add(a24, a25)?
+        };
+        let a27 = f3(v0.clone());
+        let a28 = 0u64;
+        nat_quot(a26, a27, a28)
+    };
+    Ok(Adt0::C0(v2, {
+        let a29 = v2;
+        let a30 = f4(v0);
+        nat_mul(a29, a30)?
+    }))
+}
+
+pub fn f3(v0: Adt1) -> u64 {
+    let m31 = v0;
+    match m31 {
+        Adt1::C0 => {
+            32u64
+        }
+        Adt1::C1 => {
+            16u64
+        }
+        Adt1::C2 => {
+            16u64
+        }
+        Adt1::C3 => {
+            8u64
+        }
+        Adt1::C4 => {
+            8u64
+        }
+        Adt1::C5 => {
+            8u64
+        }
+        Adt1::C6 => {
+            8u64
+        }
+        Adt1::C7 => {
+            8u64
+        }
+        Adt1::C8 => {
+            8u64
+        }
+    }
+}
+
+pub fn f4(v0: Adt1) -> u64 {
+    let m32 = v0;
+    match m32 {
+        Adt1::C0 => {
+            64u64
+        }
+        Adt1::C1 => {
+            64u64
+        }
+        Adt1::C2 => {
+            64u64
+        }
+        Adt1::C3 => {
+            16u64
+        }
+        Adt1::C4 => {
+            16u64
+        }
+        Adt1::C5 => {
+            32u64
+        }
+        Adt1::C6 => {
+            32u64
+        }
+        Adt1::C7 => {
+            32u64
+        }
+        Adt1::C8 => {
+            32u64
         }
     }
 }
