@@ -28,6 +28,9 @@ const SEMANTIC_DIRS: [(&str, &str); 4] = [
     ("tests/golden/canonical-json", "tests/golden/canonical-json"),
 ];
 
+/// The embedded directory the `production-data` feature carries.
+const PRODUCTION_DATA_DIR: &str = "language/preservation-1.2/library";
+
 fn main() {
     let manifest = PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("cargo sets this"));
 
@@ -46,7 +49,16 @@ fn main() {
     // Bytewise-sorted repository-relative path order, the §11.5 tree order.
     files.sort_by(|a, b| a.0.as_bytes().cmp(b.0.as_bytes()));
 
+    // Without `production-data` the native preservation library is left out
+    // (SPEC.md §8.4): only certificate generation reads it, and it is most of
+    // the embedded bytes. Its files are absent, not empty, so a reader that
+    // reached one would find it missing rather than read an empty library.
+    let production_data = env::var_os("CARGO_FEATURE_PRODUCTION_DATA").is_some();
     let mut out = String::new();
+    out.push_str(&format!(
+        "/// Whether this build embeds the production data (`{PRODUCTION_DATA_DIR}/`).\n\
+         pub const PRODUCTION_DATA: bool = {production_data};\n\n"
+    ));
     out.push_str(
         "/// Every embedded normative file as `(repository-relative path, bytes)`,\n\
          /// in bytewise-sorted path order.\n\
@@ -54,6 +66,9 @@ fn main() {
     );
     for (rel, abs) in &files {
         println!("cargo:rerun-if-changed={}", abs.display());
+        if !production_data && rel.starts_with(&format!("{PRODUCTION_DATA_DIR}/")) {
+            continue;
+        }
         out.push_str(&format!(
             "    ({:?}, include_bytes!({:?})),\n",
             rel,
@@ -64,6 +79,31 @@ fn main() {
 
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("cargo sets this"));
     fs::write(out_dir.join("embedded.rs"), out).expect("write embedded.rs");
+
+    // The standard library's SHA-256 package (SPEC.md §17.22, `SL-06`): the
+    // committed production export, linked and not copied, wrapped as one
+    // module. The file's bytes follow the opening brace unchanged, so its
+    // inner `forbid(unsafe_code)` stays the module's first item.
+    let package = resolve_file(&manifest, "sha256_package.rs");
+    println!("cargo:rerun-if-changed={}", package.display());
+    let body = fs::read_to_string(&package).unwrap_or_else(|error| {
+        panic!(
+            "{}: the SHA-256 package must be present (SPEC.md §17.22): {error}",
+            package.display()
+        )
+    });
+    assert!(
+        body.starts_with("#![forbid(unsafe_code)]"),
+        "{}: not the committed SHA-256 package",
+        package.display()
+    );
+    fs::write(
+        out_dir.join("sha256_package.rs"),
+        format!(
+            "#[allow(warnings, missing_docs, clippy::all, clippy::pedantic, clippy::nursery)]\npub(crate) mod sha256_package {{\n{body}\n}}\n"
+        ),
+    )
+    .expect("write sha256_package.rs");
 
     // The closed error registry, for `lexlean explain` (§23.4). Resolved
     // through the same link mechanism and copied to OUT_DIR so the CLI
@@ -188,4 +228,24 @@ fn collect(dir: &Path, rel: &str, out: &mut Vec<(String, PathBuf)>) {
             panic!("{child_rel}: normative data must contain only regular files");
         }
     }
+}
+
+/// Resolve a crate-relative file link: the file itself, or the relative path
+/// a checkout without symlink support stores in its place.
+fn resolve_file(manifest: &Path, crate_relative: &str) -> PathBuf {
+    let direct = manifest.join(crate_relative);
+    let text = fs::read_to_string(&direct).unwrap_or_else(|error| {
+        panic!(
+            "{}: the link `{crate_relative}` is missing: {error}",
+            direct.display()
+        )
+    });
+    let target = text.trim();
+    if !target.contains('\n') && target.starts_with("../") {
+        let candidate = manifest.join(target);
+        if candidate.is_file() {
+            return candidate;
+        }
+    }
+    direct
 }

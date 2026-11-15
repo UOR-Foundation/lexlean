@@ -36,6 +36,10 @@ tempfile = "3"
 thiserror = "2"
 toml = "0.8"
 unicode-normalization = "0.1"
+# The oracle of the `kappa` package (SPEC.md §17.22, `KA-02`, `KA-03`): the JSON
+# realization only, so that no GGUF or ONNX tensor crate is built. Dev and CI
+# only, through `repo-conformance`; never a dependency of a shipped crate.
+uor-addr = { version = "=0.2.0", default-features = false, features = ["std"] }
 walkdir = "2"
 
 [workspace.lints.rust]
@@ -59,6 +63,15 @@ codegen-units = 1
 # one dependency in the dev profile changes no value it computes.
 [profile.dev.package.sha2]
 opt-level = 3
+
+# The compiler's own digest is the standard library's certified `Sha256`
+# package, compiled into this crate (SPEC.md §17.22), and a module cannot be
+# optimized apart from its crate. At opt-level 0 it hashes 0.7 MB/s, 1,900
+# times slower than `sha2`, which is minutes for the executable a
+# verification reads; at opt-level 1 it hashes about 68 MB/s. The level
+# changes no value the crate computes.
+[profile.dev.package.lexlean]
+opt-level = 1
 
 # Backtraces keep their file and line, which is all a failing gate needs from
 # debug information. Full variable-level information doubled the size of every

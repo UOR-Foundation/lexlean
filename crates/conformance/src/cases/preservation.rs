@@ -1621,7 +1621,24 @@ pub fn run(id: &str) {
             // read: the stress families (Rust only), the verification of a
             // wide match through the whole pipeline, and the certification
             // of the corpora, which the other cases share.
-            let stress = std::thread::spawn(stress_estimates);
+            let stress = support::normative_host().then(|| std::thread::spawn(stress_estimates));
+            if stress.is_none() {
+                // The host matrix checks certificate construction and bounds
+                // on fixed small vectors; the complete scaling grid belongs
+                // to the normative host, as the bootstrap differentials do.
+                for (name, project) in [
+                    ("let chain 4", crate::stress::let_chain_default(4)),
+                    ("wide match 2", crate::stress::wide_match_default(2)),
+                ] {
+                    let certified = preservation::certificates(&project);
+                    assert!(!certified.is_empty(), "{name} certifies");
+                    for entry in &certified {
+                        assert_floor(name, entry);
+                        assert_bounds(name, entry);
+                    }
+                }
+                eprintln!("SP-02: fixed certificate vectors ran; full scaling and seeded stress families run on the normative host (§8.3)");
+            }
             let wide = support::lean_host_available().then(|| {
                 std::thread::spawn(|| {
                     support::verify_ok(&crate::stress::wide_match_default(180));
@@ -1769,13 +1786,15 @@ pub fn run(id: &str) {
                 error.to_string().contains("recursion limit exceeded"),
                 "{error}"
             );
-            let quadratic = stress
-                .join()
-                .unwrap_or_else(|panic| std::panic::resume_unwind(panic));
-            assert!(
-                quadratic > 100_000,
-                "the record-copy family has a certificate B far beyond A and E, which is what B's own limit is for"
-            );
+            if let Some(stress) = stress {
+                let quadratic = stress
+                    .join()
+                    .unwrap_or_else(|panic| std::panic::resume_unwind(panic));
+                assert!(
+                    quadratic > 100_000,
+                    "the record-copy family has a certificate B far beyond A and E, which is what B's own limit is for"
+                );
+            }
             if !support::lean_backed("SP-02") {
                 return;
             }
@@ -2494,7 +2513,8 @@ pub fn run(id: &str) {
         "SP-07" => {
             // The compiler project is configured as the production example,
             // under its own name (§17.14): the same toolchain, lexicon
-            // source, and limits.
+            // source, and limits. The example's titles glossary names its
+            // own modules, so the compiler does not take it.
             let production = |file: &str| {
                 std::fs::read_to_string(
                     repo_root()
@@ -2511,6 +2531,10 @@ pub fn run(id: &str) {
             assert_eq!(
                 compiler("lexlean.toml"),
                 production("lexlean.toml")
+                    .replace(
+                        "[[lexicon_source]]\npackage = \"production.titles\"\nkind = \"path\"\npath = \"glossary/production.titles\"\n\n",
+                        ""
+                    )
                     .replace("name = \"production\"", "name = \"compiler\"")
                     .replace(
                         "module_prefix = \"Production\"",
@@ -4696,9 +4720,7 @@ pub fn run(id: &str) {
             );
         }
         "SP-17" => {
-            use crate::lean_literals::{
-                auxiliary_part_from, is_lean_syntax, scan_repository, scan_source,
-            };
+            use crate::lean_literals::{is_lean_syntax, scan_repository, scan_source};
             let root = repo_root();
             // The repository holds no Lean source text template.
             let found = scan_repository(root.as_std_path());
@@ -4739,16 +4761,14 @@ pub fn run(id: &str) {
                     planted[0].line, planted[0].literal
                 );
             }
-            // In the auxiliary module part of the backend, a template is
-            // reported, and a command line outside the allow-list too.
+            // The scan covers the whole of the backend, and a template in it
+            // is reported.
             let backend = std::fs::read_to_string(root.join("crates/lexlean/src/backend/lean.rs"))
                 .expect("the backend reads");
-            let from = auxiliary_part_from(&backend);
-            assert!(from > 1, "the backend has an auxiliary module part");
             let planted = scan_source(
                 "backend/lean.rs",
                 &format!("{backend}\nfn planted() -> String {{ String::from(\"namespace Planted\\nend Planted\\n\") }}\n"),
-                from,
+                1,
             );
             assert_eq!(
                 planted.len(),
@@ -4759,6 +4779,90 @@ pub fn run(id: &str) {
                 "SP-17 planted in backend/lean.rs: line {} `{}`",
                 planted[0].line, planted[0].literal
             );
+            // The shapes a one-literal, prefix-matching scan read past (#181):
+            // each is planted in the real source of the backend, once, and
+            // found once, and its line is the planted one.
+            let shapes: [(&str, &str); 10] = [
+                (
+                    "concat!",
+                    "fn planted() -> String { concat!(\"im\", \"port Lean\").to_owned() }\n",
+                ),
+                (
+                    "plus",
+                    "fn planted() -> String { String::from(\"import \") + \"Lean\" }\n",
+                ),
+                (
+                    "lines",
+                    "fn planted() -> String { [\"namespace\", \" Planted\\nend\", \" Planted\"].concat() }\n",
+                ),
+                (
+                    "escapes",
+                    "fn planted() -> String { String::from(\"import\\u{20}Lean\\x0a\") }\n",
+                ),
+                (
+                    "private theorem",
+                    "fn planted(n: u64) -> String { format!(\"private theorem {n} : {n} = {n}\\n  by decide\") }\n",
+                ),
+                (
+                    "inductive where",
+                    "fn planted(t: &str) -> String { format!(\"inductive {t} where\\n  | a\") }\n",
+                ),
+                (
+                    "end",
+                    "fn planted(ns: &str) -> String { format!(\"end {ns}\") }\n",
+                ),
+                (
+                    "#reduce",
+                    "fn planted() -> String { String::from(\"#reduce {}\") }\n",
+                ),
+                (
+                    "by simp",
+                    "fn planted() -> String { String::from(\"by simp [{}]\") }\n",
+                ),
+                (
+                    "allowed prefix",
+                    "fn planted(x: &str) -> String { format!(\" := by {x}\") }\n",
+                ),
+            ];
+            // Fragments that are clean alone: only the joined reading is Lean.
+            for fragment in ["im", "port Lean", "namespace", " Planted\nend", " Planted"] {
+                assert!(
+                    scan_source(
+                        "x.rs",
+                        &format!("fn f() {{ g(\"{}\"); }}\n", fragment.replace('\n', "\\n")),
+                        1
+                    )
+                    .is_empty(),
+                    "the fragment {fragment:?} is clean alone"
+                );
+            }
+            let joined: [(&str, &str); 2] = [
+                ("concat!", "import Lean"),
+                ("lines", "namespace Planted\nend Planted"),
+            ];
+            let backend_lines = backend.lines().count();
+            for (name, shape) in shapes {
+                let found = scan_source("backend/lean.rs", &format!("{backend}\n{shape}"), 1);
+                assert_eq!(
+                    found.len(),
+                    1,
+                    "SP-17 shape `{name}` is reported once: {found:?}"
+                );
+                assert!(
+                    found[0].line > backend_lines,
+                    "SP-17 shape `{name}` is the planted one: {found:?}"
+                );
+                if let Some((_, text)) = joined.iter().find(|(joined, _)| *joined == name) {
+                    assert_eq!(
+                        found[0].literal, *text,
+                        "SP-17 shape `{name}` is reported as its joined reading"
+                    );
+                }
+                eprintln!(
+                    "SP-17 shape `{name}`: line {} `{}`",
+                    found[0].line, found[0].literal
+                );
+            }
             // Test code is not production: the same template under
             // `#[cfg(test)]` is not reported, and the definition separates a
             // bare word, a diagnostic and Lean.
@@ -4774,7 +4878,12 @@ pub fn run(id: &str) {
                 "fun x => x",
                 "(.option {})",
                 "#print axioms {}",
-                "set_option maxHeartbeats 0\\n",
+                "set_option maxHeartbeats 0\n",
+                "private theorem t (n : Nat) : n = n\n  by decide",
+                "inductive T where\n  | a",
+                "end Planted",
+                "#reduce f x",
+                "by simp [foo]",
             ] {
                 assert!(is_lean_syntax(lean), "`{lean}` is Lean syntax");
             }
@@ -4784,17 +4893,24 @@ pub fn run(id: &str) {
                 "instance `{module}.{name}` is recursive",
                 "a match on a pair splits it",
                 "function {index} lowered",
+                "end of input",
+                "stopped by hand",
+                "a reading by simple means",
             ] {
                 assert!(!is_lean_syntax(plain), "`{plain}` is not Lean syntax");
             }
-            // Every allow-list entry is used: one that matches nothing is a
-            // hole that no longer has a reason.
-            for (file, beginning, reason) in crate::lean_literals::ALLOWED {
+            // Every allow-list entry is used: one that matches no text of its
+            // file as a whole, or one that is not Lean syntax, is a hole that
+            // no longer has a reason.
+            for (file, whole, reason) in crate::lean_literals::ALLOWED {
                 let source = std::fs::read_to_string(root.join("crates/lexlean/src").join(file))
                     .expect("an allowed file reads");
                 assert!(
-                    source.contains(&format!("\"{beginning}")),
-                    "the allow-list entry {file} `{beginning}` ({reason}) matches nothing"
+                    is_lean_syntax(whole)
+                        && crate::lean_literals::texts(&source, 1)
+                            .iter()
+                            .any(|(_, readings)| readings.iter().any(|text| text == whole)),
+                    "the allow-list entry {file} `{whole}` ({reason}) matches no whole text"
                 );
             }
         }
@@ -4809,6 +4925,12 @@ pub fn run(id: &str) {
         "SP-27" => super::rust_lists::run(id),
         "SP-28" => super::rust_prims::run(id),
         "SP-29" => super::rust_std::run(id),
+        // §17.16, §17.17: every runtime item has its refinement statement.
+        "SP-30" => super::rust_items::run(id),
+        // §17.12, §17.17: a definition recurses on its declared argument.
+        "SP-32" => super::recursive_argument::run(id),
+        // §17.16, §17.17: an arm that returns a boxed field.
+        "SP-33" => super::binder_arm::run(id),
         "SP-23" => {
             let syntax = support::module_json(
                 &std::fs::read_to_string(
@@ -4874,14 +4996,18 @@ pub fn run(id: &str) {
                     "utf8Decode",
                     "bytesCompare",
                     "stringSplit",
-                    "stringJoin"
+                    "stringJoin",
+                    "formatDecimal",
+                    "parseDecimal",
+                    "parseDecimalInt",
+                    "formatDecimalInt"
                 ],
-                "the list, byte, and text primitives of the std runtime (SP-29)"
+                "the list, byte, text, and number primitives of the std runtime (SP-29)"
             );
             assert_eq!(
                 machine.len(),
-                40,
-                "the first seventeen, the nine, and the fourteen std primitives"
+                44,
+                "the first seventeen, the nine, and the eighteen std primitives"
             );
             if !support::lean_backed("SP-23") {
                 return;

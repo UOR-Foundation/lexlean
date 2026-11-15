@@ -78,10 +78,12 @@ Feature: semantic-ir
     And the `All` selection returns the same complete sorted set
 
   @SM-12 @build
-  Scenario: No semantic IR node can contain opaque prose, raw backend text, or an unknown extension.
+  Scenario: No semantic IR node can contain opaque prose, raw backend text, or an unknown extension. Semantic modules retain the 128-level JSON nesting limit and an over-deep list is refused with LLT4001 naming smaller definitions joined by prim append as the remedy.
     Given the example project checked through the internal pipeline
     When the linked IR is serialized to canonical JSON
     Then the JSON contains none of `natural number`, `For every`, `reflexivity`, or `Close the goal`
+    And a 122-element list checks while a 123-element list, including in a subsequent declaration, fails with LLT4001 naming the 128-level JSON bound and smaller definitions joined by prim append
+    And two 100-element definitions joined by prim append check, and malformed, noncanonical, duplicate-member and out-of-schema data remain refused
 
   @SM-13 @build
   Scenario: Inherited section parameters are represented explicitly and emitted only on declarations that use them.
@@ -132,7 +134,7 @@ Feature: semantic-ir
     When LexLean builds and verifies it on the pinned toolchain
     Then the generated runtime and module elaborate and replay
     And each computational definition reports exactly its source-declared axiom policy
-    And nested records retain every large arbitrary-byte literal during elaboration and replay
+    And nested byte records, bounded slices and empty, singleton, Unicode and nested joins reduce exactly, with altered expectations rejected
     And byte literals use closed explicit octets with deterministic literal-local sharing while canonical document numbers and every byte remain unchanged
 
   @SM-20 @build
@@ -245,10 +247,12 @@ Feature: semantic-ir
     And every row of the shipped preservation library that carries a sparse casesOn record or is named like an equation, an unfolding equation, a splitter, or an else equation is a derived row, and no derived row is anything else
 
   @SM-35 @build
-  Scenario: A language-1.2 theorem may be proved by `term_cases`, a split on the value of a document term: the proof names a term and a nonempty, strictly sorted, duplicate-free list of prior document definitions, the term's type is an inductive type of the document, and the backend lowers the proof to a split of the goal on every constructor of that type with the hypothesis that equates the term to the constructor, then `simp only` over the named definitions, that hypothesis, and the reduction of a conditional on a decided condition, with closed propositions decided, which uses exactly the axioms the theorem's policy states; the schema, the linker, the notation, the Lean backend, the canonical LaTeX, and the formatter accept it, and a use in language 1.1, a term whose type is not an inductive type of the document, an empty list, an unsorted or repeated name, a name that is not a prior definition, and a theorem parameter that takes the hypothesis's name are each refused.
-    Given a language-1.2 project whose theorem is stated as an equation between two evaluations that both match on one document term, and the planted projects that misuse the proof form
-    When the project is linked, built, and verified by the pinned Lean, its formatted source and its LaTeX are read back, and each planted project is linked
+  Scenario: A language-1.2 theorem may be proved by `term_cases`, a split on the value of a document term: the proof names a term and a nonempty, strictly sorted, duplicate-free list of prior document definitions, the term's type is an inductive type of the document, and the backend lowers the proof to a split of the goal on every constructor of that type with the hypothesis that equates the term to the constructor, then `simp only` over the named definitions, that hypothesis, the reduction of a conditional on a decided condition, the refutation of an equation between two different constructors, the injectivity equation of every constructor with a field of `Option`, `Result`, `List`, and each inductive type the module declares, and the fixed rules that close an implication from `False` or of a proposition by itself and drop `True` from a conjunction, with closed propositions decided, which uses exactly the axioms the theorem's policy states, so a theorem whose cases need constructor disjointness or injectivity verifies and a false one is rejected by Lean; the schema, the linker, the notation, the Lean backend, the canonical LaTeX, and the formatter accept it, and a use in language 1.1, a term whose type is not an inductive type of the document, an empty list, an unsorted or repeated name, a name that is not a prior definition, and a theorem parameter that takes the hypothesis's name are each refused.
+    Given a language-1.2 project whose theorem is stated as an equation between two evaluations that both match on one document term, three projects whose theorems need constructor disjointness or injectivity in their cases (over a document inductive, over `Option`, and over a constructor of two fields), one whose theorem is false, and the planted projects that misuse the proof form
+    When the projects are linked, built, and verified by the pinned Lean, the first project's formatted source and LaTeX are read back, and each planted project is linked
     Then the theorem verifies with exactly the axioms its policy states, the formatter writes the proof unchanged, and the LaTeX states the term and the definitions
+    And the generated Lean names the fixed constructor rules and the injectivity lemma of every constructor with a field of the module's inductive types
+    And the three theorems verify with exactly the axioms their policies state, and the false theorem is rejected by Lean
     And each planted project is refused naming the misuse
 
   @SM-36 @build
@@ -257,3 +261,32 @@ Feature: semantic-ir
     When the project is linked, built, and verified by the pinned Lean, its formatted source and its LaTeX are read back, and each planted project is linked
     Then the theorem verifies with exactly the axioms its policy states and the formatter writes the proof unchanged
     And each planted project is refused naming the misuse
+
+  @SM-37 @build
+  Scenario: A language-1.2 theorem may be proved by `nested_induction`, an induction over a nested inductive type of the document, one that holds a member of itself under `List`, `Option`, `Result`, or a product and is in no mutual group: the proof names a parameter of the theorem, states one proposition for each auxiliary member of the type's recursive family in the order the pinned Lean's recursor takes them, and gives a branch for every constructor of the type and of each auxiliary member, each binding the constructor's fields followed by one hypothesis for each field that is a member of the family, in field order; the backend lowers it to `induction` over the recursor the pinned Lean generates for the type, with the propositions as its auxiliary motives and the goals taken in the order of its minor premises, so that a theorem over every value of a type with a constructor that holds a `List` of the type verifies under the pinned Lean 4.32.1 with exactly the axioms `propext` and `Quot.sound`, the set its build observes; the schema, the linker, the notation, the formatter, and the canonical LaTeX accept it, and a use in language 1.1, a local whose type is not a nested inductive of the document or lies in a mutual group, an auxiliary member that is missing, repeated, or out of order, a missing or repeated branch, a branch with the wrong number of binders, a proposition that is not well typed, and an `induction` proof on a nested type are each refused as LLT4001.
+    Given a language-1.2 project whose type holds a `List` of itself and a `List` of pairs that end in itself, whose mutual definition groups range over its recursive family, and whose theorem over every value of the type is proved by `nested_induction`, and the planted projects that misuse the form
+    When the project is linked, built, and verified by the pinned Lean, its formatted source and its LaTeX are read back, and each planted project is linked
+    Then the generated Lean induces over the recursor the pinned Lean generates for the type, with the goals in the order of its minor premises, and the theorem verifies with exactly the axioms `propext` and `Quot.sound` and the formatter writes the proof unchanged
+    And each planted project is refused as LLT4001 naming the misuse, and no backend output is written
+
+  @SM-38 @build
+  Scenario: A language-1.2 build publishes, for every semantic module, a declaration ID for each declaration and a statement ID for each theorem: the declaration ID is a framed SHA-256 of the declaration's canonical JSON and of the declaration IDs of the project declarations it references, with declarations that reference one another hashed as one group, and the statement ID omits the theorem's proof; changing one literal of one definition changes the declaration IDs of exactly that definition and of the declarations that reach it by reference, changing a theorem's proof alone leaves its statement ID unchanged, adding or reordering independent declarations changes no ID, the IDs equal their recomputation from the specified framed inputs, the file validates against `api/schemas/declarations.schema.json`, and a language-1.0 or 1.1 build publishes none.
+    Given a language-1.2 project whose definitions reference one another, with a mutual pair of inductive types, a definition nothing references, and a theorem over one definition
+    When the project is built, its declarations file is read, and copies are built with one literal changed, with the theorem's proof changed, and with a declaration added and the declarations reordered
+    Then the IDs equal their recomputation from the framed inputs, the file validates against its schema, and exactly the changed definition and the declarations that reach it change ID
+    And the theorem's statement ID survives the change of its proof, and a language-1.0 build publishes no declarations file
+
+  @SM-42 @build
+  Scenario: A language-1.2 definition may apply bit_and, bit_or and bit_xor to two Nat operands and shift_left and shift_right to a Nat operand and a Nat amount, each with result Nat and no Option, and the backend lowers them to Nat.land, Nat.lor, Nat.xor, Nat.shiftLeft and Nat.shiftRight, so that reflexivity evaluates them inside a verified module; the registered laws nat_bit_and, nat_bit_or, nat_bit_xor, nat_bit_shift_left, nat_bit_shift_right, nat_or_xor_and, nat_witt_step and nat_bit_ext state the bit read of each under an exact axiom policy, and a theorem that applies one verifies while a false bit equation is rejected; a use in language 1.1, bit_not of a Nat, a Nat operand mixed with an integer of another type, and a production root over a Nat form are each refused.
+    Given a language-1.2 project whose definitions apply bit_and, bit_or, bit_xor, shift_left and shift_right to Nat, whose theorems apply the registered bit laws, and the planted projects that misuse the forms
+    When the projects are linked, built, and verified by the pinned Lean, the formatted source and the generated Lean are read back, and each planted project is linked
+    Then the generated Lean names Nat.land, Nat.lor, Nat.xor, Nat.shiftLeft and Nat.shiftRight and no fixed-width runtime helper
+    And the definitions and the theorems verify with exactly the axioms their policies state, and the false equation is rejected by Lean
+    And each planted project is refused naming the misuse
+
+  @SM-44 @build
+  Scenario: A language-1.2 theorem may be proved by `evaluation`, an equality checked by the kernel alone: the proof carries no argument, the backend lowers it to `MVarId.refl` with `check := false` run as a finishing tactic, so the elaborator's unifier never compares the two sides, and the module imports as `meta` exactly the two Lean modules that tactic needs; a true equation verifies with exactly the axioms its policy states, a false one and a policy that states more axioms are refused at verification by the pinned Lean, the schema, the linker, the notation, the Lean backend, and the formatter accept it, and a use in language 1.1 is refused.
+    Given a language-1.2 project whose closed theorem is an equation between an evaluation and its value, proved by `evaluation`, and the planted projects that state a false equation, a wider axiom policy, or language 1.1
+    When the project is linked, formatted and read back through the notation, built, and verified by the pinned Lean, and each planted project is linked and verified
+    Then the theorem verifies with exactly the axioms its policy states, the formatter writes the proof unchanged, and the generated Lean states the fixed lowering and its two meta imports
+    And the false equation fails with LLV7002, the wider policy with LLV7005, and the language-1.1 project with LLT4001 naming the evaluation proof

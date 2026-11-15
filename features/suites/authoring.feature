@@ -13,7 +13,7 @@ Feature: authoring
     Then each builds, the source maps relate each declaration to its text in the notation, fmt leaves the notation unchanged and restores the layout, and language 1.1 refuses it
 
   @AU-03 @build
-  Scenario: Malformed notation fails closed and never panics: an unclosed delimiter, a keyword used as a name, a literal that is not canonical, an unknown kind, and every single-token deletion, duplication, and replacement of a committed module fail with a registered code at a position in the notation or link to a module that decodes, and a numeral with a redundant leading zero is LLL1003 outside a string and is not one inside it.
+  Scenario: Malformed notation fails closed and never panics: an unclosed delimiter, a keyword used as a name, a literal that is not canonical, an unknown kind, a readable term or type nested beyond the notation bound, and every single-token deletion, duplication, and replacement of a committed module fail with a registered code at a position in the notation or link to a module that decodes, and a numeral with a redundant leading zero is LLL1003 outside a string and is not one inside it.
     Given a committed language-1.2 module in the notation
     When it is malformed in each way named, and each of its tokens is deleted, duplicated, and replaced in turn, and numerals with a redundant leading zero are written outside and inside a string
     Then each is refused with a registered code at a position or links to a module that decodes, nothing panics, and only the numeral outside a string is LLL1003
@@ -77,3 +77,9 @@ Feature: authoring
     Given language-1.2 projects whose module is written with a data argument in each of the three module environments, the language-1.1 example, the Atlas source, and the module in the notation
     When each is checked and formatted, and the module is converted into the data form and back with the SDK
     Then the language-1.2 data form is refused with LLP2003 at its data argument naming the notation, fmt does not rewrite it, the conversions are exact inverses, the notation under language 1.2 and the data form under language 1.1 are accepted, and the Atlas is still written as data
+
+  @AU-14 @build
+  Scenario: A source's module is the environment the structural parser opens: lexlean::surface::module::locate takes the first environment after the header and ends its body at the first end control atom, so a tooling or core module whose strings quote the begin and end markers of another kind is read by the authoring API, formatted, and decoded as its own kind and contributes its data form to the compiler-semantics ID, a module whose body holds an unescaped end marker is refused with LLP2003 and is found as no module, and on every committed source the parser reads the module found is the one it opens.
+    Given every committed source, and a tooling and a core module whose strings quote the semantic and tooling markers with and without their end markers, and one whose body holds an unescaped end marker
+    When each is located, read with the SDK, linked, formatted from another layout, decoded, and given to the identity of the embedded tree
+    Then the module found is the one the structural parser opens, each plant reads, formats, and decodes as its own kind and contributes its data form, and the unescaped end marker is LLP2003 and no module

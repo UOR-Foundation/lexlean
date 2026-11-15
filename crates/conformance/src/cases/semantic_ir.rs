@@ -1,4 +1,4 @@
-//! The `semantic-ir` suite: SM-01..SM-32.
+//! The `semantic-ir` suite: SM-01..SM-38 and SM-42.
 
 use std::collections::BTreeSet;
 use std::process::Command;
@@ -9,9 +9,146 @@ use crate::support::{self, P};
 
 mod boolean;
 mod bytes;
+mod declaration_ids;
+mod evaluation;
 mod names;
+mod nat_bitwise;
+mod nested;
 mod strings;
 mod widen;
+
+/// Closed recursive decisions must use Lean's sharing kernel evaluator.
+/// This checks the generated evaluator selection and verifies both a true
+/// recursive computation and its false mutation through the complete gate.
+fn shared_closed_decision() {
+    let project = P::example();
+    project.edit("lexlean.toml", "language = \"1.0\"", "language = \"1.2\"");
+    let source = r#"\begin{lexlean}{Main}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Natural number addition}
+\begin{semanticmodule}
+definition{
+  name: shared,
+  parameters: [depth : Nat],
+  result: Nat,
+  body: (match depth | Nat.zero => 0 | Nat.succ previous => ((shared previous) + (shared previous))),
+  recursive_argument: depth,
+  executable: true
+}
+theorem{
+  name: computed,
+  parameters: [],
+  statement: ((shared 40) = 0),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}
+"#;
+    project.write("src/Main.lex.tex", source);
+    project.relock();
+    assert!(support::lean_text(&support::rendered(&project), "Main").contains("decide +kernel"));
+    if support::verify_ok_backed("SM-04", &project).is_some() {
+        project.write(
+            "src/Main.lex.tex",
+            &source.replace("((shared 40) = 0)", "((shared 40) = 1)"),
+        );
+        project.verify_fails_with("LLV7002");
+    }
+}
+
+fn semantic_json_depth_diagnostic() {
+    let project = P::example();
+    project.edit("lexlean.toml", "language = \"1.0\"", "language = \"1.2\"");
+    // Direct reader assertions use the same configured stack as the pipeline.
+    let stack_bytes = support::limits_of(&project)
+        .compile_stack_plan()
+        .stack_bytes;
+    std::thread::Builder::new()
+        .stack_size(stack_bytes)
+        .spawn(move || semantic_json_depth_diagnostic_on_stack(&project))
+        .expect("reader test thread")
+        .join()
+        .expect("semantic JSON depth assertions");
+}
+
+fn semantic_json_depth_diagnostic_on_stack(project: &P) {
+    let fixture = |name: &str| {
+        std::fs::read_to_string(
+            support::repo_root()
+                .join("tests/semantic-json-depth")
+                .join(name),
+        )
+        .expect("committed semantic JSON depth fixture")
+    };
+    for name in ["list-122.lex.tex", "split-list-200.lex.tex"] {
+        project.write("src/Main.lex.tex", &fixture(name));
+        project.relock();
+        project.check_ok();
+    }
+    let parse_data = |data: &str| {
+        lexlean::ir::semantic::SemanticModule::parse(
+            data,
+            "1.2",
+            "LexLeanExample",
+            &[],
+            &std::collections::BTreeMap::new(),
+            &lexlean::ir::semantic::model::ArtifactStore::new(u64::MAX, u64::MAX),
+        )
+    };
+    for name in [
+        "negative/list-123.lex.tex",
+        "negative/later-list-123.lex.tex",
+    ] {
+        let source = fixture(name);
+        project.write("src/Main.lex.tex", &source);
+        project.relock();
+        let error = project.check_fails_with("LLT4001");
+        let message = &error.diagnostics[0].message;
+        assert!(message.contains("128-level"), "{message}");
+        assert!(message.contains("recursion limit exceeded"), "{message}");
+        assert!(message.contains("smaller definitions"), "{message}");
+        assert!(message.contains("prim append"), "{message}");
+        assert!(
+            !message.contains("column"),
+            "generated JSON coordinates are not source positions: {message}"
+        );
+        let data_form = lexlean::sdk::to_data_form(&source).expect("notation writes to data form");
+        let data = data_form
+            .split_once("\\semanticdata{")
+            .expect("semantic data")
+            .1
+            .split_once("}\n\\end{semanticmodule}")
+            .expect("module end")
+            .0;
+        let failure = parse_data(data).expect_err("same bound on semantic JSON input");
+        assert_eq!(failure.code.as_str(), "LLT4001");
+        assert!(failure.reason.contains("prim append"));
+        for arguments in [vec!["check"], vec!["check", "--diagnostic-format", "json"]] {
+            let (code, stdout, stderr) = project.cli(&arguments);
+            assert_ne!(code, 0);
+            assert!(format!("{stdout}{stderr}").contains("prim append"));
+        }
+    }
+
+    let empty = r#"{"declarations":[],"spec":"lexlean/semantic-module/2"}"#;
+    let invalid = [
+        empty.replace(",\"spec\"", " \"spec\""),
+        empty.replace("{\"declarations\"", "{ \"declarations\""),
+        empty.replace("\"spec\":", "\"spec\":\"lexlean/semantic-module/2\",\"spec\":"),
+        empty.replace("\"declarations\":[]", "\"declarations\":[],\"foreign\":true"),
+        r#"{"declarations":[{"body":{"kind":"nat","prose":"foreign","value":"1"},"kind":"definition","name":"x","parameters":[],"result":{"kind":"nat"}}],"spec":"lexlean/semantic-module/2"}"#.to_owned(),
+    ];
+    for data in invalid {
+        let error =
+            parse_data(&data).expect_err("malformed, noncanonical or foreign data stays refused");
+        assert_eq!(error.code.as_str(), "LLT4001");
+        assert!(
+            !error.reason.contains("prim append"),
+            "depth advice belongs only to nesting failures: {error}"
+        );
+    }
+}
 
 /// Every `"k"` and `"kind"` tag value in a canonical JSON document.
 fn collect_tags(value: &serde_json::Value, key: &str, out: &mut BTreeSet<String>) {
@@ -242,6 +379,9 @@ pub(crate) fn run(id: &str) {
         }
         // §17.3: term IR is exactly the closed variant set.
         "SM-03" | "SM-04" => {
+            if id == "SM-04" {
+                shared_closed_decision();
+            }
             let mut tags = BTreeSet::new();
             for project in [P::example(), support::defs_project()] {
                 collect_tags(&linked_json(&project), "k", &mut tags);
@@ -692,6 +832,7 @@ pub(crate) fn run(id: &str) {
         }
         // §17.5, I7: no opaque prose inside semantic IR.
         "SM-12" => {
+            semantic_json_depth_diagnostic();
             let project = P::example();
             let json = support::checked_project(&project)
                 .linked_json()
@@ -1428,6 +1569,16 @@ pub(crate) fn run(id: &str) {
             // discriminator and builtin versions, fails in linking.
             let eleven = P::language_1_2_example();
             eleven.edit("lexlean.toml", "language = \"1.2\"", "language = \"1.1\"");
+            eleven.edit(
+                "glossary/languagetwelve.titles/lexicon.toml",
+                "language = \"1.2\"",
+                "language = \"1.1\"",
+            );
+            eleven.edit(
+                "glossary/languagetwelve.titles/lexicon.toml",
+                "\"lexlean.core@1.2.0\", \"lexlean.std.nat@1.2.0\"",
+                "\"lexlean.core@1.1.0\", \"lexlean.std.nat@1.1.0\"",
+            );
             eleven.edit("src/Main.lex.tex", "@1.2.0", "@1.1.0");
             eleven.edit(
                 "src/Main.lex.tex",
@@ -1489,6 +1640,16 @@ pub(crate) fn run(id: &str) {
             // A language-1.0 document has no semantic module at all.
             let ten = P::language_1_2_example();
             ten.edit("lexlean.toml", "language = \"1.2\"", "language = \"1.0\"");
+            ten.edit(
+                "glossary/languagetwelve.titles/lexicon.toml",
+                "language = \"1.2\"",
+                "language = \"1.0\"",
+            );
+            ten.edit(
+                "glossary/languagetwelve.titles/lexicon.toml",
+                "\"lexlean.core@1.2.0\", \"lexlean.std.nat@1.2.0\"",
+                "\"lexlean.core@1.0.0\", \"lexlean.std.nat@1.0.0\"",
+            );
             ten.edit("src/Main.lex.tex", "@1.2.0", "@1.0.0");
             ten.relock();
             let error = ten.check_fails_with("LLP2003");
@@ -2163,8 +2324,8 @@ pub(crate) fn run(id: &str) {
                 compared += 1;
             }
             assert_eq!(
-                compared, 9,
-                "three modules' Lean, LaTeX, and lexicon closures"
+                compared, 12,
+                "three modules' Lean, LaTeX, lexicon closures, and declaration IDs"
             );
             let reject = |from: &str, to: &str, message: &str| {
                 P::assert_mutation_rejected("collections", "src/Main.lex.tex", from, to, message);
@@ -2580,6 +2741,13 @@ pub(crate) fn run(id: &str) {
         "SM-32" => widen::run(),
         // §17.10: a theorem proved by a split on a Boolean local.
         "SM-36" => boolean::run(),
+        // §17.11, §17.12: bitwise primitives and shifts on unbounded Nat.
+        "SM-42" => nat_bitwise::run(),
+        "SM-44" => evaluation::run(),
+        // §17.10: a theorem proved by induction over a nested inductive type.
+        "SM-37" => nested::run(),
+        // §21.9: declaration IDs and statement IDs.
+        "SM-38" => declaration_ids::run(),
         // §17.10: a theorem proved by a split on the value of a document
         // term.
         "SM-35" => {
@@ -2649,28 +2817,115 @@ pub(crate) fn run(id: &str) {
                 serde_json::to_value(&checked.modules["Main"].document.semantic).expect("JSON"),
                 "the formatted source is the same module"
             );
-            let built = accepted.build_ok();
-            let build_dir = accepted.build_dir(&built.build_id.expect("a build id"));
-            let lean = std::fs::read_dir(build_dir.join("modules").as_std_path())
-                .expect("the modules")
-                .flatten()
-                .flat_map(|entry| {
-                    std::fs::read_dir(entry.path())
-                        .into_iter()
-                        .flatten()
-                        .flatten()
-                })
-                .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "lean"))
-                .map(|entry| std::fs::read_to_string(entry.path()).expect("Lean text"))
-                .collect::<String>();
+            let generated_lean = |project: &P| -> String {
+                let built = project.build_ok();
+                let build_dir = project.build_dir(&built.build_id.expect("a build id"));
+                std::fs::read_dir(build_dir.join("modules").as_std_path())
+                    .expect("the modules")
+                    .flatten()
+                    .flat_map(|entry| {
+                        std::fs::read_dir(entry.path())
+                            .into_iter()
+                            .flatten()
+                            .flatten()
+                    })
+                    .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "lean"))
+                    .map(|entry| std::fs::read_to_string(entry.path()).expect("Lean text"))
+                    .collect::<String>()
+            };
+            // The fixed rules after the named definitions (§17.10): the
+            // hypothesis, the conditional, and the constructor rules.
+            let rules = "llCase, ite_true, ite_false, reduceCtorEq, false_implies, imp_self, and_true, true_and, Option.some.injEq, Except.error.injEq, Except.ok.injEq, List.cons.injEq";
+            let lean = generated_lean(&accepted);
+            // `Flag` has no constructor with a field, so the list ends at
+            // the fixed rules.
             assert!(
                 lean.contains("cases llCase : flagOf (n) <;>")
-                    && lean.contains(
-                        "simp (config := {decide := true}) only [direct, wrapped, llCase, ite_true, ite_false]"
-                    ),
+                    && lean.contains(&format!(
+                        "simp (config := {{decide := true}}) only [direct, wrapped, {rules}]\n"
+                    )),
                 "{lean}"
             );
             support::verify_ok_backed("SM-35", &accepted);
+            // #280: the constructor rules decide an equation between
+            // constructors over variables. The first project is the issue's
+            // module; the second needs an `Option` disjointness, the third the
+            // injectivity of a constructor of two fields, and the fourth
+            // states a false theorem, whose case Lean leaves open.
+            let issue = "\\begin{lexlean}{Main}\n\\useglossary{lexlean.std.nat@1.2.0}\n\\title{Natural number addition}\n\\begin{semanticmodule}\ninductive{name: Verdict, type_parameters: [], parameters: [], constructors: [{name: good, fields: []}, {name: bad, fields: [Nat]}]}\n\ndefinition{\n  name: check,\n  parameters: [n : Nat],\n  result: Verdict,\n  body: (if (n =? 0) then (ctor Verdict.good) else (ctor Verdict.bad n))\n}\n\ndefinition{\n  name: report,\n  parameters: [n : Nat],\n  result: (Option Nat),\n  body: (match (check n)\n    | Verdict.good => (ctor Option.none [Nat])\n    | Verdict.bad at => (ctor Option.some [Nat] at))\n}\n\ntheorem{\n  name: report_names_the_bad_value,\n  parameters: [n : Nat, p : Nat],\n  statement: (((check n) = (ctor Verdict.bad p)) -> ((report n) = (ctor Option.some [Nat] p))),\n  proof: term_cases{scrutinee: (check n), definitions: [report]},\n  axioms: [propext]\n}\n\\end{semanticmodule}\n\\end{lexlean}\n".to_owned();
+            let theorem =
+                "(((check n) = (ctor Verdict.bad p)) -> ((report n) = (ctor Option.some [Nat] p)))";
+            let option = issue.replace(
+                theorem,
+                "(((report n) = (ctor Option.none [Nat])) -> ((check n) = (ctor Verdict.good)))",
+            );
+            let pair = issue
+                .replace(
+                    "\ndefinition{\n  name: check,",
+                    "inductive{name: Pair, type_parameters: [], parameters: [], constructors: [{name: mk, fields: [Nat, Nat]}]}\n\ndefinition{\n  name: check,",
+                )
+                .replace(
+                    "\ntheorem{",
+                    "definition{\n  name: paired,\n  parameters: [n : Nat],\n  result: Pair,\n  body: (match (check n)\n    | Verdict.good => (ctor Pair.mk 0 0)\n    | Verdict.bad at => (ctor Pair.mk 0 at))\n}\n\ntheorem{",
+                )
+                .replace(
+                    theorem,
+                    "(((check n) = (ctor Verdict.bad p)) -> ((paired n) = (ctor Pair.mk 0 p)))",
+                )
+                .replace("definitions: [report]", "definitions: [paired]");
+            let false_theorem = issue.replace(
+                theorem,
+                "(((check n) = (ctor Verdict.bad p)) -> ((report n) = (ctor Option.none [Nat])))",
+            );
+            assert!(
+                option != issue && pair != issue && false_theorem != issue,
+                "each variant edits the issue's module"
+            );
+            for (what, text, lowering) in [
+                (
+                    "the issue's module (disjointness and injectivity of `Verdict` and `Option`)",
+                    &issue,
+                    format!("[report, {rules}, Verdict.bad.injEq]"),
+                ),
+                (
+                    "an `Option` disjointness in the hypothesis",
+                    &option,
+                    format!("[report, {rules}, Verdict.bad.injEq]"),
+                ),
+                (
+                    "the injectivity of a constructor of two fields",
+                    &pair,
+                    format!("[paired, {rules}, Verdict.bad.injEq, Pair.mk.injEq]"),
+                ),
+                (
+                    "a false theorem",
+                    &false_theorem,
+                    format!("[report, {rules}, Verdict.bad.injEq]"),
+                ),
+            ] {
+                let project = project_of(text, "1.2");
+                let lean = generated_lean(&project);
+                assert!(
+                    lean.contains(&format!(
+                        "simp (config := {{decide := true}}) only {lowering}\n"
+                    )),
+                    "{what}: the generated Lean names the fixed rules: {lean}"
+                );
+                if !support::lean_backed("SM-35") {
+                    continue;
+                }
+                if *text == false_theorem {
+                    let error = project.verify_fails_with("LLV7002");
+                    let shown = format!("{error:?}");
+                    assert!(
+                        shown.contains("unsolved goals"),
+                        "{what}: Lean leaves the false case open: {shown}"
+                    );
+                } else {
+                    eprintln!("SM-35: verifying {what}");
+                    support::verify_ok(&project);
+                }
+            }
             let tex = support::tex_body(&support::tex_text(&support::rendered(&accepted), "Main"))
                 .to_owned();
             // The canonical LaTeX of a semantic module is a catalog of its

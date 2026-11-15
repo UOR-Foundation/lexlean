@@ -34,7 +34,7 @@ const IMPORTED: [&str; 4] = [
 /// Each function the module defines with the theorem that refines it and the
 /// names its statement must be about: a theorem of the right name that runs
 /// another function or another item is refused.
-const LAWS: [(&str, &str, &[&str]); 14] = [
+const LAWS: [(&str, &str, &[&str]); 32] = [
     (
         "append_list",
         "refines_append_list",
@@ -101,6 +101,52 @@ const LAWS: [(&str, &str, &[&str]); 14] = [
         &["runExport", "runItem"],
     ),
     ("join", "refines_join", &["runExport", "runItem"]),
+    ("format_u8", "refines_format_u8", &["runExport", "runItem"]),
+    ("parse_u8", "refines_parse_u8", &["runExport", "runItem"]),
+    (
+        "format_u16",
+        "refines_format_u16",
+        &["runExport", "runItem"],
+    ),
+    ("parse_u16", "refines_parse_u16", &["runExport", "runItem"]),
+    (
+        "format_u32",
+        "refines_format_u32",
+        &["runExport", "runItem"],
+    ),
+    ("parse_u32", "refines_parse_u32", &["runExport", "runItem"]),
+    (
+        "format_u64",
+        "refines_format_u64",
+        &["runExport", "runItem"],
+    ),
+    ("parse_u64", "refines_parse_u64", &["runExport", "runItem"]),
+    ("format_i8", "refines_format_i8", &["runExport", "runItem"]),
+    ("parse_i8", "refines_parse_i8", &["runExport", "runItem"]),
+    (
+        "format_i16",
+        "refines_format_i16",
+        &["runExport", "runItem"],
+    ),
+    ("parse_i16", "refines_parse_i16", &["runExport", "runItem"]),
+    (
+        "format_i32",
+        "refines_format_i32",
+        &["runExport", "runItem"],
+    ),
+    ("parse_i32", "refines_parse_i32", &["runExport", "runItem"]),
+    (
+        "format_i64",
+        "refines_format_i64",
+        &["runExport", "runItem"],
+    ),
+    ("parse_i64", "refines_parse_i64", &["runExport", "runItem"]),
+    ("parse_int", "refines_parse_int", &["runExport", "runItem"]),
+    (
+        "format_int",
+        "refines_format_int",
+        &["runExport", "runItem"],
+    ),
 ];
 
 /// The harness: a prelude that builds lists of four shapes, then one section per
@@ -131,7 +177,7 @@ fn called() -> BTreeSet<String> {
     sections()
         .into_iter()
         .map(|(name, _)| name)
-        .filter(|name| !matches!(*name, "prelude" | "support" | "decimal"))
+        .filter(|name| !matches!(*name, "prelude" | "support"))
         .map(str::to_owned)
         .collect()
 }
@@ -261,9 +307,14 @@ fn differential() {
                 && !text.contains(&format!("\npub fn {name}(")),
             "the base still holds `{name}`"
         );
+        // A function the oracle had under another name is held to that label.
+        let label = super::rust_runtime::HELD_AS
+            .iter()
+            .find(|(held, _)| *held == name)
+            .map_or(name.as_str(), |(_, to)| to);
         assert!(
-            recorded.iter().any(|(label, _)| *label == name),
-            "the golden transcript lacks `{name}`"
+            recorded.iter().any(|(recorded, _)| recorded == label),
+            "the golden transcript lacks `{label}`"
         );
     }
     // A function taken out of the generated text leaves a harness that does
@@ -369,6 +420,39 @@ fn differential() {
         assert!(error.contains(caught), "{what}: {error}");
     }
 
+    // `format_int` is held to the transcript's `format_i64` (`HELD_AS`): one
+    // that formats another value keeps its own label, which the golden
+    // transcript lacks.
+    let start = generated_std
+        .find("pub fn format_int(")
+        .expect("the generated runtime has format_int");
+    let end = start + generated_std[start..].find("\n}\n").expect("its end");
+    let body = &generated_std[start..end];
+    assert_eq!(
+        body.matches("Str::format_i64(").count(),
+        1,
+        "format_int calls format_i64 once"
+    );
+    let planted = format!(
+        "{}{}{}",
+        &generated_std[..start],
+        body.replacen("Str::format_i64(", "Str::format_i64(-1 - ", 1),
+        &generated_std[end..]
+    );
+    let error = observe(&format!("{core}{planted}"), harness(), GOLDEN)
+        .expect_err("a format_int that formats another value has another transcript");
+    eprintln!(
+        "RB-20: a format_int that formats another value: {}",
+        error
+            .lines()
+            .find(|line| !line.trim().is_empty())
+            .unwrap_or_default()
+    );
+    assert!(
+        error.contains("the transcript differs in: format_int"),
+        "a format_int that formats another value: {error}"
+    );
+
     // The crate is checked by the validator that checks every rendering: a
     // machine call with another number of operands is refused.
     let wrong = shipped.replacen(
@@ -444,6 +528,24 @@ fn differential() {
             "call-name",
         ),
         (
+            "a write through a shared holder: Rc::make_mut for Rc::get_mut",
+            "(cons \"Rc\" (cons \"get_mut\" (nil String)))",
+            "(cons \"Rc\" (cons \"make_mut\" (nil String)))",
+            "call-name",
+        ),
+        (
+            "interior mutability: RefCell for Rc",
+            "RtType.named \"Rc\"",
+            "RtType.named \"RefCell\"",
+            "type-name",
+        ),
+        (
+            "interior mutability: Cell for Rc",
+            "RtType.named \"Rc\"",
+            "RtType.named \"Cell\"",
+            "type-name",
+        ),
+        (
             "an associated function the impl does not state",
             "(cons \"Str\" (cons \"lit\" (nil String)))",
             "(cons \"Str\" (cons \"lit2\" (nil String)))",
@@ -453,6 +555,7 @@ fn differential() {
         let edited = types_shipped.replace(from, to);
         assert_ne!(edited, types_shipped, "{what}: the plant site exists");
         let error = runtime::std_types_from(&edited).expect_err(what);
+        eprintln!("RB-20: {what}: {error}");
         assert!(error.contains(message), "{what}: {error}");
     }
 
@@ -596,7 +699,9 @@ fn refinement() {
             "a theorem that states another runtime item",
             "(ctor RustSyntax::Item.lengthList)",
             "(ctor RustSyntax::Item.lengthBytes)",
-            "= RustSemantics.ROutcome.stuck",
+            // `term_cases` refutes the equation of two outcome constructors
+            // (SM-35), so the open goal is the outcome of `length` on a list.
+            "TargetSemantics.primitive TargetSyntax.Prim.length [TargetSyntax.Value.list items]",
         ),
     ] {
         assert_eq!(
