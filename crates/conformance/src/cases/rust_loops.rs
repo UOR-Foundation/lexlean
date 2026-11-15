@@ -154,6 +154,7 @@ fn one(body: Expr) -> Crate {
             result: Type::Unit,
             body: Block::of(body),
             at: Origin::of("function"),
+            features: vec![],
         }],
     }
 }

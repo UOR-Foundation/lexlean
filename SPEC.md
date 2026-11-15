@@ -4370,12 +4370,19 @@ declares no production root is never analysed for production, so theorems,
 propositions, and non-executable definitions remain ordinary formal content
 and coexist with executable roots in the same module.
 
-**Registry.** The registry fixes four closed sets:
+**Registry.** The registry fixes five closed sets:
 
 - *targets*, each a machine profile with `allocation` (whether heap
   allocation exists) and the bit widths of the natural-number and
   mathematical-integer representations. Language 1.2 registers `rust-core`
   (no allocation, 64-bit widths) and `rust-std` (allocation, 64-bit widths);
+- *features*: the target features an exported function may be compiled for
+  (decision D4), each with the Rust `target_arch` whose instructions it
+  enables and the triple D4 models it on: `avx2` (`x86_64`,
+  `x86_64-unknown-linux-gnu`), `neon` (`aarch64`, `aarch64-unknown-linux-gnu`),
+  and `simd128` (`wasm32`, `wasm32-unknown-unknown`). A feature is not a
+  target: it changes neither allocation nor a width, so no root's eligibility
+  reads it, and a feature set is named by the export that carries it (§17.16);
 - *effects*: `allocation` (heap storage whose exhaustion stops the
   realization with an explicit failure), `files` (the host's file system, read
   and changed through the requests of `LexLeanStd.Host`, §17.22), `overflow` (a
@@ -4399,7 +4406,6 @@ and coexist with executable roots in the same module.
   maps, sets, a type that contains itself) or when it builds new heap
   storage; reading, comparing, measuring, or folding storage that already
   exists requires none, since the type of that storage already does. Each
-  runtime row's `allocation` equals its realization's (§17.14).
 
 The registry is language data: it is embedded and hashed into the
 language-1.2 compiler-semantics ID, so changing a disposition changes
@@ -5193,8 +5199,18 @@ renderer refuses a list that is unregistered, unordered, or states `allocation`
 on `rust-core`. Each export names a
 program function, its Rust name, how it takes each parameter (`own`;
 `borrow`, by shared reference; or `copy`, only for a `Copy` type: a scalar,
-or an option, result, or pair of `Copy` types), and whether it can fail
-(`none` or `overflow`). A package is refused, as `LLB6005`, when:
+or an option, result, or pair of `Copy` types), whether it can fail
+(`none` or `overflow`), and the registered target features it is compiled for
+(`features`, §17.13: strictly ascending, of one architecture, and omitted for
+an export compiled for the target's baseline). Each feature is printed as one
+`#[target_feature(enable = "...")]` on the export's wrapper and on no other
+item, so a caller without the feature cannot call the export in safe Rust
+(E0133) and the caller, never the crate, holds the obligation to check the CPU
+(decision D4); the attribute selects instructions and changes no step, so
+the rest of the library is the baseline's byte for byte. Which feature set a
+production export chooses for a root belongs to the realization grammar of
+issue 120, and a production export renders the baseline. A package is refused,
+as `LLB6005`, when:
 
 - an exported name is not a lowercase snake-case identifier of at most 64
   characters, is a Rust keyword, has the shape of a generated name, or is
@@ -5210,7 +5226,10 @@ or an option, result, or pair of `Copy` types), and whether it can fail
 - the profile is `rust-core` and the program needs heap allocation, or its
   effects state `allocation` (*hidden allocation*);
 - its effects are not registered or not strictly ascending (*effects
-  mismatch*); or
+  mismatch*);
+- an export's features are not registered, not strictly ascending, or of more
+  than one architecture, or a function that is not an export carries one
+  (*target feature*); or
 - the manifest is malformed, its version not canonical, its sources not
   canonical, its program invalid or without a faithful rendering, or an
   export's arity wrong.
@@ -5283,7 +5302,9 @@ exception makes a committed package fail the gate. `provenance.json` (`lexlean/r
 `schemas/rust-provenance.schema.json`) binds the crate's name and version, the
 profile, the program's identity, the language-1.2 compiler-semantics ID
 (§21.2), the SHA-256 of the runtime the profile carries, the sources, the
-effects, the exports, and the SHA-256 of `Cargo.toml` and `src/lib.rs`. The
+effects, the exports (each with its features, when it has any, so a caller
+reads which it must check the CPU for), and the SHA-256 of `Cargo.toml` and
+`src/lib.rs`. The
 `effects` are those the manifest states (above): for a package a production
 root exports, the set eligibility requires of the root on the profile, which
 understates what the realization can exhibit (issue 105); a host that runs a
@@ -8224,8 +8245,9 @@ process on an aarch64 host (Linux or macOS, compiled for the host without
 host cannot execute is built for its triple when the pinned toolchain has its
 standard library and is otherwise reported as not built; on the normative host
 every target is executed or built, and AVX2 and SIMD128 are always executed.
-The worst-case objective as a GNAF `Objective` and the
-rendering of `#[target_feature]` into exported packages belong to the
+The renderer prints an export's feature set as `#[target_feature]`
+(§17.16, `RB-25`); the worst-case objective as a GNAF `Objective`, and which
+feature set a production export chooses for a root, belong to the
 realization grammar of #120, which these contracts price.
 
 The κ-label and the canonical forms of uor-addr are written as the `kappa`
@@ -8610,8 +8632,10 @@ of the oracle, step 7); the roots add the items. The result is `Result.ok` of
 the bytes or `Result.error` of the refusal of the buffer, so a capacity that
 the output exceeds is a value of the result and never a failure of the run.
 A crate whose exported name holds a non-ASCII scalar, a literal of more than 64
-bits, and a machine call with fewer operands than its primitive (which the
-oracle indexes past) are outside the claim.
+bits, a machine call with fewer operands than its primitive (which the
+oracle indexes past), and a function that carries a target feature (§17.16,
+which neither `RustAst` nor the AST of `RustValidate` states, so the
+encodings of `BS-05` and `BS-06` refuse it) are outside the claim.
 
 `BS-06` holds both roots to the oracle. The counts here are the case's own
 report: it asserts them, so a tree that no longer gives them fails the case.
@@ -12287,6 +12311,7 @@ Every row below is normative, has honesty level `build`, and is projected byte-f
 | `RB-21` | `rust-backend` | The text of the Rust runtime is printed from the language-1.2 modules and never held as a string: no string literal in the sources of the `lexlean` crate holds the head of a runtime item as the printer writes it (a `fn`, `struct`, `enum`, `trait`, `impl`, `macro_rules!`, `use` of a path, `static`, `const`, `type`, or `mod` with a name), so that the core and std runtimes are the printed `RuntimeSupport`, `RustRuntime`, `RuntimeStd`, and `RustStd` and nothing beside them; the handwritten runtime that was kept at `tests/rust-runtime-oracle/` is removed, and what holds the printed runtime's behavior is one golden transcript, `tests/rust-runtime-golden/transcript.txt` (a section, a label, and the 64-bit digest of the results and counted work of the calls under the label, in three sections for `RB-16`, `RB-17`, and `RB-20`; its header names the SHA-256 of its lines, so it is content-addressed, and it is written by `cargo xtask check-golden --write` and never edited), recorded from the handwritten runtime at the last pass of the differential of the three cases, so that the comparison is against a recorded transcript of the removed oracle and not against the oracle; the scan must read the sources that print the runtime and more than a thousand literals; a constant that holds a function, a raw string that holds an impl, a macro definition held as a constant, a type held in a longer text, and a generic function on a line of a longer text, each planted in a copy of `runtime.rs`, are each found in it and only there, a whole item in a format string with a literal name, a `use`, a `static`, a type alias, and a module each held as a constant are found too, a printer's template (a head with a substitution in the format argument of a formatting macro) is not found, and the oracle directory present, a golden file whose digest, label, or header is changed, dropped, or added, and a scan that reads no source are each refused. | §17.17 |
 | `RB-22` | `rust-backend` | A fallible function rendered as a loop that is its value returns the operand of each `Err` that ends the loop, so a call of another fallible function there, looped or not, is in tail position and returns the callee's result without `?`: the module of issue 279 and a variant whose callee is itself a loop render in `rust-std`, export, and replay, their packages realize the programs the case lowers and agree with the calculus evaluator on every input of the case, an overflow included, and the same call bound before the loop's end without propagating, or left as the loop body's value with the end dropped, is refused because the fallible call does not propagate its overflow. | §17.13, §17.16 |
 | `RB-24` | `rust-backend` | The package of a command root, a `rust-std` root whose type is `Option S -> LexLeanStd.Host::Event -> S * LexLeanStd.Host::Request`, carries `src/main.rs`, a driver that calls the step in a loop and carries out each request it returns: the language-1.2 module `RuntimeHost` of the compiler project, shipped byte for byte at `language/rust-runtime-1.2/RuntimeHost.lex.tex`, defines seven crates of `RuntimeSyntax` (`hostBase`, `stepFallible`, `stepPlain`, `filesOn`, `filesOff`, `processOn`, and `processOff`) that the Rust crate decodes, never evaluates, checks with the validator of `RuntimeSyntax`, and prints, after the imports of the module are rewritten to the names of the package's own crate; the manifest's `entry` names the export that is the step, the program types of the host module are found by walking its signature against the shape the module states, and the provenance records `entry` and the digest of `src/main.rs`; a group of requests whose effect the root does not admit is printed as refusals that name nothing of the host, and the validator refuses a name of the host table whose effect the root lacks as `hidden-effect`; on every host the driver of the committed fixture `tests/fixtures/command-driver`, built by the pinned rustc with warnings denied and run in an empty directory, makes and lists a directory, writes, reads, stats, canonicalizes, renames, and removes files, takes a lock, starts itself as a child and waits for it, stops a child that does not end, and exits with the child's status (3) and the output and errors the child wrote (`out` and `err`); an entry that is not an export or takes its parameters by borrow, a step whose result is not a session and a request, a host type with another number of constructors or another field type, a `rust-core` command, a `process` or `files` name in a crate whose root lacks the effect, a `cfg` function without its twin, output and errors swapped, a child's status dropped, the state of the previous step lost, a listing in the reverse of byte order, and a shipped copy that differs from the compiler project's module are each refused or change the result of the run. | §17.17 |
+| `RB-25` | `rust-backend` | An export of a Rust package may name registered target features (`features`, from the closed set `feature` of `language/production-1.2.toml`: `avx2` on `x86_64`, `neon` on `aarch64`, and `simd128` on `wasm32`, decision D4), each printed as one `#[target_feature(enable = "...")]` on the exported function and on no other item, the library otherwise the baseline's byte for byte, and recorded by the provenance; an unregistered feature (`avx512f`, `dsp`), features out of order, repeated, or of two architectures, and a feature on a function that is not an export are refused by the validator; on an x86-64 or aarch64 host the package of `avx2` or `neon`, built by the pinned rustc with warnings denied, is called from a function under the same feature and agrees with the evaluator on two sums and an overflow where the CPU has the feature, a caller without the feature is refused with E0133, and the same caller builds once the attribute is dropped. | §17.13, §17.16 |
 | `GN-01` | `gnaf` | Every committed GNAF request and fixture is canonical, validates against the GNAF schemas whose calculus definitions are the target program schema's, and states its components' universe identity; a malformed request, an invalid reference, plan, or realized program, a reference without a value on a domain argument, or a wrong universe identity fails closed with LLB6006, and a machine or request beyond the host's capacity fails closed with LLS8002. | §17.15, §26.3 |
 | `GN-02` | `gnaf` | The GNAF model is a kernel-checked LexLean definition, Lean's kernel reduces the universe, the system statuses, and the answer of every committed request to what the host transcription computes, and a wrong answer, an answer computed from a universe with a system omitted, a tie with a member dropped, and a universe with a system omitted are rejected by Lean. | §17.15 |
 | `GN-03` | `gnaf` | Candidate membership is the grammar's expansion, which a kernel-checked theorem proves equal to the grammar's well-formed selectors for every grammar, independent of evaluation and fixed by a universe identity before any optimizer, and optimizer-defined, discovered, cached, and internal-plan universes and missing, self-referential, or optimizer-citing completeness evidence are rejected. | §17.15 |
@@ -12489,7 +12514,7 @@ Every row below is normative, has honesty level `build`, and is projected byte-f
 | `NS-06` | `normative-source` | The hand-edited normative inputs of the repository are the `.lex.tex` modules of the specification project: `model/` holds only the projected files and the copies an authority row vendors, every Markdown file at the root is a projection or is on the closed list of hand-written documents, the projections carry the notice that names their source, and no hand-written document restates a registered statement, a plant of each being refused naming R1. | §27.2, §27.5, §27.10 |
 | `NS-07` | `normative-source` | `cargo xtask spec` changes the chapter modules of the specification project by item: it replaces a block, inserts one after a block, and ports the hunks of a merged SPEC.md that lie outside derived regions, each through the authoring SDK, and it writes nothing unless the regenerated SPEC.md equals the intended text outside derived regions, refusing a first line that matches no block or two and a hunk that spans two blocks. | §24.8, §27.5 |
 
-**Total required capability IDs:** 521.
+**Total required capability IDs:** 522.
 
 No row may be downgraded to `some-true` or `open`. Upstream Lean facts are ledger/authority rows, not substitutions for these build behaviors.
 

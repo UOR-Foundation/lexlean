@@ -857,6 +857,12 @@ pub enum ItemDef {
         parameters: Vec<(Pat, Type)>,
         result: Type,
         body: Block,
+        /// The registered target features (§17.13) the function is compiled
+        /// for, strictly ascending, each printed as one
+        /// `#[target_feature(enable = "...")]`: only an export carries any
+        /// (decision D4 of #109), so the caller, not the crate, holds the
+        /// obligation to check the CPU.
+        features: Vec<String>,
         at: Origin,
     },
 }
@@ -1269,8 +1275,15 @@ impl Printer {
                 parameters,
                 result,
                 body,
+                features,
                 ..
             } => {
+                for feature in features {
+                    self.line(
+                        0,
+                        &format!("#[target_feature(enable = {})]", quoted(feature)),
+                    );
+                }
                 let params: Vec<String> = parameters
                     .iter()
                     .map(|(pattern, ty)| format!("{}: {}", pat(pattern), ty.text()))
@@ -1457,6 +1470,7 @@ mod tests {
                     state,
                     body: Box::new(body),
                 }),
+                features: vec![],
                 at: at(),
             }],
         }

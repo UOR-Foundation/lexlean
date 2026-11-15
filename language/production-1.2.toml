@@ -24,6 +24,30 @@ allocation = true
 natural_bits = 64
 integer_bits = 64
 
+# The target features an exported function may be compiled for (decision D4
+# of #109): each enables one architecture's instructions, so an export that
+# carries one runs only where the caller has checked the CPU has it.
+# `thumbv7em-none-eabihf` with `dsp` is not registered: its intrinsics are
+# neither stable nor safe on the pinned Rust.
+
+[[feature]]
+id = "avx2"
+statement = "Intel AVX2 on x86-64: the 256-bit integer SIMD instructions."
+arch = "x86_64"
+triple = "x86_64-unknown-linux-gnu"
+
+[[feature]]
+id = "neon"
+statement = "Arm Advanced SIMD (NEON) on AArch64: the 128-bit integer SIMD instructions."
+arch = "aarch64"
+triple = "aarch64-unknown-linux-gnu"
+
+[[feature]]
+id = "simd128"
+statement = "WebAssembly SIMD128: the 128-bit integer SIMD instructions."
+arch = "wasm32"
+triple = "wasm32-unknown-unknown"
+
 [[effect]]
 id = "allocation"
 statement = "The realization allocates heap storage; allocation failure stops it with an explicit failure."

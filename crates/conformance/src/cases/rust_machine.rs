@@ -124,6 +124,7 @@ fn function(name: String, machine: Machine, operands: usize) -> ItemDef {
         result,
         body: Block::of(call(machine, operands)),
         at: Origin::of("function"),
+        features: vec![],
     }
 }
 
@@ -316,6 +317,7 @@ pub fn run(id: &str) {
             result,
             body: Block::of(body),
             at: Origin::of("function"),
+            features: vec![],
         }],
     };
     refused(

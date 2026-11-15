@@ -2402,6 +2402,9 @@ impl<'a> Lowering<'a> {
                 parameters,
                 result,
                 body,
+                // A lowered function is compiled for the target's baseline;
+                // only an export carries target features (§17.16).
+                features: Vec::new(),
                 at: Origin::of("function"),
             });
         }

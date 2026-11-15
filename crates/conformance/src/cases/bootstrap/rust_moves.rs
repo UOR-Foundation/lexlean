@@ -105,6 +105,7 @@ fn function(body: Block) -> ItemDef {
         result: lexlean::calculus::rust::ast::Type::Unit,
         body,
         at: at(),
+        features: vec![],
     }
 }
 

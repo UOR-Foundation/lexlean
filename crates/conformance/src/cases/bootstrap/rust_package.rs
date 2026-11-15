@@ -140,6 +140,7 @@ fn probe(manifest: &Manifest) -> Manifest {
         name: "run".to_owned(),
         parameters: vec![Passing::Own],
         errors: Errors::None,
+        features: vec![],
     }];
     probe
 }

@@ -280,17 +280,27 @@ pub(super) fn enc_item_def(item: &ItemDef) -> Value {
             parameters,
             result,
             body,
+            features,
             at,
-        } => adt(
-            2,
-            vec![
-                enc_ident(name),
-                enc_params(parameters),
-                enc_type(result),
-                enc_block(body),
-                enc_origin(at),
-            ],
-        ),
+        } => {
+            // `RustAst` has no target feature (RB-25): a crate that carries
+            // one is outside the claim, and is refused here rather than
+            // encoded without it.
+            assert!(
+                features.is_empty(),
+                "a function with target features is outside the claim of the bootstrap encoding"
+            );
+            adt(
+                2,
+                vec![
+                    enc_ident(name),
+                    enc_params(parameters),
+                    enc_type(result),
+                    enc_block(body),
+                    enc_origin(at),
+                ],
+            )
+        }
     }
 }
 
@@ -913,6 +923,7 @@ fn crates() -> Vec<Crate> {
                     result: result.clone(),
                     body,
                     at: at(),
+                    features: vec![],
                 });
             }
         }
@@ -929,6 +940,7 @@ fn crates() -> Vec<Crate> {
             },
         ),
         at: at(),
+        features: vec![],
     });
     // Each profile with no item, with one, and with all.
     let mut out = Vec::new();
@@ -965,6 +977,7 @@ fn crates() -> Vec<Crate> {
                 result: T::Unit,
                 body,
                 at: at(),
+                features: vec![],
             }],
         });
     }
@@ -1006,6 +1019,7 @@ fn crates() -> Vec<Crate> {
                 result,
                 body: block(Vec::new(), unit()),
                 at: at(),
+                features: vec![],
             }],
         });
     }

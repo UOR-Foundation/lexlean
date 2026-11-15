@@ -2869,6 +2869,7 @@ pub fn rustc_differential(project: &P, certified: &[Certified], example: &str) -
                         } else {
                             Errors::None
                         },
+                        features: vec![],
                     })
                     .collect(),
                 sources: Vec::new(),

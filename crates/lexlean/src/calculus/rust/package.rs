@@ -59,6 +59,15 @@ pub struct Export {
     pub parameters: Vec<Passing>,
     /// Whether it can fail.
     pub errors: Errors,
+    /// The registered target features (§17.13) it is compiled for, strictly
+    /// ascending and of one architecture; each is printed as one
+    /// `#[target_feature(enable = "...")]` on the exported function, so a
+    /// caller without the features cannot call it in safe Rust and the
+    /// caller holds the obligation to check the CPU (decision D4 of #109).
+    /// Empty, and then not written, for an export compiled for the
+    /// target's baseline.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub features: Vec<String>,
 }
 
 /// A package manifest.
@@ -517,6 +526,7 @@ fn exports(manifest: &Manifest, lowering: &mut Lowering<'_>) -> Result<Vec<ItemD
                 propagate: false,
                 at: at.clone(),
             }),
+            features: export.features.clone(),
             at,
         });
     }
@@ -708,10 +718,18 @@ pub fn package(manifest: &Manifest) -> Result<Package, String> {
         "runtime": sha256(runtime.as_bytes()),
         "sources": manifest.sources,
         "effects": manifest.effects,
-        "exports": manifest.exports.iter().map(|export| serde_json::json!({
-            "name": export.name,
-            "function": export.function,
-        })).collect::<Vec<_>>(),
+        "exports": manifest.exports.iter().map(|export| {
+            let mut row = serde_json::json!({
+                "name": export.name,
+                "function": export.function,
+            });
+            // A caller reads here which features it must check the CPU
+            // for; an export with none is written as before.
+            if let (false, Some(object)) = (export.features.is_empty(), row.as_object_mut()) {
+                object.insert("features".to_owned(), export.features.clone().into());
+            }
+            row
+        }).collect::<Vec<_>>(),
         "files": hashes,
     });
     if let (Some(entry), Some(object)) = (&manifest.entry, provenance.as_object_mut()) {
@@ -781,6 +799,7 @@ mod depth_tests {
                 name: "run".to_owned(),
                 parameters: vec![],
                 errors: Errors::None,
+                features: vec![],
             }],
             sources: vec![],
             effects: vec!["allocation".to_owned(), "overflow".to_owned()],

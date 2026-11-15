@@ -785,6 +785,9 @@ impl<'a> Reader<'a> {
                     )?,
                     result: self.ty(&a[2])?,
                     body: self.block(&a[3])?,
+                    // `RustSyntax` has no target feature: the runtime and
+                    // the support items are compiled for the baseline.
+                    features: Vec::new(),
                     at: origin(),
                 }
             }

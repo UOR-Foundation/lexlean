@@ -18,6 +18,13 @@ and Unreleased holds what has landed since.
 
 ## Unreleased
 
+- An export of a Rust package carries `#[target_feature(enable = "...")]` for its feature set
+  (#119, decision D4 of #109, `RB-25`). The production registry gains the closed set `feature`
+  (`avx2` on `x86_64`, `neon` on `aarch64`, `simd128` on `wasm32`); a feature is not a target,
+  so no eligibility moves. The manifest's export and the provenance gain an optional `features`
+  list, the attribute is printed on the export wrapper only, and the validator refuses an
+  unregistered, unordered, or mixed-architecture set and a feature on a lowered function. The
+  language-1.2 compiler-semantics ID moves (the registry, the schemas, and `rust_renderer`).
 - release/v0.4 is merged forward into release/v0.5 (#404, #405). Both lines had registered
   `PF-24` and `SM-38` for different claims; the released maintenance line keeps its numbers
   (`PF-24` decision regions, `SM-38` declaration IDs) and the v0.5 claims move unchanged to

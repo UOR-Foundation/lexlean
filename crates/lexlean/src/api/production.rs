@@ -1009,6 +1009,9 @@ fn manifest_for(
         } else {
             Errors::None
         },
+        // The feature set of an exported root is the realization grammar's
+        // to choose (#120); a production export renders the baseline.
+        features: Vec::new(),
     }];
     // A root of the type of a command's step is a command: its package gets
     // a driver. A root of any other type is an ordinary pure root and gets

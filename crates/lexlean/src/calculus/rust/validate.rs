@@ -775,6 +775,47 @@ fn apply_types_expr(
     }
 }
 
+/// The target features of one function (§17.13, decision D4 of #109): none
+/// unless it is an export, and otherwise registered, strictly ascending, and
+/// of one architecture, since an attribute naming another architecture's
+/// feature does not compile and a function holds one machine's instructions.
+fn target_features(name: &Ident, features: &[String]) -> Result<(), String> {
+    if features.is_empty() {
+        return Ok(());
+    }
+    if !matches!(name, Ident::Export(_)) {
+        return fail(format!(
+            "target-feature: `{}` is not an export and carries target features; only an exported function does",
+            ident_text(name)
+        ));
+    }
+    if features.windows(2).any(|pair| pair[0] >= pair[1]) {
+        return fail(format!(
+            "target-feature: the features of `{}` are not strictly ascending",
+            ident_text(name)
+        ));
+    }
+    let registry = crate::production::registry()?;
+    let mut arches = BTreeSet::new();
+    for feature in features {
+        let row = registry.features.get(feature).ok_or_else(|| {
+            format!(
+                "target-feature: `{feature}` of `{}` is not a registered target feature",
+                ident_text(name)
+            )
+        })?;
+        arches.insert(row.arch.as_str());
+    }
+    if arches.len() > 1 {
+        return fail(format!(
+            "target-feature: the features of `{}` are of more than one architecture ({})",
+            ident_text(name),
+            arches.into_iter().collect::<Vec<_>>().join(", ")
+        ));
+    }
+    Ok(())
+}
+
 /// Check a crate before it is printed.
 ///
 /// # Errors
@@ -783,7 +824,9 @@ fn apply_types_expr(
 /// `rust-core` (hidden allocation), an undeclared or doubly declared name, a
 /// name bound twice in one function (hygiene), a value moved twice or read
 /// after it was moved (ownership), or a failure dropped, invented, or
-/// returned from a function that declares none (arithmetic).
+/// returned from a function that declares none (arithmetic), or a target
+/// feature on a function that is not an export, unregistered, out of order,
+/// or of a second architecture (target-feature).
 pub fn validate(krate: &Crate) -> Result<(), String> {
     let declared = declared(krate)?;
     for item in &krate.items {
@@ -840,8 +883,10 @@ pub fn validate(krate: &Crate) -> Result<(), String> {
                 parameters,
                 result,
                 body,
+                features,
                 ..
             } => {
+                target_features(name, features)?;
                 checker.ty(result)?;
                 for (pattern, ty) in parameters {
                     checker.ty(ty)?;

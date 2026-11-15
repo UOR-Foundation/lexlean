@@ -124,6 +124,7 @@ fn edit_first_in(root: &mut Expr, edit: &mut dyn FnMut(&mut Expr) -> bool) -> bo
             result: Type::Unit,
             body: Block::of(root.clone()),
             at: Origin::of("function"),
+            features: vec![],
         }],
     };
     let edited = edit_first(&mut krate, edit);
@@ -632,6 +633,7 @@ pub fn run(id: &str) {
                 result: Type::Ref(Box::new(Type::Nat)),
                 body: Block::of(Expr::Lit(Lit::Nat(0), Origin::of("value:nat"))),
                 at: Origin::of("function"),
+                features: vec![],
             });
             let error = validate::correspond(&extended, &elements).expect_err("no export");
             assert!(error.contains("`type:ref`"), "{error}");
@@ -1519,6 +1521,9 @@ pub fn run(id: &str) {
         "RB-22" => super::rust_loop_ends::run(id),
         // §17.13, §17.16: the driver of a command root.
         "RB-24" => super::rust_driver::run(id),
+        // §17.13, §17.16: an export carries `#[target_feature]` for its
+        // feature set (decision D4 of #109).
+        "RB-25" => super::rust_target_feature::run(id),
         "RB-09" => {
             use lexlean::calculus::rust::runtime::{core, std};
             use lexlean::calculus::rust_library::{

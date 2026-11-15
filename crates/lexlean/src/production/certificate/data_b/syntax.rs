@@ -680,6 +680,10 @@ impl Writer<'_, '_> {
                 parameters,
                 result,
                 body,
+                // A target feature selects instructions and changes no step
+                // of the simulation, and the crate certificate B states is a
+                // lowering, whose functions carry none.
+                features: _,
                 at: _,
             } => {
                 let name = self.rs_ident(name);

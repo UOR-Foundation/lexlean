@@ -149,3 +149,10 @@ Feature: rust-backend
     When the package is rendered, built with the pinned rustc with warnings denied, and run in an empty directory, and each plant is applied
     Then the run exits with the child's status and writes the child's output and errors, and a driver whose root lacks an effect names nothing of the host
     And each planted driver is refused or changes the result of the run
+
+  @RB-25 @build
+  Scenario: An export of a Rust package may name registered target features (`features`, from the closed set `feature` of `language/production-1.2.toml`: `avx2` on `x86_64`, `neon` on `aarch64`, and `simd128` on `wasm32`, decision D4), each printed as one `#[target_feature(enable = "...")]` on the exported function and on no other item, the library otherwise the baseline's byte for byte, and recorded by the provenance; an unregistered feature (`avx512f`, `dsp`), features out of order, repeated, or of two architectures, and a feature on a function that is not an export are refused by the validator; on an x86-64 or aarch64 host the package of `avx2` or `neon`, built by the pinned rustc with warnings denied, is called from a function under the same feature and agrees with the evaluator on two sums and an overflow where the CPU has the feature, a caller without the feature is refused with E0133, and the same caller builds once the attribute is dropped.
+    Given a package whose export names each registered target feature, the planted feature sets, and a caller with and without the feature
+    When each package is rendered and validated, and on an x86-64 or aarch64 host built with the pinned rustc with warnings denied and run
+    Then the attribute is printed once, on the export, and recorded by the provenance, and each planted feature set is refused
+    And the caller with the feature agrees with the evaluator, the caller without it is refused with E0133, and it builds once the attribute is dropped
