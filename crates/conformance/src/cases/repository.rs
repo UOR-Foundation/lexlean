@@ -1979,7 +1979,11 @@ pub(crate) fn run(id: &str) {
             for (key, body) in &jobs {
                 if matches!(
                     key.as_str(),
-                    "host-matrix" | "intel-construction" | "intel-part" | "windows-part"
+                    "host-matrix"
+                        | "intel-construction"
+                        | "intel-part"
+                        | "windows-part"
+                        | "macos-part"
                 ) {
                     continue;
                 }
@@ -1989,7 +1993,7 @@ pub(crate) fn run(id: &str) {
                 );
                 // The plan decides what the run is and runs no recipe: it has
                 // ten minutes, not the six hours of the proof jobs.
-                if key == "intel-join" || key == "windows-join" {
+                if key == "intel-join" || key == "windows-join" || key == "macos-join" {
                     let limit = body
                         .lines()
                         .find_map(|line| line.trim().strip_prefix("timeout-minutes: "))
@@ -2502,7 +2506,11 @@ pub(crate) fn run(id: &str) {
             let mut honesty_conditions = 0;
             for (index, line) in jobs
                 .iter()
-                .filter(|(key, _)| !key.starts_with("intel-") && !key.starts_with("windows-"))
+                .filter(|(key, _)| {
+                    !key.starts_with("intel-")
+                        && !key.starts_with("windows-")
+                        && !key.starts_with("macos-")
+                })
                 .flat_map(|(_, body)| body.lines())
                 .enumerate()
             {
@@ -2532,30 +2540,63 @@ pub(crate) fn run(id: &str) {
             assert_eq!(rows_conditions, 1, "the legs run when the plan names a leg");
             assert_eq!(honesty_conditions, 1, "honesty runs when the plan names it");
             intel_host_workflow(&ci).expect("§8.3: the host inventory and Intel custody graph");
-            windows_host_workflow(&ci).expect("§8.3: the Windows lanes and their join");
-            for (from, to) in [
-                ("lane: [producer, lower, print, validate, moves]", "lane: [producer, lower, print, validate]"),
-                ("    needs: [plan, windows-part]", "    needs: [plan]"),
-                (
-                    "    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-x86_64",
-                    "    if: ${{ needs.plan.outputs.full == 'true' }}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-x86_64",
-                ),
-                ("host_lanes.py join --target", "host_lanes.py execute --target"),
-                (
-                    "windows-part.result }}\n        run: |\n          set -euo pipefail\n          test \"$PART_RESULT\" = success",
-                    "windows-part.result }}\n        run: |\n          set -euo pipefail\n          test \"$PART_RESULT\" != cancelled",
-                ),
-                ("    runs-on: windows-2022\n", "    runs-on: windows-2025\n"),
-                (
-                    "python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'",
-                    "echo lane checks",
-                ),
-            ] {
-                assert!(ci.contains(from), "the plant must change the workflow: {from}");
-                assert!(
-                    windows_host_workflow(&ci.replacen(from, to, 1)).is_err(),
-                    "the Windows lanes must refuse `{from}` replaced by `{to}`"
+            for host in &LANE_HOSTS {
+                lane_host_workflow(&ci, host).unwrap_or_else(|error| {
+                    panic!("§8.3: the {} lanes and their join: {error}", host.label)
+                });
+                let target = host.target;
+                let part = host.part;
+                let pattern = format!(
+                    "    if: ${{{{ !cancelled() && needs.plan.outputs.full == 'true' }}}}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-{target}-*"
                 );
+                let result = format!(
+                    "{part}.result }}}}\n        run: |\n          set -euo pipefail\n          test \"$PART_RESULT\" = success"
+                );
+                for (from, to) in [
+                    (
+                        format!(
+                            "lane: [producer, lower, print, validate, moves]\n    runs-on: {}\n",
+                            host.runner
+                        ),
+                        format!(
+                            "lane: [producer, lower, print, validate]\n    runs-on: {}\n",
+                            host.runner
+                        ),
+                    ),
+                    (
+                        format!("    needs: [plan, {part}]"),
+                        "    needs: [plan]".to_owned(),
+                    ),
+                    (pattern.clone(), pattern.replace("!cancelled() && ", "")),
+                    (
+                        format!("host_lanes.py join --target {target}"),
+                        format!("host_lanes.py execute --target {target}"),
+                    ),
+                    (result.clone(), result.replace("= success", "!= cancelled")),
+                    (
+                        format!("    runs-on: {}\n", host.runner),
+                        "    runs-on: ubuntu-24.04\n".to_owned(),
+                    ),
+                    (
+                        format!("    name: build and non-Lean tests ({target})\n"),
+                        format!("    name: {} tests (join)\n", host.label),
+                    ),
+                    (
+                        "python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'"
+                            .to_owned(),
+                        "echo lane checks".to_owned(),
+                    ),
+                ] {
+                    assert!(
+                        ci.contains(&from),
+                        "the plant must change the workflow: {from}"
+                    );
+                    assert!(
+                        lane_host_workflow(&ci.replacen(&from, &to, 1), host).is_err(),
+                        "the {} lanes must refuse `{from}` replaced by `{to}`",
+                        host.label
+                    );
+                }
             }
             for (from, to) in [
                 (
@@ -2699,6 +2740,7 @@ pub(crate) fn run(id: &str) {
                 "host-matrix",
                 "intel-construction",
                 "windows-part",
+                "macos-part",
             ] {
                 let original = format!("  {root}:\n");
                 let pos = ci.find(&original).expect("the root");
@@ -3944,14 +3986,15 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
         .find_map(|line| line.strip_prefix("    name: "))
         .ok_or("RP-14: the Intel aggregate has no context")?;
     contexts.push(aggregate_name.to_owned());
-    let windows = workflow_job(ci, "windows-join")?;
-    contexts.push(
-        windows
-            .lines()
-            .find_map(|line| line.strip_prefix("    name: "))
-            .ok_or("RP-14: the Windows aggregate has no context")?
-            .to_owned(),
-    );
+    for host in &LANE_HOSTS {
+        contexts.push(
+            workflow_job(ci, host.join)?
+                .lines()
+                .find_map(|line| line.strip_prefix("    name: "))
+                .ok_or_else(|| format!("RP-14: the {} aggregate has no context", host.label))?
+                .to_owned(),
+        );
+    }
     contexts.sort();
     let mut expected = supported_host_contexts();
     expected.sort();
@@ -4336,13 +4379,54 @@ fn bootstrap_custody_decisions() {
     }
 }
 
-/// §8.3: Windows runs as the lanes of one run, the conformance lanes of the
-/// Intel partition and the producer, after honesty and only in a run that is
-/// the whole gate; its aggregate keeps the host's context, runs after any
-/// lane's failure, joins every lane's receipt, and fails on a missing one.
-fn windows_host_workflow(ci: &str) -> Result<(), String> {
-    let part = workflow_job(ci, "windows-part")?;
-    let join = workflow_job(ci, "windows-join")?;
+/// A §8.3 host that runs its complete workspace tests as lanes of one run.
+struct LaneHost {
+    /// The lanes' job and the aggregate's job in `ci.yml`.
+    part: &'static str,
+    join: &'static str,
+    /// How the host's messages name it.
+    label: &'static str,
+    runner: &'static str,
+    target: &'static str,
+    /// The interpreter the runner image provides under this name.
+    python: &'static str,
+}
+
+const LANE_HOSTS: [LaneHost; 2] = [
+    LaneHost {
+        part: "windows-part",
+        join: "windows-join",
+        label: "Windows",
+        runner: "windows-2022",
+        target: "x86_64-pc-windows-msvc",
+        python: "python",
+    },
+    LaneHost {
+        part: "macos-part",
+        join: "macos-join",
+        label: "macOS arm64",
+        runner: "macos-15",
+        target: "aarch64-apple-darwin",
+        python: "python3",
+    },
+];
+
+/// §8.3: Windows and Apple silicon macOS each run as the lanes of one run,
+/// the conformance lanes of the Intel partition and the producer, after
+/// honesty and only in a run that is the whole gate; each aggregate keeps the
+/// host's context, runs after any lane's failure, joins every lane's receipt,
+/// and fails on a missing one.
+fn lane_host_workflow(ci: &str, host: &LaneHost) -> Result<(), String> {
+    let &LaneHost {
+        part: part_key,
+        join: join_key,
+        label,
+        runner,
+        target,
+        python,
+    } = host;
+    let part = workflow_job(ci, part_key)?;
+    let join = workflow_job(ci, join_key)?;
     let honesty = workflow_job(ci, "honesty")?;
     let require = |body: &str, text: &str, rule: &str| -> Result<(), String> {
         if body.contains(text) {
@@ -4366,79 +4450,79 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
         .lines()
         .find_map(|line| line.strip_prefix("        lane: ["))
         .and_then(|rest| rest.strip_suffix(']'))
-        .ok_or("RP-14: the Windows matrix names its lanes")?
+        .ok_or_else(|| format!("RP-14: the {label} matrix names its lanes"))?
         .split(',')
         .map(|lane| lane.trim().to_owned())
         .collect();
     matrix.sort();
     if matrix != lanes {
         return Err(format!(
-            "RP-14: the Windows matrix runs {matrix:?}, the producer and the lanes of the partition are {lanes:?}"
+            "RP-14: the {label} matrix runs {matrix:?}, the producer and the lanes of the partition are {lanes:?}"
         ));
     }
     for (body, text, rule) in [
-        (&part, "    needs: [plan, honesty]\n", "the lanes follow honesty"),
+        (&part, "    needs: [plan, honesty]\n".to_owned(), "the lanes follow honesty"),
         (
             &part,
-            "    if: ${{ needs.plan.outputs.full == 'true' }}\n",
+            "    if: ${{ needs.plan.outputs.full == 'true' }}\n".to_owned(),
             "the lanes run in a run that is the whole gate",
         ),
-        (&part, "      fail-fast: false\n", "a failing lane stops no other"),
-        (&part, "    runs-on: windows-2022\n", "the lanes run on the host"),
-        (&part, "        run: rustup toolchain install\n", "the Rust pin"),
+        (&part, "      fail-fast: false\n".to_owned(), "a failing lane stops no other"),
+        (&part, format!("    runs-on: {runner}\n"), "the lanes run on the host"),
+        (&part, "        run: rustup toolchain install\n".to_owned(), "the Rust pin"),
         (
             &part,
-            "if [ \"$host\" != x86_64-pc-windows-msvc ]; then",
+            format!("if [ \"$host\" != {target} ]; then"),
             "a lane checks its host triple",
         ),
         (
             &part,
-            "python .github/scripts/host_lanes.py execute --target x86_64-pc-windows-msvc --lane ${{ matrix.lane }} --output \"$RUNNER_TEMP/host-lane\"",
+            format!("{python} .github/scripts/host_lanes.py execute --target {target} --lane ${{{{ matrix.lane }}}} --output \"$RUNNER_TEMP/host-lane\""),
             "a lane executes and records its part",
         ),
         (
             &part,
-            "          name: host-x86_64-pc-windows-msvc-${{ matrix.lane }}\n",
+            format!("          name: host-{target}-${{{{ matrix.lane }}}}\n"),
             "a lane uploads its receipt",
         ),
         (
             &join,
-            "    name: build and non-Lean tests (x86_64-pc-windows-msvc)\n",
+            format!("    name: build and non-Lean tests ({target})\n"),
             "the aggregate keeps the host's context",
         ),
-        (&join, "    needs: [plan, windows-part]\n", "the aggregate follows the lanes"),
+        (&join, format!("    needs: [plan, {part_key}]\n"), "the aggregate follows the lanes"),
         (
             &join,
-            "    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}\n",
+            "    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}\n".to_owned(),
             "the aggregate runs after a failed or cancelled lane, not after the run is cancelled",
         ),
         (
             &join,
-            "          pattern: host-x86_64-pc-windows-msvc-*\n",
+            format!("          pattern: host-{target}-*\n"),
             "the aggregate reads every lane's receipt",
         ),
         (
             &join,
-            "python3 .github/scripts/host_lanes.py join --target x86_64-pc-windows-msvc --artifacts \"$RUNNER_TEMP/host-lanes\"",
+            format!("python3 .github/scripts/host_lanes.py join --target {target} --artifacts \"$RUNNER_TEMP/host-lanes\""),
             "the aggregate joins the receipts",
         ),
         (
             &join,
-            "PART_RESULT: ${{ needs.windows-part.result }}",
+            format!("PART_RESULT: ${{{{ needs.{part_key}.result }}}}"),
             "the aggregate reads the lanes' result",
         ),
         (
             &honesty,
-            "python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'",
+            "python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'".to_owned(),
             "the join's behavioral tests run before expensive roots",
         ),
     ] {
-        require(body, text, rule)?;
+        require(body, &text, rule)?;
     }
     let result_step = join
         .split("\n      - ")
         .find(|step| step.contains("test \"$PART_RESULT\" = success"))
-        .ok_or("RP-14: the Windows aggregate does not check its lanes' result")?;
+        .ok_or_else(|| format!("RP-14: the {label} aggregate does not check its lanes' result"))?;
     require(
         result_step,
         "if: ${{ always() }}",
@@ -4448,9 +4532,11 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
         .lines()
         .find_map(|line| line.trim().strip_prefix("timeout-minutes: "))
         .and_then(|value| value.parse::<u32>().ok())
-        .ok_or("RP-14: a Windows lane has no timeout")?;
+        .ok_or_else(|| format!("RP-14: a {label} lane has no timeout"))?;
     if timeout == 0 || timeout > 240 {
-        return Err("RP-14: a Windows lane cannot raise the 240-minute bound".to_owned());
+        return Err(format!(
+            "RP-14: a {label} lane cannot raise the 240-minute bound"
+        ));
     }
     for body in [&part, &join] {
         for forbidden in [
@@ -4460,7 +4546,7 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
             "actions/cache",
         ] {
             if body.contains(forbidden) {
-                return Err(format!("RP-14: the Windows lanes admit `{forbidden}`"));
+                return Err(format!("RP-14: the {label} lanes admit `{forbidden}`"));
             }
         }
     }
@@ -4485,6 +4571,7 @@ fn honesty_dependencies(ci: &str) -> Result<(), String> {
         "host-matrix",
         "intel-construction",
         "windows-part",
+        "macos-part",
     ] {
         let body = workflow_job(ci, root)?;
         if !body.contains("needs: [plan, honesty]\n")
