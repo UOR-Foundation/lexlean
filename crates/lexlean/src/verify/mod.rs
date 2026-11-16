@@ -900,87 +900,104 @@ pub fn run_part(
                 Sha256Digest::of(&bytes).to_hex()[..32].to_owned()
             };
             let module = format!("LexLeanPreserve.C{root_hex32}.R{index}");
-            let generated = certificate(
-                &linked,
-                &root.module,
-                &root.name,
-                root.report,
-                &lowered,
-                &module,
-                limits.max_file_bytes,
-            )
-            .map_err(fail)?;
-            // Certificate B: the root's crate in each of its targets
-            // simulates the lowered program.
-            let mut renderings = Vec::new();
-            for row in &root.report.targets {
-                let profile =
-                    crate::calculus::rust::Profile::named(&row.target).ok_or_else(|| {
-                        fail(internal(format!("`{}` is not a Rust profile", row.target)))
-                    })?;
-                let rendered =
-                    crate::calculus::rust::lower(&lowered.program, profile).map_err(|reason| {
-                        fail(internal(format!(
-                            "{} has no rendering in {}: {reason}",
-                            root.report.root, row.target
-                        )))
-                    })?;
-                let module_b = rust_cert::module_for(&module, &row.target).ok_or_else(|| {
-                    fail(internal(format!("`{}` is not a Rust target", row.target)))
-                })?;
-                let certificate_b = rust_cert::certificate_b(
-                &lowered.program,
-                &rendered,
-                &module_b,
-                limits.max_file_bytes,
-            )
-            .map_err(|reason| match reason.strip_prefix(crate::production::lower::LIMIT) {
-                Some(limit) => fail(Diagnostic::new(
-                    code!("LLS8002"),
-                    format!(
-                        "root `{}`: max_file_bytes exceeded in phase certificates: certificate B of its {} rendering: {limit}",
-                        root.report.root, row.target
-                    ),
-                )),
-                None => fail(Diagnostic::new(
-                    code!("LLV7015"),
-                    format!(
-                        "certificate B: `{module_b}`: no derivation relates {} to its {} rendering: {reason}",
-                        root.report.root, row.target
-                    ),
-                )),
-            })?;
-                // Certificate E: A and B composed, for the root's rendering.
-                let module_e = rust_cert::module_for(&format!("{module}.Compose"), &row.target)
-                    .ok_or_else(|| {
-                        fail(internal(format!("`{}` is not a Rust target", row.target)))
-                    })?;
-                let fallible = crate::calculus::rust::fallible_functions(&lowered.program)
-                    .map_err(|reason| fail(internal(reason)))?
-                    .get(lowered.entry() as usize)
-                    .copied()
-                    .ok_or_else(|| fail(internal("a lowered program without its entry")))?;
-                let composed = crate::production::certificate::certificate_e(
-                    &linked,
-                    &root.module,
-                    &root.name,
-                    &lowered,
-                    &module,
+            // Certificate A and the renderings (B and E) are made from the
+            // lowered program and the linked modules alone, and neither reads
+            // the other: A is generated beside them, and its result is judged
+            // first, as when they were generated one after the other.
+            let (generated, renderings) = std::thread::scope(|scope| {
+                let generated_a = scope.spawn(|| {
+                    certificate(
+                        &linked,
+                        &root.module,
+                        &root.name,
+                        root.report,
+                        &lowered,
+                        &module,
+                        limits.max_file_bytes,
+                    )
+                });
+                let renderings = (|| -> Result<Vec<CertifiedRendering>, LexLeanError> {
+                    // Certificate B: the root's crate in each of its targets
+                    // simulates the lowered program.
+                    let mut renderings = Vec::new();
+                    for row in &root.report.targets {
+                        let profile = crate::calculus::rust::Profile::named(&row.target)
+                            .ok_or_else(|| {
+                                fail(internal(format!("`{}` is not a Rust profile", row.target)))
+                            })?;
+                        let rendered = crate::calculus::rust::lower(&lowered.program, profile)
+                            .map_err(|reason| {
+                                fail(internal(format!(
+                                    "{} has no rendering in {}: {reason}",
+                                    root.report.root, row.target
+                                )))
+                            })?;
+                        let module_b =
+                            rust_cert::module_for(&module, &row.target).ok_or_else(|| {
+                                fail(internal(format!("`{}` is not a Rust target", row.target)))
+                            })?;
+                        let certificate_b = rust_cert::certificate_b(
+                    &lowered.program,
+                    &rendered,
                     &module_b,
-                    &module_e,
-                    fallible,
                     limits.max_file_bytes,
                 )
-                .map_err(fail)?;
-                renderings.push(CertifiedRendering {
-                    target: row.target.clone(),
-                    certificate: certificate_b.into_certificate(),
-                    composed,
-                    crate_text: crate::calculus::rust::ast::print(&rendered)
-                        .map_err(|reason| fail(internal(reason)))?,
-                    entry: lowered.entry(),
-                });
-            }
+                .map_err(|reason| match reason.strip_prefix(crate::production::lower::LIMIT) {
+                    Some(limit) => fail(Diagnostic::new(
+                        code!("LLS8002"),
+                        format!(
+                            "root `{}`: max_file_bytes exceeded in phase certificates: certificate B of its {} rendering: {limit}",
+                            root.report.root, row.target
+                        ),
+                    )),
+                    None => fail(Diagnostic::new(
+                        code!("LLV7015"),
+                        format!(
+                            "certificate B: `{module_b}`: no derivation relates {} to its {} rendering: {reason}",
+                            root.report.root, row.target
+                        ),
+                    )),
+                })?;
+                        // Certificate E: A and B composed, for the root's rendering.
+                        let module_e =
+                            rust_cert::module_for(&format!("{module}.Compose"), &row.target)
+                                .ok_or_else(|| {
+                                    fail(internal(format!("`{}` is not a Rust target", row.target)))
+                                })?;
+                        let fallible = crate::calculus::rust::fallible_functions(&lowered.program)
+                            .map_err(|reason| fail(internal(reason)))?
+                            .get(lowered.entry() as usize)
+                            .copied()
+                            .ok_or_else(|| fail(internal("a lowered program without its entry")))?;
+                        let composed = crate::production::certificate::certificate_e(
+                            &linked,
+                            &root.module,
+                            &root.name,
+                            &lowered,
+                            &module,
+                            &module_b,
+                            &module_e,
+                            fallible,
+                            limits.max_file_bytes,
+                        )
+                        .map_err(fail)?;
+                        renderings.push(CertifiedRendering {
+                            target: row.target.clone(),
+                            certificate: certificate_b.into_certificate(),
+                            composed,
+                            crate_text: crate::calculus::rust::ast::print(&rendered)
+                                .map_err(|reason| fail(internal(reason)))?,
+                            entry: lowered.entry(),
+                        });
+                    }
+                    Ok(renderings)
+                })();
+                let generated = generated_a
+                    .join()
+                    .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
+                    .map_err(fail)?;
+                Ok::<_, LexLeanError>((generated, renderings?))
+            })?;
             // Every certificate held as data weighs what it is recorded as,
             // the notation: the Lean text is the core backend's rendering,
             // and its size is the backend's, not the certificate's.
