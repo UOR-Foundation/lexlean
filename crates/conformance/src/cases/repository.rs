@@ -2441,6 +2441,12 @@ pub(crate) fn run(id: &str) {
                     !body.contains("run-id") && !body.contains("github-token"),
                     "§9.4: `{key}` reads the artifacts of this run only"
                 );
+                assert!(
+                    body.contains(
+                        "            shard:*) rm -rf \"ci-parts/${LEXLEAN_EXAMPLES_PART##*:}\" ;;\n"
+                    ),
+                    "§9.4: `{key}` drops its own part from an earlier attempt before it runs"
+                );
             }
             for (shard, job_key) in &runs {
                 if shard == crate::shards::JOIN {

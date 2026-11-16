@@ -17,6 +17,10 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- An Atlas shard of the gate drops the part it uploaded in an earlier attempt
+  of its run before it runs (SPEC.md §9.4, `RP-14`). "Re-run all jobs"
+  downloaded that part with the rest, and the shard refused the non-empty
+  directory (`LLI9001`), so a gate could be recovered only by a new dispatch.
 - Each push to a release line is merged forward by `forward.yml` (SPEC.md §9.4, `RP-14`):
   the push is merged into the next line on `forward/vXY-to-vX(Y+1)-<head8>`, a conflict in a
   generated projection or a lock takes the next line's side for `regenerate.yml` to rewrite,
