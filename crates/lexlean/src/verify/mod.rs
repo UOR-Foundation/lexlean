@@ -22,6 +22,7 @@
 
 pub mod axiom;
 pub mod child;
+mod invocation;
 pub mod leanchecker;
 pub mod lifeline;
 pub mod operational;
@@ -54,7 +55,7 @@ use crate::link::CheckedProject;
 use crate::lock::Lock;
 use crate::project::Project;
 use crate::source::coverage::Origin;
-use crate::verify::child::{run as run_child, ChildHome, ChildRecord, ChildSpec, Normalizer};
+use crate::verify::child::{run as run_child, ChildRecord, Normalizer};
 use crate::verify::operational::Operational;
 pub use crate::verify::partition::{Part, Plan};
 use crate::verify::toolchain::Toolchain;
@@ -1334,22 +1335,14 @@ pub fn run_part(
         .join("probe")
         .join(format!("{probe_name}.lean"));
     let probe_record = run_child(
-        &ChildSpec {
-            tool: "lean",
-            module: Some(probe_name.clone()),
-            program: &toolchain.lake.path,
-            executable_sha256: toolchain.lean.sha256,
-            argv: vec![
-                "env".to_owned(),
-                "lean".to_owned(),
-                probe_source.to_string(),
-            ],
-            cwd: &workspace_root,
-            extra_env: vec![("LEAN_PATH".to_owned(), lean_path_env.clone())],
-            home: ChildHome::Toolchain {
-                toolchain_bin: &toolchain_bin,
-            },
-        },
+        &invocation::lean(
+            &toolchain,
+            probe_name.clone(),
+            vec![probe_source.to_string()],
+            &workspace_root,
+            &toolchain_bin,
+            &lean_path_env,
+        ),
         &limits,
         &normalizer,
     )
@@ -1418,26 +1411,20 @@ pub fn run_part(
                 })?;
             }
             let record = run_child(
-                &ChildSpec {
-                    tool: "lean",
-                    module: Some(file.module.clone()),
-                    program: &toolchain.lake.path,
-                    executable_sha256: toolchain.lean.sha256,
-                    argv: vec![
-                        "env".to_owned(),
-                        "lean".to_owned(),
+                &invocation::lean(
+                    &toolchain,
+                    file.module.clone(),
+                    vec![
                         "-R".to_owned(),
                         src_root.to_string(),
                         "-o".to_owned(),
                         olean.to_string(),
                         source.to_string(),
                     ],
-                    cwd: &workspace_root,
-                    extra_env: vec![("LEAN_PATH".to_owned(), lean_path_env.clone())],
-                    home: ChildHome::Toolchain {
-                        toolchain_bin: &toolchain_bin,
-                    },
-                },
+                    &workspace_root,
+                    &toolchain_bin,
+                    &lean_path_env,
+                ),
                 &limits,
                 &normalizer,
             )
@@ -1496,26 +1483,20 @@ pub fn run_part(
             })?;
         }
         let record = run_child(
-            &ChildSpec {
-                tool: "lean",
-                module: Some(module.name.clone()),
-                program: &toolchain.lake.path,
-                executable_sha256: toolchain.lean.sha256,
-                argv: vec![
-                    "env".to_owned(),
-                    "lean".to_owned(),
+            &invocation::lean(
+                &toolchain,
+                module.name.clone(),
+                vec![
                     "-R".to_owned(),
                     src_root.to_string(),
                     "-o".to_owned(),
                     olean.to_string(),
                     source.to_string(),
                 ],
-                cwd: &workspace_root,
-                extra_env: vec![("LEAN_PATH".to_owned(), lean_path_env.clone())],
-                home: ChildHome::Toolchain {
-                    toolchain_bin: &toolchain_bin,
-                },
-            },
+                &workspace_root,
+                &toolchain_bin,
+                &lean_path_env,
+            ),
             &limits,
             &normalizer,
         )
@@ -1644,26 +1625,20 @@ pub fn run_part(
                 let source = src_root.join(format!("{module_path}.lean"));
                 let olean = olean_root.join(format!("{module_path}.olean"));
                 run_child(
-                    &ChildSpec {
-                        tool: "lean",
-                        module: Some(module_name.clone()),
-                        program: &toolchain.lake.path,
-                        executable_sha256: toolchain.lean.sha256,
-                        argv: vec![
-                            "env".to_owned(),
-                            "lean".to_owned(),
+                    &invocation::lean(
+                        &toolchain,
+                        module_name.clone(),
+                        vec![
                             "-R".to_owned(),
                             src_root.to_string(),
                             "-o".to_owned(),
                             olean.to_string(),
                             source.to_string(),
                         ],
-                        cwd: &workspace_root,
-                        extra_env: vec![("LEAN_PATH".to_owned(), lean_path_env.clone())],
-                        home: ChildHome::Toolchain {
-                            toolchain_bin: &toolchain_bin,
-                        },
-                    },
+                        &workspace_root,
+                        &toolchain_bin,
+                        &lean_path_env,
+                    ),
                     &limits,
                     &normalizer,
                 )
@@ -1829,22 +1804,14 @@ pub fn run_part(
             let source_relative = format!("audit/{}.lean", audit.name);
             let audit_source = staging_utf8.join(&source_relative);
             run_child(
-                &ChildSpec {
-                    tool: "lean",
-                    module: Some(audit.name.clone()),
-                    program: &toolchain.lake.path,
-                    executable_sha256: toolchain.lean.sha256,
-                    argv: vec![
-                        "env".to_owned(),
-                        "lean".to_owned(),
-                        audit_source.to_string(),
-                    ],
-                    cwd: &workspace_root,
-                    extra_env: vec![("LEAN_PATH".to_owned(), lean_path_env.clone())],
-                    home: ChildHome::Toolchain {
-                        toolchain_bin: &toolchain_bin,
-                    },
-                },
+                &invocation::lean(
+                    &toolchain,
+                    audit.name.clone(),
+                    vec![audit_source.to_string()],
+                    &workspace_root,
+                    &toolchain_bin,
+                    &lean_path_env,
+                ),
                 &limits,
                 &normalizer,
             )
@@ -2289,18 +2256,14 @@ pub fn run_part(
             .join("extract")
             .join(format!("{}.lean", driver.name));
         let record = run_child(
-            &ChildSpec {
-                tool: "lean",
-                module: Some(driver.name.clone()),
-                program: &toolchain.lake.path,
-                executable_sha256: toolchain.lean.sha256,
-                argv: vec!["env".to_owned(), "lean".to_owned(), source.to_string()],
-                cwd: &workspace_root,
-                extra_env: vec![("LEAN_PATH".to_owned(), lean_path_env.clone())],
-                home: ChildHome::Toolchain {
-                    toolchain_bin: &toolchain_bin,
-                },
-            },
+            &invocation::lean(
+                &toolchain,
+                driver.name.clone(),
+                vec![source.to_string()],
+                &workspace_root,
+                &toolchain_bin,
+                &lean_path_env,
+            ),
             &limits,
             &normalizer,
         )
@@ -2463,12 +2426,7 @@ pub fn run_part(
         }
         let compile = |file: &preserve::StagedFile, output: bool| {
             let source = preserve_src.join(&file.path);
-            let mut argv = vec![
-                "env".to_owned(),
-                "lean".to_owned(),
-                "-R".to_owned(),
-                preserve_src.to_string(),
-            ];
+            let mut argv = vec!["-R".to_owned(), preserve_src.to_string()];
             if output {
                 let olean = preserve_oleans.join(file.path.replace(".lean", ".olean"));
                 if let Some(parent) = olean.parent() {
@@ -2481,18 +2439,14 @@ pub fn run_part(
             }
             argv.push(source.to_string());
             run_child(
-                &ChildSpec {
-                    tool: "lean",
-                    module: Some(file.module.clone()),
-                    program: &toolchain.lake.path,
-                    executable_sha256: toolchain.lean.sha256,
+                &invocation::lean(
+                    &toolchain,
+                    file.module.clone(),
                     argv,
-                    cwd: &workspace_root,
-                    extra_env: vec![("LEAN_PATH".to_owned(), preserve_path.clone())],
-                    home: ChildHome::Toolchain {
-                        toolchain_bin: &toolchain_bin,
-                    },
-                },
+                    &workspace_root,
+                    &toolchain_bin,
+                    &preserve_path,
+                ),
                 &limits,
                 &normalizer,
             )

@@ -9,7 +9,7 @@ use camino::Utf8Path;
 use crate::code;
 use crate::config::Limits;
 use crate::diagnostic::Diagnostic;
-use crate::verify::child::{run, ChildHome, ChildRecord, ChildSpec, Normalizer};
+use crate::verify::child::{run, ChildRecord, Normalizer};
 use crate::verify::toolchain::Toolchain;
 
 /// Run `lake env <leanchecker> <module>` (the preflighted executable by
@@ -24,25 +24,7 @@ pub fn run_leanchecker(
 ) -> Result<ChildRecord, Diagnostic> {
     let bin_dir = toolchain.root.join("bin");
     run(
-        &ChildSpec {
-            tool: "leanchecker",
-            module: Some(module.to_owned()),
-            program: &toolchain.lake.path,
-            executable_sha256: toolchain.leanchecker.sha256,
-            // The preflighted, digest-checked executable by absolute path,
-            // inside the Lake environment (§22.2): `lake env` supplies
-            // `LEAN_PATH`, never the executable.
-            argv: vec![
-                "env".to_owned(),
-                toolchain.leanchecker.path.to_string(),
-                module.to_owned(),
-            ],
-            cwd: workspace,
-            extra_env: vec![("LEAN_PATH".to_owned(), lean_path.to_owned())],
-            home: ChildHome::Toolchain {
-                toolchain_bin: &bin_dir,
-            },
-        },
+        &super::invocation::leanchecker(toolchain, module, workspace, &bin_dir, lean_path),
         limits,
         normalizer,
     )
