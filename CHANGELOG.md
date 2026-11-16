@@ -35,7 +35,43 @@ workspace carried at those versions without a tag.
   is `LLT4005`. That the pinned Lean writes a singly referenced array in place
   is cited (`LEAN-ARRAY-4-32-2`), not established here. The design and the
   decisions left to the owners are in `docs/proposals/verified-arrays.md`.
-  The register is 498 IDs.
+  The register is 499 IDs.
+- Each push to a release line is merged forward by `forward.yml` (SPEC.md §9.4, `RP-14`):
+  the push is merged into the next line on `forward/vXY-to-vX(Y+1)-<head8>`, a conflict in a
+  generated projection or a lock takes the next line's side for `regenerate.yml` to rewrite,
+  SPEC.md and register changes of a line without `spec/` are carried into the next line's
+  modules by `cargo xtask spec port --register`, and any other conflict opens the pull
+  request as a draft naming its paths, an authored writer input such as an export's
+  `roots.json` among them. A newer push closes an older forward pull request only when its
+  branch holds nothing but the workflow's merge and regeneration, and only once the new one
+  is open; one with work finished by hand stays open and is linked.
+- CI runs the macOS AArch64 host's tests in lanes, as it does Windows' (SPEC.md §8.3): five lanes on `macos-15`,
+  the four conformance lanes of `.github/intel-host-lanes.json` and the `producer` lane, joined on
+  `ubuntu-24.04` under the unchanged context `build and non-Lean tests (aarch64-apple-darwin)`,
+  which passes only when the lanes' executed tests equal the host's listing, each once. The single
+  macOS AArch64 job took about 104 minutes. Linux AArch64 keeps its one `cargo test`.
+- At most one of BS-05..BS-08 per 10 GiB of the host's memory runs at a time
+  in one test process (no SPEC, language, or identity change), so a 16 GiB host
+  runs them one at a time. Each checks its own copy of the bootstrap project:
+  on a 16 GiB host BS-07 alone peaks at 4.4 GiB, and BS-05 with BS-07, like
+  the four together, was OOM-killed. The 16 GiB aarch64 runner lost the
+  `build and non-Lean tests (aarch64-unknown-linux-gnu)` job while the four
+  ran together. A waiting case is not timed.
+
+- `linear_arithmetic` decides a first-match chain of many conditions (`PF-26`,
+  SPEC.md §17.12). The fold laws gain `LexLeanLaws.ite_eq_iff`, an `if` equal
+  to a value read as the disjunction of its branches with their conditions.
+  The fixed script becomes the first alternative of a `first`; the second
+  repeats it with `ite_eq_iff` and `and_false, false_and, or_false, false_or,
+  not_false_eq_true, not_true_eq_false`, which drop each branch whose
+  condition is decided. Before, the script's `repeat' split` exhausted the
+  simplifier's step bound on a chain of more than about ten conditions and
+  `omega` failed: a fourteen-rule decision (a state machine's transition
+  table, a policy's rules) could not be proved. A proof the fixed script
+  already closes keeps its proof term and its axioms. The fold-laws example
+  carries a fourteen-condition `band` with theorems on its top and middle
+  bands. The language-1.2 compiler-semantics ID changes. The register is 498
+  IDs.
 
 ## 0.4.3
 
