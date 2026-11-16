@@ -101,9 +101,9 @@ mod heavy {
     /// Intel hosts.
     const HEAVY: [&str; 4] = ["BS-05", "BS-06", "BS-07", "BS-08"];
 
-    /// The memory one of them is planned for: more than a measured pair, so
-    /// a host with less than 20 GiB, the 16 GiB runners whatever their exact
-    /// `MemTotal`, runs one at a time.
+    /// The memory one of them is planned for, chosen so a host with less
+    /// than 20 GiB, the 16 GiB runners whatever their exact `MemTotal`, runs
+    /// one at a time.
     const BUDGET_KIB: u64 = 10 * 1024 * 1024;
 
     static RUNNING: Mutex<usize> = Mutex::new(0);
