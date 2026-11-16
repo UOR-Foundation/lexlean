@@ -2321,6 +2321,16 @@ fn conformance_ka_06() {
 }
 
 #[test]
+fn conformance_ka_07() {
+    repo_conformance::cases::run("KA-07");
+}
+
+#[test]
+fn conformance_ka_08() {
+    repo_conformance::cases::run("KA-08");
+}
+
+#[test]
 fn conformance_sl_09() {
     repo_conformance::cases::run("SL-09");
 }
