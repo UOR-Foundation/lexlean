@@ -630,10 +630,42 @@ impl Gen<'_> {
             .map(|linked| linked.lean_module)
             .collect();
         users.sort_unstable();
+        let users_all: BTreeSet<String> = users.iter().map(|module| (*module).to_owned()).collect();
         imports.extend(users.into_iter().map(str::to_owned));
         let mut writer = Writer::new(self, name);
         writer.write(root_module, root_name, report, &graph)?;
-        writer.finish(imports)
+        let mut data = writer.finish(imports)?;
+        // A certificate imports the user modules whose constants its terms
+        // name, and no other: Lean's imports are transitive, so the modules
+        // those constants are defined from come with them, and a module the
+        // root's closure never reaches is not among what the certificate
+        // reads (§17.17, §22.13).
+        let named: BTreeSet<&str> = data
+            .nodes
+            .iter()
+            .filter_map(|node| match node {
+                crate::ir::core::CoreNode::Const { n, .. } => Some(n.as_str()),
+                _ => None,
+            })
+            .collect();
+        let owner = |constant: &str| -> Option<String> {
+            users_all
+                .iter()
+                .filter(|module| {
+                    constant.len() > module.len()
+                        && constant.starts_with(module.as_str())
+                        && constant.as_bytes()[module.len()] == b'.'
+                })
+                .max_by_key(|module| module.len())
+                .cloned()
+        };
+        let reached: BTreeSet<String> = named
+            .iter()
+            .filter_map(|constant| owner(constant))
+            .collect();
+        data.imports
+            .retain(|import| !users_all.contains(import) || reached.contains(import));
+        Ok(data)
     }
 }
 

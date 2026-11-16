@@ -5141,8 +5141,15 @@ certificate generator, and their shared source reader obey §17.13's exhaustiven
 audit: they name every construct and match none by default.
 
 **Statement.** The certificate of the root `r` with parameters `x₁ … xₙ` is
-the module `LexLeanPreserve.C<first-32-hex-of-semantic-id>.R<i>`, `i` the
-root's position in module then report order, and proves
+the module `LexLeanPreserve.C<hex>.R<i>`, `i` the root's position in module
+then report order and `<hex>` the first 32 hex digits of the SHA-256 of
+`lexlean/certificate-name/1`, NUL, the root's module, NUL, its name, NUL, and
+the bytes of its lowered program (`preserve/program/R<i>.json`): the name is a
+function of what the certificates are about, so a root whose program a change
+of the project leaves as it was keeps its certificates' names. Certificate A
+imports the preservation library and those generated user modules whose
+constants its terms name, and no other (Lean's imports are transitive, so the
+modules those constants are defined from come with them). It proves
 
 ```lean
 theorem root (x₁ … xₙ) :
@@ -9207,6 +9214,7 @@ The profile changes how processes are scheduled and nothing else:
 3. Results are consumed in the canonical order and never in completion order: the members of a frontier in module-declaration order, replays in sorted full module name, audit members in the order of the audit family. The process records, the staged files, the merge of the observed axiom sets, the policy rows, and the attestation body are functions of that order. When several processes fail, the diagnostic reported is the one of the first failing process in that order, which is the diagnostic width 1 reports; no process later in that order than a known failure is started, and every process started is finished before `verify` returns. Width 1 is exactly the sequence the verifier ran before there was a width: a process starts only after the result of the one before it has been consumed, so a failure that only the consumer can see (a missing `.olean`, a staging error) stops the stage before another process starts.
 4. The verifier does not measure the host. A width above 1 is for a host whose memory envelope is known; a width the host cannot hold is a failure of that host's run, never a verification result. The normative job's `examples` leg names its profile (§9.4); every other run uses the default unless its environment selects one, and the conformance cases exercise widths above 1 on small projects.
 5. Hints and the memory budget are schedule inputs, never verdicts. A hint only reorders the start of items inside a stage, and the memory budget only gates a worker from starting an item whose expected peak (plus the expected peaks of the running items) would pass it. An item whose expected peak alone passes the budget runs alone rather than waiting forever: a wrong hint is a wrong schedule, never a fence and never a kill. A process that outgrows its hinted peak runs to completion; the stage measures it for the next hints. Hints change which ready item a worker starts first; results are consumed in the canonical order exactly as at width 1, so a failure reported is still the first failure in that order.
+6. Certificates (§17.17, stage 12) compile as one stage with the preservation environment they import, in the topological frontiers of their import headers, like module elaboration: the certificates A and B of every root import nothing from each other and run together, at most `W` at a time, and a certificate E starts when the A and B it composes have finished. Each certificate's `leanchecker` replay runs in the slot of its compilation, right after it. The records are listed in the stage's canonical order (the environment's compilations, then each certificate's compilation and replay, in certificate order) whatever order the processes ran in. The label of a certificate's processes, for the hints, is its module name without its `C<hex>` segment, so a root's measured cost schedules its next certificates.
 
 For every project, the directory published at any profile equals, byte for byte, the directory published at width 1 without hints and without a budget, on the same host and toolchain; in particular the attestation ID, the observed axiom sets, the policy rows, the canonical compiler input, and every normalized verification record (§29.5) are identical.
 
@@ -9217,6 +9225,14 @@ A verification may also run as the parts of one run (§9.4): each part runs the 
 Wall time, resident-set and swap measurements, scheduling and completion order, and the host's memory and processor count depend on the host. `lexlean verify` records them only when the environment variable `LEXLEAN_CI_TELEMETRY` names a directory, as JSON lines appended to `verify-telemetry.jsonl` in it: one line for the start of a verification, one for each stage, each frontier of module elaboration, and each process (with the peak resident set and swap of the process and what it started, where the host exposes them), and one for the end. `cargo xtask verify-examples` appends one line per example to `examples-telemetry.jsonl` of the same directory, and the conformance runner one line per case, with its wall time, to `cases-telemetry.jsonl`. The directory is CI evidence, `ci-evidence/` in CI (§9.4).
 
 Telemetry is write-only: no stage reads it, no ID or verified artifact contains any of it, and a failure to write it changes no result. Every key it uses is in a closed vocabulary (`wall_ms`, `started_unix_ms`, `peak_rss_kib`, `peak_swap_kib`, `mem_total_kib`, `mem_available_kib`, `swap_total_kib`, `swap_used_kib`, `host_cpus`, `process_width`, `completion_seq`), and a JSON key of that vocabulary anywhere in a verified directory fails the gate: `cargo xtask verify-examples` checks every example's verified directory for one.
+
+### 22.13 Process store
+
+A verification process is a function of what it reads, so the verifier may take a process another run on the same host already established instead of running it again. The store is selected only by the environment variable `LEXLEAN_VERIFY_STORE`, the path of a directory; an unset or empty variable selects none. Like the resource profile (§22.11) it is operational: it is no field of `lexlean.toml`, the lock, a request, or the command line, no artifact records it, it enters no ID, and the directory a verification publishes with a store equals, byte for byte, the one it publishes without.
+
+The content identity of a staged Lean module is the SHA-256 of the domain `lexlean/verify-store/1`, its name, the digest of its staged text, and, for each module its import header names (the `import` commands before its first other command, with their `public`, `private`, `meta` and `all` modifiers), that module's name and content identity; a module the stage does not hold (the toolchain's `Init`, `Lean`, `Std`) is identified by its name, which the toolchain digest fixes. The key of one process is the SHA-256 of the domain, its tool, the digest of its executable, the content identity of the module (or, for an audit member, of its source) it is about, and its normalized argument vector (§22.7). The elaborations (§22.3), the replays (§22.4), the audit members (§22.5), and the compilations and replays of the preservation environment and the certificates (§17.17) go through the store.
+
+Only a process that exited 0 is stored, with its normalized record and every file it wrote beside its `.olean` (the companions of that file's stem). A stored process is used only when its record names this run's digest of the executable and every stored file has the digest it was stored with; its files are restored to where the process writes them and its record is judged as the stage judges its own (§22.3 to §22.6), so a stored process that a stage would refuse is refused. Anything else, an unreadable or partial entry included, is a miss and the process runs. A failure to store is dropped, since the store never decides a result. Telemetry (§22.12) reports a stored process as a `reused` event of its stage.
 
 ---
 
@@ -9238,7 +9254,7 @@ Global options:
 --help
 ```
 
-No environment variable changes semantic configuration. Four operational variables exist and change no output: `LEXLEAN_VERIFY_WIDTH` selects the verification process width, `LEXLEAN_VERIFY_HINTS` names the scheduling-hints file and `LEXLEAN_VERIFY_MEMORY_KIB` the process memory budget (§22.11), and `LEXLEAN_CI_TELEMETRY` names the directory that receives performance telemetry (§22.12).
+No environment variable changes semantic configuration. Five operational variables exist and change no output: `LEXLEAN_VERIFY_WIDTH` selects the verification process width, `LEXLEAN_VERIFY_HINTS` names the scheduling-hints file and `LEXLEAN_VERIFY_MEMORY_KIB` the process memory budget (§22.11), `LEXLEAN_CI_TELEMETRY` names the directory that receives performance telemetry (§22.12), and `LEXLEAN_VERIFY_STORE` names the process store (§22.13).
 
 ### 23.2 Project discovery
 
