@@ -2481,6 +2481,51 @@ pub(crate) fn run(id: &str) {
                     "§9.4: {workflow} runs on a push to `main` and to a release line"
                 );
             }
+            // §9.4: the forward merge runs on every push to a release line,
+            // superseded by a newer one, and hands its merge to the
+            // regeneration on the forward branch, whose `deliver` commits there.
+            let forward = root_file(".github/workflows/forward.yml");
+            for needed in [
+                "  push:\n    branches: [\"release/**\"]\n",
+                "      group: forward-${{ inputs.line || github.ref_name }}\n      cancel-in-progress: true\n",
+                "  workflow_call:\n",
+                "run: .github/scripts/forward-merge.sh",
+                "uses: ./.github/workflows/regenerate.yml",
+                "ref: ${{ needs.merge.outputs.commit }}",
+                "branch: ${{ needs.merge.outputs.branch }}",
+            ] {
+                assert!(forward.contains(needed), "§9.4: forward.yml has `{needed}`");
+            }
+            let merge = root_file(".github/scripts/forward-merge.sh");
+            // An authored writer input is never taken from one side unread.
+            for forbidden in [
+                "tests/production-export/* ",
+                "tests/production-export/*)",
+                "tests/stack-bounds.json)",
+            ] {
+                assert!(
+                    !merge.contains(forbidden),
+                    "§9.4: forward-merge.sh takes no side of an authored input: `{forbidden}`"
+                );
+            }
+            for needed in [
+                "git merge --quiet --no-ff --no-commit",
+                "cargo xtask spec port",
+                "--register",
+                "--draft",
+                "compare/$next...$branch",
+                "tests/production-export/*/packages/*)",
+                "Regenerate the written outputs of",
+                "superseded=()",
+                // The delete of a superseded branch is leased to the head
+                // inspected, and its pull request closes only after it.
+                "--force-with-lease=\"refs/heads/$ref:$sha\" origin \":refs/heads/$ref\"",
+            ] {
+                assert!(
+                    merge.contains(needed),
+                    "§9.4: forward-merge.sh has `{needed}`"
+                );
+            }
             for forbidden in [
                 "actions/cache",
                 "paths:",

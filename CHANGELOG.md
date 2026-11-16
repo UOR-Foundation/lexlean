@@ -17,6 +17,15 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- Each push to a release line is merged forward by `forward.yml` (SPEC.md §9.4, `RP-14`):
+  the push is merged into the next line on `forward/vXY-to-vX(Y+1)-<head8>`, a conflict in a
+  generated projection or a lock takes the next line's side for `regenerate.yml` to rewrite,
+  SPEC.md and register changes of a line without `spec/` are carried into the next line's
+  modules by `cargo xtask spec port --register`, and any other conflict opens the pull
+  request as a draft naming its paths, an authored writer input such as an export's
+  `roots.json` among them. A newer push closes an older forward pull request only when its
+  branch holds nothing but the workflow's merge and regeneration, and only once the new one
+  is open; one with work finished by hand stays open and is linked.
 - CI runs the macOS AArch64 host's tests in lanes, as it does Windows' (SPEC.md §8.3): five lanes on `macos-15`,
   the four conformance lanes of `.github/intel-host-lanes.json` and the `producer` lane, joined on
   `ubuntu-24.04` under the unchanged context `build and non-Lean tests (aarch64-apple-darwin)`,
