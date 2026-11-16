@@ -879,6 +879,7 @@ dependencies = [
  "uor-foundation",
  "uor-foundation-sdk",
  "uor-prism",
+ "uor-prism-tensor",
 ]
 
 [[package]]

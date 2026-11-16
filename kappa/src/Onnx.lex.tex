@@ -1,0 +1,673 @@
+\begin{lexlean}{Onnx}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{LexLeanStd.Text}
+\importmodule{Label}
+\importmodule{Json}
+\importmodule{Axis}
+\importmodule{Gguf}
+\title{Natural number addition}
+\begin{semanticmodule}
+structure{
+  name: Field,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: number, type: Nat},
+    {name: wire, type: Nat},
+    {name: value, type: Nat},
+    {name: payload, type: Bytes}
+  ]
+}
+
+structure{
+  name: Varint,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: position, type: Nat},
+    {name: value, type: Nat},
+    {name: shift, type: Nat},
+    {name: scale, type: Nat},
+    {name: ok, type: Bool},
+    {name: done, type: Bool}
+  ]
+}
+
+structure{
+  name: Scan,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: position, type: Nat},
+    {name: ok, type: Bool},
+    {name: done, type: Bool},
+    {name: fields, type: (List Field)}
+  ]
+}
+
+structure{
+  name: Decoded,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: position, type: Nat}, {name: ok, type: Bool}, {name: values, type: (List Nat)}]
+}
+
+structure{
+  name: Frame,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: fields, type: (List Field)}, {name: acc, type: Bytes}, {name: depth, type: Nat}]
+}
+
+structure{
+  name: Digesting,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: stack, type: (List Frame)}, {name: result, type: Bytes}, {name: done, type: Bool}]
+}
+
+structure{
+  name: Task,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: graph, type: Bool}, {name: body, type: Bytes}, {name: depth, type: Nat}]
+}
+
+structure{
+  name: Machine,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: ok, type: Bool}, {name: out, type: Bytes}, {name: tasks, type: (List Task)}]
+}
+
+structure{
+  name: Node,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: index, type: Nat},
+    {name: body, type: Bytes},
+    {name: key, type: Bytes},
+    {name: inputs, type: (List Bytes)},
+    {name: outputs, type: (List Bytes)}
+  ]
+}
+
+structure{
+  name: Kahn,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: ok, type: Bool},
+    {name: emitted, type: (List Nat)},
+    {name: order, type: (List Node)}
+  ]
+}
+
+structure{
+  name: Choice,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: found, type: Bool}, {name: best, type: Node}]
+}
+
+structure{
+  name: FieldPlacing,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: done, type: Bool}, {name: acc, type: (List Field)}]
+}
+
+definition{
+  name: varintStep,
+  parameters: [subject : Bytes, state : Varint],
+  result: (Option Varint),
+  body: (if (project state done) then (ctor Option.none [Varint]) else (let position : Nat := (project state position); (if (((prim length subject : Nat) <=? position) || (70 <=? (project state shift))) then (ctor Option.some [Varint] (record Varint {position := position, value := 0, shift := 0, scale := 1, ok := false, done := true})) else (let byte : Nat := (Label::byteNat subject position); (let low : Nat := (prim remainder byte 128 0 : Nat); (let term : Nat := (if ((project state shift) =? 63) then (prim multiply (prim remainder low 2 0 : Nat) (project state scale) : Nat) else (prim multiply low (project state scale) : Nat)); (ctor Option.some [Varint] (record Varint {position := (position + 1), value := ((project state value) + term), shift := ((project state shift) + 7), scale := (if ((project state shift) <? 63) then (prim multiply (project state scale) 128 : Nat) else (project state scale)), ok := true, done := (byte <? 128)})))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: varint,
+  parameters: [subject : Bytes, position : Nat],
+  result: (Bool * (Nat * Nat)),
+  body: (let state : Varint := (first (prim iterate_until (fun [subject] (state : Varint) => (varintStep subject state)) 12 (record Varint {position := position, value := 0, shift := 0, scale := 1, ok := true, done := false}) : (Varint * Bool))); (((project state ok) && (project state done)), ((project state value), (project state position)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: failScan,
+  parameters: [state : Scan],
+  result: (Option Scan),
+  body: (ctor Option.some [Scan] (record Scan {position := (project state position), ok := false, done := true, fields := (nil Field)})),
+  executable: true
+}
+
+definition{
+  name: pushField,
+  parameters: [
+    state : Scan,
+    stop : Nat,
+    number : Nat,
+    wire : Nat,
+    value : Nat,
+    payload : Bytes,
+    next : Nat
+  ],
+  result: (Option Scan),
+  body: (ctor Option.some [Scan] (record Scan {position := next, ok := true, done := (number =? stop), fields := (cons (record Field {number := number, wire := wire, value := value, payload := payload}) (project state fields))})),
+  executable: true
+}
+
+definition{
+  name: fieldValue,
+  parameters: [subject : Bytes, stop : Nat, state : Scan, number : Nat, wire : Nat, at : Nat],
+  result: (Option Scan),
+  body: (if (wire =? 0) then (let read : (Bool * (Nat * Nat)) := (varint subject at); (if (first read) then (pushField state stop number 0 (first (second read)) 0x (second (second read))) else (failScan state))) else (if (wire =? 1) then (if (Gguf::fits subject at 8) then (pushField state stop number 1 (Gguf::readLe subject at 8) 0x (at + 8)) else (failScan state)) else (if (wire =? 5) then (if (Gguf::fits subject at 4) then (pushField state stop number 5 (Gguf::readLe subject at 4) 0x (at + 4)) else (failScan state)) else (if (wire =? 2) then (let read : (Bool * (Nat * Nat)) := (varint subject at); (let size : Nat := (first (second read)); (let start : Nat := (second (second read)); (if ((first read) && (Gguf::fits subject start size)) then (pushField state stop number 2 0 (LexLeanStd.Text::sliceOr subject start size) (start + size)) else (failScan state))))) else (failScan state))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: scanStep,
+  parameters: [subject : Bytes, stop : Nat, state : Scan],
+  result: (Option Scan),
+  body: (if ((project state done) || ((prim length subject : Nat) <=? (project state position))) then (ctor Option.none [Scan]) else (let read : (Bool * (Nat * Nat)) := (varint subject (project state position)); (let tag : Nat := (first (second read)); (let number : Nat := (prim quotient tag 8 0 : Nat); (if ((first read) && (0 <? number)) then (fieldValue subject stop state number (prim remainder tag 8 0 : Nat) (second (second read))) else (failScan state)))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: scan,
+  parameters: [subject : Bytes, stop : Nat],
+  result: Scan,
+  body: (first (prim iterate_until (fun [stop, subject] (state : Scan) => (scanStep subject stop state)) ((prim length subject : Nat) + 2) (record Scan {position := 0, ok := true, done := false, fields := (nil Field)}) : (Scan * Bool))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: reverseFields,
+  parameters: [items : (List Field)],
+  result: (List Field),
+  body: (prim list_fold (fun (reversed : (List Field)) (item : Field) => (cons item reversed)) (nil Field) items : (List Field)),
+  executable: true
+}
+
+definition{
+  name: parsed,
+  parameters: [subject : Bytes],
+  result: (Bool * (List Field)),
+  body: (let state : Scan := (scan subject 0); ((project state ok), (reverseFields (project state fields)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: emptyField,
+  parameters: [],
+  result: Field,
+  body: (record Field {number := 0, wire := 0, value := 0, payload := 0x}),
+  executable: true
+}
+
+definition{
+  name: firstIn,
+  parameters: [fields : (List Field), number : Nat],
+  result: Field,
+  body: (prim list_fold (fun [number] (found : Field) (item : Field) => (if (0 <? (project found number)) then found else (if ((project item number) =? number) then item else found))) (emptyField) fields : Field),
+  executable: true
+}
+
+definition{
+  name: bytesOf,
+  parameters: [field : Field],
+  result: Bytes,
+  body: (if ((project field wire) =? 2) then (project field payload) else 0x),
+  executable: true
+}
+
+definition{
+  name: varintOf,
+  parameters: [field : Field],
+  result: Nat,
+  body: (if ((0 <? (project field number)) && ((project field wire) =? 0)) then (project field value) else 0),
+  executable: true
+}
+
+definition{
+  name: hasVarint,
+  parameters: [field : Field],
+  result: Bool,
+  body: ((0 <? (project field number)) && ((project field wire) =? 0)),
+  executable: true
+}
+
+definition{
+  name: firstScanned,
+  parameters: [subject : Bytes, number : Nat],
+  result: (Bool * Field),
+  body: (let state : Scan := (scan subject number); (if (project state ok) then (match (project state fields)
+    | List.cons last rest => (true, (if ((project last number) =? number) then last else (emptyField)))
+    | List.nil => (true, (emptyField))) else (false, (emptyField)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: spansOf,
+  parameters: [fields : (List Field), number : Nat],
+  result: (List Bytes),
+  body: (prim list_fold (fun [number] (out : (List Bytes)) (item : Field) => (if (((project item number) =? number) && ((project item wire) =? 2)) then (cons (project item payload) out) else out)) (nil Bytes) (reverseFields fields) : (List Bytes)),
+  executable: true
+}
+
+definition{
+  name: countOf,
+  parameters: [fields : (List Field), number : Nat],
+  result: Nat,
+  body: (prim list_fold (fun [number] (count : Nat) (item : Field) => (if ((project item number) =? number) then (count + 1) else count)) 0 fields : Nat),
+  executable: true
+}
+
+definition{
+  name: digestEach,
+  parameters: [items : (List Bytes)],
+  result: Bytes,
+  body: (prim list_fold (fun (out : Bytes) (item : Bytes) => (prim append out (Gguf::digest item) : Bytes)) 0x items : Bytes),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: escaped,
+  parameters: [subject : Bytes],
+  result: Bytes,
+  body: (prim append (second (prim iterate (fun [subject] (state : (Nat * Bytes)) => (((first state) + 1), (prim append (second state) (prim append 0x01 (Json::byteOf (Label::byteNat subject (first state))) : Bytes) : Bytes))) (prim length subject : Nat) (0, 0x) : (Nat * Bytes))) 0x00 : Bytes),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: writeBe,
+  parameters: [value : Nat],
+  result: Bytes,
+  body: (second (prim iterate (fun (state : (Nat * Bytes)) => ((prim quotient (first state) 256 0 : Nat), (prim append (Json::byteOf (prim remainder (first state) 256 0 : Nat)) (second state) : Bytes))) 8 (value, 0x) : (Nat * Bytes))),
+  executable: true
+}
+
+definition{
+  name: decodeStep,
+  parameters: [payload : Bytes, state : Decoded],
+  result: (Option Decoded),
+  body: (if ((project state ok) && ((project state position) <? (prim length payload : Nat))) then (let read : (Bool * (Nat * Nat)) := (varint payload (project state position)); (if (first read) then (ctor Option.some [Decoded] (record Decoded {position := (second (second read)), ok := true, values := (cons (first (second read)) (project state values))})) else (ctor Option.some [Decoded] (record Decoded {position := 0, ok := false, values := (nil Nat)})))) else (ctor Option.none [Decoded])),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: decodeAll,
+  parameters: [payload : Bytes],
+  result: (Bool * (List Nat)),
+  body: (let state : Decoded := (first (prim iterate_until (fun [payload] (state : Decoded) => (decodeStep payload state)) ((prim length payload : Nat) + 1) (record Decoded {position := 0, ok := true, values := (nil Nat)}) : (Decoded * Bool))); ((project state ok), (project state values))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: packed,
+  parameters: [fields : (List Field), number : Nat],
+  result: (Bool * (List Nat)),
+  body: (let state : (Bool * (List Nat)) := (prim list_fold (fun [number] (state : (Bool * (List Nat))) (item : Field) => (if ((project item number) =? number) then (if ((project item wire) =? 2) then (let decoded : (Bool * (List Nat)) := (decodeAll (project item payload)); (((first state) && (first decoded)), (prim list_fold (fun (acc : (List Nat)) (value : Nat) => (cons value acc)) (second state) (prim list_fold (fun (acc : (List Nat)) (value : Nat) => (cons value acc)) (nil Nat) (second decoded) : (List Nat)) : (List Nat)))) else (if ((project item wire) =? 0) then ((first state), (cons (project item value) (second state))) else state)) else state)) (true, (nil Nat)) fields : (Bool * (List Nat))); ((first state), (prim list_fold (fun (acc : (List Nat)) (value : Nat) => (cons value acc)) (nil Nat) (second state) : (List Nat)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: countNats,
+  parameters: [values : (List Nat)],
+  result: Nat,
+  body: (prim list_fold (fun (count : Nat) (value : Nat) => (count + 1)) 0 values : Nat),
+  executable: true
+}
+
+definition{
+  name: wideEach,
+  parameters: [values : (List Nat), width : Nat],
+  result: Bytes,
+  body: (prim list_fold (fun [width] (out : Bytes) (value : Nat) => (prim append out (Gguf::writeLe value width) : Bytes)) 0x values : Bytes),
+  executable: true
+}
+
+definition{
+  name: sortedBy,
+  parameters: [items : (List Bytes), keys : (List Bytes)],
+  result: (List Bytes),
+  body: (let paired : (List (Bytes * Bytes)) := (second (prim list_fold (fun (state : ((List Bytes) * (List (Bytes * Bytes)))) (item : Bytes) => (match (first state)
+    | List.cons key rest => (rest, (Gguf::placeEntry key item (second state)))
+    | List.nil => ((nil Bytes), (Gguf::placeEntry 0x item (second state))))) (keys, (nil (Bytes * Bytes))) items : ((List Bytes) * (List (Bytes * Bytes))))); (prim list_fold (fun (out : (List Bytes)) (entry : (Bytes * Bytes)) => (cons (second entry) out)) (nil Bytes) (Gguf::reversePairs paired) : (List Bytes))),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: scannedKeys,
+  parameters: [items : (List Bytes), number : Nat],
+  result: (List Bytes),
+  body: (prim list_fold (fun [number] (out : (List Bytes)) (item : Bytes) => (cons (bytesOf (second (firstScanned item number))) out)) (nil Bytes) (prim list_fold (fun (out : (List Bytes)) (item : Bytes) => (cons item out)) (nil Bytes) items : (List Bytes)) : (List Bytes)),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: lengthOf,
+  parameters: [items : (List Bytes)],
+  result: Nat,
+  body: (prim list_fold (fun (count : Nat) (item : Bytes) => (count + 1)) 0 items : Nat),
+  executable: true
+}
+
+definition{
+  name: pairDigests,
+  parameters: [body : Bytes, number : Nat],
+  result: (Bool * Bytes),
+  body: (let all : (Bool * (List Field)) := (parsed body); (let entries : (List Bytes) := (spansOf (second all) number); (prim list_fold (fun (state : (Bool * Bytes)) (entry : Bytes) => (let key : (Bool * Field) := (firstScanned entry 1); (let value : (Bool * Field) := (firstScanned entry 2); (((first state) && ((first key) && (first value))), (prim append (second state) (prim append (Gguf::digest (bytesOf (second key))) (Gguf::digest (bytesOf (second value))) : Bytes) : Bytes))))) ((first all), (Gguf::writeLe (lengthOf entries) 4)) (sortedBy entries (scannedKeys entries 1)) : (Bool * Bytes)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: placeField,
+  parameters: [field : Field, items : (List Field)],
+  result: (List Field),
+  body: (let state : FieldPlacing := (prim list_fold (fun [field] (state : FieldPlacing) (item : Field) => (if (project state done) then (record FieldPlacing {done := true, acc := (cons item (project state acc))}) else (if ((project field number) <? (project item number)) then (record FieldPlacing {done := true, acc := (cons item (cons field (project state acc)))}) else (record FieldPlacing {done := false, acc := (cons item (project state acc))})))) (record FieldPlacing {done := false, acc := (nil Field)}) items : FieldPlacing); (if (project state done) then (reverseFields (project state acc)) else (reverseFields (cons field (project state acc))))),
+  executable: true
+}
+
+definition{
+  name: byNumber,
+  parameters: [fields : (List Field)],
+  result: (List Field),
+  body: (prim list_fold (fun (sorted : (List Field)) (item : Field) => (placeField item sorted)) (nil Field) fields : (List Field)),
+  executable: true
+}
+
+definition{
+  name: fieldHead,
+  parameters: [field : Field],
+  result: Bytes,
+  body: (let wire : Nat := (project field wire); (prim append (Gguf::writeLe (project field number) 8) (prim append (Json::byteOf wire) (if ((wire =? 0) || (wire =? 1)) then (Gguf::writeLe (project field value) 8) else (if (wire =? 5) then (Gguf::writeLe (project field value) 4) else 0x)) : Bytes) : Bytes)),
+  executable: true
+}
+
+definition{
+  name: absorb,
+  parameters: [stack : (List Frame), digest : Bytes],
+  result: Digesting,
+  body: (match stack
+    | List.nil => (record Digesting {stack := (nil Frame), result := digest, done := true})
+    | List.cons parent rest => (record Digesting {stack := (cons (record Frame {fields := (project parent fields), acc := (prim append (project parent acc) digest : Bytes), depth := (project parent depth)}) rest), result := 0x, done := false})),
+  executable: true
+}
+
+definition{
+  name: digestStep,
+  parameters: [state : Digesting],
+  result: (Option Digesting),
+  body: (if (project state done) then (ctor Option.none [Digesting]) else (match (project state stack)
+    | List.nil => (ctor Option.none [Digesting])
+    | List.cons top rest => (match (project top fields)
+      | List.nil => (ctor Option.some [Digesting] (absorb rest (Gguf::digest (project top acc))))
+      | List.cons field later => (let acc : Bytes := (prim append (project top acc) (fieldHead field) : Bytes); (let depth : Nat := (project top depth); (let payload : Bytes := (project field payload); (let inner : (Bool * (List Field)) := (parsed payload); (let nested : Bool := ((((project field wire) =? 2) && (depth <? 32)) && ((0 <? (prim length payload : Nat)) && (first inner))); (if nested then (ctor Option.some [Digesting] (record Digesting {stack := (cons (record Frame {fields := (byNumber (second inner)), acc := 0x, depth := (depth + 1)}) (cons (record Frame {fields := later, acc := acc, depth := depth}) rest)), result := 0x, done := false})) else (ctor Option.some [Digesting] (record Digesting {stack := (cons (record Frame {fields := later, acc := (if ((project field wire) =? 2) then (prim append acc (Gguf::digest payload) : Bytes) else acc), depth := depth}) rest), result := 0x, done := false}))))))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: protoDigest,
+  parameters: [body : Bytes],
+  result: (Bool * Bytes),
+  body: (let all : (Bool * (List Field)) := (parsed body); (let state : Digesting := (first (prim iterate_until (fun (state : Digesting) => (digestStep state)) ((prim multiply (prim length body : Nat) 40 : Nat) + 8) (record Digesting {stack := (cons (record Frame {fields := (byNumber (second all)), acc := 0x, depth := 0}) (nil Frame)), result := 0x, done := false}) : (Digesting * Bool))); (((first all) && (project state done)), (project state result)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: dataKind,
+  parameters: [kind : Nat],
+  result: (Nat * Nat),
+  body: (if ((kind =? 1) || (kind =? 14)) then (4, 0) else (if ((kind =? 11) || (kind =? 15)) then (10, 0) else (if (kind =? 7) then (7, 8) else (if (kind =? 13) then (11, 8) else (if (kind =? 12) then (11, 4) else (if (kind =? 6) then (5, 4) else (if ((kind =? 4) || ((kind =? 5) || ((kind =? 10) || (kind =? 16)))) then (5, 2) else (if (kind =? 8) then (6, 0) else (5, 1))))))))),
+  executable: true
+}
+
+definition{
+  name: fixedPayload,
+  parameters: [fields : (List Field), number : Nat],
+  result: Bytes,
+  body: (prim list_fold (fun [number] (out : Bytes) (item : Field) => (if ((project item number) =? number) then (if ((project item wire) =? 2) then (prim append out (project item payload) : Bytes) else (if ((project item wire) =? 5) then (prim append out (Gguf::writeLe (project item value) 4) : Bytes) else (if ((project item wire) =? 1) then (prim append out (Gguf::writeLe (project item value) 8) : Bytes) else out))) else out)) 0x fields : Bytes),
+  executable: true
+}
+
+definition{
+  name: dataDigest,
+  parameters: [body : Bytes, fields : (List Field), kind : Nat],
+  result: (Bool * Bytes),
+  body: (if ((varintOf (firstIn fields 14)) =? 1) then (let pairs : (Bool * Bytes) := (pairDigests body 13); ((first pairs), (Gguf::digest (prim append (Label::text "onnx:external-data:v1") (second pairs) : Bytes)))) else (let raw : Field := (firstIn fields 9); (if (((project raw wire) =? 2) && (0 <? (prim length (project raw payload) : Nat))) then (true, (Gguf::digest (project raw payload))) else (let layout : (Nat * Nat) := (dataKind kind); (if ((second layout) =? 0) then (if (kind =? 8) then (true, (Gguf::digest (digestEach (spansOf fields 6)))) else (true, (Gguf::digest (fixedPayload fields (first layout))))) else (let values : (Bool * (List Nat)) := (packed fields (first layout)); ((first values), (Gguf::digest (wideEach (second values) (second layout)))))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: tensorBytes,
+  parameters: [body : Bytes],
+  result: (Bool * Bytes),
+  body: (let all : (Bool * (List Field)) := (parsed body); (let fields : (List Field) := (second all); (let kind : Nat := (prim remainder (varintOf (firstIn fields 2)) 4294967296 0 : Nat); (let dims : (Bool * (List Nat)) := (packed fields 1); (let data : (Bool * Bytes) := (dataDigest body fields kind); ((((first all) && ((0 <? kind) && (kind <? 24))) && ((first dims) && (first data))), (prim append (Gguf::digest (bytesOf (firstIn fields 8))) (prim append (Gguf::writeLe kind 4) (prim append (Gguf::writeLe (countNats (second dims)) 4) (prim append (wideEach (second dims) 8) (second data) : Bytes) : Bytes) : Bytes) : Bytes))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: joinEach,
+  parameters: [items : (List Bytes), number : Nat],
+  result: (Bool * Bytes),
+  body: (prim list_fold (fun [number] (state : (Bool * Bytes)) (item : Bytes) => (let piece : (Bool * Bytes) := (if (number =? 0) then (tensorBytes item) else (protoDigest item)); (((first state) && (first piece)), (prim append (second state) (second piece) : Bytes)))) (true, 0x) items : (Bool * Bytes)),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: tensorSection,
+  parameters: [fields : (List Field)],
+  result: (Bool * Bytes),
+  body: (let tensors : (List Bytes) := (spansOf fields 5); (let joined : (Bool * Bytes) := (joinEach (sortedBy tensors (scannedKeys tensors 8)) 0); ((first joined), (prim append (Gguf::writeLe (lengthOf tensors) 4) (second joined) : Bytes)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: valueInfos,
+  parameters: [fields : (List Field), number : Nat],
+  result: (Bool * Bytes),
+  body: (let infos : (List Bytes) := (spansOf fields number); (prim list_fold (fun (state : (Bool * Bytes)) (info : Bytes) => (let name : (Bool * Field) := (firstScanned info 1); (let shape : (Bool * Field) := (firstScanned info 2); (let typed : (Bool * Bytes) := (protoDigest (bytesOf (second shape))); (((first state) && ((first name) && ((first shape) && (first typed)))), (prim append (second state) (prim append (Gguf::digest (bytesOf (second name))) (second typed) : Bytes) : Bytes)))))) (true, (Gguf::writeLe (lengthOf infos) 4)) (sortedBy infos (scannedKeys infos 1)) : (Bool * Bytes))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: fixedFloats,
+  parameters: [fields : (List Field)],
+  result: Bytes,
+  body: (prim list_fold (fun (out : Bytes) (item : Field) => (if ((project item number) =? 7) then (if ((project item wire) =? 2) then (prim append out (Gguf::digest (project item payload)) : Bytes) else (if ((project item wire) =? 5) then (prim append out (Gguf::writeLe (project item value) 4) : Bytes) else out)) else out)) 0x fields : Bytes),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: attributeValue,
+  parameters: [attribute : Bytes, kind : Nat],
+  result: (Bool * Bytes),
+  body: (let all : (Bool * (List Field)) := (parsed attribute); (let fields : (List Field) := (second all); (if (kind =? 1) then (let found : (Bool * Field) := (firstScanned attribute 2); ((first found), (if ((project (second found) wire) =? 5) then (Gguf::writeLe (project (second found) value) 4) else 0x))) else (if (kind =? 2) then (let found : (Bool * Field) := (firstScanned attribute 3); ((first found), (Gguf::writeLe (varintOf (second found)) 8))) else (if (kind =? 3) then (let found : (Bool * Field) := (firstScanned attribute 4); ((first found), (Gguf::digest (bytesOf (second found))))) else (if (kind =? 4) then (let found : (Bool * Field) := (firstScanned attribute 5); (let tensor : (Bool * Bytes) := (tensorBytes (bytesOf (second found))); (((first found) && (first tensor)), (second tensor)))) else (if (kind =? 6) then ((first all), (fixedFloats fields)) else (if (kind =? 7) then (let values : (Bool * (List Nat)) := (packed fields 8); (((first all) && (first values)), (wideEach (second values) 8))) else (if (kind =? 8) then ((first all), (digestEach (spansOf fields 9))) else (if (kind =? 9) then (let joined : (Bool * Bytes) := (joinEach (spansOf fields 10) 0); (((first all) && (first joined)), (second joined))) else (if (kind =? 11) then (let found : (Bool * Field) := (firstScanned attribute 22); (let digest : (Bool * Bytes) := (protoDigest (bytesOf (second found))); (((first found) && (first digest)), (second digest)))) else (if (kind =? 12) then (let joined : (Bool * Bytes) := (joinEach (spansOf fields 23) 1); (((first all) && (first joined)), (second joined))) else (if (kind =? 13) then (let found : (Bool * Field) := (firstScanned attribute 14); (let digest : (Bool * Bytes) := (protoDigest (bytesOf (second found))); (((first found) && (first digest)), (second digest)))) else (if (kind =? 14) then (let joined : (Bool * Bytes) := (joinEach (spansOf fields 15) 1); (((first all) && (first joined)), (second joined))) else (true, 0x))))))))))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: literal,
+  parameters: [body : Bytes],
+  result: Task,
+  body: (record Task {graph := false, body := body, depth := 0}),
+  executable: true
+}
+
+definition{
+  name: reverseTasks,
+  parameters: [items : (List Task)],
+  result: (List Task),
+  body: (prim list_fold (fun (reversed : (List Task)) (item : Task) => (cons item reversed)) (nil Task) items : (List Task)),
+  executable: true
+}
+
+definition{
+  name: attributeTasks,
+  parameters: [attribute : Bytes, depth : Nat],
+  result: (Bool * (List Task)),
+  body: (let name : (Bool * Field) := (firstScanned attribute 1); (let typed : (Bool * Field) := (firstScanned attribute 20); (let kind : Nat := (prim remainder (varintOf (second typed)) 4294967296 0 : Nat); (let head : Task := (literal (prim append (Gguf::digest (bytesOf (second name))) (Gguf::writeLe kind 4) : Bytes)); (let okHead : Bool := ((first name) && (first typed)); (if (kind =? 5) then (let found : (Bool * Field) := (firstScanned attribute 6); ((okHead && (first found)), (cons (record Task {graph := true, body := (bytesOf (second found)), depth := (depth + 1)}) (cons head (nil Task))))) else (if (kind =? 10) then (let all : (Bool * (List Field)) := (parsed attribute); ((okHead && (first all)), (prim list_fold (fun [depth] (out : (List Task)) (graph : Bytes) => (cons (record Task {graph := true, body := graph, depth := (depth + 1)}) out)) (cons head (nil Task)) (spansOf (second all) 11) : (List Task)))) else (let value : (Bool * Bytes) := (attributeValue attribute kind); ((okHead && (first value)), (cons (literal (second value)) (cons head (nil Task)))))))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: nodeTasks,
+  parameters: [node : Node, depth : Nat],
+  result: (Bool * (List Task)),
+  body: (let fields : (List Field) := (second (parsed (project node body))); (let attributes : (List Bytes) := (spansOf fields 5); (let head : Bytes := (prim append (Gguf::digest (bytesOf (firstIn fields 3))) (prim append (Gguf::digest (bytesOf (firstIn fields 4))) (prim append (Gguf::digest (bytesOf (firstIn fields 7))) (prim append (Gguf::digest (bytesOf (firstIn fields 8))) (prim append (Gguf::writeLe (countOf fields 1) 4) (prim append (digestEach (spansOf fields 1)) (prim append (Gguf::writeLe (countOf fields 2) 4) (prim append (digestEach (spansOf fields 2)) (Gguf::writeLe (lengthOf attributes) 4) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes); (prim list_fold (fun [depth] (state : (Bool * (List Task))) (attribute : Bytes) => (let tasks : (Bool * (List Task)) := (attributeTasks attribute depth); (((first state) && (first tasks)), (prim list_fold (fun (out : (List Task)) (task : Task) => (cons task out)) (second state) (reverseTasks (second tasks)) : (List Task))))) (true, (cons (literal head) (nil Task))) (sortedBy attributes (scannedKeys attributes 1)) : (Bool * (List Task)))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: containsBytes,
+  parameters: [items : (List Bytes), wanted : Bytes],
+  result: Bool,
+  body: (prim list_fold (fun [wanted] (found : Bool) (item : Bytes) => (found || (prim equal item wanted : Bool))) false items : Bool),
+  executable: true
+}
+
+definition{
+  name: containsNat,
+  parameters: [items : (List Nat), wanted : Nat],
+  result: Bool,
+  body: (prim list_fold (fun [wanted] (found : Bool) (item : Nat) => (found || (item =? wanted))) false items : Bool),
+  executable: true
+}
+
+definition{
+  name: isReady,
+  parameters: [nodes : (List Node), emitted : (List Nat), node : Node],
+  result: Bool,
+  body: (prim list_fold (fun [emitted, nodes] (ready : Bool) (input : Bytes) => (if (0 <? (prim length input : Nat)) then (prim list_fold (fun [emitted, input] (still : Bool) (producer : Node) => (if ((containsBytes (project producer outputs) input) && (if (containsNat emitted (project producer index)) then false else true)) then false else still)) ready nodes : Bool) else ready)) true (project node inputs) : Bool),
+  executable: true
+}
+
+definition{
+  name: kahnStep,
+  parameters: [nodes : (List Node), state : Kahn],
+  result: Kahn,
+  body: (if (project state ok) then (let choice : Choice := (prim list_fold (fun [nodes, state] (choice : Choice) (node : Node) => (if ((containsNat (project state emitted) (project node index)) || (if (isReady nodes (project state emitted) node) then false else true)) then choice else (if (project choice found) then (if (Json::lessKey (project (project choice best) key) (project node key)) then choice else (record Choice {found := true, best := node})) else (record Choice {found := true, best := node})))) (record Choice {found := false, best := (record Node {index := 0, body := 0x, key := 0x, inputs := (nil Bytes), outputs := (nil Bytes)})}) nodes : Choice); (if (project choice found) then (record Kahn {ok := true, emitted := (cons (project (project choice best) index) (project state emitted)), order := (cons (project choice best) (project state order))}) else (record Kahn {ok := false, emitted := (nil Nat), order := (nil Node)}))) else state),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: nodeOf,
+  parameters: [index : Nat, body : Bytes],
+  result: (Bool * Node),
+  body: (let all : (Bool * (List Field)) := (parsed body); (let fields : (List Field) := (second all); ((first all), (record Node {index := index, body := body, key := (prim append (escaped (bytesOf (firstIn fields 3))) (prim append (escaped (bytesOf (firstIn fields 4))) (escaped (bytesOf (firstIn fields 7))) : Bytes) : Bytes), inputs := (spansOf fields 1), outputs := (spansOf fields 2)})))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: reverseNodes,
+  parameters: [items : (List Node)],
+  result: (List Node),
+  body: (prim list_fold (fun (reversed : (List Node)) (item : Node) => (cons item reversed)) (nil Node) items : (List Node)),
+  executable: true
+}
+
+definition{
+  name: graphTasks,
+  parameters: [graph : Bytes, depth : Nat],
+  result: (Bool * (List Task)),
+  body: (let all : (Bool * (List Field)) := (parsed graph); (let fields : (List Field) := (second all); (let bodies : (List Bytes) := (spansOf fields 1); (let read : (Nat * (Bool * (List Node))) := (prim list_fold (fun (state : (Nat * (Bool * (List Node)))) (body : Bytes) => (let node : (Bool * Node) := (nodeOf (first state) body); (((first state) + 1), (((first (second state)) && (first node)), (cons (second node) (second (second state))))))) (0, (true, (nil Node))) bodies : (Nat * (Bool * (List Node)))); (let nodes : (List Node) := (reverseNodes (second (second read))); (let ordering : Kahn := (prim iterate (fun [nodes] (state : Kahn) => (kahnStep nodes state)) (first read) (record Kahn {ok := true, emitted := (nil Nat), order := (nil Node)}) : Kahn); (let tensors : (Bool * Bytes) := (tensorSection fields); (let inputs : (Bool * Bytes) := (valueInfos fields 11); (let outputs : (Bool * Bytes) := (valueInfos fields 12); (let infos : (Bool * Bytes) := (valueInfos fields 13); (let tail : Task := (literal (prim append (second tensors) (prim append (second inputs) (prim append (second outputs) (second infos) : Bytes) : Bytes) : Bytes)); (let emitted : (Bool * (List Task)) := (prim list_fold (fun [depth] (state : (Bool * (List Task))) (node : Node) => (let tasks : (Bool * (List Task)) := (nodeTasks node depth); (((first state) && (first tasks)), (prim list_fold (fun (out : (List Task)) (task : Task) => (cons task out)) (second state) (reverseTasks (second tasks)) : (List Task))))) (true, (cons (literal (prim append (Gguf::digest (bytesOf (firstIn fields 2))) (Gguf::writeLe (first read) 4) : Bytes)) (nil Task))) (reverseNodes (project ordering order)) : (Bool * (List Task))); ((((depth <=? 64) && (first all)) && (((first (second read)) && (project ordering ok)) && ((first emitted) && ((first tensors) && ((first inputs) && ((first outputs) && (first infos))))))), (reverseTasks (cons tail (second emitted)))))))))))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: machineStep,
+  parameters: [state : Machine],
+  result: (Option Machine),
+  body: (if (project state ok) then (match (project state tasks)
+    | List.nil => (ctor Option.none [Machine])
+    | List.cons task rest => (if (project task graph) then (let expanded : (Bool * (List Task)) := (graphTasks (project task body) (project task depth)); (if (first expanded) then (ctor Option.some [Machine] (record Machine {ok := true, out := (project state out), tasks := (prim list_fold (fun (out : (List Task)) (item : Task) => (cons item out)) rest (reverseTasks (second expanded)) : (List Task))})) else (ctor Option.some [Machine] (record Machine {ok := false, out := 0x, tasks := (nil Task)})))) else (ctor Option.some [Machine] (record Machine {ok := true, out := (prim append (project state out) (project task body) : Bytes), tasks := rest})))) else (ctor Option.none [Machine])),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: graphBytes,
+  parameters: [graph : Bytes],
+  result: (Bool * Bytes),
+  body: (let state : Machine := (first (prim iterate_until (fun (state : Machine) => (machineStep state)) ((prim multiply (prim length graph : Nat) 8 : Nat) + 16) (record Machine {ok := true, out := 0x, tasks := (cons (record Task {graph := true, body := graph, depth := 0}) (nil Task))}) : (Machine * Bool))); (let finished : Bool := (match (project state tasks)
+    | List.nil => true
+    | List.cons task rest => false); (((project state ok) && finished), (project state out)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: opsetBytes,
+  parameters: [fields : (List Field)],
+  result: (Bool * Bytes),
+  body: (let entries : (List Bytes) := (spansOf fields 8); (let tally : (Bool * Bool) := (prim list_fold (fun (state : (Bool * Bool)) (entry : Bytes) => (let domain : (Bool * Field) := (firstScanned entry 1); (let version : (Bool * Field) := (firstScanned entry 2); (((first state) && ((first domain) && (first version))), ((second state) || (((prim length (bytesOf (second domain)) : Nat) =? 0) && ((0 <? (varintOf (second version))) && ((varintOf (second version)) <=? 9223372036854775807)))))))) (true, false) entries : (Bool * Bool)); (let keys : (List Bytes) := (prim list_fold (fun (out : (List Bytes)) (entry : Bytes) => (cons (prim append (escaped (bytesOf (second (firstScanned entry 1)))) (writeBe (varintOf (second (firstScanned entry 2)))) : Bytes) out)) (nil Bytes) (prim list_fold (fun (out : (List Bytes)) (entry : Bytes) => (cons entry out)) (nil Bytes) entries : (List Bytes)) : (List Bytes)); (((first tally) && ((second tally) || ((lengthOf entries) =? 0))), (prim list_fold (fun (out : Bytes) (entry : Bytes) => (prim append out (prim append (Gguf::digest (bytesOf (second (firstScanned entry 1)))) (Gguf::writeLe (varintOf (second (firstScanned entry 2))) 8) : Bytes) : Bytes)) 0x (sortedBy entries keys) : Bytes))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: canonicalOnnx,
+  parameters: [subject : Bytes],
+  result: (Option Bytes),
+  body: (let all : (Bool * (List Field)) := (parsed subject); (let fields : (List Field) := (second all); (let version : Field := (firstIn fields 1); (let opsets : (Bool * Bytes) := (opsetBytes fields); (let graph : Bytes := (bytesOf (firstIn fields 7)); (let emitted : (Bool * Bytes) := (graphBytes graph); (let pairs : (Bool * Bytes) := (pairDigests subject 14); (if ((((first all) && (hasVarint version)) && (((0 <? (project version value)) && ((project version value) <=? 13)) && (first opsets))) && (((0 <? (prim length graph : Nat)) && (first emitted)) && (first pairs))) then (ctor Option.some [Bytes] (prim append (Gguf::writeLe (project version value) 8) (prim append (second opsets) (prim append (second emitted) (prim append (Gguf::digest (bytesOf (firstIn fields 2))) (prim append (Gguf::digest (bytesOf (firstIn fields 3))) (prim append (Gguf::digest (bytesOf (firstIn fields 4))) (prim append (Gguf::writeLe (varintOf (firstIn fields 5)) 8) (second pairs) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes)) else (ctor Option.none [Bytes]))))))))),
+  axioms: [Quot.sound, propext],
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: onnxLabel,
+  parameters: [subject : Bytes],
+  result: (Option Bytes),
+  body: (match (canonicalOnnx subject)
+    | Option.some canonical => (ctor Option.some [Bytes] (Label::kappaLabel canonical))
+    | Option.none => (ctor Option.none [Bytes])),
+  axioms: [Quot.sound, propext],
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: onnxLabelOn,
+  parameters: [axis : Bytes, subject : Bytes],
+  result: (Option Bytes),
+  body: (match (canonicalOnnx subject)
+    | Option.some canonical => (Axis::labelOn axis canonical)
+    | Option.none => (ctor Option.none [Bytes])),
+  axioms: [Quot.sound, propext],
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+\end{semanticmodule}
+\end{lexlean}

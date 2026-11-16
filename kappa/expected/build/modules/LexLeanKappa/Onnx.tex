@@ -1,0 +1,549 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{Field}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{number}: \texttt{Nat}.\par
+\noindent Field \texttt{wire}: \texttt{Nat}.\par
+\noindent Field \texttt{value}: \texttt{Nat}.\par
+\noindent Field \texttt{payload}: \texttt{ByteArray}.\par
+\subsection*{\texttt{Varint}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{position}: \texttt{Nat}.\par
+\noindent Field \texttt{value}: \texttt{Nat}.\par
+\noindent Field \texttt{shift}: \texttt{Nat}.\par
+\noindent Field \texttt{scale}: \texttt{Nat}.\par
+\noindent Field \texttt{ok}: \texttt{Bool}.\par
+\noindent Field \texttt{done}: \texttt{Bool}.\par
+\subsection*{\texttt{Scan}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{position}: \texttt{Nat}.\par
+\noindent Field \texttt{ok}: \texttt{Bool}.\par
+\noindent Field \texttt{done}: \texttt{Bool}.\par
+\noindent Field \texttt{fields}: \texttt{List (Field)}.\par
+\subsection*{\texttt{Decoded}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{position}: \texttt{Nat}.\par
+\noindent Field \texttt{ok}: \texttt{Bool}.\par
+\noindent Field \texttt{values}: \texttt{List (Nat)}.\par
+\subsection*{\texttt{Frame}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{fields}: \texttt{List (Field)}.\par
+\noindent Field \texttt{acc}: \texttt{ByteArray}.\par
+\noindent Field \texttt{depth}: \texttt{Nat}.\par
+\subsection*{\texttt{Digesting}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{stack}: \texttt{List (Frame)}.\par
+\noindent Field \texttt{result}: \texttt{ByteArray}.\par
+\noindent Field \texttt{done}: \texttt{Bool}.\par
+\subsection*{\texttt{Task}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{graph}: \texttt{Bool}.\par
+\noindent Field \texttt{body}: \texttt{ByteArray}.\par
+\noindent Field \texttt{depth}: \texttt{Nat}.\par
+\subsection*{\texttt{Machine}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{ok}: \texttt{Bool}.\par
+\noindent Field \texttt{out}: \texttt{ByteArray}.\par
+\noindent Field \texttt{tasks}: \texttt{List (Task)}.\par
+\subsection*{\texttt{Node}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{index}: \texttt{Nat}.\par
+\noindent Field \texttt{body}: \texttt{ByteArray}.\par
+\noindent Field \texttt{key}: \texttt{ByteArray}.\par
+\noindent Field \texttt{inputs}: \texttt{List (ByteArray)}.\par
+\noindent Field \texttt{outputs}: \texttt{List (ByteArray)}.\par
+\subsection*{\texttt{Kahn}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{ok}: \texttt{Bool}.\par
+\noindent Field \texttt{emitted}: \texttt{List (Nat)}.\par
+\noindent Field \texttt{order}: \texttt{List (Node)}.\par
+\subsection*{\texttt{Choice}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{found}: \texttt{Bool}.\par
+\noindent Field \texttt{best}: \texttt{Node}.\par
+\subsection*{\texttt{FieldPlacing}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{done}: \texttt{Bool}.\par
+\noindent Field \texttt{acc}: \texttt{List (Field)}.\par
+\subsection*{\texttt{varintStep}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(subject : ByteArray) (state : Varint)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Varint)}.\par
+\noindent Definition: \texttt{(if (state).done then Option.none else (let position : Nat := (state).position; (if ((Nat.ble ((LexLeanRuntime.length (subject) : Nat)) (position)) || (Nat.ble (70) ((state).shift))) then Option.some ((\{ position := position, value := 0, shift := 0, scale := 1, ok := false, done := true \} : Varint)) else (let byte : Nat := LexLeanKappa.Label.byteNat (subject) (position); (let low : Nat := (LexLeanRuntime.remainder (byte) (128) (0) : Nat); (let term : Nat := (if (Nat.beq ((state).shift) (63)) then (LexLeanRuntime.multiply ((LexLeanRuntime.remainder (low) (2) (0) : Nat)) ((state).scale) : Nat) else (LexLeanRuntime.multiply (low) ((state).scale) : Nat)); Option.some ((\{ position := (position + 1), value := ((state).value + term), shift := ((state).shift + 7), scale := (if (Nat.blt ((state).shift) (63)) then (LexLeanRuntime.multiply ((state).scale) (128) : Nat) else (state).scale), ok := true, done := (Nat.blt (byte) (128)) \} : Varint))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{varint}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(subject : ByteArray) (position : Nat)}.\par
+\noindent Closure 1: binds \texttt{(state)}, captures \texttt{(subject)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) ((Prod (Nat) (Nat))))}.\par
+\noindent Definition: \texttt{(let state : Varint := ((LexLeanCollections.iterateUntil ((fun (state : Varint) => varintStep (subject) (state))) (12) ((\{ position := position, value := 0, shift := 0, scale := 1, ok := true, done := false \} : Varint)) : (Prod (Varint) (Bool)))).1; (((state).ok \&\& (state).done), ((state).value, (state).position)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{failScan}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : Scan)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Scan)}.\par
+\noindent Definition: \texttt{Option.some ((\{ position := (state).position, ok := false, done := true, fields := ([] : List (Field)) \} : Scan))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{pushField}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : Scan) (stop : Nat) (number : Nat) (wire : Nat) (value : Nat) (payload : ByteArray) (next : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Scan)}.\par
+\noindent Definition: \texttt{Option.some ((\{ position := next, ok := true, done := (Nat.beq (number) (stop)), fields := ((\{ number := number, wire := wire, value := value, payload := payload \} : Field) :: (state).fields) \} : Scan))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{fieldValue}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(subject : ByteArray) (stop : Nat) (state : Scan) (number : Nat) (wire : Nat) (<U+00AB>at<U+00BB> : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Scan)}.\par
+\noindent Definition: \texttt{(if (Nat.beq (wire) (0)) then (let read : (Prod (Bool) ((Prod (Nat) (Nat)))) := varint (subject) (<U+00AB>at<U+00BB>); (if (read).1 then pushField (state) (stop) (number) (0) (((read).2).1) (ByteArray.mk \#[]) (((read).2).2) else failScan (state))) else (if (Nat.beq (wire) (1)) then (if LexLeanKappa.Gguf.fits (subject) (<U+00AB>at<U+00BB>) (8) then pushField (state) (stop) (number) (1) (LexLeanKappa.Gguf.readLe (subject) (<U+00AB>at<U+00BB>) (8)) (ByteArray.mk \#[]) ((<U+00AB>at<U+00BB> + 8)) else failScan (state)) else (if (Nat.beq (wire) (5)) then (if LexLeanKappa.Gguf.fits (subject) (<U+00AB>at<U+00BB>) (4) then pushField (state) (stop) (number) (5) (LexLeanKappa.Gguf.readLe (subject) (<U+00AB>at<U+00BB>) (4)) (ByteArray.mk \#[]) ((<U+00AB>at<U+00BB> + 4)) else failScan (state)) else (if (Nat.beq (wire) (2)) then (let read : (Prod (Bool) ((Prod (Nat) (Nat)))) := varint (subject) (<U+00AB>at<U+00BB>); (let size : Nat := ((read).2).1; (let start : Nat := ((read).2).2; (if ((read).1 \&\& LexLeanKappa.Gguf.fits (subject) (start) (size)) then pushField (state) (stop) (number) (2) (0) (LexLeanStd.Text.sliceOr (subject) (start) (size)) ((start + size)) else failScan (state))))) else failScan (state)))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{scanStep}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(subject : ByteArray) (stop : Nat) (state : Scan)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Scan)}.\par
+\noindent Definition: \texttt{(if ((state).done || (Nat.ble ((LexLeanRuntime.length (subject) : Nat)) ((state).position))) then Option.none else (let read : (Prod (Bool) ((Prod (Nat) (Nat)))) := varint (subject) ((state).position); (let tag : Nat := ((read).2).1; (let number : Nat := (LexLeanRuntime.quotient (tag) (8) (0) : Nat); (if ((read).1 \&\& (Nat.blt (0) (number))) then fieldValue (subject) (stop) (state) (number) ((LexLeanRuntime.remainder (tag) (8) (0) : Nat)) (((read).2).2) else failScan (state))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{scan}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(subject : ByteArray) (stop : Nat)}.\par
+\noindent Closure 1: binds \texttt{(state)}, captures \texttt{(stop, subject)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Scan}.\par
+\noindent Definition: \texttt{((LexLeanCollections.iterateUntil ((fun (state : Scan) => scanStep (subject) (stop) (state))) (((LexLeanRuntime.length (subject) : Nat) + 2)) ((\{ position := 0, ok := true, done := false, fields := ([] : List (Field)) \} : Scan)) : (Prod (Scan) (Bool)))).1}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{reverseFields}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (Field))}.\par
+\noindent Closure 1: binds \texttt{(reversed, item)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Field)}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (reversed : List (Field)) (item : Field) => (item :: reversed))) (([] : List (Field))) (items) : List (Field))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{parsed}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(subject : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (List (Field)))}.\par
+\noindent Definition: \texttt{(let state : Scan := scan (subject) (0); ((state).ok, reverseFields ((state).fields)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{emptyField}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Field}.\par
+\noindent Definition: \texttt{(\{ number := 0, wire := 0, value := 0, payload := ByteArray.mk \#[] \} : Field)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{firstIn}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(fields : List (Field)) (number : Nat)}.\par
+\noindent Closure 1: binds \texttt{(found, item)}, captures \texttt{(number)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Field}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (found : Field) (item : Field) => (if (Nat.blt (0) ((found).number)) then found else (if (Nat.beq ((item).number) (number)) then item else found)))) (emptyField) (fields) : Field)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{bytesOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(field : Field)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(if (Nat.beq ((field).wire) (2)) then (field).payload else ByteArray.mk \#[])}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{varintOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(field : Field)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(if ((Nat.blt (0) ((field).number)) \&\& (Nat.beq ((field).wire) (0))) then (field).value else 0)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{hasVarint}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(field : Field)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((Nat.blt (0) ((field).number)) \&\& (Nat.beq ((field).wire) (0)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{firstScanned}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(subject : ByteArray) (number : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (Field))}.\par
+\noindent Definition: \texttt{(let state : Scan := scan (subject) (number); (if (state).ok then (match (state).fields with | List.cons last \_ => (true, (if (Nat.beq ((last).number) (number)) then last else emptyField)) | List.nil => (true, emptyField)) else (false, emptyField)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{spansOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(fields : List (Field)) (number : Nat)}.\par
+\noindent Closure 1: binds \texttt{(out, item)}, captures \texttt{(number)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (ByteArray)}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (out : List (ByteArray)) (item : Field) => (if ((Nat.beq ((item).number) (number)) \&\& (Nat.beq ((item).wire) (2))) then ((item).payload :: out) else out))) (([] : List (ByteArray))) (reverseFields (fields)) : List (ByteArray))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{countOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(fields : List (Field)) (number : Nat)}.\par
+\noindent Closure 1: binds \texttt{(count, item)}, captures \texttt{(number)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (count : Nat) (item : Field) => (if (Nat.beq ((item).number) (number)) then (count + 1) else count))) (0) (fields) : Nat)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{digestEach}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (ByteArray))}.\par
+\noindent Closure 1: binds \texttt{(out, item)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (out : ByteArray) (item : ByteArray) => (LexLeanRuntime.append (out) (LexLeanKappa.Gguf.digest (item)) : ByteArray))) (ByteArray.mk \#[]) (items) : ByteArray)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{escaped}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(subject : ByteArray)}.\par
+\noindent Closure 1: binds \texttt{(state)}, captures \texttt{(subject)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(LexLeanRuntime.append (((LexLeanCollections.iterate ((fun (state : (Prod (Nat) (ByteArray))) => (((state).1 + 1), (LexLeanRuntime.append ((state).2) ((LexLeanRuntime.append (ByteArray.mk \#[1]) (LexLeanKappa.Json.byteOf (LexLeanKappa.Label.byteNat (subject) ((state).1))) : ByteArray)) : ByteArray)))) ((LexLeanRuntime.length (subject) : Nat)) ((0, ByteArray.mk \#[])) : (Prod (Nat) (ByteArray)))).2) (ByteArray.mk \#[0]) : ByteArray)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{writeBe}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(value : Nat)}.\par
+\noindent Closure 1: binds \texttt{(state)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{((LexLeanCollections.iterate ((fun (state : (Prod (Nat) (ByteArray))) => ((LexLeanRuntime.quotient ((state).1) (256) (0) : Nat), (LexLeanRuntime.append (LexLeanKappa.Json.byteOf ((LexLeanRuntime.remainder ((state).1) (256) (0) : Nat))) ((state).2) : ByteArray)))) (8) ((value, ByteArray.mk \#[])) : (Prod (Nat) (ByteArray)))).2}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{decodeStep}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(payload : ByteArray) (state : Decoded)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Decoded)}.\par
+\noindent Definition: \texttt{(if ((state).ok \&\& (Nat.blt ((state).position) ((LexLeanRuntime.length (payload) : Nat)))) then (let read : (Prod (Bool) ((Prod (Nat) (Nat)))) := varint (payload) ((state).position); (if (read).1 then Option.some ((\{ position := ((read).2).2, ok := true, values := (((read).2).1 :: (state).values) \} : Decoded)) else Option.some ((\{ position := 0, ok := false, values := ([] : List (Nat)) \} : Decoded)))) else Option.none)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{decodeAll}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(payload : ByteArray)}.\par
+\noindent Closure 1: binds \texttt{(state)}, captures \texttt{(payload)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (List (Nat)))}.\par
+\noindent Definition: \texttt{(let state : Decoded := ((LexLeanCollections.iterateUntil ((fun (state : Decoded) => decodeStep (payload) (state))) (((LexLeanRuntime.length (payload) : Nat) + 1)) ((\{ position := 0, ok := true, values := ([] : List (Nat)) \} : Decoded)) : (Prod (Decoded) (Bool)))).1; ((state).ok, (state).values))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{packed}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(fields : List (Field)) (number : Nat)}.\par
+\noindent Closure 1: binds \texttt{(state, item)}, captures \texttt{(number)}.\par
+\noindent Closure 2: binds \texttt{(acc, value)}, captures \texttt{()}.\par
+\noindent Closure 3: binds \texttt{(acc, value)}, captures \texttt{()}.\par
+\noindent Closure 4: binds \texttt{(acc, value)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (List (Nat)))}.\par
+\noindent Definition: \texttt{(let state : (Prod (Bool) (List (Nat))) := (LexLeanCollections.listFold ((fun (state : (Prod (Bool) (List (Nat)))) (item : Field) => (if (Nat.beq ((item).number) (number)) then (if (Nat.beq ((item).wire) (2)) then (let decoded : (Prod (Bool) (List (Nat))) := decodeAll ((item).payload); (((state).1 \&\& (decoded).1), (LexLeanCollections.listFold ((fun (acc : List (Nat)) (value : Nat) => (value :: acc))) ((state).2) ((LexLeanCollections.listFold ((fun (acc : List (Nat)) (value : Nat) => (value :: acc))) (([] : List (Nat))) ((decoded).2) : List (Nat))) : List (Nat)))) else (if (Nat.beq ((item).wire) (0)) then ((state).1, ((item).value :: (state).2)) else state)) else state))) ((true, ([] : List (Nat)))) (fields) : (Prod (Bool) (List (Nat)))); ((state).1, (LexLeanCollections.listFold ((fun (acc : List (Nat)) (value : Nat) => (value :: acc))) (([] : List (Nat))) ((state).2) : List (Nat))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{countNats}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(values : List (Nat))}.\par
+\noindent Closure 1: binds \texttt{(count, value)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (count : Nat) (\_value : Nat) => (count + 1))) (0) (values) : Nat)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{wideEach}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(values : List (Nat)) (width : Nat)}.\par
+\noindent Closure 1: binds \texttt{(out, value)}, captures \texttt{(width)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (out : ByteArray) (value : Nat) => (LexLeanRuntime.append (out) (LexLeanKappa.Gguf.writeLe (value) (width)) : ByteArray))) (ByteArray.mk \#[]) (values) : ByteArray)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{sortedBy}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (ByteArray)) (keys : List (ByteArray))}.\par
+\noindent Closure 1: binds \texttt{(state, item)}, captures \texttt{()}.\par
+\noindent Closure 2: binds \texttt{(out, entry)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (ByteArray)}.\par
+\noindent Definition: \texttt{(let paired : List ((Prod (ByteArray) (ByteArray))) := ((LexLeanCollections.listFold ((fun (state : (Prod (List (ByteArray)) (List ((Prod (ByteArray) (ByteArray)))))) (item : ByteArray) => (match (state).1 with | List.cons key rest => (rest, LexLeanKappa.Gguf.placeEntry (key) (item) ((state).2)) | List.nil => (([] : List (ByteArray)), LexLeanKappa.Gguf.placeEntry (ByteArray.mk \#[]) (item) ((state).2))))) ((keys, ([] : List ((Prod (ByteArray) (ByteArray)))))) (items) : (Prod (List (ByteArray)) (List ((Prod (ByteArray) (ByteArray))))))).2; (LexLeanCollections.listFold ((fun (out : List (ByteArray)) (entry : (Prod (ByteArray) (ByteArray))) => ((entry).2 :: out))) (([] : List (ByteArray))) (LexLeanKappa.Gguf.reversePairs (paired)) : List (ByteArray)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{scannedKeys}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (ByteArray)) (number : Nat)}.\par
+\noindent Closure 1: binds \texttt{(out, item)}, captures \texttt{(number)}.\par
+\noindent Closure 2: binds \texttt{(out, item)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (ByteArray)}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (out : List (ByteArray)) (item : ByteArray) => (bytesOf ((firstScanned (item) (number)).2) :: out))) (([] : List (ByteArray))) ((LexLeanCollections.listFold ((fun (out : List (ByteArray)) (item : ByteArray) => (item :: out))) (([] : List (ByteArray))) (items) : List (ByteArray))) : List (ByteArray))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{lengthOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (ByteArray))}.\par
+\noindent Closure 1: binds \texttt{(count, item)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (count : Nat) (\_item : ByteArray) => (count + 1))) (0) (items) : Nat)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{pairDigests}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(body : ByteArray) (number : Nat)}.\par
+\noindent Closure 1: binds \texttt{(state, entry)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (ByteArray))}.\par
+\noindent Definition: \texttt{(let all : (Prod (Bool) (List (Field))) := parsed (body); (let entries : List (ByteArray) := spansOf ((all).2) (number); (LexLeanCollections.listFold ((fun (state : (Prod (Bool) (ByteArray))) (entry : ByteArray) => (let key : (Prod (Bool) (Field)) := firstScanned (entry) (1); (let value : (Prod (Bool) (Field)) := firstScanned (entry) (2); (((state).1 \&\& ((key).1 \&\& (value).1)), (LexLeanRuntime.append ((state).2) ((LexLeanRuntime.append (LexLeanKappa.Gguf.digest (bytesOf ((key).2))) (LexLeanKappa.Gguf.digest (bytesOf ((value).2))) : ByteArray)) : ByteArray)))))) (((all).1, LexLeanKappa.Gguf.writeLe (lengthOf (entries)) (4))) (sortedBy (entries) (scannedKeys (entries) (1))) : (Prod (Bool) (ByteArray)))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{placeField}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(field : Field) (items : List (Field))}.\par
+\noindent Closure 1: binds \texttt{(state, item)}, captures \texttt{(field)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Field)}.\par
+\noindent Definition: \texttt{(let state : FieldPlacing := (LexLeanCollections.listFold ((fun (state : FieldPlacing) (item : Field) => (if (state).done then (\{ done := true, acc := (item :: (state).acc) \} : FieldPlacing) else (if (Nat.blt ((field).number) ((item).number)) then (\{ done := true, acc := (item :: (field :: (state).acc)) \} : FieldPlacing) else (\{ done := false, acc := (item :: (state).acc) \} : FieldPlacing))))) ((\{ done := false, acc := ([] : List (Field)) \} : FieldPlacing)) (items) : FieldPlacing); (if (state).done then reverseFields ((state).acc) else reverseFields ((field :: (state).acc))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{byNumber}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(fields : List (Field))}.\par
+\noindent Closure 1: binds \texttt{(sorted, item)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Field)}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (sorted : List (Field)) (item : Field) => placeField (item) (sorted))) (([] : List (Field))) (fields) : List (Field))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{fieldHead}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(field : Field)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(let wire : Nat := (field).wire; (LexLeanRuntime.append (LexLeanKappa.Gguf.writeLe ((field).number) (8)) ((LexLeanRuntime.append (LexLeanKappa.Json.byteOf (wire)) ((if ((Nat.beq (wire) (0)) || (Nat.beq (wire) (1))) then LexLeanKappa.Gguf.writeLe ((field).value) (8) else (if (Nat.beq (wire) (5)) then LexLeanKappa.Gguf.writeLe ((field).value) (4) else ByteArray.mk \#[]))) : ByteArray)) : ByteArray))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{absorb}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(stack : List (Frame)) (digest : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Digesting}.\par
+\noindent Definition: \texttt{(match stack with | List.nil => (\{ stack := ([] : List (Frame)), result := digest, done := true \} : Digesting) | List.cons parent rest => (\{ stack := ((\{ fields := (parent).fields, acc := (LexLeanRuntime.append ((parent).acc) (digest) : ByteArray), depth := (parent).depth \} : Frame) :: rest), result := ByteArray.mk \#[], done := false \} : Digesting))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{digestStep}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : Digesting)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Digesting)}.\par
+\noindent Definition: \texttt{(if (state).done then Option.none else (match (state).stack with | List.nil => Option.none | List.cons top rest => (match (top).fields with | List.nil => Option.some (absorb (rest) (LexLeanKappa.Gguf.digest ((top).acc))) | List.cons field later => (let acc : ByteArray := (LexLeanRuntime.append ((top).acc) (fieldHead (field)) : ByteArray); (let depth : Nat := (top).depth; (let payload : ByteArray := (field).payload; (let inner : (Prod (Bool) (List (Field))) := parsed (payload); (let nested : Bool := (((Nat.beq ((field).wire) (2)) \&\& (Nat.blt (depth) (32))) \&\& ((Nat.blt (0) ((LexLeanRuntime.length (payload) : Nat))) \&\& (inner).1)); (if nested then Option.some ((\{ stack := ((\{ fields := byNumber ((inner).2), acc := ByteArray.mk \#[], depth := (depth + 1) \} : Frame) :: ((\{ fields := later, acc := acc, depth := depth \} : Frame) :: rest)), result := ByteArray.mk \#[], done := false \} : Digesting)) else Option.some ((\{ stack := ((\{ fields := later, acc := (if (Nat.beq ((field).wire) (2)) then (LexLeanRuntime.append (acc) (LexLeanKappa.Gguf.digest (payload)) : ByteArray) else acc), depth := depth \} : Frame) :: rest), result := ByteArray.mk \#[], done := false \} : Digesting)))))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{protoDigest}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(body : ByteArray)}.\par
+\noindent Closure 1: binds \texttt{(state)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (ByteArray))}.\par
+\noindent Definition: \texttt{(let all : (Prod (Bool) (List (Field))) := parsed (body); (let state : Digesting := ((LexLeanCollections.iterateUntil ((fun (state : Digesting) => digestStep (state))) (((LexLeanRuntime.multiply ((LexLeanRuntime.length (body) : Nat)) (40) : Nat) + 8)) ((\{ stack := ((\{ fields := byNumber ((all).2), acc := ByteArray.mk \#[], depth := 0 \} : Frame) :: ([] : List (Frame))), result := ByteArray.mk \#[], done := false \} : Digesting)) : (Prod (Digesting) (Bool)))).1; (((all).1 \&\& (state).done), (state).result)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{dataKind}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(kind : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Nat) (Nat))}.\par
+\noindent Definition: \texttt{(if ((Nat.beq (kind) (1)) || (Nat.beq (kind) (14))) then (4, 0) else (if ((Nat.beq (kind) (11)) || (Nat.beq (kind) (15))) then (10, 0) else (if (Nat.beq (kind) (7)) then (7, 8) else (if (Nat.beq (kind) (13)) then (11, 8) else (if (Nat.beq (kind) (12)) then (11, 4) else (if (Nat.beq (kind) (6)) then (5, 4) else (if ((Nat.beq (kind) (4)) || ((Nat.beq (kind) (5)) || ((Nat.beq (kind) (10)) || (Nat.beq (kind) (16))))) then (5, 2) else (if (Nat.beq (kind) (8)) then (6, 0) else (5, 1)))))))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{fixedPayload}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(fields : List (Field)) (number : Nat)}.\par
+\noindent Closure 1: binds \texttt{(out, item)}, captures \texttt{(number)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (out : ByteArray) (item : Field) => (if (Nat.beq ((item).number) (number)) then (if (Nat.beq ((item).wire) (2)) then (LexLeanRuntime.append (out) ((item).payload) : ByteArray) else (if (Nat.beq ((item).wire) (5)) then (LexLeanRuntime.append (out) (LexLeanKappa.Gguf.writeLe ((item).value) (4)) : ByteArray) else (if (Nat.beq ((item).wire) (1)) then (LexLeanRuntime.append (out) (LexLeanKappa.Gguf.writeLe ((item).value) (8)) : ByteArray) else out))) else out))) (ByteArray.mk \#[]) (fields) : ByteArray)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{dataDigest}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(body : ByteArray) (fields : List (Field)) (kind : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (ByteArray))}.\par
+\noindent Definition: \texttt{(if (Nat.beq (varintOf (firstIn (fields) (14))) (1)) then (let pairs : (Prod (Bool) (ByteArray)) := pairDigests (body) (13); ((pairs).1, LexLeanKappa.Gguf.digest ((LexLeanRuntime.append (LexLeanKappa.Label.text ("onnx:external-data:v1")) ((pairs).2) : ByteArray)))) else (let raw : Field := firstIn (fields) (9); (if ((Nat.beq ((raw).wire) (2)) \&\& (Nat.blt (0) ((LexLeanRuntime.length ((raw).payload) : Nat)))) then (true, LexLeanKappa.Gguf.digest ((raw).payload)) else (let layout : (Prod (Nat) (Nat)) := dataKind (kind); (if (Nat.beq ((layout).2) (0)) then (if (Nat.beq (kind) (8)) then (true, LexLeanKappa.Gguf.digest (digestEach (spansOf (fields) (6)))) else (true, LexLeanKappa.Gguf.digest (fixedPayload (fields) ((layout).1)))) else (let values : (Prod (Bool) (List (Nat))) := packed (fields) ((layout).1); ((values).1, LexLeanKappa.Gguf.digest (wideEach ((values).2) ((layout).2)))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{tensorBytes}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(body : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (ByteArray))}.\par
+\noindent Definition: \texttt{(let all : (Prod (Bool) (List (Field))) := parsed (body); (let fields : List (Field) := (all).2; (let kind : Nat := (LexLeanRuntime.remainder (varintOf (firstIn (fields) (2))) (4294967296) (0) : Nat); (let dims : (Prod (Bool) (List (Nat))) := packed (fields) (1); (let data : (Prod (Bool) (ByteArray)) := dataDigest (body) (fields) (kind); ((((all).1 \&\& ((Nat.blt (0) (kind)) \&\& (Nat.blt (kind) (24)))) \&\& ((dims).1 \&\& (data).1)), (LexLeanRuntime.append (LexLeanKappa.Gguf.digest (bytesOf (firstIn (fields) (8)))) ((LexLeanRuntime.append (LexLeanKappa.Gguf.writeLe (kind) (4)) ((LexLeanRuntime.append (LexLeanKappa.Gguf.writeLe (countNats ((dims).2)) (4)) ((LexLeanRuntime.append (wideEach ((dims).2) (8)) ((data).2) : ByteArray)) : ByteArray)) : ByteArray)) : ByteArray)))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{joinEach}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (ByteArray)) (number : Nat)}.\par
+\noindent Closure 1: binds \texttt{(state, item)}, captures \texttt{(number)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (ByteArray))}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (state : (Prod (Bool) (ByteArray))) (item : ByteArray) => (let piece : (Prod (Bool) (ByteArray)) := (if (Nat.beq (number) (0)) then tensorBytes (item) else protoDigest (item)); (((state).1 \&\& (piece).1), (LexLeanRuntime.append ((state).2) ((piece).2) : ByteArray))))) ((true, ByteArray.mk \#[])) (items) : (Prod (Bool) (ByteArray)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{tensorSection}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(fields : List (Field))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (ByteArray))}.\par
+\noindent Definition: \texttt{(let tensors : List (ByteArray) := spansOf (fields) (5); (let joined : (Prod (Bool) (ByteArray)) := joinEach (sortedBy (tensors) (scannedKeys (tensors) (8))) (0); ((joined).1, (LexLeanRuntime.append (LexLeanKappa.Gguf.writeLe (lengthOf (tensors)) (4)) ((joined).2) : ByteArray))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{valueInfos}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(fields : List (Field)) (number : Nat)}.\par
+\noindent Closure 1: binds \texttt{(state, info)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (ByteArray))}.\par
+\noindent Definition: \texttt{(let infos : List (ByteArray) := spansOf (fields) (number); (LexLeanCollections.listFold ((fun (state : (Prod (Bool) (ByteArray))) (info : ByteArray) => (let name : (Prod (Bool) (Field)) := firstScanned (info) (1); (let shape : (Prod (Bool) (Field)) := firstScanned (info) (2); (let typed : (Prod (Bool) (ByteArray)) := protoDigest (bytesOf ((shape).2)); (((state).1 \&\& ((name).1 \&\& ((shape).1 \&\& (typed).1))), (LexLeanRuntime.append ((state).2) ((LexLeanRuntime.append (LexLeanKappa.Gguf.digest (bytesOf ((name).2))) ((typed).2) : ByteArray)) : ByteArray))))))) ((true, LexLeanKappa.Gguf.writeLe (lengthOf (infos)) (4))) (sortedBy (infos) (scannedKeys (infos) (1))) : (Prod (Bool) (ByteArray))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{fixedFloats}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(fields : List (Field))}.\par
+\noindent Closure 1: binds \texttt{(out, item)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (out : ByteArray) (item : Field) => (if (Nat.beq ((item).number) (7)) then (if (Nat.beq ((item).wire) (2)) then (LexLeanRuntime.append (out) (LexLeanKappa.Gguf.digest ((item).payload)) : ByteArray) else (if (Nat.beq ((item).wire) (5)) then (LexLeanRuntime.append (out) (LexLeanKappa.Gguf.writeLe ((item).value) (4)) : ByteArray) else out)) else out))) (ByteArray.mk \#[]) (fields) : ByteArray)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{attributeValue}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(<U+00AB>attribute<U+00BB> : ByteArray) (kind : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (ByteArray))}.\par
+\noindent Definition: \texttt{(let all : (Prod (Bool) (List (Field))) := parsed (<U+00AB>attribute<U+00BB>); (let fields : List (Field) := (all).2; (if (Nat.beq (kind) (1)) then (let found : (Prod (Bool) (Field)) := firstScanned (<U+00AB>attribute<U+00BB>) (2); ((found).1, (if (Nat.beq (((found).2).wire) (5)) then LexLeanKappa.Gguf.writeLe (((found).2).value) (4) else ByteArray.mk \#[]))) else (if (Nat.beq (kind) (2)) then (let found : (Prod (Bool) (Field)) := firstScanned (<U+00AB>attribute<U+00BB>) (3); ((found).1, LexLeanKappa.Gguf.writeLe (varintOf ((found).2)) (8))) else (if (Nat.beq (kind) (3)) then (let found : (Prod (Bool) (Field)) := firstScanned (<U+00AB>attribute<U+00BB>) (4); ((found).1, LexLeanKappa.Gguf.digest (bytesOf ((found).2)))) else (if (Nat.beq (kind) (4)) then (let found : (Prod (Bool) (Field)) := firstScanned (<U+00AB>attribute<U+00BB>) (5); (let tensor : (Prod (Bool) (ByteArray)) := tensorBytes (bytesOf ((found).2)); (((found).1 \&\& (tensor).1), (tensor).2))) else (if (Nat.beq (kind) (6)) then ((all).1, fixedFloats (fields)) else (if (Nat.beq (kind) (7)) then (let values : (Prod (Bool) (List (Nat))) := packed (fields) (8); (((all).1 \&\& (values).1), wideEach ((values).2) (8))) else (if (Nat.beq (kind) (8)) then ((all).1, digestEach (spansOf (fields) (9))) else (if (Nat.beq (kind) (9)) then (let joined : (Prod (Bool) (ByteArray)) := joinEach (spansOf (fields) (10)) (0); (((all).1 \&\& (joined).1), (joined).2)) else (if (Nat.beq (kind) (11)) then (let found : (Prod (Bool) (Field)) := firstScanned (<U+00AB>attribute<U+00BB>) (22); (let digest : (Prod (Bool) (ByteArray)) := protoDigest (bytesOf ((found).2)); (((found).1 \&\& (digest).1), (digest).2))) else (if (Nat.beq (kind) (12)) then (let joined : (Prod (Bool) (ByteArray)) := joinEach (spansOf (fields) (23)) (1); (((all).1 \&\& (joined).1), (joined).2)) else (if (Nat.beq (kind) (13)) then (let found : (Prod (Bool) (Field)) := firstScanned (<U+00AB>attribute<U+00BB>) (14); (let digest : (Prod (Bool) (ByteArray)) := protoDigest (bytesOf ((found).2)); (((found).1 \&\& (digest).1), (digest).2))) else (if (Nat.beq (kind) (14)) then (let joined : (Prod (Bool) (ByteArray)) := joinEach (spansOf (fields) (15)) (1); (((all).1 \&\& (joined).1), (joined).2)) else (true, ByteArray.mk \#[])))))))))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{literal}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(body : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Task}.\par
+\noindent Definition: \texttt{(\{ graph := false, body := body, depth := 0 \} : Task)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{reverseTasks}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (Task))}.\par
+\noindent Closure 1: binds \texttt{(reversed, item)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Task)}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (reversed : List (Task)) (item : Task) => (item :: reversed))) (([] : List (Task))) (items) : List (Task))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{attributeTasks}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(<U+00AB>attribute<U+00BB> : ByteArray) (depth : Nat)}.\par
+\noindent Closure 1: binds \texttt{(out, graph)}, captures \texttt{(depth)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (List (Task)))}.\par
+\noindent Definition: \texttt{(let name : (Prod (Bool) (Field)) := firstScanned (<U+00AB>attribute<U+00BB>) (1); (let typed : (Prod (Bool) (Field)) := firstScanned (<U+00AB>attribute<U+00BB>) (20); (let kind : Nat := (LexLeanRuntime.remainder (varintOf ((typed).2)) (4294967296) (0) : Nat); (let head : Task := literal ((LexLeanRuntime.append (LexLeanKappa.Gguf.digest (bytesOf ((name).2))) (LexLeanKappa.Gguf.writeLe (kind) (4)) : ByteArray)); (let okHead : Bool := ((name).1 \&\& (typed).1); (if (Nat.beq (kind) (5)) then (let found : (Prod (Bool) (Field)) := firstScanned (<U+00AB>attribute<U+00BB>) (6); ((okHead \&\& (found).1), ((\{ graph := true, body := bytesOf ((found).2), depth := (depth + 1) \} : Task) :: (head :: ([] : List (Task)))))) else (if (Nat.beq (kind) (10)) then (let all : (Prod (Bool) (List (Field))) := parsed (<U+00AB>attribute<U+00BB>); ((okHead \&\& (all).1), (LexLeanCollections.listFold ((fun (out : List (Task)) (graph : ByteArray) => ((\{ graph := true, body := graph, depth := (depth + 1) \} : Task) :: out))) ((head :: ([] : List (Task)))) (spansOf ((all).2) (11)) : List (Task)))) else (let value : (Prod (Bool) (ByteArray)) := attributeValue (<U+00AB>attribute<U+00BB>) (kind); ((okHead \&\& (value).1), (literal ((value).2) :: (head :: ([] : List (Task)))))))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{nodeTasks}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(node : Node) (depth : Nat)}.\par
+\noindent Closure 1: binds \texttt{(state, attribute)}, captures \texttt{(depth)}.\par
+\noindent Closure 2: binds \texttt{(out, task)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (List (Task)))}.\par
+\noindent Definition: \texttt{(let fields : List (Field) := (parsed ((node).body)).2; (let attributes : List (ByteArray) := spansOf (fields) (5); (let head : ByteArray := (LexLeanRuntime.append (LexLeanKappa.Gguf.digest (bytesOf (firstIn (fields) (3)))) ((LexLeanRuntime.append (LexLeanKappa.Gguf.digest (bytesOf (firstIn (fields) (4)))) ((LexLeanRuntime.append (LexLeanKappa.Gguf.digest (bytesOf (firstIn (fields) (7)))) ((LexLeanRuntime.append (LexLeanKappa.Gguf.digest (bytesOf (firstIn (fields) (8)))) ((LexLeanRuntime.append (LexLeanKappa.Gguf.writeLe (countOf (fields) (1)) (4)) ((LexLeanRuntime.append (digestEach (spansOf (fields) (1))) ((LexLeanRuntime.append (LexLeanKappa.Gguf.writeLe (countOf (fields) (2)) (4)) ((LexLeanRuntime.append (digestEach (spansOf (fields) (2))) (LexLeanKappa.Gguf.writeLe (lengthOf (attributes)) (4)) : ByteArray)) : ByteArray)) : ByteArray)) : ByteArray)) : ByteArray)) : ByteArray)) : ByteArray)) : ByteArray); (LexLeanCollections.listFold ((fun (state : (Prod (Bool) (List (Task)))) (<U+00AB>attribute<U+00BB> : ByteArray) => (let tasks : (Prod (Bool) (List (Task))) := attributeTasks (<U+00AB>attribute<U+00BB>) (depth); (((state).1 \&\& (tasks).1), (LexLeanCollections.listFold ((fun (out : List (Task)) (task : Task) => (task :: out))) ((state).2) (reverseTasks ((tasks).2)) : List (Task)))))) ((true, (literal (head) :: ([] : List (Task))))) (sortedBy (attributes) (scannedKeys (attributes) (1))) : (Prod (Bool) (List (Task)))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{containsBytes}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (ByteArray)) (wanted : ByteArray)}.\par
+\noindent Closure 1: binds \texttt{(found, item)}, captures \texttt{(wanted)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (found : Bool) (item : ByteArray) => (found || (LexLeanRuntime.equal (item) (wanted) : Bool)))) (false) (items) : Bool)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{containsNat}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (Nat)) (wanted : Nat)}.\par
+\noindent Closure 1: binds \texttt{(found, item)}, captures \texttt{(wanted)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (found : Bool) (item : Nat) => (found || (Nat.beq (item) (wanted))))) (false) (items) : Bool)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isReady}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(nodes : List (Node)) (emitted : List (Nat)) (node : Node)}.\par
+\noindent Closure 1: binds \texttt{(ready, input)}, captures \texttt{(emitted, nodes)}.\par
+\noindent Closure 2: binds \texttt{(still, producer)}, captures \texttt{(emitted, input)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (ready : Bool) (input : ByteArray) => (if (Nat.blt (0) ((LexLeanRuntime.length (input) : Nat))) then (LexLeanCollections.listFold ((fun (still : Bool) (producer : Node) => (if (containsBytes ((producer).outputs) (input) \&\& (if containsNat (emitted) ((producer).index) then false else true)) then false else still))) (ready) (nodes) : Bool) else ready))) (true) ((node).inputs) : Bool)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{kahnStep}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(nodes : List (Node)) (state : Kahn)}.\par
+\noindent Closure 1: binds \texttt{(choice, node)}, captures \texttt{(nodes, state)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Kahn}.\par
+\noindent Definition: \texttt{(if (state).ok then (let choice : Choice := (LexLeanCollections.listFold ((fun (choice : Choice) (node : Node) => (if (containsNat ((state).emitted) ((node).index) || (if isReady (nodes) ((state).emitted) (node) then false else true)) then choice else (if (choice).found then (if LexLeanKappa.Json.lessKey (((choice).best).key) ((node).key) then choice else (\{ found := true, best := node \} : Choice)) else (\{ found := true, best := node \} : Choice))))) ((\{ found := false, best := (\{ index := 0, body := ByteArray.mk \#[], key := ByteArray.mk \#[], inputs := ([] : List (ByteArray)), outputs := ([] : List (ByteArray)) \} : Node) \} : Choice)) (nodes) : Choice); (if (choice).found then (\{ ok := true, emitted := (((choice).best).index :: (state).emitted), order := ((choice).best :: (state).order) \} : Kahn) else (\{ ok := false, emitted := ([] : List (Nat)), order := ([] : List (Node)) \} : Kahn))) else state)}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{nodeOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(index : Nat) (body : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (Node))}.\par
+\noindent Definition: \texttt{(let all : (Prod (Bool) (List (Field))) := parsed (body); (let fields : List (Field) := (all).2; ((all).1, (\{ index := index, body := body, key := (LexLeanRuntime.append (escaped (bytesOf (firstIn (fields) (3)))) ((LexLeanRuntime.append (escaped (bytesOf (firstIn (fields) (4)))) (escaped (bytesOf (firstIn (fields) (7)))) : ByteArray)) : ByteArray), inputs := spansOf (fields) (1), outputs := spansOf (fields) (2) \} : Node))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{reverseNodes}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (Node))}.\par
+\noindent Closure 1: binds \texttt{(reversed, item)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Node)}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (reversed : List (Node)) (item : Node) => (item :: reversed))) (([] : List (Node))) (items) : List (Node))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{graphTasks}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(graph : ByteArray) (depth : Nat)}.\par
+\noindent Closure 1: binds \texttt{(state, body)}, captures \texttt{()}.\par
+\noindent Closure 2: binds \texttt{(state)}, captures \texttt{(nodes)}.\par
+\noindent Closure 3: binds \texttt{(state, node)}, captures \texttt{(depth)}.\par
+\noindent Closure 4: binds \texttt{(out, task)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (List (Task)))}.\par
+\noindent Definition: \texttt{(let all : (Prod (Bool) (List (Field))) := parsed (graph); (let fields : List (Field) := (all).2; (let bodies : List (ByteArray) := spansOf (fields) (1); (let read : (Prod (Nat) ((Prod (Bool) (List (Node))))) := (LexLeanCollections.listFold ((fun (state : (Prod (Nat) ((Prod (Bool) (List (Node)))))) (body : ByteArray) => (let node : (Prod (Bool) (Node)) := nodeOf ((state).1) (body); (((state).1 + 1), ((((state).2).1 \&\& (node).1), ((node).2 :: ((state).2).2)))))) ((0, (true, ([] : List (Node))))) (bodies) : (Prod (Nat) ((Prod (Bool) (List (Node)))))); (let nodes : List (Node) := reverseNodes (((read).2).2); (let ordering : Kahn := (LexLeanCollections.iterate ((fun (state : Kahn) => kahnStep (nodes) (state))) ((read).1) ((\{ ok := true, emitted := ([] : List (Nat)), order := ([] : List (Node)) \} : Kahn)) : Kahn); (let tensors : (Prod (Bool) (ByteArray)) := tensorSection (fields); (let inputs : (Prod (Bool) (ByteArray)) := valueInfos (fields) (11); (let outputs : (Prod (Bool) (ByteArray)) := valueInfos (fields) (12); (let infos : (Prod (Bool) (ByteArray)) := valueInfos (fields) (13); (let tail : Task := literal ((LexLeanRuntime.append ((tensors).2) ((LexLeanRuntime.append ((inputs).2) ((LexLeanRuntime.append ((outputs).2) ((infos).2) : ByteArray)) : ByteArray)) : ByteArray)); (let emitted : (Prod (Bool) (List (Task))) := (LexLeanCollections.listFold ((fun (state : (Prod (Bool) (List (Task)))) (node : Node) => (let tasks : (Prod (Bool) (List (Task))) := nodeTasks (node) (depth); (((state).1 \&\& (tasks).1), (LexLeanCollections.listFold ((fun (out : List (Task)) (task : Task) => (task :: out))) ((state).2) (reverseTasks ((tasks).2)) : List (Task)))))) ((true, (literal ((LexLeanRuntime.append (LexLeanKappa.Gguf.digest (bytesOf (firstIn (fields) (2)))) (LexLeanKappa.Gguf.writeLe ((read).1) (4)) : ByteArray)) :: ([] : List (Task))))) (reverseNodes ((ordering).order)) : (Prod (Bool) (List (Task)))); ((((Nat.ble (depth) (64)) \&\& (all).1) \&\& ((((read).2).1 \&\& (ordering).ok) \&\& ((emitted).1 \&\& ((tensors).1 \&\& ((inputs).1 \&\& ((outputs).1 \&\& (infos).1)))))), reverseTasks ((tail :: (emitted).2)))))))))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{machineStep}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : Machine)}.\par
+\noindent Closure 1: binds \texttt{(out, item)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Machine)}.\par
+\noindent Definition: \texttt{(if (state).ok then (match (state).tasks with | List.nil => Option.none | List.cons task rest => (if (task).graph then (let expanded : (Prod (Bool) (List (Task))) := graphTasks ((task).body) ((task).depth); (if (expanded).1 then Option.some ((\{ ok := true, out := (state).out, tasks := (LexLeanCollections.listFold ((fun (out : List (Task)) (item : Task) => (item :: out))) (rest) (reverseTasks ((expanded).2)) : List (Task)) \} : Machine)) else Option.some ((\{ ok := false, out := ByteArray.mk \#[], tasks := ([] : List (Task)) \} : Machine)))) else Option.some ((\{ ok := true, out := (LexLeanRuntime.append ((state).out) ((task).body) : ByteArray), tasks := rest \} : Machine)))) else Option.none)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{graphBytes}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(graph : ByteArray)}.\par
+\noindent Closure 1: binds \texttt{(state)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (ByteArray))}.\par
+\noindent Definition: \texttt{(let state : Machine := ((LexLeanCollections.iterateUntil ((fun (state : Machine) => machineStep (state))) (((LexLeanRuntime.multiply ((LexLeanRuntime.length (graph) : Nat)) (8) : Nat) + 16)) ((\{ ok := true, out := ByteArray.mk \#[], tasks := ((\{ graph := true, body := graph, depth := 0 \} : Task) :: ([] : List (Task))) \} : Machine)) : (Prod (Machine) (Bool)))).1; (let finished : Bool := (match (state).tasks with | List.nil => true | List.cons \_ \_ => false); (((state).ok \&\& finished), (state).out)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{opsetBytes}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(fields : List (Field))}.\par
+\noindent Closure 1: binds \texttt{(state, entry)}, captures \texttt{()}.\par
+\noindent Closure 2: binds \texttt{(out, entry)}, captures \texttt{()}.\par
+\noindent Closure 3: binds \texttt{(out, entry)}, captures \texttt{()}.\par
+\noindent Closure 4: binds \texttt{(out, entry)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (ByteArray))}.\par
+\noindent Definition: \texttt{(let entries : List (ByteArray) := spansOf (fields) (8); (let tally : (Prod (Bool) (Bool)) := (LexLeanCollections.listFold ((fun (state : (Prod (Bool) (Bool))) (entry : ByteArray) => (let domain : (Prod (Bool) (Field)) := firstScanned (entry) (1); (let version : (Prod (Bool) (Field)) := firstScanned (entry) (2); (((state).1 \&\& ((domain).1 \&\& (version).1)), ((state).2 || ((Nat.beq ((LexLeanRuntime.length (bytesOf ((domain).2)) : Nat)) (0)) \&\& ((Nat.blt (0) (varintOf ((version).2))) \&\& (Nat.ble (varintOf ((version).2)) (9223372036854775807)))))))))) ((true, false)) (entries) : (Prod (Bool) (Bool))); (let keys : List (ByteArray) := (LexLeanCollections.listFold ((fun (out : List (ByteArray)) (entry : ByteArray) => ((LexLeanRuntime.append (escaped (bytesOf ((firstScanned (entry) (1)).2))) (writeBe (varintOf ((firstScanned (entry) (2)).2))) : ByteArray) :: out))) (([] : List (ByteArray))) ((LexLeanCollections.listFold ((fun (out : List (ByteArray)) (entry : ByteArray) => (entry :: out))) (([] : List (ByteArray))) (entries) : List (ByteArray))) : List (ByteArray)); (((tally).1 \&\& ((tally).2 || (Nat.beq (lengthOf (entries)) (0)))), (LexLeanCollections.listFold ((fun (out : ByteArray) (entry : ByteArray) => (LexLeanRuntime.append (out) ((LexLeanRuntime.append (LexLeanKappa.Gguf.digest (bytesOf ((firstScanned (entry) (1)).2))) (LexLeanKappa.Gguf.writeLe (varintOf ((firstScanned (entry) (2)).2)) (8)) : ByteArray)) : ByteArray))) (ByteArray.mk \#[]) (sortedBy (entries) (keys)) : ByteArray)))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{canonicalOnnx}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(subject : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
+\noindent Type: \texttt{Option (ByteArray)}.\par
+\noindent Definition: \texttt{(let all : (Prod (Bool) (List (Field))) := parsed (subject); (let fields : List (Field) := (all).2; (let version : Field := firstIn (fields) (1); (let opsets : (Prod (Bool) (ByteArray)) := opsetBytes (fields); (let graph : ByteArray := bytesOf (firstIn (fields) (7)); (let emitted : (Prod (Bool) (ByteArray)) := graphBytes (graph); (let pairs : (Prod (Bool) (ByteArray)) := pairDigests (subject) (14); (if ((((all).1 \&\& hasVarint (version)) \&\& (((Nat.blt (0) ((version).value)) \&\& (Nat.ble ((version).value) (13))) \&\& (opsets).1)) \&\& (((Nat.blt (0) ((LexLeanRuntime.length (graph) : Nat))) \&\& (emitted).1) \&\& (pairs).1)) then Option.some ((LexLeanRuntime.append (LexLeanKappa.Gguf.writeLe ((version).value) (8)) ((LexLeanRuntime.append ((opsets).2) ((LexLeanRuntime.append ((emitted).2) ((LexLeanRuntime.append (LexLeanKappa.Gguf.digest (bytesOf (firstIn (fields) (2)))) ((LexLeanRuntime.append (LexLeanKappa.Gguf.digest (bytesOf (firstIn (fields) (3)))) ((LexLeanRuntime.append (LexLeanKappa.Gguf.digest (bytesOf (firstIn (fields) (4)))) ((LexLeanRuntime.append (LexLeanKappa.Gguf.writeLe (varintOf (firstIn (fields) (5))) (8)) ((pairs).2) : ByteArray)) : ByteArray)) : ByteArray)) : ByteArray)) : ByteArray)) : ByteArray)) : ByteArray)) else Option.none))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{onnxLabel}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(subject : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
+\noindent Type: \texttt{Option (ByteArray)}.\par
+\noindent Definition: \texttt{(match canonicalOnnx (subject) with | Option.some canonical => Option.some (LexLeanKappa.Label.kappaLabel (canonical)) | Option.none => Option.none)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{onnxLabelOn}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(axis : ByteArray) (subject : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
+\noindent Type: \texttt{Option (ByteArray)}.\par
+\noindent Definition: \texttt{(match canonicalOnnx (subject) with | Option.some canonical => LexLeanKappa.Axis.labelOn (axis) (canonical) | Option.none => Option.none)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\end{document}
