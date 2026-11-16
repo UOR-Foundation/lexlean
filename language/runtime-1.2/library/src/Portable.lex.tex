@@ -4546,26 +4546,26 @@ definition LexLeanRuntime.utf8Encode : @4783 := @4786 {
   Int.casesOn.{u_1}
     (fun (x : @5049) => @4889 @4788)
     @4802
-    (fun (a._@._internal.#0.LexLeanRuntime.Portable.#744788833._hygCtx._hyg.#47 : @4836) => @4808)
-    (fun (a._@._internal.#0.LexLeanRuntime.Portable.#744788833._hygCtx._hyg.#48 : @4836) => @4828)
+    (fun (a._@._internal.#0.LexLeanRuntime.Portable.#744788833._hygCtx._hyg.#51 : @4836) => @4808)
+    (fun (a._@._internal.#0.LexLeanRuntime.Portable.#744788833._hygCtx._hyg.#52 : @4836) => @4828)
 @5085 := (a._@._internal._hyg.#0 : @5049) -> @4789
-@5093 := _private.LexLeanRuntime.Portable.#0.LexLeanRuntime.intDecimal.match_1.{1}
+@5089 := _private.LexLeanRuntime.Portable.#0.LexLeanRuntime.intDecimal.match_1.{1}
     (fun (x._@.LexLeanRuntime.Portable.#744788833._hygCtx.#5.LexLeanRuntime.Portable.#744788833._hygCtx._hyg.#16 : @5049) =>
     @4789)
     @4788
-    (fun (n : @4836) => Nat.repr @4788)
-@5094 := String.ofList
-@5101 := List.cons.{0} Char (Char.ofNat 45)
-@5102 := Nat.toDigits
-@5104 := OfNat.ofNat.{0} @4836
-@5105 := 10
-@5106 := @5104 @5105
-@5107 := instOfNatNat
-@5110 := @5102 (@5106 (@5107 @5105))
+@5090 := String.ofList
+@5091 := Nat.toDigits
+@5093 := OfNat.ofNat.{0} @4836
+@5094 := 10
+@5095 := @5093 @5094
+@5096 := instOfNatNat
+@5099 := @5091 (@5095 (@5096 @5094))
+@5103 := @5089 (fun (n : @4836) => @5090 (@5099 @4788))
+@5110 := List.cons.{0} Char (Char.ofNat 45)
 @5120 := HAdd.hAdd.{0, 0, 0} @4836 @4836 @4836 (instHAdd.{0} @4836 instAddNat) @4788
 @5121 := 1
 @5131 := fun (x._@.LexLeanRuntime.Portable.#744788833._hygCtx._hyg.#5 : @5049) =>
-  @5093 (fun (n : @4836) => @5094 (@5101 (@5110 (@5120 (@5104 @5121 (@5107 @5121))))))
+  @5103 (fun (n : @4836) => @5090 (@5110 (@5099 (@5120 (@5093 @5121 (@5096 @5121))))))
 @5132 := Int16
 @5133 := @4791 @5132
 @5134 := @4801 @5132

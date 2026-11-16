@@ -21969,9 +21969,12 @@ signed widths short of SM-43's empty policy, which SM-43 asks of every fixed wid
 the `ToString` parameter with the runtime class `DecimalFormat` (one field,
 `format`). Its instances are `ToString` at `Int` (exactly `[propext]`) and at the
 four unsigned widths (none), and `intDecimal (x.toInt)` at the four signed widths
-(none). Here `intDecimal (ofNat n) = Nat.repr n` and
+(none). Here `intDecimal (ofNat n) = String.ofList (Nat.toDigits 10 n)` and
 `intDecimal (negSucc n) = String.ofList ('-' :: Nat.toDigits 10 (n + 1))`, so the
-bytes are those of `Int.repr`. The declarations were written in Lean against the
+bytes are those of `Int.repr`. Neither case names `Nat.repr`, which is
+`implemented_by Nat.reprFast` and so has no code of its own for named-root
+extraction (LLV7011, regeneration 43952168559); `Nat.toDigits` and the
+extern `String.ofList` and `IntN.toInt` have. The declarations were written in Lean against the
 compiled `Portable`, exported with the runtime migration's one-time exporter
 (checkpoint `b58f1952`), printed in the notation, and spliced into `Portable`
 before `formatDecimal`. `lexlean verify` of the runtime project passes with every
