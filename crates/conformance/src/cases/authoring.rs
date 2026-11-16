@@ -44,6 +44,9 @@ pub fn run(id: &str) {
     });
 }
 
+/// The most reader threads AU-08 runs at once (about 1 GiB each at peak).
+const READERS: usize = 4;
+
 fn check(id: &str) {
     match id {
         "AU-01" => round_trip(),
@@ -75,10 +78,15 @@ const CORE_SPEC: &str = "lexlean/core-module/2";
 /// Every semantic module of a committed source, as canonical JSON, with the
 /// file it is in. A module that is not well formed is a negative fixture's
 /// business and is left out.
-fn corpus() -> Vec<(String, Json)> {
+///
+/// The modules are read one at a time, as the walk reaches them, and each is
+/// dropped when the caller is done with it: the corpus includes modules of
+/// tens of megabytes, and held whole as values it peaked at over 11 GiB of a
+/// debug test process, most of the 16 GB runner its CI leg shares with the
+/// part's other cases (§9.4).
+fn corpus() -> impl Iterator<Item = (String, Json)> {
     let root = repo_root();
-    let mut modules = Vec::new();
-    for entry in walkdir::WalkDir::new(root.as_std_path())
+    walkdir::WalkDir::new(root.as_std_path())
         .into_iter()
         .filter_entry(|entry| {
             let name = entry.file_name().to_string_lossy();
@@ -88,21 +96,16 @@ fn corpus() -> Vec<(String, Json)> {
                 && !support::holds_cache_tag(entry)
         })
         .flatten()
-    {
-        let path = entry.path();
-        if !path.to_string_lossy().ends_with(".lex.tex") {
-            continue;
-        }
-        let Ok(text) = std::fs::read_to_string(path) else {
-            continue;
-        };
-        if let Ok(value) = support::try_module_json(&text) {
-            if let Ok(json) = Json::parse(value.to_string().as_bytes()) {
-                modules.push((path.display().to_string(), json));
+        .filter_map(|entry| {
+            let path = entry.path();
+            if !path.to_string_lossy().ends_with(".lex.tex") {
+                return None;
             }
-        }
-    }
-    modules
+            let text = std::fs::read_to_string(path).ok()?;
+            let value = support::try_module_json(&text).ok()?;
+            let json = Json::parse(value.to_string().as_bytes()).ok()?;
+            Some((path.display().to_string(), json))
+        })
 }
 
 // ---------------------------------------------------------------------------
@@ -469,6 +472,53 @@ fn fails_closed() {
                 .as_ref()
                 .unwrap_or_else(|| panic!("{what}: the diagnostic has no position"));
             assert!(span.line_start >= 1, "{what}: no line");
+        }
+    }
+    // Recursive readable forms bypass the generic reader; their own bound
+    // must fire before either serde's recursion limit or a host stack abort.
+    for (prefix, leaf, position) in [
+        ("(cons 1 ", "(nil Nat)", "body"),
+        ("(List ", "Nat", "result"),
+    ] {
+        let nested = format!("{}{}{}", prefix.repeat(50_000), leaf, ")".repeat(50_000));
+        let declaration = if position == "body" {
+            format!(
+                "definition{{name: deep, parameters: [], result: (List Nat), body: {nested}}}\n"
+            )
+        } else {
+            format!("definition{{name: deep, parameters: [], result: {nested}, body: 0}}\n")
+        };
+        for text in [
+            declaration.clone(),
+            declaration.replacen(&nested, &nested.replace(')', ""), 1),
+        ] {
+            put_body(&project, &text);
+            let error = project.check_err();
+            let diagnostic = &error.diagnostics[0];
+            assert_eq!(diagnostic.code.as_str(), "LLP2001");
+            assert!(
+                diagnostic.message.contains("nested more deeply"),
+                "{diagnostic:?}"
+            );
+            let span = diagnostic.primary.as_ref().expect("notation position");
+            assert_eq!(span.path.as_str(), MAIN);
+            assert!(span.column_start > 256);
+            let (exit, _, stderr) = project.cli(&["check"]);
+            assert_eq!(exit, 1, "{stderr}");
+            assert!(
+                stderr.contains("LLP2001") && stderr.contains(MAIN),
+                "{stderr}"
+            );
+            let (exit, stdout, stderr) = project.cli(&["check", "--diagnostic-format", "json"]);
+            assert_eq!(exit, 1, "{stderr}");
+            let result: serde_json::Value =
+                serde_json::from_str(&stdout).expect("JSON command result");
+            assert_eq!(result["diagnostics"][0]["code"], "LLP2001");
+            assert_eq!(result["diagnostics"][0]["primary"]["path"], MAIN);
+            assert_eq!(
+                result["diagnostics"][0]["primary"]["column_start"],
+                span.column_start
+            );
         }
     }
     put_body(&project, &original);
@@ -1241,7 +1291,11 @@ fn authoring_api() {
     };
 
     let root = repo_root();
-    let (mut semantic, mut tooling, mut core) = (0usize, 0usize, 0usize);
+    // Every committed source, then the API on each. A source is independent
+    // of every other, so they are taken on as many threads as the host has:
+    // one after another, the round trips of the corpus were the longest case
+    // of a supported-host lane (55 minutes on Intel).
+    let mut paths = Vec::new();
     for entry in walkdir::WalkDir::new(root.as_std_path())
         .into_iter()
         .filter_entry(|entry| {
@@ -1253,23 +1307,30 @@ fn authoring_api() {
         })
         .flatten()
     {
-        let path = entry.path();
-        if !path.to_string_lossy().ends_with(".lex.tex") {
-            continue;
+        if entry.path().to_string_lossy().ends_with(".lex.tex") {
+            paths.push(entry.into_path());
         }
+    }
+    let counts = [
+        std::sync::atomic::AtomicUsize::new(0),
+        std::sync::atomic::AtomicUsize::new(0),
+        std::sync::atomic::AtomicUsize::new(0),
+    ];
+    let source = |path: &std::path::PathBuf| -> Option<ModuleKind> {
+        let path = path.as_path();
         let Ok(text) = std::fs::read_to_string(path) else {
-            continue;
+            return None;
         };
         // Reading a module of tens of megabytes as a value takes minutes in a
         // debug build. The functions are the same code that runs on every
         // other module, and AU-09 reads these through the typed notation.
         if text.len() > LARGEST_READ_AS_VALUE {
-            continue;
+            return None;
         }
         let Some(kind) = module_kind(&text) else {
             // Not a module of these kinds: the API says so, and reads nothing.
             assert!(read_module(&text).is_err(), "{}", path.display());
-            continue;
+            return None;
         };
         // A refused fixture may not be a module; the rest are.
         let Ok(data) = read_module(&text) else {
@@ -1280,7 +1341,7 @@ fn authoring_api() {
                 "{}: a committed module the API cannot read",
                 path.display()
             );
-            continue;
+            return None;
         };
         let shown = path.display();
         // A module under a tag the notation does not name (language 1.1) has
@@ -1295,7 +1356,7 @@ fn authoring_api() {
                 data,
                 "{shown}"
             );
-            continue;
+            return None;
         }
         // The module is what the notation module reads to, in either form, and
         // the conversions are the identity on a canonical source.
@@ -1345,11 +1406,6 @@ fn authoring_api() {
             "{shown}"
         );
         assert_eq!(declaration_spans(&as_data).expect("spans"), None, "{shown}");
-        match kind {
-            ModuleKind::Semantic => semantic += 1,
-            ModuleKind::Tooling => tooling += 1,
-            ModuleKind::Core => core += 1,
-        }
         // Assembled from its header and data, a source of the standard shape is
         // the canonical source: the header is what the source already says.
         let lines: Vec<&str> = notation.lines().collect();
@@ -1401,7 +1457,45 @@ fn authoring_api() {
                 );
             }
         }
-    }
+        Some(kind)
+    };
+    // Each thread reads on the stack every authoring case reads on.
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let work = || {
+        while let Some(path) = paths.get(next.fetch_add(1, std::sync::atomic::Ordering::Relaxed)) {
+            if let Some(kind) = source(path) {
+                let at = match kind {
+                    ModuleKind::Semantic => 0,
+                    ModuleKind::Tooling => 1,
+                    ModuleKind::Core => 2,
+                };
+                counts[at].fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            }
+        }
+    };
+    // At most `READERS` threads: each holds up to one module on its reader
+    // stack, about 1 GiB at peak, so the case stays near 4 GiB beside the
+    // other cases of its leg on a 16 GB runner.
+    let width = std::thread::available_parallelism()
+        .map_or(1, std::num::NonZeroUsize::get)
+        .min(READERS);
+    std::thread::scope(|scope| {
+        let threads: Vec<_> = (0..width)
+            .map(|_| {
+                std::thread::Builder::new()
+                    .stack_size(lexlean::READER_STACK)
+                    .spawn_scoped(scope, work)
+                    .expect("a reader thread")
+            })
+            .collect();
+        for thread in threads {
+            thread
+                .join()
+                .unwrap_or_else(|panic| std::panic::resume_unwind(panic));
+        }
+    });
+    let [semantic, tooling, core] =
+        counts.map(|count| count.load(std::sync::atomic::Ordering::Relaxed));
     assert!(
         semantic >= 250 && tooling >= 4 && core >= 20,
         "{semantic} semantic, {tooling} tooling and {core} core sources: the API was not exercised on the product"

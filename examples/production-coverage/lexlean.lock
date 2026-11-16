@@ -1,8 +1,8 @@
 spec = "lexlean/lock/2"
 language = "1.2"
-compiler_semantics = "1427f8b629013648a480454d67202788f2303f5396f1d7c70a7c350ddab6f694"
-project_config_sha256 = "1bcbdf2b89a335e2e8685fb89b09d3c4eba9f30371947781755576f588df7434"
-lean_toolchain = "leanprover/lean4:v4.32.1"
+compiler_semantics = "4b3ed2378d6c43bb32a41d466cf140337e8b1cedc5e1f345aaf3395f488f63a9"
+project_config_sha256 = "8bd12e7c50a826f92582e17098a54394076d0093cf9666e3f75e419fd7ac5860"
+lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[workspace_file]]
 path = "lake-manifest.json"
@@ -14,7 +14,7 @@ sha256 = "93412889ef0b27514b0e50e441e6373e9491eb190f413c3f0258e391cc245dac"
 
 [[workspace_file]]
 path = "lean-toolchain"
-sha256 = "8e3538e0ab5f81a3ee04927d8838c8c674e0e112838b4b3ce87ec218143276af"
+sha256 = "2bdc48adfa58d0017e538a0ad117c5d73d35deec879978f909406a80c8037273"
 
 [[package]]
 id = "lexlean.core"
@@ -45,3 +45,13 @@ revision = "compiler-semantics"
 tree_sha256 = "e0db021e01b91d651c43921d66f6b0023c8efbf17cac2ec53192ce5305e4e1ac"
 manifest_sha256 = "6fb446b39e3c1c18a5f10cfa1f7aa2bd431837719eb0eb7489aadf452c9420a7"
 imports = ["lexlean.core@1.2.0", "lexlean.std.bool@1.2.0"]
+
+[[package]]
+id = "productioncoverage.titles"
+version = "1.0.0"
+kind = "path"
+source = "glossary/productioncoverage.titles"
+revision = "none"
+tree_sha256 = "fd6c6dbad47ccaf034e9a2f2127d97f945f1764e0cb4e8f2939bbc0de09ffda2"
+manifest_sha256 = "8e2c72fa027cc834398d6c0464625b8bcfa1147f06136377ec32b0918498e150"
+imports = ["lexlean.core@1.2.0", "lexlean.std.nat@1.2.0"]

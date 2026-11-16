@@ -1,8 +1,8 @@
 spec = "lexlean/lock/2"
 language = "1.2"
-compiler_semantics = "1427f8b629013648a480454d67202788f2303f5396f1d7c70a7c350ddab6f694"
-project_config_sha256 = "b8201330ef8609d8f53e24e2fa367697675b98d69ba844d6a75adffe84a88319"
-lean_toolchain = "leanprover/lean4:v4.32.1"
+compiler_semantics = "4b3ed2378d6c43bb32a41d466cf140337e8b1cedc5e1f345aaf3395f488f63a9"
+project_config_sha256 = "5f61318defb97425923fe630a285aaa7ec6b19c988d593ff17b8dcc6c4cbe5e8"
+lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[workspace_file]]
 path = "lake-manifest.json"
@@ -14,7 +14,7 @@ sha256 = "26f4d06032d10b235c6a19182589327a6a6ab744d04d560bcee43a6506cd0e1f"
 
 [[workspace_file]]
 path = "lean-toolchain"
-sha256 = "8e3538e0ab5f81a3ee04927d8838c8c674e0e112838b4b3ce87ec218143276af"
+sha256 = "2bdc48adfa58d0017e538a0ad117c5d73d35deec879978f909406a80c8037273"
 
 [[package]]
 id = "lexlean.core"
@@ -45,3 +45,13 @@ revision = "compiler-semantics"
 tree_sha256 = "e0db021e01b91d651c43921d66f6b0023c8efbf17cac2ec53192ce5305e4e1ac"
 manifest_sha256 = "6fb446b39e3c1c18a5f10cfa1f7aa2bd431837719eb0eb7489aadf452c9420a7"
 imports = ["lexlean.core@1.2.0", "lexlean.std.bool@1.2.0"]
+
+[[package]]
+id = "recursion.titles"
+version = "1.0.0"
+kind = "path"
+source = "glossary/recursion.titles"
+revision = "none"
+tree_sha256 = "8be19aa3c5155d0b1b2c0f0e5080d6e7dea87ff10993927bbc0ee84aa7438863"
+manifest_sha256 = "970d6988c0e1164aaede77cdab497fc169e6e54150c66da6cff7632c58ffd71d"
+imports = ["lexlean.core@1.2.0", "lexlean.std.nat@1.2.0"]

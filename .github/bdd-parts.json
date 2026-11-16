@@ -1,11 +1,74 @@
 {
   "remainder": "rest",
   "parts": {
+    "bootstrap-bodies": [
+      "BS-11"
+    ],
+    "bootstrap-succeed": [
+      "BS-12"
+    ],
+    "bootstrap-loops": [
+      "BS-13"
+    ],
+    "bootstrap-assemble": [
+      "BS-14"
+    ],
+    "bootstrap-package": [
+      "BS-15"
+    ],
+    "bootstrap-structural-grammar": [
+      "BS-21"
+    ],
+    "bootstrap-surface-lex": [
+      "BS-22"
+    ],
+    "bootstrap-surface-doc": [
+      "BS-23"
+    ],
+    "bootstrap-surface-tooling": [
+      "BS-27"
+    ],
+    "bootstrap-surface-generic": [
+      "BS-24"
+    ],
     "bootstrap-check": [
       "BS-04"
     ],
+    "bootstrap-gnaf": [
+      "BS-16"
+    ],
+    "bootstrap-lexicon-lre": [
+      "BS-26"
+    ],
+    "bootstrap-lexicon-lse": [
+      "BS-25"
+    ],
+    "bootstrap-lower": [
+      "BS-07"
+    ],
+    "bootstrap-surface-module": [
+      "BS-28"
+    ],
+    "bootstrap-moves": [
+      "BS-08"
+    ],
     "bootstrap-print": [
       "BS-06"
+    ],
+    "bootstrap-runtime": [
+      "BS-09"
+    ],
+    "bootstrap-terms": [
+      "BS-10"
+    ],
+    "bootstrap-lock-text": [
+      "BS-31"
+    ],
+    "bootstrap-project-text": [
+      "BS-33"
+    ],
+    "bootstrap-tooling-latex": [
+      "BS-20"
     ],
     "bootstrap-validate": [
       "BS-05"
@@ -52,6 +115,18 @@
       "SP-13",
       "SP-14"
     ],
+    "preservation-lists": [
+      "SP-15"
+    ],
+    "preservation-runtime": [
+      "SP-22"
+    ],
+    "preservation-support": [
+      "SP-25"
+    ],
+    "preservation-prims": [
+      "SP-28"
+    ],
     "production": [
       "CL-01",
       "CL-03",
@@ -78,6 +153,7 @@
       "MD-10",
       "MD-11",
       "MD-12",
+      "MD-13",
       "PX-01",
       "PX-02",
       "PX-03",
@@ -186,23 +262,50 @@
       "VR-22",
       "VR-23"
     ],
-    "preservation-lists": [
-      "SP-15"
-    ],
-    "preservation-runtime": [
-      "SP-22"
-    ],
-    "preservation-support": [
-      "SP-25"
-    ],
-    "bootstrap-runtime": [
-      "BS-09"
-    ],
-    "preservation-prims": [
-      "SP-28"
-    ],
     "preservation-std": [
-      "SP-29"
+      "SP-29",
+      "SP-32",
+      "SP-33"
+    ],
+    "bootstrap-diagnostics": [
+      "BS-29"
+    ],
+    "bootstrap-cli-output": [
+      "BS-30"
+    ],
+    "bootstrap-content-id": [
+      "BS-32"
+    ],
+    "bootstrap-manifest-text": [
+      "BS-34"
+    ],
+    "stdlib": [
+      "EX-09",
+      "SL-01",
+      "SL-02",
+      "SL-03",
+      "SL-04",
+      "SL-05",
+      "SL-09",
+      "SL-10",
+      "SL-11",
+      "SL-13",
+      "SL-14"
+    ],
+    "language-models": [
+      "LM-01",
+      "LM-02",
+      "LM-03",
+      "LM-04",
+      "LM-05",
+      "LM-06",
+      "LM-07",
+      "LM-08",
+      "LM-09",
+      "LM-13"
     ]
+  },
+  "targets": {
+    "honesty": ["bdd"]
   }
 }

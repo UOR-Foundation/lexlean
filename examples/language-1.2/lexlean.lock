@@ -1,8 +1,8 @@
 spec = "lexlean/lock/2"
 language = "1.2"
-compiler_semantics = "1427f8b629013648a480454d67202788f2303f5396f1d7c70a7c350ddab6f694"
-project_config_sha256 = "6bb823538ff0c18b80a9851c1cc936cf70dc31ce0625cb1a2211c1f30d91411d"
-lean_toolchain = "leanprover/lean4:v4.32.1"
+compiler_semantics = "4b3ed2378d6c43bb32a41d466cf140337e8b1cedc5e1f345aaf3395f488f63a9"
+project_config_sha256 = "5d64fd472e562830a5ffab5d03f9a93a504751fe591978535180189db0586554"
+lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[workspace_file]]
 path = "lake-manifest.json"
@@ -14,7 +14,17 @@ sha256 = "897f6c447c62589e544a276b49aea37b44f3bcc7b3a9604eedcfe726bcbcbee5"
 
 [[workspace_file]]
 path = "lean-toolchain"
-sha256 = "8e3538e0ab5f81a3ee04927d8838c8c674e0e112838b4b3ce87ec218143276af"
+sha256 = "2bdc48adfa58d0017e538a0ad117c5d73d35deec879978f909406a80c8037273"
+
+[[package]]
+id = "languagetwelve.titles"
+version = "1.0.0"
+kind = "path"
+source = "glossary/languagetwelve.titles"
+revision = "none"
+tree_sha256 = "4d31ad7f4da1f85a5e53f0241c7d8708d2e5032cd9696e2faad34eeafe1709bc"
+manifest_sha256 = "9964cf91debb120e3f5a338059418d9a0406d08b625461e36d9a43055f05bb0b"
+imports = ["lexlean.core@1.2.0", "lexlean.std.nat@1.2.0"]
 
 [[package]]
 id = "lexlean.core"

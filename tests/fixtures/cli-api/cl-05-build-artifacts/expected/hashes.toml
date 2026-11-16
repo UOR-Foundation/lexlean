@@ -3,12 +3,12 @@
 # compiler executable (presence only). SPEC.md §28.2, §28.4.
 
 [platform_independent]
-".lexlean/build/7e7b7dccd85ace780528bcbb013bc6faa9d6dd728899e389d760e5b7e36960ff/coverage/LexLeanExample/Main.coverage.json" = "4abf227a0dda00e1aab533e71b3c537a90c029dc0d019ba378bca4be58ab8d50"
-".lexlean/build/7e7b7dccd85ace780528bcbb013bc6faa9d6dd728899e389d760e5b7e36960ff/lexicons/Main.closure.json" = "f26eaf823185618e7499acd5904bcb83c59ce7c93b299fa7d8eb5938857c7ec4"
-".lexlean/build/7e7b7dccd85ace780528bcbb013bc6faa9d6dd728899e389d760e5b7e36960ff/manifest.json" = "2c0ce58f3637fafee097c50aac1180d42d4c5b4b03d7562e70ea1457ddc604ef"
-".lexlean/build/7e7b7dccd85ace780528bcbb013bc6faa9d6dd728899e389d760e5b7e36960ff/maps/LexLeanExample/Main.map.json" = "46f4150511ee4c1ad62a653c8e9f15028cfd392e13a1a2b23fb68b0ab57c5913"
-".lexlean/build/7e7b7dccd85ace780528bcbb013bc6faa9d6dd728899e389d760e5b7e36960ff/modules/LexLeanExample/Main.lean" = "c0cd6ef5d1918281517cdee5e4635665498b3e5f758fd3dea5a9d6ae142fd85f"
-".lexlean/build/7e7b7dccd85ace780528bcbb013bc6faa9d6dd728899e389d760e5b7e36960ff/modules/LexLeanExample/Main.tex" = "c8c772b0e613cd25500b569e99fbbb32a14ae446d8db573e9caacbb679030888"
+".lexlean/build/549972196951b5c6f90cb092539ab38451e602d0ba26ecfa260f1f52c4e887ca/coverage/LexLeanExample/Main.coverage.json" = "4abf227a0dda00e1aab533e71b3c537a90c029dc0d019ba378bca4be58ab8d50"
+".lexlean/build/549972196951b5c6f90cb092539ab38451e602d0ba26ecfa260f1f52c4e887ca/lexicons/Main.closure.json" = "f26eaf823185618e7499acd5904bcb83c59ce7c93b299fa7d8eb5938857c7ec4"
+".lexlean/build/549972196951b5c6f90cb092539ab38451e602d0ba26ecfa260f1f52c4e887ca/manifest.json" = "a772fbfe98381206c412bf54fb85f762f472d15d78f51157f9a51e3b5e4c68ce"
+".lexlean/build/549972196951b5c6f90cb092539ab38451e602d0ba26ecfa260f1f52c4e887ca/maps/LexLeanExample/Main.map.json" = "2c2d748b33b959e208f02f95980ae3fe1411c22db970c0d33eaf5ef438262729"
+".lexlean/build/549972196951b5c6f90cb092539ab38451e602d0ba26ecfa260f1f52c4e887ca/modules/LexLeanExample/Main.lean" = "c0cd6ef5d1918281517cdee5e4635665498b3e5f758fd3dea5a9d6ae142fd85f"
+".lexlean/build/549972196951b5c6f90cb092539ab38451e602d0ba26ecfa260f1f52c4e887ca/modules/LexLeanExample/Main.tex" = "c8c772b0e613cd25500b569e99fbbb32a14ae446d8db573e9caacbb679030888"
 
 [process_bound]
 files = []
