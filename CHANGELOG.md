@@ -17,6 +17,12 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- The phrase lattice's covers and the proposition sentence grammar as
+  language-1.2 source (SPEC.md §17.23, §14.1, §15.3, §15.6, `BS-44`, #269; no
+  new diagnostic code, no change to the language-1.2 identity). `phraseCovers`
+  and `propositionSentenceAt` of `PropositionSentence` return what
+  `grammar::proposition::phrase_covers` and `TextParser::proposition_sentence`
+  return; neither admits `recursion`.
 - Releases and regeneration need no hand steps (SPEC.md §9.4). `regenerate.yml`
   gains the job `deliver`: when the regenerated commit heads one open pull
   request of this repository, the patch is committed on it, pushed to the pull

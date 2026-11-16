@@ -301,6 +301,9 @@
     ],
     "bootstrap-proposition-terms": [
       "BS-43"
+    ],
+    "bootstrap-proposition-sentence": [
+      "BS-44"
     ]
   },
   "targets": {

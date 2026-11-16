@@ -77,3 +77,6 @@ reads to, `SurfaceLex`, whose string reader it reads strings with, `SurfaceGener
 and refusals it reads and returns, and the standard library's `Numeral` and `Text`.
 `src/PropositionTerms.lex.tex` (SPEC.md §17.23, `BS-43`) imports `GrammarProof`, whose text tokens
 and keyword occurrences it reads and returns, `PrimitiveScan`, and the standard library's `Numeral`.
+`src/PropositionSentence.lex.tex` (SPEC.md §17.23, `BS-44`) imports `PropositionTerms` (`BS-43`),
+whose term phrases and binders it reads, `GrammarProof`, whose text tokens it reads, and
+`PrimitiveScan`.

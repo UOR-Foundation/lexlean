@@ -780,57 +780,6 @@ fn prop_named() -> Vec<PropVector> {
     ]
 }
 
-// ------------------------------------------------------- exploration (TEMP)
-
-/// Not part of the case: prints, for every `prop_named` vector, whether it
-/// parses at all under `DEFAULT_LIMITS` and how many complete alternatives
-/// it has, and for the two budget-boundary vectors, the exact `states`/
-/// `edges` threshold at which the oracle's own refusal flips to success
-/// (`Budget` has no public getter for its running count, so the threshold
-/// is found by raising the limit one at a time until it stops refusing).
-/// Remove once the vectors and the two limit values are set from what this
-/// prints.
-#[test]
-fn explore_bs44() {
-    for vector in prop_named() {
-        let (atoms, tokens) = sentence(vector.source);
-        let (_, refusal) = vector.run();
-        match refusal {
-            None => eprintln!("EXPLORE {}: ok", vector.label),
-            Some(message) => eprintln!("EXPLORE {}: refused: {message}", vector.label),
-        }
-        if vector.label.contains("cumulative consumption") {
-            let kind = if vector.label.contains("max_parse_states") {
-                "states"
-            } else {
-                "edges"
-            };
-            for probe in 1u64..40 {
-                let limits = if kind == "states" {
-                    Limits {
-                        states: probe,
-                        ..DEFAULT_LIMITS
-                    }
-                } else {
-                    Limits {
-                        edges: probe,
-                        ..DEFAULT_LIMITS
-                    }
-                };
-                let (_, probe_refusal) = prop_run_on(PATH, &atoms, &tokens, limits);
-                eprintln!(
-                    "EXPLORE {} {kind}={probe}: {}",
-                    vector.label,
-                    probe_refusal.as_deref().unwrap_or("ok")
-                );
-                if probe_refusal.is_none() {
-                    break;
-                }
-            }
-        }
-    }
-}
-
 // --------------------------------------------------------------- the case
 
 pub(crate) fn case() {

@@ -430,5 +430,14 @@
     "width": "",
     "memory_kib": "",
     "hints": ""
+  },
+  {
+    "part": "bdd-bootstrap-proposition-sentence",
+    "recipes": "bdd",
+    "examples_part": "",
+    "bdd_part": "bootstrap-proposition-sentence",
+    "width": "",
+    "memory_kib": "",
+    "hints": ""
   }
 ]

@@ -12048,6 +12048,68 @@ fault of the module and one of the case: it read acceptance from the run's JSON
 by a tag the calculus does not write. The case then stops at the stack-bound
 step, `bootstrap/keyword_entry is no package of the committed exports`, as each
 bootstrap member did before its regeneration. The branch is stacked on `BS-35`.
+### the phrase lattice's covers and the proposition sentence grammar are source (BS-44)
+
+`BS-44` holds two production roots of `LexLeanBoot.PropositionSentence`
+(`bootstrap/src/PropositionSentence.lex.tex`) to `grammar/proposition.rs`:
+`phraseCovers` to `phrase_covers`, and `propositionSentenceAt` to
+`TextParser::proposition_sentence`. The module reads the text tokens of
+`GrammarProof` (`BS-35`), the atoms of `PrimitiveScan` (`BS-03`), and the term
+phrases and binders of `PropositionTerms` (`BS-43`); the glossary closure
+belongs to the lexicon, so the roots take its projection as the host's input,
+as `BS-43` does, extended past `BS-43`'s category set to admit label words,
+term constants, and the adjective, intransitive, and transitive predicate
+frames. `phraseCovers` is a depth-first stack of partial covers under
+`iterate_until`, so it admits no `recursion`, and stops as soon as the
+caller's limit of covers is reached; `propositionSentenceAt` threads the one
+running `Bud` the oracle's own budget keeps across every call into
+`PropositionTerms`'s term-phrase and binder-list boundary, so the limits of
+nesting, parse states, and lattice edges fall where the oracle's do across a
+whole sentence. The case builds the projection from the built-in closure and
+the committed `peano.arith` glossary, and holds the roots to the oracle on
+14 hand-built phrases and 16 hand-built sentences that reach every phrase
+concept kind, a punctuation run, a noun-of phrase, a cover limit that
+truncates and the unlimited search, every connective, quantifier, and
+predicate kind, and an unknown atom; it does not reach the committed
+`.lex.tex` sources or a seeded corpus. Each planted defect names the one
+vector that catches it, and the case asserts that the site of each plant
+occurs once. One ambiguous vector, needed to exercise the cover-limit plant,
+reuses the committed `test.seg` glossary of the
+`ambiguous-lexical-segmentation` negative fixture alongside `lexlean.std.nat`
+rather than adding content to the Peano glossary: `test.seg::nna`'s own
+"Natural number addition" is a genuine prefix overlap with `nat`'s "Natural
+number" and `addition`, already proven by that fixture's own `LLP2002`
+diagnostic. The row's statement carries no counts.
+
+Measured with the compiler binary of this tree: `lexlean check` passes.
+Reaching a genuinely ambiguous vector for the cover-limit plant surfaced
+three further defects the module's prior vectors never exercised, all fixed
+in the same pass: `coverSearchStep`'s frame-merge fold reversed the oracle's
+match order (`ends.sort_unstable()`, then reverse-then-push) at a position
+with two covers; `coverSearchStep` carried the oracle's `coverSearchDecide`
+limit-check a second time, so disabling the first (the plant) left the
+second silently returning the search unchanged forever, which needed a much
+larger thread stack and a tiny `states` budget to tell apart from a genuine
+unbounded search before the duplicate check itself was found and removed;
+and, once the healthy comparison reached `propositionSentenceAt` for the
+first time, `predAddIntrans` and `predAddTrans` used a raw token position
+instead of `PropositionTerms::atomRange` for a predicate's own span, and the
+`ForAll` keyword list appended `comma` at the end instead of the oracle's
+`[for, every, comma, ...and]` order.
+
+The case was compiled and run on the normative host on
+`bs44-proposition-sentence` at `42905d9aa6`. Its corpus is 30 named vectors
+(14 of `phraseCovers`, 16 of `propositionSentenceAt`) and no committed or
+seeded corpus. The evaluator agrees with the oracle on 14 runs of
+`phraseCovers` and 16 of `propositionSentenceAt`, the rendered packages under
+the pinned rustc on 30, and each of the 4 planted defects is detected by its
+own vector. A telemetry-instrumented `lexlean verify` of the module (not an
+isolated copy) completed in 10 m 22 s at 1.75 GiB peak RSS; its three longest
+child certification processes were 53.5 s at 1.47 GiB, 27.0 s at 1.85 GiB,
+and 25.2 s at 0.84 GiB, all well under the 300 s per-child limit. The case
+then stops at the stack-bound step, `bootstrap/phrase_covers is no package of
+the committed exports`, as each bootstrap member did before its
+regeneration. The branch is stacked on `BS-43`.
 
 ## The `bdd` recipe as the parts of one run (Issue #131)
 
