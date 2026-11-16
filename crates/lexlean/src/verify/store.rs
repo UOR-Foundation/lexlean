@@ -288,6 +288,44 @@ impl Session {
         self.visit(name, &mut open)
     }
 
+    /// The content identity of what a `leanchecker` replay of the prefix
+    /// `name` reads: the module and every staged module inside its namespace,
+    /// which the replay checks with it (§22.4).
+    pub fn prefix(&self, name: &str) -> Sha256Digest {
+        let mut inside: Vec<String> = Vec::new();
+        let relative = name.replace('.', "/");
+        for root in &self.roots {
+            let mut stack = vec![root.join(&relative)];
+            while let Some(directory) = stack.pop() {
+                let Ok(entries) = std::fs::read_dir(directory.as_std_path()) else {
+                    continue;
+                };
+                for entry in entries.flatten() {
+                    let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
+                        continue;
+                    };
+                    if path.is_dir() {
+                        stack.push(path);
+                    } else if path.extension() == Some("lean") {
+                        if let Ok(rest) = path.strip_prefix(root) {
+                            inside.push(rest.with_extension("").as_str().replace('/', "."));
+                        }
+                    }
+                }
+            }
+        }
+        inside.sort();
+        inside.dedup();
+        let mut bytes =
+            format!("{DOMAIN}\0prefix\0{name}\0{}\0", self.module(name).to_hex()).into_bytes();
+        for module in inside {
+            bytes.extend_from_slice(
+                format!("{module}\0{}\0", self.module(&module).to_hex()).as_bytes(),
+            );
+        }
+        Sha256Digest::of(&bytes)
+    }
+
     /// The content identity of the source at `path` and its imports.
     pub fn source(&self, path: &Utf8Path) -> Option<Sha256Digest> {
         let text = std::fs::read(path.as_std_path()).ok()?;
