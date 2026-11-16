@@ -264,6 +264,7 @@ fn prove(value: &SnapshotProof) -> usize {
         SnapshotProof::Reflexivity
         | SnapshotProof::Decide
         | SnapshotProof::RegionCheck
+        | SnapshotProof::Evaluation
         | SnapshotProof::Congruence => 1,
         SnapshotProof::LinearArithmetic { definitions } => 1 + definitions.len(),
         SnapshotProof::TermCases { definitions, .. } => 2 + definitions.len(),

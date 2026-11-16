@@ -788,6 +788,15 @@ pub enum SemanticReflection {
 #[serde(deny_unknown_fields)]
 pub enum SemanticProof {
     Reflexivity,
+    /// Language 1.2: an equality checked by the kernel alone. The
+    /// elaborator's unifier never compares the two sides: the proof is
+    /// `Eq.refl` of the left side, and the kernel checks it by
+    /// definitional unfolding when the theorem is added, rejecting a
+    /// statement that does not hold. Validation gates the language version
+    /// only; it does not restrict the statement. The intended workload is a
+    /// closed equality between two evaluations, where `reflexivity` can
+    /// exhaust memory in the unifier (measured on long step-machine runs).
+    Evaluation,
     Decide,
     /// Language 1.2: a property of a decision fragment, proved by local box
     /// obligations (§17.12, *Decision regions*). The theorem states
@@ -2392,6 +2401,7 @@ fn term_node_count(term: &SemanticTerm) -> u64 {
 fn proof_node_count(proof: &SemanticProof) -> u64 {
     1 + match proof {
         SemanticProof::Reflexivity
+        | SemanticProof::Evaluation
         | SemanticProof::Decide
         | SemanticProof::RegionCheck
         | SemanticProof::LinearArithmetic { .. }
@@ -3177,6 +3187,7 @@ fn declaration_types(declaration: &SemanticDeclaration, visit: &mut impl FnMut(&
 fn proof_terms(proof: &SemanticProof, visit: &mut impl FnMut(&SemanticTerm)) {
     match proof {
         SemanticProof::Reflexivity
+        | SemanticProof::Evaluation
         | SemanticProof::Decide
         | SemanticProof::RegionCheck
         | SemanticProof::LinearArithmetic { .. }
@@ -3218,6 +3229,7 @@ fn proof_terms(proof: &SemanticProof, visit: &mut impl FnMut(&SemanticTerm)) {
 fn proof_terms_mut(proof: &mut SemanticProof, visit: &mut impl FnMut(&mut SemanticTerm)) {
     match proof {
         SemanticProof::Reflexivity
+        | SemanticProof::Evaluation
         | SemanticProof::Decide
         | SemanticProof::RegionCheck
         | SemanticProof::LinearArithmetic { .. }
@@ -3376,6 +3388,7 @@ pub const BACKEND_BARE_NAMES: [&str; 44] = [
 fn proof_binders(proof: &SemanticProof, visit: &mut impl FnMut(&str)) {
     match proof {
         SemanticProof::Reflexivity
+        | SemanticProof::Evaluation
         | SemanticProof::Decide
         | SemanticProof::RegionCheck
         | SemanticProof::Simplify { .. }
@@ -3680,6 +3693,7 @@ fn type_mentions_parameter(ty: &SemanticType, name: &str) -> bool {
 fn proof_type_arguments(proof: &SemanticProof, visit: &mut impl FnMut(&SemanticType)) {
     match proof {
         SemanticProof::Reflexivity
+        | SemanticProof::Evaluation
         | SemanticProof::LinearArithmetic { .. }
         | SemanticProof::Decide
         | SemanticProof::RegionCheck
@@ -8705,6 +8719,7 @@ fn check_proof(
         // The fragment is read from the whole module (`regions::lower`), which
         // the module check runs once the theorem is admitted.
         SemanticProof::RegionCheck => require_language_1_2(env, "region_check proof"),
+        SemanticProof::Evaluation => require_language_1_2(env, "evaluation proof"),
         SemanticProof::LinearArithmetic { definitions } => {
             require_language_1_2(env, "linear_arithmetic proof")?;
             if definitions
@@ -10687,6 +10702,64 @@ mod tests {
         format!(
             r#"{{"declarations":[{{"axioms":{axioms},"kind":"theorem","name":"zero_refl","parameters":[],"proof":{{"kind":"reflexivity"}},"statement":{{"kind":"eq","left":{{"kind":"nat","value":"0"}},"right":{{"kind":"nat","value":"0"}}}}}}],"spec":"lexlean/semantic-module/1"}}"#
         )
+    }
+
+    #[test]
+    fn evaluation_proof_is_language_1_2_only() {
+        let module = |spec: &str| {
+            EMPTY_POLICY
+                .replace(r#"{"kind":"reflexivity"}"#, r#"{"kind":"evaluation"}"#)
+                .replace("lexlean/semantic-module/1", spec)
+                .replace(r#""kind":"theorem","#, r#""axioms":[],"kind":"theorem","#)
+        };
+        let parse = |text: &str, language: &str| {
+            SemanticModule::parse(
+                text,
+                language,
+                "Test",
+                &[],
+                &BTreeMap::new(),
+                &super::model::ArtifactStore::new(u64::MAX, u64::MAX),
+            )
+        };
+        let rejected = parse(&module("lexlean/semantic-module/1"), "1.1")
+            .expect_err("a language-1.1 module has no evaluation proof");
+        assert!(
+            format!("{rejected:?}").contains("evaluation proof"),
+            "{rejected:?}"
+        );
+        parse(&module("lexlean/semantic-module/2"), "1.2")
+            .expect("a language-1.2 theorem may be closed by evaluation");
+        // The proof reads and writes as exactly `{"kind":"evaluation"}`.
+        assert_eq!(
+            serde_json::to_string(&crate::ir::semantic::SemanticProof::Evaluation)
+                .expect("serializes"),
+            r#"{"kind":"evaluation"}"#
+        );
+        // The published v2 schema has the closed zero-argument alternative;
+        // the v1 schema does not, as language 1.1 rejects it.
+        let alternatives = |schema: &str| -> Vec<serde_json::Value> {
+            let schema: serde_json::Value = serde_json::from_str(schema).expect("a schema");
+            schema["$defs"]["proof"]["oneOf"]
+                .as_array()
+                .expect("proof alternatives")
+                .iter()
+                .filter(|alternative| alternative["properties"]["kind"]["const"] == "evaluation")
+                .cloned()
+                .collect()
+        };
+        assert_eq!(
+            alternatives(include_str!(
+                "../../../../schemas/semantic-module-v2.schema.json"
+            )),
+            vec![serde_json::json!({"additionalProperties": false,
+                "properties": {"kind": {"const": "evaluation"}},
+                "required": ["kind"], "type": "object"})]
+        );
+        assert!(alternatives(include_str!(
+            "../../../../schemas/semantic-module.schema.json"
+        ))
+        .is_empty());
     }
 
     #[test]

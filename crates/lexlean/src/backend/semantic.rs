@@ -125,7 +125,10 @@ fn proof_uses(proof: &SemanticProof, local: &str) -> bool {
         })
     };
     match proof {
-        SemanticProof::Reflexivity | SemanticProof::Decide | SemanticProof::Congruence => false,
+        SemanticProof::Reflexivity
+        | SemanticProof::Evaluation
+        | SemanticProof::Decide
+        | SemanticProof::Congruence => false,
         // The lowered request lists every field of the theorem's one parameter.
         SemanticProof::RegionCheck => true,
         SemanticProof::LinearArithmetic { definitions }
@@ -1301,6 +1304,11 @@ impl Render<'_> {
         let pad = "  ".repeat(indent);
         Ok(match proof {
             SemanticProof::Reflexivity => format!("{pad}rfl\n"),
+            // The goal is closed by `Eq.refl` of its left side without the
+            // unifier's check; the kernel checks it when the theorem is added.
+            SemanticProof::Evaluation => format!(
+                "{pad}run_tac _root_.Lean.Elab.Tactic.liftMetaFinishingTactic fun llGoal => _root_.Lean.MVarId.refl llGoal (check := false)\n"
+            ),
             // The kernel evaluator shares reductions of nested data. The
             // metaprogram evaluator can exhaust memory on ordinary closed
             // parser traces; both still produce kernel-checked proof terms.
@@ -2135,7 +2143,13 @@ pub fn render_lean(
     // §17.12 (decision regions): a `region_check` proof applies the
     // soundness theorem of the regions module.
     let regions = elaborated.contains("\"kind\":\"region_check\"");
+    // An `evaluation` proof runs the pinned toolchain's goal-closing tactic
+    // API, so a module with one imports exactly those two Lean modules.
+    let evaluation = elaborated.contains("\"kind\":\"evaluation\"");
     let mut text = String::from("module\npublic import Init\n");
+    if evaluation {
+        text.push_str("meta import Lean.Elab.Tactic.Basic\nmeta import Lean.Meta.Tactic.Refl\n");
+    }
     if language_1_2 {
         use crate::backend::runtime::{COLLECTIONS, LAWS, MODELS, PORTABLE, REASONING, REGIONS};
         for (used, runtime_module) in [
