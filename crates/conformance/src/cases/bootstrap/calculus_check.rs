@@ -1382,13 +1382,7 @@ fn signature(operation: &Prim, pool: &[Ty], seeded: &mut Seeded) -> Vec<Ty> {
         Prim::Join => vec![list_of(string()), string()],
         Prim::FormatDecimal | Prim::Convert { .. } => vec![seeded.pick(pool).clone()],
         Prim::ParseDecimal { .. } => vec![string()],
-        Prim::Update => vec![
-            bytes(),
-            nat(),
-            Ty::Fixed {
-                width: IntKind::U8,
-            },
-        ],
+        Prim::Update => vec![bytes(), nat(), Ty::Fixed { width: IntKind::U8 }],
     }
 }
 

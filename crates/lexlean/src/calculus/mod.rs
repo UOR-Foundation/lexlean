@@ -337,8 +337,12 @@ pub enum Prim {
     Join,
     FormatDecimal,
     Compare,
-    Convert { target: IntKind },
-    ParseDecimal { target: Ty },
+    Convert {
+        target: IntKind,
+    },
+    ParseDecimal {
+        target: Ty,
+    },
     /// One byte of a byte string replaced: `none` when the position is out
     /// of range (language 1.2).
     Update,
