@@ -860,12 +860,9 @@ pub fn update_bytes(p0: Bytes, p1: u64, p2: u8) -> Option<Bytes> {
     Bytes::update(p0, p1, p2)
 }
 
-pub fn f0(v0: Str) -> R<(Option<i64>, Option<u32>)> {
-    Ok(({
-        let a1 = v0.clone();
-        parse_int(a1)?
-    }, {
-        let a2 = v0;
-        parse_u32(a2)
-    }))
+pub fn f0(v0: Bytes, v1: u64, v2: u8) -> Option<Bytes> {
+    let a1 = v0;
+    let a2 = v1;
+    let a3 = v2;
+    update_bytes(a1, a2, a3)
 }
