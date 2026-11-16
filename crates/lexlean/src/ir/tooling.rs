@@ -176,6 +176,11 @@ pub enum ParameterKind {
         /// The registered type.
         of: String,
     },
+    /// A closed constructor tree of a finite record over nullary enums.
+    RecordIndex {
+        /// The registered record type.
+        of: String,
+    },
 }
 
 /// A type parameter of a registered type.
@@ -219,6 +224,13 @@ pub enum ToolType {
     Index {
         /// The full constructor name.
         constructor: String,
+    },
+    /// A closed structure-valued index; never a variable or arbitrary term.
+    RecordIndex {
+        /// The registered single constructor of the record.
+        constructor: String,
+        /// Closed index fields, in the constructor's declared order.
+        arguments: Vec<ToolType>,
     },
 }
 
@@ -660,6 +672,7 @@ impl ToolingModule {
                     parameters.iter().map(ty).sum::<u64>() + ty(result)
                 }
                 ToolType::Index { .. } => 0,
+                ToolType::RecordIndex { arguments, .. } => arguments.iter().map(ty).sum(),
             }
         }
         fn sig(node: &Sig) -> u64 {

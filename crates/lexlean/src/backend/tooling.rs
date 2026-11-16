@@ -136,6 +136,18 @@ impl<'a> Lean<'a> {
                 self.ty(result)
             ),
             ToolType::Index { constructor } => name(constructor),
+            ToolType::RecordIndex {
+                constructor,
+                arguments,
+            } => format!(
+                "({} {})",
+                name(constructor),
+                arguments
+                    .iter()
+                    .map(|argument| self.ty(argument))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            ),
         }
     }
 
@@ -669,7 +681,8 @@ pub fn render_latex(
                             .map(|p| match &p.kind {
                                 ParameterKind::Type => format!("{} : Type", p.name),
                                 ParameterKind::Constructor => format!("{} : Type -> Type", p.name),
-                                ParameterKind::Index { of } => format!("{} : {of}", p.name),
+                                ParameterKind::Index { of } | ParameterKind::RecordIndex { of } =>
+                                    format!("{} : {of}", p.name),
                             })
                             .collect::<Vec<_>>()
                             .join(", ")

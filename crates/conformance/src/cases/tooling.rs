@@ -1,4 +1,4 @@
-//! The `tooling` suite: TL-01..TL-11, compiler-tooling modules (SPEC.md
+//! The `tooling` suite: TL-01..TL-12, compiler-tooling modules (SPEC.md
 //! §17.20).
 //!
 //! Every plant starts from a committed fixture that checks, changes exactly
@@ -2190,6 +2190,14 @@ pub fn run(id: &str) {
         "TL-09" => tl_09(),
         "TL-10" => tl_10(),
         "TL-11" => tl_11(),
+        "TL-12" => structured_indices::run(),
         _ => panic!("no conformance case is wired for {id}"),
     }
+}
+
+mod structured_indices {
+    use lexlean::artifact::canonical_json::Json as CanonicalJson;
+    use lexlean::ir::tooling::{AuthorityPin, ToolingFailure, ToolingModule};
+    use lexlean::LANGUAGE_1_2;
+    include!("../../../lexlean/src/ir/tooling_index_cases.rs");
 }

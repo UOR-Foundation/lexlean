@@ -25,7 +25,7 @@ Feature: tooling
     And the compiler's pin equals both authority pins, and every source digest of the fixtures equals the digest of that file in the pinned toolchain
 
   @TL-04 @build
-  Scenario: A registered type states its parameters (a type, a type constructor, or an index drawn from a registered type whose constructors are all nullary), its complete constructor list in Lean's order with typed fields, and the one index a constructor exists at, an opaque type pins no constructors, and an abbreviation is the type it abbreviates wherever types are compared; an index of an unregistered or non-nullary type, a repeated constructor, a field naming an unregistered type, applying a type to the wrong number of arguments, or using a variable no parameter binds, a requirement that names no index parameter or a constructor of another type, an opaque type with constructors, and an abbreviation of itself or of a cycle fail with LLT4014.
+  Scenario: A registered type states its parameters (a type, a type constructor, an enum index drawn from a registered type whose constructors are all nullary, or a separately checked closed record index), its complete constructor list in Lean's order with typed fields, and the one index a constructor exists at, an opaque type pins no constructors, and an abbreviation is the type it abbreviates wherever types are compared; an enum index of an unregistered or non-nullary type, a repeated constructor, a field naming an unregistered type, applying a type to the wrong number of arguments, or using a variable no parameter binds, a requirement that names no index parameter or a constructor of another type, an opaque type with constructors, and an abbreviation of itself or of a cycle fail with LLT4014.
     Given the fixtures' registered types, among them the `Purity` index, the index-constrained `Code` constructors, an opaque type, and the `CommandElab` abbreviation
     When each type rule is planted with one defect
     Then each defect fails with LLT4014 naming it
@@ -79,3 +79,9 @@ Feature: tooling
     When each is built
     Then every published tree equals its golden and the other copy's byte for byte
     And changing a declaration, a registry row, a source pin, or a term changes the semantic ID, and the schema is outside the compiler-semantics ID that the locks of all three languages record
+
+  @TL-12 @build
+  Scenario: Closed structure-valued tooling indices preserve constructor fields through registered argument projections and implicit handle indices: constructor-built values and immutable let aliases typecheck, while mismatched configurations, unbound indices, unrelated projections, and unresolved value dependencies fail with LLT4014 or LLT4015 without erasing an index.
+    Given a closed record index and source-pinned dependent spawn and wait signatures
+    When constructor values and immutable aliases are checked and each dependency is planted with a defect
+    Then only matching closed indices typecheck and every unsupported dependency is refused

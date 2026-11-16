@@ -52,11 +52,40 @@ pub struct FnType {
     /// The implicit type parameters, in order.
     pub type_parameters: Vec<String>,
     /// The explicit parameters.
-    pub parameters: Vec<ToolType>,
+    pub parameters: Vec<CallType>,
     /// How many trailing parameters carry a default.
     pub defaulted: usize,
     /// The result.
-    pub result: ToolType,
+    pub result: CallType,
+}
+
+/// An exact call type, or an internal dependency awaiting checked arguments.
+/// Unresolved dependencies are not source-language types and cannot be rendered.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CallType {
+    /// An ordinary or closed indexed type.
+    Plain(ToolType),
+    /// A registered type applied to types or dependent value indices.
+    Application {
+        name: String,
+        arguments: Vec<CallType>,
+    },
+    /// A structure-valued index inferred or projected at the call site.
+    Index(IndexDependency),
+}
+
+/// The only admitted unresolved dependencies of a registered exact signature.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum IndexDependency {
+    /// A named implicit index, inferred consistently from explicit parameters.
+    Implicit { name: String, of: String },
+    /// A registered field projection of an earlier named explicit argument.
+    Projection {
+        argument: usize,
+        owner: String,
+        field: String,
+        of: String,
+    },
 }
 
 /// What the checks know of the module.
@@ -67,6 +96,7 @@ pub struct Registry<'a> {
     /// signature may name a call that a later row declares (`Array.foldl`
     /// names `Array.size` in the default of a parameter).
     call_names: BTreeSet<&'a str>,
+    call_signatures: BTreeMap<&'a str, &'a Sig>,
     functions: BTreeMap<&'a str, FnType>,
     commands: BTreeMap<&'a str, &'a [CommandAtom]>,
     plumbing: BTreeSet<&'a str>,
@@ -123,6 +153,13 @@ pub fn subst(ty: &ToolType, map: &BTreeMap<&str, ToolType>) -> ToolType {
         ToolType::Function { parameters, result } => ToolType::Function {
             parameters: parameters.iter().map(|p| subst(p, map)).collect(),
             result: Box::new(subst(result, map)),
+        },
+        ToolType::RecordIndex {
+            constructor,
+            arguments,
+        } => ToolType::RecordIndex {
+            constructor: constructor.clone(),
+            arguments: arguments.iter().map(|a| subst(a, map)).collect(),
         },
         ToolType::Index { constructor } => ToolType::Index {
             constructor: constructor.clone(),
@@ -182,10 +219,108 @@ pub fn show_type(ty: &ToolType) -> String {
             show_type(result)
         ),
         ToolType::Index { constructor } => constructor.clone(),
+        ToolType::RecordIndex {
+            constructor,
+            arguments,
+        } => format!(
+            "({} {})",
+            constructor,
+            arguments
+                .iter()
+                .map(show_type)
+                .collect::<Vec<_>>()
+                .join(" ")
+        ),
     }
 }
 
 impl<'a> Registry<'a> {
+    // An index is a finite constructor tree: enums, or single-constructor
+    // records whose fields recursively have this shape. No aliases, parameters,
+    // opaque types, recursive records, arbitrary calls, or value variables.
+    fn record_kind(&self, name: &str, _seen: &mut BTreeSet<String>) -> Result<(), ToolingFailure> {
+        let mut active = BTreeSet::new();
+        let mut complete = BTreeSet::new();
+        let mut pending = vec![(name.to_owned(), false)];
+        while let Some((name, leaving)) = pending.pop() {
+            if leaving {
+                active.remove(&name);
+                complete.insert(name);
+                continue;
+            }
+            if complete.contains(&name) {
+                continue;
+            }
+            if !active.insert(name.clone()) {
+                return Err(ToolingFailure::registry("recursive record index"));
+            }
+            let info = self.type_info(&name)?;
+            if info.opaque
+                || info.alias.is_some()
+                || !info.parameters.is_empty()
+                || info.constructors.is_empty()
+            {
+                return Err(ToolingFailure::registry(
+                    "an index needs a closed nonopaque constructor family",
+                ));
+            }
+            pending.push((name.clone(), true));
+            if !info.constructors.iter().all(|c| c.fields.is_empty()) {
+                let [ctor] = info.constructors else {
+                    return Err(ToolingFailure::registry(
+                        "a record index has exactly one constructor",
+                    ));
+                };
+                for field in &ctor.fields {
+                    let ToolType::Const { name, arguments } = &field.ty else {
+                        return Err(ToolingFailure::registry(
+                            "record index fields are closed constructor families",
+                        ));
+                    };
+                    if !arguments.is_empty() {
+                        return Err(ToolingFailure::registry(
+                            "record index fields have no type arguments",
+                        ));
+                    }
+                    pending.push((name.clone(), false));
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn closed_index(&self, value: &ToolType, expected: &str) -> Result<(), ToolingFailure> {
+        self.record_kind(expected, &mut BTreeSet::new())?;
+        let (name, fields): (&str, &[ToolType]) = match value {
+            ToolType::Index { constructor } => (constructor, &[]),
+            ToolType::RecordIndex {
+                constructor,
+                arguments,
+            } => (constructor, arguments),
+            _ => {
+                return Err(ToolingFailure::check(
+                    "a record index must be a closed constructor tree",
+                ))
+            }
+        };
+        let (owner, _, ctor) = self.constructor(name)?;
+        if owner != expected
+            || fields.len() != ctor.fields.len()
+            || (matches!(value, ToolType::RecordIndex { .. }) && fields.is_empty())
+        {
+            return Err(ToolingFailure::check(
+                "record index constructor or field count mismatch",
+            ));
+        }
+        for (field, declared) in fields.iter().zip(&ctor.fields) {
+            let ToolType::Const { name, .. } = &declared.ty else {
+                return Err(ToolingFailure::check("invalid record index field"));
+            };
+            self.closed_index(field, name)?;
+        }
+        Ok(())
+    }
+
     /// A type with every abbreviation unfolded one level, everywhere.
     pub(crate) fn unfold(&self, ty: &ToolType) -> ToolType {
         match ty {
@@ -205,6 +340,13 @@ impl<'a> Registry<'a> {
             ToolType::Function { parameters, result } => ToolType::Function {
                 parameters: parameters.iter().map(|p| self.unfold(p)).collect(),
                 result: Box::new(self.unfold(result)),
+            },
+            ToolType::RecordIndex {
+                constructor,
+                arguments,
+            } => ToolType::RecordIndex {
+                constructor: constructor.clone(),
+                arguments: arguments.clone(),
             },
             ToolType::Index { constructor } => ToolType::Index {
                 constructor: constructor.clone(),
@@ -227,7 +369,7 @@ impl<'a> Registry<'a> {
             ToolType::Function { parameters, result } => {
                 parameters.iter().any(|p| self.mentions_alias(p)) || self.mentions_alias(result)
             }
-            ToolType::Index { .. } => false,
+            ToolType::Index { .. } | ToolType::RecordIndex { .. } => false,
         }
     }
 
@@ -322,6 +464,9 @@ impl<'a> Registry<'a> {
                             }
                             self.well_formed(argument, scope, true)?;
                         }
+                        (ParameterKind::RecordIndex { of }, _) => {
+                            self.closed_index(argument, of)?
+                        }
                         (ParameterKind::Type, _) => self.well_formed(argument, scope, true)?,
                         (ParameterKind::Constructor, _) => {
                             self.well_formed(argument, scope, false)?;
@@ -349,6 +494,16 @@ impl<'a> Registry<'a> {
                     self.well_formed(parameter, scope, true)?;
                 }
                 self.well_formed(result, scope, true)
+            }
+            ToolType::RecordIndex { constructor, .. } => {
+                let (owner, _, _) = self.constructor(constructor)?;
+                self.closed_index(ty, owner)?;
+                if value {
+                    return Err(ToolingFailure::check(
+                        "a record index is not the type of a value",
+                    ));
+                }
+                Ok(())
             }
             ToolType::Index { constructor } => {
                 self.constructor(constructor)?;
@@ -384,6 +539,7 @@ fn build(module: &ToolingModule) -> Result<Registry<'_>, ToolingFailure> {
         types: BTreeMap::new(),
         calls: BTreeMap::new(),
         call_names: BTreeSet::new(),
+        call_signatures: BTreeMap::new(),
         functions: BTreeMap::new(),
         commands: BTreeMap::new(),
         plumbing: BTreeSet::new(),
@@ -426,8 +582,9 @@ fn build(module: &ToolingModule) -> Result<Registry<'_>, ToolingFailure> {
                         "`{name}` is declared twice"
                     )));
                 }
-                if matches!(declaration, ToolDeclaration::Call { .. }) {
+                if let ToolDeclaration::Call { signature, .. } = declaration {
                     registry.call_names.insert(name);
+                    registry.call_signatures.insert(name, signature);
                 }
             }
             ToolDeclaration::Plumbing { names } => {
@@ -529,9 +686,12 @@ fn build(module: &ToolingModule) -> Result<Registry<'_>, ToolingFailure> {
                     name,
                     FnType {
                         type_parameters: type_parameters.clone(),
-                        parameters: parameters.iter().map(|p| p.ty.clone()).collect(),
+                        parameters: parameters
+                            .iter()
+                            .map(|p| CallType::Plain(p.ty.clone()))
+                            .collect(),
                         defaulted: 0,
-                        result: result.clone(),
+                        result: CallType::Plain(result.clone()),
                     },
                 );
             }
@@ -613,6 +773,7 @@ pub fn check(module: &ToolingModule) -> Result<(), ToolingFailure> {
                         .iter()
                         .map(|p| (p.name.clone(), p.ty.clone()))
                         .collect(),
+                    values: BTreeMap::new(),
                     defined: &defined,
                     group: &group,
                     current: name,
@@ -663,6 +824,7 @@ pub fn check(module: &ToolingModule) -> Result<(), ToolingFailure> {
                     registry: &registry,
                     scope: &scope,
                     locals: BTreeMap::new(),
+                    values: BTreeMap::new(),
                     defined: &defined,
                     group: &group,
                     current: "",
@@ -674,7 +836,7 @@ pub fn check(module: &ToolingModule) -> Result<(), ToolingFailure> {
                         "`{function}` is evaluated and has type parameters"
                     )));
                 }
-                env.expect_arguments(&format!("`{function}`"), &typing.parameters, 0, arguments)?;
+                let evaluated = env.call(function, &[], arguments)?;
                 let unit_command = ToolType::Const {
                     name: COMMAND_M.to_owned(),
                     arguments: vec![ToolType::Const {
@@ -682,10 +844,10 @@ pub fn check(module: &ToolingModule) -> Result<(), ToolingFailure> {
                         arguments: Vec::new(),
                     }],
                 };
-                if typing.result != unit_command {
+                if evaluated != unit_command {
                     return Err(ToolingFailure::check(format!(
                         "`{function}` is evaluated and returns {}, not a command action",
-                        show_type(&typing.result)
+                        show_type(&evaluated)
                     )));
                 }
             }
@@ -716,7 +878,7 @@ fn mentioned<'t>(ty: &'t ToolType, out: &mut BTreeSet<&'t str>) {
             }
             mentioned(result, out);
         }
-        ToolType::Index { .. } => {}
+        ToolType::Index { .. } | ToolType::RecordIndex { .. } => {}
     }
 }
 
@@ -1146,6 +1308,19 @@ fn check_type(
                 parameter.name
             )));
         }
+        if let ParameterKind::RecordIndex { of } = &parameter.kind {
+            registry.record_kind(of, &mut BTreeSet::new())?;
+            if registry
+                .type_info(of)?
+                .constructors
+                .iter()
+                .all(|c| c.fields.is_empty())
+            {
+                return Err(ToolingFailure::registry(
+                    "a record index requires a structure with fields",
+                ));
+            }
+        }
         if let ParameterKind::Index { of } = &parameter.kind {
             let info = registry.type_info(of)?;
             if info.constructors.iter().any(|ctor| !ctor.fields.is_empty()) {
@@ -1318,11 +1493,17 @@ fn check_domain(
 /// The typing a signature gives a call: implicit type binders become the
 /// type parameters, explicit binders the parameters (trailing defaulted ones
 /// optional), instance binders nothing (Lean synthesizes them).
+#[allow(clippy::too_many_lines)]
 fn derive(registry: &Registry<'_>, name: &str, signature: &Sig) -> Result<FnType, ToolingFailure> {
-    let mut type_parameters: Vec<String> = Vec::new();
-    let mut parameters: Vec<ToolType> = Vec::new();
-    let mut defaulted = 0usize;
+    let mut type_parameters = Vec::new();
+    let mut parameters = Vec::new();
+    let mut values = BTreeMap::new();
+    let mut indices = BTreeMap::new();
+    let mut instances = BTreeSet::new();
+    let mut defaulted = 0;
     let mut cursor = signature;
+    let dependent = signature_record_dependency(registry, signature);
+    let mut binders = BTreeSet::new();
     loop {
         match cursor {
             Sig::Pi {
@@ -1331,28 +1512,75 @@ fn derive(registry: &Registry<'_>, name: &str, signature: &Sig) -> Result<FnType
                 domain,
                 codomain,
             } => {
+                if dependent {
+                    if let Some(binder) = binder {
+                        if !binders.insert(binder.clone()) {
+                            return Err(ToolingFailure::registry(
+                                "a dependent signature cannot shadow a binder",
+                            ));
+                        }
+                    }
+                }
                 match info {
-                    BinderInfo::Instance => {}
-                    BinderInfo::Implicit if !is_kind(registry, domain) => {
-                        // Lean infers an implicit argument that is not a type
-                        // (the instances a structure type carries as
-                        // parameters), so no use states it.
+                    BinderInfo::Instance => {
+                        if let Some(binder) = binder {
+                            instances.insert(binder.clone());
+                        }
                     }
                     BinderInfo::Implicit => {
-                        let binder = binder.clone().ok_or_else(|| {
-                            ToolingFailure::registry(format!(
-                                "`{name}` has an unnamed implicit binder"
-                            ))
-                        })?;
-                        if !parameters.is_empty() {
-                            return Err(ToolingFailure::registry(format!(
-                                "`{name}`: the implicit binder `{binder}` follows an explicit one"
-                            )));
+                        let record = if let Sig::Const { name } = domain.as_ref() {
+                            registry.record_kind(name, &mut BTreeSet::new()).is_ok()
+                                && registry
+                                    .type_info(name)?
+                                    .constructors
+                                    .iter()
+                                    .any(|c| !c.fields.is_empty())
+                        } else {
+                            false
+                        };
+                        if record {
+                            let Some(binder) = binder else {
+                                return Err(ToolingFailure::registry(
+                                    "an implicit record index needs a name",
+                                ));
+                            };
+                            let Sig::Const { name } = domain.as_ref() else {
+                                unreachable!()
+                            };
+                            indices.insert(binder.clone(), name.clone());
+                        } else if is_kind(registry, domain) {
+                            let Some(binder) = binder else {
+                                return Err(ToolingFailure::registry(
+                                    "an implicit type binder needs a name",
+                                ));
+                            };
+                            if !parameters.is_empty() {
+                                return Err(ToolingFailure::registry(
+                                    "an implicit type binder follows an explicit parameter",
+                                ));
+                            }
+                            type_parameters.push(binder.clone());
                         }
-                        type_parameters.push(binder);
                     }
                     BinderInfo::Explicit => {
-                        let (ty, optional) = domain_type(registry, name, domain, &type_parameters)?;
+                        let (domain, optional) = match domain.as_ref() {
+                            Sig::OptParam { domain, .. } => (domain.as_ref(), true),
+                            other => (other, false),
+                        };
+                        let ty = call_type(
+                            registry,
+                            name,
+                            domain,
+                            &type_parameters,
+                            &values,
+                            &indices,
+                            &instances,
+                        )?;
+                        if let Some(binder) = binder {
+                            if let CallType::Plain(ty) = &ty {
+                                values.insert(binder.clone(), (parameters.len(), ty.clone()));
+                            }
+                        }
                         parameters.push(ty);
                         defaulted = if optional { defaulted + 1 } else { 0 };
                     }
@@ -1360,22 +1588,257 @@ fn derive(registry: &Registry<'_>, name: &str, signature: &Sig) -> Result<FnType
                 cursor = codomain;
             }
             Sig::Arrow { domain, codomain } => {
-                let (ty, optional) = domain_type(registry, name, domain, &type_parameters)?;
-                parameters.push(ty);
+                let (domain, optional) = match domain.as_ref() {
+                    Sig::OptParam { domain, .. } => (domain.as_ref(), true),
+                    other => (other, false),
+                };
+                parameters.push(call_type(
+                    registry,
+                    name,
+                    domain,
+                    &type_parameters,
+                    &values,
+                    &indices,
+                    &instances,
+                )?);
                 defaulted = if optional { defaulted + 1 } else { 0 };
                 cursor = codomain;
             }
             result => {
-                let result = sig_type(registry, name, result, &type_parameters)?;
                 return Ok(FnType {
-                    type_parameters,
+                    type_parameters: type_parameters.clone(),
                     parameters,
                     defaulted,
-                    result,
-                });
+                    result: call_type(
+                        registry,
+                        name,
+                        result,
+                        &type_parameters,
+                        &values,
+                        &indices,
+                        &instances,
+                    )?,
+                })
             }
         }
     }
+}
+
+// Detect the dependency from the signature itself, even if a registry removes
+// the result type's parameter. A lying arity must not hide a projection.
+fn signature_record_dependency(registry: &Registry<'_>, sig: &Sig) -> bool {
+    match sig {
+        Sig::Pi {
+            domain, codomain, ..
+        }
+        | Sig::Arrow { domain, codomain } => {
+            matches!(domain.as_ref(), Sig::Const { name }
+                if registry.record_kind(name, &mut BTreeSet::new()).is_ok()
+                && registry.types.get(name.as_str()).is_some_and(|t|
+                    t.constructors.iter().any(|c| !c.fields.is_empty())))
+                || signature_record_dependency(registry, domain)
+                || signature_record_dependency(registry, codomain)
+        }
+        Sig::App {
+            function,
+            arguments,
+        } => {
+            matches!(function.as_ref(), Sig::Const { name }
+                if registry.call_names.contains(name.as_str()))
+                || arguments
+                    .iter()
+                    .any(|arg| signature_record_dependency(registry, arg))
+        }
+        Sig::OptParam { domain, .. } => signature_record_dependency(registry, domain),
+        _ => false,
+    }
+}
+
+fn has_record_dependency(
+    registry: &Registry<'_>,
+    sig: &Sig,
+    indices: &BTreeMap<String, String>,
+) -> bool {
+    match sig {
+        Sig::Var { name } => indices.contains_key(name),
+        Sig::App {
+            function,
+            arguments,
+        } => {
+            matches!(function.as_ref(), Sig::Const { name } if registry.call_names.contains(name.as_str()))
+                || matches!(function.as_ref(), Sig::Const { name } if registry.types.get(name.as_str()).is_some_and(|info|
+                info.parameters.iter().any(|p| matches!(p.kind, ParameterKind::RecordIndex { .. }))))
+                || arguments
+                    .iter()
+                    .any(|a| has_record_dependency(registry, a, indices))
+        }
+        _ => false,
+    }
+}
+
+#[allow(clippy::too_many_lines)]
+fn call_type(
+    registry: &Registry<'_>,
+    context: &str,
+    sig: &Sig,
+    types: &[String],
+    values: &BTreeMap<String, (usize, ToolType)>,
+    indices: &BTreeMap<String, String>,
+    instances: &BTreeSet<String>,
+) -> Result<CallType, ToolingFailure> {
+    if let Sig::Var { name } = sig {
+        if let Some(of) = indices.get(name) {
+            return Ok(CallType::Index(IndexDependency::Implicit {
+                name: name.clone(),
+                of: of.clone(),
+            }));
+        }
+    }
+    if let Sig::App {
+        function,
+        arguments,
+    } = sig
+    {
+        if let Sig::Const { name } = function.as_ref() {
+            if registry.call_names.contains(name.as_str()) {
+                // A dependency is exactly a declared field projection of a
+                // previously named explicit argument, never a general call.
+                if let [Sig::Var { name: receiver }] = arguments.as_slice() {
+                    if let Some((
+                        position,
+                        ToolType::Const {
+                            name: owner,
+                            arguments: args,
+                        },
+                    )) = values.get(receiver)
+                    {
+                        if !args.is_empty() {
+                            return Err(ToolingFailure::registry(
+                                "dependent projection owner is parameterized",
+                            ));
+                        }
+                        let info = registry.type_info(owner)?;
+                        let [ctor] = info.constructors else {
+                            return Err(ToolingFailure::registry(
+                                "dependent projection needs one constructor",
+                            ));
+                        };
+                        let prefix = format!("{owner}.");
+                        let Some(field) = name.strip_prefix(&prefix) else {
+                            return Err(ToolingFailure::registry("unrelated dependent projection"));
+                        };
+                        let Some(declared) = ctor.fields.iter().find(|f| f.name == field) else {
+                            return Err(ToolingFailure::registry(
+                                "unknown dependent projection field",
+                            ));
+                        };
+                        let ToolType::Const {
+                            name: of,
+                            arguments: field_args,
+                        } = &declared.ty
+                        else {
+                            return Err(ToolingFailure::registry(
+                                "dependent projection has no closed record type",
+                            ));
+                        };
+                        if !field_args.is_empty() {
+                            return Err(ToolingFailure::registry(
+                                "dependent projection field is parameterized",
+                            ));
+                        }
+                        registry.record_kind(of, &mut BTreeSet::new())?;
+                        let projection_sig =
+                            registry.call_signatures.get(name.as_str()).ok_or_else(|| {
+                                ToolingFailure::registry("unregistered dependent projection")
+                            })?;
+                        // Inspect only the plain field projection signature:
+                        // recursion through another dependent call is refused.
+                        let plain_domain = match projection_sig {
+                            Sig::Arrow { domain, codomain } => {
+                                Some((domain.as_ref(), codomain.as_ref()))
+                            }
+                            Sig::Pi {
+                                info: BinderInfo::Explicit,
+                                domain,
+                                codomain,
+                                ..
+                            } => Some((domain.as_ref(), codomain.as_ref())),
+                            _ => None,
+                        };
+                        let Some((domain, codomain)) = plain_domain else {
+                            return Err(ToolingFailure::registry(
+                                "a field projection has exactly one explicit argument",
+                            ));
+                        };
+                        if sig_type(registry, context, domain, &[])?
+                            != (ToolType::Const {
+                                name: owner.clone(),
+                                arguments: vec![],
+                            })
+                            || sig_type(registry, context, codomain, &[])? != declared.ty
+                        {
+                            return Err(ToolingFailure::registry(
+                                "projection signature disagrees with constructor field",
+                            ));
+                        }
+                        return Ok(CallType::Index(IndexDependency::Projection {
+                            argument: *position,
+                            owner: owner.clone(),
+                            field: field.to_owned(),
+                            of: of.clone(),
+                        }));
+                    }
+                }
+            }
+            if let Some(info) = registry.types.get(name.as_str()) {
+                if !has_record_dependency(registry, sig, indices) {
+                    return Ok(CallType::Plain(sig_type(registry, context, sig, types)?));
+                }
+                for extra in arguments.iter().skip(info.parameters.len()) {
+                    if !matches!(extra, Sig::Var { name } if instances.contains(name)) {
+                        return Err(ToolingFailure::registry(
+                            "a dependent argument cannot be erased as instance plumbing",
+                        ));
+                    }
+                }
+                let converted = arguments
+                    .iter()
+                    .take(info.parameters.len())
+                    .map(|arg| call_type(registry, context, arg, types, values, indices, instances))
+                    .collect::<Result<Vec<_>, _>>()?;
+                if converted
+                    .iter()
+                    .any(|arg| !matches!(arg, CallType::Plain(_)))
+                {
+                    if arguments.len() < info.parameters.len() {
+                        return Err(ToolingFailure::registry(
+                            "dependent type application lacks an index",
+                        ));
+                    }
+                    let kept = converted[..info.parameters.len()].to_vec();
+                    for (arg, parameter) in kept.iter().zip(info.parameters) {
+                        if let CallType::Index(dependency) = arg {
+                            let of = match dependency {
+                                IndexDependency::Implicit { of, .. }
+                                | IndexDependency::Projection { of, .. } => of,
+                            };
+                            if !matches!(&parameter.kind, ParameterKind::RecordIndex { of: expected } if expected == of)
+                            {
+                                return Err(ToolingFailure::registry(
+                                    "dependent index has the wrong registered family",
+                                ));
+                            }
+                        }
+                    }
+                    return Ok(CallType::Application {
+                        name: name.clone(),
+                        arguments: kept,
+                    });
+                }
+            }
+        }
+    }
+    Ok(CallType::Plain(sig_type(registry, context, sig, types)?))
 }
 
 /// Whether a binder's domain is a kind: `Type`, a type constructor kind
@@ -1563,7 +2026,7 @@ fn check_command(
     };
     if !typing.type_parameters.is_empty()
         || !typing.parameters.is_empty()
-        || typing.result != elab
+        || typing.result != CallType::Plain(elab.clone())
         || registry.normal(&elab) != unfolded
     {
         return Err(ToolingFailure::check(format!(
@@ -1621,6 +2084,7 @@ struct Env<'r, 'a> {
     registry: &'r Registry<'a>,
     scope: &'r BTreeSet<&'r str>,
     locals: BTreeMap<String, ToolType>,
+    values: BTreeMap<String, ToolTerm>,
     defined: &'r BTreeSet<&'r str>,
     group: &'r BTreeSet<&'r str>,
     current: &'r str,
@@ -1751,6 +2215,9 @@ impl Env<'_, '_> {
                         ParameterKind::Index { .. } => {
                             self.registry.well_formed(argument, self.scope, false)?;
                         }
+                        ParameterKind::RecordIndex { of } => {
+                            self.registry.closed_index(argument, of)?
+                        }
                         ParameterKind::Type => self.well_formed(argument)?,
                     }
                 }
@@ -1845,7 +2312,9 @@ impl Env<'_, '_> {
                 let observed = self.infer(value)?;
                 self.expect(&format!("the value of `{binder}`"), ty, &observed)?;
                 self.bind(binder, ty.clone())?;
+                self.values.insert(binder.clone(), value.as_ref().clone());
                 let result = self.infer(body);
+                self.values.remove(binder);
                 self.locals.remove(binder);
                 result
             }
@@ -1930,6 +2399,223 @@ impl Env<'_, '_> {
         })
     }
 
+    fn constructor_value(
+        &self,
+        term: &ToolTerm,
+        seen: &mut BTreeSet<String>,
+    ) -> Result<ToolTerm, ToolingFailure> {
+        match term {
+            ToolTerm::Var { name } => {
+                if !seen.insert(name.clone()) {
+                    return Err(ToolingFailure::check("cyclic index alias"));
+                }
+                let value = self.values.get(name).ok_or_else(|| {
+                    ToolingFailure::check(
+                        "index projection requires a proven immutable constructor value",
+                    )
+                })?;
+                let result = self.constructor_value(value, seen);
+                seen.remove(name);
+                result
+            }
+            ToolTerm::Construct { .. } => Ok(term.clone()),
+            ToolTerm::Field { value, field } => {
+                let value = self.constructor_value(value, seen)?;
+                let ToolTerm::Construct {
+                    constructor,
+                    arguments,
+                    ..
+                } = value
+                else {
+                    unreachable!()
+                };
+                let (_, _, ctor) = self.registry.constructor(&constructor)?;
+                let position = ctor
+                    .fields
+                    .iter()
+                    .position(|f| &f.name == field)
+                    .ok_or_else(|| ToolingFailure::check("unknown index field"))?;
+                self.constructor_value(
+                    arguments
+                        .get(position)
+                        .ok_or_else(|| ToolingFailure::check("index constructor lacks field"))?,
+                    seen,
+                )
+            }
+            _ => Err(ToolingFailure::check(
+                "index projection does not evaluate arbitrary terms",
+            )),
+        }
+    }
+
+    fn index_value(&self, term: &ToolTerm, of: &str) -> Result<ToolType, ToolingFailure> {
+        let value = self.constructor_value(term, &mut BTreeSet::new())?;
+        let ToolTerm::Construct {
+            constructor,
+            type_arguments,
+            arguments,
+        } = value
+        else {
+            unreachable!()
+        };
+        if !type_arguments.is_empty() {
+            return Err(ToolingFailure::check(
+                "an index constructor has no type parameters",
+            ));
+        }
+        let (owner, _, ctor) = self.registry.constructor(&constructor)?;
+        if owner != of || ctor.fields.len() != arguments.len() {
+            return Err(ToolingFailure::check(
+                "index constructor family or arity mismatch",
+            ));
+        }
+        let result = if arguments.is_empty() {
+            ToolType::Index { constructor }
+        } else {
+            let fields = arguments
+                .iter()
+                .zip(&ctor.fields)
+                .map(|(value, field)| {
+                    let ToolType::Const { name, arguments } = &field.ty else {
+                        return Err(ToolingFailure::check("invalid index field type"));
+                    };
+                    if !arguments.is_empty() {
+                        return Err(ToolingFailure::check("parameterized index field"));
+                    }
+                    self.index_value(value, name)
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            ToolType::RecordIndex {
+                constructor,
+                arguments: fields,
+            }
+        };
+        self.registry.closed_index(&result, of)?;
+        Ok(result)
+    }
+
+    fn specialize(
+        &self,
+        template: &CallType,
+        args: &[ToolTerm],
+        types: &BTreeMap<&str, ToolType>,
+    ) -> Result<CallType, ToolingFailure> {
+        match template {
+            CallType::Plain(ty) => Ok(CallType::Plain(subst(ty, types))),
+            CallType::Application { name, arguments } => Ok(CallType::Application {
+                name: name.clone(),
+                arguments: arguments
+                    .iter()
+                    .map(|a| self.specialize(a, args, types))
+                    .collect::<Result<_, _>>()?,
+            }),
+            CallType::Index(IndexDependency::Implicit { .. }) => Ok(template.clone()),
+            CallType::Index(IndexDependency::Projection {
+                argument,
+                owner,
+                field,
+                of,
+            }) => {
+                let term = args.get(*argument).ok_or_else(|| {
+                    ToolingFailure::check("dependent argument cannot use an omitted default")
+                })?;
+                let value = self.constructor_value(term, &mut BTreeSet::new())?;
+                let ToolTerm::Construct {
+                    constructor,
+                    arguments,
+                    ..
+                } = value
+                else {
+                    unreachable!()
+                };
+                let (actual_owner, _, ctor) = self.registry.constructor(&constructor)?;
+                if owner != actual_owner {
+                    return Err(ToolingFailure::check(
+                        "dependent projection receiver mismatch",
+                    ));
+                }
+                let position = ctor
+                    .fields
+                    .iter()
+                    .position(|f| &f.name == field)
+                    .ok_or_else(|| ToolingFailure::check("unknown dependent field"))?;
+                let selected = arguments
+                    .get(position)
+                    .ok_or_else(|| ToolingFailure::check("dependent projection field missing"))?;
+                // Only the selected field is normalized. Checked unrelated
+                // payload fields may contain ordinary variables or calls.
+                Ok(CallType::Plain(self.index_value(selected, of)?))
+            }
+        }
+    }
+
+    fn infer_indices(
+        &self,
+        expected: &CallType,
+        actual: &ToolType,
+        bindings: &mut BTreeMap<String, ToolType>,
+    ) -> Result<(), ToolingFailure> {
+        match expected {
+            CallType::Plain(ty) => self.expect("call argument", ty, actual),
+            CallType::Application { name, arguments } => {
+                let normal = self.registry.normal(actual);
+                let ToolType::Const {
+                    name: observed,
+                    arguments: fields,
+                } = normal
+                else {
+                    return Err(ToolingFailure::check(
+                        "dependent argument is not a registered type application",
+                    ));
+                };
+                if name != &observed || arguments.len() != fields.len() {
+                    return Err(ToolingFailure::check(
+                        "dependent type constructor or arity mismatch",
+                    ));
+                }
+                for (expected, actual) in arguments.iter().zip(&fields) {
+                    self.infer_indices(expected, actual, bindings)?;
+                }
+                Ok(())
+            }
+            CallType::Index(IndexDependency::Implicit { name, of }) => {
+                self.registry.closed_index(actual, of)?;
+                if let Some(previous) = bindings.get(name) {
+                    self.expect("implicit record index", previous, actual)
+                } else {
+                    bindings.insert(name.clone(), actual.clone());
+                    Ok(())
+                }
+            }
+            CallType::Index(IndexDependency::Projection { .. }) => {
+                Err(ToolingFailure::check("unresolved argument projection"))
+            }
+        }
+    }
+
+    fn close_type(
+        template: &CallType,
+        indices: &BTreeMap<String, ToolType>,
+    ) -> Result<ToolType, ToolingFailure> {
+        match template {
+            CallType::Plain(ty) => Ok(ty.clone()),
+            CallType::Application { name, arguments } => Ok(ToolType::Const {
+                name: name.clone(),
+                arguments: arguments
+                    .iter()
+                    .map(|a| Self::close_type(a, indices))
+                    .collect::<Result<_, _>>()?,
+            }),
+            CallType::Index(IndexDependency::Implicit { name, .. }) => indices
+                .get(name)
+                .cloned()
+                .ok_or_else(|| ToolingFailure::check("implicit record index cannot be inferred")),
+            CallType::Index(IndexDependency::Projection { .. }) => {
+                Err(ToolingFailure::check("record projection was not resolved"))
+            }
+        }
+    }
+
     fn call(
         &mut self,
         function: &str,
@@ -1937,7 +2623,7 @@ impl Env<'_, '_> {
         arguments: &[ToolTerm],
     ) -> Result<ToolType, ToolingFailure> {
         let typing = if let Some(typing) = self.registry.calls.get(function) {
-            typing
+            typing.clone()
         } else if let Some(typing) = self.registry.functions.get(function) {
             let allowed = self.defined.contains(function)
                 || (function == self.current && self.partial)
@@ -1948,7 +2634,7 @@ impl Env<'_, '_> {
                 )));
             }
             self.calls.insert(function.to_owned());
-            typing
+            typing.clone()
         } else {
             return Err(ToolingFailure::check(format!(
                 "`{function}` is neither a registered call nor a function of this module"
@@ -1962,6 +2648,11 @@ impl Env<'_, '_> {
             )));
         }
         for argument in type_arguments {
+            if matches!(argument, ToolType::RecordIndex { .. }) {
+                return Err(ToolingFailure::check(
+                    "record indices are inferred from handles, not supplied as polymorphic types",
+                ));
+            }
             self.registry.well_formed(argument, self.scope, false)?;
         }
         let map: BTreeMap<&str, ToolType> = typing
@@ -1970,10 +2661,55 @@ impl Env<'_, '_> {
             .map(String::as_str)
             .zip(type_arguments.iter().cloned())
             .collect();
-        let parameters: Vec<ToolType> = typing.parameters.iter().map(|p| subst(p, &map)).collect();
-        let result = subst(&typing.result, &map);
-        let defaulted = typing.defaulted;
-        self.expect_arguments(&format!("`{function}`"), &parameters, defaulted, arguments)?;
+        if let CallType::Plain(result) = &typing.result {
+            if typing
+                .parameters
+                .iter()
+                .all(|p| matches!(p, CallType::Plain(_)))
+            {
+                let parameters = typing
+                    .parameters
+                    .iter()
+                    .map(|p| {
+                        let CallType::Plain(p) = p else {
+                            unreachable!()
+                        };
+                        subst(p, &map)
+                    })
+                    .collect::<Vec<_>>();
+                let result = subst(result, &map);
+                self.expect_arguments(
+                    &format!("`{function}`"),
+                    &parameters,
+                    typing.defaulted,
+                    arguments,
+                )?;
+                return Ok(result);
+            }
+        }
+        if arguments.len() > typing.parameters.len()
+            || arguments.len() + typing.defaulted < typing.parameters.len()
+        {
+            return Err(ToolingFailure::check("call argument count mismatch"));
+        }
+        // Infer/check all ordinary argument expressions before extracting a
+        // selected constructor field, so projection is not a typing bypass.
+        let observed = arguments
+            .iter()
+            .map(|a| self.infer(a))
+            .collect::<Result<Vec<_>, _>>()?;
+        let parameters = typing
+            .parameters
+            .iter()
+            .map(|p| self.specialize(p, arguments, &map))
+            .collect::<Result<Vec<_>, _>>()?;
+        let result = self.specialize(&typing.result, arguments, &map)?;
+        let mut indices = BTreeMap::new();
+        for (parameter, actual) in parameters.iter().zip(&observed) {
+            self.infer_indices(parameter, actual, &mut indices)?;
+        }
+        let result = Self::close_type(&result, &indices)?;
+        self.well_formed(&result)?;
         Ok(result)
     }
 
@@ -2101,5 +2837,17 @@ impl Env<'_, '_> {
             }
         }
         Ok(result.expect("a match has a branch"))
+    }
+}
+
+#[cfg(test)]
+mod structured_index_tests {
+    use crate::artifact::canonical_json::Json as CanonicalJson;
+    use crate::ir::tooling::{AuthorityPin, ToolingFailure, ToolingModule};
+    use crate::LANGUAGE_1_2;
+    include!("tooling_index_cases.rs");
+    #[test]
+    fn conformance_tl_12() {
+        run();
     }
 }

@@ -32,7 +32,7 @@ definition{
   name: tl04,
   parameters: [],
   result: Rows::IdRow,
-  body: (record Rows::IdRow {id := "TL-04", level := "build", suite := "tooling", statement := "A registered type states its parameters (a type, a type constructor, or an index drawn from a registered type whose constructors are all nullary), its complete constructor list in Lean's order with typed fields, and the one index a constructor exists at, an opaque type pins no constructors, and an abbreviation is the type it abbreviates wherever types are compared; an index of an unregistered or non-nullary type, a repeated constructor, a field naming an unregistered type, applying a type to the wrong number of arguments, or using a variable no parameter binds, a requirement that names no index parameter or a constructor of another type, an opaque type with constructors, and an abbreviation of itself or of a cycle fail with LLT4014.", sections := "§17.20"}),
+  body: (record Rows::IdRow {id := "TL-04", level := "build", suite := "tooling", statement := "A registered type states its parameters (a type, a type constructor, an enum index drawn from a registered type whose constructors are all nullary, or a separately checked closed record index), its complete constructor list in Lean's order with typed fields, and the one index a constructor exists at, an opaque type pins no constructors, and an abbreviation is the type it abbreviates wherever types are compared; an enum index of an unregistered or non-nullary type, a repeated constructor, a field naming an unregistered type, applying a type to the wrong number of arguments, or using a variable no parameter binds, a requirement that names no index parameter or a constructor of another type, an opaque type with constructors, and an abbreviation of itself or of a cycle fail with LLT4014.", sections := "§17.20"}),
   executable: true
 }
 
@@ -89,6 +89,14 @@ definition{
   parameters: [],
   result: Rows::IdRow,
   body: (record Rows::IdRow {id := "TL-11", level := "build", suite := "tooling", statement := "Tooling modules are deterministic and content-addressed: each committed fixture's published build tree equals its golden byte for byte and across two clean builds in different directories, changing any declaration, registry row, source pin, or term changes the semantic ID, and the schema lies outside `schemas/` and so outside the compiler-semantics ID, which the committed locks of the three languages still record.", sections := "§17.20, §21.2, §28.3, §28.4"}),
+  executable: true
+}
+
+definition{
+  name: tl12,
+  parameters: [],
+  result: Rows::IdRow,
+  body: (record Rows::IdRow {id := "TL-12", level := "build", suite := "tooling", statement := "Closed structure-valued tooling indices preserve constructor fields through registered argument projections and implicit handle indices: constructor-built values and immutable let aliases typecheck, while mismatched configurations, unbound indices, unrelated projections, and unresolved value dependencies fail with LLT4014 or LLT4015 without erasing an index.", sections := "§17.20"}),
   executable: true
 }
 \end{semanticmodule}
