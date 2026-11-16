@@ -273,3 +273,10 @@ Feature: semantic-ir
     When the project is built, its declarations file is read, and copies are built with one literal changed, with the theorem's proof changed, and with a declaration added and the declarations reordered
     Then the IDs equal their recomputation from the framed inputs, the file validates against its schema, and exactly the changed definition and the declarations that reach it change ID
     And the theorem's statement ID survives the change of its proof, and a language-1.0 build publishes no declarations file
+
+  @SM-39 @build
+  Scenario: Language 1.2 integer conversions, int_of_nat from Nat to Int and nat_abs and int_to_nat from Int to Nat, and gcd over Nat, are total, are each the pinned Lean's own definition (Int.ofNat, Int.natAbs, Int.toNat, Nat.gcd) written by its full name in the generated Lean so that the kernel decides them on literals, are rejected under language 1.1 and at any other operand type, result type, or argument count, and are formal-only in production, so that a production root whose closure reaches one fails with LLT4005.
+    Given a language-1.2 project whose definitions apply int_of_nat, nat_abs, int_to_nat, and gcd, with theorems at zero, at negative values, and at values no fixed width holds, and copies that apply them at a wrong type, with a wrong result, or under language 1.1
+    When it is linked, rendered, and verified, and a production root applying gcd is checked
+    Then the generated Lean writes Int.ofNat, Int.natAbs, Int.toNat, and Nat.gcd, and the kernel decides every theorem with no axiom
+    And each misuse fails with LLT4001 and the production root fails with LLT4005 before any build output

@@ -161,13 +161,17 @@ pub const fn primitive_key(operation: SemanticPrimitive) -> &'static str {
         SemanticPrimitive::LessThan => "primitive.less_than",
         SemanticPrimitive::ToInt => "primitive.to_int",
         SemanticPrimitive::ToNat => "primitive.to_nat",
+        SemanticPrimitive::IntOfNat => "primitive.int_of_nat",
+        SemanticPrimitive::NatAbs => "primitive.nat_abs",
+        SemanticPrimitive::IntToNat => "primitive.int_to_nat",
+        SemanticPrimitive::Gcd => "primitive.gcd",
     }
 }
 
 /// Every primitive operation, in declaration order. [`primitive_index`] is
 /// exhaustive, so a new operation cannot be added without extending it, and
 /// the conformance suite checks the two agree.
-pub const PRIMITIVES: [SemanticPrimitive; 56] = [
+pub const PRIMITIVES: [SemanticPrimitive; 60] = [
     SemanticPrimitive::Subtract,
     SemanticPrimitive::Multiply,
     SemanticPrimitive::Quotient,
@@ -224,6 +228,10 @@ pub const PRIMITIVES: [SemanticPrimitive; 56] = [
     SemanticPrimitive::LessThan,
     SemanticPrimitive::ToInt,
     SemanticPrimitive::ToNat,
+    SemanticPrimitive::IntOfNat,
+    SemanticPrimitive::NatAbs,
+    SemanticPrimitive::IntToNat,
+    SemanticPrimitive::Gcd,
 ];
 
 /// The position of an operation in [`PRIMITIVES`].
@@ -286,6 +294,10 @@ pub const fn primitive_index(operation: SemanticPrimitive) -> usize {
         SemanticPrimitive::LessThan => 53,
         SemanticPrimitive::ToInt => 54,
         SemanticPrimitive::ToNat => 55,
+        SemanticPrimitive::IntOfNat => 56,
+        SemanticPrimitive::NatAbs => 57,
+        SemanticPrimitive::IntToNat => 58,
+        SemanticPrimitive::Gcd => 59,
     }
 }
 

@@ -740,6 +740,12 @@ suite = "semantic-ir"
 statement = "A language-1.2 build publishes, for every semantic module, a declaration ID for each declaration and a statement ID for each theorem: the declaration ID is a framed SHA-256 of the declaration's canonical JSON and of the declaration IDs of the project declarations it references, with declarations that reference one another hashed as one group, and the statement ID omits the theorem's proof; changing one literal of one definition changes the declaration IDs of exactly that definition and of the declarations that reach it by reference, changing a theorem's proof alone leaves its statement ID unchanged, adding or reordering independent declarations changes no ID, the IDs equal their recomputation from the specified framed inputs, the file validates against `api/schemas/declarations.schema.json`, and a language-1.0 or 1.1 build publishes none."
 
 [[id]]
+id = "SM-39"
+level = "build"
+suite = "semantic-ir"
+statement = "Language 1.2 integer conversions, int_of_nat from Nat to Int and nat_abs and int_to_nat from Int to Nat, and gcd over Nat, are total, are each the pinned Lean's own definition (Int.ofNat, Int.natAbs, Int.toNat, Nat.gcd) written by its full name in the generated Lean so that the kernel decides them on literals, are rejected under language 1.1 and at any other operand type, result type, or argument count, and are formal-only in production, so that a production root whose closure reaches one fails with LLT4005."
+
+[[id]]
 id = "DF-01"
 level = "build"
 suite = "declarations"

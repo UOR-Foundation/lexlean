@@ -825,6 +825,15 @@ fn primitive_name(operation: SemanticPrimitive) -> Result<(&'static str, &'stati
                 "{operation:?} is certified only through its elaboration"
             ));
         }
+        // Formal-only (§17.13): no eligible root reaches one.
+        SemanticPrimitive::IntOfNat
+        | SemanticPrimitive::NatAbs
+        | SemanticPrimitive::IntToNat
+        | SemanticPrimitive::Gcd => {
+            return Err(format!(
+                "{operation:?} is formal-only and has no certificate"
+            ));
+        }
     })
 }
 

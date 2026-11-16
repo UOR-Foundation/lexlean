@@ -246,6 +246,14 @@ impl Writer<'_, '_> {
                     "{operation:?} is certified only through its elaboration"
                 ));
             }
+            SemanticPrimitive::IntOfNat
+            | SemanticPrimitive::NatAbs
+            | SemanticPrimitive::IntToNat
+            | SemanticPrimitive::Gcd => {
+                return Err(format!(
+                    "{operation:?} is formal-only and has no certificate"
+                ));
+            }
             SemanticPrimitive::CheckedAdd => Some("checkedAddInt64"),
             SemanticPrimitive::CheckedSubtract => Some("checkedSubtractInt64"),
             SemanticPrimitive::CheckedMultiply => Some("checkedMultiplyInt64"),
@@ -313,6 +321,14 @@ impl Writer<'_, '_> {
             SemanticPrimitive::ToInt | SemanticPrimitive::ToNat => {
                 return Err(format!(
                     "{operation:?} is certified only through its elaboration"
+                ));
+            }
+            SemanticPrimitive::IntOfNat
+            | SemanticPrimitive::NatAbs
+            | SemanticPrimitive::IntToNat
+            | SemanticPrimitive::Gcd => {
+                return Err(format!(
+                    "{operation:?} is formal-only and has no certificate"
                 ));
             }
             SemanticPrimitive::CheckedAdd
@@ -400,6 +416,14 @@ impl Writer<'_, '_> {
                     SemanticPrimitive::ToInt | SemanticPrimitive::ToNat => {
                         return Err(format!(
                             "{operation:?} is certified only through its elaboration"
+                        ));
+                    }
+                    SemanticPrimitive::IntOfNat
+                    | SemanticPrimitive::NatAbs
+                    | SemanticPrimitive::IntToNat
+                    | SemanticPrimitive::Gcd => {
+                        return Err(format!(
+                            "{operation:?} is formal-only and has no certificate"
                         ));
                     }
                     SemanticPrimitive::Append => "Appendable",

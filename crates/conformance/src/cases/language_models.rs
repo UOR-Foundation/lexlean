@@ -1657,7 +1657,7 @@ fn lm_07() {
 /// audit's reviewed classification: an operation absent from it is refused,
 /// so a primitive added to the language must be classified before the
 /// registries may name it.
-const PRIMITIVES: [(&str, bool, &str); 56] = [
+const PRIMITIVES: [(&str, bool, &str); 60] = [
     ("append", true, "bytes_or_list"),
     ("bit_and", false, "fixed_width"),
     ("bit_not", false, "fixed_width"),
@@ -1672,10 +1672,13 @@ const PRIMITIVES: [(&str, bool, &str); 56] = [
     ("compare_bytes", true, "ordering"),
     ("equal", true, "bool"),
     ("format_decimal", false, "string"),
+    ("gcd", false, "nat"),
     ("graph_reachable", false, "container"),
     ("graph_successors", false, "container"),
     ("graph_topological", false, "container"),
     ("index", true, "option_element"),
+    ("int_of_nat", false, "number"),
+    ("int_to_nat", false, "nat"),
     ("iterate", false, "value"),
     ("iterate_until", false, "value"),
     ("join", true, "string"),
@@ -1692,6 +1695,7 @@ const PRIMITIVES: [(&str, bool, &str); 56] = [
     ("map_size", false, "nat"),
     ("map_values", false, "container"),
     ("multiply", false, "number"),
+    ("nat_abs", false, "nat"),
     ("negate", false, "number"),
     ("parse_decimal", true, "option_number"),
     ("quotient", false, "number"),

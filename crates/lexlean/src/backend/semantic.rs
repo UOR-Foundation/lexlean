@@ -409,6 +409,11 @@ enum Spelling {
     },
     /// A function of `LexLeanCollections`.
     Collection(&'static str),
+    /// A definition of Lean's core, written by its full name: its owner
+    /// (`Int`, `Nat`) is a bare name no binder or module may take
+    /// ([`crate::ir::semantic::BACKEND_BARE_NAMES`]), so the name always
+    /// means Lean's definition (§17.12, *Integer conversions and gcd*).
+    Core(&'static str),
 }
 
 /// The spelling of every primitive, named one by one so that a primitive
@@ -558,6 +563,10 @@ fn spelling(operation: SemanticPrimitive) -> Spelling {
         SemanticPrimitive::GraphReachable => Spelling::Collection("graphReachable"),
         SemanticPrimitive::GraphTopological => Spelling::Collection("graphTopological"),
         SemanticPrimitive::LessThan => Spelling::Collection("lessThan"),
+        SemanticPrimitive::IntOfNat => Spelling::Core("Int.ofNat"),
+        SemanticPrimitive::NatAbs => Spelling::Core("Int.natAbs"),
+        SemanticPrimitive::IntToNat => Spelling::Core("Int.toNat"),
+        SemanticPrimitive::Gcd => Spelling::Core("Nat.gcd"),
     }
 }
 
@@ -921,6 +930,7 @@ impl Render<'_> {
             Spelling::Runtime { name, .. } => (format!("LexLeanRuntime.{name}"), self.ty(result)),
             Spelling::Widening(name) => (name.to_owned(), self.ty(result)),
             Spelling::Collection(name) => (format!("LexLeanCollections.{name}"), self.ty(result)),
+            Spelling::Core(name) => (name.to_owned(), self.ty(result)),
         };
         let mut out = format!("({head}");
         for argument in arguments {

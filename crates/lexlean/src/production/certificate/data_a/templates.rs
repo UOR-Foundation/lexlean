@@ -797,6 +797,14 @@ impl<'a> Writer<'_, 'a> {
                     "{operation:?} is certified only through its elaboration"
                 ));
             }
+            SemanticPrimitive::IntOfNat
+            | SemanticPrimitive::NatAbs
+            | SemanticPrimitive::IntToNat
+            | SemanticPrimitive::Gcd => {
+                return Err(format!(
+                    "{operation:?} is formal-only and has no certificate"
+                ));
+            }
             SemanticPrimitive::MapInsert
             | SemanticPrimitive::MapRemove
             | SemanticPrimitive::MapLookup

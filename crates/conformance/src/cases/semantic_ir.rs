@@ -10,6 +10,7 @@ use crate::support::{self, P};
 mod boolean;
 mod bytes;
 mod declaration_ids;
+mod integers;
 mod names;
 mod nested;
 mod strings;
@@ -2700,6 +2701,8 @@ pub(crate) fn run(id: &str) {
         "SM-37" => nested::run(),
         // §21.9: declaration IDs and statement IDs.
         "SM-38" => declaration_ids::run(),
+        // §17.12: the integer conversions and gcd.
+        "SM-39" => integers::run(),
         // §17.10: a theorem proved by a split on the value of a document
         // term.
         "SM-35" => {

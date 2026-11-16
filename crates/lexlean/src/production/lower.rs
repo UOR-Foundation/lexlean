@@ -1691,7 +1691,11 @@ pub(crate) fn template_of(
         | SemanticPrimitive::FormatDecimal
         | SemanticPrimitive::LessThan
         | SemanticPrimitive::ToInt
-        | SemanticPrimitive::ToNat => return Ok(None),
+        | SemanticPrimitive::ToNat
+        | SemanticPrimitive::IntOfNat
+        | SemanticPrimitive::NatAbs
+        | SemanticPrimitive::IntToNat
+        | SemanticPrimitive::Gcd => return Ok(None),
     }))
 }
 
@@ -3526,6 +3530,16 @@ impl Lowerer<'_> {
             SemanticPrimitive::ToInt | SemanticPrimitive::ToNat => {
                 return Err(format!(
                     "{operation:?} is lowered only through its elaboration"
+                ));
+            }
+            // Formal-only (§17.13): eligibility refuses a root whose
+            // closure reaches one before lowering runs.
+            SemanticPrimitive::IntOfNat
+            | SemanticPrimitive::NatAbs
+            | SemanticPrimitive::IntToNat
+            | SemanticPrimitive::Gcd => {
+                return Err(format!(
+                    "{operation:?} is formal-only and has no production lowering"
                 ));
             }
             SemanticPrimitive::Subtract => integer(Prim::NatSub, Prim::IntSub)?,

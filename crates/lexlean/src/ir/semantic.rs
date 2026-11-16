@@ -119,6 +119,18 @@ pub enum SemanticPrimitive {
     /// Language 1.2: the exact value of an unsigned fixed-width integer as a
     /// `Nat`, elaborated in linking as [`Self::ToInt`] is.
     ToNat,
+    /// Language 1.2: a `Nat` as the `Int` of the same value, Lean's
+    /// `Int.ofNat` (§17.12, *Integer conversions and gcd*).
+    IntOfNat,
+    /// Language 1.2: the magnitude of an `Int` as a `Nat`, Lean's
+    /// `Int.natAbs`.
+    NatAbs,
+    /// Language 1.2: the non-negative part of an `Int` as a `Nat` (zero for
+    /// a negative value), Lean's `Int.toNat`.
+    IntToNat,
+    /// Language 1.2: the greatest common divisor of two `Nat` values, Lean's
+    /// `Nat.gcd`.
+    Gcd,
 }
 
 impl SemanticPrimitive {
@@ -154,6 +166,23 @@ impl SemanticPrimitive {
                 | Self::LessThan
                 | Self::ToInt
                 | Self::ToNat
+                | Self::IntOfNat
+                | Self::NatAbs
+                | Self::IntToNat
+                | Self::Gcd
+        )
+    }
+
+    /// Whether the operation is a conversion between `Nat` and `Int` or the
+    /// gcd (§17.12, *Integer conversions and gcd*): each is total over
+    /// unbounded values, and no production target realizes it in this
+    /// release, so the production registry gives it the disposition
+    /// `formal-only`.
+    #[must_use]
+    pub const fn unbounded_integer(self) -> bool {
+        matches!(
+            self,
+            Self::IntOfNat | Self::NatAbs | Self::IntToNat | Self::Gcd
         )
     }
 
@@ -169,6 +198,8 @@ impl SemanticPrimitive {
     const fn language_1_2_construct(self) -> &'static str {
         if self.widening() {
             "widening primitive"
+        } else if self.unbounded_integer() {
+            "integer conversion primitive"
         } else {
             "collection primitive"
         }
@@ -232,7 +263,11 @@ impl SemanticPrimitive {
             | Self::GraphTopological
             | Self::LessThan
             | Self::ToInt
-            | Self::ToNat => None,
+            | Self::ToNat
+            | Self::IntOfNat
+            | Self::NatAbs
+            | Self::IntToNat
+            | Self::Gcd => None,
         }
     }
 }
@@ -7934,6 +7969,27 @@ fn infer_primitive(
             require_observed(arguments, core::slice::from_ref(&first), operation)?;
             exact_result(SemanticType::Nat)
         }
+        // Total over unbounded values, each Lean's own definition
+        // (`Int.ofNat`, `Int.natAbs`, `Int.toNat`, `Nat.gcd`), so none
+        // returns an `Option`. The gcd of two `Int` values is, by Lean's
+        // definition of `Int.gcd`, the gcd of their magnitudes, so it is
+        // `gcd` over `nat_abs` and needs no operation of its own.
+        P::IntOfNat => {
+            require_observed(arguments, &[SemanticType::Nat], operation)?;
+            exact_result(SemanticType::Int)
+        }
+        P::NatAbs | P::IntToNat => {
+            require_observed(arguments, &[SemanticType::Int], operation)?;
+            exact_result(SemanticType::Nat)
+        }
+        P::Gcd => {
+            require_observed(
+                arguments,
+                &[SemanticType::Nat, SemanticType::Nat],
+                operation,
+            )?;
+            exact_result(SemanticType::Nat)
+        }
     }
 }
 
@@ -10835,6 +10891,52 @@ mod tests {
             assert!(
                 infer_primitive(P::ToInt, &typed(core::slice::from_ref(&ty)), &T::Int).is_err()
             );
+        }
+    }
+
+    #[test]
+    fn integer_conversions_and_gcd_type_exactly() {
+        use SemanticPrimitive as P;
+        use SemanticType as T;
+        let fixed = [
+            T::Int8,
+            T::Int16,
+            T::Int32,
+            T::Int64,
+            T::UInt8,
+            T::UInt16,
+            T::UInt32,
+            T::UInt64,
+        ];
+        // §17.12, *Integer conversions and gcd*: exactly `Nat` to `Int`,
+        // `Int` to `Nat`, and two `Nat` to `Nat`; a fixed-width operand is
+        // widened first.
+        accepts(P::IntOfNat, &[T::Nat], T::Int);
+        accepts(P::NatAbs, &[T::Int], T::Nat);
+        accepts(P::IntToNat, &[T::Int], T::Nat);
+        accepts(P::Gcd, &[T::Nat, T::Nat], T::Nat);
+        for ty in fixed.iter().cloned().chain([T::Int, T::Bool]) {
+            assert!(
+                infer_primitive(P::IntOfNat, &typed(core::slice::from_ref(&ty)), &T::Int).is_err()
+            );
+        }
+        for ty in fixed.iter().cloned().chain([T::Nat, T::Bool]) {
+            for operation in [P::NatAbs, P::IntToNat] {
+                assert!(
+                    infer_primitive(operation, &typed(core::slice::from_ref(&ty)), &T::Nat)
+                        .is_err()
+                );
+            }
+        }
+        assert!(infer_primitive(P::IntOfNat, &typed(&[T::Nat]), &T::Nat).is_err());
+        assert!(infer_primitive(P::NatAbs, &typed(&[T::Int]), &T::Int).is_err());
+        assert!(infer_primitive(P::Gcd, &typed(&[T::Int, T::Int]), &T::Nat).is_err());
+        assert!(infer_primitive(P::Gcd, &typed(&[T::Nat]), &T::Nat).is_err());
+        assert!(infer_primitive(P::Gcd, &typed(&[T::Nat, T::Nat, T::Nat]), &T::Nat).is_err());
+        assert!(infer_primitive(P::Gcd, &typed(&[T::Nat, T::Nat]), &T::Int).is_err());
+        for operation in [P::IntOfNat, P::NatAbs, P::IntToNat, P::Gcd] {
+            assert!(operation.language_1_2() && operation.unbounded_integer());
+            assert!(!operation.widening() && operation.function_argument().is_none());
         }
     }
 

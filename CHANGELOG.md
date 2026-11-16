@@ -17,6 +17,23 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- Integer conversions and gcd (SPEC.md §17.12, `SM-39`; no new diagnostic
+  code; changes the language-1.2 identity). Four language-1.2 primitives, each
+  total and each the pinned Lean's own definition: `int_of_nat` (`Nat` to
+  `Int`, `Int.ofNat`), `nat_abs` (the magnitude of an `Int`, `Int.natAbs`),
+  `int_to_nat` (the non-negative part of an `Int`, `Int.toNat`), and `gcd`
+  (two `Nat` values, `Nat.gcd`; the gcd of two `Int` values is `gcd` over
+  `nat_abs`, which is Lean's definition of `Int.gcd`). The Lean backend writes
+  each by its full name, so the kernel decides them on literals; any other
+  operand type, result type, or argument count, and any use under language
+  1.1, is refused with `LLT4001`. No production target realizes them in this
+  release: their registry rows are `formal-only`, so a production root whose
+  closure reaches one fails with `LLT4005`, and the known-non-overlap table
+  (version 5) states each as not a runtime construct. Moves the
+  compiler-semantics identity: `semantic_ir` 16 to 17 in
+  `language/semantics-1.2.toml`, both language-1.2 schemas gain the
+  operations; the locks, records, goldens, fixtures and packages the digest
+  binds are regenerated at landing. The register is 498 IDs.
 - Releases and regeneration need no hand steps (SPEC.md §9.4). `regenerate.yml`
   gains the job `deliver`: when the regenerated commit heads one open pull
   request of this repository, the patch is committed on it, pushed to the pull

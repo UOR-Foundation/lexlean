@@ -2830,6 +2830,7 @@ backend runs.
 | collection primitives | `lexlean/semantic-module/2` | The `primitive` operations `map_insert`, `map_remove`, `map_lookup`, `map_contains`, `map_size`, `map_keys`, `map_values`, `map_entries`, `map_fold`, `set_insert`, `set_remove`, `set_contains`, `set_size`, `set_elements`, `set_union`, `set_intersection`, `set_difference`, `set_fold`, `list_fold`, `iterate`, `iterate_until`, `graph_successors`, `graph_reachable`, and `graph_topological`, under the collection rules below. |
 | `less_than` primitive | `lexlean/semantic-module/2` | `{"kind":"primitive","operation":"less_than","arguments":[a,b],"result":{"kind":"bool"}}` over two values of one ordered key type (rule 1 under *Collections and state threading*): `true` exactly when `a` precedes `b` in that type's fixed order. It lowers to `LexLeanCollections.lessThan`. |
 | `to_int`, `to_nat` primitives | `lexlean/semantic-module/2` | `{"kind":"primitive","operation":"to_int","arguments":[v],"result":{"kind":"int"}}` over any fixed-width integer `v` (`int8`..`int64`, `uint8`..`uint64`), and `{"kind":"primitive","operation":"to_nat","arguments":[v],"result":{"kind":"nat"}}` over any unsigned fixed-width integer `v` (`uint8`..`uint64`), under the widening-conversion rules below. |
+| `int_of_nat`, `nat_abs`, `int_to_nat`, `gcd` primitives | `lexlean/semantic-module/2` | `{"kind":"primitive","operation":"int_of_nat","arguments":[n],"result":{"kind":"int"}}` over a `Nat` `n`; `{"kind":"primitive","operation":"nat_abs","arguments":[i],"result":{"kind":"nat"}}` and `{"kind":"primitive","operation":"int_to_nat","arguments":[i],"result":{"kind":"nat"}}` over an `Int` `i`; and `{"kind":"primitive","operation":"gcd","arguments":[a,b],"result":{"kind":"nat"}}` over two `Nat` values, under the integer-conversion rules below. |
 | `artifact` declaration | `lexlean/semantic-module/2` | A typed constant decoded from content-addressed project bytes, under the model rules below. |
 | `contract` declaration | `lexlean/semantic-module/2` | Typed input, output, and optional state interfaces, proposition-valued predicates, and their runtime validators, under the model rules below. |
 | `realization` declaration | `lexlean/semantic-module/2` | A deterministic, rule, statistical, neural, or composite denotation of an interface, under the model rules below. |
@@ -4174,6 +4175,38 @@ end-to-end text-model example is not part of this release.
    `format_decimal`). The canonical LaTeX document renders the source
    conversion (`toInt`, `toNat`), and the snapshot records the declaration's
    `elaboration` alongside the source declaration (`SM-32`).
+
+#### Integer conversions and gcd (language 1.2)
+
+1. **Typing.** `int_of_nat` takes one `Nat` operand and has result `Int`;
+   `nat_abs` and `int_to_nat` take one `Int` operand and have result `Nat`;
+   `gcd` takes two `Nat` operands and has result `Nat`. Any other operand
+   type, result type, or argument count, and any use under language 1.1, is
+   rejected in linking (`LLT4001`) before either backend runs. A
+   fixed-width operand is widened first (`to_int`, `to_nat`).
+2. **Meaning.** Each is total and is the pinned Lean's own definition over
+   unbounded values, so none returns an `Option`: `int_of_nat n` is
+   `Int.ofNat n`, the integer of the same value; `nat_abs i` is
+   `Int.natAbs i`, the magnitude; `int_to_nat i` is `Int.toNat i`, the value
+   when it is non-negative and `0` otherwise; `gcd a b` is `Nat.gcd a b`, so
+   `gcd 0 b = b` and `gcd a 0 = a`. The gcd of two `Int` values is, by Lean's
+   definition of `Int.gcd`, the `Nat.gcd` of their magnitudes, which the
+   language states as `gcd` over `nat_abs`; no operation of its own is needed.
+3. **Rendering.** The Lean backend writes each application as the full name
+   of that definition (`Int.ofNat`, `Int.natAbs`, `Int.toNat`, `Nat.gcd`)
+   applied to its operands and ascribed its result type. The owners `Int` and
+   `Nat` are names the backend writes bare, which no binder, declaration, or
+   module may take, so the name always means Lean's definition, and the
+   kernel decides an application to literals by evaluation (`reflexivity`).
+   The canonical LaTeX document writes the same names. No elaboration runs:
+   generated Lean, the snapshot, and the analyses read the application
+   itself.
+4. **Production.** No production target realizes these operations in this
+   release: their registry rows (`primitive.int_of_nat`,
+   `primitive.nat_abs`, `primitive.int_to_nat`, `primitive.gcd`) have the
+   disposition `formal-only`, so a production root whose closure reaches one
+   fails with `LLT4005` (§17.13), and the known-non-overlap table states each
+   as not a runtime construct (§17.19) (`SM-39`).
 
 Routing is fixed by the project language and is never inferred from module
 content, so no byte sequence has two meanings:
@@ -11794,6 +11827,7 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `SM-36` | `semantic-ir` | A language-1.2 `cases` proof may split a local of type `Bool` into its two constructors: the proof names the local and gives a branch for `false` and one for `true`, each with no binders, the backend lowers it to `cases` on the local with those two alternatives, the theorem verifies with exactly the axioms its policy states, and the schema, the linker, the notation, the formatter, and the canonical LaTeX accept it; a use in language 1.1, a missing branch, a repeated branch, a branch with a binder, and an `induction` on a Boolean are each refused. | §17.10 |
 | `SM-37` | `semantic-ir` | A language-1.2 theorem may be proved by `nested_induction`, an induction over a nested inductive type of the document, one that holds a member of itself under `List`, `Option`, `Result`, or a product and is in no mutual group: the proof names a parameter of the theorem, states one proposition for each auxiliary member of the type's recursive family in the order the pinned Lean's recursor takes them, and gives a branch for every constructor of the type and of each auxiliary member, each binding the constructor's fields followed by one hypothesis for each field that is a member of the family, in field order; the backend lowers it to `induction` over the recursor the pinned Lean generates for the type, with the propositions as its auxiliary motives and the goals taken in the order of its minor premises, so that a theorem over every value of a type with a constructor that holds a `List` of the type verifies under the pinned Lean 4.32.1 with exactly the axioms `propext` and `Quot.sound`, the set its build observes; the schema, the linker, the notation, the formatter, and the canonical LaTeX accept it, and a use in language 1.1, a local whose type is not a nested inductive of the document or lies in a mutual group, an auxiliary member that is missing, repeated, or out of order, a missing or repeated branch, a branch with the wrong number of binders, a proposition that is not well typed, and an `induction` proof on a nested type are each refused as LLT4001. | §16.9, §17.10, §17.12 |
 | `SM-38` | `semantic-ir` | A language-1.2 build publishes, for every semantic module, a declaration ID for each declaration and a statement ID for each theorem: the declaration ID is a framed SHA-256 of the declaration's canonical JSON and of the declaration IDs of the project declarations it references, with declarations that reference one another hashed as one group, and the statement ID omits the theorem's proof; changing one literal of one definition changes the declaration IDs of exactly that definition and of the declarations that reach it by reference, changing a theorem's proof alone leaves its statement ID unchanged, adding or reordering independent declarations changes no ID, the IDs equal their recomputation from the specified framed inputs, the file validates against `api/schemas/declarations.schema.json`, and a language-1.0 or 1.1 build publishes none. | §21.9 |
+| `SM-39` | `semantic-ir` | Language 1.2 integer conversions, int_of_nat from Nat to Int and nat_abs and int_to_nat from Int to Nat, and gcd over Nat, are total, are each the pinned Lean's own definition (Int.ofNat, Int.natAbs, Int.toNat, Nat.gcd) written by its full name in the generated Lean so that the kernel decides them on literals, are rejected under language 1.1 and at any other operand type, result type, or argument count, and are formal-only in production, so that a production root whose closure reaches one fails with LLT4005. | §17.12 |
 | `DF-01` | `declarations` | A valid type-definition sentence emits one nonrecursive sort-valued Lean def linked to its document entry. | §15.7, §18.6 |
 | `DF-02` | `declarations` | A valid term-definition sentence emits one nonrecursive explicitly typed Lean def. | §15.7, §18.6 |
 | `DF-03` | `declarations` | A valid predicate-definition sentence emits one nonrecursive Prop-valued Lean def. | §15.7, §18.6 |
@@ -12171,7 +12205,7 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `LM-09` | `language-models` | No prompt is code: no member of the closed language maps `string` or `bytes` to a function, a term, or source — every operation of the primitive registry that takes a `string` or `bytes` operand is classified by the audit with a data result, the registry's schema enumeration and the production registry's primitive rows equal one another and equal that classified set, and the text declarations of `lexlean/semantic-module/2` state no `string`-typed member, so a prompt reaches a model only as the tokens `encodeText` makes of it; a planted operation or text member of that shape is caught by the audit with its name. | §17.12 |
 | `LM-13` | `language-models` | The text laws a tokenizer elaborates through are LexLean source and not authored text: the module that states them is one language-1.2 native core module of the embedded `language/text-1.2` project, the project holds no file of Lean source, no independently authored Lean file anywhere in the release tree declares the `LexLeanText` namespace or lies under its module root, and the one-time migration input is absent; the registry lists only that module, the declarations and their exact axiom policies are read from its native data, which the compiler embeds and hashes into the language-1.2 semantics, and a module that declares a text component imports the generated module rather than splicing any Lean text. | §17.10, §17.12 |
 
-**Total required capability IDs:** 497.
+**Total required capability IDs:** 498.
 
 No row may be downgraded to `some-true` or `open`. Upstream Lean facts are ledger/authority rows, not substitutions for these build behaviors.
 
