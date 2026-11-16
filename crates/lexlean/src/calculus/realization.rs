@@ -1083,7 +1083,7 @@ impl Visit<'_> {
 /// Returns the reference that names no element, or a template that does
 /// not instantiate.
 pub fn allocates(reference: &str) -> Result<bool, String> {
-    const HEAP: [&str; 15] = [
+    const HEAP: [&str; 16] = [
         "type:string",
         "type:bytes",
         "type:list",
@@ -1098,6 +1098,7 @@ pub fn allocates(reference: &str) -> Result<bool, String> {
         "prim:split_exact",
         "prim:join",
         "prim:format_decimal",
+        "prim:update",
         "indirection",
     ];
     if HEAP.contains(&reference) {
