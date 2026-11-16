@@ -621,6 +621,11 @@ fn conformance_sm_42() {
 }
 
 #[test]
+fn conformance_sm_44() {
+    repo_conformance::cases::run("SM-44");
+}
+
+#[test]
 fn conformance_sm_32() {
     repo_conformance::cases::run("SM-32");
 }
@@ -2313,6 +2318,16 @@ fn conformance_ka_05() {
 #[test]
 fn conformance_ka_06() {
     repo_conformance::cases::run("KA-06");
+}
+
+#[test]
+fn conformance_ka_07() {
+    repo_conformance::cases::run("KA-07");
+}
+
+#[test]
+fn conformance_ka_08() {
+    repo_conformance::cases::run("KA-08");
 }
 
 #[test]

@@ -5,10 +5,10 @@
 //! case and is a defect of the package, of the pipeline, or of the oracle, and
 //! nothing here adopts the oracle's output.
 //!
-//! The package writes the JSON realization, all five hash axes, and the five
-//! categorical compositions on each axis (`KA-02`..`KA-06`). The GGUF and ONNX
-//! realizations remain outside the package; their committed fixtures are
-//! checked only for label form by `KA-02`.
+//! The package writes the JSON realization, all five hash axes, the five
+//! categorical compositions on each axis (`KA-02`..`KA-06`), and the GGUF v3
+//! and ONNX realizations (`KA-07`, `KA-08`), so every committed fixture of
+//! uor-addr is labelled by the package.
 
 use std::collections::BTreeMap;
 
@@ -31,11 +31,13 @@ const LABEL: &str = "LexLeanKappa.Label";
 const JSON: &str = "LexLeanKappa.Json";
 const COMPOSE: &str = "LexLeanKappa.Compose";
 const AXIS: &str = "LexLeanKappa.Axis";
+const GGUF: &str = "LexLeanKappa.Gguf";
+const ONNX: &str = "LexLeanKappa.Onnx";
 
 /// The roots in the order their modules declare them, each with the effects
 /// its declaration admits, which are exactly the effects its closure
 /// realizes.
-const ROOTS: [(&str, &str, &[&str]); 18] = [
+const ROOTS: [(&str, &str, &[&str]); 24] = [
     (LABEL, "kappaLabel", &["allocation", "overflow"]),
     (LABEL, "isLabel", &["allocation", "overflow"]),
     (LABEL, "handleWire", &["allocation", "overflow"]),
@@ -54,6 +56,12 @@ const ROOTS: [(&str, &str, &[&str]); 18] = [
     (COMPOSE, "composeE6", &["allocation", "overflow"]),
     (COMPOSE, "composeE7", &["allocation", "overflow"]),
     (COMPOSE, "composeE8", &["allocation", "overflow"]),
+    (GGUF, "canonicalGguf", &["allocation", "overflow"]),
+    (GGUF, "ggufLabel", &["allocation", "overflow"]),
+    (GGUF, "ggufLabelOn", &["allocation", "overflow"]),
+    (ONNX, "canonicalOnnx", &["allocation", "overflow"]),
+    (ONNX, "onnxLabel", &["allocation", "overflow"]),
+    (ONNX, "onnxLabelOn", &["allocation", "overflow"]),
 ];
 
 /// The σ-axes the package writes, with the width of their raw digests in
@@ -141,8 +149,8 @@ const FIXTURES: [(&str, &str, &str); 12] = [
 ];
 
 /// The five committed `.kappa-label` files of uor-addr's GGUF and ONNX
-/// fixtures (v0.2.0, `tests/fixtures/`), vendored under `tests/kappa/`. The
-/// package writes neither realization, so these hold only the label form.
+/// fixtures (v0.2.0, `tests/fixtures/`), vendored under `tests/kappa/`, read
+/// for label form by `KA-02` and the fixtures of `KA-07` and `KA-08`.
 const COMMITTED_LABELS: [&str; 5] = [
     "gguf/aligned-256.kappa-label",
     "gguf/empty-metadata.kappa-label",
@@ -956,6 +964,8 @@ fn corpus(member: &str, runs: usize) -> Vec<Run> {
         "composeG2On" | "composeF4On" | "composeE6On" | "composeE7On" | "composeE8On" => {
             compose_on_corpus(member, runs)
         }
+        "canonicalGguf" | "ggufLabel" | "ggufLabelOn" => gguf_corpus(member, runs),
+        "canonicalOnnx" | "onnxLabel" | "onnxLabelOn" => onnx_corpus(member, runs),
         other => panic!("`{other}` is not a root of the package"),
     }
 }
@@ -1136,6 +1146,8 @@ pub fn run(id: &str) {
         "KA-04" => composition(),
         "KA-05" => hash_axes(),
         "KA-06" => axis_composition(),
+        "KA-07" => gguf(),
+        "KA-08" => onnx(),
         other => panic!("no kappa-addressing case is wired for {other}"),
     }
 }
@@ -1171,7 +1183,7 @@ fn package(id: &str) {
     project.check_ok();
     let built = project.build_ok();
     let build_id = built.build_id.expect("built");
-    for module in ["Label", "Json", "Axis", "Compose"] {
+    for module in ["Label", "Json", "Axis", "Compose", "Gguf", "Onnx"] {
         let report: Json = serde_json::from_slice(
             &std::fs::read(
                 project
@@ -1549,6 +1561,8 @@ fn rustc_runs(member: &str) -> usize {
         "composeG2On" | "composeF4On" | "composeE6On" | "composeE7On" | "composeE8On" => {
             COMPOSE_RUSTC_RUNS
         }
+        "canonicalGguf" | "ggufLabel" | "ggufLabelOn" => GGUF_RUSTC_RUNS,
+        "canonicalOnnx" | "onnxLabel" | "onnxLabelOn" => ONNX_RUSTC_RUNS,
         _ => RUSTC_RUNS,
     }
 }
@@ -1802,5 +1816,1143 @@ fn axis_composition() {
             ),
         ],
         |member| corpus(member, COMPOSE_EVALUATOR_RUNS),
+    );
+}
+
+/// The three committed GGUF fixtures of uor-addr (v0.2.0,
+/// `tests/fixtures/gguf/`), vendored under `tests/kappa/gguf/` beside their
+/// `.kappa-label` files.
+const GGUF_FIXTURES: [&str; 3] = ["aligned-256", "empty-metadata", "synthetic-f32"];
+/// Seeded GGUF files under the evaluator.
+const GGUF_EVALUATOR_RUNS: usize = 60;
+/// Seeded GGUF files under rustc.
+const GGUF_RUSTC_RUNS: usize = 400;
+
+/// The ggml tensor types uor-addr knows: the identifier, the bytes of a
+/// block, and the elements of a block.
+const GGML_TYPES: [(u32, u64, u64); 29] = [
+    (0, 4, 1),
+    (1, 2, 1),
+    (2, 18, 32),
+    (3, 20, 32),
+    (6, 22, 32),
+    (7, 24, 32),
+    (8, 34, 32),
+    (9, 36, 32),
+    (10, 84, 256),
+    (11, 110, 256),
+    (12, 144, 256),
+    (13, 176, 256),
+    (14, 210, 256),
+    (15, 292, 256),
+    (16, 66, 256),
+    (17, 74, 256),
+    (18, 98, 256),
+    (19, 50, 256),
+    (20, 18, 32),
+    (21, 110, 256),
+    (22, 82, 256),
+    (23, 136, 256),
+    (24, 1, 1),
+    (25, 2, 1),
+    (26, 4, 1),
+    (27, 8, 1),
+    (28, 8, 1),
+    (29, 56, 256),
+    (30, 2, 1),
+];
+
+/// What the oracle says of a GGUF file: its canonical skeleton, or `None` for
+/// a refusal.
+fn oracle_gguf(raw: &[u8]) -> Option<Vec<u8>> {
+    uor_addr::gguf::canonicalize(raw).ok()
+}
+
+/// What the oracle says of a GGUF file on a σ-axis: its κ-label there, or
+/// `None` for a refusal.
+fn oracle_gguf_address(axis: &str, raw: &[u8]) -> Option<String> {
+    use uor_addr::gguf as g;
+    match axis {
+        "sha256" => g::address(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        "blake3" => g::address_blake3(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        "sha3-256" => g::address_sha3_256(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        "keccak256" => g::address_keccak256(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        "sha512" => g::address_sha512(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        _ => None,
+    }
+}
+
+fn put_u32(out: &mut Vec<u8>, value: u32) {
+    out.extend_from_slice(&value.to_le_bytes());
+}
+fn put_u64(out: &mut Vec<u8>, value: u64) {
+    out.extend_from_slice(&value.to_le_bytes());
+}
+fn put_text(out: &mut Vec<u8>, text: &[u8]) {
+    put_u64(out, u64::try_from(text.len()).expect("a length"));
+    out.extend_from_slice(text);
+}
+fn align_up(offset: u64, alignment: u64) -> u64 {
+    offset.div_ceil(alignment) * alignment
+}
+
+/// A GGUF v3 header with the counts given.
+fn gguf_header(tensors: u64, pairs: u64) -> Vec<u8> {
+    let mut out = b"GGUF".to_vec();
+    put_u32(&mut out, 3);
+    put_u64(&mut out, tensors);
+    put_u64(&mut out, pairs);
+    out
+}
+
+/// A file of one metadata value: `depth` arrays nested in one another around
+/// an empty array of `inner` elements.
+fn nested_arrays(depth: usize, inner: u32) -> Vec<u8> {
+    let mut out = gguf_header(0, 1);
+    put_text(&mut out, b"nested");
+    put_u32(&mut out, 9);
+    for _ in 1..depth {
+        put_u32(&mut out, 9);
+        put_u64(&mut out, 1);
+    }
+    put_u32(&mut out, inner);
+    put_u64(&mut out, 0);
+    out
+}
+
+/// A file of one tensor of the type, the dimensions, and the stored offset
+/// given, followed by `data` bytes of tensor data.
+fn one_tensor(kind: u32, dims: &[u64], offset: u64, data: usize) -> Vec<u8> {
+    let mut out = gguf_header(1, 0);
+    put_text(&mut out, b"t");
+    put_u32(&mut out, u32::try_from(dims.len()).expect("a rank"));
+    for dim in dims {
+        put_u64(&mut out, *dim);
+    }
+    put_u32(&mut out, kind);
+    put_u64(&mut out, offset);
+    let start = usize::try_from(align_up(out.len() as u64, 32)).expect("a size");
+    out.resize(start + data, 0x5a);
+    out
+}
+
+/// Files at the edges of the form: what the oracle accepts and refuses at
+/// each bound it checks.
+fn gguf_edges() -> Vec<Vec<u8>> {
+    let mut edges = vec![
+        Vec::new(),
+        b"GGUF".to_vec(),
+        gguf_header(0, 0)[..23].to_vec(),
+        gguf_header(0, 0),
+        nested_arrays(64, 0),
+        nested_arrays(65, 0),
+        nested_arrays(2, 13),
+        one_tensor(0, &[4, 2], 0, 32),
+        one_tensor(0, &[4, 2], 0, 31),
+        one_tensor(0, &[4, 2], 1, 32),
+        one_tensor(0, &[4, 2], u64::MAX, 32),
+        one_tensor(4, &[4], 0, 64),
+        one_tensor(2, &[33], 0, 64),
+        one_tensor(2, &[32], 0, 18),
+        one_tensor(0, &[1, 1, 1, 1, 1], 0, 64),
+        one_tensor(0, &[], 0, 4),
+        one_tensor(0, &[0], 0, 0),
+        one_tensor(0, &[1 << 32, 1 << 32], 0, 4),
+        one_tensor(15, &[1 << 40, 1 << 24], 0, 4),
+    ];
+    let mut version = gguf_header(0, 0);
+    version[4] = 2;
+    edges.push(version);
+    let mut magic = gguf_header(0, 0);
+    magic[0] = b'g';
+    edges.push(magic);
+    edges.push(gguf_header(0, u64::MAX));
+    edges.push(gguf_header(u64::MAX, 0));
+    for (tag, value) in [
+        (4_u32, 4_u64),
+        (4, 8),
+        (4, 7),
+        (4, 0),
+        (4, 48),
+        (4, 1 << 31),
+        (10, 7),
+    ] {
+        let mut out = gguf_header(0, 1);
+        put_text(&mut out, b"general.alignment");
+        put_u32(&mut out, tag);
+        if tag == 4 {
+            put_u32(&mut out, u32::try_from(value).expect("a u32"));
+        } else {
+            put_u64(&mut out, value);
+        }
+        edges.push(out);
+    }
+    let mut string = gguf_header(0, 1);
+    put_text(&mut string, b"s");
+    put_u32(&mut string, 8);
+    put_u64(&mut string, u64::MAX);
+    edges.push(string);
+    edges
+}
+
+impl Seeded {
+    /// One metadata value of the type tag, written at `depth`.
+    fn gguf_value(&mut self, out: &mut Vec<u8>, tag: u32, depth: usize) {
+        let width = match tag {
+            0 | 1 | 7 => 1,
+            2 | 3 => 2,
+            4..=6 => 4,
+            10..=12 => 8,
+            8 => {
+                let text: Vec<u8> = (0..self.below(12))
+                    .map(|_| *self.pick(b"abcz.\x00\xff"))
+                    .collect();
+                put_text(out, &text);
+                return;
+            }
+            _ => {
+                let element = if depth < 2 {
+                    *self.pick(&[0_u32, 4, 6, 8, 9, 10, 7])
+                } else {
+                    *self.pick(&[0_u32, 4, 8])
+                };
+                let count = self.below(4);
+                put_u32(out, element);
+                put_u64(out, count as u64);
+                for _ in 0..count {
+                    self.gguf_value(out, element, depth + 1);
+                }
+                return;
+            }
+        };
+        for _ in 0..width {
+            out.push(self.below(256) as u8);
+        }
+    }
+
+    /// A seeded GGUF v3 file: metadata of every type tag, keys and tensor
+    /// names in any order and repeated, an alignment of the metadata valid or
+    /// not, tensors of every ggml type, and, one time in three, one defect.
+    fn gguf_document(&mut self) -> Vec<u8> {
+        const KEYS: [&[u8]; 7] = [
+            b"general.name",
+            b"general.architecture",
+            b"a",
+            b"ab",
+            b"b",
+            b"tokenizer.ggml.tokens",
+            b"",
+        ];
+        const NAMES: [&[u8]; 5] = [b"t", b"token_embd.weight", b"a", b"blk.0.attn_q", b"t"];
+        let alignment: Option<u64> = self
+            .chance(40)
+            .then(|| *self.pick(&[8_u64, 16, 32, 64, 256, 4, 7, 48]));
+        let pairs = self.below(5);
+        let alignment = alignment.filter(|_| pairs > 0);
+        let mut body = Vec::new();
+        let mut count = 0_u64;
+        for index in 0..pairs {
+            if alignment.is_some() && index == pairs / 2 {
+                put_text(&mut body, b"general.alignment");
+                put_u32(&mut body, 4);
+                put_u32(
+                    &mut body,
+                    u32::try_from(alignment.unwrap_or(32)).expect("a u32"),
+                );
+                count += 1;
+            }
+            put_text(&mut body, self.pick(&KEYS));
+            let tag = u32::try_from(self.below(13)).expect("a tag");
+            put_u32(&mut body, tag);
+            self.gguf_value(&mut body, tag, 0);
+            count += 1;
+        }
+        let effective = alignment
+            .filter(|value| *value >= 8 && value.is_power_of_two())
+            .unwrap_or(32);
+        let tensors = self.below(4);
+        let mut end = 0_u64;
+        let mut next = 0_u64;
+        for _ in 0..tensors {
+            let (kind, block, elements) = *self.pick(&GGML_TYPES);
+            let rank = self.below(4);
+            let mut dims = Vec::new();
+            for axis in 0..rank {
+                dims.push(if axis == 0 {
+                    elements * (1 + self.below(2) as u64)
+                } else {
+                    1 + self.below(2) as u64
+                });
+            }
+            let product: u64 = dims.iter().product();
+            let size = product / elements * block;
+            let offset = if self.chance(20) {
+                self.below(usize::try_from(next + 1).expect("an offset")) as u64
+            } else {
+                next
+            };
+            next = align_up(offset + size, effective);
+            end = end.max(offset + size);
+            put_text(&mut body, self.pick(&NAMES));
+            put_u32(&mut body, u32::try_from(rank).expect("a rank"));
+            for dim in dims {
+                put_u64(&mut body, dim);
+            }
+            put_u32(&mut body, kind);
+            put_u64(&mut body, offset);
+        }
+        let mut out = gguf_header(tensors as u64, count);
+        out.extend_from_slice(&body);
+        let start = usize::try_from(align_up(out.len() as u64, effective)).expect("a start");
+        out.resize(start, 0);
+        for _ in 0..end {
+            out.push(self.below(256) as u8);
+        }
+        if self.chance(33) && !out.is_empty() {
+            match self.below(5) {
+                0 => {
+                    let cut = self.below(out.len());
+                    out.truncate(cut);
+                }
+                1 => {
+                    let at = self.below(out.len());
+                    out[at] ^= 1 << self.below(8);
+                }
+                2 => out.extend_from_slice(b"trailing"),
+                3 => out[16] = out[16].wrapping_add(1),
+                _ => out[8] = out[8].wrapping_add(1),
+            }
+        }
+        out
+    }
+}
+
+/// The GGUF files of a corpus: the three committed fixtures, the edges, and
+/// `runs` seeded files.
+fn gguf_subjects(runs: usize, seed: u64) -> Vec<Vec<u8>> {
+    let root = repo_root().join("tests/kappa/gguf");
+    let mut subjects: Vec<Vec<u8>> = GGUF_FIXTURES
+        .iter()
+        .map(|name| {
+            std::fs::read(root.join(format!("{name}.gguf")).as_std_path())
+                .unwrap_or_else(|error| panic!("{name}.gguf: {error}"))
+        })
+        .collect();
+    subjects.extend(gguf_edges());
+    let mut seeded = Seeded(seed);
+    subjects.extend((0..runs).map(|_| seeded.gguf_document()));
+    subjects
+}
+
+/// The corpus of a root of the module `Gguf`: the oracle's skeleton, its
+/// κ-label, or its κ-label on each axis and on a name that is no axis.
+fn gguf_corpus(member: &str, runs: usize) -> Vec<Run> {
+    let mut out = Vec::new();
+    match member {
+        "canonicalGguf" => {
+            for subject in gguf_subjects(runs, 0x4b41_0007_0000_0001) {
+                let expected = oracle_gguf(&subject);
+                record(
+                    &mut out,
+                    vec![bytes(&subject)],
+                    &option_bytes(expected.as_deref()),
+                );
+            }
+        }
+        "ggufLabel" => {
+            for subject in gguf_subjects(runs, 0x4b41_0007_0000_0002) {
+                let expected = oracle_gguf_address("sha256", &subject);
+                record(
+                    &mut out,
+                    vec![bytes(&subject)],
+                    &option_bytes(expected.as_deref().map(str::as_bytes)),
+                );
+            }
+        }
+        _ => {
+            let subjects = gguf_subjects(runs / 5, 0x4b41_0007_0000_0003);
+            for (index, subject) in subjects.iter().enumerate() {
+                let axis = if index % 11 == 10 {
+                    "sha256x"
+                } else {
+                    AXES[index % AXES.len()].0
+                };
+                let expected = oracle_gguf_address(axis, subject);
+                record(
+                    &mut out,
+                    vec![bytes(axis.as_bytes()), bytes(subject)],
+                    &option_bytes(expected.as_deref().map(str::as_bytes)),
+                );
+            }
+        }
+    }
+    out
+}
+
+/// `KA-07`: the GGUF realization.
+fn gguf() {
+    let project = P::workspace_project("kappa", &MEMBERS);
+    project.check_ok();
+    let members = ["canonicalGguf", "ggufLabel", "ggufLabelOn"];
+    let lowered = lowered_roots(&project, &members);
+    // The three committed fixtures: the committed label, the oracle's, and
+    // the package's, as the evaluator computes it.
+    let root = repo_root().join("tests/kappa/gguf");
+    let label = &lowered["ggufLabel"];
+    for name in GGUF_FIXTURES {
+        let raw = std::fs::read(root.join(format!("{name}.gguf")).as_std_path())
+            .unwrap_or_else(|error| panic!("{name}.gguf: {error}"));
+        let committed =
+            std::fs::read_to_string(root.join(format!("{name}.kappa-label")).as_std_path())
+                .unwrap_or_else(|error| panic!("{name}.kappa-label: {error}"));
+        let committed = committed.trim_end();
+        assert_eq!(
+            oracle_gguf_address("sha256", &raw).as_deref(),
+            Some(committed),
+            "KA-07: {name}: the oracle gives the committed label"
+        );
+        let outcome = interp::run(&label.program, FUEL, label.entry(), &[bytes(&raw)]);
+        let observed = rust::observable(&outcome).expect("an observable");
+        assert_eq!(
+            observed,
+            serde_json::to_value(option_bytes(Some(committed.as_bytes()))).expect("json"),
+            "KA-07: {name}: the package gives the committed label"
+        );
+        eprintln!("KA-07: {name}: {committed}");
+    }
+    let refusal = serde_json::to_value(Value::None).expect("a value is JSON");
+    for member in members {
+        let runs = corpus(member, GGUF_EVALUATOR_RUNS);
+        assert!(
+            runs.iter().any(|(_, expected)| *expected == refusal)
+                && runs.iter().any(|(_, expected)| *expected != refusal),
+            "KA-07: {member}: the corpus holds both skeletons and refusals"
+        );
+        let disagreements = evaluate(&lowered[member], &runs);
+        assert!(
+            disagreements.is_empty(),
+            "KA-07: {member}: the evaluator and uor-addr disagree on {} of {} runs: {:?}",
+            disagreements.len(),
+            runs.len(),
+            &disagreements[..disagreements.len().min(5)]
+        );
+    }
+    rustc_differential(&lowered, &members);
+    // The gate is armed: metadata in reverse key order, tensors in reverse
+    // name order, a default alignment of sixteen, an alignment of four
+    // admitted, a string digested from its length field, canonical offsets
+    // left unaligned, a data section that starts unaligned, and an array
+    // depth bound one deeper are each detected.
+    detect_plants(
+        "KA-07",
+        &[
+            (
+                "Gguf",
+                "(if (Json::lessKey key (first item)) then",
+                "(if (Json::lessKey (first item) key) then",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "(if (Json::lessKey (project tensor name) (project item name)) then",
+                "(if (Json::lessKey (project item name) (project tensor name)) then",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "alignment := 32, entries",
+                "alignment := 16, entries",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "(if ((8 <=? alignment) && (isPowerOfTwo alignment))",
+                "(if ((4 <=? alignment) && (isPowerOfTwo alignment))",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "(digest (LexLeanStd.Text::sliceOr subject (at + 8)",
+                "(digest (LexLeanStd.Text::sliceOr subject (at + 4)",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "offset := (alignUp ((project state offset) + (project tensor size)) alignment)",
+                "offset := ((project state offset) + (project tensor size))",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "(let start : Nat := (alignUp (project tensors position) alignment);",
+                "(let start : Nat := (project tensors position);",
+                "canonicalGguf",
+            ),
+            (
+                "Gguf",
+                "(64 <=? (project top depth))",
+                "(65 <=? (project top depth))",
+                "canonicalGguf",
+            ),
+        ],
+        |member| corpus(member, GGUF_EVALUATOR_RUNS),
+    );
+}
+
+/// The two committed ONNX fixtures of uor-addr (v0.2.0,
+/// `tests/fixtures/onnx/`), vendored under `tests/kappa/onnx/` beside their
+/// `.kappa-label` files.
+const ONNX_FIXTURES: [&str; 2] = ["synthetic", "synthetic-typed"];
+/// Seeded ONNX models under the evaluator.
+const ONNX_EVALUATOR_RUNS: usize = 50;
+/// Seeded ONNX models under rustc.
+const ONNX_RUSTC_RUNS: usize = 300;
+
+/// What the oracle says of an ONNX model: its canonical skeleton, or `None`
+/// for a refusal.
+fn oracle_onnx(raw: &[u8]) -> Option<Vec<u8>> {
+    uor_addr::onnx::canonicalize(raw).ok()
+}
+
+/// What the oracle says of an ONNX model on a σ-axis: its κ-label there, or
+/// `None` for a refusal.
+fn oracle_onnx_address(axis: &str, raw: &[u8]) -> Option<String> {
+    use uor_addr::onnx as o;
+    match axis {
+        "sha256" => o::address(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        "blake3" => o::address_blake3(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        "sha3-256" => o::address_sha3_256(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        "keccak256" => o::address_keccak256(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        "sha512" => o::address_sha512(raw)
+            .ok()
+            .map(|outcome| outcome.address.as_str().to_owned()),
+        _ => None,
+    }
+}
+
+/// A protocol-buffers writer.
+#[derive(Default)]
+struct Proto(Vec<u8>);
+
+impl Proto {
+    fn raw_varint(&mut self, mut value: u64) -> &mut Self {
+        loop {
+            let byte = (value & 0x7f) as u8;
+            value >>= 7;
+            if value == 0 {
+                self.0.push(byte);
+                return self;
+            }
+            self.0.push(byte | 0x80);
+        }
+    }
+    fn tag(&mut self, number: u64, wire: u64) -> &mut Self {
+        self.raw_varint((number << 3) | wire)
+    }
+    fn varint(&mut self, number: u64, value: u64) -> &mut Self {
+        self.tag(number, 0).raw_varint(value)
+    }
+    fn bytes(&mut self, number: u64, value: &[u8]) -> &mut Self {
+        self.tag(number, 2)
+            .raw_varint(value.len() as u64)
+            .0
+            .extend_from_slice(value);
+        self
+    }
+    fn fixed32(&mut self, number: u64, value: u32) -> &mut Self {
+        self.tag(number, 5)
+            .0
+            .extend_from_slice(&value.to_le_bytes());
+        self
+    }
+    fn fixed64(&mut self, number: u64, value: u64) -> &mut Self {
+        self.tag(number, 1)
+            .0
+            .extend_from_slice(&value.to_le_bytes());
+        self
+    }
+    fn done(&mut self) -> Vec<u8> {
+        std::mem::take(&mut self.0)
+    }
+}
+
+/// A packed run of varints.
+fn packed_varints(values: &[u64]) -> Vec<u8> {
+    let mut out = Proto::default();
+    for value in values {
+        out.raw_varint(*value);
+    }
+    out.done()
+}
+
+impl Seeded {
+    fn onnx_name(&mut self) -> Vec<u8> {
+        self.pick(&[&b""[..], b"x", b"y", b"a", b"conv", b"\xc3\xa9"])
+            .to_vec()
+    }
+
+    /// A message of random fields in any order, whose length-delimited
+    /// payloads are messages again or not, to `depth` levels.
+    fn onnx_message(&mut self, depth: usize) -> Vec<u8> {
+        let mut out = Proto::default();
+        for _ in 0..self.below(4) {
+            let number = 1 + self.below(6) as u64;
+            match self.below(5) {
+                0 => {
+                    out.varint(number, self.next() >> self.below(64));
+                }
+                1 => {
+                    out.fixed64(number, self.next());
+                }
+                2 => {
+                    out.fixed32(number, self.next() as u32);
+                }
+                3 if depth > 0 => {
+                    let inner = self.onnx_message(depth - 1);
+                    out.bytes(number, &inner);
+                }
+                _ => {
+                    let text = self.onnx_name();
+                    out.bytes(number, &text);
+                }
+            }
+        }
+        out.done()
+    }
+
+    /// A tensor of a data type the oracle knows, or one time in ten of one
+    /// it does not.
+    fn onnx_tensor(&mut self) -> Vec<u8> {
+        let mut out = Proto::default();
+        let kind = if self.chance(10) {
+            *self.pick(&[0_u64, 24, 1 << 32 | 1])
+        } else {
+            1 + self.below(23) as u64
+        };
+        let dims: Vec<u64> = (0..self.below(3)).map(|_| self.below(4) as u64).collect();
+        if self.chance(50) {
+            out.bytes(1, &packed_varints(&dims));
+        } else {
+            for dim in &dims {
+                out.varint(1, *dim);
+            }
+        }
+        out.varint(2, kind);
+        let name = self.onnx_name();
+        out.bytes(8, &name);
+        match self.below(6) {
+            0 => {
+                let raw: Vec<u8> = (0..self.below(9)).map(|_| self.below(256) as u8).collect();
+                out.bytes(9, &raw);
+            }
+            1 => {
+                out.varint(14, 1);
+                for _ in 0..self.below(3) {
+                    let mut entry = Proto::default();
+                    let key = self.onnx_name();
+                    let value = self.onnx_name();
+                    entry.bytes(1, &key).bytes(2, &value);
+                    let entry = entry.done();
+                    out.bytes(13, &entry);
+                }
+            }
+            _ => {
+                let number = *self.pick(&[4_u64, 5, 6, 7, 10, 11]);
+                for _ in 0..self.below(3) {
+                    match self.below(4) {
+                        0 => {
+                            let values: Vec<u64> =
+                                (0..self.below(3)).map(|_| self.next() >> 40).collect();
+                            out.bytes(number, &packed_varints(&values));
+                        }
+                        1 => {
+                            out.varint(number, self.next() >> self.below(64));
+                        }
+                        2 => {
+                            out.fixed32(number, self.next() as u32);
+                        }
+                        _ => {
+                            let text = self.onnx_name();
+                            out.bytes(number, &text);
+                        }
+                    }
+                }
+            }
+        }
+        out.done()
+    }
+
+    /// An attribute of any type, with a subgraph `depth` levels deep at most.
+    fn onnx_attribute(&mut self, depth: usize) -> Vec<u8> {
+        let mut out = Proto::default();
+        let name = self.onnx_name();
+        out.bytes(1, &name);
+        let kind = if self.chance(5) {
+            *self.pick(&[0_u64, 15, 1 << 32 | 2])
+        } else {
+            1 + self.below(14) as u64
+        };
+        out.varint(20, kind);
+        match kind & 0xffff_ffff {
+            1 => {
+                out.fixed32(2, self.next() as u32);
+            }
+            2 => {
+                out.varint(3, self.next() >> 8);
+            }
+            3 => {
+                let text = self.onnx_name();
+                out.bytes(4, &text);
+            }
+            4 => {
+                if self.chance(90) {
+                    let tensor = self.onnx_tensor();
+                    out.bytes(5, &tensor);
+                }
+            }
+            5 if depth > 0 => {
+                let graph = self.onnx_graph(depth - 1);
+                out.bytes(6, &graph);
+            }
+            6 => {
+                out.fixed32(7, self.next() as u32);
+                out.bytes(7, &(self.next() as u32).to_le_bytes());
+            }
+            7 => {
+                let values: Vec<u64> = (0..self.below(4)).map(|_| self.next() >> 30).collect();
+                out.bytes(8, &packed_varints(&values));
+                out.varint(8, 7);
+            }
+            8 => {
+                let text = self.onnx_name();
+                out.bytes(9, &text).bytes(9, b"z");
+            }
+            9 => {
+                for _ in 0..self.below(3) {
+                    let tensor = self.onnx_tensor();
+                    out.bytes(10, &tensor);
+                }
+            }
+            10 if depth > 0 => {
+                for _ in 0..self.below(3) {
+                    let graph = self.onnx_graph(depth - 1);
+                    out.bytes(11, &graph);
+                }
+            }
+            11 | 13 => {
+                let message = self.onnx_message(2);
+                out.bytes(if kind == 11 { 22 } else { 14 }, &message);
+            }
+            12 | 14 => {
+                for _ in 0..self.below(3) {
+                    let message = self.onnx_message(2);
+                    out.bytes(if kind == 12 { 23 } else { 15 }, &message);
+                }
+            }
+            _ => {}
+        }
+        out.done()
+    }
+
+    /// A graph of nodes over a pool of value names, serialized in any order,
+    /// so that its topological order, its ties, and now and then a cycle are
+    /// all read.
+    fn onnx_graph(&mut self, depth: usize) -> Vec<u8> {
+        let mut out = Proto::default();
+        let name = self.onnx_name();
+        out.bytes(2, &name);
+        let count = self.below(5);
+        let mut nodes = Vec::new();
+        for index in 0..count {
+            let mut node = Proto::default();
+            for _ in 0..self.below(3) {
+                let source = self.below(index + 2);
+                let input = if source <= index && self.chance(70) {
+                    format!("v{source}").into_bytes()
+                } else if self.chance(10) {
+                    format!("v{index}").into_bytes()
+                } else {
+                    self.onnx_name()
+                };
+                node.bytes(1, &input);
+            }
+            node.bytes(2, format!("v{index}").as_bytes());
+            if self.chance(20) {
+                node.bytes(2, b"");
+            }
+            let name = self.pick(&[&b""[..], b"n", b"m"]).to_vec();
+            node.bytes(3, &name);
+            let op = self.pick(&[&b"Add"[..], b"Relu", b"Add"]).to_vec();
+            node.bytes(4, &op);
+            if self.chance(30) {
+                let domain = self.pick(&[&b""[..], b"ai.onnx.ml"]).to_vec();
+                node.bytes(7, &domain);
+            }
+            if self.chance(10) {
+                node.bytes(8, b"overload");
+            }
+            for _ in 0..self.below(3) {
+                let attribute = self.onnx_attribute(depth);
+                node.bytes(5, &attribute);
+            }
+            nodes.push(node.done());
+        }
+        for _ in 0..nodes.len() {
+            let left = self.below(nodes.len());
+            let right = self.below(nodes.len());
+            nodes.swap(left, right);
+        }
+        for node in nodes {
+            out.bytes(1, &node);
+        }
+        for _ in 0..self.below(3) {
+            let tensor = self.onnx_tensor();
+            out.bytes(5, &tensor);
+        }
+        for number in [11_u64, 12, 13] {
+            for _ in 0..self.below(2) {
+                let mut info = Proto::default();
+                let name = self.onnx_name();
+                let typed = self.onnx_message(3);
+                info.bytes(1, &name).bytes(2, &typed);
+                let info = info.done();
+                out.bytes(number, &info);
+            }
+        }
+        out.done()
+    }
+
+    /// A seeded ONNX model: an IR version in range or not, opsets of any
+    /// domain and version, a graph with nodes, initializers, value infos,
+    /// and attributes of every type with subgraphs, model metadata, and, one
+    /// time in three, one defect.
+    fn onnx_document(&mut self) -> Vec<u8> {
+        let mut out = Proto::default();
+        let version = if self.chance(10) {
+            *self.pick(&[0_u64, 14, u64::MAX])
+        } else {
+            1 + self.below(13) as u64
+        };
+        out.varint(1, version);
+        for _ in 0..self.below(3) {
+            let mut opset = Proto::default();
+            let domain = self
+                .pick(&[&b""[..], b"", b"ai.onnx.ml", b"com.x"])
+                .to_vec();
+            opset.bytes(1, &domain);
+            opset.varint(2, *self.pick(&[0_u64, 1, 13, 17, 1 << 63]));
+            let opset = opset.done();
+            out.bytes(8, &opset);
+        }
+        let producer = self.onnx_name();
+        out.bytes(2, &producer).bytes(3, b"1.0");
+        if self.chance(50) {
+            out.bytes(4, b"ai.example");
+        }
+        out.varint(5, self.below(4) as u64);
+        let graph = self.onnx_graph(2);
+        out.bytes(7, &graph);
+        for _ in 0..self.below(3) {
+            let mut entry = Proto::default();
+            let key = self.onnx_name();
+            let value = self.onnx_name();
+            entry.bytes(1, &key).bytes(2, &value);
+            let entry = entry.done();
+            out.bytes(14, &entry);
+        }
+        let mut out = out.done();
+        if self.chance(33) && !out.is_empty() {
+            match self.below(4) {
+                0 => {
+                    let cut = self.below(out.len());
+                    out.truncate(cut);
+                }
+                1 => {
+                    let at = self.below(out.len());
+                    out[at] ^= 1 << self.below(8);
+                }
+                2 => out.push(0x00),
+                _ => out.extend_from_slice(&[0x0f, 0x01]),
+            }
+        }
+        out
+    }
+}
+
+/// A model of the IR version and opsets given around the graph given.
+fn onnx_model(graph: &[u8], opsets: &[(&[u8], u64)]) -> Vec<u8> {
+    let mut out = Proto::default();
+    out.varint(1, 9);
+    for (domain, version) in opsets {
+        let mut opset = Proto::default();
+        opset.bytes(1, domain).varint(2, *version);
+        let opset = opset.done();
+        out.bytes(8, &opset);
+    }
+    out.bytes(7, graph);
+    out.done()
+}
+
+/// A graph of one node whose one attribute holds the graph given.
+fn onnx_wrapped(inner: &[u8]) -> Vec<u8> {
+    let mut attribute = Proto::default();
+    attribute.bytes(1, b"body").varint(20, 5).bytes(6, inner);
+    let attribute = attribute.done();
+    let mut node = Proto::default();
+    node.bytes(4, b"If").bytes(5, &attribute);
+    let node = node.done();
+    let mut graph = Proto::default();
+    graph.bytes(2, b"g").bytes(1, &node);
+    graph.done()
+}
+
+/// Models at the edges of the form: what the oracle accepts and refuses at
+/// each bound it checks.
+fn onnx_edges() -> Vec<Vec<u8>> {
+    let mut graph = Proto::default();
+    let simple = graph.bytes(2, b"g").done();
+    let mut nested = simple.clone();
+    let mut nests = Vec::new();
+    for level in 1..=65 {
+        nested = onnx_wrapped(&nested);
+        if level >= 63 {
+            nests.push(onnx_model(&nested, &[(b"", 13)]));
+        }
+    }
+    let mut cycle = Proto::default();
+    cycle.bytes(1, b"v0").bytes(2, b"v0").bytes(4, b"Loop");
+    let cycle = cycle.done();
+    let mut looped = Proto::default();
+    looped.bytes(2, b"g").bytes(1, &cycle);
+    let looped = looped.done();
+    let mut deep = Proto::default();
+    let mut message = Proto::default().varint(3, 7).fixed32(1, 9).done();
+    for level in 0..34 {
+        message = Proto::default().bytes(2, &message).varint(1, level).done();
+    }
+    let mut info = Proto::default();
+    info.bytes(1, b"x").bytes(2, &message);
+    let info = info.done();
+    deep.bytes(2, b"g").bytes(11, &info);
+    let deep = deep.done();
+    let mut edges = vec![
+        Vec::new(),
+        Proto::default().varint(1, 9).done(),
+        onnx_model(&simple, &[]),
+        onnx_model(&simple, &[(b"", 0)]),
+        onnx_model(&simple, &[(b"ai.onnx.ml", 3)]),
+        onnx_model(&simple, &[(b"ai.onnx.ml", 3), (b"", 1)]),
+        onnx_model(&simple, &[(b"", 1 << 63)]),
+        onnx_model(&looped, &[(b"", 13)]),
+        onnx_model(&deep, &[(b"", 13)]),
+        vec![
+            0x08, 0x89, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x00,
+        ],
+        vec![
+            0x08, 0x89, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x00,
+        ],
+        vec![0x08, 0x09, 0x03, 0x00],
+        vec![0x08, 0x09, 0x3a, 0xff, 0xff, 0xff, 0xff, 0x0f],
+    ];
+    edges.extend(nests);
+    let mut version = onnx_model(&simple, &[(b"", 13)]);
+    version[1] = 14;
+    edges.push(version);
+    edges
+}
+
+/// The ONNX models of a corpus: the two committed fixtures, the edges, and
+/// `runs` seeded models.
+fn onnx_subjects(runs: usize, seed: u64) -> Vec<Vec<u8>> {
+    let root = repo_root().join("tests/kappa/onnx");
+    let mut subjects: Vec<Vec<u8>> = ONNX_FIXTURES
+        .iter()
+        .map(|name| {
+            std::fs::read(root.join(format!("{name}.onnx")).as_std_path())
+                .unwrap_or_else(|error| panic!("{name}.onnx: {error}"))
+        })
+        .collect();
+    subjects.extend(onnx_edges());
+    let mut seeded = Seeded(seed);
+    subjects.extend((0..runs).map(|_| seeded.onnx_document()));
+    subjects
+}
+
+/// The corpus of a root of the module `Onnx`: the oracle's skeleton, its
+/// κ-label, or its κ-label on each axis and on a name that is no axis.
+fn onnx_corpus(member: &str, runs: usize) -> Vec<Run> {
+    let mut out = Vec::new();
+    match member {
+        "canonicalOnnx" => {
+            for subject in onnx_subjects(runs, 0x4b41_0008_0000_0001) {
+                let expected = oracle_onnx(&subject);
+                record(
+                    &mut out,
+                    vec![bytes(&subject)],
+                    &option_bytes(expected.as_deref()),
+                );
+            }
+        }
+        "onnxLabel" => {
+            for subject in onnx_subjects(runs, 0x4b41_0008_0000_0002) {
+                let expected = oracle_onnx_address("sha256", &subject);
+                record(
+                    &mut out,
+                    vec![bytes(&subject)],
+                    &option_bytes(expected.as_deref().map(str::as_bytes)),
+                );
+            }
+        }
+        _ => {
+            let subjects = onnx_subjects(runs / 5, 0x4b41_0008_0000_0003);
+            for (index, subject) in subjects.iter().enumerate() {
+                let axis = if index % 11 == 10 {
+                    "sha256x"
+                } else {
+                    AXES[index % AXES.len()].0
+                };
+                let expected = oracle_onnx_address(axis, subject);
+                record(
+                    &mut out,
+                    vec![bytes(axis.as_bytes()), bytes(subject)],
+                    &option_bytes(expected.as_deref().map(str::as_bytes)),
+                );
+            }
+        }
+    }
+    out
+}
+
+/// `KA-08`: the ONNX realization.
+fn onnx() {
+    let project = P::workspace_project("kappa", &MEMBERS);
+    project.check_ok();
+    let members = ["canonicalOnnx", "onnxLabel", "onnxLabelOn"];
+    let lowered = lowered_roots(&project, &members);
+    // The two committed fixtures: the committed label, the oracle's, and
+    // the package's, as the evaluator computes it.
+    let root = repo_root().join("tests/kappa/onnx");
+    let label = &lowered["onnxLabel"];
+    for name in ONNX_FIXTURES {
+        let raw = std::fs::read(root.join(format!("{name}.onnx")).as_std_path())
+            .unwrap_or_else(|error| panic!("{name}.onnx: {error}"));
+        let committed =
+            std::fs::read_to_string(root.join(format!("{name}.kappa-label")).as_std_path())
+                .unwrap_or_else(|error| panic!("{name}.kappa-label: {error}"));
+        let committed = committed.trim_end();
+        assert_eq!(
+            oracle_onnx_address("sha256", &raw).as_deref(),
+            Some(committed),
+            "KA-08: {name}: the oracle gives the committed label"
+        );
+        let outcome = interp::run(&label.program, FUEL, label.entry(), &[bytes(&raw)]);
+        let observed = rust::observable(&outcome).expect("an observable");
+        assert_eq!(
+            observed,
+            serde_json::to_value(option_bytes(Some(committed.as_bytes()))).expect("json"),
+            "KA-08: {name}: the package gives the committed label"
+        );
+        eprintln!("KA-08: {name}: {committed}");
+    }
+    let refusal = serde_json::to_value(Value::None).expect("a value is JSON");
+    for member in members {
+        let runs = corpus(member, ONNX_EVALUATOR_RUNS);
+        assert!(
+            runs.iter().any(|(_, expected)| *expected == refusal)
+                && runs.iter().any(|(_, expected)| *expected != refusal),
+            "KA-08: {member}: the corpus holds both skeletons and refusals"
+        );
+        let disagreements = evaluate(&lowered[member], &runs);
+        assert!(
+            disagreements.is_empty(),
+            "KA-08: {member}: the evaluator and uor-addr disagree on {} of {} runs: {:?}",
+            disagreements.len(),
+            runs.len(),
+            &disagreements[..disagreements.len().min(5)]
+        );
+    }
+    rustc_differential(&lowered, &members);
+    // The gate is armed: the first of tied nodes instead of the last, an
+    // order that ignores readiness, a message digested in wire order, a
+    // message digested one level deep only, a subgraph bound one deeper,
+    // attributes and initializers in wire order, another external-data
+    // marker, and an opset of version zero admitted are each detected.
+    detect_plants(
+        "KA-08",
+        &[
+            (
+                "Onnx",
+                "(if (Json::lessKey (project (project choice best) key) (project node key)) then choice else (record Choice {found := true, best := node}))",
+                "(if (Json::lessKey (project node key) (project (project choice best) key)) then (record Choice {found := true, best := node}) else choice)",
+                "canonicalOnnx",
+            ),
+            (
+                "Onnx",
+                "(if (containsNat emitted (project producer index)) then false else true)",
+                "(if ((containsNat emitted (project producer index)) || true) then false else true)",
+                "canonicalOnnx",
+            ),
+            (
+                "Onnx",
+                "(record Frame {fields := (byNumber (second all)), acc := 0x, depth := 0})",
+                "(record Frame {fields := (second all), acc := 0x, depth := 0})",
+                "canonicalOnnx",
+            ),
+            (
+                "Onnx",
+                "(depth <? 32)",
+                "(depth <? 1)",
+                "canonicalOnnx",
+            ),
+            (
+                "Onnx",
+                "(depth <=? 64)",
+                "(depth <=? 65)",
+                "canonicalOnnx",
+            ),
+            (
+                "Onnx",
+                "(sortedBy attributes (scannedKeys attributes 1))",
+                "attributes",
+                "canonicalOnnx",
+            ),
+            (
+                "Onnx",
+                "(sortedBy tensors (scannedKeys tensors 8))",
+                "tensors",
+                "canonicalOnnx",
+            ),
+            (
+                "Onnx",
+                "\"onnx:external-data:v1\"",
+                "\"onnx:external-data:v2\"",
+                "canonicalOnnx",
+            ),
+            (
+                "Onnx",
+                "((0 <? (varintOf (second version))) &&",
+                "((0 <=? (varintOf (second version))) &&",
+                "canonicalOnnx",
+            ),
+        ],
+        |member| corpus(member, ONNX_EVALUATOR_RUNS),
     );
 }

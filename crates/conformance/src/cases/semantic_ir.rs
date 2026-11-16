@@ -11,6 +11,7 @@ mod boolean;
 mod bytes;
 mod decimal_format;
 mod declaration_ids;
+mod evaluation;
 mod names;
 mod nat_bitwise;
 mod nested;
@@ -2749,6 +2750,7 @@ pub(crate) fn run(id: &str) {
         "SM-36" => boolean::run(),
         // §17.11, §17.12: bitwise primitives and shifts on unbounded Nat.
         "SM-42" => nat_bitwise::run(),
+        "SM-44" => evaluation::run(),
         // §17.10: a theorem proved by induction over a nested inductive type.
         "SM-37" => nested::run(),
         // §21.9: declaration IDs and statement IDs.
