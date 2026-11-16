@@ -21859,3 +21859,29 @@ that coordinated regeneration; it is draft preparation, never merge-ready.
 The final changed head still requires complete acceptance and full CI before
 readiness/merge. #434 and parent #381 remain open until their proper scope is
 accepted. No baseline rerun or writer was used to manufacture positive evidence.
+
+### SM-43 signed fixed-width formatting without propext (#437)
+
+Under the pinned Lean 4.32.1, `#print axioms` gives `instToStringInt8`..`Int64`
+`[propext]`: they reach `Int.repr`, whose negative case is `"-" ++ Nat.repr`, and
+`String.append` depends on `propext`. `instToStringUInt8`..`UInt64`, `Nat.repr`,
+`Nat.toDigits`, `IntN.toInt` and `String.ofList` depend on none. That left the
+signed widths short of SM-43's empty policy, which SM-43 asks of every fixed width.
+
+`LexLeanRuntime.formatDecimal {α} [DecimalFormat α] (value : α) : String` replaces
+the `ToString` parameter with the runtime class `DecimalFormat` (one field,
+`format`). Its instances are `ToString` at `Int` (exactly `[propext]`) and at the
+four unsigned widths (none), and `intDecimal (x.toInt)` at the four signed widths
+(none). Here `intDecimal (ofNat n) = Nat.repr n` and
+`intDecimal (negSucc n) = String.ofList ('-' :: Nat.toDigits 10 (n + 1))`, so the
+bytes are those of `Int.repr`. The declarations were written in Lean against the
+compiled `Portable`, exported with the runtime migration's one-time exporter
+(checkpoint `b58f1952`), printed in the notation, and spliced into `Portable`
+before `formatDecimal`. `lexlean verify` of the runtime project passes with every
+pinned policy. The nine format operands of Fixed, RustLemmas and Factor, and the
+certificate-A constructor, name the `DecimalFormat` instances. Their eight parse
+operands keep `instDecimalOfFixedOfToString` with `ToString`, and the runtime-axiom
+table gives `instDecimalFormatInt` `[propext]`. `lexlean verify` of SM-43's
+project (`tests/decimal-format`) passes locally, where it failed with LLV7005 on
+the signed widths before.
+
