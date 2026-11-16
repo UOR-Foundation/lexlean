@@ -566,9 +566,12 @@ pub fn certificate(
     generator
         .within(source.len(), "certificate A")
         .map_err(failure)?;
-    let mut imports: Vec<String> = modules
-        .values()
-        .map(|linked| linked.lean_module.to_owned())
+    let users: BTreeSet<&str> = modules.values().map(|linked| linked.lean_module).collect();
+    let mut imports: Vec<String> = data
+        .imports
+        .iter()
+        .filter(|import| users.contains(import.as_str()))
+        .cloned()
         .collect();
     imports.sort();
     Ok(Certificate {

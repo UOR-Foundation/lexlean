@@ -28,6 +28,7 @@ pub mod operational;
 pub mod partition;
 pub mod pool;
 pub mod source_audit;
+pub mod store;
 pub mod telemetry;
 pub mod toolchain;
 pub mod workspace;
@@ -650,6 +651,7 @@ fn leanchecker_identity(
         workspace_root,
         limits,
         normalizer,
+        None,
     )?;
     let combined = format!("{}{}", record.stdout.trim_end(), record.stderr.trim_end());
     let observed = format!("{}\n", combined.trim_end());
@@ -883,7 +885,21 @@ pub fn run_part(
         use crate::production::rust_cert;
         for (index, root) in roots(checked).map_err(fail)?.iter().enumerate() {
             let (lowered, program) = lowered_roots[index].clone();
-            let module = format!("LexLeanPreserve.C{semantic_hex32}.R{index}");
+            // A root's certificates are named by what they are about, the
+            // root and its lowered program, and not by the project's semantic
+            // identity: a root whose program a change leaves as it was keeps
+            // its certificates' names and text, so their processes keep their
+            // content identities (§22.13).
+            let root_hex32: String = {
+                let mut bytes = format!(
+                    "lexlean/certificate-name/1\0{}\0{}\0",
+                    root.module, root.name
+                )
+                .into_bytes();
+                bytes.extend_from_slice(&program);
+                Sha256Digest::of(&bytes).to_hex()[..32].to_owned()
+            };
+            let module = format!("LexLeanPreserve.C{root_hex32}.R{index}");
             let generated = certificate(
                 &linked,
                 &root.module,
@@ -1273,6 +1289,16 @@ pub fn run_part(
         )?;
     }
     release_non_diagnostic_buffers(build);
+    // The process store (§22.13), when the environment selects one: the
+    // staged sources the identities of this run's processes are read from,
+    // in the order of the search paths their processes read imports from.
+    let store_session = store::Store::from_env().map(|selected| {
+        store::Session::new(
+            selected,
+            vec![staging_utf8.join("preserve-src"), src_root.clone()],
+        )
+    });
+    let store_session = store_session.as_ref();
     let lean_path_env = format!("{olean_root}");
     // The records of this run's processes, by what they are and the module
     // or audit member they are of, and the records of the remaining stages
@@ -1495,7 +1521,8 @@ pub fn run_part(
                 ))
             })?;
         }
-        let record = run_child(
+        let record = store::run(
+            store_session,
             &ChildSpec {
                 tool: "lean",
                 module: Some(module.name.clone()),
@@ -1518,6 +1545,8 @@ pub fn run_part(
             },
             &limits,
             &normalizer,
+            |session| Some(session.module(&module.name)),
+            std::slice::from_ref(&olean),
         )
         .map_err(fail)?;
         if record.exit_code != 0
@@ -1643,7 +1672,8 @@ pub fn run_part(
                 let module_path = module_name.replace('.', "/");
                 let source = src_root.join(format!("{module_path}.lean"));
                 let olean = olean_root.join(format!("{module_path}.olean"));
-                run_child(
+                store::run(
+                    store_session,
                     &ChildSpec {
                         tool: "lean",
                         module: Some(module_name.clone()),
@@ -1666,6 +1696,8 @@ pub fn run_part(
                     },
                     &limits,
                     &normalizer,
+                    |session| Some(session.module(module_name)),
+                    std::slice::from_ref(&olean),
                 )
             },
             &|result: &Result<ChildRecord, Diagnostic>| {
@@ -1744,6 +1776,7 @@ pub fn run_part(
             &workspace_root,
             &limits,
             &normalizer,
+            store_session,
         )
         .map_err(fail)?;
         write_staged(
@@ -1776,6 +1809,7 @@ pub fn run_part(
                 &workspace_root,
                 &limits,
                 &normalizer,
+                store_session,
             )
             // A replay failure is about this module, so it points at the
             // module's source rather than at the project manifest (§20.1).
@@ -1828,7 +1862,8 @@ pub fn run_part(
             let audit = &audit_modules[audit_index];
             let source_relative = format!("audit/{}.lean", audit.name);
             let audit_source = staging_utf8.join(&source_relative);
-            run_child(
+            store::run(
+                store_session,
                 &ChildSpec {
                     tool: "lean",
                     module: Some(audit.name.clone()),
@@ -1847,6 +1882,8 @@ pub fn run_part(
                 },
                 &limits,
                 &normalizer,
+                |session| session.source(&audit_source),
+                &[],
             )
         },
         &|result: &Result<ChildRecord, Diagnostic>| {
@@ -2401,8 +2438,7 @@ pub fn run_part(
             .iter()
             .map(|module| module.lean_module.clone())
             .collect();
-        let mut stage =
-            preserve::stage(&generated_modules, &staged_certificates).map_err(fail)?;
+        let mut stage = preserve::stage(&generated_modules, &staged_certificates).map_err(fail)?;
         staged_certificates = staged_certificates
             .into_iter()
             .map(crate::production::certificate::Certificate::released)
@@ -2502,6 +2538,7 @@ pub fn run_part(
         };
         let compile = |file: &preserve::StagedFile, output: bool| {
             let source = preserve_src.join(&file.path);
+            let mut outputs: Vec<Utf8PathBuf> = Vec::new();
             let mut argv = vec![
                 "env".to_owned(),
                 "lean".to_owned(),
@@ -2517,9 +2554,11 @@ pub fn run_part(
                 }
                 argv.push("-o".to_owned());
                 argv.push(olean.to_string());
+                outputs.push(olean);
             }
             argv.push(source.to_string());
-            run_child(
+            store::run(
+                store_session,
                 &ChildSpec {
                     tool: "lean",
                     module: Some(file.module.clone()),
@@ -2534,93 +2573,207 @@ pub fn run_part(
                 },
                 &limits,
                 &normalizer,
+                |session| Some(session.module(&file.module)),
+                &outputs,
             )
         };
-        for file in &stage.environment {
-            // A runtime module the calculus modules import was compiled,
-            // replayed, and audited with the project's (stage 7), and its
-            // olean is on this search path.
-            if runtime_modules
-                .iter()
-                .any(|module| module.name == file.module)
-            {
-                continue;
-            }
-            let record = compile(file, true).map_err(fail)?;
-            if record.exit_code != 0
-                || !record.stdout.trim().is_empty()
-                || !record.stderr.trim().is_empty()
-            {
-                let combined = format!("{}{}", record.stdout, record.stderr);
-                if let Some(exhausted) = resource_death(
-                    &file.module,
-                    record.exit_code,
-                    &combined,
-                    file.text.len() as u64,
-                    &limits,
-                ) {
-                    return Err(fail(exhausted));
-                }
-                return Err(fail(Diagnostic::new(
-                    code!("LLV7014"),
-                    format!(
-                        "preservation environment: `{}` does not compile silently under the pinned Lean: {}",
-                        file.module,
-                        first_error(&format!("{}{}", record.stdout, record.stderr))
-                    ),
-                )));
-            }
-            write_staged(
-                staging.path(),
-                &format!("process/preserve/{}.json", file.module),
-                &record.to_json().to_file_bytes(),
-            )?;
-            tail_records.push(record);
-        }
-        for file in &stage.certificates {
-            let record = compile(file, true).map_err(fail)?;
-            if record.exit_code != 0
-                || !record.stdout.trim().is_empty()
-                || !record.stderr.trim().is_empty()
-            {
-                let combined = format!("{}{}", record.stdout, record.stderr);
-                return Err(fail(reject(
-                    &file.module,
-                    &combined,
-                    record.exit_code,
-                    &staged_text(file),
-                )));
-            }
-            write_staged(
-                staging.path(),
-                &format!("process/preserve/{}.json", file.module),
-                &record.to_json().to_file_bytes(),
-            )?;
-            tail_records.push(record);
-            let replay = leanchecker::run_leanchecker(
-                &toolchain,
-                &file.module,
-                &preserve_path,
-                &workspace_root,
-                &limits,
-                &normalizer,
+        // The environment and the certificates compile as one stage, in the
+        // topological frontiers of their imports (§22.11): a certificate A or
+        // B imports the library and the project's modules, a certificate E
+        // the A and B it composes, so the certificates of different roots,
+        // and A and B of one root, import nothing from each other and run
+        // together, at most `W` at a time and within the memory budget. Each
+        // certificate's `leanchecker` replay runs in the same process slot
+        // right after its compilation. The records are listed in the stage's
+        // canonical order (the environment, then each certificate's
+        // compilation and replay) whatever order the processes ran in, so the
+        // published directory is the one width 1 publishes.
+        let environment_items: Vec<&preserve::StagedFile> = stage
+            .environment
+            .iter()
+            .filter(|file| {
+                !runtime_modules
+                    .iter()
+                    .any(|module| module.name == file.module)
+            })
+            .collect();
+        let items: Vec<&preserve::StagedFile> = environment_items
+            .iter()
+            .copied()
+            .chain(&stage.certificates)
+            .collect();
+        let environment_count = environment_items.len();
+        let staged_imports = |file: &preserve::StagedFile| -> Vec<String> {
+            store::imports(
+                &std::fs::read_to_string(preserve_src.join(&file.path).as_std_path())
+                    .unwrap_or_default(),
             )
-            .map_err(fail)?;
-            if replay.exit_code != 0 {
-                let combined = format!("{}{}", replay.stdout, replay.stderr);
-                return Err(fail(reject(
-                    &file.module,
-                    &combined,
-                    replay.exit_code,
-                    &staged_text(file),
+        };
+        let depends: Vec<Vec<usize>> = items
+            .iter()
+            .map(|file| {
+                let imports = staged_imports(file);
+                items
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, other)| imports.iter().any(|import| *import == other.module))
+                    .map(|(index, _)| index)
+                    .collect()
+            })
+            .collect();
+        // A stable label per item, for the scheduling hints: a certificate's
+        // module name without its content segment, so that the observed cost
+        // of a root's certificate schedules the next run's.
+        let labels: Vec<String> = items
+            .iter()
+            .map(|file| {
+                file.module
+                    .split('.')
+                    .filter(|segment| {
+                        !(segment.len() == 33
+                            && segment.starts_with('C')
+                            && segment[1..].bytes().all(|byte| byte.is_ascii_hexdigit()))
+                    })
+                    .collect::<Vec<_>>()
+                    .join(".")
+            })
+            .collect();
+        type Run = (
+            Result<ChildRecord, Diagnostic>,
+            Option<Result<ChildRecord, Diagnostic>>,
+        );
+        let silent = |record: &ChildRecord| {
+            record.exit_code == 0
+                && record.stdout.trim().is_empty()
+                && record.stderr.trim().is_empty()
+        };
+        let mut results: Vec<Option<(ChildRecord, Option<ChildRecord>)>> = vec![None; items.len()];
+        let mut done: BTreeSet<usize> = BTreeSet::new();
+        let mut frontier_index = 0usize;
+        while done.len() < items.len() {
+            let ready: Vec<usize> = (0..items.len())
+                .filter(|index| !done.contains(index))
+                .filter(|index| {
+                    depends[*index]
+                        .iter()
+                        .all(|dependency| done.contains(dependency))
+                })
+                .collect();
+            if ready.is_empty() {
+                return Err(fail(internal(
+                    "the preservation modules' imports do not converge",
                 )));
             }
-            write_staged(
-                staging.path(),
-                &format!("process/leanchecker/{}.json", file.module),
-                &replay.to_json().to_file_bytes(),
+            let frontier_started = std::time::Instant::now();
+            pool::run_ordered_with(
+                width,
+                &ready,
+                hints,
+                memory_kib,
+                &|index: usize| labels[index].clone(),
+                &|index: usize| -> Run {
+                    let file = items[index];
+                    let compiled = compile(file, true);
+                    if index < environment_count {
+                        return (compiled, None);
+                    }
+                    match &compiled {
+                        Ok(record) if silent(record) => {
+                            let replay = leanchecker::run_leanchecker(
+                                &toolchain,
+                                &file.module,
+                                &preserve_path,
+                                &workspace_root,
+                                &limits,
+                                &normalizer,
+                                store_session,
+                            );
+                            (compiled, Some(replay))
+                        }
+                        _ => (compiled, None),
+                    }
+                },
+                &|run: &Run| match run {
+                    (Ok(record), replay) => {
+                        !silent(record)
+                            || matches!(replay, Some(Err(_)))
+                            || matches!(replay, Some(Ok(replay)) if replay.exit_code != 0)
+                    }
+                    (Err(_), _) => true,
+                },
+                |index, (compiled, replay)| {
+                    let file = items[index];
+                    let record = compiled.map_err(fail)?;
+                    if !silent(&record) {
+                        let combined = format!("{}{}", record.stdout, record.stderr);
+                        if index < environment_count {
+                            if let Some(exhausted) = resource_death(
+                                &file.module,
+                                record.exit_code,
+                                &combined,
+                                file.text.len() as u64,
+                                &limits,
+                            ) {
+                                return Err(fail(exhausted));
+                            }
+                            return Err(fail(Diagnostic::new(
+                                code!("LLV7014"),
+                                format!(
+                                    "preservation environment: `{}` does not compile silently under the pinned Lean: {}",
+                                    file.module,
+                                    first_error(&combined)
+                                ),
+                            )));
+                        }
+                        return Err(fail(reject(
+                            &file.module,
+                            &combined,
+                            record.exit_code,
+                            &staged_text(file),
+                        )));
+                    }
+                    write_staged(
+                        staging.path(),
+                        &format!("process/preserve/{}.json", file.module),
+                        &record.to_json().to_file_bytes(),
+                    )?;
+                    let replay = match replay {
+                        None => None,
+                        Some(replay) => {
+                            let replay = replay.map_err(fail)?;
+                            if replay.exit_code != 0 {
+                                let combined = format!("{}{}", replay.stdout, replay.stderr);
+                                return Err(fail(reject(
+                                    &file.module,
+                                    &combined,
+                                    replay.exit_code,
+                                    &staged_text(file),
+                                )));
+                            }
+                            write_staged(
+                                staging.path(),
+                                &format!("process/leanchecker/{}.json", file.module),
+                                &replay.to_json().to_file_bytes(),
+                            )?;
+                            Some(replay)
+                        }
+                    };
+                    results[index] = Some((record, replay));
+                    Ok(())
+                },
             )?;
-            tail_records.push(replay);
+            telemetry_run.frontier(
+                "certificates",
+                frontier_index,
+                ready.len(),
+                frontier_started,
+            );
+            frontier_index += 1;
+            done.extend(ready);
+        }
+        for (record, replay) in results.into_iter().flatten() {
+            tail_records.push(record);
+            tail_records.extend(replay);
         }
         let audit_record = compile(&stage.audit, false).map_err(fail)?;
         let audit_output = format!("{}{}", audit_record.stdout, audit_record.stderr);
