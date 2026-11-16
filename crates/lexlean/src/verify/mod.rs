@@ -1359,7 +1359,8 @@ pub fn run_part(
     let probe_source = staging_utf8
         .join("probe")
         .join(format!("{probe_name}.lean"));
-    let probe_record = run_child(
+    let probe_record = store::run(
+        store_session,
         &ChildSpec {
             tool: "lean",
             module: Some(probe_name.clone()),
@@ -1378,6 +1379,8 @@ pub fn run_part(
         },
         &limits,
         &normalizer,
+        |session| session.source(&probe_source),
+        &[],
     )
     .map_err(fail)?;
     if probe_record.exit_code != 0 {
@@ -2325,7 +2328,10 @@ pub fn run_part(
         let source = staging_utf8
             .join("extract")
             .join(format!("{}.lean", driver.name));
-        let record = run_child(
+        // The driver's report is a function of its text and the modules it
+        // imports, so the store answers it by that identity (§22.13).
+        let record = store::run(
+            store_session,
             &ChildSpec {
                 tool: "lean",
                 module: Some(driver.name.clone()),
@@ -2340,6 +2346,8 @@ pub fn run_part(
             },
             &limits,
             &normalizer,
+            |session| session.source(&source),
+            &[],
         )
         .map_err(fail)?;
         if record.exit_code != 0 {
