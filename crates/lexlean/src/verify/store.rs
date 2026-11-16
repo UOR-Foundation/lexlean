@@ -294,14 +294,23 @@ fn loaded(relative: &str) -> bool {
 
 /// The digest of every loaded file under `root`, by its path relative to
 /// `root`, or `None` when the tree cannot be read whole.
+///
+/// The traversal follows symbolic links as a process reading the tree does,
+/// so a library directory linked from elsewhere is bound like one inside it.
+/// A link that does not resolve, or a directory reached a second time (a
+/// link cycle or an alias), makes the tree unreadable: `None`, a miss.
 fn tree(root: &Utf8Path) -> Option<Sha256Digest> {
     let mut files: Vec<String> = Vec::new();
+    let mut seen: std::collections::BTreeSet<PathBuf> = std::collections::BTreeSet::new();
     let mut stack = vec![root.to_path_buf()];
     while let Some(directory) = stack.pop() {
+        if !seen.insert(std::fs::canonicalize(directory.as_std_path()).ok()?) {
+            return None;
+        }
         for entry in std::fs::read_dir(directory.as_std_path()).ok()? {
             let entry = entry.ok()?;
             let path = Utf8PathBuf::from_path_buf(entry.path()).ok()?;
-            let kind = entry.file_type().ok()?;
+            let kind = std::fs::metadata(path.as_std_path()).ok()?.file_type();
             if kind.is_dir() {
                 stack.push(path);
             } else {
@@ -686,6 +695,47 @@ mod tests {
         assert_eq!(session.module("P.A"), None);
         assert_eq!(session.module("P.B"), None, "unbound through every import");
         assert!(session.module("Init").is_some());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_linked_library_is_bound_and_a_link_cycle_is_unreadable() {
+        let (_root, base) = scratch();
+        let (toolchain, library) = (base.join("toolchain"), base.join("library"));
+        write(&toolchain, "bin/lean", "lean");
+        write(&library, "Init.olean", "init");
+        std::fs::create_dir_all(toolchain.join("lib").as_std_path()).expect("dir");
+        std::os::unix::fs::symlink(
+            library.as_std_path(),
+            toolchain.join("lib/lean").as_std_path(),
+        )
+        .expect("link");
+        let session = session(Vec::new(), &toolchain);
+        assert!(
+            session.module("Init").is_some(),
+            "the linked library holds Init"
+        );
+        let before = tree(&toolchain).expect("readable");
+        write(&library, "Init.olean", "changed");
+        assert_ne!(
+            tree(&toolchain),
+            Some(before),
+            "a file under the linked library is bound"
+        );
+        std::os::unix::fs::symlink(toolchain.as_std_path(), library.join("back").as_std_path())
+            .expect("cycle");
+        assert_eq!(tree(&toolchain), None, "a link cycle is a miss");
+        std::fs::remove_file(library.join("back").as_std_path()).expect("unlink");
+        std::os::unix::fs::symlink(
+            base.join("nowhere").as_std_path(),
+            library.join("dangling").as_std_path(),
+        )
+        .expect("dangling");
+        assert_eq!(
+            tree(&toolchain),
+            None,
+            "a link that does not resolve is a miss"
+        );
     }
 
     #[test]
