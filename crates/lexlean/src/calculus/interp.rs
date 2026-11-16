@@ -239,7 +239,7 @@ fn primitive(operation: &Prim, values: &[Rv]) -> Out {
             usize::try_from(*i)
                 .ok()
                 .filter(|at| *at < a.len())
-                .and_then(|at| u8::try_from(*byte).ok().map(|value| (at, value)))
+                .zip(u8::try_from(*byte).ok())
                 .map(|(at, value)| {
                     let mut out = a.clone();
                     out[at] = value;

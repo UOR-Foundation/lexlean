@@ -100,9 +100,13 @@ impl Certificate {
     pub fn released(mut self) -> Self {
         self.text = String::new();
         self.source = None;
-        if let Some(data) = &mut self.data {
-            data.nodes = Vec::new();
-            data.proof_nodes = Vec::new();
+        match &mut self.data {
+            Some(data) => {
+                data.nodes = Vec::new();
+                data.proof_nodes = Vec::new();
+            }
+            // A certificate without data has no expression DAG to release.
+            None => {}
         }
         self
     }
@@ -566,9 +570,12 @@ pub fn certificate(
     generator
         .within(source.len(), "certificate A")
         .map_err(failure)?;
-    let mut imports: Vec<String> = modules
-        .values()
-        .map(|linked| linked.lean_module.to_owned())
+    let users: BTreeSet<&str> = modules.values().map(|linked| linked.lean_module).collect();
+    let mut imports: Vec<String> = data
+        .imports
+        .iter()
+        .filter(|import| users.contains(import.as_str()))
+        .cloned()
         .collect();
     imports.sort();
     Ok(Certificate {
