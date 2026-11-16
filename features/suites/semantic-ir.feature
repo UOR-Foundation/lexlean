@@ -283,3 +283,10 @@ Feature: semantic-ir
     Then the generated Lean names Nat.land, Nat.lor, Nat.xor, Nat.shiftLeft and Nat.shiftRight and no fixed-width runtime helper
     And the definitions and the theorems verify with exactly the axioms their policies state, and the false equation is rejected by Lean
     And each planted project is refused naming the misuse
+
+  @SM-44 @build
+  Scenario: A language-1.2 theorem may be proved by `evaluation`, an equality checked by the kernel alone: the proof carries no argument, the backend lowers it to `MVarId.refl` with `check := false` run as a finishing tactic, so the elaborator's unifier never compares the two sides, and the module imports as `meta` exactly the two Lean modules that tactic needs; a true equation verifies with exactly the axioms its policy states, a false one and a policy that states more axioms are refused at verification by the pinned Lean, the schema, the linker, the notation, the Lean backend, and the formatter accept it, and a use in language 1.1 is refused.
+    Given a language-1.2 project whose closed theorem is an equation between an evaluation and its value, proved by `evaluation`, and the planted projects that state a false equation, a wider axiom policy, or language 1.1
+    When the project is linked, formatted and read back through the notation, built, and verified by the pinned Lean, and each planted project is linked and verified
+    Then the theorem verifies with exactly the axioms its policy states, the formatter writes the proof unchanged, and the generated Lean states the fixed lowering and its two meta imports
+    And the false equation fails with LLV7002, the wider policy with LLV7005, and the language-1.1 project with LLT4001 naming the evaluation proof

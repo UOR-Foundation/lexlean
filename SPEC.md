@@ -2725,6 +2725,21 @@ expected values are canonical Nat literals. The backend emits fixed natural
 deduction using primitive Nat direction lemmas and locally proved Boolean
 conjunction/reflexivity bridges. It does not invoke `propext` or a general
 tactic.
+An `evaluation` proof (language 1.2, `SM-44`) closes an equality goal by the kernel alone:
+it lowers to `run_tac _root_.Lean.Elab.Tactic.liftMetaFinishingTactic fun llGoal => _root_.Lean.MVarId.refl llGoal (check := false)`,
+which assigns `Eq.refl` of the left side without the elaborator's unifier
+comparing the two sides, and the kernel checks the theorem by reduction when it
+is added, so a statement that does not hold is rejected there (a kernel
+declaration type mismatch). A module with such a proof imports, as `meta`,
+exactly `Lean.Elab.Tactic.Basic` and `Lean.Meta.Tactic.Refl`. Validation admits
+it in language 1.2 and does not otherwise restrict the statement; its intended
+workload is a closed equality between two evaluations. It exists because the
+elaborator's unifier can exhaust memory comparing unevaluated subterms of such
+sides where the kernel's check of the same statement completes (measured:
+equalities between long step-machine runs whose bytes are not literals); no
+general complexity bound is claimed for either. It carries no tactic name,
+option, or argument, and adds no axiom: the theorem's policy states the set the
+kernel observes.
 An `apply` proof names one prior theorem and supplies exactly its ordered,
 type-checked semantic arguments; it lowers to one `exact` application and
 cannot carry a proof-term or tactic string.
@@ -12091,6 +12106,7 @@ Every row below is normative, has honesty level `build`, and is projected byte-f
 | `SM-37` | `semantic-ir` | A language-1.2 theorem may be proved by `nested_induction`, an induction over a nested inductive type of the document, one that holds a member of itself under `List`, `Option`, `Result`, or a product and is in no mutual group: the proof names a parameter of the theorem, states one proposition for each auxiliary member of the type's recursive family in the order the pinned Lean's recursor takes them, and gives a branch for every constructor of the type and of each auxiliary member, each binding the constructor's fields followed by one hypothesis for each field that is a member of the family, in field order; the backend lowers it to `induction` over the recursor the pinned Lean generates for the type, with the propositions as its auxiliary motives and the goals taken in the order of its minor premises, so that a theorem over every value of a type with a constructor that holds a `List` of the type verifies under the pinned Lean 4.32.1 with exactly the axioms `propext` and `Quot.sound`, the set its build observes; the schema, the linker, the notation, the formatter, and the canonical LaTeX accept it, and a use in language 1.1, a local whose type is not a nested inductive of the document or lies in a mutual group, an auxiliary member that is missing, repeated, or out of order, a missing or repeated branch, a branch with the wrong number of binders, a proposition that is not well typed, and an `induction` proof on a nested type are each refused as LLT4001. | §16.9, §17.10, §17.12 |
 | `SM-38` | `semantic-ir` | A language-1.2 build publishes, for every semantic module, a declaration ID for each declaration and a statement ID for each theorem: the declaration ID is a framed SHA-256 of the declaration's canonical JSON and of the declaration IDs of the project declarations it references, with declarations that reference one another hashed as one group, and the statement ID omits the theorem's proof; changing one literal of one definition changes the declaration IDs of exactly that definition and of the declarations that reach it by reference, changing a theorem's proof alone leaves its statement ID unchanged, adding or reordering independent declarations changes no ID, the IDs equal their recomputation from the specified framed inputs, the file validates against `api/schemas/declarations.schema.json`, and a language-1.0 or 1.1 build publishes none. | §21.9 |
 | `SM-42` | `semantic-ir` | A language-1.2 definition may apply bit_and, bit_or and bit_xor to two Nat operands and shift_left and shift_right to a Nat operand and a Nat amount, each with result Nat and no Option, and the backend lowers them to Nat.land, Nat.lor, Nat.xor, Nat.shiftLeft and Nat.shiftRight, so that reflexivity evaluates them inside a verified module; the registered laws nat_bit_and, nat_bit_or, nat_bit_xor, nat_bit_shift_left, nat_bit_shift_right, nat_or_xor_and, nat_witt_step and nat_bit_ext state the bit read of each under an exact axiom policy, and a theorem that applies one verifies while a false bit equation is rejected; a use in language 1.1, bit_not of a Nat, a Nat operand mixed with an integer of another type, and a production root over a Nat form are each refused. | §17.11, §17.12 |
+| `SM-44` | `semantic-ir` | A language-1.2 theorem may be proved by `evaluation`, an equality checked by the kernel alone: the proof carries no argument, the backend lowers it to `MVarId.refl` with `check := false` run as a finishing tactic, so the elaborator's unifier never compares the two sides, and the module imports as `meta` exactly the two Lean modules that tactic needs; a true equation verifies with exactly the axioms its policy states, a false one and a policy that states more axioms are refused at verification by the pinned Lean, the schema, the linker, the notation, the Lean backend, and the formatter accept it, and a use in language 1.1 is refused. | §17.10 |
 | `DF-01` | `declarations` | A valid type-definition sentence emits one nonrecursive sort-valued Lean def linked to its document entry. | §15.7, §18.6 |
 | `DF-02` | `declarations` | A valid term-definition sentence emits one nonrecursive explicitly typed Lean def. | §15.7, §18.6 |
 | `DF-03` | `declarations` | A valid predicate-definition sentence emits one nonrecursive Prop-valued Lean def. | §15.7, §18.6 |
@@ -12489,7 +12505,7 @@ Every row below is normative, has honesty level `build`, and is projected byte-f
 | `NS-06` | `normative-source` | The hand-edited normative inputs of the repository are the `.lex.tex` modules of the specification project: `model/` holds only the projected files and the copies an authority row vendors, every Markdown file at the root is a projection or is on the closed list of hand-written documents, the projections carry the notice that names their source, and no hand-written document restates a registered statement, a plant of each being refused naming R1. | §27.2, §27.5, §27.10 |
 | `NS-07` | `normative-source` | `cargo xtask spec` changes the chapter modules of the specification project by item: it replaces a block, inserts one after a block, and ports the hunks of a merged SPEC.md that lie outside derived regions, each through the authoring SDK, and it writes nothing unless the regenerated SPEC.md equals the intended text outside derived regions, refusing a first line that matches no block or two and a hunk that spans two blocks. | §24.8, §27.5 |
 
-**Total required capability IDs:** 521.
+**Total required capability IDs:** 522.
 
 No row may be downgraded to `some-true` or `open`. Upstream Lean facts are ledger/authority rows, not substitutions for these build behaviors.
 
