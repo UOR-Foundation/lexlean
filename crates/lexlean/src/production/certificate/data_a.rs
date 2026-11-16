@@ -645,7 +645,16 @@ impl Gen<'_> {
             .iter()
             .filter_map(|node| match node {
                 crate::ir::core::CoreNode::Const { n, .. } => Some(n.as_str()),
-                _ => None,
+                crate::ir::core::CoreNode::BVar { .. }
+                | crate::ir::core::CoreNode::Sort { .. }
+                | crate::ir::core::CoreNode::App { .. }
+                | crate::ir::core::CoreNode::Lambda { .. }
+                | crate::ir::core::CoreNode::Forall { .. }
+                | crate::ir::core::CoreNode::Let { .. }
+                | crate::ir::core::CoreNode::Nat { .. }
+                | crate::ir::core::CoreNode::String { .. }
+                | crate::ir::core::CoreNode::Mdata { .. }
+                | crate::ir::core::CoreNode::Projection { .. } => None,
             })
             .collect();
         let owner = |constant: &str| -> Option<String> {

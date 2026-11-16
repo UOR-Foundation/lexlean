@@ -2643,7 +2643,7 @@ pub fn run_part(
                     .iter()
                     .enumerate()
                     .filter(|(_, other)| {
-                        imports.iter().any(|import| *import == other.module)
+                        imports.contains(&other.module)
                             // `leanchecker` replays a module prefix (§22.4):
                             // a certificate inside another's namespace (B and
                             // E inside their root's A) starts only after that
