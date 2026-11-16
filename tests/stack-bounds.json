@@ -87,6 +87,9 @@
     "bootstrap/parse_audit_output": {
       "debug": 6291456
     },
+    "bootstrap/print_at": {
+      "debug": 1572864
+    },
     "bootstrap/print_core_module": {
       "debug": 2555904
     },
@@ -101,6 +104,9 @@
     },
     "bootstrap/print_lse": {
       "debug": 1900544
+    },
+    "bootstrap/print_semantic_module": {
+      "debug": 1179648
     },
     "bootstrap/print_tooling_module": {
       "debug": 1179648
