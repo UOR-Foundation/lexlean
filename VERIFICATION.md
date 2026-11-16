@@ -2282,6 +2282,30 @@ Nat, List, or a document inductive` at the accepted project); the language gate 
 language-1.1 project is accepted and the case fails at `check fails`); the induction refusal removed
 (the same).
 
+
+### an equality proved by evaluation can fail (SM-44)
+
+A language-1.2 theorem may be proved by `evaluation` (`SM-44`, §17.10, LexLean#553). The case
+(`cases/semantic_ir/evaluation.rs`) builds a project whose closed theorem `doubled` states
+`double 21 = 42` for `double n := n + n`, proved by `evaluation{}` with an empty axiom policy; it
+requires the module to satisfy `semantic-module-v2` with the proof `{"kind":"evaluation"}`, the
+formatter to keep the proof and its fixed point to link to the same module, the notation to write
+`evaluation{}` and read back to the same module, the generated Lean to hold the fixed `run_tac … MVarId.refl
+llGoal (check := false)` lowering and exactly the two `meta import`s, and the pinned Lean to verify the
+module. With the pinned Lean, `double 21 = 43` proved the same way fails at verification with
+`LLV7002` (the kernel's check, not the unifier's), and the same true theorem with the policy
+`[propext]` fails with `LLV7005`. A language-1.1 module with the proof is refused with `LLT4001`
+naming the evaluation proof, also as the negative fixture `evaluation-language-11`.
+
+Plants, each run with `cargo test -p repo-conformance --all-features --test conformance
+conformance_sm_44` on `release/v0.5` with the change, and each restored with `git checkout`:
+the language gate made `Ok(())` (the language-1.1 project links and the case fails at `check
+fails`, `support.rs`); the lowering's `check := false` made `check := true` (the case fails at the
+lowering assertion); a third `meta import` added to a module with the proof (the same). With a
+trailing `sorry` planted after the lowering, verification refuses the module (`LLI9001`, forbidden
+token `sorry`), which shows the case's verify leg runs the pinned Lean. The schema alternative is
+checked by the unit `evaluation_proof_is_language_1_2_only`, which also requires the v1 schema to
+lack it.
 ### a bitwise primitive on an unbounded Nat can fail (SM-42)
 
 Registered as `SM-38` on release/v0.5 until the forward merge of release/v0.4 (#405), where
