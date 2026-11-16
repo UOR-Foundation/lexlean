@@ -41,7 +41,21 @@ const ROOTS: [(&str, &[&str]); 2] = [
 /// reused here so the case shares one closure shape with it rather than
 /// inventing a second.
 const GLOSSARY: &str = "examples/peano-arithmetic/glossary/peano.arith";
-const VISIBLE: [&str; 3] = ["lexlean.core", "lexlean.std.nat", "peano.arith"];
+/// A second, real committed package, reused only for the "a cover limit of
+/// one" vector: `nna`'s surface "Natural number addition" is a genuine
+/// prefix-ambiguous overlap with `lexlean.std.nat`'s own "Natural number"
+/// (`nat`) and "addition" (`addition`) forms, already proven to produce two
+/// distinct covers by the `ambiguous-lexical-segmentation` negative test
+/// (`LLP2002`: "2 distinct linked interpretations ... lexlean.std.nat::addition,
+/// lexlean.std.nat::nat, test.seg::nna"). No committed glossary this case
+/// already loads has that property on its own (checked: every multi-word
+/// surface in `peano.arith`/`lexlean.core`/`lexlean.std.{nat,bool,int}` is
+/// either one word or, for `nat`/`nat-list`'s "natural number"/"natural
+/// number list" prefix, has no standalone continuation word to complete a
+/// second cover), so this reuses the one that does instead of adding to the
+/// Peano glossary.
+const SEG_GLOSSARY: &str = "tests/negative/ambiguous-lexical-segmentation/project/lexicons/test-seg";
+const VISIBLE: [&str; 4] = ["lexlean.core", "lexlean.std.nat", "peano.arith", "test.seg"];
 
 const CERTIFICATE_BUDGET: u64 = 3_145_728;
 const PATH: &str = "src/Phrase.lex.tex";
@@ -65,29 +79,13 @@ fn closure() -> &'static Closure {
             .iter()
             .map(|row| lexlean::lexicon::load_builtin_package(row, &ctx).expect("a package"))
             .collect();
-        let root = repo_root().join(GLOSSARY);
-        let mut files: Vec<(String, Vec<u8>)> = walkdir::WalkDir::new(root.as_std_path())
-            .into_iter()
-            .flatten()
-            .filter(|entry| entry.file_type().is_file())
-            .map(|entry| {
-                let relative = entry
-                    .path()
-                    .strip_prefix(root.as_std_path())
-                    .expect("under the package")
-                    .to_string_lossy()
-                    .replace('\\', "/");
-                (
-                    relative,
-                    std::fs::read(entry.path()).expect("a glossary file"),
-                )
-            })
-            .filter(|(relative, _)| relative == "lexicon.toml" || relative.starts_with("entries/"))
-            .collect();
-        files.sort_by(|a, b| a.0.as_bytes().cmp(b.0.as_bytes()));
         packages.push(
-            lexlean::lexicon::package::load_package(GLOSSARY, &files, None, &ctx)
+            load_glossary_files(GLOSSARY, &ctx)
                 .unwrap_or_else(|diagnostics| panic!("the Peano glossary: {diagnostics:?}")),
+        );
+        packages.push(
+            load_glossary_files(SEG_GLOSSARY, &ctx)
+                .unwrap_or_else(|diagnostics| panic!("the ambiguous-segmentation glossary: {diagnostics:?}")),
         );
         let registry = lexlean::lexicon::load_token_registry().expect("the registry");
         Closure::build(packages, registry, bootstrap, 128)
@@ -100,6 +98,35 @@ fn visible() -> BTreeSet<String> {
         .iter()
         .map(|package| (*package).to_owned())
         .collect()
+}
+
+/// Reads one glossary package's `lexicon.toml` and `entries/*.toml` files
+/// off disk, the same way for every package this case loads.
+fn load_glossary_files(
+    display_root: &str,
+    ctx: &LoadContext<'_>,
+) -> Result<lexlean::lexicon::package::LexiconPackage, Vec<lexlean::diagnostic::Diagnostic>> {
+    let root = repo_root().join(display_root);
+    let mut files: Vec<(String, Vec<u8>)> = walkdir::WalkDir::new(root.as_std_path())
+        .into_iter()
+        .flatten()
+        .filter(|entry| entry.file_type().is_file())
+        .map(|entry| {
+            let relative = entry
+                .path()
+                .strip_prefix(root.as_std_path())
+                .expect("under the package")
+                .to_string_lossy()
+                .replace('\\', "/");
+            (
+                relative,
+                std::fs::read(entry.path()).expect("a glossary file"),
+            )
+        })
+        .filter(|(relative, _)| relative == "lexicon.toml" || relative.starts_with("entries/"))
+        .collect();
+    files.sort_by(|a, b| a.0.as_bytes().cmp(b.0.as_bytes()));
+    lexlean::lexicon::package::load_package(display_root, &files, None, ctx)
 }
 
 // ------------------------------------------------------------- the encoders
@@ -552,6 +579,11 @@ impl Vector {
 fn named() -> Vec<Vector> {
     vec![
         Vector {
+            label: "an empty phrase",
+            source: "",
+            limit: 0,
+        },
+        Vector {
             label: "a single label word",
             source: "doubling",
             limit: 0,
@@ -608,7 +640,15 @@ fn named() -> Vec<Vector> {
         },
         Vector {
             label: "a cover limit of one",
-            source: "doubling parity",
+            // Genuinely ambiguous (not just a guess): "Natural number
+            // addition" has two covers under `VISIBLE` -- `test.seg::nna`'s
+            // own 3-word form, and `lexlean.std.nat`'s "Natural number"
+            // (`nat`) followed by "addition" (`addition`) -- so `limit: 1`
+            // actually exercises the early stop, unlike "doubling parity"
+            // (confirmed via `explore_bs44_limit_budget` to have only one
+            // cover at all, so the planted defect was never observable on
+            // it).
+            source: "Natural number addition",
             limit: 1,
         },
         Vector {
@@ -647,92 +687,86 @@ fn prop_named() -> Vec<PropVector> {
     vec![
         PropVector {
             label: "a bare predicate",
-            source: "\\(zero\\) divides \\(zero\\).",
+            source: "\\(zero\\) divides \\(zero\\)",
             limits: DEFAULT_LIMITS,
         },
         PropVector {
             label: "an adjective predicate",
-            source: "\\(zero\\) is even.",
+            source: "\\(zero\\) is even",
             limits: DEFAULT_LIMITS,
         },
         PropVector {
             label: "a conjunction of two predicates",
-            source: "\\(zero\\) is even and \\(zero\\) is positive.",
+            source: "\\(zero\\) is even and \\(zero\\) is positive",
             limits: DEFAULT_LIMITS,
         },
         PropVector {
             label: "a disjunction of two predicates",
-            source: "\\(zero\\) is even or \\(zero\\) is positive.",
+            source: "\\(zero\\) is even or \\(zero\\) is positive",
             limits: DEFAULT_LIMITS,
         },
         PropVector {
             label: "a negation",
-            source: "not \\(zero\\) is even.",
+            source: "not \\(zero\\) is even",
             limits: DEFAULT_LIMITS,
         },
         PropVector {
             label: "an implication",
-            source: "\\(zero\\) is even implies \\(zero\\) is positive.",
+            source: "\\(zero\\) is even implies \\(zero\\) is positive",
             limits: DEFAULT_LIMITS,
         },
         PropVector {
             label: "an if and only if",
-            source: "\\(zero\\) is even if and only if \\(zero\\) is positive.",
+            source: "\\(zero\\) is even if and only if \\(zero\\) is positive",
             limits: DEFAULT_LIMITS,
         },
         PropVector {
             label: "a conditional",
-            source: "if \\(zero\\) is even, then \\(zero\\) is positive.",
+            source: "if \\(zero\\) is even, then \\(zero\\) is positive",
             limits: DEFAULT_LIMITS,
         },
         PropVector {
             label: "a universal quantifier over one binder",
-            source: "for every natural number n, \\(n\\) is even.",
+            source: "for every natural number \\(n\\), \\(n\\) is even",
             limits: DEFAULT_LIMITS,
         },
         PropVector {
             label: "a universal quantifier over two and-joined binders",
-            source: "for every natural number n and natural number m, \\(n\\) divides \\(m\\).",
+            source: "for every natural number \\(n\\) and natural number \\(m\\), \\(n\\) divides \\(m\\)",
             limits: DEFAULT_LIMITS,
         },
         PropVector {
             label: "an existential quantifier",
-            source: "there exists a natural number n such that \\(n\\) is even.",
+            source: "there exists a natural number \\(n\\) such that \\(n\\) is even",
             limits: DEFAULT_LIMITS,
         },
         PropVector {
             label: "a unique existential quantifier",
-            source: "there exists exactly one natural number n such that \\(n\\) is even.",
+            source: "there exists exactly one natural number \\(n\\) such that \\(n\\) is even",
             limits: DEFAULT_LIMITS,
         },
         PropVector {
             label: "a math-island proposition",
-            source: "\\(zero = zero\\).",
+            source: "\\(zero = zero\\)",
             limits: DEFAULT_LIMITS,
         },
-        // Each `divides` conjunct charges one state at negation's own entry,
-        // one at each of its two `termPhraseAt` calls (one per argument): 3
-        // states per conjunct, plus one at the chain's own growth per
-        // "and" found, plus one at `proposition`'s own entry (SPEC.md
-        // §25.5's `budget.state()` at proposition/negation/term_phrase entry
-        // only; §25.5's threading check below is this case's, not the
-        // oracle's own count). Two conjuncts: 1 (proposition entry) + 2*3
-        // (two `divides`) + 1 (chain growth) = 8. The margin is picked wide
-        // rather than exact, since the precise count has not been run yet;
-        // this vector needs confirming against a real run once the machine
-        // is free, and the `states` value tightened to the smallest that
-        // still refuses by cumulative consumption rather than any one call.
+        // Derived empirically (explore_bs44), not hand-counted: this
+        // sentence needs 11 states and 2 edges to complete (10/1 refuse,
+        // 11/2 succeed), so `states: 10` and `edges: 1` refuse by the
+        // smallest margin that still comes from cumulative consumption
+        // across the sentence's two `divides` conjuncts, not from any one
+        // call alone.
         PropVector {
             label: "max_parse_states exceeded through cumulative consumption across repeated calls",
-            source: "\\(zero\\) divides \\(zero\\) and \\(zero\\) divides \\(zero\\).",
+            source: "\\(zero\\) divides \\(zero\\) and \\(zero\\) divides \\(zero\\)",
             limits: Limits {
-                states: 7,
+                states: 10,
                 ..DEFAULT_LIMITS
             },
         },
         PropVector {
             label: "max_token_lattice_edges exceeded through cumulative consumption across repeated calls",
-            source: "\\(zero\\) divides \\(zero\\) and \\(zero\\) divides \\(zero\\).",
+            source: "\\(zero\\) divides \\(zero\\) and \\(zero\\) divides \\(zero\\)",
             limits: Limits {
                 edges: 1,
                 ..DEFAULT_LIMITS
@@ -740,10 +774,61 @@ fn prop_named() -> Vec<PropVector> {
         },
         PropVector {
             label: "an unknown atom",
-            source: "\\(zero\\) frobnicates \\(zero\\).",
+            source: "\\(zero\\) frobnicates \\(zero\\)",
             limits: DEFAULT_LIMITS,
         },
     ]
+}
+
+// ------------------------------------------------------- exploration (TEMP)
+
+/// Not part of the case: prints, for every `prop_named` vector, whether it
+/// parses at all under `DEFAULT_LIMITS` and how many complete alternatives
+/// it has, and for the two budget-boundary vectors, the exact `states`/
+/// `edges` threshold at which the oracle's own refusal flips to success
+/// (`Budget` has no public getter for its running count, so the threshold
+/// is found by raising the limit one at a time until it stops refusing).
+/// Remove once the vectors and the two limit values are set from what this
+/// prints.
+#[test]
+fn explore_bs44() {
+    for vector in prop_named() {
+        let (atoms, tokens) = sentence(vector.source);
+        let (_, refusal) = vector.run();
+        match refusal {
+            None => eprintln!("EXPLORE {}: ok", vector.label),
+            Some(message) => eprintln!("EXPLORE {}: refused: {message}", vector.label),
+        }
+        if vector.label.contains("cumulative consumption") {
+            let kind = if vector.label.contains("max_parse_states") {
+                "states"
+            } else {
+                "edges"
+            };
+            for probe in 1u64..40 {
+                let limits = if kind == "states" {
+                    Limits {
+                        states: probe,
+                        ..DEFAULT_LIMITS
+                    }
+                } else {
+                    Limits {
+                        edges: probe,
+                        ..DEFAULT_LIMITS
+                    }
+                };
+                let (_, probe_refusal) = prop_run_on(PATH, &atoms, &tokens, limits);
+                eprintln!(
+                    "EXPLORE {} {kind}={probe}: {}",
+                    vector.label,
+                    probe_refusal.as_deref().unwrap_or("ok")
+                );
+                if probe_refusal.is_none() {
+                    break;
+                }
+            }
+        }
+    }
 }
 
 // --------------------------------------------------------------- the case
@@ -905,8 +990,8 @@ struct Plant {
 const PLANTS: &[Plant] = &[
     Plant {
         label: "the moves group never stops at the limit",
-        site: "(both (0 <? limit) (limit <=? (prim length (project search covers) : Nat)))",
-        replacement: "false",
+        site: "(PropositionTerms::both (0 <? limit) (limit <=? (prim length (project search covers) : Nat))) then (ctor Option.none",
+        replacement: "false then (ctor Option.none",
         vector: "a cover limit of one",
     },
     Plant {
@@ -923,9 +1008,9 @@ const PLANTS: &[Plant] = &[
     },
     Plant {
         label: "an empty phrase is accepted",
-        site: "(if (prim list_is_empty tokens : Bool) then",
-        replacement: "(if false then",
-        vector: "a single label word",
+        site: "(ctor Result.error [(List (List PhraseItem)), PrimitiveScan::Rejection] (PropositionTerms::placed (PropositionTerms::lit \"LLP2001\") (PropositionTerms::lit \"a phrase is a nonempty sequence of concepts\") (ctor Option.some [PrimitiveScan::Place] (wholeFilePlace path))))",
+        replacement: "(let ctx : PropositionTerms::Ctx := (PropositionTerms::context path atoms tokens edges maxEdges maxStates maxDepth); (let final : CoverSearch := (coverSearchLoop ctx limit maxStates statesBefore edgesBefore); (match (project final error)\n      | Option.some problem => (ctor Result.error [(List (List PhraseItem)), PrimitiveScan::Rejection] problem)\n      | Option.none => (if (project final foundAny) then (ctor Result.ok [(List (List PhraseItem)), PrimitiveScan::Rejection] (project final covers)) else (ctor Result.error [(List (List PhraseItem)), PrimitiveScan::Rejection] (match (project final failure)\n          | Option.some dead => dead\n          | Option.none => (PropositionTerms::placed (PropositionTerms::lit \"LLP2001\") (PropositionTerms::lit \"a phrase is a nonempty sequence of concepts\") (ctor Option.some [PrimitiveScan::Place] (wholeFilePlace path)))))))))",
+        vector: "an empty phrase",
     },
 ];
 

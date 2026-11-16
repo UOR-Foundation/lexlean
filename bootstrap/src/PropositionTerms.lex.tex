@@ -587,8 +587,7 @@ definition{
       | Option.none => (nil (Nat * (List GrammarProof::Keyword)))) : (List (Nat * (List GrammarProof::Keyword)))) else (cons (position, (nil GrammarProof::Keyword)) (nil (Nat * (List GrammarProof::Keyword))))); (let final : ((List BAlt) * Matched) := (prim list_fold (fun [ctx] (state : ((List BAlt) * Matched)) (start : (Nat * (List GrammarProof::Keyword))) => (binderStart ctx state start)) ((nil BAlt), (record Matched {bud := (first charge), found := (nil Match), error := (ctor Option.none [PrimitiveScan::Rejection])})) starts : ((List BAlt) * Matched)); (match (project (second final) error)
       | Option.some problem => (ctor Result.error [((List BAlt) * Bud), PrimitiveScan::Rejection] problem)
       | Option.none => (ctor Result.ok [((List BAlt) * Bud), PrimitiveScan::Rejection] ((first final), (project (second final) bud))))))))),
-  executable: true,
-  production: {effects: [allocation, overflow], targets: [rust-std]}
+  executable: true
 }
 
 definition{
@@ -771,8 +770,7 @@ definition{
   body: (let ctx : Ctx := (context path atoms tokens edges maxEdges maxStates maxDepth); (let final : Mach := (first (prim iterate_until (fun [ctx] (m : Mach) => (machStep ctx m)) ((prim multiply (maxStates + 2) 64 : Nat) + 64) (record Mach {stack := (cons (ctor Frame.XStart position depth) (nil Frame)), returned := (nil TAlt), error := (ctor Option.none [PrimitiveScan::Rejection]), bud := (fresh statesBefore edgesBefore)}) : (Mach * Bool))); (match (project final error)
     | Option.some problem => (ctor Result.error [((List TAlt) * Bud), PrimitiveScan::Rejection] problem)
     | Option.none => (ctor Result.ok [((List TAlt) * Bud), PrimitiveScan::Rejection] ((project final returned), (project final bud)))))),
-  executable: true,
-  production: {effects: [allocation, overflow], targets: [rust-std]}
+  executable: true
 }
 
 definition{
