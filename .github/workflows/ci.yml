@@ -572,6 +572,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -661,6 +667,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -750,6 +762,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -839,6 +857,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -928,6 +952,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -1018,6 +1048,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -1108,6 +1144,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |

@@ -17,6 +17,10 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- An Atlas shard of the gate drops the part it uploaded in an earlier attempt
+  of its run before it runs (SPEC.md §9.4, `RP-14`). "Re-run all jobs"
+  downloaded that part with the rest, and the shard refused the non-empty
+  directory (`LLI9001`), so a gate could be recovered only by a new dispatch.
 - Arrays of fixed-width integers (SPEC.md §17.12, *Arrays*, `SM-39`; no new
   diagnostic code; changes the language-1.2 identity). Language 1.2 gains the
   type `array{element: T}` over one fixed-width integer type, lowered to the
