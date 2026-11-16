@@ -47,7 +47,7 @@ pub fn run_leanchecker(
         },
         limits,
         normalizer,
-        |session| Some(session.prefix(module)),
+        |session| session.prefix(module),
         &[],
     )
 }

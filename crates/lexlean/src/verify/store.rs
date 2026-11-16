@@ -6,10 +6,15 @@
 //! and of the identities of the modules its import header names, by name: a
 //! Merkle identity of everything a `lean` or `leanchecker` process of that
 //! module can read beyond the pinned toolchain. A module the stage does not
-//! hold (the toolchain's own `Init`, `Lean`, `Std`) is identified by its name,
-//! which the toolchain digest fixes. The key of one process adds the tool,
-//! the digest of its executable, and its normalized argument vector, so the
-//! same module compiled, replayed, or compiled without output are three
+//! hold is bound only when the toolchain's library holds it (the toolchain's
+//! own `Init`, `Lean`, `Std`); it is then identified by its name, and the
+//! toolchain by the digest of every file of it a process loads. A module
+//! neither holds is unbound, and a process whose closure reaches it is not
+//! answered by the store. The key of one process adds the tool, the digest of
+//! its executable, its normalized argument vector, and its context: the
+//! digest of the program it starts, the toolchain, the Lake configuration of
+//! its working directory, and its normalized environment rows. The same
+//! module compiled, replayed, or compiled without output are three
 //! processes.
 //!
 //! The store is operational, like the width (§22.11): it is selected only by
@@ -266,24 +271,175 @@ pub fn imports(text: &str) -> Vec<String> {
 pub struct Session {
     store: Store,
     roots: Vec<Utf8PathBuf>,
-    known: Mutex<BTreeMap<String, Sha256Digest>>,
+    toolchain: Utf8PathBuf,
+    known: Mutex<BTreeMap<String, Option<Sha256Digest>>>,
+    files: Mutex<BTreeMap<Utf8PathBuf, Option<Sha256Digest>>>,
+}
+
+/// The file names under a toolchain or a Lake build directory that a `lean`,
+/// `lake`, or `leanchecker` process loads: the executables, the shared
+/// libraries, and each module's `.olean` with its companions and `.ir`.
+fn loaded(relative: &str) -> bool {
+    let name = relative.rsplit('/').next().unwrap_or(relative);
+    relative.starts_with("bin/")
+        || name.ends_with(".olean")
+        || name.ends_with(".olean.server")
+        || name.ends_with(".olean.private")
+        || name.ends_with(".ir")
+        || name.ends_with(".so")
+        || name.contains(".so.")
+        || name.ends_with(".dylib")
+        || name.ends_with(".dll")
+}
+
+/// The digest of every loaded file under `root`, by its path relative to
+/// `root`, or `None` when the tree cannot be read whole.
+fn tree(root: &Utf8Path) -> Option<Sha256Digest> {
+    let mut files: Vec<String> = Vec::new();
+    let mut stack = vec![root.to_path_buf()];
+    while let Some(directory) = stack.pop() {
+        for entry in std::fs::read_dir(directory.as_std_path()).ok()? {
+            let entry = entry.ok()?;
+            let path = Utf8PathBuf::from_path_buf(entry.path()).ok()?;
+            let kind = entry.file_type().ok()?;
+            if kind.is_dir() {
+                stack.push(path);
+            } else {
+                let relative = path.strip_prefix(root).ok()?.as_str().to_owned();
+                if loaded(&relative) {
+                    files.push(relative);
+                }
+            }
+        }
+    }
+    files.sort();
+    // The files are read on every core: the toolchain is the largest input a
+    // key binds, and the store answers only once it is read.
+    let width = std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get);
+    let chunk = files.len().div_ceil(width).max(1);
+    let digests: Vec<Option<Vec<Sha256Digest>>> = std::thread::scope(|scope| {
+        files
+            .chunks(chunk)
+            .map(|part| {
+                scope.spawn(move || {
+                    part.iter()
+                        .map(|relative| {
+                            std::fs::read(root.join(relative).as_std_path())
+                                .ok()
+                                .map(|bytes| Sha256Digest::of(&bytes))
+                        })
+                        .collect::<Option<Vec<_>>>()
+                })
+            })
+            .collect::<Vec<_>>()
+            .into_iter()
+            .map(|handle| handle.join().ok().flatten())
+            .collect()
+    });
+    let mut bytes = format!("{DOMAIN}\0tree\0").into_bytes();
+    let mut names = files.iter();
+    for part in digests {
+        for digest in part? {
+            bytes.extend_from_slice(format!("{}\0{}\0", names.next()?, digest.to_hex()).as_bytes());
+        }
+    }
+    Some(Sha256Digest::of(&bytes))
 }
 
 impl Session {
     /// The session of a verification whose sources are staged under `roots`.
     #[must_use]
-    pub fn new(store: Store, roots: Vec<Utf8PathBuf>) -> Self {
+    pub fn new(store: Store, roots: Vec<Utf8PathBuf>, toolchain: Utf8PathBuf) -> Self {
         Self {
             store,
             roots,
+            toolchain,
             known: Mutex::new(BTreeMap::new()),
+            files: Mutex::new(BTreeMap::new()),
         }
     }
 
+    /// The digest of a file or a tree, read once in a session.
+    fn digest_of(
+        &self,
+        path: &Utf8Path,
+        read: impl FnOnce(&Utf8Path) -> Option<Sha256Digest>,
+    ) -> Option<Sha256Digest> {
+        if let Some(known) = self
+            .files
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .get(path)
+        {
+            return *known;
+        }
+        let digest = read(path);
+        self.files
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .insert(path.to_path_buf(), digest);
+        digest
+    }
+
+    /// The context of the process `spec`, beyond its module's identity: the
+    /// program it starts, the toolchain it loads, the Lake configuration and
+    /// build directory of its working directory, and its normalized
+    /// environment rows. `None` when one of them cannot be read whole, or
+    /// when the process does not run under the toolchain's home.
+    fn context(&self, spec: &ChildSpec<'_>, normalizer: &Normalizer) -> Option<Sha256Digest> {
+        let crate::verify::child::ChildHome::Toolchain { toolchain_bin } = spec.home else {
+            return None;
+        };
+        let program = self.digest_of(spec.program, |path| {
+            std::fs::read(path.as_std_path())
+                .ok()
+                .map(|bytes| Sha256Digest::of(&bytes))
+        })?;
+        let toolchain = self.digest_of(&self.toolchain, tree)?;
+        let mut bytes = format!(
+            "{DOMAIN}\0context\0{}\0{}\0{}\0{}\0",
+            program.to_hex(),
+            toolchain.to_hex(),
+            normalizer.normalize_arg(toolchain_bin.as_str()),
+            normalizer.normalize_arg(spec.cwd.as_str()),
+        )
+        .into_bytes();
+        // `lake env` reads the workspace's configuration and puts its build
+        // directories on the search path.
+        for name in [
+            "lakefile.lean",
+            "lakefile.toml",
+            "lake-manifest.json",
+            "lean-toolchain",
+        ] {
+            let path = spec.cwd.join(name);
+            let row = match std::fs::read(path.as_std_path()) {
+                Ok(text) => Sha256Digest::of(&text).to_hex(),
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => "absent".to_owned(),
+                Err(_) => return None,
+            };
+            bytes.extend_from_slice(format!("{name}\0{row}\0").as_bytes());
+        }
+        let lake = spec.cwd.join(".lake");
+        let lake_row = if lake.as_std_path().exists() {
+            self.digest_of(&lake, tree)?.to_hex()
+        } else {
+            "absent".to_owned()
+        };
+        bytes.extend_from_slice(format!(".lake\0{lake_row}\0").as_bytes());
+        for (key, value) in &spec.extra_env {
+            bytes.extend_from_slice(
+                format!("{key}\0{}\0", normalizer.normalize_arg(value)).as_bytes(),
+            );
+        }
+        Some(Sha256Digest::of(&bytes))
+    }
+
     /// The content identity of the staged module `name`: its text and the
-    /// identities of its imports. A module no root holds is the toolchain's
-    /// and is identified by its name.
-    pub fn module(&self, name: &str) -> Sha256Digest {
+    /// identities of its imports. A module no root holds is bound when the
+    /// toolchain's library holds it, and is then identified by its name;
+    /// otherwise it, and everything that imports it, is unbound (`None`).
+    pub fn module(&self, name: &str) -> Option<Sha256Digest> {
         let mut open = Vec::new();
         self.visit(name, &mut open)
     }
@@ -291,7 +447,7 @@ impl Session {
     /// The content identity of what a `leanchecker` replay of the prefix
     /// `name` reads: the module and every staged module inside its namespace,
     /// which the replay checks with it (§22.4).
-    pub fn prefix(&self, name: &str) -> Sha256Digest {
+    pub fn prefix(&self, name: &str) -> Option<Sha256Digest> {
         let mut inside: Vec<String> = Vec::new();
         let relative = name.replace('.', "/");
         for root in &self.roots {
@@ -316,14 +472,17 @@ impl Session {
         }
         inside.sort();
         inside.dedup();
-        let mut bytes =
-            format!("{DOMAIN}\0prefix\0{name}\0{}\0", self.module(name).to_hex()).into_bytes();
+        let mut bytes = format!(
+            "{DOMAIN}\0prefix\0{name}\0{}\0",
+            self.module(name)?.to_hex()
+        )
+        .into_bytes();
         for module in inside {
             bytes.extend_from_slice(
-                format!("{module}\0{}\0", self.module(&module).to_hex()).as_bytes(),
+                format!("{module}\0{}\0", self.module(&module)?.to_hex()).as_bytes(),
             );
         }
-        Sha256Digest::of(&bytes)
+        Some(Sha256Digest::of(&bytes))
     }
 
     /// The content identity of the source at `path` and its imports.
@@ -332,10 +491,10 @@ impl Session {
         let mut open = Vec::new();
         // Labelled by its file name: the staging directory it lies in is a
         // fresh one in every run.
-        Some(self.of_text(path.file_name()?, &text, &mut open))
+        self.of_text(path.file_name()?, &text, &mut open)
     }
 
-    fn visit(&self, name: &str, open: &mut Vec<String>) -> Sha256Digest {
+    fn visit(&self, name: &str, open: &mut Vec<String>) -> Option<Sha256Digest> {
         if let Some(identity) = self
             .known
             .lock()
@@ -350,10 +509,23 @@ impl Session {
             .iter()
             .find_map(|root| std::fs::read(root.join(&relative).as_std_path()).ok())
         else {
-            return Sha256Digest::of(format!("{DOMAIN}\0toolchain\0{name}").as_bytes());
+            // The toolchain's own module: its bytes are bound by the
+            // toolchain's digest in every key's context. Any other module
+            // the stage does not hold is unbound.
+            let library = self
+                .toolchain
+                .join("lib")
+                .join("lean")
+                .join(format!("{}.olean", name.replace('.', "/")));
+            return library
+                .as_std_path()
+                .is_file()
+                .then(|| Sha256Digest::of(format!("{DOMAIN}\0toolchain\0{name}").as_bytes()));
         };
         if open.iter().any(|other| other == name) {
-            return Sha256Digest::of(format!("{DOMAIN}\0cycle\0{name}").as_bytes());
+            return Some(Sha256Digest::of(
+                format!("{DOMAIN}\0cycle\0{name}").as_bytes(),
+            ));
         }
         open.push(name.to_owned());
         let identity = self.of_text(name, &text, open);
@@ -365,17 +537,17 @@ impl Session {
         identity
     }
 
-    fn of_text(&self, label: &str, text: &[u8], open: &mut Vec<String>) -> Sha256Digest {
+    fn of_text(&self, label: &str, text: &[u8], open: &mut Vec<String>) -> Option<Sha256Digest> {
         let mut bytes = format!(
             "{DOMAIN}\0module\0{label}\0{}\0",
             Sha256Digest::of(text).to_hex()
         )
         .into_bytes();
         for import in imports(&String::from_utf8_lossy(text)) {
-            let identity = self.visit(&import, open);
+            let identity = self.visit(&import, open)?;
             bytes.extend_from_slice(format!("{import}\0{}\0", identity.to_hex()).as_bytes());
         }
-        Sha256Digest::of(&bytes)
+        Some(Sha256Digest::of(&bytes))
     }
 
     /// Run the process `spec` about the content `identity` unless the store
@@ -397,6 +569,19 @@ impl Session {
             .iter()
             .map(|argument| normalizer.normalize_arg(argument))
             .collect();
+        // A context that cannot be read whole binds nothing: the process
+        // runs and is not stored.
+        let Some(context) = self.context(spec, normalizer) else {
+            return crate::verify::child::run(spec, limits, normalizer);
+        };
+        let identity = Sha256Digest::of(
+            format!(
+                "{DOMAIN}\0bound\0{}\0{}\0",
+                identity.to_hex(),
+                context.to_hex()
+            )
+            .as_bytes(),
+        );
         let key = key(spec.tool, spec.executable_sha256, &argv, identity);
         stored(
             Some(&self.store),
@@ -441,32 +626,41 @@ mod tests {
         );
     }
 
-    #[test]
-    fn an_identity_follows_every_module_an_import_reaches() {
+    fn session(roots: Vec<Utf8PathBuf>, toolchain: &Utf8Path) -> Session {
+        Session::new(
+            Store {
+                root: PathBuf::new(),
+            },
+            roots,
+            toolchain.to_path_buf(),
+        )
+    }
+
+    fn write(base: &Utf8Path, relative: &str, text: &str) {
+        let path = base.join(relative);
+        std::fs::create_dir_all(path.parent().expect("parent").as_std_path()).expect("dir");
+        std::fs::write(path.as_std_path(), text).expect("write");
+    }
+
+    fn scratch() -> (tempfile::TempDir, Utf8PathBuf) {
         let root = tempfile::tempdir().expect("scratch");
         let base = Utf8PathBuf::from_path_buf(root.path().to_path_buf()).expect("utf-8");
-        let write = |name: &str, text: &str| {
-            let path = base.join(format!("{}.lean", name.replace('.', "/")));
-            std::fs::create_dir_all(path.parent().expect("parent").as_std_path()).expect("dir");
-            std::fs::write(path.as_std_path(), text).expect("write");
-        };
-        write("P.A", "module\npublic import Init\ndef a := 1\n");
-        write("P.B", "module\npublic import P.A\ndef b := 2\n");
-        write("P.C", "module\npublic import P.B\ndef c := 3\n");
-        let before = Session::new(
-            Store {
-                root: PathBuf::new(),
-            },
-            vec![base.clone()],
-        );
+        (root, base)
+    }
+
+    #[test]
+    fn an_identity_follows_every_module_an_import_reaches() {
+        let (_root, base) = scratch();
+        let (src, toolchain) = (base.join("src"), base.join("toolchain"));
+        write(&toolchain, "lib/lean/Init.olean", "init");
+        write(&src, "P/A.lean", "module\npublic import Init\ndef a := 1\n");
+        write(&src, "P/B.lean", "module\npublic import P.A\ndef b := 2\n");
+        write(&src, "P/C.lean", "module\npublic import P.B\ndef c := 3\n");
+        let before = session(vec![src.clone()], &toolchain);
         let (a, c) = (before.module("P.A"), before.module("P.C"));
-        write("P.A", "module\npublic import Init\ndef a := 4\n");
-        let after = Session::new(
-            Store {
-                root: PathBuf::new(),
-            },
-            vec![base.clone()],
-        );
+        assert!(a.is_some() && c.is_some());
+        write(&src, "P/A.lean", "module\npublic import Init\ndef a := 4\n");
+        let after = session(vec![src.clone()], &toolchain);
         assert_ne!(after.module("P.A"), a);
         assert_ne!(
             after.module("P.C"),
@@ -474,5 +668,51 @@ mod tests {
             "a change two imports away moves the identity"
         );
         assert_eq!(after.module("Init"), before.module("Init"));
+    }
+
+    #[test]
+    fn a_module_neither_the_stage_nor_the_toolchain_holds_is_unbound() {
+        let (_root, base) = scratch();
+        let (src, toolchain) = (base.join("src"), base.join("toolchain"));
+        write(&toolchain, "lib/lean/Init.olean", "init");
+        write(
+            &src,
+            "P/A.lean",
+            "module\npublic import Elsewhere.Built\ndef a := 1\n",
+        );
+        write(&src, "P/B.lean", "module\npublic import P.A\ndef b := 2\n");
+        let session = session(vec![src.clone()], &toolchain);
+        assert_eq!(session.module("Elsewhere.Built"), None);
+        assert_eq!(session.module("P.A"), None);
+        assert_eq!(session.module("P.B"), None, "unbound through every import");
+        assert!(session.module("Init").is_some());
+    }
+
+    #[test]
+    fn the_toolchain_digest_follows_every_file_a_process_loads() {
+        let (_root, base) = scratch();
+        write(&base, "bin/lean", "lean");
+        write(&base, "lib/libleanshared.so", "shared");
+        write(&base, "lib/lean/Init/Core.olean", "core");
+        write(&base, "lib/lean/Init/Core.ir", "ir");
+        write(&base, "lib/lean/Init/Core.ilean", "server index");
+        let first = tree(&base).expect("readable");
+        write(&base, "lib/lean/Init/Core.ilean", "another index");
+        assert_eq!(
+            tree(&base),
+            Some(first),
+            "a file no process loads is not bound"
+        );
+        for (relative, text) in [
+            ("lib/lean/Init/Core.olean", "changed"),
+            ("lib/lean/Init/Core.ir", "changed"),
+            ("lib/libleanshared.so", "changed"),
+            ("bin/lean", "changed"),
+            ("lib/lean/Init/New.olean.private", "new"),
+        ] {
+            let before = tree(&base);
+            write(&base, relative, text);
+            assert_ne!(tree(&base), before, "{relative} is bound");
+        }
     }
 }

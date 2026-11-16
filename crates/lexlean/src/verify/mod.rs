@@ -1296,6 +1296,7 @@ pub fn run_part(
         store::Session::new(
             selected,
             vec![staging_utf8.join("preserve-src"), src_root.clone()],
+            toolchain.root.clone(),
         )
     });
     let store_session = store_session.as_ref();
@@ -1548,7 +1549,7 @@ pub fn run_part(
             },
             &limits,
             &normalizer,
-            |session| Some(session.module(&module.name)),
+            |session| session.module(&module.name),
             std::slice::from_ref(&olean),
         )
         .map_err(fail)?;
@@ -1699,7 +1700,7 @@ pub fn run_part(
                     },
                     &limits,
                     &normalizer,
-                    |session| Some(session.module(module_name)),
+                    |session| session.module(module_name),
                     std::slice::from_ref(&olean),
                 )
             },
@@ -2581,7 +2582,7 @@ pub fn run_part(
                 },
                 &limits,
                 &normalizer,
-                |session| Some(session.module(&file.module)),
+                |session| session.module(&file.module),
                 &outputs,
             )
         };
