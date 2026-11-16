@@ -52,6 +52,45 @@
 'LexLeanKappa.Compose.mirrorStep' depends on axioms: [propext, Quot.sound]
 'LexLeanKappa.Compose.sortedQuarters' depends on axioms: [propext]
 'LexLeanKappa.Compose.upper' depends on axioms: [propext]
+'LexLeanKappa.Gguf.Emit' does not depend on any axioms
+'LexLeanKappa.Gguf.Frame' does not depend on any axioms
+'LexLeanKappa.Gguf.Measure' does not depend on any axioms
+'LexLeanKappa.Gguf.Placing' does not depend on any axioms
+'LexLeanKappa.Gguf.Section' does not depend on any axioms
+'LexLeanKappa.Gguf.Tensor' does not depend on any axioms
+'LexLeanKappa.Gguf.TensorPlacing' does not depend on any axioms
+'LexLeanKappa.Gguf.Tensors' does not depend on any axioms
+'LexLeanKappa.Gguf.alignUp' does not depend on any axioms
+'LexLeanKappa.Gguf.blockOf' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.canonicalGguf' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.digest' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.element' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.elements' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.emitTensor' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.failSection' does not depend on any axioms
+'LexLeanKappa.Gguf.failTensors' does not depend on any axioms
+'LexLeanKappa.Gguf.fits' does not depend on any axioms
+'LexLeanKappa.Gguf.ggufLabel' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.ggufLabelOn' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.isPowerOfTwo' does not depend on any axioms
+'LexLeanKappa.Gguf.measure' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.measureStep' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.measured' does not depend on any axioms
+'LexLeanKappa.Gguf.pairBytes' does not depend on any axioms
+'LexLeanKappa.Gguf.pairStep' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.placeEntry' depends on axioms: [propext]
+'LexLeanKappa.Gguf.placeTensor' depends on axioms: [propext]
+'LexLeanKappa.Gguf.readLe' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.refused' does not depend on any axioms
+'LexLeanKappa.Gguf.reversePairs' does not depend on any axioms
+'LexLeanKappa.Gguf.reverseTensors' does not depend on any axioms
+'LexLeanKappa.Gguf.scalarWidth' does not depend on any axioms
+'LexLeanKappa.Gguf.sectionStep' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.skeleton' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.tensorInfo' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.tensorStep' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.valueBody' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Gguf.writeLe' does not depend on any axioms
 'LexLeanKappa.Json.Frame' does not depend on any axioms
 'LexLeanKappa.Json.Insertion' does not depend on any axioms
 'LexLeanKappa.Json.Machine' does not depend on any axioms
@@ -124,6 +163,79 @@
 'LexLeanKappa.Label.lowerHexAt' depends on axioms: [propext, Quot.sound]
 'LexLeanKappa.Label.lowerHexRun' depends on axioms: [propext, Quot.sound]
 'LexLeanKappa.Label.text' does not depend on any axioms
+'LexLeanKappa.Onnx.Choice' does not depend on any axioms
+'LexLeanKappa.Onnx.Decoded' does not depend on any axioms
+'LexLeanKappa.Onnx.Digesting' does not depend on any axioms
+'LexLeanKappa.Onnx.Field' does not depend on any axioms
+'LexLeanKappa.Onnx.FieldPlacing' does not depend on any axioms
+'LexLeanKappa.Onnx.Frame' does not depend on any axioms
+'LexLeanKappa.Onnx.Kahn' does not depend on any axioms
+'LexLeanKappa.Onnx.Machine' does not depend on any axioms
+'LexLeanKappa.Onnx.Node' does not depend on any axioms
+'LexLeanKappa.Onnx.Scan' does not depend on any axioms
+'LexLeanKappa.Onnx.Task' does not depend on any axioms
+'LexLeanKappa.Onnx.Varint' does not depend on any axioms
+'LexLeanKappa.Onnx.absorb' does not depend on any axioms
+'LexLeanKappa.Onnx.attributeTasks' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.attributeValue' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.byNumber' does not depend on any axioms
+'LexLeanKappa.Onnx.bytesOf' does not depend on any axioms
+'LexLeanKappa.Onnx.canonicalOnnx' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.containsBytes' does not depend on any axioms
+'LexLeanKappa.Onnx.containsNat' does not depend on any axioms
+'LexLeanKappa.Onnx.countNats' does not depend on any axioms
+'LexLeanKappa.Onnx.countOf' does not depend on any axioms
+'LexLeanKappa.Onnx.dataDigest' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.dataKind' does not depend on any axioms
+'LexLeanKappa.Onnx.decodeAll' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.decodeStep' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.digestEach' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.digestStep' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.emptyField' does not depend on any axioms
+'LexLeanKappa.Onnx.escaped' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.failScan' does not depend on any axioms
+'LexLeanKappa.Onnx.fieldHead' does not depend on any axioms
+'LexLeanKappa.Onnx.fieldValue' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.firstIn' does not depend on any axioms
+'LexLeanKappa.Onnx.firstScanned' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.fixedFloats' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.fixedPayload' does not depend on any axioms
+'LexLeanKappa.Onnx.graphBytes' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.graphTasks' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.hasVarint' does not depend on any axioms
+'LexLeanKappa.Onnx.isReady' does not depend on any axioms
+'LexLeanKappa.Onnx.joinEach' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.kahnStep' depends on axioms: [propext]
+'LexLeanKappa.Onnx.lengthOf' does not depend on any axioms
+'LexLeanKappa.Onnx.literal' does not depend on any axioms
+'LexLeanKappa.Onnx.machineStep' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.nodeOf' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.nodeTasks' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.onnxLabel' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.onnxLabelOn' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.opsetBytes' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.packed' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.pairDigests' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.parsed' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.placeField' does not depend on any axioms
+'LexLeanKappa.Onnx.protoDigest' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.pushField' does not depend on any axioms
+'LexLeanKappa.Onnx.reverseFields' does not depend on any axioms
+'LexLeanKappa.Onnx.reverseNodes' does not depend on any axioms
+'LexLeanKappa.Onnx.reverseTasks' does not depend on any axioms
+'LexLeanKappa.Onnx.scan' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.scanStep' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.scannedKeys' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.sortedBy' depends on axioms: [propext]
+'LexLeanKappa.Onnx.spansOf' does not depend on any axioms
+'LexLeanKappa.Onnx.tensorBytes' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.tensorSection' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.valueInfos' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.varint' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.varintOf' does not depend on any axioms
+'LexLeanKappa.Onnx.varintStep' depends on axioms: [propext, Quot.sound]
+'LexLeanKappa.Onnx.wideEach' does not depend on any axioms
+'LexLeanKappa.Onnx.writeBe' does not depend on any axioms
 'LexLeanKappa.Sha512.Digest' does not depend on any axioms
 'LexLeanKappa.Sha512.Schedule' does not depend on any axioms
 'LexLeanKappa.Sha512.Working' does not depend on any axioms
