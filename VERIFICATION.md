@@ -13504,6 +13504,64 @@ The nesting diagnostic retains the existing `recursion limit exceeded` category,
 which the `SP-02` 130-level let-chain refusal also asserts. Only its generated
 JSON coordinates are replaced by the bound and workaround advice.
 
+## A semantic module nests to `max_scope_depth` (`SM-12`)
+
+This supersedes the record above: the 128-level limit is gone. A consumer
+application whose acceptance vectors are one closed list could not carry more
+than about 115 of them, and its design does not admit splitting the list.
+
+Before the change, on a Windows host with the debug compiler, a language-1.2
+project whose one definition is a list of n `Nat` cells: n = 100 and 120
+checked and their `build` overflowed the main thread's stack (the renderer ran
+on the caller's thread); n = 130 was `LLT4001` from the 128-level JSON reader;
+and past the snapshot's own bounded re-read (`SemanticSnapshot::to_json`) a
+snapshot panicked writing its bytes, which is where the consumer stopped at
+about 115. The notation had a fixed 256-level bound of its own behind that.
+
+The change bounds the notation and the JSON of a project's module by its
+`max_scope_depth` as the compile thread's stack hosts it, read on that thread;
+every later reading of what the linker admitted reads to the same depth on a
+stack sized for it: `render_build` on a thread of the compile stack's size,
+and the snapshot (`from_checked`, `to_json`, `canonical_bytes`) on one of the
+largest compile stack's size, so a caller on any stack gets its bytes. The
+re-reads of the linker's own data (document JSON, declaration IDs, definition
+digests, the snapshot's values) read without the 128-level limit. Readers with
+no project keep their bounds: `SemanticModule::parse` 127 levels, the
+authoring library's notation 256, tooling modules 128 (`LLT4013`).
+
+After it, with the same compiler: n = 130, 256, and 1000 check and build, and
+n = 1100 is `LLP2001` naming `max_scope_depth` 1024. `lexlean verify` with the
+pinned Lean 4.32.1 verified n = 256 (45 s) and n = 1000 (29 s), so the
+ceiling is the project's bound, not Lean's. `cargo xtask check-golden` passed
+for every project (no published artifact moved), and the diff touches no
+identity input (`language/`, `schemas/`, the embedded goldens).
+
+`conformance_sm_12` passes (4 s). It checks and builds the 1000-cell fixture,
+writes its snapshot on a 2 MiB thread and requires the snapshot ID to be the
+digest of the bytes and the bytes to nest past 1000 levels; refuses the
+1100-cell fixtures with `LLP2001`; and under `max_scope_depth = 150` checks 145
+cells and refuses 146 and 147 with `LLT4001` and 148 with `LLP2001`, so both
+bounds are the project's. Three planted defects, each restored:
+
+| Planted defect | `conformance_sm_12` |
+| --- | --- |
+| the linker reads the data with `parse` (127 levels) | fails: the 1000-cell list is refused |
+| `to_json` re-reads with the bounded `Json::parse` | fails: `recursion limit exceeded` panic in the snapshot |
+| `canonical_bytes` runs on its caller's stack | fails: `STATUS_STACK_OVERFLOW` on the 2 MiB thread |
+| the authoring API reads the notation to 256 levels | fails: the 1000-cell list is not read |
+| the authoring API runs on its caller's stack | fails: `STATUS_STACK_OVERFLOW` on the 2 MiB thread |
+
+The authoring API had the same limits on its caller's stack (notation 256,
+JSON 128), so `conformance_au_08`, which reads every committed module through
+it, failed on the 1000-cell fixture in the gate. It now reads a semantic
+module to 1024 levels on a stack of its own; `conformance_sm_12` reads,
+converts both ways, and writes the fixture on a 2 MiB thread and refuses the
+1100-cell one, and `conformance_au_08` passes.
+
+`SP-02` asserted the 130-level let-chain refusal; it now asserts that the
+chain checks. `conformance_au_01`, `conformance_au_03` (a 50,000-level
+notation is still `LLP2001`), and `conformance_au_06` pass.
+
 ## Release evidence consumes the whole jobs listing (RP-18, #408)
 
 The release gate piped the jobs listing into quiet `grep` with `pipefail`
@@ -14622,3 +14680,44 @@ test result: FAILED. 0 passed; 2 failed
 `RP-19` failed at the first language-1.2 lock, whose `compiler_semantics` line
 carried the planted digit while the default build's carried the tree's. With
 each plant removed, `conformance_rp_10` and `conformance_rp_19` pass.
+
+## The `bdd` legs' evaluator and the remainder's parts (2026-11-13)
+
+On green run 43433085919 the gate took 205 minutes and 1,738 runner-minutes;
+the `bdd` legs were 688 of them. Two causes are addressed here, neither of
+which changes what a case asserts.
+
+**The reference interpreter copied every value it touched.**
+`calculus::interp` cloned the whole environment, deep, at every `let` and
+call, deep-copied a value at every variable read and field, and copied a
+list's tail at every `Cons` match. Its values now share their parts
+(`Rc`), the environment is a list whose extension shares the scope it
+extends, and a list's tail shares its items. Lookup still walks the
+bindings innermost first and charges the same depth, and every step and
+weight is charged as before, so every outcome is the one the step-for-step
+transcription of `TargetSemantics.eval` gave. Measured locally on a loaded
+4-CPU host in the debug profile the gate builds, `BS-15`'s evaluator phase
+(2,531 header and 241 render runs) took 239 s against about 800 s before; the
+evaluator, not rustc, was most of `BS-15`'s 3,880 s on that run, and every
+bootstrap, stdlib, preservation and calculus differential runs on it.
+
+**The remainder held a fixture's waiters and a duplicate fixture.** On that
+run the `rest` leg's `bdd` took 59.7 of its 76.7 minutes. Four `SL` cases
+spent about 15 minutes each blocked on one `OnceLock` (the `stdlib` export),
+holding three of the four test threads, and `MD-13` verified `models` again
+although `verified_models` is the fixture of the `MD` cases in `production`
+(it reached the remainder by default when it was registered). Two parts are
+added and `MD-13` joins its fixture's part:
+
+| Part | Cases | Case seconds on that run |
+| --- | --- | ---: |
+| `stdlib` | `SL-*` (the `stdlib` export) and `EX-09` (the `helpdesk` export), whose exports run side by side | 4,595 |
+| `language-models` | `LM-*`, each verifying its own copy of `models` | 3,043 |
+| `production` | gains `MD-13`, which now reads the fixture the part already builds | (765 in `rest`) |
+
+The remainder keeps about 5,800 case seconds, so its `bdd` falls from
+about 60 to about 24 minutes and the leg from 77 to about 42; the new legs
+are about 20 minutes each. Both new parts run in the Intel and Windows
+`moves` lane, which held them as part of `rest`, so no host lane's work
+changes. `check-test-inventory` reports the 545 tests of `bdd` as the 41
+parts, disjoint and complete (RP-13).

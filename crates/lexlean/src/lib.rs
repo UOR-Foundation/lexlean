@@ -245,6 +245,33 @@ pub fn identity_bytes<'a>(path: &str, bytes: &'a [u8]) -> std::borrow::Cow<'a, [
 /// in four; this is sixteen times that, for modules that grow with the runtime.
 pub const READER_STACK: usize = 64 * 1024 * 1024;
 
+/// Run `work` on a thread of `stack_bytes`, for work that recurses once per
+/// level of data the compile thread admitted (§25.5) but that runs after it,
+/// on a caller's thread of unknown size. A thread that cannot be had runs the
+/// work on the caller's stack; a panic of the work is passed on as raised.
+pub(crate) fn on_stack<T: Send>(stack_bytes: usize, work: impl FnOnce() -> T + Send) -> T {
+    let slot = std::sync::Mutex::new(Some(work));
+    let run = || {
+        slot.lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .take()
+            .map(|work| work())
+    };
+    std::thread::scope(|scope| {
+        match std::thread::Builder::new()
+            .name("lexlean-deep".to_owned())
+            .stack_size(stack_bytes)
+            .spawn_scoped(scope, run)
+        {
+            Ok(thread) => thread
+                .join()
+                .unwrap_or_else(|panic| std::panic::resume_unwind(panic)),
+            Err(_) => run(),
+        }
+    })
+    .expect("the work runs exactly once")
+}
+
 /// The §11.5 tree digest of the files of the embedded tree selected by `keep`.
 fn embedded_digest(keep: impl Fn(&str) -> bool) -> Sha256Digest {
     let selected: Vec<(&'static str, &'static [u8])> = embedded::FILES
@@ -303,7 +330,7 @@ fn embedded_digest(keep: impl Fn(&str) -> bool) -> Sha256Digest {
 /// consistently with itself, so agreement on verdicts could not reveal it.
 /// The 1.0 and 1.1 IDs need no constant: no file they cover is left out.
 pub const LANGUAGE_1_2_SEMANTICS_ID: &str =
-    "4b3ed2378d6c43bb32a41d466cf140337e8b1cedc5e1f345aaf3395f488f63a9";
+    "fdb9f7ec766527f2097c34e05e27b27c813cb01bb754ff8f28a5649d9e32388a";
 
 /// The compiler-semantics ID for one selected language. Language 1.0 excludes
 /// all files introduced solely for 1.1 and 1.2, and Language 1.1 excludes

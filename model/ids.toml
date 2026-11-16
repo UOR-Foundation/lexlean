@@ -581,7 +581,7 @@ statement = "Linked project result sets contain every selected module and import
 id = "SM-12"
 level = "build"
 suite = "semantic-ir"
-statement = "No semantic IR node can contain opaque prose, raw backend text, or an unknown extension. Semantic modules retain the 128-level JSON nesting limit and an over-deep list is refused with LLT4001 naming smaller definitions joined by prim append as the remedy."
+statement = "No semantic IR node can contain opaque prose, raw backend text, or an unknown extension. A semantic module nests as deeply as the project's max_scope_depth allows, in its notation and in its data: a list of 1000 elements checks and builds, and its snapshot is written, and the authoring API reads and writes it, on a caller's default stack without a panic, while a list nested past the bound is refused, with LLP2001 in the notation and LLT4001 in the data, naming max_scope_depth."
 
 [[id]]
 id = "SM-13"
@@ -996,6 +996,12 @@ id = "PF-24"
 level = "build"
 suite = "proofs"
 statement = "The runtime module LexLeanRuntime.Regions states the decision-region checker and its soundness theorem as LexLean source with every row's axioms within propext and Quot.sound, and the language-1.2 region_check proof form lowers a property of a first-match decision fragment to that checker's data, closes it with one kernel-decided obligation, is refused in linking outside the fragment or as a branch, and by Lean for a defective rule."
+
+[[id]]
+id = "PF-26"
+level = "build"
+suite = "proofs"
+statement = "The language-1.2 linear_arithmetic proof form decides a first-match chain of many conditions: when the fixed script leaves a goal open, a second attempt adds the law LexLeanLaws.ite_eq_iff, which reads an if equal to a value as the disjunction of its branches, each with its condition, and the propositional simplifications that drop every branch whose condition is decided, so a chain of fourteen conditions verifies for all inputs, a proof the fixed script closes keeps its axioms, and a false bound on the chain is refused by Lean."
 
 [[id]]
 id = "LN-01"
