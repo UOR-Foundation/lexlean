@@ -17,7 +17,19 @@ use crate::artifact::canonical_json::Json;
 use crate::artifact::content_id::{FramedHasher, Sha256Digest};
 
 const SPEC: &str = "lexlean/invocation-chain/1";
+const PAYLOAD_SPEC: &str = "lexlean/invocation-payload/1";
 const MAX_DEPTH: usize = 16;
+const INVOCATION_FIELDS: &[&str] = &[
+    "spec",
+    "context",
+    "lake",
+    "launcher",
+    "target",
+    "arguments",
+    "cwd",
+    "environment",
+    "view",
+];
 
 /// A stable identity, never a host absolute path. Library roots are identified
 /// by an independently checked inventory digest, not an arbitrary alias.
@@ -159,6 +171,70 @@ impl Descriptor {
     pub(crate) fn json(&self) -> &Json {
         &self.0
     }
+
+    /// Project only after full descriptor validation. The launcher source pin
+    /// belongs to the outer binding, never to its own generated preimage.
+    pub(crate) fn payload(&self) -> Payload {
+        let Json::Obj(mut invocation) = self.0.clone() else {
+            unreachable!("validated descriptor object");
+        };
+        invocation.remove("source");
+        Payload(Json::object(vec![
+            ("spec", Json::Str(PAYLOAD_SPEC.into())),
+            ("invocation", Json::Obj(invocation)),
+        ]))
+    }
+}
+
+/// Source-independent input to typed launcher generation. A payload authorizes
+/// no execution: bind the rendered source and verify its custody separately.
+/// Root bindings, predecessor view and environment must already be fixed;
+/// none may depend on the resulting launcher or invocation receipt. The source
+/// member is absent, consistent with the restricted canonical JSON language.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Payload(Json);
+
+impl Payload {
+    pub(crate) fn parse(bytes: &[u8], byte_limit: usize) -> Result<Self, String> {
+        if bytes.is_empty() || bytes.len() > byte_limit {
+            return Err(error("payload byte budget"));
+        }
+        // The versioned envelope adds one object around the descriptor shape.
+        depth_bound_at(bytes, MAX_DEPTH + 1)?;
+        let value = Json::parse(bytes)?;
+        if value.to_canonical_string().as_bytes() != bytes {
+            return Err(error("payload is not exact canonical JSON"));
+        }
+        Self::new(value)
+    }
+
+    pub(crate) fn new(value: Json) -> Result<Self, String> {
+        let envelope = object(&value, &["spec", "invocation"])?;
+        if text(&envelope["spec"])? != PAYLOAD_SPEC {
+            return Err(error("unknown payload version"));
+        }
+        let invocation = &envelope["invocation"];
+        let fields = object(invocation, INVOCATION_FIELDS)?;
+        validate_common(fields)?;
+        Ok(Self(value))
+    }
+
+    pub(crate) fn to_bytes(&self) -> Vec<u8> {
+        self.0.to_canonical_string().into_bytes()
+    }
+
+    /// Attach an actual source pin only after rendering. Structural validity
+    /// here is not proof that those bytes exist or that an executable used them.
+    pub(crate) fn bind_source(&self, source: Json) -> Result<Descriptor, String> {
+        let Json::Obj(envelope) = &self.0 else {
+            unreachable!("validated payload object");
+        };
+        let Json::Obj(mut invocation) = envelope["invocation"].clone() else {
+            unreachable!("validated invocation object");
+        };
+        invocation.insert("source".into(), source);
+        Descriptor::new(Json::Obj(invocation))
+    }
 }
 
 fn error(message: &str) -> String {
@@ -259,21 +335,19 @@ pub(crate) fn view_digest(root: &Json, objects: &Json) -> Sha256Digest {
 }
 
 fn validate(value: &Json) -> Result<(), String> {
-    let f = object(
-        value,
-        &[
-            "spec",
-            "context",
-            "lake",
-            "launcher",
-            "source",
-            "target",
-            "arguments",
-            "cwd",
-            "environment",
-            "view",
-        ],
-    )?;
+    let mut keys = INVOCATION_FIELDS.to_vec();
+    keys.push("source");
+    let fields = object(value, &keys)?;
+    validate_common(fields)?;
+    let source = object(&fields["source"], &["path", "bytes", "sha256"])?;
+    if file_path(&source["path"])?.root != Root::Staging || size(&source["bytes"])? == 0 {
+        return Err(error("invalid launcher source"));
+    }
+    hash(&source["sha256"])?;
+    Ok(())
+}
+
+fn validate_common(f: &BTreeMap<String, Json>) -> Result<(), String> {
     if text(&f["spec"])? != SPEC {
         return Err(error("unknown version"));
     }
@@ -284,11 +358,6 @@ fn validate(value: &Json) -> Result<(), String> {
     tool(&f["lake"], &["lake"])?;
     tool(&f["launcher"], &["lean"])?;
     tool(&f["target"], &["lean", "leanchecker"])?;
-    let source = object(&f["source"], &["path", "bytes", "sha256"])?;
-    if file_path(&source["path"])?.root != Root::Staging || size(&source["bytes"])? == 0 {
-        return Err(error("invalid launcher source"));
-    }
-    hash(&source["sha256"])?;
     for argument in array(&f["arguments"])? {
         Argument::parse(argument)?;
     }
@@ -366,6 +435,10 @@ fn validate(value: &Json) -> Result<(), String> {
 }
 
 fn depth_bound(bytes: &[u8]) -> Result<(), String> {
+    depth_bound_at(bytes, MAX_DEPTH)
+}
+
+fn depth_bound_at(bytes: &[u8], maximum: usize) -> Result<(), String> {
     let (mut depth, mut quoted, mut escaped) = (0_usize, false, false);
     for &byte in bytes {
         if quoted {
@@ -381,7 +454,7 @@ fn depth_bound(bytes: &[u8]) -> Result<(), String> {
                 b'"' => quoted = true,
                 b'{' | b'[' => {
                     depth += 1;
-                    if depth > MAX_DEPTH {
+                    if depth > maximum {
                         return Err(error("JSON nesting budget"));
                     }
                 }
@@ -504,6 +577,126 @@ mod tests {
         let view = fields(fields(value).get_mut("view").unwrap());
         let hash = view_digest(&view["root"], &view["objects"]);
         view.insert("sha256".into(), Json::Str(hash.to_hex()));
+    }
+
+    #[test]
+    fn payload_domain_roundtrip_and_source_binding() {
+        let descriptor = Descriptor::new(sample()).unwrap();
+        let payload = descriptor.payload();
+        let bytes = payload.to_bytes();
+        assert_eq!(Payload::parse(&bytes, bytes.len()).unwrap(), payload);
+        assert!(Payload::parse(&bytes, bytes.len() - 1).is_err());
+        assert!(Descriptor::parse(&bytes, bytes.len()).is_err());
+        let original = descriptor.to_bytes();
+        assert!(Payload::parse(&original, original.len()).is_err());
+        let source = fields(&mut sample())["source"].clone();
+        assert_eq!(payload.bind_source(source).unwrap(), descriptor);
+        let mut with_source = payload.0.clone();
+        let invocation = fields(&mut with_source).get_mut("invocation").unwrap();
+        fields(invocation).insert("source".into(), fields(&mut sample())["source"].clone());
+        assert!(Payload::new(with_source).is_err());
+        let Json::Obj(envelope) = &payload.0 else {
+            unreachable!()
+        };
+        assert!(Descriptor::new(envelope["invocation"].clone()).is_err());
+    }
+
+    #[test]
+    fn payload_preserves_every_non_source_binding() {
+        let descriptor = Descriptor::new(sample()).unwrap();
+        let payload = descriptor.payload();
+        for key in [
+            "context",
+            "lake",
+            "launcher",
+            "target",
+            "arguments",
+            "cwd",
+            "environment",
+            "view",
+        ] {
+            let mut value = payload.0.clone();
+            let invocation = fields(&mut value).get_mut("invocation").unwrap();
+            fields(invocation).remove(key);
+            assert!(
+                Payload::new(value).is_err(),
+                "missing {key} is not a payload"
+            );
+        }
+        let mut value = payload.0.clone();
+        fields(&mut value).insert("extra".into(), Json::Bool(true));
+        assert!(Payload::new(value).is_err());
+        let mut value = payload.0.clone();
+        let invocation = fields(&mut value).get_mut("invocation").unwrap();
+        fields(invocation).insert("source".into(), Json::Str("not a pin".into()));
+        assert!(Payload::new(value).is_err());
+        let mut changed = sample();
+        fields(&mut changed).insert(
+            "arguments".into(),
+            Json::Arr(vec![Argument::Literal("Rule30UOR.Other".into())
+                .to_json()
+                .unwrap()]),
+        );
+        assert_ne!(Descriptor::new(changed).unwrap().payload(), payload);
+        let mut changed = sample();
+        let row = &mut object_rows(&mut changed)[0];
+        fields(row).insert("sha256".into(), digest("different bytes"));
+        reseal_view(&mut changed);
+        assert_ne!(Descriptor::new(changed).unwrap().payload(), payload);
+    }
+
+    #[test]
+    fn payload_canonical_bytes_depth_and_literal_preservation() {
+        let literal = "quote\" slash\\ line\n tab\t backspace\u{8} formfeed\u{c} Ω /absolute/path";
+        let mut value = sample();
+        fields(&mut value).insert(
+            "arguments".into(),
+            Json::Arr(vec![Argument::Literal(literal.into()).to_json().unwrap()]),
+        );
+        let descriptor = Descriptor::new(value).unwrap();
+        let payload = descriptor.payload();
+        let bytes = payload.to_bytes();
+        let decoded = Payload::parse(&bytes, bytes.len()).unwrap();
+        let source = fields(&mut sample())["source"].clone();
+        assert_eq!(decoded.bind_source(source).unwrap(), descriptor);
+        let text = String::from_utf8(bytes).unwrap();
+        let duplicate = format!("{{\"s\\u0070ec\":\"{PAYLOAD_SPEC}\",{}", &text[1..]);
+        assert!(Payload::parse(duplicate.as_bytes(), duplicate.len()).is_err());
+        let null_source = text.replacen("\"invocation\":{", "\"invocation\":{\"source\":null,", 1);
+        assert!(Payload::parse(null_source.as_bytes(), null_source.len()).is_err());
+        let noncanonical = format!(" {text}");
+        assert!(Payload::parse(noncanonical.as_bytes(), noncanonical.len()).is_err());
+        let deep = format!(
+            "{}0{}",
+            "[".repeat(MAX_DEPTH + 2),
+            "]".repeat(MAX_DEPTH + 2)
+        );
+        assert!(Payload::parse(deep.as_bytes(), deep.len()).is_err());
+    }
+
+    #[test]
+    fn payload_cannot_replace_outer_source_validation() {
+        let payload = Descriptor::new(sample()).unwrap().payload();
+        let source = fields(&mut sample())["source"].clone();
+        for key in ["path", "bytes", "sha256"] {
+            let mut invalid = source.clone();
+            fields(&mut invalid).remove(key);
+            assert!(payload.bind_source(invalid).is_err());
+        }
+        let mut invalid = source.clone();
+        fields(&mut invalid).insert("path".into(), path(Root::Toolchain, &["bin", "lean"]));
+        assert!(payload.bind_source(invalid).is_err());
+        let mut invalid = source.clone();
+        fields(&mut invalid).insert("bytes".into(), Json::Int(0));
+        assert!(payload.bind_source(invalid).is_err());
+        let first = payload.bind_source(source.clone()).unwrap();
+        let mut other = source;
+        fields(&mut other).insert("sha256".into(), digest("another source"));
+        let second = payload.bind_source(other).unwrap();
+        assert_ne!(first, second);
+        assert_eq!(first.payload(), second.payload());
+        // Both pins are structurally valid. Only the caller's actual-byte
+        // custody check can admit one; projection equality cannot do that.
     }
 
     #[test]
