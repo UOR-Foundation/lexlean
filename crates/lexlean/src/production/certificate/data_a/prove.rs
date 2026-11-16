@@ -1404,36 +1404,44 @@ impl<'a> Writer<'_, 'a> {
             congr_arg,
             &[lean, value_ty, selected_src, chosen_src, encoder, src_eq],
         );
-        // F := fun x y => Conv p env e (Rel x y)
-        let (x, y) = (self.b.free(), self.b.free());
-        let related = self.rel(x, y);
-        let body = self.b.apps(head, &[*p, *env, *e, related]);
-        let over_y = self.b.lam_over("__v", EXPLICIT, value_ty, y, body);
-        let motive = self.b.lam_over("__f", EXPLICIT, bool, x, over_y);
+        // The observation is rewritten through `Rel` and the judgment through
+        // `Conv p env e`, both partial applications, so the restatement
+        // states no motive of its own and the kernel instantiates no binder
+        // (`Rel : Bool -> Value -> Obs`):
+        //   congrArg Rel fits_eq            : Rel sf = Rel cf
+        //   congr (that) value_eq           : Rel sf sv = Rel cf cv
+        //   congrArg (Conv p env e) (that)  : Conv .. (Rel sf sv) = Conv .. (Rel cf cv)
         let prop = self.b.prop();
-        let to_prop = self.b.pi("__v", EXPLICIT, value_ty, prop);
-        let applied_fits = self.b.apps(
+        let obs = self.lp("Obs");
+        let to_obs = self.b.pi("__v", EXPLICIT, value_ty, obs);
+        let rel = self.lp("Rel");
+        let rel_fits_eq = self.b.apps(
             congr_arg,
-            &[bool, to_prop, selected_fits, chosen_fits, motive, fits_eq],
+            &[bool, to_obs, selected_fits, chosen_fits, rel, fits_eq],
         );
-        let at_selected = self.b.app(motive, selected_fits);
-        let at_chosen = self.b.app(motive, chosen_fits);
+        let rel_selected = self.b.app(rel, selected_fits);
+        let rel_chosen = self.b.app(rel, chosen_fits);
         let congr = self.b.konst_at("congr", vec![one.clone(), one]);
-        let equation = self.b.apps(
+        let observation_eq = self.b.apps(
             congr,
             &[
                 value_ty,
-                prop,
-                at_selected,
-                at_chosen,
+                obs,
+                rel_selected,
+                rel_chosen,
                 selected_value,
                 chosen_value,
-                applied_fits,
+                rel_fits_eq,
                 value_eq,
             ],
         );
         let restated = self.rel(selected_fits, selected_value);
-        let target = self.b.apps(head, &[*p, *env, *e, restated]);
+        let judgment = self.b.apps(head, &[*p, *env, *e]);
+        let equation = self.b.apps(
+            congr_arg,
+            &[obs, prop, restated, *observation, judgment, observation_eq],
+        );
+        let target = self.b.app(judgment, restated);
         let mpr = self.b.konst_at("Eq.mpr", vec![CoreLevel::Zero]);
         let proof = self.b.apps(mpr, &[target, pf.ty, equation, pf.proof]);
         Pf { proof, ty: target }
