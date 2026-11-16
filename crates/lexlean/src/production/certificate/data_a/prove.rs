@@ -3,7 +3,7 @@
 //! expression the lowering produced for it.
 
 use super::super::element_of;
-use super::{LocalTerm, Pf, Scope, Writer, EXPLICIT};
+use super::{LocalTerm, Pf, RowKind, Scope, Writer, EXPLICIT};
 use crate::calculus::{Expr, Shape};
 use crate::ir::core::CoreLevel;
 use crate::ir::semantic::{SemanticEdge, SemanticMapEntry, SemanticTerm, SemanticType, Step};
@@ -1314,8 +1314,16 @@ impl<'a> Writer<'_, 'a> {
         let fls = self.fls();
         let (then_pf, else_pf) = match selection {
             Some(selected) => (
-                self.taken(then_pf, true, (then_fits, else_fits), selected),
-                self.taken(else_pf, false, (then_fits, else_fits), selected),
+                if inert(then_value) {
+                    then_pf
+                } else {
+                    self.taken(then_pf, true, (then_fits, else_fits), selected)?
+                },
+                if inert(else_value) {
+                    else_pf
+                } else {
+                    self.taken(else_pf, false, (then_fits, else_fits), selected)?
+                },
             ),
             None => (then_pf, else_pf),
         };
@@ -1345,17 +1353,23 @@ impl<'a> Writer<'_, 'a> {
     /// branch's own computation (evaluating it as far as its closed parts go)
     /// before it reduces the `if`. A branch whose type is not the plain
     /// `Conv p env e (Rel fits (enc src))` keeps its derivation as it is.
-    fn taken(&mut self, pf: Pf, polarity: bool, fits: (Term, Term), selected: Selected) -> Pf {
+    fn taken(
+        &mut self,
+        pf: Pf,
+        polarity: bool,
+        fits: (Term, Term),
+        selected: Selected,
+    ) -> Result<Pf, String> {
         if matches!(self.b.node(pf.ty), crate::ir::core::CoreNode::Let { .. }) {
-            return pf;
+            return Ok(pf);
         }
         let (head, args) = self.b.spine(pf.ty);
         let [p, env, e, observation] = args.as_slice() else {
-            return pf;
+            return Ok(pf);
         };
         let (_, parts) = self.b.spine(*observation);
         let [own_fits, own_value] = parts.as_slice() else {
-            return pf;
+            return Ok(pf);
         };
         let (then_fits, else_fits) = fits;
         let Selected {
@@ -1371,9 +1385,61 @@ impl<'a> Writer<'_, 'a> {
         };
         let chosen_value = self.b.app(encoder, chosen_src);
         if *own_fits != chosen_fits || *own_value != chosen_value {
-            return pf;
+            return Ok(pf);
         }
+        let judgment = self.b.apps(head, &[*p, *env, *e]);
+        let side = if polarity { self.tru() } else { self.fls() };
         let bool = self.b.konst("Bool");
+        let selected_fits = self.ite(bool, side, then_fits, else_fits);
+        let selected_src = self.ite(lean, side, then_src, else_src);
+        let selected_value = self.b.app(encoder, selected_src);
+        let restated = self.rel(selected_fits, selected_value);
+        let lemma = self.taken_lemma(polarity)?;
+        let proof = self.b.apps(
+            lemma,
+            &[
+                judgment, lean, encoder, then_fits, else_fits, then_src, else_src, pf.proof,
+            ],
+        );
+        let ty = self.b.app(judgment, restated);
+        Ok(Pf { proof, ty })
+    }
+
+    /// The certificate's own lemma `__taken_true` (or `__taken_false`), stated
+    /// once and applied at every taken arm:
+    /// `forall (J : Obs -> Prop) (a : Type) (enc : a -> Value) tf ef ts es,
+    /// J (Rel cf (enc cs)) -> J (Rel (if b = true then tf else ef) (enc (if
+    /// b = true then ts else es)))` for the arm's Boolean `b`, its proof the
+    /// rewrite by `if_pos` (or `if_neg`) through `Rel` and `J`. An arm states
+    /// its restatement as one application instead of the rewrite.
+    fn taken_lemma(&mut self, polarity: bool) -> Result<Term, String> {
+        let short = if polarity {
+            "__taken_true"
+        } else {
+            "__taken_false"
+        };
+        let full = format!("{}.{short}", self.name);
+        if self.rows.iter().any(|row| row.name == full) {
+            return Ok(self.own(short));
+        }
+        let one = CoreLevel::Succ(Box::new(CoreLevel::Zero));
+        let bool = self.b.konst("Bool");
+        let prop = self.b.prop();
+        let obs = self.lp("Obs");
+        let value_ty = self.ts("Value");
+        let ty_one = self.b.sort(one.clone());
+        let judgment_ty = self.b.pi("__o", EXPLICIT, obs, prop);
+        let [judgment, lean, encoder, then_fits, else_fits, then_src, else_src, given] =
+            [(); 8].map(|()| self.b.free());
+        let encoder_ty = self.b.pi("__v", EXPLICIT, lean, value_ty);
+        let (chosen_fits, chosen_src) = if polarity {
+            (then_fits, then_src)
+        } else {
+            (else_fits, else_src)
+        };
+        let chosen_value = self.b.app(encoder, chosen_src);
+        let observation = self.rel(chosen_fits, chosen_value);
+        let given_ty = self.b.app(judgment, observation);
         let side = if polarity { self.tru() } else { self.fls() };
         let tru = self.tru();
         let condition = self.eq(bool, side, tru);
@@ -1385,34 +1451,28 @@ impl<'a> Writer<'_, 'a> {
         } else {
             self.b.konst("Bool.false_ne_true")
         };
-        let lemma = self.b.konst1(if polarity { "if_pos" } else { "if_neg" });
+        let rewrite = self.b.konst1(if polarity { "if_pos" } else { "if_neg" });
         let fits_eq = self.b.apps(
-            lemma,
+            rewrite,
             &[condition, decide, witness, bool, then_fits, else_fits],
         );
         let src_eq = self.b.apps(
-            lemma,
+            rewrite,
             &[condition, decide, witness, lean, then_src, else_src],
         );
         let selected_fits = self.ite(bool, side, then_fits, else_fits);
         let selected_src = self.ite(lean, side, then_src, else_src);
         let selected_value = self.b.app(encoder, selected_src);
-        let value_ty = self.ts("Value");
-        let one = CoreLevel::Succ(Box::new(CoreLevel::Zero));
         let congr_arg = self.b.konst_at("congrArg", vec![one.clone(), one.clone()]);
         let value_eq = self.b.apps(
             congr_arg,
             &[lean, value_ty, selected_src, chosen_src, encoder, src_eq],
         );
-        // The observation is rewritten through `Rel` and the judgment through
-        // `Conv p env e`, both partial applications, so the restatement
-        // states no motive of its own and the kernel instantiates no binder
-        // (`Rel : Bool -> Value -> Obs`):
-        //   congrArg Rel fits_eq            : Rel sf = Rel cf
-        //   congr (that) value_eq           : Rel sf sv = Rel cf cv
-        //   congrArg (Conv p env e) (that)  : Conv .. (Rel sf sv) = Conv .. (Rel cf cv)
-        let prop = self.b.prop();
-        let obs = self.lp("Obs");
+        // The observation is rewritten through `Rel` and then `J`, both
+        // partial applications, so the rewrite states no motive of its own:
+        //   congrArg Rel fits_eq          : Rel sf = Rel cf
+        //   congr (that) value_eq         : Rel sf sv = Rel cf cv
+        //   congrArg J (that)             : J (Rel sf sv) = J (Rel cf cv)
         let to_obs = self.b.pi("__v", EXPLICIT, value_ty, obs);
         let rel = self.lp("Rel");
         let rel_fits_eq = self.b.apps(
@@ -1421,7 +1481,7 @@ impl<'a> Writer<'_, 'a> {
         );
         let rel_selected = self.b.app(rel, selected_fits);
         let rel_chosen = self.b.app(rel, chosen_fits);
-        let congr = self.b.konst_at("congr", vec![one.clone(), one]);
+        let congr = self.b.konst_at("congr", vec![one.clone(), one.clone()]);
         let observation_eq = self.b.apps(
             congr,
             &[
@@ -1436,15 +1496,30 @@ impl<'a> Writer<'_, 'a> {
             ],
         );
         let restated = self.rel(selected_fits, selected_value);
-        let judgment = self.b.apps(head, &[*p, *env, *e]);
         let equation = self.b.apps(
             congr_arg,
-            &[obs, prop, restated, *observation, judgment, observation_eq],
+            &[obs, prop, restated, observation, judgment, observation_eq],
         );
         let target = self.b.app(judgment, restated);
         let mpr = self.b.konst_at("Eq.mpr", vec![CoreLevel::Zero]);
-        let proof = self.b.apps(mpr, &[target, pf.ty, equation, pf.proof]);
-        Pf { proof, ty: target }
+        let mut value = self.b.apps(mpr, &[target, given_ty, equation, given]);
+        let mut ty = self.b.pi_over("__h", EXPLICIT, given_ty, given, target);
+        value = self.b.lam_over("__h", EXPLICIT, given_ty, given, value);
+        let binders = [
+            ("__es", lean, else_src),
+            ("__ts", lean, then_src),
+            ("__ef", bool, else_fits),
+            ("__tf", bool, then_fits),
+            ("__enc", encoder_ty, encoder),
+            ("__a", ty_one, lean),
+            ("__J", judgment_ty, judgment),
+        ];
+        for (name, binder_ty, free) in binders {
+            ty = self.b.pi_over(name, EXPLICIT, binder_ty, free, ty);
+            value = self.b.lam_over(name, EXPLICIT, binder_ty, free, value);
+        }
+        self.push_row(short, RowKind::Theorem, ty, value)?;
+        Ok(self.own(short))
     }
 
     /// `fun (h : cond = value) => proof`, with its type; `hypothesis` is the
@@ -1526,5 +1601,26 @@ impl<'a> Writer<'_, 'a> {
         let proof = self.b.substitute(applied.proof, &[free], &[bound_src]);
         let ty = self.b.substitute(applied.ty, &[free], &[bound_src]);
         Ok(Pf { proof, ty })
+    }
+}
+
+/// A branch that computes nothing: a variable, a literal, or constructors of
+/// such. The kernel reaches it from the selection by reducing the `if` alone,
+/// with no computation of the branch's own to unfold first, so its
+/// derivation needs no restatement at the selected motive.
+fn inert(term: &SemanticTerm) -> bool {
+    match term {
+        SemanticTerm::Var { .. }
+        | SemanticTerm::Nat { .. }
+        | SemanticTerm::Integer { .. }
+        | SemanticTerm::String { .. }
+        | SemanticTerm::Bytes { .. }
+        | SemanticTerm::Bool { .. }
+        | SemanticTerm::Unit
+        | SemanticTerm::Nil { .. } => true,
+        SemanticTerm::Cons { head, tail } => inert(head) && inert(tail),
+        SemanticTerm::Constructor { arguments, .. } => arguments.iter().all(inert),
+        SemanticTerm::Record { fields, .. } => fields.iter().all(|field| inert(&field.value)),
+        _ => false,
     }
 }
