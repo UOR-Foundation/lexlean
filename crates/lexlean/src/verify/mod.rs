@@ -2616,7 +2616,18 @@ pub fn run_part(
                 items
                     .iter()
                     .enumerate()
-                    .filter(|(_, other)| imports.iter().any(|import| *import == other.module))
+                    .filter(|(_, other)| {
+                        imports.iter().any(|import| *import == other.module)
+                            // `leanchecker` replays a module prefix (§22.4):
+                            // a certificate inside another's namespace (B and
+                            // E inside their root's A) starts only after that
+                            // one's replay, so each replay checks what it
+                            // checks at width 1.
+                            || file
+                                .module
+                                .strip_prefix(other.module.as_str())
+                                .is_some_and(|rest| rest.starts_with('.'))
+                    })
                     .map(|(index, _)| index)
                     .collect()
             })
