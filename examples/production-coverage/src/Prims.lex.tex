@@ -63,6 +63,15 @@ definition{
 }
 
 definition{
+  name: updates,
+  parameters: [b : Bytes, i : Nat, v : UInt8],
+  result: (Option Bytes),
+  body: (prim update b i v : (Option Bytes)),
+  executable: true,
+  production: {effects: [allocation], targets: [rust-std]}
+}
+
+definition{
   name: decimals,
   parameters: [s : String],
   result: ((Option Int) * (Option UInt32)),
