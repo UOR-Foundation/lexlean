@@ -63,6 +63,15 @@ definition{
 }
 
 definition{
+  name: updates,
+  parameters: [b : Bytes, i : Nat, v : UInt8],
+  result: (Option Bytes),
+  body: (prim update b i v : (Option Bytes)),
+  executable: true,
+  production: {effects: [allocation], targets: [rust-std]}
+}
+
+definition{
   name: decimals,
   parameters: [s : String],
   result: ((Option Int) * (Option UInt32)),
@@ -77,7 +86,7 @@ definition{
   parameters: [a : Int, b : Int8],
   result: (String * String),
   body: ((prim format_decimal a : String), (prim format_decimal b : String)),
-  axioms: [propext],
+  axioms: [Classical.choice, Quot.sound, propext],
   executable: true,
   production: {effects: [allocation], targets: [rust-std]}
 }

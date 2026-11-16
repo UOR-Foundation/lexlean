@@ -5000,14 +5000,15 @@ pub fn run(id: &str) {
                     "formatDecimal",
                     "parseDecimal",
                     "parseDecimalInt",
-                    "formatDecimalInt"
+                    "formatDecimalInt",
+                    "bytesUpdate"
                 ],
                 "the list, byte, text, and number primitives of the std runtime (SP-29)"
             );
             assert_eq!(
                 machine.len(),
-                44,
-                "the first seventeen, the nine, and the eighteen std primitives"
+                45,
+                "the first seventeen, the nine, and the nineteen std primitives"
             );
             if !support::lean_backed("SP-23") {
                 return;

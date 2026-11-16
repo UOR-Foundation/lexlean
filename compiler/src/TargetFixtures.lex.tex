@@ -174,6 +174,29 @@ theorem{
 }
 
 definition{
+  name: byteUpdatesProgram,
+  parameters: [],
+  result: TargetSyntax::Program,
+  body: (record TargetSyntax::Program {adts := (nil TargetSyntax::Adt), functions := (cons (record TargetSyntax::Function {parameters := (nil Nat), types := (nil TargetSyntax::Ty), result := (ctor TargetSyntax::Ty.list (ctor TargetSyntax::Ty.option (ctor TargetSyntax::Ty.bytes))), body := (ctor TargetSyntax::Expr.build (ctor TargetSyntax::Shape.cons) (ctor TargetSyntax::Ty.list (ctor TargetSyntax::Ty.option (ctor TargetSyntax::Ty.bytes))) (cons (ctor TargetSyntax::Expr.prim (ctor TargetSyntax::Prim.update) (cons (ctor TargetSyntax::Expr.value (ctor TargetSyntax::Ty.bytes) (ctor TargetSyntax::Value.bytes 0x00112233)) (cons (ctor TargetSyntax::Expr.value (ctor TargetSyntax::Ty.nat) (ctor TargetSyntax::Value.nat 1)) (cons (ctor TargetSyntax::Expr.value (ctor TargetSyntax::Ty.fixed (ctor TargetSyntax::IntKind.u8)) (ctor TargetSyntax::Value.u8 (255 : UInt8))) (nil TargetSyntax::Expr))))) (cons (ctor TargetSyntax::Expr.build (ctor TargetSyntax::Shape.cons) (ctor TargetSyntax::Ty.list (ctor TargetSyntax::Ty.option (ctor TargetSyntax::Ty.bytes))) (cons (ctor TargetSyntax::Expr.prim (ctor TargetSyntax::Prim.update) (cons (ctor TargetSyntax::Expr.value (ctor TargetSyntax::Ty.bytes) (ctor TargetSyntax::Value.bytes 0x00112233)) (cons (ctor TargetSyntax::Expr.value (ctor TargetSyntax::Ty.nat) (ctor TargetSyntax::Value.nat 4)) (cons (ctor TargetSyntax::Expr.value (ctor TargetSyntax::Ty.fixed (ctor TargetSyntax::IntKind.u8)) (ctor TargetSyntax::Value.u8 (0 : UInt8))) (nil TargetSyntax::Expr))))) (cons (ctor TargetSyntax::Expr.build (ctor TargetSyntax::Shape.nil) (ctor TargetSyntax::Ty.list (ctor TargetSyntax::Ty.option (ctor TargetSyntax::Ty.bytes))) (nil TargetSyntax::Expr)) (nil TargetSyntax::Expr)))) (nil TargetSyntax::Expr))))}) (nil TargetSyntax::Function))})
+}
+
+definition{
+  name: byteUpdatesRun,
+  parameters: [],
+  result: TargetSemantics::Outcome,
+  body: (TargetSemantics::run 200 (byteUpdatesProgram) 0 (nil TargetSyntax::Value)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: byteUpdatesOutcome,
+  parameters: [],
+  statement: ((byteUpdatesRun) = (ctor TargetSemantics::Outcome.value (ctor TargetSyntax::Value.list (cons (ctor TargetSyntax::Value.some (ctor TargetSyntax::Value.bytes 0x00ff2233)) (cons (ctor TargetSyntax::Value.none) (nil TargetSyntax::Value)))) 32)),
+  proof: reflexivity{},
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
   name: bytesAndTextProgram,
   parameters: [],
   result: TargetSyntax::Program,
