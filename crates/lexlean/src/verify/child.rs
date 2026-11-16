@@ -412,6 +412,40 @@ pub fn run(
     limits: &Limits,
     normalizer: &Normalizer,
 ) -> Result<ChildRecord, Diagnostic> {
+    let captured = run_captured(spec, limits)?;
+    Ok(ChildRecord {
+        tool: spec.tool.to_owned(),
+        module: spec.module.clone(),
+        argv: spec
+            .argv
+            .iter()
+            .map(|argument| normalizer.normalize_arg(argument))
+            .collect(),
+        exit_code: captured.exit_code,
+        stdout: normalizer.normalize(&captured.stdout),
+        stderr: normalizer.normalize(&captured.stderr),
+        executable_sha256: spec.executable_sha256,
+    })
+}
+
+/// Protected, bounded process output before record normalization. This type
+/// deliberately has no Debug or serialization implementation: discovery output
+/// can contain credentials. Callers must not persist either stream or include
+/// its contents in diagnostics. Dropping it is not a secure-memory erase.
+pub(crate) struct CapturedChild {
+    pub(crate) exit_code: i32,
+    pub(crate) stdout: Vec<u8>,
+    pub(crate) stderr: Vec<u8>,
+}
+
+/// The same executor used by ordinary records, without lossy normalization or
+/// persistence. Telemetry contains process measurements, never stream bytes.
+/// A discovery caller must check the exit code and strictly parse raw stdout;
+/// it must discard stderr without echoing potentially sensitive contents.
+pub(crate) fn run_captured(
+    spec: &ChildSpec<'_>,
+    limits: &Limits,
+) -> Result<CapturedChild, Diagnostic> {
     let existing_path = std::env::var_os("PATH").unwrap_or_default();
     let mut command = Command::new(spec.program.as_std_path());
     command
@@ -588,18 +622,10 @@ pub fn run(
             ),
         ));
     }
-    Ok(ChildRecord {
-        tool: spec.tool.to_owned(),
-        module: spec.module.clone(),
-        argv: spec
-            .argv
-            .iter()
-            .map(|argument| normalizer.normalize_arg(argument))
-            .collect(),
+    Ok(CapturedChild {
         exit_code: status.code().unwrap_or(-1),
-        stdout: normalizer.normalize(&stdout_bytes),
-        stderr: normalizer.normalize(&stderr_bytes),
-        executable_sha256: spec.executable_sha256,
+        stdout: stdout_bytes,
+        stderr: stderr_bytes,
     })
 }
 
@@ -961,5 +987,83 @@ mod timeout_tests {
         assert!(
             crate::verify::lifeline::group_members(group).is_some_and(|members| members.is_empty())
         );
+    }
+}
+
+#[cfg(all(test, unix))]
+mod discovery_tests {
+    use super::{run, run_captured, ChildHome, ChildSpec, Normalizer};
+    use crate::artifact::content_id::Sha256Digest;
+    use crate::config::Limits;
+    use camino::Utf8Path;
+
+    fn limits() -> Limits {
+        Limits {
+            max_file_bytes: 4096,
+            max_total_source_bytes: 8192,
+            max_primitive_atoms: 1024,
+            max_token_lattice_edges: 1024,
+            max_parse_states: 1024,
+            max_ir_nodes: 1024,
+            max_scope_depth: 32,
+            max_import_depth: 32,
+            max_diagnostics: 8,
+            max_child_output_bytes: 4096,
+            child_timeout_ms: 1000,
+        }
+    }
+
+    fn request<'a>(home: &'a Utf8Path, script: &str) -> ChildSpec<'a> {
+        ChildSpec {
+            tool: "lake",
+            module: None,
+            program: Utf8Path::new("/bin/sh"),
+            executable_sha256: Sha256Digest::of(b"synthetic discovery fixture"),
+            argv: vec!["-c".into(), script.into()],
+            cwd: home,
+            extra_env: vec![],
+            home: ChildHome::Isolated { home },
+        }
+    }
+
+    #[test]
+    fn discovery_raw_capture_preserves_bytes_and_normal_records_keep_their_contract() {
+        let directory = tempfile::tempdir().expect("temporary fixture");
+        let home = Utf8Path::from_path(directory.path()).expect("UTF-8 temporary fixture");
+        let spec = request(
+            home,
+            "printf 'LEAN_PATH=tail  \\r\\n\\n'; printf 'private  \\r\\n' >&2; exit 7",
+        );
+        let raw = run_captured(&spec, &limits()).expect("captured synthetic child");
+        assert_eq!(raw.exit_code, 7);
+        assert_eq!(raw.stdout, b"LEAN_PATH=tail  \r\n\n");
+        assert_eq!(raw.stderr, b"private  \r\n");
+        let normalizer = Normalizer::default();
+        let record = run(&spec, &limits(), &normalizer).expect("ordinary synthetic child");
+        assert_eq!(record.exit_code, raw.exit_code);
+        assert_eq!(record.stdout, normalizer.normalize(&raw.stdout));
+        assert_eq!(record.stderr, normalizer.normalize(&raw.stderr));
+        assert_eq!(record.stdout, "LEAN_PATH=tail\n");
+        assert_eq!(record.stderr, "private\n");
+        assert_eq!(record.argv, spec.argv);
+        assert_eq!(record.executable_sha256, spec.executable_sha256);
+    }
+
+    #[test]
+    fn discovery_raw_capture_retains_output_and_timeout_refusals() {
+        let directory = tempfile::tempdir().expect("temporary fixture");
+        let home = Utf8Path::from_path(directory.path()).expect("UTF-8 temporary fixture");
+        let mut bounded = limits();
+        bounded.max_child_output_bytes = 4;
+        let Err(error) = run_captured(&request(home, "printf 'over-limit'"), &bounded) else {
+            panic!("raw capture must enforce the ordinary output cap");
+        };
+        assert_eq!(error.code.as_str(), "LLS8002");
+        bounded = limits();
+        bounded.child_timeout_ms = 20;
+        let Err(error) = run_captured(&request(home, "sleep 2"), &bounded) else {
+            panic!("raw capture must enforce the ordinary timeout");
+        };
+        assert_eq!(error.code.as_str(), "LLS8002");
     }
 }
