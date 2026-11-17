@@ -31,27 +31,66 @@ inductive{
   ]
 }
 
-structure{name: Decl, type_parameters: [], parameters: [], fields: [{name: name, type: Nat}, {name: statement, type: Term}, {name: value, type: Term}]}
+structure{
+  name: Decl,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: name, type: Nat}, {name: statement, type: Term}, {name: value, type: Term}]
+}
 
-inductive{name: Equation, type_parameters: [], parameters: [], constructors: [{name: equation, fields: [Term, Term]}, {name: iff, fields: [Term]}, {name: other, fields: []}]}
+inductive{
+  name: Equation,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: equation, fields: [Term, Term]},
+    {name: iff, fields: [Term]},
+    {name: other, fields: []}
+  ]
+}
 
-inductive{name: Check, type_parameters: [], parameters: [], constructors: [{name: pass, fields: []}, {name: fail, fields: [Refusal]}]}
+inductive{
+  name: Check,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: pass, fields: []}, {name: fail, fields: [Refusal]}]
+}
 
-inductive{name: Produced, type_parameters: [], parameters: [], constructors: [{name: made, fields: [Term]}, {name: refused, fields: [Refusal]}]}
+inductive{
+  name: Produced,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: made, fields: [Term]}, {name: refused, fields: [Refusal]}]
+}
 
-inductive{name: Declared, type_parameters: [], parameters: [], constructors: [{name: declared, fields: [Decl]}, {name: rejected, fields: [Refusal]}]}
+inductive{
+  name: Declared,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: declared, fields: [Decl]}, {name: rejected, fields: [Refusal]}]
+}
 
-structure{name: Ctor, type_parameters: [], parameters: [], fields: [{name: fields, type: Nat}, {name: recursive, type: Nat}]}
+structure{
+  name: Ctor,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: fields, type: Nat}, {name: recursive, type: Nat}]
+}
 
-structure{name: Branch, type_parameters: [], parameters: [], fields: [{name: ctor, type: Nat}, {name: binders, type: Nat}, {name: proof, type: Term}]}
+structure{
+  name: Branch,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: ctor, type: Nat}, {name: binders, type: Nat}, {name: proof, type: Term}]
+}
 
 definition{
   name: apps,
   parameters: [fn : Term, args : (List Term)],
   result: Term,
   body: (match args | List.nil => fn | List.cons head rest => (apps (ctor Term.app fn head) rest)),
-  recursive_argument: args,
-  executable: true
+  executable: true,
+  recursive_argument: args
 }
 
 definition{
@@ -61,8 +100,8 @@ definition{
   body: (match branches
     | List.nil => 0
     | List.cons head rest => (if ((project head ctor) =? index) then ((countCase index rest) + 1) else (countCase index rest))),
-  recursive_argument: branches,
-  executable: true
+  executable: true,
+  recursive_argument: branches
 }
 
 definition{
@@ -72,8 +111,8 @@ definition{
   body: (match branches
     | List.nil => 0
     | List.cons head rest => (if ((project head ctor) =? index) then (project head binders) else (bindersOf index rest))),
-  recursive_argument: branches,
-  executable: true
+  executable: true,
+  recursive_argument: branches
 }
 
 definition{
@@ -83,8 +122,8 @@ definition{
   body: (match branches
     | List.nil => (ctor Term.bvar 0)
     | List.cons head rest => (if ((project head ctor) =? index) then (project head proof) else (proofOf index rest))),
-  recursive_argument: branches,
-  executable: true
+  executable: true,
+  recursive_argument: branches
 }
 
 definition{
@@ -94,8 +133,8 @@ definition{
   body: (match branches
     | List.nil => (ctor Option.none [Nat])
     | List.cons head rest => (if ((project head ctor) <? count) then (strayFrom count rest) else (ctor Option.some [Nat] (project head ctor)))),
-  recursive_argument: branches,
-  executable: true
+  executable: true,
+  recursive_argument: branches
 }
 
 definition{
@@ -111,11 +150,13 @@ definition{
   parameters: [ctors : (List Ctor), index : Nat, branches : (List Branch), induct : Bool],
   result: Check,
   body: (match ctors
-    | List.nil => (match (strayFrom index branches) | Option.none => (ctor Check.pass) | Option.some stray => (ctor Check.fail (ctor Refusal.unknownCase stray)))
+    | List.nil => (match (strayFrom index branches)
+      | Option.none => (ctor Check.pass)
+      | Option.some stray => (ctor Check.fail (ctor Refusal.unknownCase stray)))
     | List.cons head rest => (if ((countCase index branches) =? 0) then (ctor Check.fail (ctor Refusal.missingCase index)) else (if ((countCase index branches) =? 1) then (if ((bindersOf index branches) =? (wanted head induct)) then (checkFrom rest (index + 1) branches induct) else (ctor Check.fail (ctor Refusal.binderCount index))) else (ctor Check.fail (ctor Refusal.repeatedCase index))))),
-  recursive_argument: ctors,
   executable: true,
-  production: {effects: [allocation, overflow, recursion], targets: [rust-std]}
+  production: {effects: [allocation, overflow, recursion], targets: [rust-std]},
+  recursive_argument: ctors
 }
 
 definition{
@@ -125,13 +166,20 @@ definition{
   body: (match ctors
     | List.nil => (nil Term)
     | List.cons head rest => (cons (proofOf index branches) (minorsFrom rest (index + 1) branches))),
-  recursive_argument: ctors,
-  executable: true
+  executable: true,
+  recursive_argument: ctors
 }
 
 definition{
   name: casesTerm,
-  parameters: [casesOn : Nat, params : (List Term), motive : Term, scrutinee : Term, ctors : (List Ctor), branches : (List Branch)],
+  parameters: [
+    casesOn : Nat,
+    params : (List Term),
+    motive : Term,
+    scrutinee : Term,
+    ctors : (List Ctor),
+    branches : (List Branch)
+  ],
   result: Produced,
   body: (match (checkFrom ctors 0 branches false)
     | Check.pass => (ctor Produced.made (apps (ctor Term.app (ctor Term.app (apps (ctor Term.const casesOn) params) motive) scrutinee) (minorsFrom ctors 0 branches)))
@@ -143,7 +191,9 @@ definition{
   name: refusalOf,
   parameters: [result : Produced],
   result: Check,
-  body: (match result | Produced.made value => (ctor Check.pass) | Produced.refused refusal => (ctor Check.fail refusal))
+  body: (match result
+    | Produced.made value => (ctor Check.pass)
+    | Produced.refused refusal => (ctor Check.fail refusal))
 }
 
 definition{
@@ -160,14 +210,18 @@ definition{
   name: declaredType,
   parameters: [declared : Declared],
   result: (Option Term),
-  body: (match declared | Declared.declared decl => (ctor Option.some [Term] (project decl statement)) | Declared.rejected refusal => (ctor Option.none [Term]))
+  body: (match declared
+    | Declared.declared decl => (ctor Option.some [Term] (project decl statement))
+    | Declared.rejected refusal => (ctor Option.none [Term]))
 }
 
 definition{
   name: whenOk,
   parameters: [produced : Produced, statement : Term],
   result: (Option Term),
-  body: (match produced | Produced.made value => (ctor Option.some [Term] statement) | Produced.refused refusal => (ctor Option.none [Term]))
+  body: (match produced
+    | Produced.made value => (ctor Option.some [Term] statement)
+    | Produced.refused refusal => (ctor Option.none [Term]))
 }
 
 theorem{
@@ -185,9 +239,19 @@ theorem{
 
 theorem{
   name: cases_refuses_exactly,
-  parameters: [casesOn : Nat, params : (List Term), motive : Term, scrutinee : Term, ctors : (List Ctor), branches : (List Branch)],
+  parameters: [
+    casesOn : Nat,
+    params : (List Term),
+    motive : Term,
+    scrutinee : Term,
+    ctors : (List Ctor),
+    branches : (List Branch)
+  ],
   statement: ((refusalOf (casesTerm casesOn params motive scrutinee ctors branches)) = (checkFrom ctors 0 branches false)),
-  proof: term_cases{scrutinee: (checkFrom ctors 0 branches false), definitions: [casesTerm, refusalOf]},
+  proof: term_cases{
+    definitions: [casesTerm, refusalOf],
+    scrutinee: (checkFrom ctors 0 branches false)
+  },
   axioms: [propext]
 }
 
@@ -197,6 +261,7 @@ theorem{
   statement: ((refusalOf (casesTerm 7 (nil Term) (ctor Term.bvar 0) (ctor Term.bvar 1) (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (nil Ctor))) (cons (record Branch {ctor := 0, binders := 0, proof := (ctor Term.const 9)}) (nil Branch)))) = (ctor Check.fail (ctor Refusal.missingCase 1))),
   proof: reflexivity{}
 }
+
 definition{
   name: fnOf,
   parameters: [term : Term],
@@ -251,7 +316,10 @@ definition{
   name: equationCheck,
   parameters: [goal : Term],
   result: Check,
-  body: (match (equationOf goal) | Equation.equation ty lhs => (ctor Check.pass) | Equation.iff lhs => (ctor Check.pass) | Equation.other => (ctor Check.fail (ctor Refusal.notAnEquation)))
+  body: (match (equationOf goal)
+    | Equation.equation ty lhs => (ctor Check.pass)
+    | Equation.iff lhs => (ctor Check.pass)
+    | Equation.other => (ctor Check.fail (ctor Refusal.notAnEquation)))
 }
 
 definition{
@@ -275,7 +343,15 @@ definition{
 
 definition{
   name: inductionTerm,
-  parameters: [recursor : Nat, params : (List Term), motive : Term, scrutinee : Term, generals : (List Term), ctors : (List Ctor), branches : (List Branch)],
+  parameters: [
+    recursor : Nat,
+    params : (List Term),
+    motive : Term,
+    scrutinee : Term,
+    generals : (List Term),
+    ctors : (List Ctor),
+    branches : (List Branch)
+  ],
   result: Produced,
   body: (match (checkFrom ctors 0 branches true)
     | Check.pass => (ctor Produced.made (apps (apps (ctor Term.app (apps (ctor Term.const recursor) params) motive) (minorsFrom ctors 0 branches)) (cons scrutinee generals)))
@@ -290,9 +366,9 @@ definition{
   body: (match names
     | List.nil => (ctor Check.fail (ctor Refusal.notProduced name))
     | List.cons head rest => (if (head =? name) then (ctor Check.pass) else (memberCheck rest name))),
-  recursive_argument: names,
   executable: true,
-  production: {effects: [allocation], targets: [rust-std]}
+  production: {effects: [allocation], targets: [rust-std]},
+  recursive_argument: names
 }
 
 definition{
@@ -301,18 +377,22 @@ definition{
   result: Check,
   body: (match required
     | List.nil => (ctor Check.pass)
-    | List.cons head rest => (match (memberCheck names head) | Check.pass => (allMembers rest names) | Check.fail refusal => (ctor Check.fail refusal))),
-  recursive_argument: required,
-  executable: true
+    | List.cons head rest => (match (memberCheck names head)
+      | Check.pass => (allMembers rest names)
+      | Check.fail refusal => (ctor Check.fail refusal))),
+  executable: true,
+  recursive_argument: required
 }
 
 definition{
   name: constants,
   parameters: [names : (List Nat)],
   result: (List Term),
-  body: (match names | List.nil => (nil Term) | List.cons head rest => (cons (ctor Term.const head) (constants rest))),
-  recursive_argument: names,
-  executable: true
+  body: (match names
+    | List.nil => (nil Term)
+    | List.cons head rest => (cons (ctor Term.const head) (constants rest))),
+  executable: true,
+  recursive_argument: names
 }
 
 definition{
@@ -329,14 +409,22 @@ definition{
   name: lawCheck,
   parameters: [law : Nat, registered : (List Nat), premises : (List Nat), produced : (List Nat)],
   result: Check,
-  body: (match (memberCheck registered law) | Check.pass => (allMembers premises produced) | Check.fail refusal => (ctor Check.fail (ctor Refusal.unregisteredLaw law))),
+  body: (match (memberCheck registered law)
+    | Check.pass => (allMembers premises produced)
+    | Check.fail refusal => (ctor Check.fail (ctor Refusal.unregisteredLaw law))),
   executable: true,
   production: {effects: [allocation], targets: [rust-std]}
 }
 
 definition{
   name: lawTerm,
-  parameters: [law : Nat, registered : (List Nat), args : (List Term), premises : (List Nat), produced : (List Nat)],
+  parameters: [
+    law : Nat,
+    registered : (List Nat),
+    args : (List Term),
+    premises : (List Nat),
+    produced : (List Nat)
+  ],
   result: Produced,
   body: (match (lawCheck law registered premises produced)
     | Check.pass => (ctor Produced.made (apps (apps (ctor Term.const law) args) (constants premises)))
@@ -348,7 +436,10 @@ theorem{
   name: reflexivity_refuses_exactly,
   parameters: [goal : Term],
   statement: ((refusalOf (reflexivityTerm goal)) = (equationCheck goal)),
-  proof: term_cases{scrutinee: (equationOf goal), definitions: [equationCheck, reflexivityTerm, refusalOf]},
+  proof: term_cases{
+    definitions: [equationCheck, reflexivityTerm, refusalOf],
+    scrutinee: (equationOf goal)
+  },
   axioms: [propext]
 }
 
@@ -361,9 +452,20 @@ theorem{
 
 theorem{
   name: induction_refuses_exactly,
-  parameters: [recursor : Nat, params : (List Term), motive : Term, scrutinee : Term, generals : (List Term), ctors : (List Ctor), branches : (List Branch)],
+  parameters: [
+    recursor : Nat,
+    params : (List Term),
+    motive : Term,
+    scrutinee : Term,
+    generals : (List Term),
+    ctors : (List Ctor),
+    branches : (List Branch)
+  ],
   statement: ((refusalOf (inductionTerm recursor params motive scrutinee generals ctors branches)) = (checkFrom ctors 0 branches true)),
-  proof: term_cases{scrutinee: (checkFrom ctors 0 branches true), definitions: [inductionTerm, refusalOf]},
+  proof: term_cases{
+    definitions: [inductionTerm, refusalOf],
+    scrutinee: (checkFrom ctors 0 branches true)
+  },
   axioms: [propext]
 }
 
@@ -371,15 +473,24 @@ theorem{
   name: apply_refuses_exactly,
   parameters: [theorem : Nat, produced : (List Nat), args : (List Term)],
   statement: ((refusalOf (applyTerm theorem produced args)) = (memberCheck produced theorem)),
-  proof: term_cases{scrutinee: (memberCheck produced theorem), definitions: [applyTerm, refusalOf]},
+  proof: term_cases{definitions: [applyTerm, refusalOf], scrutinee: (memberCheck produced theorem)},
   axioms: [propext]
 }
 
 theorem{
   name: law_refuses_exactly,
-  parameters: [law : Nat, registered : (List Nat), args : (List Term), premises : (List Nat), produced : (List Nat)],
+  parameters: [
+    law : Nat,
+    registered : (List Nat),
+    args : (List Term),
+    premises : (List Nat),
+    produced : (List Nat)
+  ],
   statement: ((refusalOf (lawTerm law registered args premises produced)) = (lawCheck law registered premises produced)),
-  proof: term_cases{scrutinee: (lawCheck law registered premises produced), definitions: [lawTerm, refusalOf]},
+  proof: term_cases{
+    definitions: [lawTerm, refusalOf],
+    scrutinee: (lawCheck law registered premises produced)
+  },
   axioms: [propext]
 }
 
@@ -438,6 +549,7 @@ theorem{
   statement: ((refusalOf (lawTerm 13 (nil Nat) (nil Term) (nil Nat) (nil Nat))) = (ctor Check.fail (ctor Refusal.unregisteredLaw 13))),
   proof: reflexivity{}
 }
+
 definition{
   name: isMade,
   parameters: [result : Produced],
@@ -456,7 +568,10 @@ theorem{
   name: reflexivity_total,
   parameters: [goal : Term],
   statement: ((isMade (reflexivityTerm goal)) = (passes (equationCheck goal))),
-  proof: term_cases{scrutinee: (equationOf goal), definitions: [equationCheck, isMade, passes, reflexivityTerm]},
+  proof: term_cases{
+    definitions: [equationCheck, isMade, passes, reflexivityTerm],
+    scrutinee: (equationOf goal)
+  },
   axioms: [propext]
 }
 
@@ -469,17 +584,38 @@ theorem{
 
 theorem{
   name: cases_total,
-  parameters: [casesOn : Nat, params : (List Term), motive : Term, scrutinee : Term, ctors : (List Ctor), branches : (List Branch)],
+  parameters: [
+    casesOn : Nat,
+    params : (List Term),
+    motive : Term,
+    scrutinee : Term,
+    ctors : (List Ctor),
+    branches : (List Branch)
+  ],
   statement: ((isMade (casesTerm casesOn params motive scrutinee ctors branches)) = (passes (checkFrom ctors 0 branches false))),
-  proof: term_cases{scrutinee: (checkFrom ctors 0 branches false), definitions: [casesTerm, isMade, passes]},
+  proof: term_cases{
+    definitions: [casesTerm, isMade, passes],
+    scrutinee: (checkFrom ctors 0 branches false)
+  },
   axioms: [propext]
 }
 
 theorem{
   name: induction_total,
-  parameters: [recursor : Nat, params : (List Term), motive : Term, scrutinee : Term, generals : (List Term), ctors : (List Ctor), branches : (List Branch)],
+  parameters: [
+    recursor : Nat,
+    params : (List Term),
+    motive : Term,
+    scrutinee : Term,
+    generals : (List Term),
+    ctors : (List Ctor),
+    branches : (List Branch)
+  ],
   statement: ((isMade (inductionTerm recursor params motive scrutinee generals ctors branches)) = (passes (checkFrom ctors 0 branches true))),
-  proof: term_cases{scrutinee: (checkFrom ctors 0 branches true), definitions: [inductionTerm, isMade, passes]},
+  proof: term_cases{
+    definitions: [inductionTerm, isMade, passes],
+    scrutinee: (checkFrom ctors 0 branches true)
+  },
   axioms: [propext]
 }
 
@@ -487,15 +623,27 @@ theorem{
   name: apply_total,
   parameters: [theorem : Nat, produced : (List Nat), args : (List Term)],
   statement: ((isMade (applyTerm theorem produced args)) = (passes (memberCheck produced theorem))),
-  proof: term_cases{scrutinee: (memberCheck produced theorem), definitions: [applyTerm, isMade, passes]},
+  proof: term_cases{
+    definitions: [applyTerm, isMade, passes],
+    scrutinee: (memberCheck produced theorem)
+  },
   axioms: [propext]
 }
 
 theorem{
   name: law_total,
-  parameters: [law : Nat, registered : (List Nat), args : (List Term), premises : (List Nat), produced : (List Nat)],
+  parameters: [
+    law : Nat,
+    registered : (List Nat),
+    args : (List Term),
+    premises : (List Nat),
+    produced : (List Nat)
+  ],
   statement: ((isMade (lawTerm law registered args premises produced)) = (passes (lawCheck law registered premises produced))),
-  proof: term_cases{scrutinee: (lawCheck law registered premises produced), definitions: [isMade, lawTerm, passes]},
+  proof: term_cases{
+    definitions: [isMade, lawTerm, passes],
+    scrutinee: (lawCheck law registered premises produced)
+  },
   axioms: [propext]
 }
 \end{semanticmodule}
