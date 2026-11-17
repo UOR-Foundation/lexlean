@@ -17,6 +17,17 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- `lexlean snapshot [--all | INPUT...]` writes the semantic snapshot of a
+  selection (SPEC.md §23.4, `CL-26`). In human mode its stdout is exactly the
+  snapshot's canonical file bytes, the bytes `Engine::snapshot` serializes, so
+  their SHA-256 is the snapshot ID; in JSON mode it writes the command result
+  `check` writes, named `snapshot`. A project `check` refuses exits and
+  reports as `check` does and prints no snapshot, and the command writes
+  nothing. Since a snapshot holds no path or host data, the executable built
+  for `wasm32-wasip1` prints the native bytes, so a WASI host with no other
+  host, such as a browser worker, can take a model's snapshot. No language
+  identity moves; the register is 498.
+
 ## 0.4.3
 
 - A semantic module nests as deeply as the project's `max_scope_depth` allows

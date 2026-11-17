@@ -1514,6 +1514,12 @@ suite = "cli-api"
 statement = "The lexlean executable builds for wasm32-wasip1 with the pinned toolchain and, run by a WASI host, gives the native executable's exit code and JSON output for check on every single-step check fixture and every example; there a module with two names of one file is refused with LLC0104, nesting beyond the depth its linked stack hosts is refused with LLS8002, and a command that changes the project is refused with LLV7010 and leaves the project unchanged."
 
 [[id]]
+id = "CL-26"
+level = "build"
+suite = "cli-api"
+statement = "lexlean snapshot writes the semantic snapshot of a selection: in human mode its stdout is exactly the snapshot's canonical file bytes, the bytes Engine::snapshot serializes, whose SHA-256 is the snapshot ID, with the source and semantic IDs check reports; in json mode it prints one command result as check does, named snapshot; a project check refuses gives the same exit code and diagnostics and no snapshot; it writes nothing; and the executable built for wasm32-wasip1 and run by a WASI host prints the same bytes on every example that checks."
+
+[[id]]
 id = "SE-01"
 level = "build"
 suite = "security"
