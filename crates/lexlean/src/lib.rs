@@ -54,6 +54,7 @@ pub mod lock;
 pub mod production;
 #[doc(hidden)]
 pub mod project;
+#[doc(hidden)]
 pub mod repair;
 #[doc(hidden)]
 pub mod source;
