@@ -115,5 +115,21 @@ definition{
   body: (record Rows::IdRow {id := "AR-14", level := "build", suite := "artifacts", statement := "Platform-independent build evidence is distinguished from platform-bound oleans, process records, PDF bytes, and attestations.", sections := "§21, §22"}),
   executable: true
 }
+
+definition{
+  name: ar15,
+  parameters: [],
+  result: Rows::IdRow,
+  body: (record Rows::IdRow {id := "AR-15", level := "build", suite := "artifacts", statement := "Every identity LexLean computes, names, or pins is a BLAKE3 κ-label: `cargo xtask validate-model` runs `audit-hashes`, which reads the shipped crate, the repository's tooling, the language data, every schema, and the model files, and refuses a line that names the SHA-256 digest in any spelling, or a schema pattern that admits a bare 64-digit digest, unless a row of its allow-list names the file and the outside format that requires it (the release checksums crates.io and `sha256sum` read, the digest an upstream publisher states for its release, and the authorities of the standard library's `Sha256` function); a `Sha256` digest planted in a copy of the compiler's content identity, a `sha256` field planted in a copy of a lock schema, a bare 64-digit pattern planted in a copy of a snapshot schema, and the SHA-256 crate used in a copy of the release tooling outside its sanctioned lines are each refused, and a scan that reads no source of the shipped crate is refused.", sections := "§21.1"}),
+  executable: true
+}
+
+definition{
+  name: ar16,
+  parameters: [],
+  result: Rows::IdRow,
+  body: (record Rows::IdRow {id := "AR-16", level := "build", suite := "artifacts", statement := "The κ-labels are canonical and reproducible by another implementation: `tests/kappa/vectors.json` states, for a raw-bytes leaf, a tree, a source ID, a semantic ID, a declaration ID, and a lexicon entry signature, the inputs, the exact carrier bytes, and the κ-label; the compiler's recipes give every carrier and label, the reference `blake3` crate and uor-addr's `blake3` σ-axis give every label from its carrier, and the label of raw bytes is the address Hologram's store re-derives; and a recipe that leaves out a field it must cover, two different modules whose frames would coincide if written without their length prefixes, and a lexicon entry whose signature changes while its κ-label does not are each refused.", sections := "§21.1, §21.3, §21.4, §21.9, §11.5, §13.7"}),
+  executable: true
+}
 \end{semanticmodule}
 \end{lexlean}

@@ -69,6 +69,7 @@ mod semantic_ir;
 mod std_packages;
 mod stdlib;
 mod stdlib_buffer;
+mod kappa_identity;
 mod stdlib_digest;
 mod stdlib_fixed_point;
 mod stdlib_identity;

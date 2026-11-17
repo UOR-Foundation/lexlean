@@ -71,7 +71,7 @@ pub use api::{
     FormatResultSet, LockRequest, LockResult, ModuleArtifacts, ProjectResultSet, Selection,
     VerifiedProject, VerifiedUnit, VerifyPart, VerifyPartOutcome, VerifyPlan, VerifyRequest,
 };
-pub use artifact::content_id::Sha256Digest;
+pub use artifact::content_id::Kappa;
 pub use artifact::snapshot::{
     SemanticSnapshot, SnapshotAxiomPolicy, SnapshotDeclaration, SnapshotElaboration,
     SnapshotModule, SnapshotOrigin, SnapshotRange, SnapshotSource,
@@ -98,7 +98,7 @@ pub use ir::semantic::{
     SemanticTermination as SnapshotTermination, SemanticType as SnapshotType,
 };
 
-use artifact::content_id::tree_digest;
+use artifact::content_id::tree_kappa;
 
 /// The embedded normative data: `language/`, `schemas/`, and the committed
 /// axiom-parser and canonical-JSON golden fixtures (SPEC.md §21.2).
@@ -148,7 +148,7 @@ pub const COMPILER_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// normative file, computed once per process (SPEC.md §21.2). Repository
 /// tests recompute the same digest from disk and compare (RP-10).
 #[must_use]
-pub fn compiler_semantics_id() -> Sha256Digest {
+pub fn compiler_semantics_id() -> Kappa {
     compiler_semantics_id_for(LANGUAGE_VERSION)
 }
 
@@ -238,7 +238,7 @@ pub fn identity_bytes<'a>(path: &str, bytes: &'a [u8]) -> std::borrow::Cow<'a, [
 pub const READER_STACK: usize = 64 * 1024 * 1024;
 
 /// The §11.5 tree digest of the files of the embedded tree selected by `keep`.
-fn embedded_digest(keep: impl Fn(&str) -> bool) -> Sha256Digest {
+fn embedded_digest(keep: impl Fn(&str) -> bool) -> Kappa {
     let selected: Vec<(&'static str, &'static [u8])> = embedded::FILES
         .iter()
         .filter(|(path, _)| keep(path))
@@ -275,7 +275,7 @@ fn embedded_digest(keep: impl Fn(&str) -> bool) -> Sha256Digest {
         .iter()
         .map(|(path, bytes)| (*path, bytes.as_ref()))
         .collect();
-    tree_digest(&files)
+    tree_kappa(&files)
 }
 
 /// The language-1.2 compiler-semantics ID of the full embedded tree, checked
@@ -286,17 +286,17 @@ fn embedded_digest(keep: impl Fn(&str) -> bool) -> Sha256Digest {
 /// consistently with itself, so agreement on verdicts could not reveal it.
 /// The 1.0 and 1.1 IDs need no constant: no file they cover is left out.
 pub const LANGUAGE_1_2_SEMANTICS_ID: &str =
-    "a1477c2e1fc0392c7e304cf42fb6f7e1fe97fc97ce0f83a9e04ed7c11dd11f65";
+    "blake3:e3c7d1cf70ce7005d7ae2e70d34124a73e3cb3ef6bfcb0bf465725ebbe6a12e2";
 
 /// The compiler-semantics ID for one selected language. Language 1.0 excludes
 /// all files introduced solely for 1.1 and 1.2, and Language 1.1 excludes
 /// all files introduced solely for 1.2, preserving historical identities.
 #[must_use]
-pub fn compiler_semantics_id_for(language: &str) -> Sha256Digest {
+pub fn compiler_semantics_id_for(language: &str) -> Kappa {
     use std::sync::OnceLock;
-    static V1_0: OnceLock<Sha256Digest> = OnceLock::new();
-    static V1_1: OnceLock<Sha256Digest> = OnceLock::new();
-    static V1_2: OnceLock<Sha256Digest> = OnceLock::new();
+    static V1_0: OnceLock<Kappa> = OnceLock::new();
+    static V1_1: OnceLock<Kappa> = OnceLock::new();
+    static V1_2: OnceLock<Kappa> = OnceLock::new();
     match language {
         LANGUAGE_VERSION => {
             *V1_0.get_or_init(|| embedded_digest(|path| !is_v1_1_file(path) && !is_v1_2_file(path)))
@@ -306,12 +306,12 @@ pub fn compiler_semantics_id_for(language: &str) -> Sha256Digest {
             if embedded::PRODUCTION_DATA {
                 embedded_digest(|_| true)
             } else {
-                Sha256Digest::from_hex(LANGUAGE_1_2_SEMANTICS_ID)
+                Kappa::parse(LANGUAGE_1_2_SEMANTICS_ID)
                     .expect("RP-10 parses the checked-in language-1.2 ID")
             }
         }),
         // An unsupported language never shares an identity with a supported
         // one; configuration rejects it before any identity is published.
-        other => Sha256Digest::of(format!("unsupported-language\0{other}").as_bytes()),
+        other => Kappa::of(format!("unsupported-language\0{other}").as_bytes()),
     }
 }

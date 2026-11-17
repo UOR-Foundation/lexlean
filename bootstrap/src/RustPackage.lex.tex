@@ -1,7 +1,7 @@
 \begin{lexlean}{RustPackage}
 \useglossary{lexlean.std.nat@1.2.0}
 \importmodule{LexLeanStd.Buffer}
-\importmodule{LexLeanStd.Sha256}
+\importmodule{LexLeanStd.Blake3}
 \importmodule{LexLeanStd.Text}
 \title{Natural number addition}
 \begin{semanticmodule}
@@ -286,7 +286,7 @@ definition{
     registered : (List Bytes)
   ],
   result: (Result Bool Bytes),
-  body: (if (same spec (text "lexlean/rust-package/1")) then (let available : Bool := (if (snake name) then (if (member (keywords 0) name) then false else (not (member (reservedCrates 0) name))) else false); (if available then (if (versionOk version) then (let std : Bool := (same profile (text "rust-std")); (let core : Bool := (same profile (text "rust-core")); (if (std || core) then (if (identities sources) then (if (ascending sources) then (checkEffects core effects registered) else (refuse (text "sources are strictly ascending"))) else (refuse (text "every source is a lowercase SHA-256 hex identity"))) else (refuse (cat (ticked profile) (text " is not a Rust profile")))))) else (refuse (cat (ticked version) (text " is not a version of three canonical decimals each at most 18446744073709551615")))) else (refuse (cat (text "identifier collision: ") (cat (ticked name) (text " is not an available crate name")))))) else (refuse (cat (text "package manifest has spec ") (cat (ticked spec) (text ", expected `lexlean/rust-package/1`"))))),
+  body: (if (same spec (text "lexlean/rust-package/2")) then (let available : Bool := (if (snake name) then (if (member (keywords 0) name) then false else (not (member (reservedCrates 0) name))) else false); (if available then (if (versionOk version) then (let std : Bool := (same profile (text "rust-std")); (let core : Bool := (same profile (text "rust-core")); (if (std || core) then (if (identities sources) then (if (ascending sources) then (checkEffects core effects registered) else (refuse (text "sources are strictly ascending"))) else (refuse (text "every source is a lowercase SHA-256 hex identity"))) else (refuse (cat (ticked profile) (text " is not a Rust profile")))))) else (refuse (cat (ticked version) (text " is not a version of three canonical decimals each at most 18446744073709551615")))) else (refuse (cat (text "identifier collision: ") (cat (ticked name) (text " is not an available crate name")))))) else (refuse (cat (text "package manifest has spec ") (cat (ticked spec) (text ", expected `lexlean/rust-package/2`"))))),
   axioms: [Quot.sound, propext],
   executable: true,
   production: {effects: [allocation, overflow], targets: [rust-std]}
@@ -422,7 +422,7 @@ definition{
   name: putFiles,
   parameters: [out : LexLeanStd.Buffer::Buffer, path : Bytes, cargo : Bytes, library : Bytes],
   result: LexLeanStd.Buffer::Buffer,
-  body: (let opened : LexLeanStd.Buffer::Buffer := (put out ",\"files\":{"); (put (if (same path (text "Cargo.toml")) then (putEntry opened path (LexLeanStd.Sha256::sha256Hex library)) else (if (before path (text "Cargo.toml")) then (putEntry (put (putEntry opened path (LexLeanStd.Sha256::sha256Hex library)) ",") (text "Cargo.toml") (LexLeanStd.Sha256::sha256Hex cargo)) else (putEntry (put (putEntry opened (text "Cargo.toml") (LexLeanStd.Sha256::sha256Hex cargo)) ",") path (LexLeanStd.Sha256::sha256Hex library)))) "}")),
+  body: (let opened : LexLeanStd.Buffer::Buffer := (put out ",\"files\":{"); (put (if (same path (text "Cargo.toml")) then (putEntry opened path (LexLeanStd.Blake3::blake3Label library)) else (if (before path (text "Cargo.toml")) then (putEntry (put (putEntry opened path (LexLeanStd.Blake3::blake3Label library)) ",") (text "Cargo.toml") (LexLeanStd.Blake3::blake3Label cargo)) else (putEntry (put (putEntry opened (text "Cargo.toml") (LexLeanStd.Blake3::blake3Label cargo)) ",") path (LexLeanStd.Blake3::blake3Label library)))) "}")),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -445,7 +445,7 @@ definition{
     library : Bytes
   ],
   result: (Result Bytes Bytes),
-  body: (let opened : LexLeanStd.Buffer::Buffer := (putExports (put (putStrings (put (putString (put (LexLeanStd.Buffer::new capacity) "{\"compiler_semantics\":") semantics) ",\"effects\":") effects) ",\"exports\":") exports); (let files : LexLeanStd.Buffer::Buffer := (putFiles opened path cargo library); (let named : LexLeanStd.Buffer::Buffer := (putString (put (putString (put files ",\"name\":") name) ",\"profile\":") (if std then (text "rust-std") else (text "rust-core"))); (LexLeanStd.Buffer::finish (put (putString (put (putStrings (put (putString (put (putString (put named ",\"program\":") program) ",\"runtime\":") (LexLeanStd.Sha256::sha256Hex runtime)) ",\"sources\":") sources) ",\"spec\":\"lexlean/rust-provenance/1\",\"version\":") version) "}\n"))))),
+  body: (let opened : LexLeanStd.Buffer::Buffer := (putExports (put (putStrings (put (putString (put (LexLeanStd.Buffer::new capacity) "{\"compiler_semantics\":") semantics) ",\"effects\":") effects) ",\"exports\":") exports); (let files : LexLeanStd.Buffer::Buffer := (putFiles opened path cargo library); (let named : LexLeanStd.Buffer::Buffer := (putString (put (putString (put files ",\"name\":") name) ",\"profile\":") (if std then (text "rust-std") else (text "rust-core"))); (LexLeanStd.Buffer::finish (put (putString (put (putStrings (put (putString (put (putString (put named ",\"program\":") program) ",\"runtime\":") (LexLeanStd.Blake3::blake3Label runtime)) ",\"sources\":") sources) ",\"spec\":\"lexlean/rust-provenance/2\",\"version\":") version) "}\n"))))),
   axioms: [Quot.sound, propext],
   executable: true
 }

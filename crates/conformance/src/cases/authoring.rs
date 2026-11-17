@@ -62,10 +62,10 @@ fn check(id: &str) {
     }
 }
 
-const SPEC: &str = "lexlean/semantic-module/2";
+const SPEC: &str = "lexlean/semantic-module/3";
 
 /// The schema tag of a tooling module.
-const TOOLING_SPEC: &str = "lexlean/tooling-module/1";
+const TOOLING_SPEC: &str = "lexlean/tooling-module/2";
 /// The schema tags of semantic modules begin with this.
 const SEMANTIC_SPEC_PREFIX: &str = "lexlean/semantic-module/";
 
@@ -1187,7 +1187,7 @@ fn identity_is_form_independent() {
     )
     .expect("a JSON record");
     assert_eq!(
-        record["library"]["registry_sha256"].as_str(),
+        record["library"]["registry_kappa"].as_str(),
         Some(as_committed.as_str()),
         "the committed record states the library identity of the committed library"
     );

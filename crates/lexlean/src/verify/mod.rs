@@ -45,7 +45,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 
 use crate::api::{RenderedBuild, RenderedModule};
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::{attestation_id, Sha256Digest};
+use crate::artifact::content_id::{attestation_id, Kappa};
 use crate::artifact::source_map::{MapRole, Mapping};
 use crate::code;
 use crate::diagnostic::{Diagnostic, Span};
@@ -63,7 +63,7 @@ use crate::verify::toolchain::Toolchain;
 /// The outcome of a successful verification.
 pub struct VerifyOutcome {
     /// The attestation ID.
-    pub attestation_id: Sha256Digest,
+    pub attestation_id: Kappa,
     /// The published verified directory.
     pub root: Utf8PathBuf,
 }
@@ -876,7 +876,7 @@ pub fn run_part(
     // they derive, which no count of the program bounds, so what bounds them
     // is their generation under the limit; a root whose certificates would
     // exceed it is refused as `LLS8002` before the toolchain is touched.
-    let semantic_hex32: String = checked.semantic_id.to_hex()[..32].to_owned();
+    let semantic_hex32: String = checked.semantic_id.hex()[..32].to_owned();
     let mut certified: Vec<crate::production::preserve::CertifiedRoot> = Vec::new();
     {
         use crate::production::certificate::certificate;
@@ -897,7 +897,7 @@ pub fn run_part(
                 )
                 .into_bytes();
                 bytes.extend_from_slice(&program);
-                Sha256Digest::of(&bytes).to_hex()[..32].to_owned()
+                Kappa::of(&bytes).hex()[..32].to_owned()
             };
             let module = format!("LexLeanPreserve.C{root_hex32}.R{index}");
             // Certificate A and the renderings (B and E) are made from the
@@ -1174,7 +1174,7 @@ pub fn run_part(
             // The v2 renderer emits one Lean mapping per semantic declaration,
             // ordered by generated offset. Reuse those checked source ranges
             // instead of parsing the same normalized notation again.
-            let ranges: Vec<_> = if semantic.spec == "lexlean/semantic-module/2" {
+            let ranges: Vec<_> = if semantic.spec == "lexlean/semantic-module/3" {
                 module
                     .map
                     .mappings
@@ -1383,8 +1383,8 @@ pub fn run_part(
     // preflight hashed: the attestation lists them under its digests.
     partition::check_toolchain(
         &imported,
-        toolchain.lean.sha256,
-        toolchain.leanchecker.sha256,
+        toolchain.lean.kappa,
+        toolchain.leanchecker.kappa,
     )
     .map_err(fail)?;
 
@@ -1418,7 +1418,7 @@ pub fn run_part(
             tool: "lean",
             module: Some(probe_name.clone()),
             program: &toolchain.lake.path,
-            executable_sha256: toolchain.lean.sha256,
+            executable_kappa: toolchain.lean.kappa,
             argv: vec![
                 "env".to_owned(),
                 "lean".to_owned(),
@@ -1504,7 +1504,7 @@ pub fn run_part(
                     tool: "lean",
                     module: Some(file.module.clone()),
                     program: &toolchain.lake.path,
-                    executable_sha256: toolchain.lean.sha256,
+                    executable_kappa: toolchain.lean.kappa,
                     argv: vec![
                         "env".to_owned(),
                         "lean".to_owned(),
@@ -1583,7 +1583,7 @@ pub fn run_part(
                 tool: "lean",
                 module: Some(module.name.clone()),
                 program: &toolchain.lake.path,
-                executable_sha256: toolchain.lean.sha256,
+                executable_kappa: toolchain.lean.kappa,
                 argv: vec![
                     "env".to_owned(),
                     "lean".to_owned(),
@@ -1734,7 +1734,7 @@ pub fn run_part(
                         tool: "lean",
                         module: Some(module_name.clone()),
                         program: &toolchain.lake.path,
-                        executable_sha256: toolchain.lean.sha256,
+                        executable_kappa: toolchain.lean.kappa,
                         argv: vec![
                             "env".to_owned(),
                             "lean".to_owned(),
@@ -1924,7 +1924,7 @@ pub fn run_part(
                     tool: "lean",
                     module: Some(audit.name.clone()),
                     program: &toolchain.lake.path,
-                    executable_sha256: toolchain.lean.sha256,
+                    executable_kappa: toolchain.lean.kappa,
                     argv: vec![
                         "env".to_owned(),
                         "lean".to_owned(),
@@ -2403,7 +2403,7 @@ pub fn run_part(
                 tool: "lean",
                 module: Some(driver.name.clone()),
                 program: &toolchain.lake.path,
-                executable_sha256: toolchain.lean.sha256,
+                executable_kappa: toolchain.lean.kappa,
                 argv: vec!["env".to_owned(), "lean".to_owned(), source.to_string()],
                 cwd: &workspace_root,
                 extra_env: vec![("LEAN_PATH".to_owned(), lean_path_env.clone())],
@@ -2439,7 +2439,7 @@ pub fn run_part(
         write_staged(staging.path(), "production/compiler-input.json", &bytes)?;
         compiler_input_row = Some(Json::object(vec![
             ("byte_length", Json::from_usize(bytes.len())),
-            ("sha256", Json::Str(Sha256Digest::of(&bytes).to_hex())),
+            ("kappa", Json::Str(Kappa::of(&bytes).label())),
         ]));
         tail_records.push(record);
     }
@@ -2590,7 +2590,7 @@ pub fn run_part(
                     tool: "lean",
                     module: Some(file.module.clone()),
                     program: &toolchain.lake.path,
-                    executable_sha256: toolchain.lean.sha256,
+                    executable_kappa: toolchain.lean.kappa,
                     argv,
                     cwd: &workspace_root,
                     extra_env: vec![("LEAN_PATH".to_owned(), preserve_path.clone())],
@@ -2762,7 +2762,7 @@ pub fn run_part(
         write_staged(staging.path(), "preserve/preservation.json", &bytes)?;
         preservation_row = Some(Json::object(vec![
             ("byte_length", Json::from_usize(bytes.len())),
-            ("sha256", Json::Str(Sha256Digest::of(&bytes).to_hex())),
+            ("kappa", Json::Str(Kappa::of(&bytes).label())),
         ]));
         let _ = std::fs::remove_dir_all(preserve_src.as_std_path());
         let _ = std::fs::remove_dir_all(preserve_oleans.as_std_path());
@@ -2809,8 +2809,8 @@ pub fn run_part(
             )?;
             pdf_rows.push(Json::object(vec![
                 ("module", Json::Str(module.lean_module.clone())),
-                ("recipe_id", Json::Str(result.recipe_id.to_hex())),
-                ("pdf_sha256", Json::Str(result.pdf_sha256.to_hex())),
+                ("recipe_id", Json::Str(result.recipe_id.label())),
+                ("pdf_kappa", Json::Str(result.pdf_kappa.label())),
                 ("byte_length", Json::from_usize(result.pdf_bytes.len())),
                 ("version", version_record.to_json()),
                 ("compile", compile_record.to_json()),
@@ -2996,7 +2996,7 @@ pub fn run_part(
         olean_rows.push(Json::object(vec![
             ("module", Json::Str(module.clone())),
             ("byte_length", Json::from_usize(bytes.len())),
-            ("sha256", Json::Str(Sha256Digest::of(&bytes).to_hex())),
+            ("kappa", Json::Str(Kappa::of(&bytes).label())),
         ]));
     }
 
@@ -3004,7 +3004,7 @@ pub fn run_part(
     // Stage 15: the attestation (§22.9). No timestamp is hashed. The
     // running executable must be readable to be recorded; nothing is
     // fabricated in its place.
-    let lexlean_executable_sha256 = running_executable_sha256().map_err(|io_error| {
+    let lexlean_executable_kappa = running_executable_kappa().map_err(|io_error| {
         fail(internal(format!(
             "reading the running executable: {io_error}"
         )))
@@ -3013,7 +3013,7 @@ pub fn run_part(
     let tool_json = |tool: &toolchain::Tool| {
         Json::object(vec![
             ("version_output", Json::Str(tool.version_output.clone())),
-            ("executable_sha256", Json::Str(tool.sha256.to_hex())),
+            ("executable_kappa", Json::Str(tool.kappa.label())),
         ])
     };
     let mut body_fields = vec![
@@ -3023,17 +3023,17 @@ pub fn run_part(
             "spec",
             Json::Str(
                 if project.config.language == crate::LANGUAGE_1_2 {
-                    "lexlean/attestation/2"
+                    "lexlean/attestation/4"
                 } else {
-                    "lexlean/attestation/1"
+                    "lexlean/attestation/3"
                 }
                 .to_owned(),
             ),
         ),
         ("status", Json::Str("verified".to_owned())),
-        ("semantic_id", Json::Str(checked.semantic_id.to_hex())),
-        ("source_id", Json::Str(checked.source_id.to_hex())),
-        ("build_id", Json::Str(build.build_id.to_hex())),
+        ("semantic_id", Json::Str(checked.semantic_id.label())),
+        ("source_id", Json::Str(checked.source_id.label())),
+        ("build_id", Json::Str(build.build_id.label())),
         (
             "host",
             Json::object(vec![
@@ -3047,11 +3047,11 @@ pub fn run_part(
                 ("version", Json::Str(crate::COMPILER_VERSION.to_owned())),
                 (
                     "compiler_semantics",
-                    Json::Str(crate::compiler_semantics_id_for(&project.config.language).to_hex()),
+                    Json::Str(crate::compiler_semantics_id_for(&project.config.language).label()),
                 ),
                 (
-                    "executable_sha256",
-                    Json::Str(lexlean_executable_sha256.to_hex()),
+                    "executable_kappa",
+                    Json::Str(lexlean_executable_kappa.label()),
                 ),
             ]),
         ),
@@ -3068,10 +3068,10 @@ pub fn run_part(
             Json::Arr(
                 lock.workspace_files
                     .iter()
-                    .map(|(path, sha256)| {
+                    .map(|(path, kappa)| {
                         Json::object(vec![
                             ("path", Json::Str(path.clone())),
-                            ("sha256", Json::Str(sha256.to_hex())),
+                            ("kappa", Json::Str(kappa.label())),
                         ])
                     })
                     .collect(),
@@ -3082,8 +3082,8 @@ pub fn run_part(
             Json::object(vec![
                 ("byte_length", Json::from_usize(build.manifest_bytes.len())),
                 (
-                    "sha256",
-                    Json::Str(Sha256Digest::of(&build.manifest_bytes).to_hex()),
+                    "kappa",
+                    Json::Str(Kappa::of(&build.manifest_bytes).label()),
                 ),
             ]),
         ),
@@ -3125,7 +3125,7 @@ pub fn run_part(
         Json::Obj(mut object) => {
             object.insert(
                 "attestation_id".to_owned(),
-                Json::Str(this_attestation_id.to_hex()),
+                Json::Str(this_attestation_id.label()),
             );
             Json::Obj(object)
         }
@@ -3135,7 +3135,7 @@ pub fn run_part(
 
     stages.enter("publication");
     // Stage 16: atomic publication (§21.8).
-    let target = verified_root.join(this_attestation_id.to_hex());
+    let target = verified_root.join(this_attestation_id.hex().to_owned());
     if target.as_std_path().exists() {
         // A repeated verification of identical content reuses the
         // published set only after every staged file validates against it
@@ -3172,7 +3172,7 @@ pub fn run_part(
     }))
 }
 
-/// The SHA-256 of the running executable, read once per process that succeeds
+/// The κ-label of the running executable, read once per process that succeeds
 /// in reading it.
 ///
 /// The attestation records which `lexlean` made it, and a process is one
@@ -3182,12 +3182,12 @@ pub fn run_part(
 /// suite's process verifies hundreds of projects. The value is what a fresh
 /// read would give: the digest is of the file at the path the process was
 /// started from.
-fn running_executable_sha256() -> Result<Sha256Digest, String> {
+fn running_executable_kappa() -> Result<Kappa, String> {
     // Only a digest is remembered. A read that failed (a descriptor limit, a
     // file replaced for a moment) fails the verification that made it and is
     // made again by the next, instead of failing every later verification of
     // a long-lived process.
-    static DIGEST: std::sync::Mutex<Option<Sha256Digest>> = std::sync::Mutex::new(None);
+    static DIGEST: std::sync::Mutex<Option<Kappa>> = std::sync::Mutex::new(None);
     let mut remembered = DIGEST
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
@@ -3196,7 +3196,7 @@ fn running_executable_sha256() -> Result<Sha256Digest, String> {
     }
     let digest = std::env::current_exe()
         .and_then(std::fs::read)
-        .map(|bytes| Sha256Digest::of(&bytes))
+        .map(|bytes| Kappa::of(&bytes))
         .map_err(|io_error| io_error.to_string())?;
     *remembered = Some(digest);
     Ok(digest)
@@ -3224,8 +3224,8 @@ fn remove_stale_staging(verified_root: &std::path::Path) {
 /// A helper for tests: the reserved probe and audit module names for a
 /// semantic ID (§18.8, §18.9).
 #[must_use]
-pub fn reserved_module_names(semantic_id: Sha256Digest) -> (String, String) {
-    let hex32: String = semantic_id.to_hex()[..32].to_owned();
+pub fn reserved_module_names(semantic_id: Kappa) -> (String, String) {
+    let hex32: String = semantic_id.hex()[..32].to_owned();
     (
         format!("LexLeanProbe.P{hex32}"),
         format!("LexLeanAudit.A{hex32}"),

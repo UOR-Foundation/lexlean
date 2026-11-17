@@ -523,13 +523,13 @@ mod tests {
             assert!(reject_forbidden_atoms("m", &atoms, &[]).is_err(), "{bad}");
         }
 
-        let exact = r#"\semanticdata{{"value":"sha256:007abc"}}"#;
+        let exact = r#"\semanticdata{{"value":"kappa:007abc"}}"#;
         let atoms = scan("m", exact, 100).expect("scans");
         assert!(reject_forbidden_atoms("m", &atoms, &[]).is_ok());
         let numeric = r#"\semanticdata{{"value":007}}"#;
         let atoms = scan("m", numeric, 100).expect("scans");
         assert!(reject_forbidden_atoms("m", &atoms, &[]).is_err());
-        for outside in [r#"\semanticdata{{"value":"ok"}} "007""#, "sha256:007abc"] {
+        for outside in [r#"\semanticdata{{"value":"ok"}} "007""#, "kappa:007abc"] {
             let atoms = scan("m", outside, 100).expect("scans");
             assert!(reject_forbidden_atoms("m", &atoms, &[]).is_err());
         }

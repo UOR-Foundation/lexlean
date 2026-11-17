@@ -173,7 +173,7 @@ impl Pin {
 /// # Errors
 ///
 /// Returns the I/O error that kept a file from being read.
-pub fn tree_digest(root: &Path, pin: &Pin) -> Result<(String, usize), String> {
+pub fn tree_kappa(root: &Path, pin: &Pin) -> Result<(String, usize), String> {
     let mut files: Vec<(String, PathBuf)> = Vec::new();
     for entry in walkdir::WalkDir::new(root)
         .follow_links(false)
@@ -694,7 +694,7 @@ pub fn verify_checkout(pin: &Pin, source: &Path) -> Result<(), Unavailable> {
             source.display()
         )));
     }
-    let (digest, files) = tree_digest(source, pin).map_err(Unavailable::NotAcquired)?;
+    let (digest, files) = tree_kappa(source, pin).map_err(Unavailable::NotAcquired)?;
     if digest != pin.tree_sha256 || files != pin.tree_files {
         return Err(Unavailable::PinMismatch(format!(
             "{files} files hash to {digest}; the pin names {} files hashing to {}",

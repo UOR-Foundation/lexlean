@@ -859,7 +859,7 @@ impl Closure {
                             ("category", Json::Str(entry.category.as_str().to_owned())),
                         ];
                         if let Some(hash) = &entry.signature_hash {
-                            fields.push(("signature_sha256", Json::Str(hash.to_hex())));
+                            fields.push(("signature_kappa", Json::Str(hash.label())));
                         }
                         Json::object(fields)
                     })
@@ -868,16 +868,16 @@ impl Closure {
                     ("id", Json::Str(package.id.clone())),
                     ("version", Json::Str(package.version.clone())),
                     (
-                        "manifest_sha256",
-                        Json::Str(package.manifest_sha256.to_hex()),
+                        "manifest_kappa",
+                        Json::Str(package.manifest_kappa.label()),
                     ),
-                    ("tree_sha256", Json::Str(package.tree_sha256.to_hex())),
+                    ("tree_kappa", Json::Str(package.tree_kappa.label())),
                     ("entries", Json::Arr(entries)),
                 ])
             })
             .collect();
         Json::object(vec![
-            ("spec", Json::Str("lexlean/lexicon-closure/1".to_owned())),
+            ("spec", Json::Str("lexlean/lexicon-closure/2".to_owned())),
             ("module", Json::Str(module.to_owned())),
             ("packages", Json::Arr(packages)),
         ])

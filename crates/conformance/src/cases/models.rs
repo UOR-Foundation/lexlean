@@ -10,7 +10,7 @@
 use std::collections::BTreeSet;
 use std::sync::OnceLock;
 
-use lexlean::{CheckRequest, Selection, Sha256Digest, VerifyRequest};
+use lexlean::{CheckRequest, Selection, Kappa, VerifyRequest};
 use serde_json::{json, Value as Json};
 
 use crate::support::{self, VerifiedFixture, P};
@@ -118,7 +118,7 @@ fn negative(name: &str, code: &str, message: &str) {
 // ---------------------------------------------------------------------------
 // Artifacts in a project copy.
 
-/// The configured artifact sources, as `(sha256, path)`.
+/// The configured artifact sources, as `(kappa, path)`.
 fn artifact_sources(project: &P) -> Vec<(String, String)> {
     let config: toml::Value = project.read("lexlean.toml").parse().expect("config TOML");
     config
@@ -128,7 +128,7 @@ fn artifact_sources(project: &P) -> Vec<(String, String)> {
             rows.iter()
                 .map(|row| {
                     (
-                        row["sha256"].as_str().expect("sha256").to_owned(),
+                        row["kappa"].as_str().expect("kappa").to_owned(),
                         row["path"].as_str().expect("path").to_owned(),
                     )
                 })
@@ -145,9 +145,9 @@ fn set_artifact_sources(project: &P, mut sources: Vec<(String, String)>) {
     let limits = text.find("\n[limits]").expect("limits table");
     let start = text.find("\n[[artifact_source]]").unwrap_or(limits);
     let mut out = text[..start].to_owned();
-    for (sha256, path) in sources {
+    for (kappa, path) in sources {
         out.push_str(&format!(
-            "\n[[artifact_source]]\nsha256 = \"{sha256}\"\npath = \"{path}\"\n"
+            "\n[[artifact_source]]\nsha256 = \"{kappa}\"\npath = \"{path}\"\n"
         ));
     }
     out.push_str(&text[limits..]);
@@ -155,7 +155,7 @@ fn set_artifact_sources(project: &P, mut sources: Vec<(String, String)>) {
 }
 
 fn digest(bytes: &[u8]) -> String {
-    Sha256Digest::of(bytes).to_hex()
+    Kappa::of(bytes).label()
 }
 
 /// Replace an artifact's bytes and restate its digest and length wherever
@@ -168,11 +168,11 @@ pub(super) fn replace_artifact(project: &P, file: &str, module: &str, name: &str
     std::fs::write(path.as_std_path(), bytes).expect("write artifact");
     let sources = artifact_sources(project)
         .into_iter()
-        .map(|(sha256, path)| (if sha256 == old { new.clone() } else { sha256 }, path))
+        .map(|(kappa, path)| (if kappa == old { new.clone() } else { kappa }, path))
         .collect();
     set_artifact_sources(project, sources);
     edit_declaration(project, module, name, |declaration| {
-        declaration["sha256"] = json!(new);
+        declaration["kappa"] = json!(new);
         declaration["length"] = json!(bytes.len());
     });
     project.relock();
@@ -369,7 +369,7 @@ fn md_01() {
     let nat = json!({"kind": "nat"});
     let under_1_1 = [
         (
-            json!({"kind": "artifact", "name": "w", "role": "binary", "sha256": "0".repeat(64),
+            json!({"kind": "artifact", "name": "w", "role": "binary", "kappa": "0".repeat(64),
                    "length": 1, "schema": {"kind": "bytes"}, "type": {"kind": "bytes"}}),
             "`artifact declaration` is a language-1.2 construct",
         ),
@@ -639,16 +639,16 @@ fn md_02() {
     let mut read: Vec<(String, usize, String)> = checked
         .artifacts
         .iter()
-        .map(|(path, length, sha256)| (path.clone(), *length, sha256.to_hex()))
+        .map(|(path, length, kappa)| (path.clone(), *length, kappa.label()))
         .collect();
     read.sort();
     let mut expected: Vec<(String, usize, String)> = sources
         .iter()
-        .map(|(sha256, path)| {
+        .map(|(kappa, path)| {
             let bytes =
                 std::fs::read(project.root.join(path).as_std_path()).expect("artifact bytes");
-            assert_eq!(&digest(&bytes), sha256, "{path} has its configured digest");
-            (path.clone(), bytes.len(), sha256.clone())
+            assert_eq!(&digest(&bytes), kappa, "{path} has its configured digest");
+            (path.clone(), bytes.len(), kappa.clone())
         })
         .collect();
     expected.sort();
@@ -725,7 +725,7 @@ fn md_02() {
             (
                 row["path"].as_str().expect("path").to_owned(),
                 usize::try_from(row["byte_length"].as_u64().expect("length")).expect("fits"),
-                row["sha256"].as_str().expect("sha256").to_owned(),
+                row["kappa"].as_str().expect("kappa").to_owned(),
             )
         })
         .collect();
@@ -781,7 +781,7 @@ fn md_02() {
     });
     refused(&length, "LLR3007", "has 5 bytes, not the declared length 6");
     let unconfigured = mutated("Recognizer", "banner", |declaration| {
-        declaration["sha256"] = json!("0".repeat(64));
+        declaration["kappa"] = json!("0".repeat(64));
     });
     refused(&unconfigured, "LLR3007", "has no project artifact source");
     // LLR3008: shape, element, type, role, encoding.
@@ -970,7 +970,7 @@ fn md_02() {
     set_artifact_sources(&wide, sources);
     for name in names {
         edit_declaration(&wide, "Main", name, |declaration| {
-            declaration["sha256"] = json!(digest(&lines));
+            declaration["kappa"] = json!(digest(&lines));
             declaration["length"] = json!(lines.len());
         });
     }
@@ -2564,7 +2564,7 @@ impl Differential {
                 "name": name,
                 "role": "parameters",
                 "schema": shape["schema"],
-                "sha256": digest(&bytes),
+                "kappa": digest(&bytes),
                 "type": shape["type"],
             }));
         }
@@ -2682,7 +2682,7 @@ impl Differential {
             declaration["axioms"] = json!(axioms);
             declarations.push(declaration);
         }
-        let data = json!({"declarations": declarations, "spec": "lexlean/semantic-module/2"});
+        let data = json!({"declarations": declarations, "spec": "lexlean/semantic-module/3"});
         format!(
             "\\begin{{lexlean}}{{Main}}\n\\useglossary{{lexlean.std.nat@1.2.0}}\n\\title{{Natural number addition}}\n\\begin{{semanticmodule}}\n\\semanticdata{{{}}}\n\\end{{semanticmodule}}\n\\end{{lexlean}}\n",
             serde_json::to_string(&data).expect("serializes")
@@ -2834,7 +2834,7 @@ fn md_10() {
     });
     unchecked.check_ok();
     ids.push(id(&unchecked));
-    let distinct: BTreeSet<String> = ids.iter().map(Sha256Digest::to_hex).collect();
+    let distinct: BTreeSet<String> = ids.iter().map(Kappa::label).collect();
     assert_eq!(
         distinct.len(),
         ids.len(),

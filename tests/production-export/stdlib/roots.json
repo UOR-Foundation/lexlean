@@ -81,6 +81,14 @@
       "version": "1.0.0"
     },
     {
+      "name": "blake3_label",
+      "root": "LexLeanStd.Blake3.blake3Label",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
       "name": "sha256",
       "root": "LexLeanStd.Sha256.sha256",
       "targets": [

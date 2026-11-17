@@ -86,7 +86,7 @@ fn pin_and_digest() {
     // The digest: the frame is the one the pin states.
     let dir = tempfile::tempdir().expect("tempdir");
     pin_tree(dir.path());
-    let (digest, files) = oracle::tree_digest(dir.path(), &synthetic_pin()).expect("digest");
+    let (digest, files) = oracle::tree_kappa(dir.path(), &synthetic_pin()).expect("digest");
     assert_eq!((digest.as_str(), files), (SYNTHETIC_DIGEST, 2));
     // A file outside the used prefixes, a `.git` or `.lake` or `target`
     // directory, and an empty directory are not part of it ...
@@ -96,7 +96,7 @@ fn pin_and_digest() {
     write(dir.path(), ".git/HEAD", "ignored");
     std::fs::create_dir_all(dir.path().join("lean/empty")).expect("dir");
     assert_eq!(
-        oracle::tree_digest(dir.path(), &synthetic_pin())
+        oracle::tree_kappa(dir.path(), &synthetic_pin())
             .expect("digest")
             .0,
         SYNTHETIC_DIGEST
@@ -107,7 +107,7 @@ fn pin_and_digest() {
         let copy = tempfile::tempdir().expect("tempdir");
         pin_tree(copy.path());
         edit(copy.path());
-        oracle::tree_digest(copy.path(), &synthetic_pin())
+        oracle::tree_kappa(copy.path(), &synthetic_pin())
             .expect("digest")
             .0
     };
@@ -476,7 +476,7 @@ fn origin() -> (tempfile::TempDir, Pin) {
     pin.commit = git(&["rev-parse", "HEAD"]);
     pin.remote = dir.path().display().to_string();
     pin.timeout_seconds = 120;
-    let (digest, files) = oracle::tree_digest(dir.path(), &pin).expect("digest");
+    let (digest, files) = oracle::tree_kappa(dir.path(), &pin).expect("digest");
     pin.tree_sha256 = digest;
     pin.tree_files = files;
     (dir, pin)
@@ -641,7 +641,7 @@ fn isolation_tree() -> tempfile::TempDir {
     write(
         dir.path(),
         "compiler/lexlean.lock",
-        "spec = \"lexlean/lock/1\"\n",
+        "spec = \"lexlean/lock/3\"\n",
     );
     write(
         dir.path(),

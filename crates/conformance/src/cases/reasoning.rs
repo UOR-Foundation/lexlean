@@ -10,7 +10,7 @@ use std::collections::BTreeSet;
 use std::sync::OnceLock;
 
 use lexlean::calculus::{interp, Outcome, Value};
-use lexlean::{CheckRequest, Selection, Sha256Digest, VerifyRequest};
+use lexlean::{CheckRequest, Selection, Kappa, VerifyRequest};
 use serde_json::{json, Value as Json};
 
 use crate::support::{self, VerifiedFixture, P};
@@ -2224,7 +2224,7 @@ fn rs_10() {
         project.check_ok();
         ids.push(id(&project));
     }
-    let distinct: BTreeSet<String> = ids.iter().map(Sha256Digest::to_hex).collect();
+    let distinct: BTreeSet<String> = ids.iter().map(Kappa::label).collect();
     assert_eq!(
         distinct.len(),
         ids.len(),

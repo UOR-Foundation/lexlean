@@ -915,7 +915,7 @@ fn parts_equal_the_whole() {
         .join(format!("{replayed}.json"));
     let text = std::fs::read_to_string(record_path.as_std_path()).expect("the replay record");
     let recorded = serde_json::from_str::<serde_json::Value>(&text).expect("the record parses")
-        ["executable_sha256"]
+        ["executable_kappa"]
         .as_str()
         .expect("the record names its executable")
         .to_owned();

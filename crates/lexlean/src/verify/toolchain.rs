@@ -4,7 +4,7 @@
 
 use camino::Utf8PathBuf;
 
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::code;
 use crate::config::Limits;
 use crate::diagnostic::Diagnostic;
@@ -15,8 +15,8 @@ use crate::verify::child::{run as run_child, ChildHome, ChildSpec, Normalizer};
 pub struct Tool {
     /// The absolute executable path.
     pub path: Utf8PathBuf,
-    /// SHA-256 of the executable bytes.
-    pub sha256: Sha256Digest,
+    /// κ-label of the executable bytes.
+    pub kappa: Kappa,
     /// The recorded, normalized version output.
     pub version_output: String,
 }
@@ -65,7 +65,7 @@ fn version_probe(
     path: &Utf8PathBuf,
     argv: &[&str],
     bin_dir: &Utf8PathBuf,
-    sha256: Sha256Digest,
+    kappa: Kappa,
     limits: &Limits,
 ) -> Result<String, Diagnostic> {
     let record = run_child(
@@ -73,7 +73,7 @@ fn version_probe(
             tool: name,
             module: None,
             program: path,
-            executable_sha256: sha256,
+            executable_kappa: kappa,
             argv: argv.iter().map(|argument| (*argument).to_owned()).collect(),
             cwd: bin_dir,
             extra_env: Vec::new(),
@@ -104,14 +104,14 @@ fn load_tool(
             "the pinned toolchain has no `{name}` executable: {path}: {io_error}"
         ))
     })?;
-    let sha256 = Sha256Digest::of(&bytes);
+    let kappa = Kappa::of(&bytes);
     let version_output = match version_argv {
-        Some(argv) => version_probe(name, &path, argv, bin_dir, sha256, limits)?,
+        Some(argv) => version_probe(name, &path, argv, bin_dir, kappa, limits)?,
         None => String::new(),
     };
     Ok(Tool {
         path,
-        sha256,
+        kappa,
         version_output,
     })
 }
@@ -151,8 +151,8 @@ pub fn preflight(limits: &Limits) -> Result<Toolchain, Diagnostic> {
     // the functional check.
     let mut leanchecker = load_tool(&bin_dir, "leanchecker", None, limits)?;
     leanchecker.version_output = format!(
-        "leanchecker bin/leanchecker sha256:{}",
-        leanchecker.sha256.to_hex()
+        "leanchecker bin/leanchecker kappa:{}",
+        leanchecker.kappa.label()
     );
     Ok(Toolchain {
         root,

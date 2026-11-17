@@ -85,3 +85,9 @@ id = "AUTH-NIST-CAVP-SHA256-LONGMSG"
 level = "some-true"
 statement = "The NIST CAVP file SHA256LongMsg.rsp states 64 SHA-256 message and digest pairs, of lengths 1304 to 51200 bits."
 authority = "NIST-CAVP-SHA256-LONGMSG"
+
+[[claim]]
+id = "AUTH-BLAKE3-TEST-VECTORS"
+level = "some-true"
+statement = "The BLAKE3 team's reference test vectors state the BLAKE3 hash of 35 inputs, of lengths 0 to 102400 bytes of the repeating sequence 0, 1, ..., 250, among them af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262 for the empty input."
+authority = "BLAKE3-TEST-VECTORS"

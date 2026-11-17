@@ -1,10 +1,19 @@
 //! Release inventories describe captured bytes, never mutable Cargo caches.
 
 use crate::Fail;
-use lexlean::artifact::content_id::Sha256Digest;
 use std::collections::BTreeMap;
 use std::io::{Cursor, Read, Write};
 use std::path::{Component, Path, PathBuf};
+
+/// The SHA-256 of `bytes` in lowercase hex: the digest `sha256sum` and
+/// crates.io read, an external format and not a LexLean identity.
+pub(super) fn sha256_hex(bytes: &[u8]) -> String {
+    use sha2::Digest as _;
+    sha2::Sha256::digest(bytes)
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
+}
 
 fn canonical_name(name: &str) -> Result<(), Fail> {
     if name.is_empty()
@@ -85,7 +94,7 @@ pub(super) fn crate_manifest(bytes: &[u8], version: &str) -> Result<String, Fail
             if content.len() as u64 != entry.size() {
                 return Err("RP-12: incomplete crate member".into());
             }
-            files.insert(relative.to_owned(), Sha256Digest::of(&content).to_hex());
+            files.insert(relative.to_owned(), sha256_hex(&content));
         } else if entry.size() != 0 {
             return Err("RP-12: crate directory contains payload bytes".into());
         }
@@ -198,7 +207,7 @@ pub(super) fn tree_manifest(root: &Path, excluded: &str) -> Result<String, Fail>
     let mut rows = BTreeMap::new();
     for (name, path) in tree_files(root)? {
         if name != excluded {
-            rows.insert(name, Sha256Digest::of(&std::fs::read(path)?).to_hex());
+            rows.insert(name, sha256_hex(&std::fs::read(path)?));
         }
     }
     render(rows)
@@ -240,8 +249,8 @@ mod tests {
         std::fs::write(stale.path().join("extra.rs"), b"not packaged").unwrap();
         let expected = format!(
             "{}  Cargo.toml\n{}  src/lib.rs\n",
-            Sha256Digest::of(b"manifest").to_hex(),
-            Sha256Digest::of(b"source").to_hex()
+            sha256_hex(b"manifest"),
+            sha256_hex(b"source")
         );
         assert_eq!(crate_manifest(&bytes, "0.3.0").unwrap(), expected);
         std::fs::remove_file(stale.path().join("Cargo.toml")).unwrap();
@@ -362,8 +371,8 @@ mod tests {
             .unwrap();
             let expected = format!(
                 "{}  Cargo.toml\n{}  {relative}\n",
-                Sha256Digest::of(b"manifest").to_hex(),
-                Sha256Digest::of(b"source").to_hex()
+                sha256_hex(b"manifest"),
+                sha256_hex(b"source")
             );
             assert_eq!(
                 crate_manifest(&gzip(&tar.into_inner().unwrap()), "0.3.0").unwrap(),
@@ -383,8 +392,8 @@ mod tests {
         std::fs::write(root.join("a"), b"first").unwrap();
         let expected = format!(
             "{}  a\n{}  z\n",
-            Sha256Digest::of(b"first").to_hex(),
-            Sha256Digest::of(b"last").to_hex()
+            sha256_hex(b"first"),
+            sha256_hex(b"last")
         );
         assert_eq!(tree_manifest(&root, "checksums.txt").unwrap(), expected);
         assert!(tree_manifest(&root.join("missing"), "checksums.txt").is_err());
@@ -435,7 +444,7 @@ mod tests {
         std::fs::write(root.join("file"), b"file").unwrap();
         assert_eq!(
             tree_manifest(&root, "checksums.txt").unwrap(),
-            format!("{}  file\n", Sha256Digest::of(b"file").to_hex())
+            format!("{}  file\n", sha256_hex(b"file"))
         );
         #[cfg(unix)]
         unix_release_path_refusals();

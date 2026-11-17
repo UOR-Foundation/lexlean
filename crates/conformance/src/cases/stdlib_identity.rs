@@ -1,12 +1,10 @@
-//! Every content identity is the one the `sha2` crate gave (SPEC.md §21,
-//! `SL-07`, #126 stage 2): the compiler's digest is held, over the whole
-//! repository tree, to the oracle that computed every committed identity
-//! before the package replaced it, to the values those identities left in the
-//! committed locks, and to the independent recomputations of the recipes. The
-//! oracle may falsify and never establishes.
+//! Every content identity is the one the reference BLAKE3 gives (SPEC.md
+//! §21, `SL-07`): the compiler's κ-label is held, over the whole repository
+//! tree, to the reference `blake3` crate, to the values the identities left in
+//! the committed locks, and to the independent recomputations of the recipes.
+//! The oracle may falsify and never establishes.
 
-use lexlean::artifact::content_id::Sha256Digest;
-use sha2::{Digest, Sha256};
+use lexlean::artifact::content_id::Kappa;
 
 use crate::support::{self, P};
 
@@ -25,18 +23,14 @@ const RECIPES: [&str; 6] = ["AR-05", "AR-06", "SM-10", "CF-07", "CF-09", "TX-10"
 /// `verify-examples` and the shards, not by this case).
 const ATLAS: &str = "uor-atlas";
 
-fn oracle(bytes: &[u8]) -> [u8; 32] {
-    Sha256::digest(bytes).into()
-}
-
 /// The tracked files and their digests under `digest`, compared with the
 /// oracle's: the first file that differs, and how many were compared.
 fn compare_tree(
     files: &[(String, Vec<u8>)],
-    digest: &dyn Fn(&[u8]) -> [u8; 32],
+    digest: &dyn Fn(&[u8]) -> String,
 ) -> (Option<String>, usize) {
     for (index, (path, bytes)) in files.iter().enumerate() {
-        if digest(bytes) != oracle(bytes) {
+        if digest(bytes) != support::oracle_kappa(bytes).label() {
             return (Some(path.clone()), index + 1);
         }
     }
@@ -66,7 +60,7 @@ pub(super) fn run(id: &str) {
     let root = support::repo_root();
 
     // Armed: the two sides are two implementations, so agreement is evidence.
-    super::stdlib_digest::has_no_sha2(&super::stdlib_digest::workspace_metadata()).unwrap_or_else(
+    super::stdlib_digest::has_no_hash_crate(&super::stdlib_digest::workspace_metadata()).unwrap_or_else(
         |reason| panic!("{reason}: the compiler's digest and the oracle are one implementation"),
     );
 
@@ -100,7 +94,7 @@ pub(super) fn run(id: &str) {
         "{} tracked files: the tree is not the repository",
         files.len()
     );
-    let compiler = |bytes: &[u8]| Sha256Digest::of(bytes).0;
+    let compiler = |bytes: &[u8]| Kappa::of(bytes).label();
     let (differs, compared) = compare_tree(&files, &compiler);
     assert_eq!(
         differs, None,
@@ -111,7 +105,7 @@ pub(super) fn run(id: &str) {
     for (language, lock) in PINS {
         let committed = pinned(&root, lock);
         assert_eq!(
-            lexlean::compiler_semantics_id_for(language).to_hex(),
+            lexlean::compiler_semantics_id_for(language).label(),
             committed,
             "the compiler-semantics ID of language {language} is the one {lock} pins"
         );
@@ -142,9 +136,10 @@ pub(super) fn run(id: &str) {
 
     // Each planted defect is found by the check the tree just passed.
     let flipped = |bytes: &[u8]| {
-        let mut out = Sha256Digest::of(bytes).0;
-        out[0] ^= 1;
-        out
+        let mut out = Kappa::of(bytes).label().into_bytes();
+        let last = out.len() - 1;
+        out[last] = if out[last] == b'0' { b'1' } else { b'0' };
+        String::from_utf8(out).expect("ascii")
     };
     assert!(
         compare_tree(&files, &flipped).0.is_some(),
@@ -152,29 +147,30 @@ pub(super) fn run(id: &str) {
     );
     let (_, lock) = PINS[2];
     let mut pin = pinned(&root, lock).into_bytes();
-    pin[0] = if pin[0] == b'0' { b'1' } else { b'0' };
+    let last = pin.len() - 1;
+    pin[last] = if pin[last] == b'0' { b'1' } else { b'0' };
     assert_ne!(
         lexlean::compiler_semantics_id_for("1.2")
-            .to_hex()
+            .label()
             .as_bytes(),
         pin.as_slice(),
         "a bit changed in a pinned compiler-semantics ID is found"
     );
-    let mut right = lexlean::artifact::content_id::FramedHasher::new("lexlean-source-v1");
+    let mut right = lexlean::artifact::content_id::FramedHasher::new("lexlean-source-v2");
     right.frame("project", b"project");
     right.frame("lock", b"lock");
-    let mut independent = Sha256::new();
-    independent.update(b"lexlean-source-v1\0");
+    let mut independent = blake3::Hasher::new();
+    independent.update(b"lexlean-source-v2\0");
     // The frames in the wrong order: the lock before the project.
     for (label, bytes) in [("lock", b"lock".as_slice()), ("project", b"project")] {
-        independent.update((label.len() as u32).to_be_bytes());
+        independent.update(&(label.len() as u32).to_be_bytes());
         independent.update(label.as_bytes());
-        independent.update((bytes.len() as u64).to_be_bytes());
+        independent.update(&(bytes.len() as u64).to_be_bytes());
         independent.update(bytes);
     }
     assert_ne!(
-        right.finish().0,
-        <[u8; 32]>::from(independent.finalize()),
+        right.finish(),
+        support::oracle_finish(&independent),
         "the order of a source-ID recipe's frames is found"
     );
 }

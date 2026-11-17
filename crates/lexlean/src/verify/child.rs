@@ -11,7 +11,7 @@ use std::time::{Duration, Instant};
 use camino::{Utf8Path, Utf8PathBuf};
 
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::code;
 use crate::config::Limits;
 use crate::diagnostic::Diagnostic;
@@ -189,8 +189,8 @@ pub struct ChildRecord {
     pub stdout: String,
     /// Normalized stderr.
     pub stderr: String,
-    /// SHA-256 of the executable.
-    pub executable_sha256: Sha256Digest,
+    /// κ-label of the executable.
+    pub executable_kappa: Kappa,
 }
 
 impl ChildRecord {
@@ -205,18 +205,18 @@ impl ChildRecord {
             ),
             ("exit_code", Json::Int(i64::from(self.exit_code))),
             (
-                "executable_sha256",
-                Json::Str(self.executable_sha256.to_hex()),
+                "executable_kappa",
+                Json::Str(self.executable_kappa.label()),
             ),
             ("stdout", Json::Str(self.stdout.clone())),
             ("stderr", Json::Str(self.stderr.clone())),
             (
-                "stdout_sha256",
-                Json::Str(Sha256Digest::of(self.stdout.as_bytes()).to_hex()),
+                "stdout_kappa",
+                Json::Str(Kappa::of(self.stdout.as_bytes()).label()),
             ),
             (
-                "stderr_sha256",
-                Json::Str(Sha256Digest::of(self.stderr.as_bytes()).to_hex()),
+                "stderr_kappa",
+                Json::Str(Kappa::of(self.stderr.as_bytes()).label()),
             ),
         ];
         if let Some(module) = &self.module {
@@ -261,8 +261,8 @@ impl ChildRecord {
         };
         let stdout = text("stdout")?;
         let stderr = text("stderr")?;
-        for (name, stream) in [("stdout_sha256", &stdout), ("stderr_sha256", &stderr)] {
-            if text(name)? != Sha256Digest::of(stream.as_bytes()).to_hex() {
+        for (name, stream) in [("stdout_kappa", &stdout), ("stderr_kappa", &stderr)] {
+            if text(name)? != Kappa::of(stream.as_bytes()).label() {
                 return Err(format!("`{name}` is not the digest of the stream"));
             }
         }
@@ -275,11 +275,11 @@ impl ChildRecord {
             "tool",
             "argv",
             "exit_code",
-            "executable_sha256",
+            "executable_kappa",
             "stdout",
             "stderr",
-            "stdout_sha256",
-            "stderr_sha256",
+            "stdout_kappa",
+            "stderr_kappa",
             "module",
         ]
         .into_iter()
@@ -294,7 +294,7 @@ impl ChildRecord {
             exit_code,
             stdout,
             stderr,
-            executable_sha256: Sha256Digest::from_hex(&text("executable_sha256")?)?,
+            executable_kappa: Kappa::parse(&text("executable_kappa")?)?,
         })
     }
 }
@@ -325,7 +325,7 @@ pub struct ChildSpec<'a> {
     /// The absolute executable.
     pub program: &'a Utf8Path,
     /// The executable digest, already computed by preflight.
-    pub executable_sha256: Sha256Digest,
+    pub executable_kappa: Kappa,
     /// The argument vector.
     pub argv: Vec<String>,
     /// The working directory (the Lake workspace, §22.2).
@@ -599,7 +599,7 @@ pub fn run(
         exit_code: status.code().unwrap_or(-1),
         stdout: normalizer.normalize(&stdout_bytes),
         stderr: normalizer.normalize(&stderr_bytes),
-        executable_sha256: spec.executable_sha256,
+        executable_kappa: spec.executable_kappa,
     })
 }
 
@@ -608,7 +608,7 @@ mod timeout_tests {
     #[cfg(unix)]
     use super::{run, ChildHome, ChildSpec, Normalizer};
     #[cfg(unix)]
-    use crate::artifact::content_id::Sha256Digest;
+    use crate::artifact::content_id::Kappa;
     #[cfg(unix)]
     use camino::Utf8Path;
 
@@ -719,7 +719,7 @@ mod timeout_tests {
             tool: "lake",
             module: Some(marker.clone()),
             program: Utf8Path::new(SHELL),
-            executable_sha256: Sha256Digest::of(b"script"),
+            executable_kappa: Kappa::of(b"script"),
             argv: vec![script.to_string()],
             cwd,
             extra_env: Vec::new(),
@@ -785,7 +785,7 @@ mod timeout_tests {
             tool: "pipe-holder",
             module: Some(stream.to_owned()),
             program: Utf8Path::new(SHELL),
-            executable_sha256: Sha256Digest::of(b"script"),
+            executable_kappa: Kappa::of(b"script"),
             argv: vec![script.to_string()],
             cwd,
             extra_env: Vec::new(),
@@ -840,7 +840,7 @@ mod timeout_tests {
             tool: "pipe-holder",
             module: None,
             program: Utf8Path::new(SHELL),
-            executable_sha256: Sha256Digest::of(b"script"),
+            executable_kappa: Kappa::of(b"script"),
             argv: vec![script.to_string()],
             cwd,
             extra_env: Vec::new(),

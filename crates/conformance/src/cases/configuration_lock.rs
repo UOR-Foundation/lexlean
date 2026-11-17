@@ -53,7 +53,7 @@ fn path_package_project() -> P {
 }
 
 /// The exact `[pdf]` table used to exercise the lock's provider record.
-const PDF_TABLE: &str = "\n[pdf]\nmode = \"external\"\nprogram = \"tools/render\"\nprogram_sha256 = \"0000000000000000000000000000000000000000000000000000000000000000\"\nversion_argv = [\"--version\"]\nversion_stdout_sha256 = \"1111111111111111111111111111111111111111111111111111111111111111\"\ncompile_argv = [\"--outdir\", \"{out_dir}\", \"{input}\"]\noutput = \"{stem}.pdf\"\nresources = [\"assets/a.txt\"]\n";
+const PDF_TABLE: &str = "\n[pdf]\nmode = \"external\"\nprogram = \"tools/render\"\nprogram_kappa = \"0000000000000000000000000000000000000000000000000000000000000000\"\nversion_argv = [\"--version\"]\nversion_stdout_kappa = \"1111111111111111111111111111111111111111111111111111111111111111\"\ncompile_argv = [\"--outdir\", \"{out_dir}\", \"{input}\"]\noutput = \"{stem}.pdf\"\nresources = [\"assets/a.txt\"]\n";
 
 #[allow(clippy::too_many_lines)]
 pub(crate) fn run(id: &str) {
@@ -71,7 +71,7 @@ pub(crate) fn run(id: &str) {
             let wrong_spec = P::example();
             wrong_spec.edit(
                 "lexlean.toml",
-                "spec = \"lexlean/project/1\"",
+                "spec = \"lexlean/project/2\"",
                 "spec = \"lexlean/project/2\"",
             );
             load_fails_with(&wrong_spec, "LLC0103");
@@ -535,8 +535,8 @@ pub(crate) fn run(id: &str) {
             let reordered = P::example();
             reordered.edit(
                 "lexlean.toml",
-                "spec = \"lexlean/project/1\"\nname = \"nat-add-zero\"\n",
-                "name = \"nat-add-zero\"\nspec = \"lexlean/project/1\"\n",
+                "spec = \"lexlean/project/2\"\nname = \"nat-add-zero\"\n",
+                "name = \"nat-add-zero\"\nspec = \"lexlean/project/2\"\n",
             );
             reordered.check_ok();
             lock_check_fails_with(&reordered, "LLC0101");
@@ -554,7 +554,7 @@ pub(crate) fn run(id: &str) {
             pdf.relock();
             let lock_text = pdf.read("lexlean.lock");
             let expected_pdf = format!(
-                "\n[pdf]\nprogram = \"tools/render\"\nprogram_sha256 = \"{}\"\nversion_argv = [\"--version\"]\nversion_stdout_sha256 = \"{}\"\ncompile_argv = [\"--outdir\", \"{{out_dir}}\", \"{{input}}\"]\noutput = \"{{stem}}.pdf\"\n\n[[pdf.resource]]\npath = \"assets/a.txt\"\nsha256 = \"{}\"\n",
+                "\n[pdf]\nprogram = \"tools/render\"\nprogram_kappa = \"{}\"\nversion_argv = [\"--version\"]\nversion_stdout_kappa = \"{}\"\ncompile_argv = [\"--outdir\", \"{{out_dir}}\", \"{{input}}\"]\noutput = \"{{stem}}.pdf\"\n\n[[pdf.resource]]\npath = \"assets/a.txt\"\nsha256 = \"{}\"\n",
                 "0".repeat(64),
                 "1".repeat(64),
                 hex(&sha2::Sha256::digest(b"resource\n"))
@@ -605,7 +605,7 @@ pub(crate) fn run(id: &str) {
                 lock.contains("id = \"lexlean.std.nat\""),
                 "the configured package"
             );
-            let digests = lock.matches("tree_sha256 = \"").count();
+            let digests = lock.matches("tree_kappa = \"").count();
             assert!(digests >= 2, "every locked package carries a tree digest");
 
             // §12.3: the compiler embeds `lexlean.core`'s exact bytes and
@@ -654,7 +654,7 @@ pub(crate) fn run(id: &str) {
             let digest_hex = lock
                 .split("id = \"test.extra\"")
                 .nth(1)
-                .and_then(|rest| rest.split("tree_sha256 = \"").nth(1))
+                .and_then(|rest| rest.split("tree_kappa = \"").nth(1))
                 .and_then(|rest| rest.split('"').next())
                 .expect("the path package has a locked digest");
 
@@ -931,7 +931,7 @@ pub(crate) fn run(id: &str) {
                     .expect("parses");
             for (path, digest) in &mut lock.workspace_files {
                 if path == "lean-toolchain" {
-                    *digest = lexlean::Sha256Digest::of(b"leanprover/lean4:v4.31.0\n");
+                    *digest = lexlean::Kappa::of(b"leanprover/lean4:v4.31.0\n");
                 }
             }
             let error = lexlean::verify::workspace::preflight(&inner, &lock)
@@ -1077,7 +1077,7 @@ pub(crate) fn run(id: &str) {
             );
             assert!(String::from_utf8(lock_bytes)
                 .expect("utf8")
-                .starts_with("spec = \"lexlean/lock/2\"\nlanguage = \"1.2\"\n"));
+                .starts_with("spec = \"lexlean/lock/4\"\nlanguage = \"1.2\"\n"));
             assert_eq!(support::assert_language_documents(init_root), "1.2");
 
             // 3. Every unsupported or malformed spelling fails with LLC0103
@@ -1140,7 +1140,7 @@ pub(crate) fn run(id: &str) {
             // example is required, not probed.
             let ex11 = P::semantic_example();
             let bytes11 = ex11.read("lexlean.lock");
-            assert!(bytes11.starts_with("spec = \"lexlean/lock/1\"\nlanguage = \"1.1\"\n"));
+            assert!(bytes11.starts_with("spec = \"lexlean/lock/3\"\nlanguage = \"1.1\"\n"));
             let lock11 = lexlean::api::parse_lock_bytes("lexlean.lock", bytes11.as_bytes())
                 .expect("1.1 lock parses");
             assert_eq!(
@@ -1193,7 +1193,7 @@ pub(crate) fn run(id: &str) {
 
             // 4. The explicit migration (§17.12): the language row, every
             // discriminator, every builtin glossary reference, then `lock`.
-            // The lock becomes `lexlean/lock/2`, validates against its schema,
+            // The lock becomes `lexlean/lock/4`, validates against its schema,
             // and the generated Lean declarations are unchanged.
             let migrated = P::semantic_example();
             let original_lean: Vec<String> = support::rendered(&ex11)
@@ -1210,7 +1210,7 @@ pub(crate) fn run(id: &str) {
                 let path = camino::Utf8PathBuf::from_path_buf(entry.path()).expect("utf8");
                 let text = std::fs::read_to_string(path.as_std_path()).expect("source");
                 let rewritten = text
-                    .replace("lexlean/semantic-module/1", "lexlean/semantic-module/2")
+                    .replace("lexlean/semantic-module/1", "lexlean/semantic-module/3")
                     .replace("@1.1.0}", "@1.2.0}");
                 // Language 1.2 refuses the data form (§17.21.1): the migration
                 // writes the module in the notation, as `fmt` is told to.
@@ -1227,7 +1227,7 @@ pub(crate) fn run(id: &str) {
             lock_check_fails_with(&migrated, "LLC0102");
             migrated.relock();
             let migrated_lock = migrated.read("lexlean.lock");
-            assert!(migrated_lock.starts_with("spec = \"lexlean/lock/2\"\nlanguage = \"1.2\"\n"));
+            assert!(migrated_lock.starts_with("spec = \"lexlean/lock/4\"\nlanguage = \"1.2\"\n"));
             support::assert_toml_file_schema("lock-v2", &migrated.root.join("lexlean.lock"));
             support::assert_toml_file_schema("project-v2", &migrated.root.join("lexlean.toml"));
             let migrated_lean: Vec<String> = support::rendered(&migrated)
@@ -1296,7 +1296,7 @@ pub(crate) fn run(id: &str) {
 
             // 5. An unsupported lock schema fails parsing with LLC0103.
             let bad_lock =
-                bytes10.replacen("spec = \"lexlean/lock/1\"", "spec = \"lexlean/lock/3\"", 1);
+                bytes10.replacen("spec = \"lexlean/lock/3\"", "spec = \"lexlean/lock/3\"", 1);
             let error = lexlean::api::parse_lock_bytes("lexlean.lock", bad_lock.as_bytes())
                 .expect_err("bad lock spec fails");
             assert!(error.iter().any(|d| d.code.as_str() == "LLC0103"));

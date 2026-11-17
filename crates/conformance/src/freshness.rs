@@ -19,7 +19,6 @@ use std::collections::BTreeMap;
 use camino::{Utf8Path, Utf8PathBuf};
 use lexlean::{Engine, LockRequest};
 use serde_json::Value;
-use sha2::{Digest, Sha256};
 
 /// The projects of `tests/production-export/`, each with its directory.
 pub const EXPORTED: [(&str, &str); 5] = [
@@ -41,11 +40,8 @@ pub struct Summary {
     pub packages: usize,
 }
 
-fn sha256_hex(bytes: &[u8]) -> String {
-    Sha256::digest(bytes)
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect()
+fn kappa_label(bytes: &[u8]) -> String {
+    crate::support::oracle_kappa(bytes).label()
 }
 
 fn read_json(path: &Utf8Path) -> Result<Value, String> {
@@ -111,7 +107,7 @@ pub fn check_project(root: &Utf8Path, project: &Utf8Path) -> Result<(String, usi
     let manifest = read_json(&project.join("expected/build/manifest.json"))?;
     let name = project.strip_prefix(root).unwrap_or(project);
     let language = manifest["language"].as_str().unwrap_or_default();
-    let compiler = lexlean::compiler_semantics_id_for(language).to_hex();
+    let compiler = lexlean::compiler_semantics_id_for(language).label();
     if manifest["compiler"]["semantics_id"].as_str() != Some(compiler.as_str()) {
         unmet.push(format!(
             "{name}: expected/build was built by compiler semantics {}, this compiler is {compiler}",
@@ -143,7 +139,7 @@ pub fn check_project(root: &Utf8Path, project: &Utf8Path) -> Result<(String, usi
         hashed += 1;
         match std::fs::read(file.as_std_path()) {
             Ok(bytes) => {
-                if input["sha256"].as_str() != Some(sha256_hex(&bytes).as_str())
+                if input["kappa"].as_str() != Some(kappa_label(&bytes).as_str())
                     || input["byte_length"].as_u64() != Some(bytes.len() as u64)
                 {
                     unmet.push(format!(
@@ -202,7 +198,7 @@ pub fn check(root: &Utf8Path) -> Result<Summary, String> {
             Err(reason) => unmet.push(reason),
         }
     }
-    let compiler = lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_2).to_hex();
+    let compiler = lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_2).label();
     for (exported, directory) in EXPORTED {
         let packages = root
             .join("tests/production-export")

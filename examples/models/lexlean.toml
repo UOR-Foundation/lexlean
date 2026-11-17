@@ -1,4 +1,4 @@
-spec = "lexlean/project/1"
+spec = "lexlean/project/2"
 name = "models"
 language = "1.2"
 module_prefix = "Models"
@@ -19,36 +19,36 @@ kind = "path"
 path = "glossary/models.titles"
 
 [[artifact_source]]
-sha256 = "102bf7ceb176bc23dd4abb56dada713135d79093a79c20c7c79471f751f9a778"
-path = "artifacts/hidden-bias.bin"
-
-[[artifact_source]]
-sha256 = "3369421cb6a657bcbdbec197a0c3b2a8e208dd7746853513f9d77331d0fa1397"
+kappa = "blake3:5f39ffd7ec1a5f11af6315f207684339db711b2218cf66804465a101f8306d3b"
 path = "artifacts/banner.bin"
 
 [[artifact_source]]
-sha256 = "34b5d0d734084832dea276360f994018f4e6eb7921334265e58217b360a2a79d"
-path = "artifacts/triage-bias.bin"
-
-[[artifact_source]]
-sha256 = "476e03af7ff499e63fe93fffa0567a69128761f538ec7dd1f3e2c197a0c90981"
-path = "artifacts/digit-names.txt"
-
-[[artifact_source]]
-sha256 = "670b5066543781ad41947e253f1e5dd45157070e78116a588dc2b6bcea2e7bd8"
+kappa = "blake3:6d745aa801dfdc8e478e6d24313cbea50f425782338dfdb19fe60554939673c8"
 path = "artifacts/hidden-weights.bin"
 
 [[artifact_source]]
-sha256 = "6a536cff5b44d31e45ff9b128794e29c3fe9c09bad111f0dbe9df3fc29941de7"
+kappa = "blake3:9e26f69b34f5f0f99f51f5c6b827c5c1ac8070c55ded10accee4d296340fbe8c"
+path = "artifacts/triage-bias.bin"
+
+[[artifact_source]]
+kappa = "blake3:9e4770bc4f129b921caa2c73e414fb957cb6f31ffc9d853094efd69d221e3cab"
 path = "artifacts/output-weights.bin"
 
 [[artifact_source]]
-sha256 = "7a1039fea753fdbab50d96e9b180fb5f987c6ba688d847da0e209608c5c0f58e"
-path = "artifacts/triage-weights.bin"
+kappa = "blake3:ab72e28732cefae65ea3a159b18fd5b89d644f50f8d8cf2438aac4038d50ba5a"
+path = "artifacts/hidden-bias.bin"
 
 [[artifact_source]]
-sha256 = "ba0505206b75f60de72e117e01155033a68c40972a7f6687a2b05ca0004c5ab4"
+kappa = "blake3:ae8b631d12b4d52954bd25082e0735ce5612a6de5530d068f60bbc2deb05a5d4"
 path = "artifacts/output-bias.bin"
+
+[[artifact_source]]
+kappa = "blake3:cbab770bc2e356dab94a462427d630dec702ac9b4d9a05603a60e82b043645ac"
+path = "artifacts/digit-names.txt"
+
+[[artifact_source]]
+kappa = "blake3:df06bf17c5f5d8e359ddbd9758d8a9f256ed6263898998c9397e7d661e78f286"
+path = "artifacts/triage-weights.bin"
 
 [limits]
 max_file_bytes = 4194304

@@ -855,6 +855,18 @@ pub fn audit_oracle_isolation(root: &Path) -> Result<(), Fail> {
     Ok(())
 }
 
+/// AR-15 (§21.1): every identity is a BLAKE3 κ-label, and the 256-bit SHA-2
+/// digest appears only where a format LexLean does not own requires it
+/// (`repo_model::hashes`, shared with the case that plants each defect).
+pub fn audit_hashes(root: &Path) -> Result<(), Fail> {
+    let files = repo_model::hashes::scan(root)?;
+    println!(
+        "audit-hashes: {files} files hold no SHA-2 digest outside the {} sanctioned external formats (AR-15)",
+        repo_model::hashes::ALLOWED.len()
+    );
+    Ok(())
+}
+
 /// R4: nothing is deferred. The markers are spelled in halves so this gate
 /// can scan its own source; exempting the file would put a hole exactly
 /// where a deferral parked in a gate would sit.
@@ -1263,8 +1275,8 @@ pub fn audit_shipped(root: &Path) -> Result<(), Fail> {
         ("crates/lexlean/LICENSE-APACHE", "LICENSE-APACHE"),
         ("crates/lexlean/LICENSE-MIT", "LICENSE-MIT"),
         (
-            "crates/lexlean/sha256_package.rs",
-            "tests/production-export/stdlib/packages/rust-std/sha256/src/lib.rs",
+            "crates/lexlean/blake3_package.rs",
+            "tests/production-export/stdlib/packages/rust-std/blake3_label/src/lib.rs",
         ),
     ] {
         let link_path = root.join(link);

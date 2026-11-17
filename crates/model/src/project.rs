@@ -252,9 +252,9 @@ impl Module {
         let object = data
             .as_object()
             .ok_or_else(|| refuse("the module is not an object".to_owned()))?;
-        if object.len() != 2 || object.get("spec") != Some(&json!("lexlean/semantic-module/2")) {
+        if object.len() != 2 || object.get("spec") != Some(&json!("lexlean/semantic-module/3")) {
             return Err(refuse(
-                "the module is not a `lexlean/semantic-module/2` with only `spec` and `declarations`"
+                "the module is not a `lexlean/semantic-module/3` with only `spec` and `declarations`"
                     .to_owned(),
             ));
         }

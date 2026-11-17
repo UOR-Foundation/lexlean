@@ -108,7 +108,7 @@ pub fn run() {
     // Language 1.1 has no evaluation proof.
     let earlier = formatted
         .replace("@1.2.0", "@1.1.0")
-        .replace("lexlean/semantic-module/2", "lexlean/semantic-module/1");
+        .replace("lexlean/semantic-module/3", "lexlean/semantic-module/1");
     let shown = format!("{:?}", project_of(&earlier, "1.1").check_err());
     assert!(shown.contains("evaluation proof"), "language 1.1: {shown}");
 }

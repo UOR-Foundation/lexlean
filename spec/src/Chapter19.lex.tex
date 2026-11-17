@@ -363,7 +363,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "1. verifies the provider executable SHA-256;" (cons "2. invokes `version_argv` with no shell;" (cons "3. normalizes stdout and verifies `version_stdout_sha256`;" (cons "4. creates an isolated temporary working directory;" (cons "5. copies only the canonical `.tex` and declared regular resource files into it;" (cons "6. expands only the whole-argument placeholders:" (cons "   - `{input}`;" (cons "   - `{out_dir}`;" (cons "   - `{stem}`;" (cons "7. invokes `compile_argv` directly, with no shell parsing;" (cons "8. enforces child timeout and output-size limits;" (cons "9. requires exactly the configured output regular file;" (cons "10. requires the bytes to begin with `％PDF-`;" (cons "11. copies the PDF atomically into the platform-bound verification artifact set;" (cons "12. records process, recipe, and output hashes." (nil String))))))))))))))))
+      (cons "1. verifies the provider executable κ-label;" (cons "2. invokes `version_argv` with no shell;" (cons "3. normalizes stdout and verifies `version_stdout_kappa`;" (cons "4. creates an isolated temporary working directory;" (cons "5. copies only the canonical `.tex` and declared regular resource files into it;" (cons "6. expands only the whole-argument placeholders:" (cons "   - `{input}`;" (cons "   - `{out_dir}`;" (cons "   - `{stem}`;" (cons "7. invokes `compile_argv` directly, with no shell parsing;" (cons "8. enforces child timeout and output-size limits;" (cons "9. requires exactly the configured output regular file;" (cons "10. requires the bytes to begin with `％PDF-`;" (cons "11. copies the PDF atomically into the platform-bound verification artifact set;" (cons "12. records process, recipe, and output hashes." (nil String))))))))))))))))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -430,7 +430,7 @@ definition{
   body: constructor{
     arguments: [
       "text",
-      (cons "SHA256(" (cons "  \"lexlean-pdf-recipe-v1\\0\"" (cons "  || frame(\"tex\", canonical_tex_sha256_bytes)" (cons "  || frame(\"program\", program_sha256_bytes)" (cons "  || frame(\"version-output\", version_stdout_sha256_bytes)" (cons "  || frame(\"argv\", canonical_json(compile_argv))" (cons "  || frame(\"resources\", canonical_json(sorted resource path/hash rows))" (cons ")" (nil String)))))))))
+      (cons "KAPPA(" (cons "  \"lexlean-pdf-recipe-v2\\0\"" (cons "  || frame(\"tex\", tex_label)" (cons "  || frame(\"program\", program_label)" (cons "  || frame(\"version-output\", version_output_label)" (cons "  || frame(\"argv\", canonical_json(compile_argv))" (cons "  || frame(\"resources\", canonical_json(sorted resource path/hash rows))" (cons ")" (nil String)))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -444,7 +444,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "The actual PDF SHA-256 is recorded separately. The recipe and PDF are platform-bound evidence and do not affect `semantic_id`." (nil String))
+      (cons "The actual PDF κ-label is recorded separately. The recipe and PDF are platform-bound evidence and do not affect `semantic_id`." (nil String))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []

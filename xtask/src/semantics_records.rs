@@ -2,7 +2,7 @@
 //! language-1.2 semantics records of the Rust backend (SPEC.md §17.16,
 //! `language/semantics-1.2.toml`): `rust_renderer`, the framed digest of the
 //! renderer's sources, and `rust_runtime_core` and `rust_runtime_std`, the
-//! SHA-256 of each profile's runtime text. The unit tests of the renderer and
+//! κ-label of each profile's runtime text. The unit tests of the renderer and
 //! the runtime fail when a record differs; this computes the records from the
 //! tree, so a change to the backend or its runtime modules writes them rather
 //! than having them copied from a test failure. `just relock-identity` runs it
@@ -10,7 +10,7 @@
 
 use std::path::Path;
 
-use lexlean::artifact::content_id::Sha256Digest;
+use lexlean::artifact::content_id::Kappa;
 use lexlean::calculus::rust::{renderer_digest, runtime, RENDERER_FILES};
 
 use crate::Fail;
@@ -33,12 +33,12 @@ pub fn semantics_records(root: &Path, write: bool) -> Result<(), Fail> {
     let records = [
         (
             "rust_runtime_core",
-            Sha256Digest::of(core.as_bytes()).to_hex(),
+            Kappa::of(core.as_bytes()).label(),
         ),
-        ("rust_renderer", renderer_digest(&files).to_hex()),
+        ("rust_renderer", renderer_digest(&files).label()),
         (
             "rust_runtime_std",
-            Sha256Digest::of(format!("{core}{std_text}").as_bytes()).to_hex(),
+            Kappa::of(format!("{core}{std_text}").as_bytes()).label(),
         ),
     ];
 

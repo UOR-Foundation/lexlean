@@ -6,7 +6,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use camino::{Utf8Path, Utf8PathBuf};
 use serde::Deserialize;
 
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::code;
 use crate::config::{toml_string, LexiconSource};
 use crate::diagnostic::Diagnostic;
@@ -29,9 +29,9 @@ pub struct LockPackage {
     /// `compiler-semantics`, `none`, or the exact commit.
     pub revision: String,
     /// The §11.5 tree digest.
-    pub tree_sha256: Sha256Digest,
-    /// SHA-256 of `lexicon.toml`.
-    pub manifest_sha256: Sha256Digest,
+    pub tree_kappa: Kappa,
+    /// κ-label of `lexicon.toml`.
+    pub manifest_kappa: Kappa,
     /// Sorted unique `package@version` imports.
     pub imports: Vec<String>,
 }
@@ -51,9 +51,9 @@ pub struct LockSourcePackage {
     /// The package's module prefix.
     pub module_prefix: String,
     /// The tree digest over the manifest and the source files.
-    pub tree_sha256: Sha256Digest,
-    /// SHA-256 of the manifest.
-    pub manifest_sha256: Sha256Digest,
+    pub tree_kappa: Kappa,
+    /// κ-label of the manifest.
+    pub manifest_kappa: Kappa,
     /// Sorted unique `package@version` of the packages it declares.
     pub imports: Vec<String>,
 }
@@ -66,17 +66,17 @@ pub struct LockPdf {
     /// The configured project-relative executable.
     pub program: String,
     /// The configured executable hash.
-    pub program_sha256: Sha256Digest,
+    pub program_kappa: Kappa,
     /// The configured version probe argv.
     pub version_argv: Vec<String>,
     /// The configured version-output hash.
-    pub version_stdout_sha256: Sha256Digest,
+    pub version_stdout_kappa: Kappa,
     /// The configured compile argv.
     pub compile_argv: Vec<String>,
     /// The configured output pattern.
     pub output: String,
     /// Hashes of every declared resource, sorted by path.
-    pub resources: Vec<(String, Sha256Digest)>,
+    pub resources: Vec<(String, Kappa)>,
 }
 
 /// The complete lock (§11.1).
@@ -85,11 +85,11 @@ pub struct Lock {
     /// The project-selected language version.
     pub language: String,
     /// The compiler-semantics ID at lock time.
-    pub compiler_semantics: Sha256Digest,
-    /// SHA-256 of the canonical project configuration.
-    pub project_config_sha256: Sha256Digest,
+    pub compiler_semantics: Kappa,
+    /// κ-label of the canonical project configuration.
+    pub project_config_kappa: Kappa,
     /// Workspace pin rows sorted by path.
-    pub workspace_files: Vec<(String, Sha256Digest)>,
+    pub workspace_files: Vec<(String, Kappa)>,
     /// Package rows sorted by `(id, version)`.
     pub packages: Vec<LockPackage>,
     /// Language 1.2: source package rows sorted by identifier, the
@@ -111,18 +111,18 @@ impl Lock {
     pub fn canonical_bytes(&self) -> Vec<u8> {
         let mut out = String::new();
         let spec = match self.language.as_str() {
-            "1.2" => "lexlean/lock/2",
-            _ => "lexlean/lock/1",
+            "1.2" => "lexlean/lock/4",
+            _ => "lexlean/lock/3",
         };
         out.push_str(&format!("spec = {}\n", toml_string(spec)));
         out.push_str(&format!("language = {}\n", toml_string(&self.language)));
         out.push_str(&format!(
             "compiler_semantics = {}\n",
-            toml_string(&self.compiler_semantics.to_hex())
+            toml_string(&self.compiler_semantics.label())
         ));
         out.push_str(&format!(
-            "project_config_sha256 = {}\n",
-            toml_string(&self.project_config_sha256.to_hex())
+            "project_config_kappa = {}\n",
+            toml_string(&self.project_config_kappa.label())
         ));
         out.push_str(&format!(
             "lean_toolchain = {}\n",
@@ -130,10 +130,10 @@ impl Lock {
         ));
         let mut workspace_files = self.workspace_files.clone();
         workspace_files.sort_by(|a, b| a.0.cmp(&b.0));
-        for (path, sha256) in &workspace_files {
+        for (path, kappa) in &workspace_files {
             out.push_str("\n[[workspace_file]]\n");
             out.push_str(&format!("path = {}\n", toml_string(path)));
-            out.push_str(&format!("sha256 = {}\n", toml_string(&sha256.to_hex())));
+            out.push_str(&format!("kappa = {}\n", toml_string(&kappa.label())));
         }
         let mut packages = self.packages.clone();
         packages.sort_by(|a, b| (&a.id, &a.version).cmp(&(&b.id, &b.version)));
@@ -145,12 +145,12 @@ impl Lock {
             out.push_str(&format!("source = {}\n", toml_string(&package.source)));
             out.push_str(&format!("revision = {}\n", toml_string(&package.revision)));
             out.push_str(&format!(
-                "tree_sha256 = {}\n",
-                toml_string(&package.tree_sha256.to_hex())
+                "tree_kappa = {}\n",
+                toml_string(&package.tree_kappa.label())
             ));
             out.push_str(&format!(
-                "manifest_sha256 = {}\n",
-                toml_string(&package.manifest_sha256.to_hex())
+                "manifest_kappa = {}\n",
+                toml_string(&package.manifest_kappa.label())
             ));
             let imports: Vec<String> = package.imports.iter().map(|i| toml_string(i)).collect();
             out.push_str(&format!("imports = [{}]\n", imports.join(", ")));
@@ -170,12 +170,12 @@ impl Lock {
                 toml_string(&package.module_prefix)
             ));
             out.push_str(&format!(
-                "tree_sha256 = {}\n",
-                toml_string(&package.tree_sha256.to_hex())
+                "tree_kappa = {}\n",
+                toml_string(&package.tree_kappa.label())
             ));
             out.push_str(&format!(
-                "manifest_sha256 = {}\n",
-                toml_string(&package.manifest_sha256.to_hex())
+                "manifest_kappa = {}\n",
+                toml_string(&package.manifest_kappa.label())
             ));
             out.push_str(&format!("imports = {}\n", toml_array(&package.imports)));
         }
@@ -183,16 +183,16 @@ impl Lock {
             out.push_str("\n[pdf]\n");
             out.push_str(&format!("program = {}\n", toml_string(&pdf.program)));
             out.push_str(&format!(
-                "program_sha256 = {}\n",
-                toml_string(&pdf.program_sha256.to_hex())
+                "program_kappa = {}\n",
+                toml_string(&pdf.program_kappa.label())
             ));
             out.push_str(&format!(
                 "version_argv = {}\n",
                 toml_array(&pdf.version_argv)
             ));
             out.push_str(&format!(
-                "version_stdout_sha256 = {}\n",
-                toml_string(&pdf.version_stdout_sha256.to_hex())
+                "version_stdout_kappa = {}\n",
+                toml_string(&pdf.version_stdout_kappa.label())
             ));
             out.push_str(&format!(
                 "compile_argv = {}\n",
@@ -201,10 +201,10 @@ impl Lock {
             out.push_str(&format!("output = {}\n", toml_string(&pdf.output)));
             let mut resources = pdf.resources.clone();
             resources.sort_by(|a, b| a.0.cmp(&b.0));
-            for (path, sha256) in &resources {
+            for (path, kappa) in &resources {
                 out.push_str("\n[[pdf.resource]]\n");
                 out.push_str(&format!("path = {}\n", toml_string(path)));
-                out.push_str(&format!("sha256 = {}\n", toml_string(&sha256.to_hex())));
+                out.push_str(&format!("kappa = {}\n", toml_string(&kappa.label())));
             }
         }
         out.into_bytes()
@@ -217,7 +217,7 @@ struct RawLock {
     spec: String,
     language: String,
     compiler_semantics: String,
-    project_config_sha256: String,
+    project_config_kappa: String,
     lean_toolchain: String,
     #[serde(rename = "workspace_file", default)]
     workspace_files: Vec<RawWorkspaceFile>,
@@ -232,7 +232,7 @@ struct RawLock {
 #[serde(deny_unknown_fields)]
 struct RawWorkspaceFile {
     path: String,
-    sha256: String,
+    kappa: String,
 }
 
 #[derive(Deserialize)]
@@ -243,8 +243,8 @@ struct RawLockPackage {
     kind: String,
     source: String,
     revision: String,
-    tree_sha256: String,
-    manifest_sha256: String,
+    tree_kappa: String,
+    manifest_kappa: String,
     imports: Vec<String>,
 }
 
@@ -256,8 +256,8 @@ struct RawLockSourcePackage {
     kind: String,
     source: String,
     module_prefix: String,
-    tree_sha256: String,
-    manifest_sha256: String,
+    tree_kappa: String,
+    manifest_kappa: String,
     imports: Vec<String>,
 }
 
@@ -265,9 +265,9 @@ struct RawLockSourcePackage {
 #[serde(deny_unknown_fields)]
 struct RawLockPdf {
     program: String,
-    program_sha256: String,
+    program_kappa: String,
     version_argv: Vec<String>,
-    version_stdout_sha256: String,
+    version_stdout_kappa: String,
     compile_argv: Vec<String>,
     output: String,
     #[serde(rename = "resource", default)]
@@ -293,10 +293,10 @@ pub fn parse_lock(path: &str, bytes: &[u8]) -> Result<Lock, Vec<Diagnostic>> {
         .map_err(|error| vec![lock_error(format!("{path}: invalid lock: {error}"))])?;
     let mut diagnostics = Vec::new();
     let expected_spec = match raw.language.as_str() {
-        "1.2" => "lexlean/lock/2",
-        _ => "lexlean/lock/1",
+        "1.2" => "lexlean/lock/4",
+        _ => "lexlean/lock/3",
     };
-    if raw.spec != "lexlean/lock/1" && raw.spec != "lexlean/lock/2" {
+    if raw.spec != "lexlean/lock/3" && raw.spec != "lexlean/lock/4" {
         diagnostics.push(Diagnostic::new(
             code!("LLC0103"),
             format!("{path}: unsupported lock schema `{}`", raw.spec),
@@ -323,11 +323,11 @@ pub fn parse_lock(path: &str, bytes: &[u8]) -> Result<Lock, Vec<Diagnostic>> {
         )));
     }
     let hex =
-        |field: &str, value: &str, out: &mut Vec<Diagnostic>| match Sha256Digest::from_hex(value) {
+        |field: &str, value: &str, out: &mut Vec<Diagnostic>| match Kappa::parse(value) {
             Ok(digest) => digest,
             Err(reason) => {
                 out.push(lock_error(format!("{path}: {field}: {reason}")));
-                Sha256Digest([0; 32])
+                Kappa::ZERO
             }
         };
     let compiler_semantics = hex(
@@ -335,18 +335,18 @@ pub fn parse_lock(path: &str, bytes: &[u8]) -> Result<Lock, Vec<Diagnostic>> {
         &raw.compiler_semantics,
         &mut diagnostics,
     );
-    let project_config_sha256 = hex(
-        "project_config_sha256",
-        &raw.project_config_sha256,
+    let project_config_kappa = hex(
+        "project_config_kappa",
+        &raw.project_config_kappa,
         &mut diagnostics,
     );
-    let workspace_files: Vec<(String, Sha256Digest)> = raw
+    let workspace_files: Vec<(String, Kappa)> = raw
         .workspace_files
         .iter()
         .map(|row| {
             (
                 row.path.clone(),
-                hex("workspace_file", &row.sha256, &mut diagnostics),
+                hex("workspace_file", &row.kappa, &mut diagnostics),
             )
         })
         .collect();
@@ -372,8 +372,8 @@ pub fn parse_lock(path: &str, bytes: &[u8]) -> Result<Lock, Vec<Diagnostic>> {
             kind: row.kind.clone(),
             source: row.source.clone(),
             revision: row.revision.clone(),
-            tree_sha256: hex("tree_sha256", &row.tree_sha256, &mut diagnostics),
-            manifest_sha256: hex("manifest_sha256", &row.manifest_sha256, &mut diagnostics),
+            tree_kappa: hex("tree_kappa", &row.tree_kappa, &mut diagnostics),
+            manifest_kappa: hex("manifest_kappa", &row.manifest_kappa, &mut diagnostics),
             imports: row.imports.clone(),
         });
     }
@@ -436,14 +436,14 @@ pub fn parse_lock(path: &str, bytes: &[u8]) -> Result<Lock, Vec<Diagnostic>> {
             kind: row.kind.clone(),
             source: row.source.clone(),
             module_prefix: row.module_prefix.clone(),
-            tree_sha256: hex(
-                "source_package.tree_sha256",
-                &row.tree_sha256,
+            tree_kappa: hex(
+                "source_package.tree_kappa",
+                &row.tree_kappa,
                 &mut diagnostics,
             ),
-            manifest_sha256: hex(
-                "source_package.manifest_sha256",
-                &row.manifest_sha256,
+            manifest_kappa: hex(
+                "source_package.manifest_kappa",
+                &row.manifest_kappa,
                 &mut diagnostics,
             ),
             imports: row.imports.clone(),
@@ -454,14 +454,14 @@ pub fn parse_lock(path: &str, bytes: &[u8]) -> Result<Lock, Vec<Diagnostic>> {
         version_argv: raw_pdf.version_argv.clone(),
         compile_argv: raw_pdf.compile_argv.clone(),
         output: raw_pdf.output.clone(),
-        program_sha256: hex(
-            "pdf.program_sha256",
-            &raw_pdf.program_sha256,
+        program_kappa: hex(
+            "pdf.program_kappa",
+            &raw_pdf.program_kappa,
             &mut diagnostics,
         ),
-        version_stdout_sha256: hex(
-            "pdf.version_stdout_sha256",
-            &raw_pdf.version_stdout_sha256,
+        version_stdout_kappa: hex(
+            "pdf.version_stdout_kappa",
+            &raw_pdf.version_stdout_kappa,
             &mut diagnostics,
         ),
         resources: raw_pdf
@@ -470,7 +470,7 @@ pub fn parse_lock(path: &str, bytes: &[u8]) -> Result<Lock, Vec<Diagnostic>> {
             .map(|row| {
                 (
                     row.path.clone(),
-                    hex("pdf.resource", &row.sha256, &mut diagnostics),
+                    hex("pdf.resource", &row.kappa, &mut diagnostics),
                 )
             })
             .collect(),
@@ -478,7 +478,7 @@ pub fn parse_lock(path: &str, bytes: &[u8]) -> Result<Lock, Vec<Diagnostic>> {
     let lock = Lock {
         language: raw.language,
         compiler_semantics,
-        project_config_sha256,
+        project_config_kappa,
         workspace_files,
         packages,
         source_packages,
@@ -709,8 +709,8 @@ pub fn resolve_packages(
                     kind: "builtin".to_owned(),
                     source: "embedded".to_owned(),
                     revision: "compiler-semantics".to_owned(),
-                    tree_sha256: package.tree_sha256,
-                    manifest_sha256: package.manifest_sha256,
+                    tree_kappa: package.tree_kappa,
+                    manifest_kappa: package.manifest_kappa,
                     imports: package.imports.iter().map(ToString::to_string).collect(),
                 });
                 packages.push(package);
@@ -769,8 +769,8 @@ pub fn resolve_packages(
                                 kind: "path".to_owned(),
                                 source: path.clone(),
                                 revision: "none".to_owned(),
-                                tree_sha256: package.tree_sha256,
-                                manifest_sha256: package.manifest_sha256,
+                                tree_kappa: package.tree_kappa,
+                                manifest_kappa: package.manifest_kappa,
                                 imports: package.imports.iter().map(ToString::to_string).collect(),
                             });
                             packages.push(package);
@@ -804,8 +804,8 @@ pub fn resolve_packages(
                             kind: "git".to_owned(),
                             source: url.clone(),
                             revision: revision.clone(),
-                            tree_sha256: package.tree_sha256,
-                            manifest_sha256: package.manifest_sha256,
+                            tree_kappa: package.tree_kappa,
+                            manifest_kappa: package.manifest_kappa,
                             imports: package.imports.iter().map(ToString::to_string).collect(),
                         });
                         packages.push(package);
@@ -871,7 +871,7 @@ fn resolve_git_package(
             };
             if let Ok(files) = collect_package_files(&candidate, &candidate_relative) {
                 if let Ok(package) = load_package(&candidate_relative, &files, None, load_ctx) {
-                    if package.id == id && name == package.tree_sha256.to_hex() {
+                    if package.id == id && name == package.tree_kappa.hex().to_owned() {
                         return Ok(package);
                     }
                 }
@@ -1020,7 +1020,7 @@ fn acquire_git_package(
             "no `git` executable is available on PATH; `lock --allow-network` needs one",
         )
     })?;
-    let git_sha256 = Sha256Digest::of(
+    let git_kappa = Kappa::of(
         &std::fs::read(git.as_std_path())
             .map_err(|io_error| git_environment("resolve", io_error))?,
     );
@@ -1037,7 +1037,7 @@ fn acquire_git_package(
                     tool: "git",
                     module: Some(format!("lock:{id}")),
                     program: &git,
-                    executable_sha256: git_sha256,
+                    executable_kappa: git_kappa,
                     argv: arguments.iter().map(|a| (*a).to_owned()).collect(),
                     cwd: &checkout,
                     extra_env: vec![("GIT_ASKPASS".to_owned(), String::new())],
@@ -1115,13 +1115,13 @@ fn acquire_git_package(
             .and_then(|()| file.sync_all())
             .map_err(|io_error| git_environment("cache", io_error))?;
     }
-    let cache_dir = cache_base.join(package.tree_sha256.to_hex());
+    let cache_dir = cache_base.join(package.tree_kappa.hex().to_owned());
     let staged = cache_staging.keep();
     if let Err(io_error) = std::fs::rename(&staged, cache_dir.as_std_path()) {
         let _ = std::fs::remove_dir_all(&staged);
         // A concurrent acquisition may have published the same content;
         // that is only acceptable when it validates.
-        let cache_dir_relative = format!("{cache_relative}/{}", package.tree_sha256.to_hex());
+        let cache_dir_relative = format!("{cache_relative}/{}", package.tree_kappa.hex().to_owned());
         let existing = project.confined_dir(&cache_dir_relative).and_then(|dir| {
             collect_package_files(&dir, &cache_dir_relative).map_err(|mut d| {
                 d.pop()
@@ -1166,7 +1166,7 @@ fn pin_candidate(project: &Project, relative: &str) -> Result<Option<Vec<u8>>, D
 /// content must be the exact pinned string), exactly one Lake
 /// configuration, and `lake-manifest.json` when present. Every pinned file
 /// is confined: no symlink component (§25.1).
-pub fn workspace_pins(project: &Project) -> Result<Vec<(String, Sha256Digest)>, Vec<Diagnostic>> {
+pub fn workspace_pins(project: &Project) -> Result<Vec<(String, Kappa)>, Vec<Diagnostic>> {
     let workspace_relative = |name: &str| {
         if project.config.lean_workspace == "." {
             name.to_owned()
@@ -1200,7 +1200,7 @@ pub fn workspace_pins(project: &Project) -> Result<Vec<(String, Sha256Digest)>, 
                         ),
                     ));
                 }
-                rows.push((toolchain_relative.clone(), Sha256Digest::of(&bytes)));
+                rows.push((toolchain_relative.clone(), Kappa::of(&bytes)));
             }
             Err(io_error) => diagnostics.push(Diagnostic::new(
                 code!("LLC0101"),
@@ -1224,13 +1224,13 @@ pub fn workspace_pins(project: &Project) -> Result<Vec<(String, Sha256Digest)>, 
             code!("LLC0101"),
             "the Lake workspace has no lakefile.toml or lakefile.lean",
         )),
-        (Ok(Some(bytes)), Ok(None)) => rows.push((lakefile_toml, Sha256Digest::of(&bytes))),
-        (Ok(None), Ok(Some(bytes))) => rows.push((lakefile_lean, Sha256Digest::of(&bytes))),
+        (Ok(Some(bytes)), Ok(None)) => rows.push((lakefile_toml, Kappa::of(&bytes))),
+        (Ok(None), Ok(Some(bytes))) => rows.push((lakefile_lean, Kappa::of(&bytes))),
     }
 
     let manifest = workspace_relative("lake-manifest.json");
     match pin_candidate(project, &manifest) {
-        Ok(Some(bytes)) => rows.push((manifest, Sha256Digest::of(&bytes))),
+        Ok(Some(bytes)) => rows.push((manifest, Kappa::of(&bytes))),
         Ok(None) => {}
         Err(diagnostic) => diagnostics.push(diagnostic),
     }
@@ -1285,7 +1285,7 @@ pub fn compute_lock(
                         Diagnostic::new(code!("LLC0101"), format!("{resource}: {io_error}"))
                     })
                 }) {
-                    Ok(bytes) => Some((resource.clone(), Sha256Digest::of(&bytes))),
+                    Ok(bytes) => Some((resource.clone(), Kappa::of(&bytes))),
                     Err(diagnostic) => {
                         diagnostics.push(diagnostic);
                         None
@@ -1295,9 +1295,9 @@ pub fn compute_lock(
             .collect();
         LockPdf {
             program: provider.program.clone(),
-            program_sha256: provider.program_sha256,
+            program_kappa: provider.program_kappa,
             version_argv: provider.version_argv.clone(),
-            version_stdout_sha256: provider.version_stdout_sha256,
+            version_stdout_kappa: provider.version_stdout_kappa,
             compile_argv: provider.compile_argv.clone(),
             output: provider.output.clone(),
             resources,
@@ -1310,7 +1310,7 @@ pub fn compute_lock(
         Lock {
             language: project.config.language.clone(),
             compiler_semantics: crate::compiler_semantics_id_for(&project.config.language),
-            project_config_sha256: project.config.config_sha256(),
+            project_config_kappa: project.config.config_kappa(),
             workspace_files,
             packages: resolved.rows,
             source_packages: source_packages.rows(),
@@ -1354,7 +1354,7 @@ pub fn read_current_lock(
             "{} is stale or noncanonical; run `lexlean lock`",
             project.config.lockfile
         ));
-        if committed.project_config_sha256 != expected.project_config_sha256 {
+        if committed.project_config_kappa != expected.project_config_kappa {
             mismatch = mismatch.with_note("the project configuration changed since locking");
         }
         if committed.compiler_semantics != expected.compiler_semantics {

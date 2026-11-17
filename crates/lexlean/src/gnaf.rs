@@ -8,7 +8,7 @@
 //! with its scope), the fail-closed validation of a request, and the answer
 //! the grammar universe has under the calculus denotation. This module is
 //! the host side of that definition: the closed JSON form
-//! `lexlean/gnaf-request/1`, the checks a request must pass before it is
+//! `lexlean/gnaf-request/2`, the checks a request must pass before it is
 //! posed (its universe identity among them), a step-for-step transcription
 //! of validation and evaluation, and the emission of a request as a LexLean
 //! term, so the kernel confirms every committed request's answer against the
@@ -20,7 +20,7 @@ use serde_json::{json, Value as Json};
 
 pub mod certification;
 
-use crate::artifact::content_id::{FramedHasher, Sha256Digest};
+use crate::artifact::content_id::{FramedHasher, Kappa};
 use crate::calculus::{
     interp, term, Expr, Function, Outcome, Prim, Program, Ty, Value, PROGRAM_SPEC,
 };
@@ -29,10 +29,10 @@ use crate::diagnostic::Diagnostic;
 use crate::error::LexLeanError;
 
 /// The schema tag of a request.
-pub const REQUEST_SPEC: &str = "lexlean/gnaf-request/1";
+pub const REQUEST_SPEC: &str = "lexlean/gnaf-request/2";
 
 /// The schema tag of a fixture.
-pub const FIXTURE_SPEC: &str = "lexlean/gnaf-fixture/1";
+pub const FIXTURE_SPEC: &str = "lexlean/gnaf-fixture/2";
 
 /// The schema tag of the dependency manifest (UOR-GNAF §20).
 pub const MANIFEST_SPEC: &str = "lexlean/gnaf-manifest/1";
@@ -271,12 +271,12 @@ pub struct Capacity {
 
 /// A prepared artifact bound in the common initial state of every
 /// competitor (UOR-GNAF §10.8): the preparation action that produced it and
-/// the SHA-256 of its bytes.
+/// the κ-label of its bytes.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Prepared {
     pub kind: ActionKind,
-    pub artifact: Sha256Digest,
+    pub artifact: Kappa,
 }
 
 /// The machine contract: the calculus machine, its fuel and capacity, its
@@ -378,7 +378,7 @@ pub struct Request {
     pub completeness: Completeness,
     /// The `SystemUniverseId` (UOR-GNAF §8.3): [`universe_id`] of the
     /// problem, machine, and carrier, fixed before evaluation.
-    pub universe: Sha256Digest,
+    pub universe: Kappa,
     pub objective: Objective,
     pub claim: ClaimClass,
     pub scope: Scope,
@@ -491,7 +491,7 @@ fn canonical_bytes<T: Serialize>(value: &T) -> Result<Vec<u8>, LexLeanError> {
         .map_err(|error| malformed(&format!("not canonical JSON: {error}")))
 }
 
-/// The `SystemUniverseId` of a request: the framed SHA-256 of its problem
+/// The `SystemUniverseId` of a request: the framed κ-label of its problem
 /// (reference and domain), machine, and carrier, each in canonical JSON.
 /// It is computed from the request alone, before any evaluation, so a
 /// stated identity is only an equality check against it (UOR-GNAF §8.3).
@@ -500,9 +500,9 @@ fn canonical_bytes<T: Serialize>(value: &T) -> Result<Vec<u8>, LexLeanError> {
 ///
 /// `LLB6006` for a component holding a number canonical JSON cannot
 /// represent.
-pub fn universe_id(request: &Request) -> Result<Sha256Digest, LexLeanError> {
+pub fn universe_id(request: &Request) -> Result<Kappa, LexLeanError> {
     let problem = json!({"reference": request.reference, "domain": request.domain});
-    let mut hasher = FramedHasher::new("lexlean-gnaf-universe-v1");
+    let mut hasher = FramedHasher::new("lexlean-gnaf-universe-v2");
     hasher.frame("problem", &canonical_bytes(&problem)?);
     hasher.frame("machine", &canonical_bytes(&request.machine)?);
     hasher.frame("carrier", &canonical_bytes(&request.carrier)?);
@@ -1491,7 +1491,7 @@ fn machine(machine: &Machine) -> Json {
                 "Prepared",
                 vec![
                     ("kind", action_kind(prepared.kind)),
-                    ("artifact", string(&prepared.artifact.to_hex())),
+                    ("artifact", string(&prepared.artifact.label())),
                 ],
             )
         })
@@ -1663,7 +1663,7 @@ pub fn request_term(request: &Request) -> Json {
             ("machine", machine(&request.machine)),
             ("carrier", carrier(&request.carrier)),
             ("completeness", model(completeness, Vec::new())),
-            ("universe", string(&request.universe.to_hex())),
+            ("universe", string(&request.universe.label())),
             ("objective", model(objective, Vec::new())),
             ("claim", claim(&request.claim)),
             ("scope", model(scope, Vec::new())),
@@ -1763,7 +1763,7 @@ mod tests {
             },
             carrier: Carrier::Cached,
             completeness: Completeness::Missing,
-            universe: Sha256Digest([0; 32]),
+            universe: Kappa::ZERO,
             objective: Objective::Scalar,
             claim: ClaimClass::BestKnown,
             scope: Scope::GrammarUniverse,

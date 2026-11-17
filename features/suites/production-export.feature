@@ -80,7 +80,7 @@ Feature: production-export
     And each injection fails with LLC0201 or as a malformed GNAF document
 
   @PX-12 @build
-  Scenario: Each production export schema under api/schemas validates the values the façade produces and refuses an unknown field, and its SHA-256 is recorded under its exact spec version in api/schemas/versions.toml, so that a schema changed without a new version fails the gate.
+  Scenario: Each production export schema under api/schemas validates the values the façade produces and refuses an unknown field, and its κ-label is recorded under its exact spec version in api/schemas/versions.toml, so that a schema changed without a new version fails the gate.
     Given the production export schemas, their recorded versions, and the values the façade produces
     When each value is validated, an unknown field is added, and a schema is changed under its recorded version
     Then every value validates and every unknown field is refused

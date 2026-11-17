@@ -834,7 +834,7 @@ pub(super) fn assert_eligible(row: &Json, root: &str, effects: &[&str]) {
 
 pub(super) fn eligibility_report(
     project: &support::P,
-    build_id: &lexlean::Sha256Digest,
+    build_id: &lexlean::Kappa,
     module: &str,
 ) -> Json {
     let file = module.replace('.', "/");

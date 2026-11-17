@@ -1034,8 +1034,8 @@ pub fn run(id: &str) {
                 .expect("the manifest records the report");
             assert_eq!(row.kind, "production-eligibility");
             assert_eq!(
-                row.sha256,
-                lexlean::artifact::content_id::Sha256Digest::of(&bytes)
+                row.kappa,
+                lexlean::artifact::content_id::Kappa::of(&bytes)
             );
             // Every reported effect names its sources, and every construct is
             // a runtime row of the registry.

@@ -1,43 +1,30 @@
-//! The compiler's digest is the standard library's `Sha256` package
-//! (SPEC.md §17.22, `SL-06`, #126 stage 2), held through the compiler's own
-//! `Sha256Digest::of`, `FramedHasher`, and `tree_digest` to the authorities
-//! that establish a SHA-256 digest (the FIPS 180-4 examples and the NIST CAVP
-//! vectors) and to the `sha2` crate, which may falsify and never establishes
-//! anything. Every defect the statement lists is planted here, on a copy, and
-//! must be found by the same check the real tree passes.
+//! The compiler's content identity is the UOR κ-label on the BLAKE3 σ-axis,
+//! computed by the standard library's certified `Blake3` package (SPEC.md
+//! §17.22, §21.1, `SL-06`), held through the compiler's own `Kappa::of`,
+//! `FramedHasher`, and `tree_kappa` to the authority that establishes a BLAKE3
+//! digest (the reference team's published test vectors) and to two oracles
+//! that may falsify and never establish anything: the reference `blake3` crate
+//! and uor-addr's BLAKE3 σ-axis, the derivation Hologram's store re-derives.
+//! Every defect the statement lists is planted here, on a copy, and must be
+//! found by the same check the real tree passes.
 
-use lexlean::artifact::content_id::{tree_digest, FramedHasher, Sha256Digest};
-use sha2::{Digest, Sha256};
+use lexlean::artifact::content_id::{tree_kappa, FramedHasher, Kappa};
 
-use super::stdlib_sha256::parse_rsp;
 use crate::support;
 
 /// The committed export the compiler links (SPEC.md §17.22).
-const EXPORT: &str = "tests/production-export/stdlib/packages/rust-std/sha256/src/lib.rs";
+const EXPORT: &str = "tests/production-export/stdlib/packages/rust-std/blake3_label/src/lib.rs";
 /// The in-crate link to it.
-const LINK: &str = "crates/lexlean/sha256_package.rs";
+const LINK: &str = "crates/lexlean/blake3_package.rs";
+/// The reference team's test vectors, vendored at the release the oracles pin.
+const VECTORS: &str = "tests/stdlib/blake3/test_vectors.json";
 
-/// The FIPS 180-4 example messages and their digests, as the standard states
-/// them: the one-block message, the two-block message, and the empty one.
-const FIPS: [(&[u8], &str); 3] = [
-    (
-        b"abc",
-        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
-    ),
-    (
-        b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
-        "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
-    ),
-    (
-        b"",
-        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    ),
-];
-/// The FIPS 180-4 million-`a` example.
-const MILLION_A: &str = "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0";
+/// The hash crates a shipped crate must not depend on: the identity has one
+/// implementation, the certified package, and no crate beside it.
+const HASH_CRATES: [&str; 6] = ["sha2", "blake3", "uor-addr", "uor-prism", "uor-prism-crypto", "ring"];
 
-/// The longest message length every padding boundary is covered up to.
-const LENGTHS: usize = 300;
+/// The longest message length every block and chunk boundary is covered up to.
+const LENGTHS: usize = 3_100;
 
 /// A deterministic byte stream (xorshift64*), so the corpus is the same on
 /// every host.
@@ -53,12 +40,19 @@ fn stream(seed: u64, length: usize) -> Vec<u8> {
         .collect()
 }
 
-fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+/// The reference implementation's label.
+fn oracle(message: &[u8]) -> String {
+    support::oracle_kappa(message).label()
 }
 
-fn oracle(message: &[u8]) -> [u8; 32] {
-    Sha256::digest(message).into()
+/// uor-addr's label on its BLAKE3 σ-axis: the fold Hologram's `address_bytes`
+/// performs, written as uor-addr's typed κ-label accepts it.
+fn uor_addr_label(message: &[u8]) -> String {
+    let label = format!("blake3:{}", blake3::hash(message).to_hex());
+    let typed = uor_addr::KappaLabel::<71>::from_bytes(label.as_bytes())
+        .expect("uor-addr accepts the label");
+    assert_eq!(typed.sigma_axis(), Some("blake3"), "the BLAKE3 σ-axis");
+    typed.as_str().to_owned()
 }
 
 /// The names `lexlean` depends on, of every kind, read from the output of
@@ -78,17 +72,19 @@ pub(super) fn shipped_dependencies(metadata: &serde_json::Value) -> Vec<String> 
         .collect()
 }
 
-/// The dependency check of the statement: `lexlean` has no `sha2`.
-pub(super) fn has_no_sha2(metadata: &serde_json::Value) -> Result<(), String> {
+/// The dependency check of the statement: `lexlean` has no hash crate.
+pub(super) fn has_no_hash_crate(metadata: &serde_json::Value) -> Result<(), String> {
     let dependencies = shipped_dependencies(metadata);
     assert!(
         dependencies.len() > 5,
         "the shipped crate's dependency list is read ({dependencies:?})"
     );
-    if dependencies.iter().any(|name| name == "sha2") {
-        Err("R6: the shipped crate depends on `sha2`".to_owned())
-    } else {
-        Ok(())
+    match dependencies
+        .iter()
+        .find(|name| HASH_CRATES.contains(&name.as_str()))
+    {
+        Some(name) => Err(format!("R6: the shipped crate depends on `{name}`")),
+        None => Ok(()),
     }
 }
 
@@ -129,34 +125,45 @@ fn link_is_the_export(link: &[u8], export: &[u8]) -> Result<(), String> {
     }
 }
 
-/// The first message on which `digest` differs from the authority or the
-/// oracle, if any: the three FIPS examples by their stated digests, the
-/// CAVP vectors by theirs, every length to `LENGTHS`, and the neighbours of
-/// every power of two to 4 MiB by the oracle.
-fn first_disagreement(
-    digest: &dyn Fn(&[u8]) -> [u8; 32],
-    vectors: &[(Vec<u8>, Vec<u8>)],
-) -> Option<String> {
-    for (message, stated) in FIPS.iter().map(|(m, d)| (m.to_vec(), *d)) {
-        if hex(&digest(&message)) != stated {
-            return Some(format!("FIPS 180-4 example of {} bytes", message.len()));
-        }
-    }
-    for (message, stated) in vectors {
-        if digest(message).as_slice() != stated.as_slice() {
-            return Some(format!("CAVP vector of {} bytes", message.len()));
+/// The authority's cases: an input length, the input (byte `i` is `i` modulo
+/// 251), and the stated hash-mode digest (the first 32 bytes of its output).
+fn vectors() -> Vec<(Vec<u8>, String)> {
+    let path = support::repo_root().join(VECTORS);
+    let text = std::fs::read_to_string(path.as_std_path()).expect("the vendored vectors");
+    let document: serde_json::Value = serde_json::from_str(&text).expect("the vectors are JSON");
+    document["cases"]
+        .as_array()
+        .expect("the vectors list cases")
+        .iter()
+        .map(|case| {
+            let length = usize::try_from(case["input_len"].as_u64().expect("a length"))
+                .expect("a length fits");
+            let input: Vec<u8> = (0..length).map(|index| (index % 251) as u8).collect();
+            let hash = case["hash"].as_str().expect("a hash");
+            (input, format!("blake3:{}", &hash[..64]))
+        })
+        .collect()
+}
+
+/// The first message on which `label` differs from the authority or the
+/// oracle, if any: every authority case by its stated digest, every length to
+/// `LENGTHS`, and the neighbours of every power of two to 4 MiB by the oracle.
+fn first_disagreement(label: &dyn Fn(&[u8]) -> String, cases: &[(Vec<u8>, String)]) -> Option<String> {
+    for (message, stated) in cases {
+        if &label(message) != stated {
+            return Some(format!("BLAKE3 test vector of {} bytes", message.len()));
         }
     }
     for length in 0..=LENGTHS {
         let message = stream(length as u64 + 1, length);
-        if digest(&message) != oracle(&message) {
+        if label(&message) != oracle(&message) {
             return Some(format!("seeded message of {length} bytes"));
         }
     }
     for power in 0..=22u32 {
         for length in [(1usize << power) - 1, 1 << power, (1 << power) + 1] {
             let message = stream(u64::from(power) + 1000, length);
-            if digest(&message) != oracle(&message) {
+            if label(&message) != oracle(&message) {
                 return Some(format!("seeded message of {length} bytes"));
             }
         }
@@ -165,25 +172,25 @@ fn first_disagreement(
 }
 
 /// The §21.1 frame encoding written independently of the compiler, with the
-/// length prefixes' byte order chosen by `big_endian`; the oracle digests it.
-fn recomputed_frames(domain: &str, frames: &[(&str, &[u8])], big_endian: bool) -> [u8; 32] {
-    let mut hasher = Sha256::new();
+/// length prefixes' byte order chosen by `big_endian`; the oracle labels it.
+fn recomputed_frames(domain: &str, frames: &[(&str, &[u8])], big_endian: bool) -> Kappa {
+    let mut hasher = blake3::Hasher::new();
     hasher.update(domain.as_bytes());
-    hasher.update([0u8]);
+    hasher.update(&[0u8]);
     for (label, bytes) in frames {
         let (label_length, body_length) = (label.len() as u32, bytes.len() as u64);
         if big_endian {
-            hasher.update(label_length.to_be_bytes());
+            hasher.update(&label_length.to_be_bytes());
             hasher.update(label.as_bytes());
-            hasher.update(body_length.to_be_bytes());
+            hasher.update(&body_length.to_be_bytes());
         } else {
-            hasher.update(label_length.to_le_bytes());
+            hasher.update(&label_length.to_le_bytes());
             hasher.update(label.as_bytes());
-            hasher.update(body_length.to_le_bytes());
+            hasher.update(&body_length.to_le_bytes());
         }
         hasher.update(bytes);
     }
-    hasher.finalize().into()
+    support::oracle_finish(&hasher)
 }
 
 /// Whether the compiler's framing agrees with an encoding that writes the
@@ -196,53 +203,54 @@ fn frames_agree(big_endian: bool) -> bool {
         ("source", &long),
         ("path", b"src/Main.lex.tex"),
     ];
-    let mut hasher = FramedHasher::new("lexlean-source-v1");
+    let mut hasher = FramedHasher::new("lexlean-source-v2");
     for (label, bytes) in frames {
         hasher.frame(label, bytes);
     }
-    hasher.finish().0 == recomputed_frames("lexlean-source-v1", &frames, big_endian)
+    hasher.finish() == recomputed_frames("lexlean-source-v2", &frames, big_endian)
 }
 
 /// The §11.5 tree encoding, independently.
-fn recomputed_tree(files: &[(&str, &[u8])]) -> [u8; 32] {
-    let mut hasher = Sha256::new();
-    hasher.update(b"lexlean-tree-v1\0");
+fn recomputed_tree(files: &[(&str, &[u8])]) -> Kappa {
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"lexlean-tree-v2\0");
     for (path, bytes) in files {
-        hasher.update((path.len() as u32).to_be_bytes());
+        hasher.update(&(path.len() as u32).to_be_bytes());
         hasher.update(path.as_bytes());
-        hasher.update((bytes.len() as u64).to_be_bytes());
+        hasher.update(&(bytes.len() as u64).to_be_bytes());
         hasher.update(bytes);
     }
-    hasher.finalize().into()
+    support::oracle_finish(&hasher)
 }
 
-/// A package copy with one bit of its first round constant flipped, built
-/// with `rustc` and run on the FIPS examples; its digests, one per example.
-fn plant_round_constant() -> Vec<[u8; 32]> {
+/// A package copy with one bit of the first word of its initialization vector
+/// flipped, built with `rustc` and run on the authority's first cases; its
+/// labels, one per case.
+fn plant_iv(cases: &[(Vec<u8>, String)]) -> Vec<String> {
     let root = support::repo_root();
     let export = std::fs::read_to_string(root.join(EXPORT).as_std_path()).expect("the export");
-    assert_eq!(export.matches("1116352408u32").count(), 1, "one K[0]");
-    let planted = export.replace("1116352408u32", "1116352409u32");
+    assert!(export.contains("1779033703u32"), "IV[0] is in the package");
+    let planted = export.replace("1779033703u32", "1779033702u32");
     let directory = tempfile::tempdir().expect("a temporary directory");
-    let package = directory.path().join("package.rs");
-    std::fs::write(&package, planted).expect("the planted package");
+    std::fs::write(directory.path().join("package.rs"), planted).expect("the planted package");
+    let lengths: Vec<String> = cases.iter().map(|(message, _)| message.len().to_string()).collect();
     let harness = directory.path().join("main.rs");
     std::fs::write(
         &harness,
-        r#"#[path = "package.rs"]
+        format!(
+            r#"#[path = "package.rs"]
 #[allow(warnings)]
 mod package;
-fn main() {
-    for message in [&b"abc"[..], b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", b""] {
-        let package::Adt0::C0(a, b, c, d, e, f, g, h) =
-            package::run(package::Bytes::lit(message)).expect("in domain");
-        for word in [a, b, c, d, e, f, g, h] {
-            print!("{word:08x}");
-        }
-        println!();
-    }
-}
+fn main() {{
+    for length in [{}usize] {{
+        let message: Vec<u8> = (0..length).map(|index| (index % 251) as u8).collect();
+        let label = package::run(package::Bytes::lit(&message)).expect("in domain");
+        println!("{{}}", String::from_utf8(label.octets().to_vec()).expect("ascii"));
+    }}
+}}
 "#,
+            lengths.join("usize, ")
+        ),
     )
     .expect("the harness");
     let binary = directory.path().join("planted");
@@ -262,15 +270,9 @@ fn main() {
         .output()
         .expect("the planted harness runs");
     String::from_utf8(ran.stdout)
-        .expect("hexadecimal")
+        .expect("labels")
         .lines()
-        .map(|line| {
-            let mut out = [0u8; 32];
-            for (index, byte) in out.iter_mut().enumerate() {
-                *byte = u8::from_str_radix(&line[index * 2..index * 2 + 2], 16).expect("hex");
-            }
-            out
-        })
+        .map(str::to_owned)
         .collect()
 }
 
@@ -285,71 +287,44 @@ pub(super) fn run(id: &str) {
     let root = support::repo_root();
 
     // R6: the shipped crate's boundary is explicit, it has no second
-    // implementation of the digest beside the package, and the package it
+    // implementation of the identity beside the package, and the package it
     // links is the committed export (a dangling or diverging link fails).
     let metadata = workspace_metadata();
-    has_no_sha2(&metadata).unwrap_or_else(|reason| panic!("{reason}"));
+    has_no_hash_crate(&metadata).unwrap_or_else(|reason| panic!("{reason}"));
     let export = std::fs::read(root.join(EXPORT).as_std_path()).expect("the committed export");
     let link = std::fs::read(root.join(LINK).as_std_path())
         .unwrap_or_else(|error| panic!("{LINK}: the link to the export is broken: {error}"));
     link_is_the_export(&link, &export).unwrap_or_else(|reason| panic!("{reason}"));
 
-    // Each digest the case states is stated by a `some-true` claim of the
-    // ledger, which cites the authority row that vendors the document or the
-    // file (R2): a constant the register does not state is not an authority.
-    let ledger =
-        std::fs::read_to_string(root.join("model/ledger.toml").as_std_path()).expect("the ledger");
-    for (_, stated) in FIPS.iter().chain([&(&b""[..], MILLION_A)]) {
-        assert!(
-            ledger.contains(stated),
-            "no authority claim of model/ledger.toml states the digest {stated}"
-        );
+    // The authority is a `some-true` row of the register that vendors the
+    // vectors (R2): a file the register does not cite is not an authority.
+    let authorities = std::fs::read_to_string(root.join("model/authorities.toml").as_std_path())
+        .expect("the authorities");
+    assert!(
+        authorities.contains(VECTORS),
+        "no authority row of model/authorities.toml vendors {VECTORS}"
+    );
+
+    // The authority and both oracles first: they must agree before any of
+    // them judges the compiler.
+    let cases = vectors();
+    assert_eq!(cases.len(), 35, "the reference team's 35 cases");
+    for (message, stated) in &cases {
+        assert_eq!(&oracle(message), stated, "the vector and `blake3` agree");
+        assert_eq!(&uor_addr_label(message), stated, "the vector and uor-addr agree");
     }
 
-    // The authorities first: a vector and `sha2` must agree before either
-    // judges the compiler.
-    for (message, stated) in FIPS {
-        assert_eq!(hex(&oracle(message)), stated, "FIPS 180-4 and `sha2` agree");
+    // The compiler's own κ-label against all of them.
+    let compiler = |message: &[u8]| Kappa::of(message).label();
+    if let Some(found) = first_disagreement(&compiler, &cases) {
+        panic!("the compiler's κ-label disagrees with its authority or the oracle on a {found}");
     }
-    assert_eq!(
-        hex(&oracle(&vec![b'a'; 1_000_000])),
-        MILLION_A,
-        "FIPS 180-4's million-`a` example and `sha2` agree"
-    );
-    let mut vectors: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
-    for file in ["SHA256ShortMsg.rsp", "SHA256LongMsg.rsp"] {
-        let path = root.join("tests/stdlib/sha256").join(file);
-        let text = std::fs::read_to_string(path.as_std_path())
-            .unwrap_or_else(|error| panic!("{file}: {error}"));
-        let parsed = parse_rsp(&text);
-        assert!(parsed.len() >= 64, "{file}: {} vectors", parsed.len());
-        for (message, stated) in parsed {
-            assert_eq!(
-                oracle(&message).as_slice(),
-                stated.as_slice(),
-                "{file}: the vector of {} bytes and `sha2` disagree",
-                message.len()
-            );
-            vectors.push((message, stated));
-        }
-    }
-
-    // The compiler's own digest against all of them.
-    let compiler = |message: &[u8]| Sha256Digest::of(message).0;
-    if let Some(found) = first_disagreement(&compiler, &vectors) {
-        panic!("the compiler's digest disagrees with its authority or the oracle on a {found}");
-    }
-    assert_eq!(
-        hex(&compiler(&vec![b'a'; 1_000_000])),
-        MILLION_A,
-        "the compiler's digest of FIPS 180-4's million-`a` example"
-    );
     for round in 0..40u64 {
         let message = stream(round + 5000, (round as usize + 1) * 104_729);
         assert_eq!(
             compiler(&message),
-            oracle(&message),
-            "the compiler's digest of {} seeded bytes",
+            uor_addr_label(&message),
+            "the compiler's κ-label of {} seeded bytes is uor-addr's",
             message.len()
         );
     }
@@ -359,15 +334,16 @@ pub(super) fn run(id: &str) {
     let big = stream(11, 300_000);
     let rows: [(&str, &[u8]); 3] = [("a/b", b"one"), ("a/c", &big), ("z", b"")];
     assert_eq!(
-        tree_digest(&rows).0,
+        tree_kappa(&rows),
         recomputed_tree(&rows),
-        "tree_digest writes the §11.5 rows"
+        "tree_kappa writes the §11.5 rows"
     );
 
     // Each planted defect is found by the check the tree just passed.
     for planted in [
         serde_json::json!({"name": "sha2", "kind": null}),
-        serde_json::json!({"name": "sha2", "rename": "digest", "kind": "dev"}),
+        serde_json::json!({"name": "blake3", "rename": "digest", "kind": "dev"}),
+        serde_json::json!({"name": "uor-addr", "kind": null}),
     ] {
         let mut altered = metadata.clone();
         let lexlean = altered["packages"]
@@ -383,8 +359,8 @@ pub(super) fn run(id: &str) {
             .expect("dependencies")
             .push(planted);
         assert!(
-            has_no_sha2(&altered).is_err(),
-            "a `sha2` dependency of any form or kind is found"
+            has_no_hash_crate(&altered).is_err(),
+            "a hash crate dependency of any form or kind is found"
         );
     }
     let mut diverging = export.clone();
@@ -395,22 +371,21 @@ pub(super) fn run(id: &str) {
         "a link that differs from the export by one byte is found"
     );
     let truncated =
-        |message: &[u8]| Sha256Digest::of(&message[..message.len().saturating_sub(1)]).0;
+        |message: &[u8]| Kappa::of(&message[..message.len().saturating_sub(1)]).label();
     assert!(
-        first_disagreement(&truncated, &vectors).is_some(),
+        first_disagreement(&truncated, &cases).is_some(),
         "a message truncated by one byte is found"
     );
     assert!(
         !frames_agree(false),
         "a frame length written little-endian is found"
     );
-    let planted = plant_round_constant();
-    assert_eq!(planted.len(), FIPS.len(), "one digest per example");
-    for ((_, stated), digest) in FIPS.iter().zip(&planted) {
+    let planted = plant_iv(&cases[..8]);
+    assert_eq!(planted.len(), 8, "one label per case");
+    for ((_, stated), label) in cases.iter().zip(&planted) {
         assert_ne!(
-            hex(digest),
-            *stated,
-            "a bit of the first round constant is found on every FIPS 180-4 example"
+            label, stated,
+            "a bit of the first word of the initialization vector is found on every case"
         );
     }
 }

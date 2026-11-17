@@ -18,6 +18,20 @@ and Unreleased holds what has landed since.
 
 ## Unreleased
 
+- Every identity LexLean computes, names, or pins is a UOR κ-label on the BLAKE3 σ-axis,
+  `blake3:<64 lowercase hex>` (§21.1): the κ-label uor-addr writes on its `blake3` axis and the
+  address Hologram's store re-derives for the same bytes. The standard library's certified
+  `LexLeanStd.Blake3` package (moved from `kappa/`, new production root `blake3Label`) computes it,
+  linked from its committed export in place of the SHA-256 package; no hash crate ships. Recipes
+  keep the §21.1 framing on `-v2` domains, and an identity framed into another is framed as its
+  label. Every language's compiler-semantics ID moves, and every format whose accepted bytes
+  change raises its spec (`project/2`, `lock/3` and `/4`, `semantic-snapshot/3` and `/4`,
+  `attestation/3` and `/4`, `build-manifest/2`, and the rest), with `*sha256*` fields renamed
+  `*kappa*`. SHA-256 remains only where a format LexLean does not own requires it, which the new
+  `audit-hashes` (`AR-15`) enforces; `tests/kappa/vectors.json` (`AR-16`) states
+  cross-implementation vectors that an independent generator, the `blake3` crate, and uor-addr
+  reproduce. In WASM the identity hashes about six times faster than the `sha2` crate of 0.4.3
+  and about fourteen times faster than the SHA-256 package it replaces.
 - `just relock-identity` writes what a moved compiler-semantics ID moves: it writes the Rust
   backend records of `language/semantics-1.2.toml` (`cargo xtask semantics-records --write`,
   new), builds the compiler, keeps each relocked `lexlean.lock` whose only change is its `compiler_semantics`

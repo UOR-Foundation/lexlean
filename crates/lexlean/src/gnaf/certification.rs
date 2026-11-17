@@ -3,7 +3,7 @@
 //! The normative model is the LexLean module `compiler/src/Certification`,
 //! which Lean elaborates and whose soundness theorems the certification
 //! library proves. This module is the host side of that definition: the
-//! closed JSON form `lexlean/gnaf-certificate/1`, a content-addressed
+//! closed JSON form `lexlean/gnaf-certificate/2`, a content-addressed
 //! identity, a step-for-step transcription of the checker, and the emission
 //! of certificates and verdicts as LexLean terms, so the kernel confirms
 //! every committed certificate's verdict against the model.
@@ -23,17 +23,17 @@ use super::{
     realize, status_on, system_charge, validate, Carrier, ClaimClass, Objective, Rejection,
     Request, Scope, Status, MODEL as GNAF,
 };
-use crate::artifact::content_id::{FramedHasher, Sha256Digest};
+use crate::artifact::content_id::{FramedHasher, Kappa};
 use crate::calculus::{term, Expr, Value};
 use crate::code;
 use crate::diagnostic::Diagnostic;
 use crate::error::LexLeanError;
 
 /// The schema tag of a certificate.
-pub const CERTIFICATE_SPEC: &str = "lexlean/gnaf-certificate/1";
+pub const CERTIFICATE_SPEC: &str = "lexlean/gnaf-certificate/2";
 
 /// The schema tag of a certificate fixture.
-pub const FIXTURE_SPEC: &str = "lexlean/gnaf-certificate-fixture/1";
+pub const FIXTURE_SPEC: &str = "lexlean/gnaf-certificate-fixture/2";
 
 /// The verifier a certificate names: the checker of the `Certification`
 /// module, versioned.
@@ -133,7 +133,7 @@ pub struct Certificate {
     pub spec: String,
     pub verifier: String,
     /// The request's `SystemUniverseId`: the universe the certificate is for.
-    pub universe: Sha256Digest,
+    pub universe: Kappa,
     pub objective: Objective,
     pub claim: ClaimClass,
     pub scope: Scope,
@@ -246,7 +246,7 @@ pub struct CertificateFixture {
     pub request: String,
     pub certificate: Certificate,
     /// [`certificate_id`] of the certificate.
-    pub id: Sha256Digest,
+    pub id: Kappa,
     pub expected: Verdict,
 }
 
@@ -268,14 +268,14 @@ fn canonical_bytes<T: Serialize>(value: &T) -> Result<Vec<u8>, LexLeanError> {
         .map_err(|error| malformed(&format!("not canonical JSON: {error}")))
 }
 
-/// The identity of a certificate: the framed SHA-256
-/// `lexlean-gnaf-certificate-v1` of its canonical JSON.
+/// The identity of a certificate: the framed κ-label
+/// `lexlean-gnaf-certificate-v2` of its canonical JSON.
 ///
 /// # Errors
 ///
 /// `LLB6007` for a number canonical JSON cannot represent.
-pub fn certificate_id(certificate: &Certificate) -> Result<Sha256Digest, LexLeanError> {
-    let mut hasher = FramedHasher::new("lexlean-gnaf-certificate-v1");
+pub fn certificate_id(certificate: &Certificate) -> Result<Kappa, LexLeanError> {
+    let mut hasher = FramedHasher::new("lexlean-gnaf-certificate-v2");
     hasher.frame("certificate", &canonical_bytes(certificate)?);
     Ok(hasher.finish())
 }
@@ -338,7 +338,7 @@ fn check_capacity(certificate: &Certificate) -> Result<(), LexLeanError> {
 /// # Errors
 ///
 /// `LLB6007` for a document that is not a closed
-/// `lexlean/gnaf-certificate/1`; `LLS8002` for a certificate beyond the
+/// `lexlean/gnaf-certificate/2`; `LLS8002` for a certificate beyond the
 /// host's capacity.
 pub fn load(bytes: &[u8]) -> Result<Certificate, LexLeanError> {
     let certificate: Certificate =
@@ -1365,7 +1365,7 @@ pub fn certificate_term(certificate: &Certificate) -> Json {
         ),
         (
             "universe",
-            json!({"kind": "string", "value": certificate.universe.to_hex()}),
+            json!({"kind": "string", "value": certificate.universe.label()}),
         ),
         ("objective", gnaf(objective, Vec::new())),
         ("claim", claim),

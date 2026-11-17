@@ -6,7 +6,7 @@
 \importmodule{Json}
 \importmodule{Sha512}
 \importmodule{Keccak}
-\importmodule{Blake3}
+\importmodule{LexLeanStd.Blake3}
 \title{Natural number addition}
 \begin{semanticmodule}
 definition{
@@ -29,7 +29,7 @@ definition{
   name: digestHex,
   parameters: [axis : Bytes, message : Bytes],
   result: (Option Bytes),
-  body: (if (named axis "sha256") then (ctor Option.some [Bytes] (LexLeanStd.Sha256::sha256Hex message)) else (if (named axis "sha3-256") then (ctor Option.some [Bytes] (Keccak::sha3Hex message)) else (if (named axis "keccak256") then (ctor Option.some [Bytes] (Keccak::keccakHex message)) else (if (named axis "sha512") then (ctor Option.some [Bytes] (Sha512::sha512Hex message)) else (if (named axis "blake3") then (ctor Option.some [Bytes] (Blake3::blake3Hex message)) else (ctor Option.none [Bytes])))))),
+  body: (if (named axis "sha256") then (ctor Option.some [Bytes] (LexLeanStd.Sha256::sha256Hex message)) else (if (named axis "sha3-256") then (ctor Option.some [Bytes] (Keccak::sha3Hex message)) else (if (named axis "keccak256") then (ctor Option.some [Bytes] (Keccak::keccakHex message)) else (if (named axis "sha512") then (ctor Option.some [Bytes] (Sha512::sha512Hex message)) else (if (named axis "blake3") then (ctor Option.some [Bytes] (LexLeanStd.Blake3::blake3Hex message)) else (ctor Option.none [Bytes])))))),
   axioms: [Quot.sound, propext],
   executable: true
 }

@@ -228,12 +228,12 @@ type Files = (Vec<u8>, Vec<u8>);
 /// One change to the scaffold, for a render rule.
 type Reshape = Box<dyn Fn(&mut Scaffold)>;
 
-fn sha256(data: &[u8]) -> String {
-    lexlean::Sha256Digest::of(data).to_hex()
+fn kappa(data: &[u8]) -> String {
+    lexlean::Kappa::of(data).label()
 }
 
 fn semantics() -> String {
-    lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_2).to_hex()
+    lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_2).label()
 }
 
 fn runtime_text(std: bool) -> String {
@@ -258,7 +258,7 @@ fn files_of(render: &Render) -> Files {
         "profile": if render.std { "rust-std" } else { "rust-core" },
         "program": render.program,
         "compiler_semantics": semantics(),
-        "runtime": sha256(runtime_text(render.std).as_bytes()),
+        "runtime": kappa(runtime_text(render.std).as_bytes()),
         "sources": render.sources,
         "effects": render.effects,
         "exports": render.exports.iter().map(|(name, function)| serde_json::json!({
@@ -266,8 +266,8 @@ fn files_of(render: &Render) -> Files {
             "function": function,
         })).collect::<Vec<_>>(),
         "files": {
-            "Cargo.toml": sha256(&cargo),
-            (render.scaffold.library.as_str()): sha256(&render.library),
+            "Cargo.toml": kappa(&cargo),
+            (render.scaffold.library.as_str()): kappa(&render.library),
         },
     });
     let provenance = Canonical::parse(provenance.to_string().as_bytes())
@@ -320,7 +320,7 @@ fn accepted(manifest: &Manifest) -> Option<(Render, Files)> {
         name: manifest.name.clone(),
         version: manifest.version.clone(),
         std: manifest.profile == "rust-std",
-        program: manifest.program.id().expect("an accepted program").to_hex(),
+        program: manifest.program.id().expect("an accepted program").label(),
         sources: manifest.sources.clone(),
         effects: manifest.effects.clone(),
         exports: manifest
@@ -400,10 +400,10 @@ const VERSIONS: &[&str] = &[
 ];
 const PROFILES: &[&str] = &["rust-std", "rust-core", "rust-wasm", "", "rust-Std", "std"];
 const SPECS: &[&str] = &[
-    "lexlean/rust-package/1",
+    "lexlean/rust-package/2",
     "lexlean/rust-package/2",
     "",
-    "lexlean/rust-provenance/1",
+    "lexlean/rust-provenance/2",
 ];
 const SOURCES: &[&str] = &[
     "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
@@ -679,7 +679,7 @@ const PLANTS: [Plant; 21] = [
     Plant {
         label: "the spec is not checked",
         root: 0,
-        site: "(if (same spec (text \"lexlean/rust-package/1\")) then",
+        site: "(if (same spec (text \"lexlean/rust-package/2\")) then",
         replacement: "(if true then",
     },
     Plant {
@@ -697,8 +697,8 @@ const PLANTS: [Plant; 21] = [
     Plant {
         label: "the digests of Cargo.toml and lib.rs are swapped",
         root: 1,
-        site: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Sha256::sha256Hex cargo)) \",\") path (LexLeanStd.Sha256::sha256Hex library))",
-        replacement: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Sha256::sha256Hex library)) \",\") path (LexLeanStd.Sha256::sha256Hex cargo))",
+        site: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Blake3::blake3Label cargo)) \",\") path (LexLeanStd.Blake3::blake3Label library))",
+        replacement: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Blake3::blake3Label library)) \",\") path (LexLeanStd.Blake3::blake3Label cargo))",
     },
     Plant {
         label: "the library path is always src/lib.rs in Cargo.toml",
