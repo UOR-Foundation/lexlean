@@ -306,6 +306,15 @@
 'LexLeanRuntime.Decimal.noConfusionType' does not depend on any axioms
 'LexLeanRuntime.Decimal.parse' does not depend on any axioms
 'LexLeanRuntime.Decimal.recOn' does not depend on any axioms
+'LexLeanRuntime.DecimalFormat' does not depend on any axioms
+'LexLeanRuntime.DecimalFormat.casesOn' does not depend on any axioms
+'LexLeanRuntime.DecimalFormat.ctorIdx' does not depend on any axioms
+'LexLeanRuntime.DecimalFormat.format' does not depend on any axioms
+'LexLeanRuntime.DecimalFormat.mk._flat_ctor' does not depend on any axioms
+'LexLeanRuntime.DecimalFormat.mk.noConfusion' does not depend on any axioms
+'LexLeanRuntime.DecimalFormat.noConfusion' does not depend on any axioms
+'LexLeanRuntime.DecimalFormat.noConfusionType' does not depend on any axioms
+'LexLeanRuntime.DecimalFormat.recOn' does not depend on any axioms
 'LexLeanRuntime.Fixed' does not depend on any axioms
 'LexLeanRuntime.Fixed.bitAnd' does not depend on any axioms
 'LexLeanRuntime.Fixed.bitNot' does not depend on any axioms
@@ -400,6 +409,15 @@
 'LexLeanRuntime.index' does not depend on any axioms
 'LexLeanRuntime.instAppendableByteArray' does not depend on any axioms
 'LexLeanRuntime.instAppendableList' does not depend on any axioms
+'LexLeanRuntime.instDecimalFormatInt' depends on axioms: [propext]
+'LexLeanRuntime.instDecimalFormatInt16' does not depend on any axioms
+'LexLeanRuntime.instDecimalFormatInt32' does not depend on any axioms
+'LexLeanRuntime.instDecimalFormatInt64' does not depend on any axioms
+'LexLeanRuntime.instDecimalFormatInt8' does not depend on any axioms
+'LexLeanRuntime.instDecimalFormatUInt16' does not depend on any axioms
+'LexLeanRuntime.instDecimalFormatUInt32' does not depend on any axioms
+'LexLeanRuntime.instDecimalFormatUInt64' does not depend on any axioms
+'LexLeanRuntime.instDecimalFormatUInt8' does not depend on any axioms
 'LexLeanRuntime.instDecimalInt' depends on axioms: [propext, Classical.choice, Quot.sound]
 'LexLeanRuntime.instDecimalInt.match_1' does not depend on any axioms
 'LexLeanRuntime.instDecimalOfFixedOfToString' depends on axioms: [propext, Classical.choice, Quot.sound]
@@ -421,6 +439,7 @@
 'LexLeanRuntime.instSliceableByteArray' does not depend on any axioms
 'LexLeanRuntime.instSliceableList' does not depend on any axioms
 'LexLeanRuntime.instToMathIntInt' does not depend on any axioms
+'LexLeanRuntime.intDecimal' does not depend on any axioms
 'LexLeanRuntime.join' depends on axioms: [propext]
 'LexLeanRuntime.length' does not depend on any axioms
 'LexLeanRuntime.listIndex' does not depend on any axioms
