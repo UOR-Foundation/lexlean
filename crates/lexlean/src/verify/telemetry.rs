@@ -210,6 +210,17 @@ impl Context {
             .timed("process", report.started, Value::Object(fields));
     }
 
+    /// Report a process the store held (§22.13): it did not run.
+    pub fn reused(&self, tool: &str, module: Option<&str>) {
+        let mut fields = serde_json::Map::new();
+        fields.insert("stage".to_owned(), json!(self.stage));
+        fields.insert("tool".to_owned(), json!(tool));
+        if let Some(module) = module {
+            fields.insert("module".to_owned(), json!(module));
+        }
+        self.sink.emit("reused", Value::Object(fields));
+    }
+
     /// Report that the item at `item` of the stage completed as the
     /// `sequence`th to do so. This is the one place completion order is
     /// visible, and it is visible only here.
@@ -239,6 +250,13 @@ pub struct ProcessReport<'a> {
 
 thread_local! {
     static CURRENT: RefCell<Option<Context>> = const { RefCell::new(None) };
+}
+
+/// Report a process the store held, in the context in force on this thread.
+pub fn reused(module: Option<&str>, tool: &str) {
+    if let Some(context) = current() {
+        context.reused(tool, module);
+    }
 }
 
 /// The context in force on this thread.

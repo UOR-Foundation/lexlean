@@ -9,7 +9,7 @@ use camino::Utf8Path;
 use crate::code;
 use crate::config::Limits;
 use crate::diagnostic::Diagnostic;
-use crate::verify::child::{run, ChildHome, ChildRecord, ChildSpec, Normalizer};
+use crate::verify::child::{ChildHome, ChildRecord, ChildSpec, Normalizer};
 use crate::verify::toolchain::Toolchain;
 
 /// Run `lake env <leanchecker> <module>` (the preflighted executable by
@@ -21,9 +21,11 @@ pub fn run_leanchecker(
     workspace: &Utf8Path,
     limits: &Limits,
     normalizer: &Normalizer,
+    session: Option<&crate::verify::store::Session>,
 ) -> Result<ChildRecord, Diagnostic> {
     let bin_dir = toolchain.root.join("bin");
-    run(
+    crate::verify::store::run(
+        session,
         &ChildSpec {
             tool: "leanchecker",
             module: Some(module.to_owned()),
@@ -45,6 +47,8 @@ pub fn run_leanchecker(
         },
         limits,
         normalizer,
+        |session| session.prefix(module),
+        &[],
     )
 }
 
@@ -57,8 +61,11 @@ pub fn replay_module(
     workspace: &Utf8Path,
     limits: &Limits,
     normalizer: &Normalizer,
+    session: Option<&crate::verify::store::Session>,
 ) -> Result<ChildRecord, Diagnostic> {
-    let record = run_leanchecker(toolchain, module, lean_path, workspace, limits, normalizer)?;
+    let record = run_leanchecker(
+        toolchain, module, lean_path, workspace, limits, normalizer, session,
+    )?;
     if record.exit_code != 0 {
         return Err(Diagnostic::new(
             code!("LLV7003"),
