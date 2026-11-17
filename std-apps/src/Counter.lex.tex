@@ -1,0 +1,165 @@
+\begin{lexlean}{Counter}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Natural number addition}
+\begin{semanticmodule}
+definition{
+  name: bump,
+  parameters: [cap : Nat, count : Nat],
+  result: Nat,
+  body: (if (count <? cap) then (count + 1) else count),
+  executable: true
+}
+
+definition{
+  name: bumpBy,
+  parameters: [cap : Nat, step : Nat, count : Nat],
+  result: Nat,
+  body: (if ((count + step) <=? cap) then (count + step) else cap),
+  executable: true
+}
+
+definition{
+  name: dropOne,
+  parameters: [count : Nat],
+  result: Nat,
+  body: (prim subtract count 1 : Nat),
+  executable: true
+}
+
+definition{
+  name: shortfall,
+  parameters: [need : Nat, have : Nat],
+  result: Nat,
+  body: (prim subtract need have : Nat),
+  executable: true
+}
+
+definition{
+  name: excess,
+  parameters: [value : Nat, limit : Nat],
+  result: Nat,
+  body: (prim subtract value limit : Nat),
+  executable: true
+}
+
+theorem{
+  name: bump_within,
+  parameters: [cap : Nat, count : Nat],
+  statement: ((count <= cap) -> ((bump cap count) <= cap)),
+  proof: linear_arithmetic{definitions: [bump]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: bump_grows,
+  parameters: [cap : Nat, count : Nat],
+  statement: ((count < cap) -> ((bump cap count) = (count + 1))),
+  proof: linear_arithmetic{definitions: [bump]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: bump_full,
+  parameters: [cap : Nat, count : Nat],
+  statement: ((cap <= count) -> ((bump cap count) = count)),
+  proof: linear_arithmetic{definitions: [bump]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: bump_never_lowers,
+  parameters: [cap : Nat, count : Nat],
+  statement: (count <= (bump cap count)),
+  proof: linear_arithmetic{definitions: [bump]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: bumpBy_within,
+  parameters: [cap : Nat, step : Nat, count : Nat],
+  statement: ((bumpBy cap step count) <= cap),
+  proof: linear_arithmetic{definitions: [bumpBy]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: bumpBy_fits,
+  parameters: [cap : Nat, step : Nat, count : Nat],
+  statement: (((count + step) <= cap) -> ((bumpBy cap step count) = (count + step))),
+  proof: linear_arithmetic{definitions: [bumpBy]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: dropOne_bump,
+  parameters: [cap : Nat, count : Nat],
+  statement: ((count < cap) -> ((dropOne (bump cap count)) = count)),
+  proof: linear_arithmetic{definitions: [bump, dropOne]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: dropOne_le,
+  parameters: [count : Nat],
+  statement: ((dropOne count) <= count),
+  proof: linear_arithmetic{definitions: [dropOne]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: shortfall_zero_met,
+  parameters: [need : Nat, have : Nat],
+  statement: (((shortfall need have) = 0) -> (need <= have)),
+  proof: linear_arithmetic{definitions: [shortfall]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: met_no_shortfall,
+  parameters: [need : Nat, have : Nat],
+  statement: ((need <= have) -> ((shortfall need have) = 0)),
+  proof: linear_arithmetic{definitions: [shortfall]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: shortfall_falls,
+  parameters: [need : Nat, have : Nat, more : Nat],
+  statement: ((have <= more) -> ((shortfall need more) <= (shortfall need have))),
+  proof: linear_arithmetic{definitions: [shortfall]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: shortfall_fills,
+  parameters: [need : Nat, have : Nat],
+  statement: (need <= (have + (shortfall need have))),
+  proof: linear_arithmetic{definitions: [shortfall]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: excess_zero_within,
+  parameters: [value : Nat, limit : Nat],
+  statement: (((excess value limit) = 0) -> (value <= limit)),
+  proof: linear_arithmetic{definitions: [excess]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: within_no_excess,
+  parameters: [value : Nat, limit : Nat],
+  statement: ((value <= limit) -> ((excess value limit) = 0)),
+  proof: linear_arithmetic{definitions: [excess]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: excess_falls,
+  parameters: [value : Nat, limit : Nat, higher : Nat],
+  statement: ((limit <= higher) -> ((excess value higher) <= (excess value limit))),
+  proof: linear_arithmetic{definitions: [excess]},
+  axioms: [Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}

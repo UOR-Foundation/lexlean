@@ -1,0 +1,95 @@
+\begin{lexlean}{Tables}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Natural number addition}
+\begin{semanticmodule}
+definition{
+  name: valueOr,
+  parameters: [fallback : Nat, key : Nat, entries : (List (Nat * Nat))],
+  result: Nat,
+  body: (match entries
+    | List.nil => fallback
+    | List.cons head rest => (if ((first head) =? key) then (second head) else (valueOr fallback key rest))),
+  executable: true,
+  recursive_argument: entries
+}
+
+definition{
+  name: put,
+  parameters: [key : Nat, value : Nat, entries : (List (Nat * Nat))],
+  result: (List (Nat * Nat)),
+  body: (cons (key, value) entries),
+  executable: true
+}
+
+definition{
+  name: adjust,
+  parameters: [key : Nat, delta : Nat, entries : (List (Nat * Nat))],
+  result: (List (Nat * Nat)),
+  body: (put key ((valueOr 0 key entries) + delta) entries),
+  executable: true
+}
+
+definition{
+  name: lower,
+  parameters: [key : Nat, delta : Nat, entries : (List (Nat * Nat))],
+  result: (List (Nat * Nat)),
+  body: (put key (prim subtract (valueOr 0 key entries) delta : Nat) entries),
+  executable: true
+}
+
+theorem{
+  name: valueOr_nil,
+  parameters: [fallback : Nat, key : Nat],
+  statement: ((valueOr fallback key (nil (Nat * Nat))) = fallback),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: valueOr_put_same,
+  parameters: [fallback : Nat, key : Nat, value : Nat, entries : (List (Nat * Nat))],
+  statement: ((valueOr fallback key (put key value entries)) = value),
+  proof: linear_arithmetic{definitions: [put, valueOr]},
+  axioms: [propext]
+}
+
+theorem{
+  name: valueOr_put_other,
+  parameters: [fallback : Nat, key : Nat, other : Nat, value : Nat, entries : (List (Nat * Nat))],
+  statement: (((key =? other) = false) -> ((valueOr fallback other (put key value entries)) = (valueOr fallback other entries))),
+  proof: linear_arithmetic{definitions: [put, valueOr]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: adjust_same,
+  parameters: [key : Nat, delta : Nat, entries : (List (Nat * Nat))],
+  statement: ((valueOr 0 key (adjust key delta entries)) = ((valueOr 0 key entries) + delta)),
+  proof: linear_arithmetic{definitions: [adjust, put, valueOr]},
+  axioms: [propext]
+}
+
+theorem{
+  name: adjust_other,
+  parameters: [key : Nat, other : Nat, delta : Nat, entries : (List (Nat * Nat))],
+  statement: (((key =? other) = false) -> ((valueOr 0 other (adjust key delta entries)) = (valueOr 0 other entries))),
+  proof: linear_arithmetic{definitions: [adjust, put, valueOr]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: lower_same,
+  parameters: [key : Nat, delta : Nat, entries : (List (Nat * Nat))],
+  statement: ((delta <= (valueOr 0 key entries)) -> (((valueOr 0 key (lower key delta entries)) + delta) = (valueOr 0 key entries))),
+  proof: linear_arithmetic{definitions: [lower, put, valueOr]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: lower_other,
+  parameters: [key : Nat, other : Nat, delta : Nat, entries : (List (Nat * Nat))],
+  statement: (((key =? other) = false) -> ((valueOr 0 other (lower key delta entries)) = (valueOr 0 other entries))),
+  proof: linear_arithmetic{definitions: [lower, put, valueOr]},
+  axioms: [Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}

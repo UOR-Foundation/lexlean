@@ -33,4 +33,5 @@ __pycache__/
 stdlib/.lexlean/
 std-models/.lexlean/
 std-reasoning/.lexlean/
+std-apps/.lexlean/
 bootstrap/.lexlean/

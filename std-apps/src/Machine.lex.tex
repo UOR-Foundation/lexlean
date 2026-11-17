@@ -1,0 +1,76 @@
+\begin{lexlean}{Machine}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Natural number addition}
+\begin{semanticmodule}
+definition{
+  name: guarded,
+  type_parameters: [S, E],
+  parameters: [faults : (Fn ('S) Nat), step : (Fn ('S 'E) 'S), state : 'S, event : 'E],
+  result: 'S,
+  body: (if (((apply faults state) =? 0) && ((apply faults (apply step state event)) =? 0)) then (apply step state event) else state),
+  executable: true
+}
+
+definition{
+  name: run,
+  type_parameters: [S, E],
+  parameters: [faults : (Fn ('S) Nat), step : (Fn ('S 'E) 'S), state : 'S, events : (List 'E)],
+  result: 'S,
+  body: (match events
+    | List.nil => state
+    | List.cons event rest => (run ['S, 'E] faults step (guarded ['S, 'E] faults step state event) rest)),
+  executable: true,
+  recursive_argument: events
+}
+
+theorem{
+  name: run_nil,
+  type_parameters: [S, E],
+  parameters: [faults : (Fn ('S) Nat), step : (Fn ('S 'E) 'S), state : 'S],
+  statement: ((run ['S, 'E] faults step state (nil 'E)) = state),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: run_cons,
+  type_parameters: [S, E],
+  parameters: [faults : (Fn ('S) Nat), step : (Fn ('S 'E) 'S), state : 'S, event : 'E, rest : (List 'E)],
+  statement: ((run ['S, 'E] faults step state (cons event rest)) = (run ['S, 'E] faults step (guarded ['S, 'E] faults step state event) rest)),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: guarded_keeps,
+  type_parameters: [S, E],
+  parameters: [faults : (Fn ('S) Nat), step : (Fn ('S 'E) 'S), state : 'S, event : 'E],
+  statement: ((apply faults (guarded ['S, 'E] faults step state event)) = (apply faults state)),
+  proof: linear_arithmetic{definitions: [guarded]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: guarded_refuses,
+  type_parameters: [S, E],
+  parameters: [faults : (Fn ('S) Nat), step : (Fn ('S 'E) 'S), state : 'S, event : 'E],
+  statement: ((0 < (apply faults (apply step state event))) -> ((apply faults (guarded ['S, 'E] faults step state event)) = (apply faults state))),
+  proof: linear_arithmetic{definitions: [guarded]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: run_keeps,
+  type_parameters: [S, E],
+  parameters: [faults : (Fn ('S) Nat), step : (Fn ('S 'E) 'S), state : 'S, events : (List 'E)],
+  statement: ((apply faults (run ['S, 'E] faults step state events)) = (apply faults state)),
+  proof: induction{
+    branches: [
+      {proof: reflexivity{}, binders: [], constructor: nil},
+      {proof: simplify{definitions: [guarded_keeps, hypothesis, run]}, binders: [event, rest, hypothesis], constructor: cons}
+    ],
+    generalizing: [state],
+    scrutinee: events
+  },
+  axioms: [Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}
