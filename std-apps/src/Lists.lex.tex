@@ -3,6 +3,14 @@
 \title{Natural number addition}
 \begin{semanticmodule}
 definition{
+  name: oneIf,
+  parameters: [same : Bool],
+  result: Nat,
+  body: (if same then 1 else 0),
+  executable: true
+}
+
+definition{
   name: sumBy,
   parameters: [weight : (Fn (Nat) Nat), items : (List Nat)],
   result: Nat,
@@ -11,14 +19,6 @@ definition{
     | List.cons head rest => ((apply weight head) + (sumBy weight rest))),
   executable: true,
   recursive_argument: items
-}
-
-definition{
-  name: oneIf,
-  parameters: [same : Bool],
-  result: Nat,
-  body: (if same then 1 else 0),
-  executable: true
 }
 
 definition{
@@ -33,10 +33,21 @@ definition{
 }
 
 definition{
+  name: removedOne,
+  parameters: [item : Nat, items : (List Nat)],
+  result: Nat,
+  body: (match items
+    | List.nil => 0
+    | List.cons head rest => (if (head =? item) then 1 else (removedOne item rest))),
+  executable: true,
+  recursive_argument: items
+}
+
+definition{
   name: keepUnless,
   parameters: [same : Bool, head : Nat, rest : (List Nat), kept : (List Nat)],
   result: (List Nat),
-  body: (if same then rest else (cons head kept)),
+  body: (match same | Bool.true => rest | Bool.false => (cons head kept)),
   executable: true
 }
 
@@ -60,6 +71,14 @@ definition{
     | List.cons head rest => (cons head (appendItems rest more))),
   executable: true,
   recursive_argument: items
+}
+
+definition{
+  name: pushIf,
+  parameters: [allowed : Bool, item : Nat, items : (List Nat)],
+  result: (List Nat),
+  body: (match allowed | Bool.true => (cons item items) | Bool.false => items),
+  executable: true
 }
 
 theorem{
@@ -87,7 +106,7 @@ theorem{
     ],
     scrutinee: items
   },
-  axioms: [propext]
+  axioms: [Quot.sound, propext]
 }
 
 theorem{
@@ -101,48 +120,94 @@ theorem{
     ],
     scrutinee: items
   },
-  axioms: [propext]
+  axioms: [Quot.sound, propext]
 }
 
 theorem{
-  name: removeFirst_absent,
+  name: countOf_cons_same,
   parameters: [item : Nat, items : (List Nat)],
-  statement: (((countOf item items) = 0) -> ((removeFirst item items) = items)),
-  proof: induction{
-    branches: [
-      {proof: reflexivity{}, binders: [], constructor: nil},
-      {proof: linear_arithmetic{definitions: [countOf, keepUnless, oneIf, removeFirst]}, binders: [head, rest, hypothesis], constructor: cons}
-    ],
-    scrutinee: items
-  },
-  axioms: [propext]
+  statement: ((countOf item (cons item items)) = ((countOf item items) + 1)),
+  proof: linear_arithmetic{definitions: [countOf, oneIf]},
+  axioms: [Quot.sound, propext]
 }
 
 theorem{
-  name: removeFirst_conserves,
-  parameters: [weight : (Fn (Nat) Nat), item : Nat, items : (List Nat)],
-  statement: ((0 < (countOf item items)) -> (((sumBy weight (removeFirst item items)) + (apply weight item)) = (sumBy weight items))),
-  proof: induction{
+  name: countOf_cons_other,
+  parameters: [head : Nat, item : Nat, items : (List Nat)],
+  statement: (((head =? item) = false) -> ((countOf item (cons head items)) = (countOf item items))),
+  proof: linear_arithmetic{definitions: [countOf, oneIf]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: removeStep,
+  parameters: [same : Bool, item : Nat, head : Nat, rest : (List Nat), kept : (List Nat), later : Nat],
+  statement: (((head =? item) = same) -> ((((countOf item kept) + later) = (countOf item rest)) -> (((countOf item (keepUnless same head rest kept)) + (if (head =? item) then 1 else later)) = ((oneIf (head =? item)) + (countOf item rest))))),
+  proof: cases{
     branches: [
-      {proof: linear_arithmetic{definitions: [countOf]}, binders: [], constructor: nil},
-      {proof: linear_arithmetic{definitions: [countOf, keepUnless, oneIf, removeFirst, sumBy]}, binders: [head, rest, hypothesis], constructor: cons}
+      {proof: linear_arithmetic{definitions: [countOf, keepUnless, oneIf]}, binders: [], constructor: "false"},
+      {proof: linear_arithmetic{definitions: [countOf, keepUnless, oneIf]}, binders: [], constructor: "true"}
     ],
-    scrutinee: items
+    scrutinee: same
   },
-  axioms: [propext]
+  axioms: [Quot.sound, propext]
 }
 
 theorem{
   name: countOf_removeFirst,
   parameters: [item : Nat, items : (List Nat)],
-  statement: ((0 < (countOf item items)) -> (((countOf item (removeFirst item items)) + 1) = (countOf item items))),
+  statement: (((countOf item (removeFirst item items)) + (removedOne item items)) = (countOf item items)),
   proof: induction{
     branches: [
-      {proof: linear_arithmetic{definitions: [countOf]}, binders: [], constructor: nil},
-      {proof: linear_arithmetic{definitions: [countOf, keepUnless, oneIf, removeFirst]}, binders: [head, rest, hypothesis], constructor: cons}
+      {proof: reflexivity{}, binders: [], constructor: nil},
+      {proof: simplify{definitions: [countOf, hypothesis, removeFirst, removeStep, removedOne]}, binders: [head, rest, hypothesis], constructor: cons}
     ],
     scrutinee: items
   },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: removedOne_count,
+  parameters: [item : Nat, items : (List Nat)],
+  statement: (((removedOne item items) + (prim subtract (countOf item items) 1 : Nat)) = (countOf item items)),
+  proof: induction{
+    branches: [
+      {proof: reflexivity{}, binders: [], constructor: nil},
+      {proof: linear_arithmetic{definitions: [countOf, oneIf, removedOne]}, binders: [head, rest, hypothesis], constructor: cons}
+    ],
+    scrutinee: items
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: removedOne_le_one,
+  parameters: [item : Nat, items : (List Nat)],
+  statement: ((removedOne item items) <= 1),
+  proof: induction{
+    branches: [
+      {proof: linear_arithmetic{definitions: [removedOne]}, binders: [], constructor: nil},
+      {proof: linear_arithmetic{definitions: [removedOne]}, binders: [head, rest, hypothesis], constructor: cons}
+    ],
+    scrutinee: items
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: pushIf_true,
+  parameters: [allowed : Bool, item : Nat, items : (List Nat)],
+  statement: ((allowed = true) -> ((pushIf allowed item items) = (cons item items))),
+  proof: linear_arithmetic{definitions: [pushIf]},
+  axioms: [propext]
+}
+
+theorem{
+  name: pushIf_false,
+  parameters: [allowed : Bool, item : Nat, items : (List Nat)],
+  statement: ((allowed = false) -> ((pushIf allowed item items) = items)),
+  proof: linear_arithmetic{definitions: [pushIf]},
   axioms: [propext]
 }
 \end{semanticmodule}
