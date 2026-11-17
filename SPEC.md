@@ -9300,6 +9300,54 @@ member order, are verification artifacts.
 A preexisting module with the reserved audit root or any member name is an
 environment conflict and causes verification to fail.
 
+### 18.10 Kernel-term production
+
+`lexlean::backend::kernel` writes the Lean kernel proof term of a semantic
+theorem directly from the linked IR, with no elaborator, no tactic, and no
+Lean process, so that a checker holding Lean's kernel alone (a browser tab
+running the kernel compiled to WebAssembly) can judge the theorem. The
+producers are untrusted: a theorem is established only when Lean's kernel
+accepts the produced declaration and its axioms equal the theorem's declared
+axioms exactly (§22.6).
+
+A theorem is produced when every node of its proof tree is one of these
+forms, each lowered to one fixed term:
+
+| Form | Kernel term |
+|---|---|
+| `reflexivity` | `@Eq.refl τ l` for the goal `l = r` (`Iff.refl p` for `p <-> q`); a `let` goal is reduced by substituting its value |
+| `decide` | `@of_decide_eq_true p d (@Eq.refl Bool true)`, where `d` is a fixed `Decidable p` instance the kernel evaluates by reduction; never `Lean.reduceBool` or `Lean.reduceNat` |
+| `cases` | `@T.casesOn params motive x m₁ … mₙ`, the motive abstracting the scrutinee from the goal and one minor premise per constructor, in constructor order |
+| `induction` | `@T.rec params motive m₁ … mₙ x g₁ … gₖ`, the motive quantifying the generalized parameters, each minor premise binding the fields, then one hypothesis per recursive field, then the generalized parameters |
+| `apply` | `@thm types args`, where `thm` is the produced proof of a prior theorem |
+| `law` | `@law types args premises`, `law` the registered fold law (§17.12) and each premise the produced proof of a prior theorem |
+
+In a branch, the goal is the statement with the scrutinee replaced, wherever
+it occurs, by the constructor applied to fresh field variables.
+
+The statement is lowered as the Lean backend renders it (§18.4) with the
+implicit arguments and instances Lean's elaborator supplies made explicit:
+numerals as `OfNat.ofNat`, `+` as `HAdd.hAdd` at `instHAdd`, `<=` and `<` at
+`instLENat` and `instLTNat`, a Boolean `if` as `ite` at `instDecidableEqBool`,
+a `match` as `casesOn`. A construct outside the producers' closed vocabulary,
+or a proof form outside the table, is refused by name for that theorem; it is
+never approximated.
+
+The output is lean4export 3.1.0 NDJSON. Over a library export it continues
+the export's numbering and names only constants the export declares; without
+one it is self-contained. A produced proof of theorem `T` is declared as
+`LexLeanKernel.T`, whose type is the lowered statement. When the environment
+holds the theorem Lean elaborated from the generated source, a second
+declaration `LexLeanKernel.bound.T` has the same type and the value `T`, so
+the kernel accepts it only if the produced statement is definitionally the
+statement as written. A library export or snapshot production cannot read is
+`LLV7103`.
+
+`cargo xtask proof-census` counts each proof form over every project's linked
+IR and records the result in `docs/kernel-terms/census.json`;
+`docs/kernel-terms/DESIGN.md` records the terms, the binding, and the
+measured coverage and latency.
+
 ---
 
 ## 19. Canonical LaTeX and PDF
@@ -11000,6 +11048,7 @@ The initial registry MUST include at least these exact codes and meanings:
 | `LLV7018` | Child start refused after the host ended the live children (§24.6). |
 | `LLV7101` | Certificate evidence does not certify the root (§24.7). |
 | `LLV7102` | Production artifact replay rejected (§24.7). |
+| `LLV7103` | Kernel-term production input rejected (§18.10). |
 | `LLS8001` | Path escape, symlink, special file, or filesystem identity conflict. |
 | `LLS8002` | Explicit resource limit exceeded: a project limit or an evaluator's declared capacity (§17.15). |
 | `LLS8003` | Network operation attempted outside permitted lock acquisition. |

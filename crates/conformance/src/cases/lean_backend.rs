@@ -1,4 +1,4 @@
-//! The `lean-backend` suite: LN-01..LN-12.
+//! The `lean-backend` suite: LN-01..LN-13.
 
 use lexlean::verify::source_audit::{audit, lex, LeanToken};
 
@@ -635,6 +635,8 @@ pub(crate) fn run(id: &str) {
             assert_eq!(build.modules[0].lean_path, "modules/Other/Main.lean");
             assert!(build.modules[0].lean_text.contains("namespace Other.Main"));
         }
+        // §18.10: kernel-term production.
+        "LN-13" => super::kernel_terms::ln_13(),
         other => panic!("no lean-backend case is wired for {other}"),
     }
 }
