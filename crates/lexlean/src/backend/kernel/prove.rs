@@ -69,9 +69,8 @@ impl Produced<'_> {
             } => {
                 let lean = w.constant(ctx.module, theorem)?;
                 let names: Vec<&String> = self.theorems.keys().collect();
-                select::member_check(&names, &&lean).map_err(|_| {
-                    format!("it applies `{lean}`, whose proof was not produced")
-                })?;
+                select::member_check(&names, &&lean)
+                    .map_err(|_| format!("it applies `{lean}`, whose proof was not produced"))?;
                 let produced = &self.theorems[&lean];
                 let mut out = Vec::new();
                 for argument in type_arguments {
@@ -98,11 +97,13 @@ impl Produced<'_> {
                     cited.push(w.constant(ctx.module, premise)?);
                 }
                 let produced: Vec<String> = self.theorems.keys().cloned().collect();
-                select::law_check(name, &registered, &cited, &produced).map_err(|refusal| match refusal {
-                    select::Refusal::NotProduced(lean) => {
-                        format!("its premise `{lean}` has no produced proof")
+                select::law_check(name, &registered, &cited, &produced).map_err(|refusal| {
+                    match refusal {
+                        select::Refusal::NotProduced(lean) => {
+                            format!("its premise `{lean}` has no produced proof")
+                        }
+                        _ => format!("`{name}` is not a registered law"),
                     }
-                    _ => format!("`{name}` is not a registered law"),
                 })?;
                 let law = crate::ir::semantic::laws::law(name)?;
                 let mut out = Vec::new();
@@ -220,7 +221,9 @@ impl Produced<'_> {
                 ctor: shape
                     .ctors
                     .iter()
-                    .position(|ctor| branch.constructor.rsplit('.').next() == Some(ctor.short.as_str()))
+                    .position(|ctor| {
+                        branch.constructor.rsplit('.').next() == Some(ctor.short.as_str())
+                    })
                     .unwrap_or(shape.ctors.len() + at),
                 binders: branch.binders.len(),
             })
@@ -231,24 +234,26 @@ impl Produced<'_> {
                 |ctor| ctor.short.clone(),
             )
         };
-        select::check_from::<String>(&shapes, 0, &heads, induct).map_err(|refusal| match refusal {
-            select::Refusal::MissingCase(index) => {
-                format!("no case for constructor `{}`", short(index))
-            }
-            select::Refusal::RepeatedCase(index) => {
-                format!("constructor `{}` has more than one case", short(index))
-            }
-            select::Refusal::BinderCount(index) => format!(
-                "case `{}` binds the wrong number of names for {} fields and {} hypotheses",
-                short(index),
-                shapes[index].fields,
-                if induct { shapes[index].recursive } else { 0 }
-            ),
-            select::Refusal::UnknownCase(index) => {
-                format!("case `{}` names no constructor of the type", short(index))
-            }
-            other => format!("{other:?}"),
-        })?;
+        select::check_from::<String>(&shapes, 0, &heads, induct).map_err(
+            |refusal| match refusal {
+                select::Refusal::MissingCase(index) => {
+                    format!("no case for constructor `{}`", short(index))
+                }
+                select::Refusal::RepeatedCase(index) => {
+                    format!("constructor `{}` has more than one case", short(index))
+                }
+                select::Refusal::BinderCount(index) => format!(
+                    "case `{}` binds the wrong number of names for {} fields and {} hypotheses",
+                    short(index),
+                    shapes[index].fields,
+                    if induct { shapes[index].recursive } else { 0 }
+                ),
+                select::Refusal::UnknownCase(index) => {
+                    format!("case `{}` names no constructor of the type", short(index))
+                }
+                other => format!("{other:?}"),
+            },
+        )?;
         let mut minors = Vec::new();
         for (index, ctor) in shape.ctors.iter().enumerate() {
             let branch = &branches[select::minor_of(index, &heads)

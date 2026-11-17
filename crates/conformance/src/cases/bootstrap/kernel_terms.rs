@@ -50,7 +50,11 @@ fn enc_ctor(shape: CtorShape) -> Value {
 fn enc_branch(head: BranchHead, at: usize) -> Value {
     adt(
         0,
-        vec![nat_val(head.ctor), nat_val(head.binders), adt(2, vec![nat_val(at)])],
+        vec![
+            nat_val(head.ctor),
+            nat_val(head.binders),
+            adt(2, vec![nat_val(at)]),
+        ],
     )
 }
 
@@ -95,7 +99,9 @@ fn check_run(ctors: &[CtorShape], index: usize, branches: &[BranchHead], induct:
             ),
             bool_val(induct),
         ],
-        json(&enc_check(select::check_from(ctors, index, branches, induct))),
+        json(&enc_check(select::check_from(
+            ctors, index, branches, induct,
+        ))),
     )
 }
 
@@ -114,7 +120,9 @@ fn law_run(law: usize, registered: &[usize], premises: &[usize], produced: &[usi
             enc_names(premises),
             enc_names(produced),
         ],
-        json(&enc_check(select::law_check(&law, registered, premises, produced))),
+        json(&enc_check(select::law_check(
+            &law, registered, premises, produced,
+        ))),
     )
 }
 
@@ -136,31 +144,106 @@ fn named() -> BTreeMap<&'static str, (&'static str, Run)> {
     let list_shape = [shape(0, 0), shape(2, 1)];
     let mut out = BTreeMap::new();
     let mut add = |label, root, run| {
-        assert!(out.insert(label, (root, run)).is_none(), "{label} is named once");
+        assert!(
+            out.insert(label, (root, run)).is_none(),
+            "{label} is named once"
+        );
     };
-    add("cases bool", "checkFrom", check_run(&bool_shape, 0, &[head(0, 0), head(1, 0)], false));
-    add("cases reversed", "checkFrom", check_run(&bool_shape, 0, &[head(1, 0), head(0, 0)], false));
-    add("cases missing", "checkFrom", check_run(&bool_shape, 0, &[head(0, 0)], false));
-    add("cases missing first", "checkFrom", check_run(&bool_shape, 0, &[head(1, 0)], false));
-    add("cases repeated", "checkFrom", check_run(&bool_shape, 0, &[head(0, 0), head(0, 0), head(1, 0)], false));
-    add("cases binders", "checkFrom", check_run(&nat_shape, 0, &[head(0, 0), head(1, 2)], false));
-    add("cases unknown", "checkFrom", check_run(&bool_shape, 0, &[head(0, 0), head(1, 0), head(5, 0)], false));
-    add("cases unknown at the end", "checkFrom", check_run(&bool_shape, 0, &[head(0, 0), head(1, 0), head(2, 0)], false));
-    add("cases empty type", "checkFrom", check_run(&[], 0, &[], false));
-    add("cases empty type stray", "checkFrom", check_run(&[], 0, &[head(0, 0)], false));
-    add("induction nat", "checkFrom", check_run(&nat_shape, 0, &[head(0, 0), head(1, 2)], true));
-    add("induction nat without hypothesis", "checkFrom", check_run(&nat_shape, 0, &[head(0, 0), head(1, 1)], true));
-    add("induction list", "checkFrom", check_run(&list_shape, 0, &[head(1, 3), head(0, 0)], true));
-    add("cases from an index", "checkFrom", check_run(&bool_shape, 3, &[head(3, 0), head(4, 0)], false));
-    add("cases from an index below", "checkFrom", check_run(&bool_shape, 3, &[head(3, 0), head(4, 0), head(1, 0)], false));
+    add(
+        "cases bool",
+        "checkFrom",
+        check_run(&bool_shape, 0, &[head(0, 0), head(1, 0)], false),
+    );
+    add(
+        "cases reversed",
+        "checkFrom",
+        check_run(&bool_shape, 0, &[head(1, 0), head(0, 0)], false),
+    );
+    add(
+        "cases missing",
+        "checkFrom",
+        check_run(&bool_shape, 0, &[head(0, 0)], false),
+    );
+    add(
+        "cases missing first",
+        "checkFrom",
+        check_run(&bool_shape, 0, &[head(1, 0)], false),
+    );
+    add(
+        "cases repeated",
+        "checkFrom",
+        check_run(&bool_shape, 0, &[head(0, 0), head(0, 0), head(1, 0)], false),
+    );
+    add(
+        "cases binders",
+        "checkFrom",
+        check_run(&nat_shape, 0, &[head(0, 0), head(1, 2)], false),
+    );
+    add(
+        "cases unknown",
+        "checkFrom",
+        check_run(&bool_shape, 0, &[head(0, 0), head(1, 0), head(5, 0)], false),
+    );
+    add(
+        "cases unknown at the end",
+        "checkFrom",
+        check_run(&bool_shape, 0, &[head(0, 0), head(1, 0), head(2, 0)], false),
+    );
+    add(
+        "cases empty type",
+        "checkFrom",
+        check_run(&[], 0, &[], false),
+    );
+    add(
+        "cases empty type stray",
+        "checkFrom",
+        check_run(&[], 0, &[head(0, 0)], false),
+    );
+    add(
+        "induction nat",
+        "checkFrom",
+        check_run(&nat_shape, 0, &[head(0, 0), head(1, 2)], true),
+    );
+    add(
+        "induction nat without hypothesis",
+        "checkFrom",
+        check_run(&nat_shape, 0, &[head(0, 0), head(1, 1)], true),
+    );
+    add(
+        "induction list",
+        "checkFrom",
+        check_run(&list_shape, 0, &[head(1, 3), head(0, 0)], true),
+    );
+    add(
+        "cases from an index",
+        "checkFrom",
+        check_run(&bool_shape, 3, &[head(3, 0), head(4, 0)], false),
+    );
+    add(
+        "cases from an index below",
+        "checkFrom",
+        check_run(&bool_shape, 3, &[head(3, 0), head(4, 0), head(1, 0)], false),
+    );
     add("member present", "memberCheck", member_run(&[3, 7, 9], 7));
     add("member first", "memberCheck", member_run(&[3, 7, 9], 3));
     add("member absent", "memberCheck", member_run(&[3, 7, 9], 8));
     add("member of none", "memberCheck", member_run(&[], 0));
-    add("law cited", "lawCheck", law_run(4, &[1, 4], &[7, 9], &[9, 7, 2]));
+    add(
+        "law cited",
+        "lawCheck",
+        law_run(4, &[1, 4], &[7, 9], &[9, 7, 2]),
+    );
     add("law no premises", "lawCheck", law_run(4, &[4], &[], &[]));
-    add("law unregistered", "lawCheck", law_run(5, &[1, 4], &[7], &[7]));
-    add("law premise missing", "lawCheck", law_run(4, &[4], &[7, 8, 9], &[7, 9]));
+    add(
+        "law unregistered",
+        "lawCheck",
+        law_run(5, &[1, 4], &[7], &[7]),
+    );
+    add(
+        "law premise missing",
+        "lawCheck",
+        law_run(4, &[4], &[7, 8, 9], &[7, 9]),
+    );
     out
 }
 
@@ -175,7 +258,11 @@ fn seeded_check(seeded: &mut Seeded) -> Run {
         let wanted = ctors[at].fields + if induct { ctors[at].recursive } else { 0 };
         let copies = *seeded.pick(&[1, 1, 1, 1, 0, 2]);
         for _ in 0..copies {
-            let binders = if seeded.below(6) == 0 { seeded.below(5) } else { wanted };
+            let binders = if seeded.below(6) == 0 {
+                seeded.below(5)
+            } else {
+                wanted
+            };
             branches.push(head(index + at, binders));
         }
     }
@@ -197,10 +284,14 @@ fn seeded_runs(count: usize, seed: u64) -> BTreeMap<&'static str, Vec<Run>> {
     let mut seeded = Seeded(seed);
     let mut out: BTreeMap<&'static str, Vec<Run>> = BTreeMap::new();
     for _ in 0..count {
-        out.entry("checkFrom").or_default().push(seeded_check(&mut seeded));
+        out.entry("checkFrom")
+            .or_default()
+            .push(seeded_check(&mut seeded));
         let pool = names(&mut seeded);
         let name = seeded.below(8);
-        out.entry("memberCheck").or_default().push(member_run(&pool, name));
+        out.entry("memberCheck")
+            .or_default()
+            .push(member_run(&pool, name));
         let registered = names(&mut seeded);
         let premises = names(&mut seeded);
         let produced = names(&mut seeded);
@@ -259,7 +350,11 @@ fn plants(vectors: &BTreeMap<&'static str, (&'static str, Run)>) {
         .expect("the committed source");
     let mut missed = Vec::new();
     for plant in &PLANTS {
-        assert!(source.contains(plant.site), "{}: the site is in the source", plant.label);
+        assert!(
+            source.contains(plant.site),
+            "{}: the site is in the source",
+            plant.label
+        );
         let (root, run) = &vectors[plant.vector];
         let planted = P::bootstrap();
         planted.write(SOURCE, &source.replacen(plant.site, plant.replacement, 1));
@@ -394,10 +489,14 @@ pub(super) fn bs_35() {
 /// The committed module as the one module of a language-1.2 project of its
 /// own: it imports nothing, so it is verified alone.
 fn alone(planted: Option<(&str, &str)>) -> P {
-    let mut source = std::fs::read_to_string(repo_root().join("bootstrap").join(SOURCE).as_std_path())
-        .expect("the committed source");
+    let mut source =
+        std::fs::read_to_string(repo_root().join("bootstrap").join(SOURCE).as_std_path())
+            .expect("the committed source");
     if let Some((site, replacement)) = planted {
-        assert!(source.contains(site), "the planted site {site:?} is in the source");
+        assert!(
+            source.contains(site),
+            "the planted site {site:?} is in the source"
+        );
         source = source.replacen(site, replacement, 1);
     }
     let header = "\\begin{lexlean}{KernelTerms}\n\\useglossary{lexlean.std.nat@1.2.0}\n\\title{Natural number addition}\n";
@@ -436,7 +535,12 @@ fn declared() -> BTreeMap<String, Vec<String>> {
                 declaration["name"].as_str().expect("a name").to_owned(),
                 declaration["axioms"]
                     .as_array()
-                    .map(|axioms| axioms.iter().map(|a| a.as_str().expect("an axiom").to_owned()).collect())
+                    .map(|axioms| {
+                        axioms
+                            .iter()
+                            .map(|a| a.as_str().expect("an axiom").to_owned())
+                            .collect()
+                    })
                     .unwrap_or_default(),
             )
         })
@@ -509,7 +613,10 @@ fn theorems(id: &str, names: &[&str], axioms: &[&str], plant: (&str, &str)) {
     let _guard = support::env_shared();
     let planted = alone(Some(plant));
     let error = planted.verify_fails_with("LLV7002");
-    eprintln!("{id}: the planted module is refused: {}", error.to_string().lines().next().unwrap_or(""));
+    eprintln!(
+        "{id}: the planted module is refused: {}",
+        error.to_string().lines().next().unwrap_or("")
+    );
 }
 
 pub(super) fn bs_36() {
