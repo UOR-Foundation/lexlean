@@ -1070,6 +1070,12 @@ suite = "lean-backend"
 statement = "Generated file paths and module names exactly mirror the configured module prefix and source module."
 
 [[id]]
+id = "LN-13"
+level = "build"
+suite = "lean-backend"
+statement = "Kernel-term production writes, with no elaborator and no tactic, a lean4export 3.1.0 theorem for every semantic theorem whose proof tree is reflexivity, decide, cases, induction, apply of a produced theorem, or law, typed by the statement lowered from the linked IR and bound to the theorem Lean elaborates; Lean's kernel accepts every produced theorem and binding of a module that uses each form, and refuses a produced theorem whose statement was altered, whose case takes another constructor's branch, or whose decide obligation is false, and production refuses a proof that omits a case."
+
+[[id]]
 id = "TX-01"
 level = "build"
 suite = "latex-pdf"

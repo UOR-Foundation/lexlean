@@ -304,6 +304,7 @@ the error registry does not sanction (R5, `ERRORS.md`).
 | `LN-10` | `build` | Every non-whitespace generated Lean token has a source, glossary, IR, or synthetic-core mapping. |
 | `LN-11` | `build` | The generated-source audit tokenizes and rejects prose-bearing or forbidden Lean tokens before verification. |
 | `LN-12` | `build` | Generated file paths and module names exactly mirror the configured module prefix and source module. |
+| `LN-13` | `build` | Kernel-term production writes, with no elaborator and no tactic, a lean4export 3.1.0 theorem for every semantic theorem whose proof tree is reflexivity, decide, cases, induction, apply of a produced theorem, or law, typed by the statement lowered from the linked IR and bound to the theorem Lean elaborates; Lean's kernel accepts every produced theorem and binding of a module that uses each form, and refuses a produced theorem whose statement was altered, whose case takes another constructor's branch, or whose decide obligation is false, and production refuses a proof that omits a case. |
 
 ## lexical-closure
 

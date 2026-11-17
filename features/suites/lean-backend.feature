@@ -85,3 +85,10 @@ Feature: lean-backend
     When the project is rendered, then relocked and rendered again with `module_prefix = "Other"`
     Then the first build's module is `LexLeanExample.Main` at `modules/LexLeanExample/Main.lean` with `namespace LexLeanExample.Main`
     And the second build's module path is `modules/Other/Main.lean` with `namespace Other.Main`
+
+  @LN-13 @build
+  Scenario: Kernel-term production writes, with no elaborator and no tactic, a lean4export 3.1.0 theorem for every semantic theorem whose proof tree is reflexivity, decide, cases, induction, apply of a produced theorem, or law, typed by the statement lowered from the linked IR and bound to the theorem Lean elaborates; Lean's kernel accepts every produced theorem and binding of a module that uses each form, and refuses a produced theorem whose statement was altered, whose case takes another constructor's branch, or whose decide obligation is false, and production refuses a proof that omits a case.
+    Given a language-1.2 semantic module whose theorems are proved by reflexivity, decide, cases, induction, apply, and law
+    When kernel terms are produced from its linked IR with no library and judged by `crates/conformance/lean/KernelCheck.lean` over its compiled modules
+    Then every produced theorem and its binding are accepted with exactly the declared axioms
+    And a planted altered statement, swapped case branch, and false decide are each refused by the kernel, and an omitted case is refused by production

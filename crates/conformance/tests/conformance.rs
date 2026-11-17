@@ -891,6 +891,11 @@ fn conformance_ln_12() {
 }
 
 #[test]
+fn conformance_ln_13() {
+    repo_conformance::cases::run("LN-13");
+}
+
+#[test]
 fn conformance_tx_01() {
     repo_conformance::cases::run("TX-01");
 }
