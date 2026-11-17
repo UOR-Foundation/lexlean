@@ -172,3 +172,17 @@ Feature: proofs
     When the runtime is built, the example is rendered and verified, copies put != in a rule, leave a field unbounded, compare a sum, use the form as a branch, a language-1.1 module uses the form, and a copy drops the occupancy test from a rule
     Then the regions module is a native core module importing only Init with every row within propext and Quot.sound, and each property lowers to one application of LexLeanRegions.holds whose obligation the kernel decides
     And the malformed copies and the language-1.1 use fail with LLT4001 and the defective rule fails verification with LLV7002 at exactly the properties it breaks
+
+  @PF-25 @build
+  Scenario: A definitions list of a linear_arithmetic or term_cases proof that is not sorted and unique is refused with LLT4001 carrying a sort repair whose one edit replaces the list with its sorted, deduplicated form, and applying it makes the module check; a list that names anything but a prior document declaration carries no sort repair.
+    Given the committed fold-laws example with one linear_arithmetic definitions list reordered, and a copy whose reordered list names a declaration that does not exist
+    When each copy is checked
+    Then the reordered copy fails with LLT4001 carrying one sort repair whose edit is the sorted list, and the repaired copy checks
+    And the copy naming a missing declaration fails with LLT4001 and carries no sort repair
+
+  @PF-26 @build
+  Scenario: A Boolean branch constructor written bare in a cases proof whose scrutinee is a Bool parameter of its theorem is refused with LLT4001 carrying a quote repair that writes it as the string "false" or "true", and applying it makes the module check; a bare constructor under a scrutinee that is not a Bool parameter carries no quote repair.
+    Given the committed fold-laws example with a theorem added whose cases proof over a Bool parameter writes its branch constructors bare, and a copy whose scrutinee is a Nat parameter
+    When each copy is checked
+    Then the Bool copy fails with LLT4001 carrying one quote repair for both constructors, and the repaired copy checks
+    And the Nat copy fails with LLT4001 and carries no quote repair

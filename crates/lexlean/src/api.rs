@@ -837,6 +837,15 @@ impl Engine {
                     diagnostic.primary = Some(crate::diagnostic::Span::whole_file(anchor));
                 }
             }
+            // Repairs read the file a diagnostic points into, confined to
+            // the project like every other read (§20.7).
+            crate::repair::attach_source_repairs(&mut error.diagnostics, &|path| {
+                let file = self.project.confined_file(path).ok()?;
+                let bytes = std::fs::read(file.as_std_path()).ok()?;
+                crate::source::normalize::normalize(path, &bytes, false)
+                    .ok()
+                    .map(|normalized| normalized.text)
+            });
             error.bounded(self.project.config.limits.max_diagnostics, phase)
         })
     }

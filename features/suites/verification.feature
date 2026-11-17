@@ -169,3 +169,17 @@ Feature: verification
     And a shard whose plan elaborates a module before its imports, and a join that is handed one shard too few, are refused
     And a join reading a part whose toolchain addresses name another lake is refused
     And a join reading a replay record whose executable digest is not its own leanchecker's is refused
+
+  @VR-24 @build
+  Scenario: A Lean rejection of a theorem proved by linear_arithmetic carries an unfold repair only when the verifier has elaborated a copy of the theorem with the extended definitions list and Lean accepted it without a message: the repair adds the fewest definitions of the lists it tried, applying it makes the project verify, and a theorem no unfolding repairs, such as a false one, carries no unfold repair; the probe publishes nothing and enters no record.
+    Given the committed fold-laws example with the definitions of one linear_arithmetic proof removed, and a copy with one kernel made false
+    When each copy is verified
+    Then the first fails with LLV7002 carrying one unfold repair that restores the removed definition, and the repaired copy verifies
+    And the false kernel fails with LLV7002 and carries no repair, and no verified directory holds a probe
+
+  @VR-25 @build
+  Scenario: An axiom-policy violation of a semantic theorem carries an axioms repair that makes its policy the observed set when every axiom the repair adds is propext or Quot.sound, and applying it makes the project verify; a violation whose observed set would add any other axiom, such as Classical.choice, carries no repair.
+    Given the committed fold-laws example with one theorem's policy missing Quot.sound, and a copy whose fixed-width theorem's policy omits Classical.choice
+    When each copy is verified
+    Then the first fails with LLV7005 carrying an axioms repair to the observed set, and the repaired copy verifies
+    And the classical copy fails with LLV7005 and carries no repair
