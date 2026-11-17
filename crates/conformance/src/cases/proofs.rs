@@ -1,4 +1,4 @@
-//! The `proofs` suite: PF-01..PF-24.
+//! The `proofs` suite: PF-01..PF-26.
 //!
 //! Positive forms are asserted against the shared Lean-verified proof
 //! corpus (`support::verified_corpus`): every case first asserts the
@@ -154,7 +154,7 @@ fn refused_theorems(project: &P, file: &str, error: &lexlean::LexLeanError) -> V
 
 /// A copy of the fold-laws example with each `(from, to)` replacement made
 /// in `file`'s own notation, each `from` asserted present.
-fn fold_laws_with(file: &str, edits: &[(&str, &str)]) -> P {
+pub(crate) fn fold_laws_with(file: &str, edits: &[(&str, &str)]) -> P {
     let copy = P::copy_example("fold-laws");
     let mut source = copy.read_raw(file);
     for (from, to) in edits {
@@ -1304,6 +1304,64 @@ pub(crate) fn run(id: &str) {
                     "{error}"
                 );
             }
+        }
+        // §20.7: an unsorted definitions list carries its sorted form.
+        "PF-25" => {
+            let file = "src/Folds.lex.tex";
+            let listed = "linear_arithmetic{definitions: [count, total, weighted]}";
+            let reordered = fold_laws_with(
+                file,
+                &[(
+                    listed,
+                    "linear_arithmetic{definitions: [weighted, count, total, count]}",
+                )],
+            );
+            let error = reordered.check_fails_with("LLT4001");
+            let sorts = support::repairs_of(&error, "sort");
+            assert_eq!(sorts.len(), 1, "{error}");
+            assert_eq!(sorts[0].edits.len(), 1, "{error}");
+            assert_eq!(sorts[0].edits[0].replacement, "[count, total, weighted]");
+            support::apply_repairs(&reordered, &error);
+            assert!(reordered.read_raw(file).contains(listed));
+            reordered.check_ok();
+            // Sorting a list that names no declaration would trade one
+            // refusal for another, so nothing is offered.
+            let absent = fold_laws_with(
+                file,
+                &[(
+                    listed,
+                    "linear_arithmetic{definitions: [weighted, count, absent]}",
+                )],
+            );
+            let error = absent.check_fails_with("LLT4001");
+            assert!(support::repairs_of(&error, "sort").is_empty(), "{error}");
+        }
+        // §20.7: a bare Boolean constructor is quoted.
+        "PF-26" => {
+            let file = "src/Kernels.lex.tex";
+            let theorem = |scrutinee: &str| {
+                format!(
+                    "theorem{{\n  name: choice_same,\n  parameters: [same : Bool, value : Nat],\n  statement: ((if same then value else value) = value),\n  proof: cases{{\n    branches: [\n      {{proof: reflexivity{{}}, binders: [], constructor: false}},\n      {{proof: reflexivity{{}}, binders: [], constructor: true}}\n    ],\n    scrutinee: {scrutinee}\n  }}\n}}\n\\end{{semanticmodule}}"
+                )
+            };
+            let bare = fold_laws_with(file, &[("\\end{semanticmodule}", &theorem("same"))]);
+            let error = bare.check_fails_with("LLT4001");
+            let quotes = support::repairs_of(&error, "quote");
+            assert_eq!(quotes.len(), 1, "{error}");
+            assert_eq!(
+                quotes[0]
+                    .edits
+                    .iter()
+                    .map(|edit| edit.replacement.as_str())
+                    .collect::<Vec<_>>(),
+                ["\"false\"", "\"true\""]
+            );
+            support::apply_repairs(&bare, &error);
+            bare.check_ok();
+            // Under a Nat scrutinee a quoted word names no constructor.
+            let natural = fold_laws_with(file, &[("\\end{semanticmodule}", &theorem("value"))]);
+            let error = natural.check_fails_with("LLT4001");
+            assert!(support::repairs_of(&error, "quote").is_empty(), "{error}");
         }
         other => panic!("no proofs case is wired for {other}"),
     }

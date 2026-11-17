@@ -123,6 +123,29 @@ impl Span {
         }
     }
 
+    /// The span of `byte_start..byte_end` in `text`, the normalized bytes of
+    /// the file at `path`; columns count scalar values (§20.1).
+    #[must_use]
+    pub fn of_text(path: &str, text: &str, byte_start: usize, byte_end: usize) -> Self {
+        let position = |offset: usize| {
+            let before = &text[..offset];
+            let line = before.matches('\n').count() + 1;
+            let line_start = before.rfind('\n').map_or(0, |index| index + 1);
+            (line, before[line_start..].chars().count() + 1)
+        };
+        let (line_start, column_start) = position(byte_start);
+        let (line_end, column_end) = position(byte_end);
+        Self {
+            path: path.to_owned(),
+            byte_start,
+            byte_end,
+            line_start,
+            column_start,
+            line_end,
+            column_end,
+        }
+    }
+
     fn to_json(&self) -> Json {
         let mut object = BTreeMap::new();
         object.insert("path".to_owned(), Json::Str(self.path.clone()));
@@ -156,6 +179,98 @@ pub struct Note {
     pub message: String,
     /// An optional location.
     pub span: Option<Span>,
+}
+
+/// The closed kinds of a machine-applicable repair (§20.7). Each names the
+/// one failure shape it answers; `model/errors.toml` lists, per code, the
+/// kinds a diagnostic of that code may carry.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum RepairKind {
+    /// Extend a `linear_arithmetic` proof's `definitions` with the document
+    /// definitions whose unfolding the verifier confirmed closes the goal.
+    Unfold,
+    /// Replace a `definitions` list that is not sorted and unique by its
+    /// sorted, deduplicated form.
+    Sort,
+    /// Quote a Boolean branch constructor, `false` to `"false"`.
+    Quote,
+    /// Replace a semantic theorem's axiom policy by the observed set.
+    Axioms,
+}
+
+impl RepairKind {
+    /// Every kind, in canonical order.
+    pub const ALL: [Self; 4] = [Self::Axioms, Self::Quote, Self::Sort, Self::Unfold];
+
+    /// The registered spelling of the kind.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Unfold => "unfold",
+            Self::Sort => "sort",
+            Self::Quote => "quote",
+            Self::Axioms => "axioms",
+        }
+    }
+}
+
+/// One exact edit of a source file: replace the bytes of `span` by
+/// `replacement`. The edits of one repair never overlap.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Edit {
+    /// The replaced range of the normalized source.
+    pub span: Span,
+    /// The new text of that range.
+    pub replacement: String,
+}
+
+/// A machine-applicable repair (§20.7): applying every edit, last offset
+/// first, is the whole repair.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Repair {
+    /// The closed kind.
+    pub kind: RepairKind,
+    /// What the repair changes and why, in one line.
+    pub message: String,
+    /// The edits, sorted by path and offset.
+    pub edits: Vec<Edit>,
+}
+
+impl Repair {
+    /// A repair of `kind` made of `edits`, sorted canonically.
+    #[must_use]
+    pub fn new(kind: RepairKind, message: impl Into<String>, mut edits: Vec<Edit>) -> Self {
+        edits.sort();
+        Self {
+            kind,
+            message: message.into(),
+            edits,
+        }
+    }
+
+    fn to_json(&self) -> Json {
+        let mut object = BTreeMap::new();
+        object.insert("kind".to_owned(), Json::Str(self.kind.as_str().to_owned()));
+        object.insert("message".to_owned(), Json::Str(self.message.clone()));
+        object.insert(
+            "edits".to_owned(),
+            Json::Arr(
+                self.edits
+                    .iter()
+                    .map(|edit| {
+                        let mut o = BTreeMap::new();
+                        o.insert("span".to_owned(), edit.span.to_json());
+                        o.insert(
+                            "replacement".to_owned(),
+                            Json::Str(edit.replacement.clone()),
+                        );
+                        Json::Obj(o)
+                    })
+                    .collect(),
+            ),
+        );
+        Json::Obj(object)
+    }
 }
 
 /// Producer-set native diagnostic distinctions (SPEC.md §24.5).
@@ -199,6 +314,9 @@ pub struct Diagnostic {
     pub help: Vec<String>,
     /// Underlying causes, innermost last.
     pub causes: Vec<String>,
+    /// Machine-applicable repairs (§20.7); serialized only when present, so
+    /// a diagnostic without one keeps its bytes.
+    pub repairs: Vec<Repair>,
     detail: Option<DiagnosticDetail>,
 }
 
@@ -214,6 +332,7 @@ impl Diagnostic {
             notes: Vec::new(),
             help: Vec::new(),
             causes: Vec::new(),
+            repairs: Vec::new(),
             detail: None,
         }
     }
@@ -280,6 +399,13 @@ impl Diagnostic {
         self
     }
 
+    /// Attach a repair.
+    #[must_use]
+    pub fn with_repair(mut self, repair: Repair) -> Self {
+        self.repairs.push(repair);
+        self
+    }
+
     /// The canonical JSON object (SPEC.md §20.1).
     #[must_use]
     pub fn to_json(&self) -> Json {
@@ -332,6 +458,12 @@ impl Diagnostic {
             "causes".to_owned(),
             Json::Arr(self.causes.iter().cloned().map(Json::Str).collect()),
         );
+        if !self.repairs.is_empty() {
+            object.insert(
+                "repairs".to_owned(),
+                Json::Arr(self.repairs.iter().map(Repair::to_json).collect()),
+            );
+        }
         Json::Obj(object)
     }
 }

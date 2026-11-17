@@ -27,6 +27,7 @@ pub mod lifeline;
 pub mod operational;
 pub mod partition;
 pub mod pool;
+mod repair;
 pub mod source_audit;
 pub mod telemetry;
 pub mod toolchain;
@@ -1724,13 +1725,63 @@ pub fn run_part(
                     // Lean reports compile errors on stdout under `lake env
                     // lean`; remap over both streams (§20.4).
                     let combined = format!("{}\n{}", record.stdout, record.stderr);
-                    return Err(LexLeanError::from_diagnostics(remap_lean_output(
+                    let mut diagnostics = remap_lean_output(
                         checked,
                         build,
                         &module_name,
                         &combined,
                         LeanOutcome::Rejected,
-                    )));
+                    );
+                    if let Some(module) = build
+                        .modules
+                        .iter()
+                        .find(|module| module.lean_module == module_name)
+                    {
+                        let probe_root = staging_utf8.join("repair-probe");
+                        repair::unfold(
+                            checked,
+                            module,
+                            &combined,
+                            &mut diagnostics,
+                            &probe_root,
+                            &|file: &Utf8Path| {
+                                run_child(
+                                    &ChildSpec {
+                                        tool: "lean",
+                                        module: Some(module_name.clone()),
+                                        program: &toolchain.lake.path,
+                                        executable_sha256: toolchain.lean.sha256,
+                                        argv: vec![
+                                            "env".to_owned(),
+                                            "lean".to_owned(),
+                                            // The frontend stops at
+                                            // `maxErrors` messages, and the
+                                            // rejected originals alone can
+                                            // pass the default before the
+                                            // last copy is judged.
+                                            "-DmaxErrors=1000000".to_owned(),
+                                            "-R".to_owned(),
+                                            probe_root.to_string(),
+                                            file.to_string(),
+                                        ],
+                                        cwd: &workspace_root,
+                                        extra_env: vec![(
+                                            "LEAN_PATH".to_owned(),
+                                            lean_path_env.clone(),
+                                        )],
+                                        home: ChildHome::Toolchain {
+                                            toolchain_bin: &toolchain_bin,
+                                        },
+                                    },
+                                    &limits,
+                                    &normalizer,
+                                )
+                                .ok()
+                                .map(|probe| format!("{}\n{}", probe.stdout, probe.stderr))
+                            },
+                        );
+                    }
+                    return Err(LexLeanError::from_diagnostics(diagnostics));
                 }
                 // Any warning or unknown informational message fails
                 // verification (§20.2, §22.3), remapped like an error.

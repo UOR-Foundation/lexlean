@@ -322,6 +322,8 @@ Arity, binder, category, or conservative type mismatch.
 
 Class: `language`. Exit code: 1.
 
+Repairs: `quote`, `sort`.
+
 ## `LLT4002` --- Unresolved overloaded entry
 
 Unresolved overloaded entry.
@@ -424,6 +426,8 @@ Generated Lean elaboration or compilation failure.
 
 Class: `language`. Exit code: 1.
 
+Repairs: `unfold`.
+
 ## `LLV7003` --- `leanchecker` replay failure
 
 `leanchecker` replay failure.
@@ -441,6 +445,8 @@ Class: `language`. Exit code: 1.
 Axiom policy violation.
 
 Class: `language`. Exit code: 1.
+
+Repairs: `axioms`.
 
 ## `LLV7006` --- Lean warning or unexpected successful-process output
 

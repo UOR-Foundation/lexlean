@@ -1559,7 +1559,7 @@ const FIXED_WIDTH: &[(&str, &str)] = &[
 /// its bits, so `omega` knows its range; split every `if` and `match` left
 /// in the goal; and decide each case with `omega`. A goal the simplifier
 /// closed leaves nothing for `omega`.
-fn linear_arithmetic(pad: &str, definitions: &[String]) -> String {
+pub(crate) fn linear_arithmetic(pad: &str, definitions: &[String]) -> String {
     let rewrites = crate::ir::semantic::laws::registry()
         .map(|registry| registry.rewrites.as_slice())
         .unwrap_or_default();
