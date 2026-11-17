@@ -705,7 +705,24 @@ mod tests {
         assert!(session.module("Init").is_some());
     }
 
-    #[cfg(unix)]
+    /// A directory link at `at` to `target`, made the way the host makes one, so the test runs on every host.
+    fn link_dir(target: &std::path::Path, at: &std::path::Path, what: &str) {
+        #[cfg(unix)]
+        let made = std::os::unix::fs::symlink(target, at);
+        #[cfg(windows)]
+        let made = std::os::windows::fs::symlink_dir(target, at);
+        made.expect(what);
+    }
+
+    /// Remove a directory link made by `link_dir`.
+    fn unlink_dir(at: &std::path::Path) {
+        #[cfg(unix)]
+        let removed = std::fs::remove_file(at);
+        #[cfg(windows)]
+        let removed = std::fs::remove_dir(at);
+        removed.expect("unlink");
+    }
+
     #[test]
     fn a_linked_library_is_bound_and_a_link_cycle_is_unreadable() {
         let (_root, base) = scratch();
@@ -713,11 +730,11 @@ mod tests {
         write(&toolchain, "bin/lean", "lean");
         write(&library, "Init.olean", "init");
         std::fs::create_dir_all(toolchain.join("lib").as_std_path()).expect("dir");
-        std::os::unix::fs::symlink(
+        link_dir(
             library.as_std_path(),
             toolchain.join("lib/lean").as_std_path(),
-        )
-        .expect("link");
+            "link",
+        );
         let session = session(Vec::new(), &toolchain);
         assert!(
             session.module("Init").is_some(),
@@ -730,15 +747,18 @@ mod tests {
             Some(before),
             "a file under the linked library is bound"
         );
-        std::os::unix::fs::symlink(toolchain.as_std_path(), library.join("back").as_std_path())
-            .expect("cycle");
+        link_dir(
+            toolchain.as_std_path(),
+            library.join("back").as_std_path(),
+            "cycle",
+        );
         assert_eq!(tree(&toolchain), None, "a link cycle is a miss");
-        std::fs::remove_file(library.join("back").as_std_path()).expect("unlink");
-        std::os::unix::fs::symlink(
+        unlink_dir(library.join("back").as_std_path());
+        link_dir(
             base.join("nowhere").as_std_path(),
             library.join("dangling").as_std_path(),
-        )
-        .expect("dangling");
+            "dangling",
+        );
         assert_eq!(
             tree(&toolchain),
             None,
