@@ -25,6 +25,7 @@ use crate::support::{self, P};
 mod cli_output;
 mod diagnostics;
 mod gnaf_validate;
+mod kernel_terms;
 mod lexicon_lre;
 mod lexicon_lse;
 mod lock_text;
@@ -2574,6 +2575,10 @@ fn case(id: &str) {
         "BS-32" => content_id::case(),
         "BS-33" => project_text::case(),
         "BS-34" => manifest_text::case(),
+        "BS-35" => kernel_terms::bs_35(),
+        "BS-36" => kernel_terms::bs_36(),
+        "BS-37" => kernel_terms::bs_37(),
+        "BS-38" => kernel_terms::bs_38(),
         other => panic!("no bootstrap case is wired for {other}"),
     }
 }

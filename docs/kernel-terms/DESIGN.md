@@ -129,6 +129,47 @@ A theorem is established when three things hold:
 `summarize.mjs` reports each of the three. In foundry's vocabulary, the tab's verdict on a produced theorem is
 "kernel-checked" by Lean's own kernel, and the binding is how it becomes "the statement the spec wrote".
 
+## Modelled and proved in LexLean
+
+The producers are also stated as LexLean source: `bootstrap/src/KernelTerms.lex.tex` (SPEC.md
+§17.23). It works over a kernel-term datatype of its own, `Term`. A constant is a number, a binder
+is a position, and universe levels and binder names are left to the stage-0 producer.
+
+The module proves the following; the pinned Lean verifies each theorem with exactly its declared
+axioms.
+
+| Claim | Theorems | Standing |
+|---|---|---|
+| **Binding** (`BS-36`): `declare` gives a declaration exactly the statement it was handed as its type; a refusal declares nothing | `declare_binds_statement` | built and proved here, no axiom |
+| **Totality** (`BS-37`): each producer makes a term for exactly the inputs its check passes; `decideTerm` for every input | `reflexivity_total`, `cases_total`, `induction_total`, `apply_total`, `law_total`, `decide_total` | built and proved here, `propext` (none for decide) |
+| **Refusal** (`BS-38`): each producer refuses exactly the inputs its check fails, with the check's typed `Refusal`; every refusal kind is reached | `*_refuses_exactly`, `missing_case_refused`, `repeated_case_refused`, `binder_count_refused`, `unknown_case_refused`, `not_an_equation_refused`, `unproduced_theorem_refused`, `unregistered_law_refused` | built and proved here |
+| **Realization** (`BS-35`): the three checks the producers decide by, rendered to certified `rust-std` packages, agree with the stage-0 producer's decisions | the production roots `checkFrom`, `memberCheck`, `lawCheck` | built and validated by differential (evidence, not proof) |
+| A produced term proves its statement | none | **imported from Lean**: the kernel's judgement of every declaration, never claimed by LexLean |
+| Coverage, latency, sizes | none | **measured** (`evidence.json`), never asserted |
+
+The stage-0 producer (`crates/lexlean/src/backend/kernel/select.rs`) decides every case analysis,
+induction, citation, and law premise through the same three checks. A refusal the Rust producer
+reports is therefore one the model proves it refuses with the same `Refusal`.
+
+What is not proved, and why:
+
+- **Statement lowering.** Lowering the IR to the statement term stays in Rust. Modelling it means
+  stating the whole semantic IR (some 40 term forms, 20 types, and the instance table) as LexLean
+  data. Binding is proved of the term the producer is handed. That this term is the statement as
+  written is checked per theorem by the kernel (the `bound` declaration), not proved for all.
+- **An independent characterization of well-formedness.** `checkFrom` *is* the definition of a
+  well-formed case analysis. No theorem restates it in other words, such as "every constructor
+  has exactly one branch". That needs list induction whose branches close by arithmetic over
+  counts, which the phase-0 and `simplify` forms do not reach without auxiliary lemmas. It was not
+  attempted, so this claim is absent rather than weakened.
+- **The term builders are not production roots.** Building a `casesOn` application (motive, field
+  lambdas) is the stage-0 producer's. Only the decisions are realized from the model and held to
+  it. The built terms are judged by the kernel on every theorem.
+- **The shipped crate still runs the stage-0 Rust.** SPEC.md §17.23 keeps the Rust a component
+  replaces as the stage-0 oracle until the self-hosting fixed point, and adds a component only
+  with a differential against it. The certified packages are therefore published and held to the
+  Rust, not linked in place of it.
+
 ## Census
 
 `cargo xtask proof-census` links every project and counts proof forms from the IR. `docs/kernel-terms/census.json`

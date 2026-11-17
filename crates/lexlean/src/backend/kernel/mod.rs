@@ -15,6 +15,7 @@ mod export;
 mod expr;
 mod lower;
 mod prove;
+pub mod select;
 
 use std::collections::{BTreeMap, BTreeSet};
 

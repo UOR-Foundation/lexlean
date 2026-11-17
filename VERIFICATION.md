@@ -1830,6 +1830,55 @@ run through the browser path in `docs/kernel-terms/run.sh`: lean4export, the
 native checker, and the WebAssembly kernel with the library resident.
 `docs/kernel-terms/DESIGN.md` records those results.
 
+### kernel-term producers modelled in LexLean can fail (BS-35 to BS-38)
+
+`bootstrap/src/KernelTerms.lex.tex` states kernel-term production's
+producers as LexLean source (SPEC.md §17.23, §18.10). The planted defects
+below are run by the cases themselves on every run. Command and host:
+`cargo test --release -p repo-conformance --test conformance --
+conformance_bs_35 conformance_bs_36 conformance_bs_37 conformance_bs_38`,
+WSL Ubuntu on Windows x86-64, rustc 1.97.1, pinned Lean 4.32.2.
+
+`conformance_bs_35` plants five defects in the source of the three checks.
+On the normative host, each plant is detected by the one vector it names,
+under the calculus evaluator:
+
+```text
+BS-35: checkFrom: the evaluator agrees on 315 runs
+BS-35: memberCheck: the evaluator agrees on 304 runs
+BS-35: lawCheck: the evaluator agrees on 304 runs
+BS-35: plant detected: a constructor with no branch passes: run 0 on [...]
+BS-35: plant detected: a repeated branch passes: run 0 on [...]
+BS-35: plant detected: the hypotheses of an induction are not counted: run 0 on [...]
+BS-35: plant detected: a branch past the last constructor passes: run 0 on [...]
+BS-35: plant detected: an unregistered law is reported as an unproduced premise: run 0 on [...]
+BS-35: stage-0 check: 6023 rustc runs agree with the oracle
+```
+
+`conformance_bs_36`, `conformance_bs_37`, and `conformance_bs_38` verify
+the module alone under the pinned Lean, and require each theorem to be
+proved with exactly its declared axioms. Each then verifies a planted copy,
+and Lean refuses it with `LLV7002`:
+
+- binding: `declare` types the declaration by its proof term;
+- totality: `casesTerm` refuses every branch list its check passes;
+- refusal: `checkFrom` admits a missing case, and `reflexivityTerm`
+  refuses a non-equation with `missingCase`.
+
+Before these cases were wired, the same binding and refusal plants were
+run by hand on a copy of the module verified alone. `lexlean verify`
+refused each with `LLV7002`:
+
+```text
+== binding
+error[LLV7002]: Lean rejected `LanguageTwelve.Main` (error): Tactic `rfl` failed: The left-hand side
+== refusal
+error[LLV7002]: Lean rejected `LanguageTwelve.Main` (error): Tactic `rfl` failed: The left-hand side
+```
+
+The totality plant and the second refusal plant are run only by the
+cases. The cases are run by the CI gate on the normative host.
+
 ### a derived row is made by the pinned Lean and never stored (SM-34)
 
 A version 2 row may be derived: it states no universe parameters, type, or value,

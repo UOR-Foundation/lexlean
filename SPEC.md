@@ -9113,6 +9113,39 @@ orders the keys. The input and output rows are sorted with the stable merge sort
 order-preserving key of their kind, path, big-endian length, and digest. The root admits `recursion`
 through the JSON writer. Gathering the rows of a build and hashing its files stay in the host.
 
+Kernel-term production's producers (§18.10) are a component as source (`BS-35` to `BS-38`),
+the module `KernelTerms`. It states the producers over a kernel-term datatype of its own: a
+`Term`; the producers `reflexivityTerm`, `decideTerm`, `casesTerm`, `inductionTerm`, `applyTerm`,
+and `lawTerm`; and `declare`, which makes a declaration from a statement and a produced term. A
+constant is named by a number and a binder by its position; universe levels and binder names are
+the stage-0 producer's. Three production roots for `rust-std` are the checks the producers decide by:
+
+| Root | Takes | Returns | Oracle |
+| --- | --- | --- | --- |
+| `LexLeanBoot.KernelTerms.checkFrom` | the constructor shapes from a position, the branches, and whether it is an induction | `pass`, or the first `Refusal` | `backend::kernel::select::check_from` |
+| `LexLeanBoot.KernelTerms.memberCheck` | the produced theorems and a cited one | `pass`, or `notProduced` | `backend::kernel::select::member_check` |
+| `LexLeanBoot.KernelTerms.lawCheck` | a law, the registered laws, its premises, and the produced theorems | `pass`, `unregisteredLaw`, or `notProduced` | `backend::kernel::select::law_check` |
+
+The stage-0 producer decides every case analysis, induction, citation, and law premise through
+these three functions, so `BS-35` holds the decisions it makes to the rendered packages. The
+module proves, as theorems the pinned Lean verifies, three properties of the producers:
+
+- **binding** (`BS-36`): the declaration `declare` makes has exactly the statement it was given
+  as its type, and a refusal declares nothing;
+- **totality** (`BS-37`): each producer makes a term for exactly the inputs its check passes,
+  and `decideTerm` for every input;
+- **refusal** (`BS-38`): each producer refuses exactly the inputs its check fails, with the
+  check's own typed `Refusal`, and each kind of refusal is reached.
+
+`checkFrom` is the definition of a well-formed case analysis: each constructor has exactly one
+branch binding its fields, and, under induction, one hypothesis per recursive field, and no
+branch names a constructor past the last. The theorems state no soundness of a produced term:
+whether a term proves its statement is the kernel's judgement of every produced declaration
+(§18.10), an authority the repository imports rather than proves. Lowering the IR to a statement
+term stays in the stage-0 producer and is outside the module, so binding is proved of the
+statement term the module is given, and `LexLeanKernel.bound` declarations bind that term to
+the statement Lean elaborated (§18.10).
+
 The authoring notation of a tooling module (§17.20, §17.21) is the fifth component of the
 front end (`BS-27`, issue 269), the module `SurfaceTooling` over the generic notation of
 `BS-24`, with three production roots for `rust-std`:
@@ -9342,6 +9375,13 @@ declaration `LexLeanKernel.bound.T` has the same type and the value `T`, so
 the kernel accepts it only if the produced statement is definitionally the
 statement as written. A library export or snapshot production cannot read is
 `LLV7103`.
+
+The producers' decisions are those of the bootstrap module `KernelTerms` (§17.23), which
+proves binding, totality, and refusal of the producers it states (`BS-36` to `BS-38`); the
+stage-0 producer decides through the same three checks, which `BS-35` holds to their rendered
+packages. Those claims are of three standings. Binding, totality, and refusal are constructed and
+proved here. That Lean's kernel accepts only well-typed declarations is imported from Lean and is
+no LexLean claim. Coverage and latency are measured and reported, never asserted.
 
 `cargo xtask proof-census` counts each proof form over every project's linked
 IR and records the result in `docs/kernel-terms/census.json`;

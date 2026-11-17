@@ -17,6 +17,7 @@ use std::collections::BTreeMap;
 
 use super::expr::{app, c, cu, lam, pi, Expr};
 use super::lower::{Ctx, World, R};
+use super::select;
 use crate::ir::semantic::{SemanticProof, SemanticProofBranch, SemanticTerm, SemanticType};
 
 /// What the producers need besides the world: the constant each produced
@@ -67,10 +68,11 @@ impl Produced<'_> {
                 arguments,
             } => {
                 let lean = w.constant(ctx.module, theorem)?;
-                let produced = self
-                    .theorems
-                    .get(&lean)
-                    .ok_or_else(|| format!("it applies `{lean}`, whose proof was not produced"))?;
+                let names: Vec<&String> = self.theorems.keys().collect();
+                select::member_check(&names, &&lean).map_err(|_| {
+                    format!("it applies `{lean}`, whose proof was not produced")
+                })?;
+                let produced = &self.theorems[&lean];
                 let mut out = Vec::new();
                 for argument in type_arguments {
                     out.push(w.ty(ctx, argument)?);
@@ -86,6 +88,22 @@ impl Produced<'_> {
                 arguments,
                 premises,
             } => {
+                let registered: Vec<String> = crate::ir::semantic::laws::registry()?
+                    .laws
+                    .iter()
+                    .map(|law| law.name.clone())
+                    .collect();
+                let mut cited = Vec::new();
+                for premise in premises {
+                    cited.push(w.constant(ctx.module, premise)?);
+                }
+                let produced: Vec<String> = self.theorems.keys().cloned().collect();
+                select::law_check(name, &registered, &cited, &produced).map_err(|refusal| match refusal {
+                    select::Refusal::NotProduced(lean) => {
+                        format!("its premise `{lean}` has no produced proof")
+                    }
+                    _ => format!("`{name}` is not a registered law"),
+                })?;
                 let law = crate::ir::semantic::laws::law(name)?;
                 let mut out = Vec::new();
                 for argument in type_arguments {
@@ -94,13 +112,8 @@ impl Produced<'_> {
                 for argument in arguments {
                     out.push(w.term(ctx, argument)?);
                 }
-                for premise in premises {
-                    let lean = w.constant(ctx.module, premise)?;
-                    let produced = self
-                        .theorems
-                        .get(&lean)
-                        .ok_or_else(|| format!("its premise `{lean}` has no produced proof"))?;
-                    out.push(c(produced));
+                for lean in &cited {
+                    out.push(c(&self.theorems[lean]));
                 }
                 Ok(app(c(&law.lean), out))
             }
@@ -188,28 +201,58 @@ impl Produced<'_> {
             quantified = pi(name, *id, general_ty.clone(), &quantified);
         }
         let motive = lam("x", x, ty_expr, &quantified);
-        let mut minors = Vec::new();
-        let mut seen = Vec::new();
-        for ctor in &shape.ctors {
-            let branch = branches
-                .iter()
-                .find(|branch| branch.constructor.rsplit('.').next() == Some(ctor.short.as_str()))
-                .ok_or_else(|| format!("no case for constructor `{}`", ctor.short))?;
-            seen.push(branch.constructor.clone());
-            let hypotheses = if induct {
-                ctor.recursive.iter().filter(|r| **r).count()
-            } else {
-                0
-            };
-            if branch.binders.len() != ctor.fields.len() + hypotheses {
-                return Err(format!(
-                    "case `{}` binds {} names for {} fields and {} hypotheses",
-                    ctor.short,
-                    branch.binders.len(),
-                    ctor.fields.len(),
-                    hypotheses
-                ));
+        // Which branch is each constructor's minor premise is decided by the
+        // checks `KernelTerms` states and proves its producers refuse
+        // exactly: a branch names a constructor by position, and a name the
+        // type has no constructor of is a position past the last.
+        let shapes: Vec<select::CtorShape> = shape
+            .ctors
+            .iter()
+            .map(|ctor| select::CtorShape {
+                fields: ctor.fields.len(),
+                recursive: ctor.recursive.iter().filter(|r| **r).count(),
+            })
+            .collect();
+        let heads: Vec<select::BranchHead> = branches
+            .iter()
+            .enumerate()
+            .map(|(at, branch)| select::BranchHead {
+                ctor: shape
+                    .ctors
+                    .iter()
+                    .position(|ctor| branch.constructor.rsplit('.').next() == Some(ctor.short.as_str()))
+                    .unwrap_or(shape.ctors.len() + at),
+                binders: branch.binders.len(),
+            })
+            .collect();
+        let short = |index: usize| {
+            shape.ctors.get(index).map_or_else(
+                || branches[index - shape.ctors.len()].constructor.clone(),
+                |ctor| ctor.short.clone(),
+            )
+        };
+        select::check_from::<String>(&shapes, 0, &heads, induct).map_err(|refusal| match refusal {
+            select::Refusal::MissingCase(index) => {
+                format!("no case for constructor `{}`", short(index))
             }
+            select::Refusal::RepeatedCase(index) => {
+                format!("constructor `{}` has more than one case", short(index))
+            }
+            select::Refusal::BinderCount(index) => format!(
+                "case `{}` binds the wrong number of names for {} fields and {} hypotheses",
+                short(index),
+                shapes[index].fields,
+                if induct { shapes[index].recursive } else { 0 }
+            ),
+            select::Refusal::UnknownCase(index) => {
+                format!("case `{}` names no constructor of the type", short(index))
+            }
+            other => format!("{other:?}"),
+        })?;
+        let mut minors = Vec::new();
+        for (index, ctor) in shape.ctors.iter().enumerate() {
+            let branch = &branches[select::minor_of(index, &heads)
+                .ok_or_else(|| format!("no case for constructor `{}`", ctor.short))?];
             let mut inner = ctx.clone();
             let mut bound: Vec<(String, u32, Expr)> = Vec::new();
             let mut fields = Vec::new();
@@ -253,9 +296,6 @@ impl Produced<'_> {
                 body = lam(&name, id, binder_ty, &body);
             }
             minors.push(body);
-        }
-        if seen.len() != branches.len() {
-            return Err("a case names no constructor of the type".to_owned());
         }
         let mut levels = vec![0];
         levels.extend(&shape.levels);
