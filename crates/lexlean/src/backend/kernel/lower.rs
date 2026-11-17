@@ -186,7 +186,26 @@ pub fn absolute(ty: &SemanticType, module: &str) -> SemanticType {
         SemanticType::Set { element } => SemanticType::Set {
             element: a(element),
         },
-        other => other.clone(),
+        other @ (SemanticType::Type
+        | SemanticType::Parameter { .. }
+        | SemanticType::Nat
+        | SemanticType::Bool
+        | SemanticType::Prop
+        | SemanticType::Unit
+        | SemanticType::Int
+        | SemanticType::Int8
+        | SemanticType::Int16
+        | SemanticType::Int32
+        | SemanticType::Int64
+        | SemanticType::UInt8
+        | SemanticType::UInt16
+        | SemanticType::UInt32
+        | SemanticType::UInt64
+        | SemanticType::String
+        | SemanticType::Bytes
+        | SemanticType::Ordering
+        | SemanticType::ContractViolation
+        | SemanticType::ReasoningFailure) => other.clone(),
     }
 }
 
@@ -222,7 +241,25 @@ fn substitute(ty: &SemanticType, by: &HashMap<String, SemanticType>) -> Semantic
         SemanticType::Set { element } => SemanticType::Set {
             element: s(element),
         },
-        other => other.clone(),
+        other @ (SemanticType::Type
+        | SemanticType::Nat
+        | SemanticType::Bool
+        | SemanticType::Prop
+        | SemanticType::Unit
+        | SemanticType::Int
+        | SemanticType::Int8
+        | SemanticType::Int16
+        | SemanticType::Int32
+        | SemanticType::Int64
+        | SemanticType::UInt8
+        | SemanticType::UInt16
+        | SemanticType::UInt32
+        | SemanticType::UInt64
+        | SemanticType::String
+        | SemanticType::Bytes
+        | SemanticType::Ordering
+        | SemanticType::ContractViolation
+        | SemanticType::ReasoningFailure) => other.clone(),
     }
 }
 
@@ -269,7 +306,25 @@ fn integer_type(ty: &SemanticType) -> Option<(&'static str, bool)> {
         SemanticType::UInt16 => ("UInt16", false),
         SemanticType::UInt32 => ("UInt32", false),
         SemanticType::UInt64 => ("UInt64", false),
-        _ => return None,
+        SemanticType::Type
+        | SemanticType::Parameter { .. }
+        | SemanticType::Nat
+        | SemanticType::Bool
+        | SemanticType::Prop
+        | SemanticType::Unit
+        | SemanticType::String
+        | SemanticType::Bytes
+        | SemanticType::Ordering
+        | SemanticType::Option { .. }
+        | SemanticType::Result { .. }
+        | SemanticType::List { .. }
+        | SemanticType::Named { .. }
+        | SemanticType::Product { .. }
+        | SemanticType::Function { .. }
+        | SemanticType::Map { .. }
+        | SemanticType::Set { .. }
+        | SemanticType::ContractViolation
+        | SemanticType::ReasoningFailure => return None,
     })
 }
 
@@ -439,7 +494,9 @@ impl World<'_> {
                 }
                 app(c(&self.constant(ctx.module, member)?), arguments_out)
             }
-            other => return Err(format!("type `{}`", kind_of_type(other))),
+            other @ (SemanticType::ContractViolation | SemanticType::ReasoningFailure) => {
+                return Err(format!("type `{}`", kind_of_type(other)))
+            }
         })
     }
 
@@ -577,7 +634,30 @@ impl World<'_> {
                     ctor_levels: vec![],
                 }
             }
-            other => return Err(format!("case analysis on type `{}`", kind_of_type(other))),
+            other @ (SemanticType::Type
+            | SemanticType::Parameter { .. }
+            | SemanticType::Prop
+            | SemanticType::Unit
+            | SemanticType::Int
+            | SemanticType::Int8
+            | SemanticType::Int16
+            | SemanticType::Int32
+            | SemanticType::Int64
+            | SemanticType::UInt8
+            | SemanticType::UInt16
+            | SemanticType::UInt32
+            | SemanticType::UInt64
+            | SemanticType::String
+            | SemanticType::Bytes
+            | SemanticType::Ordering
+            | SemanticType::Result { .. }
+            | SemanticType::Function { .. }
+            | SemanticType::Map { .. }
+            | SemanticType::Set { .. }
+            | SemanticType::ContractViolation
+            | SemanticType::ReasoningFailure) => {
+                return Err(format!("case analysis on type `{}`", kind_of_type(other)))
+            }
         })
     }
 
@@ -899,7 +979,11 @@ impl World<'_> {
                     result: Box::new(result),
                 }
             }
-            other => return Err(format!("term `{}`", kind_of_term(other))),
+            other @ (SemanticTerm::Bytes { .. }
+            | SemanticTerm::InstanceValue { .. }
+            | SemanticTerm::CheckedApply { .. }) => {
+                return Err(format!("term `{}`", kind_of_term(other)))
+            }
         })
     }
 
@@ -1081,7 +1165,30 @@ impl World<'_> {
                         }
                         &[]
                     }
-                    other => return Err(format!("a constructor of `{}`", kind_of_type(other))),
+                    other @ (SemanticType::Type
+                    | SemanticType::Parameter { .. }
+                    | SemanticType::Prop
+                    | SemanticType::Unit
+                    | SemanticType::Int
+                    | SemanticType::Int8
+                    | SemanticType::Int16
+                    | SemanticType::Int32
+                    | SemanticType::Int64
+                    | SemanticType::UInt8
+                    | SemanticType::UInt16
+                    | SemanticType::UInt32
+                    | SemanticType::UInt64
+                    | SemanticType::String
+                    | SemanticType::Bytes
+                    | SemanticType::Ordering
+                    | SemanticType::Product { .. }
+                    | SemanticType::Function { .. }
+                    | SemanticType::Map { .. }
+                    | SemanticType::Set { .. }
+                    | SemanticType::ContractViolation
+                    | SemanticType::ReasoningFailure) => {
+                        return Err(format!("a constructor of `{}`", kind_of_type(other)))
+                    }
                 };
                 for argument in arguments {
                     out.push(self.term(ctx, argument)?);
@@ -1359,13 +1466,17 @@ impl World<'_> {
                 }
                 app(self.term(ctx, function)?, out)
             }
-            other => return Err(format!("term `{}`", kind_of_term(other))),
+            other @ (SemanticTerm::Bytes { .. }
+            | SemanticTerm::InstanceValue { .. }
+            | SemanticTerm::CheckedApply { .. }) => {
+                return Err(format!("term `{}`", kind_of_term(other)))
+            }
         })
     }
 
-    /// A runtime primitive as Lean's elaborator applies it: its implicit type
-    /// arguments read off the operands, and its instance from the table of
-    /// the pinned toolchain.
+    /// A runtime primitive as Lean's elaborator applies it: the function the
+    /// Lean backend spells it with, its implicit type arguments read off the
+    /// operands, and its instance from the table of the pinned toolchain.
     #[allow(clippy::too_many_lines)]
     fn primitive(
         &self,
@@ -1373,6 +1484,17 @@ impl World<'_> {
         operation: SemanticPrimitive,
         arguments: &[SemanticTerm],
     ) -> R<Expr> {
+        let function = match crate::backend::semantic::spelling(operation) {
+            crate::backend::semantic::Spelling::Runtime { name, int64: _ } => {
+                format!("LexLeanRuntime.{name}")
+            }
+            crate::backend::semantic::Spelling::Collection(name) => {
+                format!("LexLeanCollections.{name}")
+            }
+            crate::backend::semantic::Spelling::Widening(name) => {
+                return Err(format!("widening `{name}`"))
+            }
+        };
         let operand = |index: usize| -> R<SemanticType> {
             let argument = arguments
                 .get(index)
@@ -1392,21 +1514,17 @@ impl World<'_> {
             }
         };
         let key = |ty: &SemanticType| -> R<Expr> { Ok(c(&number_instance("Key", ty)?)) };
-        let (function, types, instance): (&str, Vec<SemanticType>, Option<Expr>) = match operation {
+        // The implicit type arguments and the instance of each primitive.
+        let (types, instance): (Vec<SemanticType>, Option<Expr>) = match operation {
             SemanticPrimitive::Subtract => {
                 let ty = operand(0)?;
                 let instance = c(&number_instance("Sub", &ty)?);
-                ("LexLeanRuntime.subtract", vec![ty], Some(instance))
+                (vec![ty], Some(instance))
             }
             SemanticPrimitive::Quotient | SemanticPrimitive::Remainder => {
                 let ty = operand(0)?;
                 let instance = c(&number_instance("Quotient", &ty)?);
-                let name = if operation == SemanticPrimitive::Quotient {
-                    "LexLeanRuntime.quotient"
-                } else {
-                    "LexLeanRuntime.remainder"
-                };
-                (name, vec![ty], Some(instance))
+                (vec![ty], Some(instance))
             }
             SemanticPrimitive::Length | SemanticPrimitive::Append => {
                 let ty = operand(0)?;
@@ -1426,43 +1544,26 @@ impl World<'_> {
                         return Err(format!("`{operation:?}` of `{}`", kind_of_type(other)))
                     }
                 };
-                let name = if length {
-                    "LexLeanRuntime.length"
-                } else {
-                    "LexLeanRuntime.append"
-                };
-                (name, vec![ty], Some(instance))
+                (vec![ty], Some(instance))
             }
             SemanticPrimitive::MapInsert
             | SemanticPrimitive::MapRemove
             | SemanticPrimitive::MapLookup
             | SemanticPrimitive::MapContains => {
                 let (k, v) = entries(operand(0)?)?;
-                let name = match operation {
-                    SemanticPrimitive::MapInsert => "LexLeanCollections.mapInsert",
-                    SemanticPrimitive::MapRemove => "LexLeanCollections.mapRemove",
-                    SemanticPrimitive::MapLookup => "LexLeanCollections.mapLookup",
-                    _ => "LexLeanCollections.mapContains",
-                };
                 let instance = key(&k)?;
-                (name, vec![k, v], Some(instance))
+                (vec![k, v], Some(instance))
             }
             SemanticPrimitive::MapSize
             | SemanticPrimitive::MapKeys
             | SemanticPrimitive::MapValues
             | SemanticPrimitive::MapEntries => {
                 let (k, v) = entries(operand(0)?)?;
-                let name = match operation {
-                    SemanticPrimitive::MapSize => "LexLeanCollections.mapSize",
-                    SemanticPrimitive::MapKeys => "LexLeanCollections.mapKeys",
-                    SemanticPrimitive::MapValues => "LexLeanCollections.mapValues",
-                    _ => "LexLeanCollections.mapEntries",
-                };
-                (name, vec![k, v], None)
+                (vec![k, v], None)
             }
             SemanticPrimitive::MapFold => {
                 let (k, v) = entries(operand(2)?)?;
-                ("LexLeanCollections.mapFold", vec![k, v, operand(1)?], None)
+                (vec![k, v, operand(1)?], None)
             }
             SemanticPrimitive::SetInsert
             | SemanticPrimitive::SetRemove
@@ -1471,61 +1572,56 @@ impl World<'_> {
             | SemanticPrimitive::SetIntersection
             | SemanticPrimitive::SetDifference => {
                 let k = element(operand(0)?)?;
-                let name = match operation {
-                    SemanticPrimitive::SetInsert => "LexLeanCollections.setInsert",
-                    SemanticPrimitive::SetRemove => "LexLeanCollections.setRemove",
-                    SemanticPrimitive::SetContains => "LexLeanCollections.setContains",
-                    SemanticPrimitive::SetUnion => "LexLeanCollections.setUnion",
-                    SemanticPrimitive::SetIntersection => "LexLeanCollections.setIntersection",
-                    _ => "LexLeanCollections.setDifference",
-                };
                 let instance = key(&k)?;
-                (name, vec![k], Some(instance))
+                (vec![k], Some(instance))
             }
             SemanticPrimitive::SetSize | SemanticPrimitive::SetElements => {
-                let k = element(operand(0)?)?;
-                let name = if operation == SemanticPrimitive::SetSize {
-                    "LexLeanCollections.setSize"
-                } else {
-                    "LexLeanCollections.setElements"
-                };
-                (name, vec![k], None)
+                (vec![element(operand(0)?)?], None)
             }
             SemanticPrimitive::SetFold | SemanticPrimitive::ListFold => {
-                let k = element(operand(2)?)?;
-                let name = if operation == SemanticPrimitive::SetFold {
-                    "LexLeanCollections.setFold"
-                } else {
-                    "LexLeanCollections.listFold"
-                };
-                (name, vec![k, operand(1)?], None)
+                (vec![element(operand(2)?)?, operand(1)?], None)
             }
             SemanticPrimitive::Iterate | SemanticPrimitive::IterateUntil => {
-                let name = if operation == SemanticPrimitive::Iterate {
-                    "LexLeanCollections.iterate"
-                } else {
-                    "LexLeanCollections.iterateUntil"
-                };
-                (name, vec![operand(2)?], None)
+                (vec![operand(2)?], None)
             }
             SemanticPrimitive::GraphSuccessors
             | SemanticPrimitive::GraphReachable
             | SemanticPrimitive::GraphTopological => {
                 let (k, _) = entries(operand(0)?)?;
-                let name = match operation {
-                    SemanticPrimitive::GraphSuccessors => "LexLeanCollections.graphSuccessors",
-                    SemanticPrimitive::GraphReachable => "LexLeanCollections.graphReachable",
-                    _ => "LexLeanCollections.graphTopological",
-                };
                 let instance = key(&k)?;
-                (name, vec![k], Some(instance))
+                (vec![k], Some(instance))
             }
             SemanticPrimitive::LessThan => {
                 let k = operand(0)?;
                 let instance = key(&k)?;
-                ("LexLeanCollections.lessThan", vec![k], Some(instance))
+                (vec![k], Some(instance))
             }
-            other => return Err(format!("primitive `{other:?}`")),
+            other @ (SemanticPrimitive::Multiply
+            | SemanticPrimitive::Negate
+            | SemanticPrimitive::CheckedConvert
+            | SemanticPrimitive::CheckedAdd
+            | SemanticPrimitive::CheckedSubtract
+            | SemanticPrimitive::CheckedMultiply
+            | SemanticPrimitive::CheckedNegate
+            | SemanticPrimitive::CheckedQuotient
+            | SemanticPrimitive::BitAnd
+            | SemanticPrimitive::BitOr
+            | SemanticPrimitive::BitXor
+            | SemanticPrimitive::BitNot
+            | SemanticPrimitive::ShiftLeft
+            | SemanticPrimitive::ShiftRight
+            | SemanticPrimitive::Index
+            | SemanticPrimitive::Slice
+            | SemanticPrimitive::Utf8Encode
+            | SemanticPrimitive::Utf8Decode
+            | SemanticPrimitive::CompareBytes
+            | SemanticPrimitive::Equal
+            | SemanticPrimitive::SplitExact
+            | SemanticPrimitive::Join
+            | SemanticPrimitive::ParseDecimal
+            | SemanticPrimitive::FormatDecimal
+            | SemanticPrimitive::ToInt
+            | SemanticPrimitive::ToNat) => return Err(format!("primitive `{other:?}`")),
         };
         let mut out = Vec::new();
         for ty in &types {
@@ -1535,7 +1631,7 @@ impl World<'_> {
         for argument in arguments {
             out.push(self.term(ctx, argument)?);
         }
-        Ok(app(c(function), out))
+        Ok(app(c(&function), out))
     }
 
     /// A `DecidableEq` instance of a type.
@@ -1577,7 +1673,28 @@ impl World<'_> {
                     self.decidable_eq(ctx, right)?,
                 ],
             ),
-            other => return Err(format!("decidable equality of `{}`", kind_of_type(other))),
+            other @ (SemanticType::Type
+            | SemanticType::Parameter { .. }
+            | SemanticType::Prop
+            | SemanticType::Unit
+            | SemanticType::Int
+            | SemanticType::Int8
+            | SemanticType::Int16
+            | SemanticType::Int32
+            | SemanticType::Int64
+            | SemanticType::UInt8
+            | SemanticType::UInt16
+            | SemanticType::UInt32
+            | SemanticType::UInt64
+            | SemanticType::Bytes
+            | SemanticType::Ordering
+            | SemanticType::Result { .. }
+            | SemanticType::Named { .. }
+            | SemanticType::Function { .. }
+            | SemanticType::ContractViolation
+            | SemanticType::ReasoningFailure) => {
+                return Err(format!("decidable equality of `{}`", kind_of_type(other)))
+            }
         })
     }
 
@@ -1674,7 +1791,42 @@ impl World<'_> {
                 }
                 self.decidable(&inner, body)?
             }
-            other => return Err(format!("decidability of `{}`", kind_of_term(other))),
+            other @ (SemanticTerm::Var { .. }
+            | SemanticTerm::Nat { .. }
+            | SemanticTerm::Integer { .. }
+            | SemanticTerm::String { .. }
+            | SemanticTerm::Bytes { .. }
+            | SemanticTerm::Primitive { .. }
+            | SemanticTerm::Bool { .. }
+            | SemanticTerm::Unit
+            | SemanticTerm::Nil { .. }
+            | SemanticTerm::Cons { .. }
+            | SemanticTerm::Record { .. }
+            | SemanticTerm::Constructor { .. }
+            | SemanticTerm::InstanceValue { .. }
+            | SemanticTerm::Project { .. }
+            | SemanticTerm::If { .. }
+            | SemanticTerm::Match { .. }
+            | SemanticTerm::Add { .. }
+            | SemanticTerm::Beq { .. }
+            | SemanticTerm::Ble { .. }
+            | SemanticTerm::Blt { .. }
+            | SemanticTerm::And { .. }
+            | SemanticTerm::Or { .. }
+            | SemanticTerm::Not { .. }
+            | SemanticTerm::Forall { .. }
+            | SemanticTerm::Pair { .. }
+            | SemanticTerm::First { .. }
+            | SemanticTerm::Second { .. }
+            | SemanticTerm::Lambda { .. }
+            | SemanticTerm::Apply { .. }
+            | SemanticTerm::FunctionRef { .. }
+            | SemanticTerm::MapLiteral { .. }
+            | SemanticTerm::SetLiteral { .. }
+            | SemanticTerm::GraphLiteral { .. }
+            | SemanticTerm::CheckedApply { .. }) => {
+                return Err(format!("decidability of `{}`", kind_of_term(other)))
+            }
         })
     }
 }

@@ -254,8 +254,8 @@ fn seeded_check(seeded: &mut Seeded) -> Run {
     let index = *seeded.pick(&[0, 0, 0, 1, 7]);
     let induct = seeded.below(2) == 1;
     let mut branches = Vec::new();
-    for at in 0..ctors.len() {
-        let wanted = ctors[at].fields + if induct { ctors[at].recursive } else { 0 };
+    for (at, ctor) in ctors.iter().enumerate() {
+        let wanted = ctor.fields + if induct { ctor.recursive } else { 0 };
         let copies = *seeded.pick(&[1, 1, 1, 1, 0, 2]);
         for _ in 0..copies {
             let binders = if seeded.below(6) == 0 {
