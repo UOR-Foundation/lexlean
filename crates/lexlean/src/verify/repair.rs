@@ -306,11 +306,12 @@ pub(super) fn unfold(
             .map(|definition| definition.name.clone())
             .collect();
         // The additions to try, the same for every failing script of the
-        // theorem: each reachable definition alone, then the atoms `omega`
-        // named, then everything reachable without and with recursion.
-        // Unfolding too much is a failure of its own (a definition unfolded
-        // in a hypothesis leaves an `if` that `split` does not reach), so
-        // the smallest addition Lean accepts is the one offered.
+        // theorem: each reachable definition alone, the atoms `omega` named,
+        // everything reachable without and with recursion, and each of those
+        // two sets less one definition. Unfolding too much is a failure of
+        // its own (a definition unfolded in a hypothesis leaves an `if` that
+        // `split` does not reach, and one that both sides apply alike is best
+        // left an atom), so the smallest addition Lean accepts is offered.
         let reach = |recursive: bool| {
             let mut seed = statement.clone();
             for (index, script) in theorem.scripts.iter().enumerate() {
@@ -323,8 +324,14 @@ pub(super) fn unfold(
         let mut additions: Vec<BTreeSet<String>> =
             reach(true).into_iter().map(|name| [name].into()).collect();
         additions.push(theorem.atoms.intersection(&known).cloned().collect());
-        additions.push(reach(false));
-        additions.push(reach(true));
+        for whole in [reach(false), reach(true)] {
+            for name in &whole {
+                let mut less = whole.clone();
+                less.remove(name);
+                additions.push(less);
+            }
+            additions.push(whole);
+        }
         let mut seen: BTreeSet<Vec<Vec<String>>> = BTreeSet::new();
         for addition in additions {
             let lists: Vec<Vec<String>> = theorem
@@ -386,7 +393,10 @@ pub(super) fn unfold(
         let start = probe.len();
         probe.push_str(&copy);
         ranges.push((start, probe.len()));
-        probe.push('\n');
+        // Silence is not acceptance: a probe Lean stopped early (a limit, a
+        // timeout) reports nothing about the copies after the stop. Each
+        // copy must be seen in the kernel, free of `sorryAx`.
+        probe.push_str(&format!("\n#print axioms {}{COPY}{index}\n", theorem.name));
     }
     probe.push_str(&lean[closing + 1..]);
     let file: Utf8PathBuf = root.join(format!("{}.lean", module.lean_module.replace('.', "/")));
@@ -407,9 +417,19 @@ pub(super) fn unfold(
         .collect();
     let accepted = |index: usize| {
         let (start, end) = ranges[index];
-        !located
+        let quiet = !located
             .iter()
-            .any(|offset| *offset >= start && *offset < end)
+            .any(|offset| *offset >= start && *offset < end);
+        // `#print axioms` answers on a line of its own, with or without an
+        // `info:` opener; the copy's qualified name ends `.<copy>'`.
+        let copy = format!(".{}{COPY}{index}'", failing[candidates[index].0].name);
+        let sound = probe_output.lines().any(|line| {
+            line.contains(&copy)
+                && (line.contains("' depends on axioms: [")
+                    || line.contains("' does not depend on any axioms"))
+                && !line.contains("sorryAx")
+        });
+        quiet && sound
     };
 
     let path = module.map.sources.first().and_then(|source| match source {

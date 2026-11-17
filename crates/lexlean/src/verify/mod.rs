@@ -1754,6 +1754,12 @@ pub fn run_part(
                                         argv: vec![
                                             "env".to_owned(),
                                             "lean".to_owned(),
+                                            // The frontend stops at
+                                            // `maxErrors` messages, and the
+                                            // rejected originals alone can
+                                            // pass the default before the
+                                            // last copy is judged.
+                                            "-DmaxErrors=1000000".to_owned(),
                                             "-R".to_owned(),
                                             probe_root.to_string(),
                                             file.to_string(),
