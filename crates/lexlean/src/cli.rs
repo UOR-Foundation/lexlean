@@ -337,6 +337,24 @@ fn print_human_diagnostics(stderr: &mut dyn Write, error: &LexLeanError, colors:
         for cause in &diagnostic.causes {
             let _ = writeln!(stderr, "  cause: {cause}");
         }
+        for repair in &diagnostic.repairs {
+            let _ = writeln!(
+                stderr,
+                "  repair ({}): {}",
+                repair.kind.as_str(),
+                repair.message
+            );
+            for edit in &repair.edits {
+                let _ = writeln!(
+                    stderr,
+                    "    {}:{}:{}: replace with `{}`",
+                    edit.span.path,
+                    edit.span.line_start,
+                    edit.span.column_start,
+                    edit.replacement.escape_debug()
+                );
+            }
+        }
     }
 }
 
@@ -369,6 +387,8 @@ pub fn explain_text(requested: &str) -> Option<String> {
         exit: u8,
         title: String,
         statement: String,
+        #[serde(default)]
+        repairs: Vec<String>,
     }
     #[derive(serde::Deserialize)]
     struct Loose {
@@ -383,8 +403,17 @@ pub fn explain_text(requested: &str) -> Option<String> {
         .iter()
         .find(|row| row.code == requested)
         .map(|row| {
+            // The same lines `ERRORS.md` holds (§23.4), the repair kinds a
+            // diagnostic of the code may carry (§20.7) included.
+            let repairs = if row.repairs.is_empty() {
+                String::new()
+            } else {
+                let named: Vec<String> =
+                    row.repairs.iter().map(|kind| format!("`{kind}`")).collect();
+                format!("\nRepairs: {}.\n", named.join(", "))
+            };
             format!(
-                "## `{}` --- {}\n\n{}\n\nClass: `{}`. Exit code: {}.\n",
+                "## `{}` --- {}\n\n{}\n\nClass: `{}`. Exit code: {}.\n{repairs}",
                 row.code, row.title, row.statement, row.class, row.exit
             )
         })

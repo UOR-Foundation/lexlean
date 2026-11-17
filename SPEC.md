@@ -9486,6 +9486,8 @@ Offsets are zero-based half-open UTF-8 byte offsets. Lines and columns are one-b
 | `LLV7010` | a host filesystem operation fails outside any project file |
 | `LLV7102` | a published bundle does not replay |
 
+A diagnostic may also carry `repairs` (§20.7).
+
 Object keys are canonicalized. Diagnostics sort by:
 
 1. project-relative path;
@@ -9579,6 +9581,34 @@ The one command-result object is:
 ```
 
 Absent IDs are omitted rather than encoded as JSON `null`. Module and artifact rows are sorted. `success` is true exactly when `exit_code` is zero.
+
+### 20.7 Repairs
+
+A diagnostic may carry `repairs`, an array of machine-applicable repairs, so that an author --- human or agent --- can act on a failure without reading the generated Lean. The member is absent when the array would be empty, so a diagnostic without a repair keeps its bytes. Each repair is:
+
+```json
+{
+  "kind": "unfold",
+  "message": "unfold `replyAdd` in `addUnknownRefused`: Lean accepts the theorem with them",
+  "edits": [
+    {
+      "span": { "path": "src/Main.lex.tex", "byte_start": 4710, "byte_end": 4772, "line_start": 160, "column_start": 10, "line_end": 160, "column_end": 72 },
+      "replacement": "linear_arithmetic{definitions: [answerAdded, answerUnknown, replyAdd]}"
+    }
+  ]
+}
+```
+
+A repair is applied by replacing the bytes of each edit's span of the normalized source with its `replacement`, last offset first; the edits of one repair never overlap, and a repair is the whole of its edits. The kinds are closed, and `model/errors.toml` lists for each code the kinds a diagnostic of that code may carry:
+
+| Kind | Code | Offered when |
+| --- | --- | --- |
+| `sort` | `LLT4001` | a `definitions` list of a `linear_arithmetic` or `term_cases` proof is not sorted and unique, and every name it keeps is a prior document declaration or a module-qualified member; the edit replaces the list with its sorted, deduplicated form (`PF-25`) |
+| `quote` | `LLT4001` | a branch of a `cases` proof whose scrutinee is a `Bool` parameter of its theorem writes its constructor bare; the edit writes it as the string `"false"` or `"true"` (`PF-26`) |
+| `unfold` | `LLV7002` | Lean rejects a theorem proved by `linear_arithmetic`, and a copy of the theorem whose failing scripts unfold more prior document definitions elaborates without a message (`VR-24`) |
+| `axioms` | `LLV7005` | a semantic theorem's policy differs from the observed set and every axiom making it equal would add is `propext` or `Quot.sound`; the edit makes the policy the observed set (`VR-25`) |
+
+A repair is offered only where applying it removes the failure it is attached to. The `unfold` repair is confirmed, never guessed: on a rejected module the verifier writes beside its staging a probe holding the module and one renamed copy of each rejected `linear_arithmetic` theorem per candidate list --- each prior definition the theorem's statement reaches added alone, the definitions heading `omega`'s atoms, and every reachable definition without and then with the recursive ones, each of those two sets also less any one of its definitions --- elaborates the probe once with the pinned `lean` under the module's `LEAN_PATH`, and offers, for each theorem, the accepted candidate with the fewest definitions. A copy is accepted only when Lean reports no message inside it and its `#print axioms`, which the probe places after it, names no `sorryAx`: a probe that Lean stopped early is silent about the copies after the stop, and silence is not acceptance. A theorem no candidate repairs carries no `unfold` repair. Unfolding too much is a failure of its own: a definition unfolded inside a hypothesis leaves an `if` that `split` does not reach. The probe is never published, recorded in a process record, or hashed, and the verification fails whatever it finds. Widening a policy to an axiom other than `propext` and `Quot.sound` changes what a theorem claims, so no repair offers it.
 
 ---
 
@@ -11854,6 +11884,8 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `PF-22` | `proofs` | The runtime module LexLeanRuntime.Laws states the fold laws as LexLean source with every row's axioms pinned, and linear_arithmetic rewrites additive list, set, and map folds into sums that are linear and invariant under append and reverse, so fold equalities verify for all inputs with decide only on closed instances. | §17.12, §22.6 |
 | `PF-23` | `proofs` | The language-1.2 law proof form applies one registered fold law (fusion, the fold of a pair, or the fold of an append) to checked type arguments, arguments, and prior theorems discharging its premises, and is refused in linking for an unregistered law, a wrong argument count or type, or a missing premise, and by Lean for a statement the law does not prove. | §17.12, §16 |
 | `PF-24` | `proofs` | The runtime module LexLeanRuntime.Regions states the decision-region checker and its soundness theorem as LexLean source with every row's axioms within propext and Quot.sound, and the language-1.2 region_check proof form lowers a property of a first-match decision fragment to that checker's data, closes it with one kernel-decided obligation, is refused in linking outside the fragment or as a branch, and by Lean for a defective rule. | §17.12, §16, §22.6 |
+| `PF-25` | `proofs` | A definitions list of a linear_arithmetic or term_cases proof that is not sorted and unique is refused with LLT4001 carrying a sort repair whose one edit replaces the list with its sorted, deduplicated form, and applying it makes the module check; a list that names anything but a prior document declaration carries no sort repair. | §17.12, §20.7 |
+| `PF-26` | `proofs` | A Boolean branch constructor written bare in a cases proof whose scrutinee is a Bool parameter of its theorem is refused with LLT4001 carrying a quote repair that writes it as the string "false" or "true", and applying it makes the module check; a bare constructor under a scrutinee that is not a Bool parameter carries no quote repair. | §17.12, §20.7 |
 | `LN-01` | `lean-backend` | Each generated Lean file has the exact module, import, option, namespace, declaration, and end structure. | §18.1 |
 | `LN-02` | `lean-backend` | Imports are explicit, deduplicated, sorted, and every external global is fully qualified. | §18.3 |
 | `LN-03` | `lean-backend` | Generated Lean contains no comments, documentation, prose-bearing strings, or copied source prose. | §18.2 |
@@ -11915,6 +11947,8 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `VR-21` | `verification` | A multi-module project whose imports form nontrivial frontiers verifies at width 1 and at a larger width to byte-identical verified directories and the same attestation identity, observed axiom sets, and policy rows, and no completion order orders a record or changes which failure is reported. | §22.3, §22.4, §22.11 |
 | `VR-22` | `verification` | Performance telemetry is written only to the CI evidence directory the environment names, a verification with telemetry on publishes byte-identical artifacts to one without, and telemetry planted in a verified artifact fails the gate. | §22.12 |
 | `VR-23` | `verification` | A project verified as the parts of one run, each shard running the processes its plan names with the oleans of the shards it needs and the join reading every shard's records, publishes a verified directory byte-identical to the whole verification's with the same attestation identity, and a shard whose plan leaves a module without its imports, a join missing a record, a join reading a record of an executable other than its own, or a part that ran a toolchain other than its own, is refused. | §9.4, §22.11 |
+| `VR-24` | `verification` | A Lean rejection of a theorem proved by linear_arithmetic carries an unfold repair only when the verifier has elaborated a copy of the theorem with the extended definitions list and Lean accepted it without a message: the repair adds the fewest definitions of the lists it tried, applying it makes the project verify, and a theorem no unfolding repairs, such as a false one, carries no unfold repair; the probe publishes nothing and enters no record. | §20.7, §22.3 |
+| `VR-25` | `verification` | An axiom-policy violation of a semantic theorem carries an axioms repair that makes its policy the observed set when every axiom the repair adds is propext or Quot.sound, and applying it makes the project verify; a violation whose observed set would add any other axiom, such as Classical.choice, carries no repair. | §20.7, §22.6 |
 | `CL-01` | `cli-api` | Global options and upward project discovery obey the exact CLI contract. | §23.1, §23.2 |
 | `CL-02` | `cli-api` | Init creates the complete canonical skeleton only in an absent or empty destination and never overwrites. | §23.4 |
 | `CL-03` | `cli-api` | Lock check, local update, and explicit network acquisition obey their exact mutually exclusive behavior. | §23.4 |
@@ -12188,7 +12222,7 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `LM-09` | `language-models` | No prompt is code: no member of the closed language maps `string` or `bytes` to a function, a term, or source — every operation of the primitive registry that takes a `string` or `bytes` operand is classified by the audit with a data result, the registry's schema enumeration and the production registry's primitive rows equal one another and equal that classified set, and the text declarations of `lexlean/semantic-module/2` state no `string`-typed member, so a prompt reaches a model only as the tokens `encodeText` makes of it; a planted operation or text member of that shape is caught by the audit with its name. | §17.12 |
 | `LM-13` | `language-models` | The text laws a tokenizer elaborates through are LexLean source and not authored text: the module that states them is one language-1.2 native core module of the embedded `language/text-1.2` project, the project holds no file of Lean source, no independently authored Lean file anywhere in the release tree declares the `LexLeanText` namespace or lies under its module root, and the one-time migration input is absent; the registry lists only that module, the declarations and their exact axiom policies are read from its native data, which the compiler embeds and hashes into the language-1.2 semantics, and a module that declares a text component imports the generated module rather than splicing any Lean text. | §17.10, §17.12 |
 
-**Total required capability IDs:** 497.
+**Total required capability IDs:** 501.
 
 No row may be downgraded to `some-true` or `open`. Upstream Lean facts are ledger/authority rows, not substitutions for these build behaviors.
 

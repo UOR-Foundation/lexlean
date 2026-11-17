@@ -1,4 +1,4 @@
-//! The `verification` suite: VR-01..VR-23.
+//! The `verification` suite: VR-01..VR-25.
 
 use lexlean::{Selection, VerifyRequest};
 
@@ -98,6 +98,13 @@ pub(crate) fn run(id: &str) {
     // The operational cases (§22.11, §22.12) gate their own Lean-backed halves.
     if matches!(id, "VR-20" | "VR-21" | "VR-22" | "VR-23") {
         super::operational::run(id);
+        return;
+    }
+    // The repair cases (§20.7) need Lean for every assertion they make.
+    if matches!(id, "VR-24" | "VR-25") {
+        if support::lean_backed(id) {
+            repairs(id);
+        }
         return;
     }
     if LEAN_BACKED.contains(&id) && !support::lean_backed(id) {
@@ -1397,5 +1404,89 @@ fn run_platform_independent(id: &str) {
             // Every other Lean-backed case has no assertion that is
             // meaningful without the toolchain; the host gate reported that.
         }
+    }
+}
+
+/// VR-24, VR-25: the repairs verification offers, each planted where it
+/// helps and where it does not (§20.7).
+fn repairs(id: &str) {
+    use super::proofs::fold_laws_with;
+    let file = "src/Kernels.lex.tex";
+    let low = "  statement: ((0 : Int) <= (requantize x)),\n  proof: linear_arithmetic{definitions: [requantize]},\n  axioms: [Quot.sound, propext]";
+    match id {
+        "VR-24" => {
+            let stripped = fold_laws_with(
+                file,
+                &[(low, &low.replace("{definitions: [requantize]}", "{}"))],
+            );
+            stripped.check_ok();
+            let error = {
+                let _guard = support::env_shared();
+                stripped.verify_fails_with("LLV7002")
+            };
+            let unfolds = support::repairs_of(&error, "unfold");
+            assert_eq!(unfolds.len(), 1, "{error}");
+            assert_eq!(
+                unfolds[0].edits[0].replacement,
+                "linear_arithmetic{definitions: [requantize]}"
+            );
+            support::apply_repairs(&stripped, &error);
+            let verified = support::verify_ok(&stripped);
+            assert!(
+                support::file_set(&verified.root)
+                    .iter()
+                    .all(|name| !name.contains("repair-probe") && !name.contains("LexLeanRepair")),
+                "no verified file holds the probe"
+            );
+            // A false kernel: no unfolding proves it, so none is offered.
+            let wrong = fold_laws_with(
+                file,
+                &[(
+                    "statement: ((requantize x) <= (255 : Int)),",
+                    "statement: ((requantize x) <= (254 : Int)),",
+                )],
+            );
+            let error = {
+                let _guard = support::env_shared();
+                wrong.verify_fails_with("LLV7002")
+            };
+            assert!(
+                error
+                    .diagnostics
+                    .iter()
+                    .all(|diagnostic| diagnostic.repairs.is_empty()),
+                "{error}"
+            );
+        }
+        "VR-25" => {
+            let narrow = fold_laws_with(
+                file,
+                &[(low, &low.replace("[Quot.sound, propext]", "[propext]"))],
+            );
+            narrow.check_ok();
+            let error = {
+                let _guard = support::env_shared();
+                narrow.verify_fails_with("LLV7005")
+            };
+            let policies = support::repairs_of(&error, "axioms");
+            assert_eq!(policies.len(), 1, "{error}");
+            assert_eq!(policies[0].edits[0].replacement, "[Quot.sound, propext]");
+            support::apply_repairs(&narrow, &error);
+            let _ = support::verify_ok(&narrow);
+            // Admitting Classical.choice is the author's decision.
+            let classical = fold_laws_with(
+                file,
+                &[(
+                    "  axioms: [Classical.choice, Quot.sound, propext]",
+                    "  axioms: [Quot.sound, propext]",
+                )],
+            );
+            let error = {
+                let _guard = support::env_shared();
+                classical.verify_fails_with("LLV7005")
+            };
+            assert!(support::repairs_of(&error, "axioms").is_empty(), "{error}");
+        }
+        other => panic!("no repair case is wired for {other}"),
     }
 }
