@@ -1,0 +1,30 @@
+{
+  "spec": "lexlean/app-block-survey/1",
+  "purpose": "The state shapes LexLean applications declare, counted to choose which proved building blocks std-apps ships first.",
+  "method": "Every state structure and every recursive helper (recursive_argument, mutual, or prim list_fold) is counted once per shape it fits; one declaration can count in several shapes. Counts are read from declaration headers of every file and approximate to about two.",
+  "sources": {
+    "forge": {"files": 43, "where": "forge app/src (local checkout)"},
+    "verdant-engine": {"files": 25, "where": "github.com/afflom/verdant-engine app/src", "commit": "fba5465aa14349955a9f37e6a5cab9cd069b77ef"},
+    "cart-draft": {"files": 1, "where": "cart-items draft/CartItems.lex.tex"},
+    "lexlean-examples": {"files": 57, "where": "examples/*/src of this repository, excluding the 90 certificate fixtures of uor-atlas and semantic-1.1"}
+  },
+  "shapes": [
+    {"shape": "list-aggregate", "counts": {"forge": 7, "verdant-engine": 6, "cart-draft": 4, "lexlean-examples": 13}, "block": "Lists", "reproved": ["cart removeKeepsSum", "cart removeCostIsPrice", "cart addRaisesTotal", "fold-laws total_append_commutes"]},
+    {"shape": "list-append", "counts": {"forge": 12, "verdant-engine": 4, "cart-draft": 1, "lexlean-examples": 2}, "block": "Lists", "reproved": ["verdant: four monomorphic copies of List.append", "list-induction length-append"]},
+    {"shape": "list-remove", "counts": {"forge": 5, "verdant-engine": 0, "cart-draft": 2, "lexlean-examples": 0}, "block": "Lists", "reproved": ["cart removeStep", "cart iteSame", "cart removeAbsentKeepsTotal"]},
+    {"shape": "nat-map", "counts": {"forge": 7, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 3}, "block": "Tables", "reproved": ["forge: hand-written searches over lists of records keyed by a Nat; no lemma"]},
+    {"shape": "ledger", "counts": {"forge": 1, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 4}, "block": "Ledger", "reproved": ["models session_conserves", "fold-laws balance_credit"]},
+    {"shape": "bounded-counter", "counts": {"forge": 6, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 6}, "block": "Counter", "reproved": ["models clamp_preserves", "models session_preserves", "forge and verdant shortfall lemmas, verdant six excess lemmas, by exhaustive grids"]},
+    {"shape": "state-machine", "counts": {"forge": 6, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 6}, "block": "Machine", "reproved": ["reasoning consistent_preserved", "models clamp_preserves", "forge: 76 closed transition vectors and no parametric preservation theorem"]},
+    {"shape": "access-rule", "counts": {"forge": 7, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 0}, "block": "Access", "reproved": ["forge opensOnlyForOwnerHolds", "forge denyWinsHolds", "forge wrongOwnerRefused (closed vector)"]},
+    {"shape": "list-forall-validator", "counts": {"forge": 35, "verdant-engine": 25, "cart-draft": 0, "lexlean-examples": 0}, "block": null, "reproved": ["all closed theorems over fixed catalog data, decided"]},
+    {"shape": "fuel-driven-parser", "counts": {"forge": 40, "verdant-engine": 22, "cart-draft": 0, "lexlean-examples": 0}, "block": null, "reproved": ["forge duplicate digit parsers in ForgeKernel and PrismR4"]}
+  ],
+  "findings": [
+    "Nat codes dominate: state is flat records of Nat fields, flags tested with =? 1, phases and answers as Nat constants; lists are List Nat or lists of records keyed by a Nat index.",
+    "No surveyed application uses the map type or the map primitives; every keyed lookup is a hand-written search, so Tables is a list of key and value pairs.",
+    "Forge's stateful modules prove only closed transition vectors; no application states a parametric step-preserves-invariant theorem, which Machine supplies once.",
+    "The re-proved generic facts are sums over a list after cons, append and remove-first, presence from a positive count, and truncated-subtraction facts; these are the lemmas of Lists and Counter.",
+    "The two most frequent shapes, list-forall validators and fuel-driven parsers, are closed checks over fixed data or byte scanners; they need no state lemma and are left out of this first package."
+  ]
+}

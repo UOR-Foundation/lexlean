@@ -1,0 +1,149 @@
+\begin{lexlean}{Lists}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Natural number addition}
+\begin{semanticmodule}
+definition{
+  name: sumBy,
+  parameters: [weight : (Fn (Nat) Nat), items : (List Nat)],
+  result: Nat,
+  body: (match items
+    | List.nil => 0
+    | List.cons head rest => ((apply weight head) + (sumBy weight rest))),
+  executable: true,
+  recursive_argument: items
+}
+
+definition{
+  name: oneIf,
+  parameters: [same : Bool],
+  result: Nat,
+  body: (if same then 1 else 0),
+  executable: true
+}
+
+definition{
+  name: countOf,
+  parameters: [item : Nat, items : (List Nat)],
+  result: Nat,
+  body: (match items
+    | List.nil => 0
+    | List.cons head rest => ((oneIf (head =? item)) + (countOf item rest))),
+  executable: true,
+  recursive_argument: items
+}
+
+definition{
+  name: keepUnless,
+  parameters: [same : Bool, head : Nat, rest : (List Nat), kept : (List Nat)],
+  result: (List Nat),
+  body: (if same then rest else (cons head kept)),
+  executable: true
+}
+
+definition{
+  name: removeFirst,
+  parameters: [item : Nat, items : (List Nat)],
+  result: (List Nat),
+  body: (match items
+    | List.nil => (nil Nat)
+    | List.cons head rest => (keepUnless (head =? item) head rest (removeFirst item rest))),
+  executable: true,
+  recursive_argument: items
+}
+
+definition{
+  name: appendItems,
+  parameters: [items : (List Nat), more : (List Nat)],
+  result: (List Nat),
+  body: (match items
+    | List.nil => more
+    | List.cons head rest => (cons head (appendItems rest more))),
+  executable: true,
+  recursive_argument: items
+}
+
+theorem{
+  name: sumBy_nil,
+  parameters: [weight : (Fn (Nat) Nat)],
+  statement: ((sumBy weight (nil Nat)) = 0),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: sumBy_cons,
+  parameters: [weight : (Fn (Nat) Nat), head : Nat, rest : (List Nat)],
+  statement: ((sumBy weight (cons head rest)) = ((apply weight head) + (sumBy weight rest))),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: sumBy_append,
+  parameters: [weight : (Fn (Nat) Nat), items : (List Nat), more : (List Nat)],
+  statement: ((sumBy weight (appendItems items more)) = ((sumBy weight items) + (sumBy weight more))),
+  proof: induction{
+    branches: [
+      {proof: linear_arithmetic{definitions: [appendItems, sumBy]}, binders: [], constructor: nil},
+      {proof: linear_arithmetic{definitions: [appendItems, sumBy]}, binders: [head, rest, hypothesis], constructor: cons}
+    ],
+    scrutinee: items
+  },
+  axioms: [propext]
+}
+
+theorem{
+  name: countOf_append,
+  parameters: [item : Nat, items : (List Nat), more : (List Nat)],
+  statement: ((countOf item (appendItems items more)) = ((countOf item items) + (countOf item more))),
+  proof: induction{
+    branches: [
+      {proof: linear_arithmetic{definitions: [appendItems, countOf]}, binders: [], constructor: nil},
+      {proof: linear_arithmetic{definitions: [appendItems, countOf]}, binders: [head, rest, hypothesis], constructor: cons}
+    ],
+    scrutinee: items
+  },
+  axioms: [propext]
+}
+
+theorem{
+  name: removeFirst_absent,
+  parameters: [item : Nat, items : (List Nat)],
+  statement: (((countOf item items) = 0) -> ((removeFirst item items) = items)),
+  proof: induction{
+    branches: [
+      {proof: reflexivity{}, binders: [], constructor: nil},
+      {proof: linear_arithmetic{definitions: [countOf, keepUnless, oneIf, removeFirst]}, binders: [head, rest, hypothesis], constructor: cons}
+    ],
+    scrutinee: items
+  },
+  axioms: [propext]
+}
+
+theorem{
+  name: removeFirst_conserves,
+  parameters: [weight : (Fn (Nat) Nat), item : Nat, items : (List Nat)],
+  statement: ((0 < (countOf item items)) -> (((sumBy weight (removeFirst item items)) + (apply weight item)) = (sumBy weight items))),
+  proof: induction{
+    branches: [
+      {proof: linear_arithmetic{definitions: [countOf]}, binders: [], constructor: nil},
+      {proof: linear_arithmetic{definitions: [countOf, keepUnless, oneIf, removeFirst, sumBy]}, binders: [head, rest, hypothesis], constructor: cons}
+    ],
+    scrutinee: items
+  },
+  axioms: [propext]
+}
+
+theorem{
+  name: countOf_removeFirst,
+  parameters: [item : Nat, items : (List Nat)],
+  statement: ((0 < (countOf item items)) -> (((countOf item (removeFirst item items)) + 1) = (countOf item items))),
+  proof: induction{
+    branches: [
+      {proof: linear_arithmetic{definitions: [countOf]}, binders: [], constructor: nil},
+      {proof: linear_arithmetic{definitions: [countOf, keepUnless, oneIf, removeFirst]}, binders: [head, rest, hypothesis], constructor: cons}
+    ],
+    scrutinee: items
+  },
+  axioms: [propext]
+}
+\end{semanticmodule}
+\end{lexlean}
