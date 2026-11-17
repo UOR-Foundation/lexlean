@@ -1865,19 +1865,15 @@ and Lean refuses it with `LLV7002`:
 - refusal: `checkFrom` admits a missing case, and `reflexivityTerm`
   refuses a non-equation with `missingCase`.
 
-Before these cases were wired, the same binding and refusal plants were
-run by hand on a copy of the module verified alone. `lexlean verify`
-refused each with `LLV7002`:
+Run with `--nocapture`, every plant is refused:
 
 ```text
-== binding
-error[LLV7002]: Lean rejected `LanguageTwelve.Main` (error): Tactic `rfl` failed: The left-hand side
-== refusal
-error[LLV7002]: Lean rejected `LanguageTwelve.Main` (error): Tactic `rfl` failed: The left-hand side
+BS-37: the planted module is refused: LLV7002: Lean rejected `LanguageTwelve.Main` (error): unsolved goals
+BS-38: the planted module is refused: LLV7002: Lean rejected `LanguageTwelve.Main` (error): Tactic `rfl` failed: The left-hand side
+BS-36: the planted module is refused: LLV7002: Lean rejected `LanguageTwelve.Main` (error): Tactic `rfl` failed: The left-hand side
+BS-38: the planted module is refused: LLV7002: Lean rejected `LanguageTwelve.Main` (error): unsolved goals
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 499 filtered out; finished in 240.64s
 ```
-
-The totality plant and the second refusal plant are run only by the
-cases. The cases are run by the CI gate on the normative host.
 
 ### a derived row is made by the pinned Lean and never stored (SM-34)
 
