@@ -760,7 +760,9 @@ fn pk_05() {
         workspace.members,
         [
             "bootstrap",
+            "examples/cart",
             "examples/helpdesk",
+            "std-apps",
             "std-models",
             "std-reasoning",
             "stdlib"

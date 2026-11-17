@@ -1,0 +1,178 @@
+\begin{lexlean}{Main}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{cart.titles@1.0.0}
+\importmodule{LexLeanStdApps.Lines}
+\title{Shopping cart}
+\begin{semanticmodule}
+definition{name: answerAdded, parameters: [], result: Nat, body: 0, executable: true}
+
+definition{name: answerUnknown, parameters: [], result: Nat, body: 1, executable: true}
+
+definition{name: answerRemoved, parameters: [], result: Nat, body: 2, executable: true}
+
+definition{name: answerRefused, parameters: [], result: Nat, body: 3, executable: true}
+
+definition{
+  name: priceOf,
+  parameters: [item : Nat],
+  result: Nat,
+  body: (if (item =? 1) then 250 else (if (item =? 2) then 400 else (if (item =? 3) then 1200 else 0))),
+  executable: true
+}
+
+structure{name: State, type_parameters: [], parameters: [], fields: [{name: lines, type: (List (Nat * Nat))}]}
+
+definition{name: initial, parameters: [], result: State, body: (record State {lines := (nil (Nat * Nat))}), executable: true}
+
+definition{
+  name: totalOf,
+  parameters: [state : State],
+  result: Nat,
+  body: (LexLeanStdApps.Lines::total (project state lines)),
+  executable: true
+}
+
+definition{
+  name: canAdd,
+  parameters: [item : Nat],
+  result: Bool,
+  body: (0 <? (priceOf item)),
+  executable: true
+}
+
+definition{
+  name: afterAdd,
+  parameters: [state : State, item : Nat],
+  result: State,
+  body: (record State {lines := (LexLeanStdApps.Lines::addIf (canAdd item) item (priceOf item) (project state lines))}),
+  executable: true
+}
+
+definition{
+  name: replyAdd,
+  parameters: [state : State, item : Nat],
+  result: Nat,
+  body: (if (canAdd item) then (answerAdded) else (answerUnknown)),
+  executable: true
+}
+
+definition{
+  name: canRemove,
+  parameters: [state : State, item : Nat],
+  result: Bool,
+  body: (0 <? (LexLeanStdApps.Lines::countOf item (project state lines))),
+  executable: true
+}
+
+definition{
+  name: afterRemove,
+  parameters: [state : State, item : Nat],
+  result: State,
+  body: (record State {lines := (LexLeanStdApps.Lines::removeIf (canRemove state item) item (project state lines))}),
+  executable: true
+}
+
+definition{
+  name: replyRemove,
+  parameters: [state : State, item : Nat],
+  result: Nat,
+  body: (if (canRemove state item) then (answerRemoved) else (answerRefused)),
+  executable: true
+}
+
+theorem{
+  name: initialEmpty,
+  parameters: [],
+  statement: ((totalOf (initial)) = 0),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: addRaisesTotal,
+  parameters: [state : State, item : Nat],
+  statement: (((canAdd item) = true) -> ((totalOf (afterAdd state item)) = ((totalOf state) + (priceOf item)))),
+  proof: apply{arguments: [(canAdd item), item, (priceOf item), (project state lines)], theorem: LexLeanStdApps.Lines::total_addIf_true},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: addCountsLine,
+  parameters: [state : State, item : Nat],
+  statement: (((canAdd item) = true) -> ((LexLeanStdApps.Lines::countOf item (project (afterAdd state item) lines)) = ((LexLeanStdApps.Lines::countOf item (project state lines)) + 1))),
+  proof: apply{arguments: [(canAdd item), item, (priceOf item), (project state lines)], theorem: LexLeanStdApps.Lines::countOf_addIf_true},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: addUnknownKeepsTotal,
+  parameters: [state : State, item : Nat],
+  statement: (((canAdd item) = false) -> ((totalOf (afterAdd state item)) = (totalOf state))),
+  proof: apply{arguments: [(canAdd item), item, (priceOf item), (project state lines)], theorem: LexLeanStdApps.Lines::total_addIf_false},
+  axioms: [propext]
+}
+
+theorem{
+  name: addKnownAccepted,
+  parameters: [state : State, item : Nat],
+  statement: (((canAdd item) = true) -> ((replyAdd state item) = (answerAdded))),
+  proof: linear_arithmetic{definitions: [answerAdded, answerUnknown, canAdd, replyAdd]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: addUnknownRefused,
+  parameters: [state : State, item : Nat],
+  statement: (((canAdd item) = false) -> ((replyAdd state item) = (answerUnknown))),
+  proof: linear_arithmetic{definitions: [answerAdded, answerUnknown, canAdd, replyAdd]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: removeConservesTotal,
+  parameters: [state : State, item : Nat],
+  statement: (((totalOf (afterRemove state item)) + (LexLeanStdApps.Lines::removedAmount (canRemove state item) item (project state lines))) = (totalOf state)),
+  proof: apply{arguments: [(canRemove state item), item, (project state lines)], theorem: LexLeanStdApps.Lines::total_removeIf},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: removeTakesLinePrice,
+  parameters: [state : State, item : Nat],
+  statement: (((canRemove state item) = true) -> ((LexLeanStdApps.Lines::removedAmount (canRemove state item) item (project state lines)) = (LexLeanStdApps.Lines::amountOf item (project state lines)))),
+  proof: apply{arguments: [(canRemove state item), item, (project state lines)], theorem: LexLeanStdApps.Lines::removedAmount_true},
+  axioms: [propext]
+}
+
+theorem{
+  name: removeAbsentKeepsTotal,
+  parameters: [state : State, item : Nat],
+  statement: (((canRemove state item) = false) -> ((totalOf (afterRemove state item)) = (totalOf state))),
+  proof: apply{arguments: [(canRemove state item), item, (project state lines)], theorem: LexLeanStdApps.Lines::total_removeIf_false},
+  axioms: [propext]
+}
+
+theorem{
+  name: removePresentRemoved,
+  parameters: [state : State, item : Nat],
+  statement: (((canRemove state item) = true) -> ((replyRemove state item) = (answerRemoved))),
+  proof: linear_arithmetic{definitions: [answerRefused, answerRemoved, canRemove, replyRemove]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: removeAbsentRefused,
+  parameters: [state : State, item : Nat],
+  statement: (((canRemove state item) = false) -> ((replyRemove state item) = (answerRefused))),
+  proof: linear_arithmetic{definitions: [answerRefused, answerRemoved, canRemove, replyRemove]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: removedNeverExceedsTotal,
+  parameters: [state : State, item : Nat],
+  statement: ((LexLeanStdApps.Lines::amountOf item (project state lines)) <= (totalOf state)),
+  proof: apply{arguments: [item, (project state lines)], theorem: LexLeanStdApps.Lines::amountOf_le_total},
+  axioms: [Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}

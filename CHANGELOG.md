@@ -17,6 +17,20 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- The source package `std-apps` (`LexLeanStdApps`) holds proved building
+  blocks for applications (SPEC.md §17.22, `SL-15`, `SL-16`, `EX-10`; no new
+  diagnostic code; no language identity moves). Its seven modules, `Lists`,
+  `Lines`, `Tables`, `Ledger`, `Counter`, `Machine`, and `Access`, are the state
+  shapes a survey of forge, verdant-engine, an agent-drafted cart, and the
+  examples found most often (`docs/app-blocks/survey.json`), and every lemma is
+  stated so that an application cites it in one `apply`, `simplify`, or
+  `linear_arithmetic` step. Every declaration is pinned in `std-apps/pins.json`
+  (version `1.0.0`), a definition by its alpha identity and every other
+  declaration by its statement, and a change under a pin is refused by name. The
+  `cart` example rewrites the drafted cart on `Lines`: 12 one-step theorems
+  where the draft had 9, 4 recursive definitions, 2 helper lemmas, and 2
+  inductions, 7 of whose theorems did not verify (`docs/app-blocks/cart.json`).
+
 ## 0.4.3
 
 - A semantic module nests as deeply as the project's `max_scope_depth` allows

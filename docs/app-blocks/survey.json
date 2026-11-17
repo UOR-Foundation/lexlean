@@ -9,16 +9,16 @@
     "lexlean-examples": {"files": 57, "where": "examples/*/src of this repository, excluding the 90 certificate fixtures of uor-atlas and semantic-1.1"}
   },
   "shapes": [
-    {"shape": "list-aggregate", "counts": {"forge": 7, "verdant-engine": 6, "cart-draft": 4, "lexlean-examples": 13}, "block": "Lists", "reproved": ["cart removeKeepsSum", "cart removeCostIsPrice", "cart addRaisesTotal", "fold-laws total_append_commutes"]},
-    {"shape": "list-append", "counts": {"forge": 12, "verdant-engine": 4, "cart-draft": 1, "lexlean-examples": 2}, "block": "Lists", "reproved": ["verdant: four monomorphic copies of List.append", "list-induction length-append"]},
-    {"shape": "list-remove", "counts": {"forge": 5, "verdant-engine": 0, "cart-draft": 2, "lexlean-examples": 0}, "block": "Lists", "reproved": ["cart removeStep", "cart iteSame", "cart removeAbsentKeepsTotal"]},
-    {"shape": "nat-map", "counts": {"forge": 7, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 3}, "block": "Tables", "reproved": ["forge: hand-written searches over lists of records keyed by a Nat; no lemma"]},
-    {"shape": "ledger", "counts": {"forge": 1, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 4}, "block": "Ledger", "reproved": ["models session_conserves", "fold-laws balance_credit"]},
-    {"shape": "bounded-counter", "counts": {"forge": 6, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 6}, "block": "Counter", "reproved": ["models clamp_preserves", "models session_preserves", "forge and verdant shortfall lemmas, verdant six excess lemmas, by exhaustive grids"]},
-    {"shape": "state-machine", "counts": {"forge": 6, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 6}, "block": "Machine", "reproved": ["reasoning consistent_preserved", "models clamp_preserves", "forge: 76 closed transition vectors and no parametric preservation theorem"]},
-    {"shape": "access-rule", "counts": {"forge": 7, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 0}, "block": "Access", "reproved": ["forge opensOnlyForOwnerHolds", "forge denyWinsHolds", "forge wrongOwnerRefused (closed vector)"]},
-    {"shape": "list-forall-validator", "counts": {"forge": 35, "verdant-engine": 25, "cart-draft": 0, "lexlean-examples": 0}, "block": null, "reproved": ["all closed theorems over fixed catalog data, decided"]},
-    {"shape": "fuel-driven-parser", "counts": {"forge": 40, "verdant-engine": 22, "cart-draft": 0, "lexlean-examples": 0}, "block": null, "reproved": ["forge duplicate digit parsers in ForgeKernel and PrismR4"]}
+    {"shape": "list-aggregate", "counts": {"forge": 7, "verdant-engine": 6, "cart-draft": 4, "lexlean-examples": 13}, "blocks": ["Lists", "Lines"], "reproved": ["cart removeKeepsSum", "cart removeCostIsPrice", "cart addRaisesTotal", "fold-laws total_append_commutes"]},
+    {"shape": "list-append", "counts": {"forge": 12, "verdant-engine": 4, "cart-draft": 1, "lexlean-examples": 2}, "blocks": ["Lists"], "reproved": ["verdant: four monomorphic copies of List.append", "list-induction length-append"]},
+    {"shape": "list-remove", "counts": {"forge": 5, "verdant-engine": 0, "cart-draft": 2, "lexlean-examples": 0}, "blocks": ["Lists", "Lines"], "reproved": ["cart removeStep", "cart iteSame", "cart removeAbsentKeepsTotal"]},
+    {"shape": "nat-map", "counts": {"forge": 7, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 3}, "blocks": ["Tables"], "reproved": ["forge: hand-written searches over lists of records keyed by a Nat; no lemma"]},
+    {"shape": "ledger", "counts": {"forge": 1, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 4}, "blocks": ["Ledger"], "reproved": ["models session_conserves", "fold-laws balance_credit"]},
+    {"shape": "bounded-counter", "counts": {"forge": 6, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 6}, "blocks": ["Counter"], "reproved": ["models clamp_preserves", "models session_preserves", "forge and verdant shortfall lemmas, verdant six excess lemmas, by exhaustive grids"]},
+    {"shape": "state-machine", "counts": {"forge": 6, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 6}, "blocks": ["Machine"], "reproved": ["reasoning consistent_preserved", "models clamp_preserves", "forge: 76 closed transition vectors and no parametric preservation theorem"]},
+    {"shape": "access-rule", "counts": {"forge": 7, "verdant-engine": 0, "cart-draft": 0, "lexlean-examples": 0}, "blocks": ["Access"], "reproved": ["forge opensOnlyForOwnerHolds", "forge denyWinsHolds", "forge wrongOwnerRefused (closed vector)"]},
+    {"shape": "list-forall-validator", "counts": {"forge": 35, "verdant-engine": 25, "cart-draft": 0, "lexlean-examples": 0}, "blocks": [], "reproved": ["all closed theorems over fixed catalog data, decided"]},
+    {"shape": "fuel-driven-parser", "counts": {"forge": 40, "verdant-engine": 22, "cart-draft": 0, "lexlean-examples": 0}, "blocks": [], "reproved": ["forge duplicate digit parsers in ForgeKernel and PrismR4"]}
   ],
   "findings": [
     "Nat codes dominate: state is flat records of Nat fields, flags tested with =? 1, phases and answers as Nat constants; lists are List Nat or lists of records keyed by a Nat index.",

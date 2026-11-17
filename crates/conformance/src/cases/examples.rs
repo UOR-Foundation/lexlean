@@ -701,6 +701,8 @@ pub(crate) fn run(id: &str) {
         // §28.6: every example directory is discovered and gate-complete.
         // §10.5, §17.22: the helpdesk text application.
         "EX-09" => super::helpdesk::run(id),
+        // §17.22: the cart built on the application building blocks.
+        "EX-10" => super::app_blocks::run(id),
         "EX-08" => {
             let examples = support::repo_root().join("examples");
             let mut found = 0usize;

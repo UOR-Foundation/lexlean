@@ -73,3 +73,19 @@ Feature: stdlib
     When the project is checked and built, each member is lowered and run by the evaluator and by its rendered rust-std package on a seeded corpus of ascending maps and sets whose keys repeat and are prefixes of one another and of entries in no order, a defect is planted in each member in turn, and the project is exported under the pinned Lean
     Then the ten roots are eligible for rust-std with exactly their declared effects, and no run disagrees with the oracle
     And each planted defect disagrees with the oracle on its member's fixed vector, and every exported package is byte-identical to its committed package and realizes the member's lowered program
+
+  @SL-15 @build
+  Scenario: The standard library's `std-apps` package is the language-1.2 project `std-apps` of the workspace under the module prefix `LexLeanStdApps`, whose seven modules state proved building blocks for applications, chosen by a survey of application sources recorded in `docs/app-blocks/survey.json`: `Lists` (counts, appends, and remove-first over `List Nat`), `Lines` (priced lines whose total a removal conserves), `Tables` (a map keyed by `Nat`), `Ledger` (transfers that conserve the balances they move), `Counter` (a bounded counter and truncated-subtraction facts), `Machine` (a guarded transition whose runs keep a fault count), and `Access` (rank and owner rules and a guard), each lemma an equation or implication that an application cites by name in one `apply`, `simplify`, or `linear_arithmetic` step; its manifest declares no source package, artifact, or glossary, no file of Lean source accompanies it, every module verifies by itself under the pinned Lean with exact axiom policies that observe only `propext`, `Quot.sound`, and `Classical.choice`, and a weakened lemma leaves the package verifying while the application that cites it is refused by the kernel with `LLV7002`.
+    Given the committed `std-apps` project beside the workspace file, the survey of application sources, and the `cart` example that cites it
+    When the project is checked, built, and verified under the pinned Lean, its manifest and files are read, and the lemma `total_removeIf` the cart cites is weakened to an inequality
+    Then it declares no source package, artifact, or glossary, holds no file of Lean source, and each of its seven modules serves a shape the survey records
+    And every module verifies with its exact axiom policy and observes no axiom but `propext`, `Quot.sound`, and `Classical.choice`
+    And with the weakened lemma the cart is refused by the kernel with LLV7002
+
+  @SL-16 @build
+  Scenario: Every declaration of the `std-apps` package has a pinned identity in `std-apps/pins.json`, a definition by its alpha identity (SPEC.md §17.12) and every other declaration by the digest of its canonical linked form without its proof: the committed pins are the package's identities exactly and canonical, every importer in the workspace declares the version the pins announce, a definition changed under a pinned identity and a lemma weakened under one are each refused by name, and a changed proof keeps every pinned identity.
+    Given the committed `std-apps` project, its pins file, and the workspace's manifests
+    When the package's semantic snapshot is taken and compared with the pins, and the definition `total`, the lemma `amountOf_le_total`, and the proof of `total_addLine` are each changed in a copy
+    Then the pins equal the identities and are canonical, and every importer declares the pinned version
+    And the changed definition and the weakened lemma are each refused by name
+    And the changed proof keeps every pinned identity

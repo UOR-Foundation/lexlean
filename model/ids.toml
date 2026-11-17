@@ -1640,6 +1640,12 @@ suite = "examples"
 statement = "The `helpdesk` example is a text application written entirely from language-1.2 source and the three source packages `std`, `std-models`, and `std-reasoning` that its lock pins: its production roots `classify`, `plan`, and `dispatch : Bytes -> Bytes` use the model alone, the reasoner alone, and both together, `dispatch` trimming the request with `LexLeanStd.Text`, scoring it with an integer feed-forward model whose weights are content-addressed artifacts and which is applied through its required precondition check, abstaining with `decideOr`, committing through the generic `GateModel` of `std-models`, and planning the reply with the `Drain` reasoner of `std-reasoning`; the example holds no handwritten Lean or Rust, verifies under the pinned Lean, its roots export through `lexlean production build` with the packages committed under `tests/production-export/helpdesk/`, and a changed byte or version of a package is `LLC0105`, an import of a module of an undeclared package `LLR3009`, a tampered artifact `LLR3007`, and a model applied without its required check `LLT4008`."
 
 [[id]]
+id = "EX-10"
+level = "build"
+suite = "examples"
+statement = "The `cart` example is the shopping cart an agent drafted, rewritten on the `std-apps` package: priced lines added and removed under guards, with a reply for each request; every one of its theorems is one step that applies a block lemma, unfolds the cart's own definitions with `linear_arithmetic`, or is reflexivity, all of them verify under the pinned Lean, the cart defines no recursion of its own, and `docs/app-blocks/cart.json` records its lines and theorems against those of the draft and the block lemmas it cites."
+
+[[id]]
 id = "PD-01"
 level = "build"
 suite = "production"
@@ -2712,6 +2718,18 @@ level = "build"
 suite = "stdlib"
 statement = "The standard library's `Map` module is language-1.2 source whose ten members over strictly ascending lists, a map as entries keyed by `Bytes` and a set as `Bytes` (`mapFromEntries`, `mapInsert`, `mapGet`, `mapRemove`, `mapExtend`, `setContains`, `setRemove`, `setUnion`, `setIntersection`, `setDifference`), are production roots eligible for `rust-std` with exactly their declared effects; each member's lowered program under the calculus evaluator and its rendered `rust-std` package under the pinned rustc agree with the `BTreeMap<Vec<u8>, Vec<u8>>` and `BTreeSet<Vec<u8>>` the compiler keeps its tables and name sets in, on a seeded corpus of keys that repeat and are prefixes of one another: collecting entries keeps the last of a repeated key, an insertion replaces the value of an equal key, a lookup returns the value of an equal key or nothing, a removal drops the entry of an equal key, an extension lets the other map's entries replace the map's, and a set is tested, removed from, joined, intersected, and differenced as a `BTreeSet` is; a defect planted in each member is detected by a fixed vector of its own; and every exported package is byte-identical to its committed package and realizes the member's lowered program."
 
+
+[[id]]
+id = "SL-15"
+level = "build"
+suite = "stdlib"
+statement = "The standard library's `std-apps` package is the language-1.2 project `std-apps` of the workspace under the module prefix `LexLeanStdApps`, whose seven modules state proved building blocks for applications, chosen by a survey of application sources recorded in `docs/app-blocks/survey.json`: `Lists` (counts, appends, and remove-first over `List Nat`), `Lines` (priced lines whose total a removal conserves), `Tables` (a map keyed by `Nat`), `Ledger` (transfers that conserve the balances they move), `Counter` (a bounded counter and truncated-subtraction facts), `Machine` (a guarded transition whose runs keep a fault count), and `Access` (rank and owner rules and a guard), each lemma an equation or implication that an application cites by name in one `apply`, `simplify`, or `linear_arithmetic` step; its manifest declares no source package, artifact, or glossary, no file of Lean source accompanies it, every module verifies by itself under the pinned Lean with exact axiom policies that observe only `propext`, `Quot.sound`, and `Classical.choice`, and a weakened lemma leaves the package verifying while the application that cites it is refused by the kernel with `LLV7002`."
+
+[[id]]
+id = "SL-16"
+level = "build"
+suite = "stdlib"
+statement = "Every declaration of the `std-apps` package has a pinned identity in `std-apps/pins.json`, a definition by its alpha identity (SPEC.md §17.12) and every other declaration by the digest of its canonical linked form without its proof: the committed pins are the package's identities exactly and canonical, every importer in the workspace declares the version the pins announce, a definition changed under a pinned identity and a lemma weakened under one are each refused by name, and a changed proof keeps every pinned identity."
 
 [[id]]
 id = "BS-01"
