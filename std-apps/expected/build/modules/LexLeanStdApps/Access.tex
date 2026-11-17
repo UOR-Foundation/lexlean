@@ -1,0 +1,77 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{allows}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(rank : Nat) (needed : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(Nat.ble (needed) (rank))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isOwner}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(owner : Nat) (who : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(Nat.beq (owner) (who))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{permit}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(S)}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (next : S) (current : S)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{S}.\par
+\noindent Definition: \texttt{(match allowed with | Bool.true => next | Bool.false => current)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{permit\_granted}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Type parameters: \texttt{(S)}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (next : S) (current : S)}.\par
+\noindent Statement: \texttt{((allowed = true) -> (permit (S) (allowed) (next) (current) = next))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{permit\_denied}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Type parameters: \texttt{(S)}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (next : S) (current : S)}.\par
+\noindent Statement: \texttt{((allowed = false) -> (permit (S) (allowed) (next) (current) = current))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{permit\_granted\_map}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Type parameters: \texttt{(S, T)}.\par
+\noindent Parameters: \texttt{(observe : ((S) -> (T))) (allowed : Bool) (next : S) (current : S)}.\par
+\noindent Statement: \texttt{((allowed = true) -> ((observe (permit (S) (allowed) (next) (current))) = (observe (next))))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{permit\_denied\_map}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Type parameters: \texttt{(S, T)}.\par
+\noindent Parameters: \texttt{(observe : ((S) -> (T))) (allowed : Bool) (next : S) (current : S)}.\par
+\noindent Statement: \texttt{((allowed = false) -> ((observe (permit (S) (allowed) (next) (current))) = (observe (current))))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{allows\_grants}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(rank : Nat) (needed : Nat)}.\par
+\noindent Statement: \texttt{((needed <= rank) -> (allows (rank) (needed) = true))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{allows\_refuses}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(rank : Nat) (needed : Nat)}.\par
+\noindent Statement: \texttt{((rank < needed) -> (allows (rank) (needed) = false))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{allows\_monotone}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(rank : Nat) (higher : Nat) (needed : Nat)}.\par
+\noindent Statement: \texttt{((rank <= higher) -> ((allows (rank) (needed) = true) -> (allows (higher) (needed) = true)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{owner\_self}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(owner : Nat)}.\par
+\noindent Statement: \texttt{(isOwner (owner) (owner) = true)}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{owner\_only}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(owner : Nat) (who : Nat)}.\par
+\noindent Statement: \texttt{((isOwner (owner) (who) = true) -> (owner = who))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\end{document}

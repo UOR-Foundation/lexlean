@@ -1,0 +1,122 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{oneIf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(same : Bool)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(if same then 1 else 0)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{sumBy}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(weight : ((Nat) -> (Nat))) (items : List (Nat))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match items with | List.nil => 0 | List.cons head rest => ((weight (head)) + sumBy (weight) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{countOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(item : Nat) (items : List (Nat))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match items with | List.nil => 0 | List.cons head rest => (oneIf ((Nat.beq (head) (item))) + countOf (item) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{removedOne}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(item : Nat) (items : List (Nat))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match items with | List.nil => 0 | List.cons head rest => (if (Nat.beq (head) (item)) then 1 else removedOne (item) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{keepUnless}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(same : Bool) (head : Nat) (rest : List (Nat)) (kept : List (Nat))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Nat)}.\par
+\noindent Definition: \texttt{(match same with | Bool.true => rest | Bool.false => (head :: kept))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{removeFirst}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(item : Nat) (items : List (Nat))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Nat)}.\par
+\noindent Definition: \texttt{(match items with | List.nil => ([] : List (Nat)) | List.cons head rest => keepUnless ((Nat.beq (head) (item))) (head) (rest) (removeFirst (item) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{appendItems}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (Nat)) (more : List (Nat))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Nat)}.\par
+\noindent Definition: \texttt{(match items with | List.nil => more | List.cons head rest => (head :: appendItems (rest) (more)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{pushIf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (item : Nat) (items : List (Nat))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Nat)}.\par
+\noindent Definition: \texttt{(match allowed with | Bool.true => (item :: items) | Bool.false => items)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{sumBy\_nil}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(weight : ((Nat) -> (Nat)))}.\par
+\noindent Statement: \texttt{(sumBy (weight) (([] : List (Nat))) = 0)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{sumBy\_cons}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(weight : ((Nat) -> (Nat))) (head : Nat) (rest : List (Nat))}.\par
+\noindent Statement: \texttt{(sumBy (weight) ((head :: rest)) = ((weight (head)) + sumBy (weight) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{sumBy\_append}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(weight : ((Nat) -> (Nat))) (items : List (Nat)) (more : List (Nat))}.\par
+\noindent Statement: \texttt{(sumBy (weight) (appendItems (items) (more)) = (sumBy (weight) (items) + sumBy (weight) (more)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{countOf\_append}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(item : Nat) (items : List (Nat)) (more : List (Nat))}.\par
+\noindent Statement: \texttt{(countOf (item) (appendItems (items) (more)) = (countOf (item) (items) + countOf (item) (more)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{countOf\_cons\_same}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(item : Nat) (items : List (Nat))}.\par
+\noindent Statement: \texttt{(countOf (item) ((item :: items)) = (countOf (item) (items) + 1))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{countOf\_cons\_other}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(head : Nat) (item : Nat) (items : List (Nat))}.\par
+\noindent Statement: \texttt{(((Nat.beq (head) (item)) = false) -> (countOf (item) ((head :: items)) = countOf (item) (items)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{removeStep}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(same : Bool) (item : Nat) (head : Nat) (rest : List (Nat)) (kept : List (Nat)) (later : Nat)}.\par
+\noindent Statement: \texttt{(((Nat.beq (head) (item)) = same) -> (((countOf (item) (kept) + later) = countOf (item) (rest)) -> ((countOf (item) (keepUnless (same) (head) (rest) (kept)) + (if (Nat.beq (head) (item)) then 1 else later)) = (oneIf ((Nat.beq (head) (item))) + countOf (item) (rest)))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{countOf\_removeFirst}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(item : Nat) (items : List (Nat))}.\par
+\noindent Statement: \texttt{((countOf (item) (removeFirst (item) (items)) + removedOne (item) (items)) = countOf (item) (items))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{removedOne\_count}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(item : Nat) (items : List (Nat))}.\par
+\noindent Statement: \texttt{((removedOne (item) (items) + (LexLeanRuntime.subtract (countOf (item) (items)) (1) : Nat)) = countOf (item) (items))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{removedOne\_le\_one}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(item : Nat) (items : List (Nat))}.\par
+\noindent Statement: \texttt{(removedOne (item) (items) <= 1)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{pushIf\_true}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (item : Nat) (items : List (Nat))}.\par
+\noindent Statement: \texttt{((allowed = true) -> (pushIf (allowed) (item) (items) = (item :: items)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{pushIf\_false}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (item : Nat) (items : List (Nat))}.\par
+\noindent Statement: \texttt{((allowed = false) -> (pushIf (allowed) (item) (items) = items))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\end{document}

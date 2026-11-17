@@ -1,0 +1,116 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{bump}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(cap : Nat) (count : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(if (Nat.blt (count) (cap)) then (count + 1) else count)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{bumpBy}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(cap : Nat) (step : Nat) (count : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(if (Nat.ble ((count + step)) (cap)) then (count + step) else cap)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{dropOne}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(count : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(LexLeanRuntime.subtract (count) (1) : Nat)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{shortfall}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(need : Nat) (<U+00AB>have<U+00BB> : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(LexLeanRuntime.subtract (need) (<U+00AB>have<U+00BB>) : Nat)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{excess}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(value : Nat) (limit : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(LexLeanRuntime.subtract (value) (limit) : Nat)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{bump\_within}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(cap : Nat) (count : Nat)}.\par
+\noindent Statement: \texttt{((count <= cap) -> (bump (cap) (count) <= cap))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{bump\_grows}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(cap : Nat) (count : Nat)}.\par
+\noindent Statement: \texttt{((count < cap) -> (bump (cap) (count) = (count + 1)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{bump\_full}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(cap : Nat) (count : Nat)}.\par
+\noindent Statement: \texttt{((cap <= count) -> (bump (cap) (count) = count))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{bump\_never\_lowers}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(cap : Nat) (count : Nat)}.\par
+\noindent Statement: \texttt{(count <= bump (cap) (count))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{bumpBy\_within}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(cap : Nat) (step : Nat) (count : Nat)}.\par
+\noindent Statement: \texttt{(bumpBy (cap) (step) (count) <= cap)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{bumpBy\_fits}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(cap : Nat) (step : Nat) (count : Nat)}.\par
+\noindent Statement: \texttt{(((count + step) <= cap) -> (bumpBy (cap) (step) (count) = (count + step)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{dropOne\_bump}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(cap : Nat) (count : Nat)}.\par
+\noindent Statement: \texttt{((count < cap) -> (dropOne (bump (cap) (count)) = count))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{dropOne\_le}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(count : Nat)}.\par
+\noindent Statement: \texttt{(dropOne (count) <= count)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{shortfall\_zero\_met}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(need : Nat) (<U+00AB>have<U+00BB> : Nat)}.\par
+\noindent Statement: \texttt{((shortfall (need) (<U+00AB>have<U+00BB>) = 0) -> (need <= <U+00AB>have<U+00BB>))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{met\_no\_shortfall}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(need : Nat) (<U+00AB>have<U+00BB> : Nat)}.\par
+\noindent Statement: \texttt{((need <= <U+00AB>have<U+00BB>) -> (shortfall (need) (<U+00AB>have<U+00BB>) = 0))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{shortfall\_falls}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(need : Nat) (<U+00AB>have<U+00BB> : Nat) (more : Nat)}.\par
+\noindent Statement: \texttt{((<U+00AB>have<U+00BB> <= more) -> (shortfall (need) (more) <= shortfall (need) (<U+00AB>have<U+00BB>)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{shortfall\_fills}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(need : Nat) (<U+00AB>have<U+00BB> : Nat)}.\par
+\noindent Statement: \texttt{(need <= (<U+00AB>have<U+00BB> + shortfall (need) (<U+00AB>have<U+00BB>)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{excess\_zero\_within}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(value : Nat) (limit : Nat)}.\par
+\noindent Statement: \texttt{((excess (value) (limit) = 0) -> (value <= limit))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{within\_no\_excess}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(value : Nat) (limit : Nat)}.\par
+\noindent Statement: \texttt{((value <= limit) -> (excess (value) (limit) = 0))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{excess\_falls}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(value : Nat) (limit : Nat) (higher : Nat)}.\par
+\noindent Statement: \texttt{((limit <= higher) -> (excess (value) (higher) <= excess (value) (limit)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\end{document}
