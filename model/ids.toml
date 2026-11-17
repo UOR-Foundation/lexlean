@@ -977,7 +977,7 @@ statement = "Under language 1.2 the order propositions <= and < take two operand
 id = "PF-21"
 level = "build"
 suite = "proofs"
-statement = "The language-1.2 linear_arithmetic proof form reads the runtime: it rewrites less_than, equal, negate, quotient, remainder, and fixed-width order and equality into linear arithmetic over mathematical values, splits every if and match left in the goal, proves integer kernels for all inputs, and is refused by Lean on a false one."
+statement = "The language-1.2 linear_arithmetic proof form reads the runtime: it rewrites less_than, equal, negate, quotient, remainder, and fixed-width order and equality into linear arithmetic over mathematical values, splits every if and match left in the goal and simplifies each split goal again, proves integer kernels for all inputs, and is refused by Lean on a false one."
 
 [[id]]
 id = "PF-22"

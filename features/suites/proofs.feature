@@ -146,11 +146,11 @@ Feature: proofs
     And the mixed operands, the strings, and the language-1.1 use fail with LLT4001
 
   @PF-21 @build
-  Scenario: The language-1.2 linear_arithmetic proof form reads the runtime: it rewrites less_than, equal, negate, quotient, remainder, and fixed-width order and equality into linear arithmetic over mathematical values, splits every if and match left in the goal, proves integer kernels for all inputs, and is refused by Lean on a false one.
+  Scenario: The language-1.2 linear_arithmetic proof form reads the runtime: it rewrites less_than, equal, negate, quotient, remainder, and fixed-width order and equality into linear arithmetic over mathematical values, splits every if and match left in the goal and simplifies each split goal again, proves integer kernels for all inputs, and is refused by Lean on a false one.
     Given the committed fold-laws example, whose clamped requantization step, truncating division, and fixed-width order theorems are proved by linear_arithmetic
-    When it is rendered and verified, and copies state a clamp bound one too small, a quotient identity with the wrong remainder sign, and a fixed-width order one past its literal
-    Then the generated Lean is the fixed script: the runtime bridges and the registered rewrites, the fixed-width bit reading, the split of every if and match, and omega, and it verifies for all inputs
-    And each false copy checks but fails verification with LLV7002
+    When it is rendered and verified, copies state a clamp bound one too small, a quotient identity with the wrong remainder sign, and a fixed-width order one past its literal, and a copy adds a record whose list-field update sits under an if with a theorem about a recursive sum over that field
+    Then the generated Lean is the fixed script: the runtime bridges and the registered rewrites, the fixed-width bit reading, the split of every if and match, the same simplification again on every split goal, and omega, and it verifies for all inputs
+    And each false copy checks but fails verification with LLV7002, and the record copy verifies
 
   @PF-22 @build
   Scenario: The runtime module LexLeanRuntime.Laws states the fold laws as LexLean source with every row's axioms pinned, and linear_arithmetic rewrites additive list, set, and map folds into sums that are linear and invariant under append and reverse, so fold equalities verify for all inputs with decide only on closed instances.
