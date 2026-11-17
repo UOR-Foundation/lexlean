@@ -1,0 +1,355 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{Term}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{bvar}: \texttt{(Nat)}.\par
+\noindent Constructor \texttt{sort}: \texttt{(Nat)}.\par
+\noindent Constructor \texttt{const}: \texttt{(Nat)}.\par
+\noindent Constructor \texttt{app}: \texttt{(Term, Term)}.\par
+\noindent Constructor \texttt{lam}: \texttt{(Term, Term)}.\par
+\noindent Constructor \texttt{pi}: \texttt{(Term, Term)}.\par
+\subsection*{\texttt{Refusal}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{notAnEquation}: \texttt{()}.\par
+\noindent Constructor \texttt{missingCase}: \texttt{(Nat)}.\par
+\noindent Constructor \texttt{repeatedCase}: \texttt{(Nat)}.\par
+\noindent Constructor \texttt{binderCount}: \texttt{(Nat)}.\par
+\noindent Constructor \texttt{unknownCase}: \texttt{(Nat)}.\par
+\noindent Constructor \texttt{notProduced}: \texttt{(Nat)}.\par
+\noindent Constructor \texttt{unregisteredLaw}: \texttt{(Nat)}.\par
+\subsection*{\texttt{Decl}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{name}: \texttt{Nat}.\par
+\noindent Field \texttt{statement}: \texttt{Term}.\par
+\noindent Field \texttt{value}: \texttt{Term}.\par
+\subsection*{\texttt{Equation}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{equation}: \texttt{(Term, Term)}.\par
+\noindent Constructor \texttt{iff}: \texttt{(Term)}.\par
+\noindent Constructor \texttt{other}: \texttt{()}.\par
+\subsection*{\texttt{Check}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{pass}: \texttt{()}.\par
+\noindent Constructor \texttt{fail}: \texttt{(Refusal)}.\par
+\subsection*{\texttt{Produced}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{made}: \texttt{(Term)}.\par
+\noindent Constructor \texttt{refused}: \texttt{(Refusal)}.\par
+\subsection*{\texttt{Declared}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{declared}: \texttt{(Decl)}.\par
+\noindent Constructor \texttt{rejected}: \texttt{(Refusal)}.\par
+\subsection*{\texttt{Ctor}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{fields}: \texttt{Nat}.\par
+\noindent Field \texttt{recursive}: \texttt{Nat}.\par
+\subsection*{\texttt{Branch}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{ctor}: \texttt{Nat}.\par
+\noindent Field \texttt{binders}: \texttt{Nat}.\par
+\noindent Field \texttt{proof}: \texttt{Term}.\par
+\subsection*{\texttt{apps}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(fn : Term) (args : List (Term))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Term}.\par
+\noindent Definition: \texttt{(match args with | List.nil => fn | List.cons head rest => apps (Term.app (fn) (head)) (rest))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{countCase}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(index : Nat) (branches : List (Branch))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match branches with | List.nil => 0 | List.cons head rest => (if (Nat.beq ((head).ctor) (index)) then (countCase (index) (rest) + 1) else countCase (index) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{bindersOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(index : Nat) (branches : List (Branch))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match branches with | List.nil => 0 | List.cons head rest => (if (Nat.beq ((head).ctor) (index)) then (head).binders else bindersOf (index) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{proofOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(index : Nat) (branches : List (Branch))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Term}.\par
+\noindent Definition: \texttt{(match branches with | List.nil => Term.bvar (0) | List.cons head rest => (if (Nat.beq ((head).ctor) (index)) then (head).proof else proofOf (index) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{strayFrom}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(count : Nat) (branches : List (Branch))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Nat)}.\par
+\noindent Definition: \texttt{(match branches with | List.nil => Option.none | List.cons head rest => (if (Nat.blt ((head).ctor) (count)) then strayFrom (count) (rest) else Option.some ((head).ctor)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{wanted}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(shape : Ctor) (induct : Bool)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(if induct then ((shape).fields + (shape).recursive) else (shape).fields)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{checkFrom}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(ctors : List (Ctor)) (index : Nat) (branches : List (Branch)) (induct : Bool)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow, recursion}.\par
+\noindent Type: \texttt{Check}.\par
+\noindent Definition: \texttt{(match ctors with | List.nil => (match strayFrom (index) (branches) with | Option.none => Check.pass | Option.some stray => Check.fail (Refusal.unknownCase (stray))) | List.cons head rest => (if (Nat.beq (countCase (index) (branches)) (0)) then Check.fail (Refusal.missingCase (index)) else (if (Nat.beq (countCase (index) (branches)) (1)) then (if (Nat.beq (bindersOf (index) (branches)) (wanted (head) (induct))) then checkFrom (rest) ((index + 1)) (branches) (induct) else Check.fail (Refusal.binderCount (index))) else Check.fail (Refusal.repeatedCase (index)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{minorsFrom}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(ctors : List (Ctor)) (index : Nat) (branches : List (Branch))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Term)}.\par
+\noindent Definition: \texttt{(match ctors with | List.nil => ([] : List (Term)) | List.cons \_ rest => (proofOf (index) (branches) :: minorsFrom (rest) ((index + 1)) (branches)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{casesTerm}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(casesOn : Nat) (params : List (Term)) (motive : Term) (scrutinee : Term) (ctors : List (Ctor)) (branches : List (Branch))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Produced}.\par
+\noindent Definition: \texttt{(match checkFrom (ctors) (0) (branches) (false) with | Check.pass => Produced.made (apps (Term.app (Term.app (apps (Term.const (casesOn)) (params)) (motive)) (scrutinee)) (minorsFrom (ctors) (0) (branches))) | Check.fail refusal => Produced.refused (refusal))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{refusalOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(result : Produced)}.\par
+\noindent Type: \texttt{Check}.\par
+\noindent Definition: \texttt{(match result with | Produced.made \_ => Check.pass | Produced.refused refusal => Check.fail (refusal))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{declare}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(name : Nat) (statement : Term) (produced : Produced)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Declared}.\par
+\noindent Definition: \texttt{(match produced with | Produced.made value => Declared.declared ((\{ name := name, statement := statement, value := value \} : Decl)) | Produced.refused refusal => Declared.rejected (refusal))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{declaredType}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(declared : Declared)}.\par
+\noindent Type: \texttt{Option (Term)}.\par
+\noindent Definition: \texttt{(match declared with | Declared.declared decl => Option.some ((decl).statement) | Declared.rejected \_ => Option.none)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{whenOk}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(produced : Produced) (statement : Term)}.\par
+\noindent Type: \texttt{Option (Term)}.\par
+\noindent Definition: \texttt{(match produced with | Produced.made \_ => Option.some (statement) | Produced.refused \_ => Option.none)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{declare\_binds\_statement}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(name : Nat) (statement : Term) (produced : Produced)}.\par
+\noindent Statement: \texttt{(declaredType (declare (name) (statement) (produced)) = whenOk (produced) (statement))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{cases\_refuses\_exactly}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(casesOn : Nat) (params : List (Term)) (motive : Term) (scrutinee : Term) (ctors : List (Ctor)) (branches : List (Branch))}.\par
+\noindent Statement: \texttt{(refusalOf (casesTerm (casesOn) (params) (motive) (scrutinee) (ctors) (branches)) = checkFrom (ctors) (0) (branches) (false))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{missing\_case\_refused}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(refusalOf (casesTerm (7) (([] : List (Term))) (Term.bvar (0)) (Term.bvar (1)) (((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor))))) (((\{ ctor := 0, binders := 0, proof := Term.const (9) \} : Branch) :: ([] : List (Branch))))) = Check.fail (Refusal.missingCase (1)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{fnOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(term : Term)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Term}.\par
+\noindent Definition: \texttt{(match term with | Term.bvar \_ => Term.sort (0) | Term.sort \_ => Term.sort (0) | Term.const \_ => Term.sort (0) | Term.app fn \_ => fn | Term.lam \_ \_ => Term.sort (0) | Term.pi \_ \_ => Term.sort (0))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{argOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(term : Term)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Term}.\par
+\noindent Definition: \texttt{(match term with | Term.bvar \_ => Term.sort (0) | Term.sort \_ => Term.sort (0) | Term.const \_ => Term.sort (0) | Term.app \_ arg => arg | Term.lam \_ \_ => Term.sort (0) | Term.pi \_ \_ => Term.sort (0))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{constOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(term : Term)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match term with | Term.bvar \_ => 0 | Term.sort \_ => 0 | Term.const name => (name + 1) | Term.app \_ \_ => 0 | Term.lam \_ \_ => 0 | Term.pi \_ \_ => 0)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{equationOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(goal : Term)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Equation}.\par
+\noindent Definition: \texttt{(if (Nat.beq (constOf (fnOf (fnOf (fnOf (goal))))) (1)) then Equation.equation (argOf (fnOf (fnOf (goal)))) (argOf (fnOf (goal))) else (if (Nat.beq (constOf (fnOf (fnOf (goal)))) (3)) then Equation.iff (argOf (fnOf (goal))) else Equation.other))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{equationCheck}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(goal : Term)}.\par
+\noindent Type: \texttt{Check}.\par
+\noindent Definition: \texttt{(match equationOf (goal) with | Equation.equation \_ \_ => Check.pass | Equation.iff \_ => Check.pass | Equation.other => Check.fail (Refusal.notAnEquation))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{reflexivityTerm}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(goal : Term)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Produced}.\par
+\noindent Definition: \texttt{(match equationOf (goal) with | Equation.equation ty lhs => Produced.made (Term.app (Term.app (Term.const (1)) (ty)) (lhs)) | Equation.iff lhs => Produced.made (Term.app (Term.const (3)) (lhs)) | Equation.other => Produced.refused (Refusal.notAnEquation))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{decideTerm}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(goal : Term) (<U+00AB>instance<U+00BB> : Term)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Produced}.\par
+\noindent Definition: \texttt{Produced.made (Term.app (Term.app (Term.app (Term.const (4)) (goal)) (<U+00AB>instance<U+00BB>)) (Term.app (Term.app (Term.const (1)) (Term.const (5))) (Term.const (6))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{inductionTerm}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(recursor : Nat) (params : List (Term)) (motive : Term) (scrutinee : Term) (generals : List (Term)) (ctors : List (Ctor)) (branches : List (Branch))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Produced}.\par
+\noindent Definition: \texttt{(match checkFrom (ctors) (0) (branches) (true) with | Check.pass => Produced.made (apps (apps (Term.app (apps (Term.const (recursor)) (params)) (motive)) (minorsFrom (ctors) (0) (branches))) ((scrutinee :: generals))) | Check.fail refusal => Produced.refused (refusal))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{memberCheck}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(names : List (Nat)) (name : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation}.\par
+\noindent Type: \texttt{Check}.\par
+\noindent Definition: \texttt{(match names with | List.nil => Check.fail (Refusal.notProduced (name)) | List.cons head rest => (if (Nat.beq (head) (name)) then Check.pass else memberCheck (rest) (name)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{allMembers}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(required : List (Nat)) (names : List (Nat))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Check}.\par
+\noindent Definition: \texttt{(match required with | List.nil => Check.pass | List.cons head rest => (match memberCheck (names) (head) with | Check.pass => allMembers (rest) (names) | Check.fail refusal => Check.fail (refusal)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{constants}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(names : List (Nat))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Term)}.\par
+\noindent Definition: \texttt{(match names with | List.nil => ([] : List (Term)) | List.cons head rest => (Term.const (head) :: constants (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{applyTerm}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(<U+00AB>theorem<U+00BB> : Nat) (produced : List (Nat)) (args : List (Term))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Produced}.\par
+\noindent Definition: \texttt{(match memberCheck (produced) (<U+00AB>theorem<U+00BB>) with | Check.pass => Produced.made (apps (Term.const (<U+00AB>theorem<U+00BB>)) (args)) | Check.fail refusal => Produced.refused (refusal))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{lawCheck}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(law : Nat) (registered : List (Nat)) (premises : List (Nat)) (produced : List (Nat))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation}.\par
+\noindent Type: \texttt{Check}.\par
+\noindent Definition: \texttt{(match memberCheck (registered) (law) with | Check.pass => allMembers (premises) (produced) | Check.fail \_ => Check.fail (Refusal.unregisteredLaw (law)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{lawTerm}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(law : Nat) (registered : List (Nat)) (args : List (Term)) (premises : List (Nat)) (produced : List (Nat))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Produced}.\par
+\noindent Definition: \texttt{(match lawCheck (law) (registered) (premises) (produced) with | Check.pass => Produced.made (apps (apps (Term.const (law)) (args)) (constants (premises))) | Check.fail refusal => Produced.refused (refusal))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{reflexivity\_refuses\_exactly}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(goal : Term)}.\par
+\noindent Statement: \texttt{(refusalOf (reflexivityTerm (goal)) = equationCheck (goal))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{decide\_never\_refuses}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(goal : Term) (<U+00AB>instance<U+00BB> : Term)}.\par
+\noindent Statement: \texttt{(refusalOf (decideTerm (goal) (<U+00AB>instance<U+00BB>)) = Check.pass)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{induction\_refuses\_exactly}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(recursor : Nat) (params : List (Term)) (motive : Term) (scrutinee : Term) (generals : List (Term)) (ctors : List (Ctor)) (branches : List (Branch))}.\par
+\noindent Statement: \texttt{(refusalOf (inductionTerm (recursor) (params) (motive) (scrutinee) (generals) (ctors) (branches)) = checkFrom (ctors) (0) (branches) (true))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{apply\_refuses\_exactly}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(<U+00AB>theorem<U+00BB> : Nat) (produced : List (Nat)) (args : List (Term))}.\par
+\noindent Statement: \texttt{(refusalOf (applyTerm (<U+00AB>theorem<U+00BB>) (produced) (args)) = memberCheck (produced) (<U+00AB>theorem<U+00BB>))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{law\_refuses\_exactly}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(law : Nat) (registered : List (Nat)) (args : List (Term)) (premises : List (Nat)) (produced : List (Nat))}.\par
+\noindent Statement: \texttt{(refusalOf (lawTerm (law) (registered) (args) (premises) (produced)) = lawCheck (law) (registered) (premises) (produced))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{repeated\_case\_refused}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(refusalOf (casesTerm (7) (([] : List (Term))) (Term.bvar (0)) (Term.bvar (1)) (((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor))))) (((\{ ctor := 0, binders := 0, proof := Term.const (9) \} : Branch) :: ((\{ ctor := 0, binders := 0, proof := Term.const (9) \} : Branch) :: ((\{ ctor := 1, binders := 0, proof := Term.const (9) \} : Branch) :: ([] : List (Branch))))))) = Check.fail (Refusal.repeatedCase (0)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{binder\_count\_refused}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(refusalOf (casesTerm (7) (([] : List (Term))) (Term.bvar (0)) (Term.bvar (1)) (((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor))))) (((\{ ctor := 0, binders := 1, proof := Term.const (9) \} : Branch) :: ((\{ ctor := 1, binders := 0, proof := Term.const (9) \} : Branch) :: ([] : List (Branch)))))) = Check.fail (Refusal.binderCount (0)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{unknown\_case\_refused}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(refusalOf (casesTerm (7) (([] : List (Term))) (Term.bvar (0)) (Term.bvar (1)) (((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor))))) (((\{ ctor := 0, binders := 0, proof := Term.const (9) \} : Branch) :: ((\{ ctor := 1, binders := 0, proof := Term.const (9) \} : Branch) :: ((\{ ctor := 5, binders := 0, proof := Term.const (9) \} : Branch) :: ([] : List (Branch))))))) = Check.fail (Refusal.unknownCase (5)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{cases\_selects\_by\_constructor}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(casesTerm (7) (([] : List (Term))) (Term.bvar (0)) (Term.bvar (1)) (((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor))))) (((\{ ctor := 1, binders := 0, proof := Term.const (11) \} : Branch) :: ((\{ ctor := 0, binders := 0, proof := Term.const (10) \} : Branch) :: ([] : List (Branch))))) = Produced.made (Term.app (Term.app (Term.app (Term.app (Term.const (7)) (Term.bvar (0))) (Term.bvar (1))) (Term.const (10))) (Term.const (11))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{reflexivity\_term\_of\_equation}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(reflexivityTerm (Term.app (Term.app (Term.app (Term.const (0)) (Term.const (5))) (Term.const (6))) (Term.const (6))) = Produced.made (Term.app (Term.app (Term.const (1)) (Term.const (5))) (Term.const (6))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{not\_an\_equation\_refused}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(refusalOf (reflexivityTerm (Term.const (6))) = Check.fail (Refusal.notAnEquation))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{unproduced\_theorem\_refused}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(refusalOf (applyTerm (12) ((11 :: ([] : List (Nat)))) (([] : List (Term)))) = Check.fail (Refusal.notProduced (12)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{unregistered\_law\_refused}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(refusalOf (lawTerm (13) (([] : List (Nat))) (([] : List (Term))) (([] : List (Nat))) (([] : List (Nat)))) = Check.fail (Refusal.unregisteredLaw (13)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isMade}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(result : Produced)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match result with | Produced.made \_ => true | Produced.refused \_ => false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{passes}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(check : Check)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match check with | Check.pass => true | Check.fail \_ => false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{reflexivity\_total}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(goal : Term)}.\par
+\noindent Statement: \texttt{(isMade (reflexivityTerm (goal)) = passes (equationCheck (goal)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{decide\_total}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(goal : Term) (<U+00AB>instance<U+00BB> : Term)}.\par
+\noindent Statement: \texttt{(isMade (decideTerm (goal) (<U+00AB>instance<U+00BB>)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{cases\_total}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(casesOn : Nat) (params : List (Term)) (motive : Term) (scrutinee : Term) (ctors : List (Ctor)) (branches : List (Branch))}.\par
+\noindent Statement: \texttt{(isMade (casesTerm (casesOn) (params) (motive) (scrutinee) (ctors) (branches)) = passes (checkFrom (ctors) (0) (branches) (false)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{induction\_total}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(recursor : Nat) (params : List (Term)) (motive : Term) (scrutinee : Term) (generals : List (Term)) (ctors : List (Ctor)) (branches : List (Branch))}.\par
+\noindent Statement: \texttt{(isMade (inductionTerm (recursor) (params) (motive) (scrutinee) (generals) (ctors) (branches)) = passes (checkFrom (ctors) (0) (branches) (true)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{apply\_total}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(<U+00AB>theorem<U+00BB> : Nat) (produced : List (Nat)) (args : List (Term))}.\par
+\noindent Statement: \texttt{(isMade (applyTerm (<U+00AB>theorem<U+00BB>) (produced) (args)) = passes (memberCheck (produced) (<U+00AB>theorem<U+00BB>)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{law\_total}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(law : Nat) (registered : List (Nat)) (args : List (Term)) (premises : List (Nat)) (produced : List (Nat))}.\par
+\noindent Statement: \texttt{(isMade (lawTerm (law) (registered) (args) (premises) (produced)) = passes (lawCheck (law) (registered) (premises) (produced)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\end{document}
