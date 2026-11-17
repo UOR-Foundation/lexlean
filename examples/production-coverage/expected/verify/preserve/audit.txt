@@ -9308,6 +9308,8 @@
  Quot.sound]
 'LexLeanPreserve.C18afb9eb96596a3f24eb78bce88430cc.R9.denote' does not depend on any axioms
 'LexLeanPreserve.C18afb9eb96596a3f24eb78bce88430cc.R10.__prog' does not depend on any axioms
+'LexLeanPreserve.C18afb9eb96596a3f24eb78bce88430cc.R10.__taken_true' does not depend on any axioms
+'LexLeanPreserve.C18afb9eb96596a3f24eb78bce88430cc.R10.__taken_false' does not depend on any axioms
 'LexLeanPreserve.C18afb9eb96596a3f24eb78bce88430cc.R10.__fits_0' does not depend on any axioms
 'LexLeanPreserve.C18afb9eb96596a3f24eb78bce88430cc.R10.__rel_0' depends on axioms: [propext,
  Classical.choice,

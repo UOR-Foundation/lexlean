@@ -8807,6 +8807,8 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R0.__rel_13' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R0.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R0.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R0.__fits_7' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R0.__rel_7' depends on axioms: [propext,
  Classical.choice,
@@ -8870,6 +8872,8 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R1.__rel_20' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R1.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R1.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R1.__fits_15' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R1.__rel_15' depends on axioms: [propext,
  Classical.choice,
@@ -8941,6 +8945,8 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R2.__rel_14' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R2.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R2.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R2.__fits_7' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R2.__rel_7' depends on axioms: [propext,
  Classical.choice,
@@ -9003,6 +9009,8 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R3.__rel_7' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R3.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R3.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R3.__fits_5' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R3.__rel_5' depends on axioms: [propext,
  Classical.choice,
@@ -9039,6 +9047,8 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R4.__rel_26' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R4.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R4.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R4.__fits_17' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R4.__rel_17' depends on axioms: [propext,
  Classical.choice,
@@ -9214,6 +9224,8 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R5.__rel_26' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R5.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R5.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R5.__fits_17' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R5.__rel_17' depends on axioms: [propext,
  Classical.choice,
@@ -9403,6 +9415,8 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R6.__rel_49' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R6.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R6.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R6.__fits_50' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R6.__rel_50' depends on axioms: [propext,
  Classical.choice,
@@ -9589,6 +9603,8 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R7.__rel_49' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R7.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R7.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R7.__fits_50' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R7.__rel_50' depends on axioms: [propext,
  Classical.choice,
@@ -9837,6 +9853,7 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R9.__rel_7' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R9.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R9.__fits_4' depends on axioms: [propext]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R9.__rel_4' depends on axioms: [propext,
  Classical.choice,
@@ -9899,6 +9916,7 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R12.__rel_9' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R12.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R12.__fits_7' depends on axioms: [propext]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R12.__rel_7' depends on axioms: [propext,
  Classical.choice,
@@ -9929,6 +9947,7 @@
  Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R12.denote' depends on axioms: [propext]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R13.__prog' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R13.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R13.__fits_3' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R13.__rel_3' depends on axioms: [propext,
  Classical.choice,
@@ -9969,6 +9988,7 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R15.__rel_9' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R15.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R15.__fits_7' depends on axioms: [propext]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R15.__rel_7' depends on axioms: [propext,
  Classical.choice,
@@ -10007,6 +10027,7 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R16.__rel_1' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R16.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R16.__fits_9' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R16.__rel_9' depends on axioms: [propext,
  Classical.choice,
@@ -10041,6 +10062,7 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R17.__rel_1' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R17.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R17.__fits_9' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R17.__rel_9' depends on axioms: [propext,
  Classical.choice,
@@ -10079,6 +10101,8 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R18.__rel_5' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R18.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R18.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R18.__fits_1' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R18.__rel_1' depends on axioms: [propext,
  Classical.choice,
@@ -10105,6 +10129,8 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R19.__rel_5' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R19.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R19.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R19.__fits_1' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R19.__rel_1' depends on axioms: [propext,
  Classical.choice,
@@ -10131,6 +10157,7 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R20.__rel_4' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R20.__taken_true' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R20.__fits_1' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R20.__rel_1' depends on axioms: [propext,
  Classical.choice,
@@ -10191,6 +10218,8 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R22.__rel_6' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R22.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R22.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R22.__fits_7' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R22.__rel_7' depends on axioms: [propext,
  Classical.choice,
@@ -10471,6 +10500,7 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R26.__rel_7' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R26.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R26.__fits_4' depends on axioms: [propext]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R26.__rel_4' depends on axioms: [propext,
  Classical.choice,
@@ -10526,6 +10556,8 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R28.__rel_8' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R28.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R28.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R28.__fits_16' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R28.__rel_16' depends on axioms: [propext,
  Classical.choice,
@@ -10623,6 +10655,8 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R29.__enc_0' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R29.__enc_1' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R29.__enc_2' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R29.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R29.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R29.__fits_7' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R29.__rel_7' depends on axioms: [propext,
  Classical.choice,
@@ -10745,6 +10779,8 @@
  Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R29.denote' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R30.__prog' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R30.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R30.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R30.__fits_5' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R30.__rel_5' depends on axioms: [propext,
  Classical.choice,
@@ -10777,6 +10813,8 @@
  Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R30.denote' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R31.__prog' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R31.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R31.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R31.__fits_5' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R31.__rel_5' depends on axioms: [propext,
  Classical.choice,
@@ -10809,6 +10847,8 @@
  Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R31.denote' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R32.__prog' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R32.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R32.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R32.__fits_2' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R32.__rel_2' depends on axioms: [propext,
  Classical.choice,
@@ -10839,6 +10879,8 @@
  Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R33.denote' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R34.__prog' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R34.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R34.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R34.__fits_4' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R34.__rel_4' depends on axioms: [propext,
  Classical.choice,
@@ -10866,6 +10908,8 @@
  Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R34.denote' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R35.__prog' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R35.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R35.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R35.__fits_2' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R35.__rel_2' depends on axioms: [propext,
  Classical.choice,
@@ -10896,6 +10940,8 @@
  Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R36.denote' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R37.__prog' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R37.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R37.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R37.__fits_5' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R37.__rel_5' depends on axioms: [propext,
  Classical.choice,
@@ -10928,6 +10974,8 @@
  Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R37.denote' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R38.__prog' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R38.__taken_true' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R38.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R38.__fits_2' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R38.__rel_2' depends on axioms: [propext,
  Classical.choice,
@@ -10953,6 +11001,7 @@
  Quot.sound]
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R39.denote' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R40.__prog' does not depend on any axioms
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R40.__taken_true' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R40.__fits_0' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R40.__rel_0' depends on axioms: [propext,
  Classical.choice,
@@ -10971,6 +11020,7 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R41.__rel_7' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R41.__taken_true' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R41.__fits_5' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R41.__rel_5' depends on axioms: [propext,
  Classical.choice,
@@ -11035,6 +11085,7 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R43.__rel_8' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R43.__taken_true' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R43.__fits_10' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R43.__rel_10' depends on axioms: [propext,
  Classical.choice,
@@ -11059,6 +11110,7 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R43.__rel_3' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R43.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R43.__fits_0' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R43.__rel_0' depends on axioms: [propext,
  Classical.choice,
@@ -11079,6 +11131,7 @@
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R45.__rel_3' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R45.__taken_false' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R45.__fits_2' does not depend on any axioms
 'LexLeanPreserve.Cdebed7637d9c49a55a964ed0b66b80ca.R45.__rel_2' depends on axioms: [propext,
  Classical.choice,

@@ -8504,6 +8504,7 @@
  Quot.sound]
 'LexLeanPreserve.C53f92261ee6385268c9380cd7bfc5874.R0.denote' depends on axioms: [propext, Quot.sound]
 'LexLeanPreserve.C53f92261ee6385268c9380cd7bfc5874.R1.__prog' does not depend on any axioms
+'LexLeanPreserve.C53f92261ee6385268c9380cd7bfc5874.R1.__taken_false' does not depend on any axioms
 'LexLeanPreserve.C53f92261ee6385268c9380cd7bfc5874.R1.__fits_1' depends on axioms: [propext]
 'LexLeanPreserve.C53f92261ee6385268c9380cd7bfc5874.R1.__rel_1' depends on axioms: [propext,
  Classical.choice,
@@ -8549,6 +8550,8 @@
  Classical.choice,
  Quot.sound]
 'LexLeanPreserve.C53f92261ee6385268c9380cd7bfc5874.R4.__fits_1._unsafe_rec' does not depend on any axioms
+'LexLeanPreserve.C53f92261ee6385268c9380cd7bfc5874.R4.__taken_true' does not depend on any axioms
+'LexLeanPreserve.C53f92261ee6385268c9380cd7bfc5874.R4.__taken_false' does not depend on any axioms
 'LexLeanPreserve.C53f92261ee6385268c9380cd7bfc5874.R4.__fits_2' does not depend on any axioms
 'LexLeanPreserve.C53f92261ee6385268c9380cd7bfc5874.R4.__rel_2' depends on axioms: [propext,
  Classical.choice,

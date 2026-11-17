@@ -8751,11 +8751,11 @@ are flags over the functions, so `1 + count` of them; the inhabited owners of
 differential on the vectors sees as a disagreement with the oracle, and the
 plant "the failures are followed one round" is that defect.
 
-The measured largest part of a certificate is, in bytes: 3,144,673 for
-`siteTrees` (1,055 below three quarters of `max_file_bytes`, 3,145,728; the
-fold of the chain of function bodies into the site recursion bought the
-12,000 bytes over that its first build had), 1,273,118 for `deadFunctions`,
-1,058,398 for `fallibleFunctions`, and 1,535,849 for `lowerTypes` (the
+The measured largest part of a certificate is, in bytes: 3,137,539 for
+`siteTrees` (8,189 below three quarters of `max_file_bytes`, 3,145,728; the
+fold of the chain of function bodies into the site recursion, and one conditional
+for each guarded primitive typing, bought the room), 1,352,263 for `deadFunctions`,
+1,081,192 for `fallibleFunctions`, and 1,600,920 for `lowerTypes` (the
 consumers grew by 22,000 and 55,000 bytes with the numbering of the second
 slice); the closure of `walk` alone measured
 2,977,029. The rule for the later slices of `BS-07`: nothing is added to the

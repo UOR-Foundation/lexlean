@@ -1965,6 +1965,9 @@
 'LexLeanTarget.TargetFixtures.byteSlicesOutcome' depends on axioms: [propext, Classical.choice, Quot.sound]
 'LexLeanTarget.TargetFixtures.byteSlicesProgram' does not depend on any axioms
 'LexLeanTarget.TargetFixtures.byteSlicesRun' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LexLeanTarget.TargetFixtures.byteUpdatesOutcome' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LexLeanTarget.TargetFixtures.byteUpdatesProgram' does not depend on any axioms
+'LexLeanTarget.TargetFixtures.byteUpdatesRun' depends on axioms: [propext, Classical.choice, Quot.sound]
 'LexLeanTarget.TargetFixtures.bytesAndTextOutcome' depends on axioms: [propext, Classical.choice, Quot.sound]
 'LexLeanTarget.TargetFixtures.bytesAndTextProgram' does not depend on any axioms
 'LexLeanTarget.TargetFixtures.bytesAndTextRun' depends on axioms: [propext, Classical.choice, Quot.sound]

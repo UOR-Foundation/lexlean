@@ -9113,6 +9113,8 @@
 'LexLeanPreserve.C130937e62a64004ab578d60964c74dcd.R3.__rel_17' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.C130937e62a64004ab578d60964c74dcd.R3.__taken_true' does not depend on any axioms
+'LexLeanPreserve.C130937e62a64004ab578d60964c74dcd.R3.__taken_false' does not depend on any axioms
 'LexLeanPreserve.C130937e62a64004ab578d60964c74dcd.R3.__fits_8' depends on axioms: [propext]
 'LexLeanPreserve.C130937e62a64004ab578d60964c74dcd.R3.__rel_8' depends on axioms: [propext,
  Classical.choice,
@@ -9440,6 +9442,8 @@
 'LexLeanPreserve.C130937e62a64004ab578d60964c74dcd.R6.__rel_15' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LexLeanPreserve.C130937e62a64004ab578d60964c74dcd.R6.__taken_true' does not depend on any axioms
+'LexLeanPreserve.C130937e62a64004ab578d60964c74dcd.R6.__taken_false' does not depend on any axioms
 'LexLeanPreserve.C130937e62a64004ab578d60964c74dcd.R6.__fits_8' does not depend on any axioms
 'LexLeanPreserve.C130937e62a64004ab578d60964c74dcd.R6.__rel_8' depends on axioms: [propext,
  Classical.choice,
