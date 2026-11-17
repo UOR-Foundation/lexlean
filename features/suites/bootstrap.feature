@@ -208,3 +208,31 @@ Feature: bootstrap
     When the project is checked and built, and the lowered program and the rendered package of the root are run on those manifests
     Then the root is eligible for rust-std with exactly its declared effects, no certificate part is beyond 3,145,728 bytes, the root equals the file bytes of `BuildManifest::to_json` on every run, and each committed manifest is the oracle's text of its own fields
     And every planted defect is detected by its own vector, and the exported packages are byte-identical to the committed packages and realize the programs the differential ran
+
+  @BS-35 @build
+  Scenario: Kernel-term production's case and citation checks (SPEC.md §18.10) are language-1.2 source in the `bootstrap/` project, as the production roots `checkFrom`, `memberCheck`, and `lawCheck` of `KernelTerms`, each eligible for `rust-std` with exactly its declared effects; their rendered `rust-std` packages under the pinned rustc, and on the normative host their lowered programs under the calculus evaluator, agree with the stage-0 producer `lexlean::backend::kernel`, which decides every case analysis, induction, citation, and law premise with the same checks, on hand-built and seeded inputs, every refusal included; each planted defect in the source is detected by the vector it names, and the certified packages the production export publishes for the project are the committed ones.
+    Given the committed `bootstrap` project, hand-built constructor shapes, branch lists, and name lists reaching every refusal, and seeded ones
+    When the project is checked and built, and the lowered programs and the rendered packages of the three roots are run on those inputs beside the stage-0 checks
+    Then each root is eligible for rust-std with exactly its declared effects and agrees with the stage-0 check on every run, a refusal and its constructor or name included
+    And every planted defect is detected by its own vector, and the exported packages are byte-identical to the committed packages
+
+  @BS-36 @build
+  Scenario: `KernelTerms` proves, and the pinned Lean verifies with no axiom, that a declaration `declare` makes from a produced term has exactly the statement it was given as its type and that a refusal declares nothing (`declare_binds_statement`), for every name, statement, and production; a planted `declare` that types the declaration by its proof term is refused by Lean.
+    Given the `KernelTerms` module of the committed `bootstrap` project
+    When the module is verified alone under the pinned Lean, and again with `declare` typing the declaration by its proof term
+    Then `declare_binds_statement` is verified with no axiom
+    And the planted module fails verification with LLV7002
+
+  @BS-37 @build
+  Scenario: `KernelTerms` proves, and the pinned Lean verifies with exactly the axiom `propext` (with none for `decide`), that each producer makes a term for exactly the inputs its check passes: `reflexivityTerm` for every goal `equationCheck` passes, `casesTerm` and `inductionTerm` for every constructor shape and branch list `checkFrom` passes, `applyTerm` and `lawTerm` for every citation `memberCheck` and `lawCheck` pass, and `decideTerm` for every goal; a planted `casesTerm` that refuses a branch list its check passes is refused by Lean.
+    Given the `KernelTerms` module of the committed `bootstrap` project
+    When the module is verified alone under the pinned Lean, and again with `casesTerm` refusing every branch list its check passes
+    Then `reflexivity_total`, `decide_total`, `cases_total`, `induction_total`, `apply_total`, and `law_total` are verified with their declared axioms
+    And the planted module fails verification with LLV7002
+
+  @BS-38 @build
+  Scenario: `KernelTerms` proves, and the pinned Lean verifies, that each producer refuses exactly the inputs its check fails, with the check's own typed `Refusal`, and that a missing, repeated, or unknown case, a wrong binder count, a goal that is not an equation, an unproduced theorem, and an unregistered law are each refused with their own `Refusal`; a planted `checkFrom` that admits a missing case is refused by Lean; the producers are not claimed sound, which is the kernel's judgement of every produced term (§18.10).
+    Given the `KernelTerms` module of the committed `bootstrap` project
+    When the module is verified alone under the pinned Lean, and again with `checkFrom` admitting a missing case
+    Then each `*_refuses_exactly` theorem and each named refusal theorem is verified with its declared axioms
+    And the planted module fails verification with LLV7002

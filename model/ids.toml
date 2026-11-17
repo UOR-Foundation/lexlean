@@ -2907,6 +2907,30 @@ suite = "bootstrap"
 statement = "The build manifest of SPEC.md §21.6 in the canonical JSON of §21.7 (`artifact::manifest::BuildManifest::to_json` written as a file: the specification, the compiler version and semantics ID, the language, the project, the source, semantic, and build IDs, the pinned Lean toolchain, the selection and the module rows in their order, a module's origin only when it has one, and the input and output rows sorted by kind, path, length, and digest, each digest in lower-case hex) is language-1.2 source in the `bootstrap/` project, as the production root `buildManifest` of `ManifestText` over the standard library's `Json` writer, eligible for `rust-std` with exactly its declared effects, `allocation`, `overflow`, and `recursion`, and with no part of its certificate beyond 3,145,728 bytes; its rendered `rust-std` package under the pinned rustc, and on the normative host its lowered program under the calculus evaluator, agree with the oracle to the byte on hand-built manifests, which reach every key of the row order, lengths across a byte, a module's origin, and escapes, on every committed build manifest, each of which is the oracle's text of its own fields, and on seeded manifests; each planted defect in the source is detected by the one vector it names, and the certified packages the production export publishes for the project are the committed ones; gathering the rows of a build and hashing its files are outside the claim."
 
 [[id]]
+id = "BS-35"
+level = "build"
+suite = "bootstrap"
+statement = "Kernel-term production's case and citation checks (SPEC.md §18.10) are language-1.2 source in the `bootstrap/` project, as the production roots `checkFrom`, `memberCheck`, and `lawCheck` of `KernelTerms`, each eligible for `rust-std` with exactly its declared effects; their rendered `rust-std` packages under the pinned rustc, and on the normative host their lowered programs under the calculus evaluator, agree with the stage-0 producer `lexlean::backend::kernel`, which decides every case analysis, induction, citation, and law premise with the same checks, on hand-built and seeded inputs, every refusal included; each planted defect in the source is detected by the vector it names, and the certified packages the production export publishes for the project are the committed ones."
+
+[[id]]
+id = "BS-36"
+level = "build"
+suite = "bootstrap"
+statement = "`KernelTerms` proves, and the pinned Lean verifies with no axiom, that a declaration `declare` makes from a produced term has exactly the statement it was given as its type and that a refusal declares nothing (`declare_binds_statement`), for every name, statement, and production; a planted `declare` that types the declaration by its proof term is refused by Lean."
+
+[[id]]
+id = "BS-37"
+level = "build"
+suite = "bootstrap"
+statement = "`KernelTerms` proves, and the pinned Lean verifies with exactly the axiom `propext` (with none for `decide`), that each producer makes a term for exactly the inputs its check passes: `reflexivityTerm` for every goal `equationCheck` passes, `casesTerm` and `inductionTerm` for every constructor shape and branch list `checkFrom` passes, `applyTerm` and `lawTerm` for every citation `memberCheck` and `lawCheck` pass, and `decideTerm` for every goal; a planted `casesTerm` that refuses a branch list its check passes is refused by Lean."
+
+[[id]]
+id = "BS-38"
+level = "build"
+suite = "bootstrap"
+statement = "`KernelTerms` proves, and the pinned Lean verifies, that each producer refuses exactly the inputs its check fails, with the check's own typed `Refusal`, and that a missing, repeated, or unknown case, a wrong binder count, a goal that is not an equation, an unproduced theorem, and an unregistered law are each refused with their own `Refusal`; a planted `checkFrom` that admits a missing case is refused by Lean; the producers are not claimed sound, which is the kernel's judgement of every produced term (§18.10)."
+
+[[id]]
 id = "PK-01"
 level = "build"
 suite = "packages"
