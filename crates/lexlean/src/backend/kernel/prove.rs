@@ -62,6 +62,7 @@ impl Produced<'_> {
                 generalizing,
                 branches,
             } => self.cases(scrutinee, generalizing, branches, statement, ctx, true),
+            SemanticProof::TermCases { scrutinee, .. } => self.term_cases(scrutinee, statement, ctx),
             SemanticProof::Apply {
                 theorem,
                 type_arguments,
@@ -120,6 +121,66 @@ impl Produced<'_> {
             }
             other => Err(format!("proof form `{}`", kind_of(other))),
         }
+    }
+
+    /// `term_cases` by enumeration: every variable of a finite type (`Bool`,
+    /// or a document type whose constructors carry no field) in scope is
+    /// split in turn, and each case is closed by evaluation, by
+    /// `reflexivity` for an equation and `decide` otherwise. The split
+    /// term's own value is never named: once its finite variables are
+    /// constructors, the kernel computes as much of it as they fix, and the
+    /// kernel refuses a case it cannot close. With no variable of a finite
+    /// type, the one case is the statement itself.
+    fn term_cases(&self, scrutinee: &SemanticTerm, statement: &SemanticTerm, ctx: &Ctx) -> R<Expr> {
+        let w = self.world;
+        // Every local of a finite type, the split term's first: a value the
+        // split term reaches through a definition can rest on a local it does
+        // not name.
+        let mut names = Vec::new();
+        collect_vars(&serde_json::to_value(scrutinee).unwrap_or_default(), &mut names);
+        for local in &ctx.locals {
+            if !names.contains(&local.name) {
+                names.push(local.name.clone());
+            }
+        }
+        let mut finite: Vec<(String, Vec<String>)> = Vec::new();
+        for name in names {
+            if finite.iter().any(|(seen, _)| *seen == name) {
+                continue;
+            }
+            // A variable of an infinite type stays a variable: the cases of
+            // the finite ones may already fix the split term's value.
+            let Ok(local) = ctx.local(&name) else { continue };
+            let Some(ty) = local.ty.clone() else { continue };
+            let Ok(shape) = w.shape(ctx, &ty) else { continue };
+            if shape.ctors.iter().any(|ctor| !ctor.fields.is_empty()) {
+                continue;
+            }
+            finite.push((name, shape.ctors.iter().map(|ctor| ctor.short.clone()).collect()));
+        }
+        let mut leaf = statement;
+        while let SemanticTerm::Let { body, .. } = leaf {
+            leaf = body;
+        }
+        let mut proof = if matches!(leaf, SemanticTerm::Eq { .. } | SemanticTerm::Iff { .. }) {
+            SemanticProof::Reflexivity
+        } else {
+            SemanticProof::Decide
+        };
+        for (name, ctors) in finite.into_iter().rev() {
+            proof = SemanticProof::Cases {
+                scrutinee: name,
+                branches: ctors
+                    .into_iter()
+                    .map(|constructor| SemanticProofBranch {
+                        constructor,
+                        binders: Vec::new(),
+                        proof: Box::new(proof.clone()),
+                    })
+                    .collect(),
+            };
+        }
+        self.prove(&proof, statement, ctx)
     }
 
     fn reflexivity(&self, statement: &SemanticTerm, ctx: &Ctx) -> R<Expr> {
@@ -322,3 +383,27 @@ impl Produced<'_> {
 /// The constants a producer itself may name: the export roots the library
 /// must hold for the proof forms, besides the statement's vocabulary.
 pub const VOCABULARY: &[&str] = &["Eq.refl", "Iff.refl", "of_decide_eq_true"];
+
+/// The variables a term names, in order of first mention.
+fn collect_vars(value: &serde_json::Value, out: &mut Vec<String>) {
+    match value {
+        serde_json::Value::Object(map) => {
+            if map.get("kind").and_then(serde_json::Value::as_str) == Some("var") {
+                if let Some(name) = map.get("name").and_then(serde_json::Value::as_str) {
+                    if !out.iter().any(|seen| seen == name) {
+                        out.push(name.to_owned());
+                    }
+                }
+            }
+            for inner in map.values() {
+                collect_vars(inner, out);
+            }
+        }
+        serde_json::Value::Array(items) => {
+            for inner in items {
+                collect_vars(inner, out);
+            }
+        }
+        _ => {}
+    }
+}

@@ -34,6 +34,7 @@ pub const PRODUCED_FORMS: &[&str] = &[
     "induction",
     "apply",
     "law",
+    "term_cases",
 ];
 
 /// The namespace of produced declarations: a produced proof of `T` is
