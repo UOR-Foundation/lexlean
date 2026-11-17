@@ -180,6 +180,12 @@ Feature: cli-api
     When the example is migrated with --check and then without it, and each of the others is migrated
     Then --check writes nothing, the migration leaves a language-1.2 project that checks, locks, and formats canonically with the same modules, and the refused projects are refused with LLC0103 and LLP2003 and left unchanged
 
+  @CL-26 @build
+  Scenario: lexlean snapshot writes the semantic snapshot of a selection: in human mode its stdout is exactly the snapshot's canonical file bytes, the bytes Engine::snapshot serializes, whose SHA-256 is the snapshot ID, with the source and semantic IDs check reports; in json mode it prints one command result as check does, named snapshot; a project check refuses gives the same exit code and diagnostics and no snapshot; it writes nothing; and the executable built for wasm32-wasip1 and run by a WASI host prints the same bytes on every example that checks.
+    Given every example project that checks, one whose module check refuses, and the lexlean executable built for wasm32-wasip1 run by Node's node:wasi
+    When lexlean snapshot runs in human and json mode on each, natively and under the WASI host
+    Then human mode prints exactly the canonical snapshot bytes with check's IDs, json mode prints check's command result named snapshot, a refused project prints no snapshot and check's diagnostics, nothing is written, and the WASI bytes equal the native bytes
+
   @CL-25 @build
   Scenario: The lexlean executable builds for wasm32-wasip1 with the pinned toolchain and, run by a WASI host, gives the native executable's exit code and JSON output for check on every single-step check fixture and every example; there a module with two names of one file is refused with LLC0104, nesting beyond the depth its linked stack hosts is refused with LLS8002, and a command that changes the project is refused with LLV7010 and leaves the project unchanged.
     Given the lexlean executable built for wasm32-wasip1 from this tree and Node's node:wasi over the real file system

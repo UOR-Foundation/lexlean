@@ -571,7 +571,7 @@ On Windows x86-64 and on macOS AArch64 that same complete workspace test workloa
 
 Non-UTF-8 project paths are outside language 1.0 and produce a registered environment diagnostic.
 
-The `lexlean` executable MUST also build for `wasm32-wasip1` with the pinned toolchain, so that `check` runs where a WASI host is the only host, such as a browser worker over a file system held in memory. Run by a WASI host, `check` MUST give the native executable's exit code and JSON output on the same project. WASI has no threads, no file lock, and no processes, and three things follow on that target alone. The check pipeline runs on the instance's one stack rather than on a thread, and the executable is linked with the stack `Limits::compile_stack_plan` plans on there, `lexlean::config::WASI_STACK_BYTES` (80 MiB, which hosts a depth of 1,024), so nesting beyond the configured or the hosted depth is `LLS8002` as on every host (§25.5). The host supplies the rest of the instance's call stack; Node 22's default is sufficient at the hosted depth, and a host whose call stack ends sooner stops the instance with a trap, which is never a verdict. An embedder that links the library into a module of its own links it with at least that stack. A command that changes the project is refused with `LLV7010` before it touches the project, since the exclusive lock of §21.8 cannot be taken; `check` takes no lock. `verify` starts no toolchain process. A file's identity (§25.1) is the device and inode WASI reports for it, so a host that gives one file two names is refused with `LLC0104` there as well. `CL-25` builds the executable for the target from the tree under test and runs it under Node's `node:wasi`, over the real file system, beside the native executable on every single-step `check` fixture of §28.2 that sets no toolchain, overlay, or environment, and on every example.
+The `lexlean` executable MUST also build for `wasm32-wasip1` with the pinned toolchain, so that `check` runs where a WASI host is the only host, such as a browser worker over a file system held in memory. Run by a WASI host, `check` MUST give the native executable's exit code and JSON output on the same project. WASI has no threads, no file lock, and no processes, and three things follow on that target alone. The check pipeline runs on the instance's one stack rather than on a thread, and the executable is linked with the stack `Limits::compile_stack_plan` plans on there, `lexlean::config::WASI_STACK_BYTES` (80 MiB, which hosts a depth of 1,024), so nesting beyond the configured or the hosted depth is `LLS8002` as on every host (§25.5). The host supplies the rest of the instance's call stack; Node 22's default is sufficient at the hosted depth, and a host whose call stack ends sooner stops the instance with a trap, which is never a verdict. An embedder that links the library into a module of its own links it with at least that stack. A command that changes the project is refused with `LLV7010` before it touches the project, since the exclusive lock of §21.8 cannot be taken; `check` takes no lock. `verify` starts no toolchain process. A file's identity (§25.1) is the device and inode WASI reports for it, so a host that gives one file two names is refused with `LLC0104` there as well. `snapshot` (§23.4) runs there too and prints the native executable's bytes, since a snapshot holds no path or host data (`CL-26`). `CL-25` builds the executable for the target from the tree under test and runs it under Node's `node:wasi`, over the real file system, beside the native executable on every single-step `check` fixture of §28.2 that sets no toolchain, overlay, or environment, and on every example.
 
 ### 8.4 Cargo dependency rules
 
@@ -10510,6 +10510,14 @@ lexlean check [--all | INPUT...]
 ```
 
 Runs through linked IR and emits no build artifacts.
+
+#### `snapshot`
+
+```text
+lexlean snapshot [--all | INPUT...]
+```
+
+Runs the `check` pipeline and takes no lock. In human mode a project that checks writes to stdout exactly the canonical file bytes of its semantic snapshot (§24.1), whose SHA-256 is the snapshot ID, and nothing else; in JSON mode it writes the command result `check` writes, with `command` set to `snapshot`. A project `check` refuses exits and reports as `check` does, and writes no snapshot. It emits no build artifact.
 
 #### `build`
 
