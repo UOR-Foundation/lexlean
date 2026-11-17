@@ -1,8 +1,8 @@
-//! The process store (SPEC.md §22.13): a verification process is a function
+//! The process store (SPEC.md ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§22.13): a verification process is a function
 //! of its content identity, so a process whose identity an earlier run on
 //! this host already established is not run again.
 //!
-//! The content identity κ of a Lean module is the digest of its staged text
+//! The content identity ÃƒÆ’Ã…Â½Ãƒâ€šÃ‚Âº of a Lean module is the digest of its staged text
 //! and of the identities of the modules its import header names, by name: a
 //! Merkle identity of everything a `lean` or `leanchecker` process of that
 //! module can read beyond the pinned toolchain. A module the stage does not
@@ -17,7 +17,7 @@
 //! module compiled, replayed, or compiled without output are three
 //! processes.
 //!
-//! The store is operational, like the width (§22.11): it is selected only by
+//! The store is operational, like the width (ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§22.11): it is selected only by
 //! `LEXLEAN_VERIFY_STORE`, is no input of any stage, enters no ID, and
 //! changes no published byte. Only a process that succeeded is stored, with
 //! its normalized record and the bytes of the files it wrote; a stored entry
@@ -314,7 +314,15 @@ fn tree(root: &Utf8Path) -> Option<Sha256Digest> {
             if kind.is_dir() {
                 stack.push(path);
             } else {
-                let relative = path.strip_prefix(root).ok()?.as_str().to_owned();
+                // Separated by `/` on every host, so the rule above reads `bin/` on Windows as well, and
+                // the digest of one toolchain is the same bytes wherever it is taken.
+                let relative = path
+                    .strip_prefix(root)
+                    .ok()?
+                    .components()
+                    .map(|component| component.as_str())
+                    .collect::<Vec<_>>()
+                    .join("/");
                 if loaded(&relative) {
                     files.push(relative);
                 }
@@ -455,7 +463,7 @@ impl Session {
 
     /// The content identity of what a `leanchecker` replay of the prefix
     /// `name` reads: the module and every staged module inside its namespace,
-    /// which the replay checks with it (§22.4).
+    /// which the replay checks with it (ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§22.4).
     pub fn prefix(&self, name: &str) -> Option<Sha256Digest> {
         let mut inside: Vec<String> = Vec::new();
         let relative = name.replace('.', "/");
@@ -736,6 +744,179 @@ mod tests {
             None,
             "a link that does not resolve is a miss"
         );
+    }
+
+    /// A process the tests run: it writes `text` to `output` and exits with `exit_code`, counting its runs.
+    fn process<'a>(
+        output: &Utf8Path,
+        text: &str,
+        exit_code: i32,
+        runs: &'a std::cell::Cell<u32>,
+    ) -> impl FnOnce() -> Result<ChildRecord, Diagnostic> + 'a {
+        let output = output.to_path_buf();
+        let text = text.to_owned();
+        move || {
+            runs.set(runs.get() + 1);
+            write(
+                output.parent().expect("parent"),
+                output.file_name().expect("name"),
+                &text,
+            );
+            Ok(ChildRecord {
+                tool: "lean".to_owned(),
+                module: Some("M".to_owned()),
+                argv: vec!["lean".to_owned()],
+                exit_code,
+                stdout: String::new(),
+                stderr: String::new(),
+                executable_sha256: Sha256Digest::of(b"lean"),
+            })
+        }
+    }
+
+    #[test]
+    fn a_process_that_succeeded_is_restored_byte_for_byte_and_not_run_again() {
+        let (_root, base) = scratch();
+        let store = Store {
+            root: base.join("store").into_std_path_buf(),
+        };
+        let output = base.join("out/M.olean");
+        let key = Sha256Digest::of(b"key");
+        let runs = std::cell::Cell::new(0);
+        let lean = Sha256Digest::of(b"lean");
+        stored(
+            Some(&store),
+            Some(key),
+            std::slice::from_ref(&output),
+            lean,
+            process(&output, "olean", 0, &runs),
+        )
+        .expect("run");
+        std::fs::remove_file(output.as_std_path()).expect("remove");
+        let record = stored(
+            Some(&store),
+            Some(key),
+            std::slice::from_ref(&output),
+            lean,
+            process(&output, "other", 0, &runs),
+        )
+        .expect("restore");
+        assert_eq!(runs.get(), 1, "a stored process is not run again");
+        assert_eq!(record.exit_code, 0);
+        assert_eq!(
+            std::fs::read_to_string(output.as_std_path()).expect("restored"),
+            "olean",
+            "the stored bytes, not the second run's"
+        );
+    }
+
+    #[test]
+    fn a_stored_file_whose_bytes_changed_is_a_miss_and_the_process_runs() {
+        let (_root, base) = scratch();
+        let store = Store {
+            root: base.join("store").into_std_path_buf(),
+        };
+        let output = base.join("out/M.olean");
+        let key = Sha256Digest::of(b"key");
+        let runs = std::cell::Cell::new(0);
+        let lean = Sha256Digest::of(b"lean");
+        stored(
+            Some(&store),
+            Some(key),
+            std::slice::from_ref(&output),
+            lean,
+            process(&output, "olean", 0, &runs),
+        )
+        .expect("run");
+        // Planted defect S1: every stored output altered under its entry.
+        let entry = store.entry(&key);
+        for file in std::fs::read_dir(&entry).expect("entry") {
+            let path = file.expect("file").path();
+            if path.extension().is_some_and(|extension| extension == "out") {
+                std::fs::write(&path, "altered").expect("alter");
+            }
+        }
+        stored(
+            Some(&store),
+            Some(key),
+            std::slice::from_ref(&output),
+            lean,
+            process(&output, "olean", 0, &runs),
+        )
+        .expect("run");
+        assert_eq!(runs.get(), 2, "an altered entry was restored");
+        assert_eq!(
+            std::fs::read_to_string(output.as_std_path()).expect("written"),
+            "olean"
+        );
+    }
+
+    #[test]
+    fn a_process_of_another_executable_is_a_miss() {
+        let (_root, base) = scratch();
+        let store = Store {
+            root: base.join("store").into_std_path_buf(),
+        };
+        let output = base.join("out/M.olean");
+        let key = Sha256Digest::of(b"key");
+        let runs = std::cell::Cell::new(0);
+        stored(
+            Some(&store),
+            Some(key),
+            std::slice::from_ref(&output),
+            Sha256Digest::of(b"lean"),
+            process(&output, "olean", 0, &runs),
+        )
+        .expect("run");
+        // Planted defect S2: the same key asked for by another executable.
+        stored(
+            Some(&store),
+            Some(key),
+            std::slice::from_ref(&output),
+            Sha256Digest::of(b"another lean"),
+            process(&output, "olean", 0, &runs),
+        )
+        .expect("run");
+        assert_eq!(
+            runs.get(),
+            2,
+            "a process of another executable was restored"
+        );
+    }
+
+    #[test]
+    fn a_process_that_failed_is_never_stored() {
+        let (_root, base) = scratch();
+        let store = Store {
+            root: base.join("store").into_std_path_buf(),
+        };
+        let output = base.join("out/M.olean");
+        let key = Sha256Digest::of(b"key");
+        let runs = std::cell::Cell::new(0);
+        let lean = Sha256Digest::of(b"lean");
+        // Planted defect S3: a process that exited 1 but wrote its output.
+        stored(
+            Some(&store),
+            Some(key),
+            std::slice::from_ref(&output),
+            lean,
+            process(&output, "olean", 1, &runs),
+        )
+        .expect("run");
+        assert!(
+            !store.entry(&key).exists(),
+            "a failed process left an entry in the store"
+        );
+        let again = stored(
+            Some(&store),
+            Some(key),
+            std::slice::from_ref(&output),
+            lean,
+            process(&output, "olean", 1, &runs),
+        )
+        .expect("run");
+        assert_eq!(runs.get(), 2, "a failed process was restored");
+        assert_eq!(again.exit_code, 1);
     }
 
     #[test]
