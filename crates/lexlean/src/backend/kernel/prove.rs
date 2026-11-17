@@ -62,7 +62,13 @@ impl Produced<'_> {
                 generalizing,
                 branches,
             } => self.cases(scrutinee, generalizing, branches, statement, ctx, true),
-            SemanticProof::TermCases { scrutinee, .. } => self.term_cases(scrutinee, statement, ctx),
+            SemanticProof::TermCases {
+                scrutinee,
+                definitions,
+            } => match self.term_cases_rewrite(scrutinee, definitions, statement, ctx)? {
+                Some(term) => Ok(term),
+                None => self.term_cases(scrutinee, statement, ctx),
+            },
             SemanticProof::Apply {
                 theorem,
                 type_arguments,
@@ -121,6 +127,110 @@ impl Produced<'_> {
             }
             other => Err(format!("proof form `{}`", kind_of(other))),
         }
+    }
+
+    /// `term_cases` by rewriting, as `cases h : t <;> simp only [defs, h]`
+    /// does: the statement and the split term are unfolded over `defs`
+    /// (`reduce`), and when the unfolded term `t` occurs in the unfolded
+    /// statement `U`, the motive `P v := U[t := v]` is formed. For each
+    /// constructor `c` of `t`'s type the case `h : t = c` proves the
+    /// statement by `Eq.mpr (congrArg P h) p`, where `p` proves `P c`, which
+    /// is unfolded again and closed by `reflexivity` or `decide`; the kernel
+    /// checks `P t` against the statement by definitional equality. `None`
+    /// when `t` does not occur, for enumeration to try.
+    #[allow(clippy::too_many_lines)]
+    fn term_cases_rewrite(
+        &self,
+        scrutinee: &SemanticTerm,
+        definitions: &[crate::ir::semantic::MemberRef],
+        statement: &SemanticTerm,
+        ctx: &Ctx,
+    ) -> R<Option<Expr>> {
+        let w = self.world;
+        let reducer = super::reduce::Reducer::new(w, ctx.module, definitions)?;
+        let unfolded = reducer.reduce(&serde_json::to_value(statement).map_err(|e| e.to_string())?);
+        let target = reducer.reduce(&serde_json::to_value(scrutinee).map_err(|e| e.to_string())?);
+        let split = "__split";
+        let (abstracted, occurrences) = super::reduce::abstract_term(&unfolded, &target, split);
+        if occurrences == 0 {
+            return Ok(None);
+        }
+        let ty = w.infer(ctx, scrutinee)?;
+        let shape = w.shape(ctx, &ty)?;
+        let ty_expr = w.ty(ctx, &ty)?;
+        let t_expr = w.term(ctx, scrutinee)?;
+        let goal = w.term(ctx, statement)?;
+        let abstracted_term = super::reduce::term_of(&abstracted)?;
+        // P := fun v => U[t := v]
+        let v = w.fresh();
+        let mut with_v = ctx.clone();
+        with_v.push(split, Expr::FVar(v), Some(ty.clone()));
+        let motive_p = lam("v", v, ty_expr.clone(), &w.term(&with_v, &abstracted_term)?);
+        // The casesOn motive: fun x => t = x -> G
+        let x = w.fresh();
+        let equation = |rhs: Expr| app(cu("Eq", &[1]), [ty_expr.clone(), t_expr.clone(), rhs]);
+        let motive = lam("x", x, ty_expr.clone(), &super::expr::arrow(equation(Expr::FVar(x)), goal.clone()));
+        let mut minors = Vec::new();
+        for ctor in &shape.ctors {
+            let mut inner = ctx.clone();
+            let mut bound: Vec<(String, u32, Expr)> = Vec::new();
+            let mut fields = Vec::new();
+            let mut field_terms = Vec::new();
+            for (index, field) in ctor.fields.iter().enumerate() {
+                let id = w.fresh();
+                let name = format!("__f{index}_{id}");
+                inner.push(&name, Expr::FVar(id), Some(field.clone()));
+                bound.push((name.clone(), id, w.ty(ctx, field)?));
+                fields.push(Expr::FVar(id));
+                field_terms.push(serde_json::json!({"kind": "var", "name": name}));
+            }
+            let mut arguments = shape.params.clone();
+            arguments.extend(fields.iter().cloned());
+            let value = app(cu(&ctor.constant, &shape.ctor_levels), arguments);
+            // The constructor as an IR term, to unfold the case with.
+            let constructor = constructor_term(&ty, &ctor.short, &ctor.constant, field_terms);
+            let case = substitute_split(&abstracted, split, &constructor);
+            let case = reducer.reduce(&case);
+            let case_term = super::reduce::term_of(&case)?;
+            let mut leaf = &case_term;
+            while let SemanticTerm::Let { body, .. } = leaf {
+                leaf = body;
+            }
+            let closing = if matches!(leaf, SemanticTerm::Eq { .. } | SemanticTerm::Iff { .. }) {
+                SemanticProof::Reflexivity
+            } else {
+                SemanticProof::Decide
+            };
+            let proof = self.prove(&closing, &case_term, &inner)?;
+            let h = w.fresh();
+            let rewritten = app(
+                cu("Eq.mpr", &[0]),
+                [
+                    app(motive_p.clone(), [t_expr.clone()]),
+                    app(motive_p.clone(), [value.clone()]),
+                    app(
+                        cu("congrArg", &[1, 1]),
+                        [ty_expr.clone(), sort_prop(), t_expr.clone(), value.clone(), motive_p.clone(), Expr::FVar(h)],
+                    ),
+                    proof,
+                ],
+            );
+            let mut body = lam("h", h, equation(value), &rewritten);
+            for (name, id, binder_ty) in bound.into_iter().rev() {
+                body = lam(&name, id, binder_ty, &body);
+            }
+            minors.push(body);
+        }
+        let mut levels = vec![0];
+        levels.extend(&shape.levels);
+        let mut arguments = shape.params.clone();
+        arguments.push(motive);
+        arguments.push(t_expr.clone());
+        arguments.extend(minors);
+        Ok(Some(app(
+            app(cu(&shape.cases_on, &levels), arguments),
+            [app(cu("Eq.refl", &[1]), [ty_expr, t_expr])],
+        )))
     }
 
     /// `term_cases` by enumeration: every variable of a finite type (`Bool`,
@@ -382,7 +492,13 @@ impl Produced<'_> {
 
 /// The constants a producer itself may name: the export roots the library
 /// must hold for the proof forms, besides the statement's vocabulary.
-pub const VOCABULARY: &[&str] = &["Eq.refl", "Iff.refl", "of_decide_eq_true"];
+pub const VOCABULARY: &[&str] = &[
+    "Eq.refl",
+    "Iff.refl",
+    "of_decide_eq_true",
+    "Eq.mpr",
+    "congrArg",
+];
 
 /// The variables a term names, in order of first mention.
 fn collect_vars(value: &serde_json::Value, out: &mut Vec<String>) {
@@ -405,5 +521,52 @@ fn collect_vars(value: &serde_json::Value, out: &mut Vec<String>) {
             }
         }
         _ => {}
+    }
+}
+
+fn sort_prop() -> Expr {
+    super::expr::sort(0)
+}
+
+/// The IR term of a constructor of `ty` applied to `fields`.
+fn constructor_term(
+    ty: &crate::ir::semantic::SemanticType,
+    short: &str,
+    constant: &str,
+    fields: Vec<serde_json::Value>,
+) -> serde_json::Value {
+    use crate::ir::semantic::SemanticType as T;
+    match ty {
+        T::Bool => serde_json::json!({"kind": "bool", "value": short == "true"}),
+        T::Nat if short == "zero" => serde_json::json!({"kind": "nat", "value": "0"}),
+        T::List { element } if short == "nil" => serde_json::json!({"kind": "nil", "element": element}),
+        T::List { .. } => serde_json::json!({"kind": "cons", "head": fields[0], "tail": fields[1]}),
+        T::Option { value } => serde_json::json!({"kind": "constructor", "constructor": {"name": format!("Option.{short}")}, "type_arguments": [value], "arguments": fields}),
+        T::Named { member, arguments } => {
+            let owner = member.name.clone();
+            serde_json::json!({
+                "kind": "constructor",
+                "constructor": {"module": member.module, "name": format!("{owner}.{short}")},
+                "type_arguments": arguments,
+                "arguments": fields,
+            })
+        }
+        _ => serde_json::json!({"kind": "constructor", "constructor": {"name": constant}, "arguments": fields}),
+    }
+}
+
+/// `term` with the variable `name` replaced by `by`.
+fn substitute_split(term: &serde_json::Value, name: &str, by: &serde_json::Value) -> serde_json::Value {
+    match term {
+        serde_json::Value::Array(items) => serde_json::Value::Array(items.iter().map(|item| substitute_split(item, name, by)).collect()),
+        serde_json::Value::Object(map) => {
+            if map.get("kind").and_then(serde_json::Value::as_str) == Some("var")
+                && map.get("name").and_then(serde_json::Value::as_str) == Some(name)
+            {
+                return by.clone();
+            }
+            serde_json::Value::Object(map.iter().map(|(key, value)| (key.clone(), substitute_split(value, name, by))).collect())
+        }
+        other => other.clone(),
     }
 }
