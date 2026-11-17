@@ -28,6 +28,7 @@ pub mod operational;
 pub mod partition;
 pub mod pool;
 pub mod source_audit;
+pub mod store;
 pub mod telemetry;
 pub mod toolchain;
 pub mod workspace;
@@ -650,6 +651,7 @@ fn leanchecker_identity(
         workspace_root,
         limits,
         normalizer,
+        None,
     )?;
     let combined = format!("{}{}", record.stdout.trim_end(), record.stderr.trim_end());
     let observed = format!("{}\n", combined.trim_end());
@@ -883,88 +885,119 @@ pub fn run_part(
         use crate::production::rust_cert;
         for (index, root) in roots(checked).map_err(fail)?.iter().enumerate() {
             let (lowered, program) = lowered_roots[index].clone();
-            let module = format!("LexLeanPreserve.C{semantic_hex32}.R{index}");
-            let generated = certificate(
-                &linked,
-                &root.module,
-                &root.name,
-                root.report,
-                &lowered,
-                &module,
-                limits.max_file_bytes,
-            )
-            .map_err(fail)?;
-            // Certificate B: the root's crate in each of its targets
-            // simulates the lowered program.
-            let mut renderings = Vec::new();
-            for row in &root.report.targets {
-                let profile =
-                    crate::calculus::rust::Profile::named(&row.target).ok_or_else(|| {
-                        fail(internal(format!("`{}` is not a Rust profile", row.target)))
-                    })?;
-                let rendered =
-                    crate::calculus::rust::lower(&lowered.program, profile).map_err(|reason| {
-                        fail(internal(format!(
-                            "{} has no rendering in {}: {reason}",
-                            root.report.root, row.target
-                        )))
-                    })?;
-                let module_b = rust_cert::module_for(&module, &row.target).ok_or_else(|| {
-                    fail(internal(format!("`{}` is not a Rust target", row.target)))
-                })?;
-                let certificate_b = rust_cert::certificate_b(
-                &lowered.program,
-                &rendered,
-                &module_b,
-                limits.max_file_bytes,
-            )
-            .map_err(|reason| match reason.strip_prefix(crate::production::lower::LIMIT) {
-                Some(limit) => fail(Diagnostic::new(
-                    code!("LLS8002"),
-                    format!(
-                        "root `{}`: max_file_bytes exceeded in phase certificates: certificate B of its {} rendering: {limit}",
-                        root.report.root, row.target
-                    ),
-                )),
-                None => fail(Diagnostic::new(
-                    code!("LLV7015"),
-                    format!(
-                        "certificate B: `{module_b}`: no derivation relates {} to its {} rendering: {reason}",
-                        root.report.root, row.target
-                    ),
-                )),
-            })?;
-                // Certificate E: A and B composed, for the root's rendering.
-                let module_e = rust_cert::module_for(&format!("{module}.Compose"), &row.target)
-                    .ok_or_else(|| {
-                        fail(internal(format!("`{}` is not a Rust target", row.target)))
-                    })?;
-                let fallible = crate::calculus::rust::fallible_functions(&lowered.program)
-                    .map_err(|reason| fail(internal(reason)))?
-                    .get(lowered.entry() as usize)
-                    .copied()
-                    .ok_or_else(|| fail(internal("a lowered program without its entry")))?;
-                let composed = crate::production::certificate::certificate_e(
-                    &linked,
-                    &root.module,
-                    &root.name,
-                    &lowered,
-                    &module,
+            // A root's certificates are named by what they are about, the
+            // root and its lowered program, and not by the project's semantic
+            // identity: a root whose program a change leaves as it was keeps
+            // its certificates' names and text, so their processes keep their
+            // content identities (§22.13).
+            let root_hex32: String = {
+                let mut bytes = format!(
+                    "lexlean/certificate-name/1\0{}\0{}\0",
+                    root.module, root.name
+                )
+                .into_bytes();
+                bytes.extend_from_slice(&program);
+                Sha256Digest::of(&bytes).to_hex()[..32].to_owned()
+            };
+            let module = format!("LexLeanPreserve.C{root_hex32}.R{index}");
+            // Certificate A and the renderings (B and E) are made from the
+            // lowered program and the linked modules alone, and neither reads
+            // the other: A is generated beside them, and its result is judged
+            // first, as when they were generated one after the other.
+            let (generated, renderings) = std::thread::scope(|scope| {
+                let generated_a = scope.spawn(|| {
+                    certificate(
+                        &linked,
+                        &root.module,
+                        &root.name,
+                        root.report,
+                        &lowered,
+                        &module,
+                        limits.max_file_bytes,
+                    )
+                });
+                let renderings = (|| -> Result<Vec<CertifiedRendering>, LexLeanError> {
+                    // Certificate B: the root's crate in each of its targets
+                    // simulates the lowered program.
+                    let mut renderings = Vec::new();
+                    for row in &root.report.targets {
+                        let profile = crate::calculus::rust::Profile::named(&row.target)
+                            .ok_or_else(|| {
+                                fail(internal(format!("`{}` is not a Rust profile", row.target)))
+                            })?;
+                        let rendered = crate::calculus::rust::lower(&lowered.program, profile)
+                            .map_err(|reason| {
+                                fail(internal(format!(
+                                    "{} has no rendering in {}: {reason}",
+                                    root.report.root, row.target
+                                )))
+                            })?;
+                        let module_b =
+                            rust_cert::module_for(&module, &row.target).ok_or_else(|| {
+                                fail(internal(format!("`{}` is not a Rust target", row.target)))
+                            })?;
+                        let certificate_b = rust_cert::certificate_b(
+                    &lowered.program,
+                    &rendered,
                     &module_b,
-                    &module_e,
-                    fallible,
                     limits.max_file_bytes,
                 )
-                .map_err(fail)?;
-                renderings.push(CertifiedRendering {
-                    target: row.target.clone(),
-                    certificate: certificate_b.into_certificate(),
-                    composed,
-                    crate_text: crate::calculus::rust::ast::print(&rendered)
-                        .map_err(|reason| fail(internal(reason)))?,
-                    entry: lowered.entry(),
-                });
-            }
+                .map_err(|reason| match reason.strip_prefix(crate::production::lower::LIMIT) {
+                    Some(limit) => fail(Diagnostic::new(
+                        code!("LLS8002"),
+                        format!(
+                            "root `{}`: max_file_bytes exceeded in phase certificates: certificate B of its {} rendering: {limit}",
+                            root.report.root, row.target
+                        ),
+                    )),
+                    None => fail(Diagnostic::new(
+                        code!("LLV7015"),
+                        format!(
+                            "certificate B: `{module_b}`: no derivation relates {} to its {} rendering: {reason}",
+                            root.report.root, row.target
+                        ),
+                    )),
+                })?;
+                        // Certificate E: A and B composed, for the root's rendering.
+                        let module_e =
+                            rust_cert::module_for(&format!("{module}.Compose"), &row.target)
+                                .ok_or_else(|| {
+                                    fail(internal(format!("`{}` is not a Rust target", row.target)))
+                                })?;
+                        let fallible = crate::calculus::rust::fallible_functions(&lowered.program)
+                            .map_err(|reason| fail(internal(reason)))?
+                            .get(lowered.entry() as usize)
+                            .copied()
+                            .ok_or_else(|| fail(internal("a lowered program without its entry")))?;
+                        let composed = crate::production::certificate::certificate_e(
+                            &linked,
+                            &root.module,
+                            &root.name,
+                            &lowered,
+                            &module,
+                            &module_b,
+                            &module_e,
+                            fallible,
+                            limits.max_file_bytes,
+                        )
+                        .map_err(fail)?;
+                        renderings.push(CertifiedRendering {
+                            target: row.target.clone(),
+                            certificate: certificate_b.into_certificate(),
+                            composed,
+                            crate_text: crate::calculus::rust::ast::print(&rendered)
+                                .map_err(|reason| fail(internal(reason)))?,
+                            entry: lowered.entry(),
+                        });
+                    }
+                    Ok(renderings)
+                })();
+                let generated = generated_a
+                    .join()
+                    .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
+                    .map_err(fail)?;
+                Ok::<_, LexLeanError>((generated, renderings?))
+            })?;
             // Every certificate held as data weighs what it is recorded as,
             // the notation: the Lean text is the core backend's rendering,
             // and its size is the backend's, not the certificate's.
@@ -1308,6 +1341,17 @@ pub fn run_part(
         )?;
     }
     release_non_diagnostic_buffers(build);
+    // The process store (§22.13), when the environment selects one: the
+    // staged sources the identities of this run's processes are read from,
+    // in the order of the search paths their processes read imports from.
+    let store_session = store::Store::from_env().map(|selected| {
+        store::Session::new(
+            selected,
+            vec![staging_utf8.join("preserve-src"), src_root.clone()],
+            toolchain.root.clone(),
+        )
+    });
+    let store_session = store_session.as_ref();
     let lean_path_env = format!("{olean_root}");
     // The records of this run's processes, by what they are and the module
     // or audit member they are of, and the records of the remaining stages
@@ -1368,7 +1412,8 @@ pub fn run_part(
     let probe_source = staging_utf8
         .join("probe")
         .join(format!("{probe_name}.lean"));
-    let probe_record = run_child(
+    let probe_record = store::run(
+        store_session,
         &ChildSpec {
             tool: "lean",
             module: Some(probe_name.clone()),
@@ -1387,6 +1432,8 @@ pub fn run_part(
         },
         &limits,
         &normalizer,
+        |session| session.source(&probe_source),
+        &[],
     )
     .map_err(fail)?;
     if probe_record.exit_code != 0 {
@@ -1530,7 +1577,8 @@ pub fn run_part(
                 ))
             })?;
         }
-        let record = run_child(
+        let record = store::run(
+            store_session,
             &ChildSpec {
                 tool: "lean",
                 module: Some(module.name.clone()),
@@ -1553,6 +1601,8 @@ pub fn run_part(
             },
             &limits,
             &normalizer,
+            |session| session.module(&module.name),
+            std::slice::from_ref(&olean),
         )
         .map_err(fail)?;
         if record.exit_code != 0
@@ -1678,7 +1728,8 @@ pub fn run_part(
                 let module_path = module_name.replace('.', "/");
                 let source = src_root.join(format!("{module_path}.lean"));
                 let olean = olean_root.join(format!("{module_path}.olean"));
-                run_child(
+                store::run(
+                    store_session,
                     &ChildSpec {
                         tool: "lean",
                         module: Some(module_name.clone()),
@@ -1701,6 +1752,8 @@ pub fn run_part(
                     },
                     &limits,
                     &normalizer,
+                    |session| session.module(module_name),
+                    std::slice::from_ref(&olean),
                 )
             },
             &|result: &Result<ChildRecord, Diagnostic>| {
@@ -1779,6 +1832,7 @@ pub fn run_part(
             &workspace_root,
             &limits,
             &normalizer,
+            store_session,
         )
         .map_err(fail)?;
         write_staged(
@@ -1811,6 +1865,7 @@ pub fn run_part(
                 &workspace_root,
                 &limits,
                 &normalizer,
+                store_session,
             )
             // A replay failure is about this module, so it points at the
             // module's source rather than at the project manifest (§20.1).
@@ -1863,7 +1918,8 @@ pub fn run_part(
             let audit = &audit_modules[audit_index];
             let source_relative = format!("audit/{}.lean", audit.name);
             let audit_source = staging_utf8.join(&source_relative);
-            run_child(
+            store::run(
+                store_session,
                 &ChildSpec {
                     tool: "lean",
                     module: Some(audit.name.clone()),
@@ -1882,6 +1938,8 @@ pub fn run_part(
                 },
                 &limits,
                 &normalizer,
+                |session| session.source(&audit_source),
+                &[],
             )
         },
         &|result: &Result<ChildRecord, Diagnostic>| {
@@ -2337,7 +2395,10 @@ pub fn run_part(
         let source = staging_utf8
             .join("extract")
             .join(format!("{}.lean", driver.name));
-        let record = run_child(
+        // The driver's report is a function of its text and the modules it
+        // imports, so the store answers it by that identity (§22.13).
+        let record = store::run(
+            store_session,
             &ChildSpec {
                 tool: "lean",
                 module: Some(driver.name.clone()),
@@ -2352,6 +2413,8 @@ pub fn run_part(
             },
             &limits,
             &normalizer,
+            |session| session.source(&source),
+            &[],
         )
         .map_err(fail)?;
         if record.exit_code != 0 {
@@ -2502,6 +2565,7 @@ pub fn run_part(
         }
         let compile = |file: &preserve::StagedFile, output: bool| {
             let source = preserve_src.join(&file.path);
+            let mut outputs: Vec<Utf8PathBuf> = Vec::new();
             let mut argv = vec![
                 "env".to_owned(),
                 "lean".to_owned(),
@@ -2517,9 +2581,11 @@ pub fn run_part(
                 }
                 argv.push("-o".to_owned());
                 argv.push(olean.to_string());
+                outputs.push(olean);
             }
             argv.push(source.to_string());
-            run_child(
+            store::run(
+                store_session,
                 &ChildSpec {
                     tool: "lean",
                     module: Some(file.module.clone()),
@@ -2534,6 +2600,8 @@ pub fn run_part(
                 },
                 &limits,
                 &normalizer,
+                |session| session.module(&file.module),
+                &outputs,
             )
         };
         for file in &stage.environment {
@@ -2604,6 +2672,7 @@ pub fn run_part(
                 &workspace_root,
                 &limits,
                 &normalizer,
+                store_session,
             )
             .map_err(fail)?;
             if replay.exit_code != 0 {
