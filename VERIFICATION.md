@@ -12398,6 +12398,52 @@ of `std-models`, `std-reasoning`, and `examples/helpdesk`, and
 `cargo xtask check-production-export --write` only
 `tests/production-export/helpdesk/`.
 
+### the application building blocks, their pins, and the cart can fail (`SL-15`, `SL-16`, `EX-10`)
+
+The three cases were registered before their records existed (R3). With no
+pins file committed, `conformance_sl_16` failed at its first read:
+
+```text
+std-apps/pins.json: The system cannot find the file specified. (os error 2)
+```
+
+An empty pins file made the case print the package's identities: 108
+declarations, 36 definitions by alpha identity and 72 theorems by statement.
+That text is the committed `std-apps/pins.json`.
+
+Each case also carries its plants and runs them every time. `conformance_sl_15`
+weakens `total_removeIf` to an inequality in a copy. The package still
+verifies, and the cart, which cites the lemma, is refused with `LLV7002`.
+`conformance_sl_16` changes the body of `total`, weakens `amountOf_le_total`,
+and changes the proof of `total_addLine` in copies. The first two are refused
+by name, and the third keeps every pin.
+
+Each defect below was planted in the committed source, the named case run
+with `cargo test -p repo-conformance --test conformance <case> -- --exact
+--test-threads=1`, and the defect removed. The observed lines are the cases'
+own, cut for width. They were run on a Windows x86-64 host with the pinned
+`leanprover/lean4:v4.32.2` installed, so the Lean-backed parts ran.
+
+| Planted defect | Case | Observed |
+| --- | --- | --- |
+| `Lines.total` drops the amount of its head | `conformance_sl_16` | `Lines.total changed under its pin: pinned {"alpha_id":"6f6a19d2…"}, found {"alpha_id":"0c32d785…"}` |
+| `total_removeIf` is weakened to an inequality | `conformance_sl_16` | `Lines.total_removeIf changed under its pin: pinned {"statement_id":"f6f3b0ec…"}, found {"statement_id":"07379f41…"}` |
+| a cart theorem is proved by `simplify` | `conformance_ex_10` | `EX-10: every cart proof is one step: name: addKnownAccepted` |
+| the savings record counts 13 theorems | `conformance_ex_10` | `EX-10: the record counts the cart's theorems` (`left: Some(13)`, `right: Some(12)`) |
+
+On the same host the three cases pass: `conformance_sl_16` in 2.9 s,
+`conformance_sl_15` in 215.8 s, which includes verifying the package and
+refusing the weakened lemma's importer, and `conformance_ex_10` in 54.0 s.
+
+The draft cart the example replaces was verified on a copy under the same
+toolchain. Lean rejected 4 of its 9 theorems: `removeStep`,
+`removeCostIsPrice`, `addRaisesTotal`, and `removeTakesFirst`, with 7
+`LLV7002` errors in all, each `omega could not prove the goal`. The cause is
+the one SPEC.md §17.22 (*Application building blocks*) names.
+`linear_arithmetic` splits a conditional after it simplifies. So a function
+applied to a conditional list is never unfolded, and `price head` and
+`price item` stay unrelated atoms after a split on `head = item`.
+
 ### byte-to-fixed-width widening conversions in language 1.2 (`SM-32`, #114)
 
 Language 1.2 adds the total widening primitives `to_int` (any fixed-width
