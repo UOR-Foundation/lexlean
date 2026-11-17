@@ -1,0 +1,655 @@
+{
+  "declarations": [
+    {
+      "alpha_id": "a6192a0c8db9454bda4af4e94d6605d86f06c0a1276f1bcd1079cef451af7259",
+      "kind": "definition",
+      "module": "Access",
+      "name": "allows"
+    },
+    {
+      "kind": "theorem",
+      "module": "Access",
+      "name": "allows_grants",
+      "statement_id": "5c1834d5a6a72cbffb75317f8e6f1398b486f024ffd7fbe1aab747b96a992437"
+    },
+    {
+      "kind": "theorem",
+      "module": "Access",
+      "name": "allows_monotone",
+      "statement_id": "636254aed9033f83816d526eb13e8e3a7391c50e4e9c1a0281f81f50b7051608"
+    },
+    {
+      "kind": "theorem",
+      "module": "Access",
+      "name": "allows_refuses",
+      "statement_id": "3324f864c63fc784eec3819be06c9caac7c37ebebb9121d00433baa17ad2ebf0"
+    },
+    {
+      "alpha_id": "47949a6ffe052758f7af466b664d545e95e3dc008265b6d8b06f68e1e9c4e722",
+      "kind": "definition",
+      "module": "Access",
+      "name": "isOwner"
+    },
+    {
+      "kind": "theorem",
+      "module": "Access",
+      "name": "owner_only",
+      "statement_id": "181ed9bda6897b6dc7ca2b0a328c4d14f296270c8c695515d1b86b7e19cc685f"
+    },
+    {
+      "kind": "theorem",
+      "module": "Access",
+      "name": "owner_self",
+      "statement_id": "2c50fe535e7c629007635d7442a2a802385ebee724be3f9839a4e3a6cdf75d11"
+    },
+    {
+      "alpha_id": "6d0fece83af3078771e65fade56e976a29439881b6a5283f7b2a7cb9b75d5ad9",
+      "kind": "definition",
+      "module": "Access",
+      "name": "permit"
+    },
+    {
+      "kind": "theorem",
+      "module": "Access",
+      "name": "permit_denied",
+      "statement_id": "d49ffc3508420940ca0adfc5f5d6d9ebcb26ae27fb54a2e4542879552bf2977d"
+    },
+    {
+      "kind": "theorem",
+      "module": "Access",
+      "name": "permit_denied_map",
+      "statement_id": "4cd5437ffc0113a17cde22fbc9f2778eda2e91efb1944625be13401b1c7e413c"
+    },
+    {
+      "kind": "theorem",
+      "module": "Access",
+      "name": "permit_granted",
+      "statement_id": "37d0fa2aaeed7d271a07803527bb9e004652403803b5f081be62c5c2e3f55b5e"
+    },
+    {
+      "kind": "theorem",
+      "module": "Access",
+      "name": "permit_granted_map",
+      "statement_id": "31cb951fae596bb718103426787957ecf2b10e7b9a593a70703258997e187701"
+    },
+    {
+      "alpha_id": "f29c3b379429a0ec7169a826689555465bf9af54a716377517b3ccd07d2926e5",
+      "kind": "definition",
+      "module": "Counter",
+      "name": "bump"
+    },
+    {
+      "alpha_id": "6e96cdc64677d62199c6838b6d0ccd3f2218a5bee3063c6cf83158ac47202ebe",
+      "kind": "definition",
+      "module": "Counter",
+      "name": "bumpBy"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "bumpBy_fits",
+      "statement_id": "d205e9b8b9bf97f58740563c8924b5c600a5aa28a0f2e3f3756563a098070b95"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "bumpBy_within",
+      "statement_id": "2996364ea91e5053689aefbbf1888f6ef9f4e1151253a43e7746dcacb2ad9665"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "bump_full",
+      "statement_id": "529fd4baa58c21a66aea7d85e064d2d900e9ecb51bfcf646f87768f7a036dcfe"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "bump_grows",
+      "statement_id": "4006f90a70df65f7b8367fec58cd1e469434d563fde6aeedb8c3dce75ad40915"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "bump_never_lowers",
+      "statement_id": "25084fe014f847f7a65e7b2656a40be8809c3c7e47f18ae4f3c2798f57d9672b"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "bump_within",
+      "statement_id": "b207ebd1488c8cb3b34b34126da66167c8a30b827ac5f0c3d968e76a42444baf"
+    },
+    {
+      "alpha_id": "e404e1315d405c24d8b7b7a476473a03e302c8cb07d12d0c2897b40324efba98",
+      "kind": "definition",
+      "module": "Counter",
+      "name": "dropOne"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "dropOne_bump",
+      "statement_id": "afb43d2e11c7fc8354b1511945f28a1228fcc296287c916ae00d293788d86ac5"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "dropOne_le",
+      "statement_id": "e86323852f5aba93f624916db8302a2ff43b96d62f3f2c37e7fc7a059a72f853"
+    },
+    {
+      "alpha_id": "ac8a8ee72047fe759cc874b6de90234033cdd761b35a119ceb633c0295709e36",
+      "kind": "definition",
+      "module": "Counter",
+      "name": "excess"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "excess_falls",
+      "statement_id": "c45f1de8b28410bb023cd149d90e54428ecc33ffd3f1fd6369bc484df61ca34d"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "excess_zero_within",
+      "statement_id": "a5d10f33215ce99e3cbf52b01b21d00b15aba91e3229a1e481e2914a24debc55"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "met_no_shortfall",
+      "statement_id": "e120db0a682b1c21f88fd1b467676a9a538f214d61b2e449156f415d14e74791"
+    },
+    {
+      "alpha_id": "697749ae07936dd57f998e6e8f22bcc002195e92c35ae2bc81348aea4bed1aa0",
+      "kind": "definition",
+      "module": "Counter",
+      "name": "shortfall"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "shortfall_falls",
+      "statement_id": "12a3ef898bf4e369764b14eff1ed058e6ab26d84fbcba285519f12b45e069a19"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "shortfall_fills",
+      "statement_id": "5ea23efb47736603f779066bb248c1e20da85a589fdb62cf5af5a5812196e9ae"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "shortfall_zero_met",
+      "statement_id": "5e4ea27627add376d65ec78307d22ea534bffc238f34e70295854b22e3462366"
+    },
+    {
+      "kind": "theorem",
+      "module": "Counter",
+      "name": "within_no_excess",
+      "statement_id": "aabdc4c76cca27e59f31d95061acf586718fb82db0ae3e21bbd12bdeb292342e"
+    },
+    {
+      "alpha_id": "ad4fe902aaebf5920d488f0d8393613985824cd9eb8b5f7e9cbf5581af3e29b0",
+      "kind": "definition",
+      "module": "Ledger",
+      "name": "balance"
+    },
+    {
+      "alpha_id": "324311a7c30b623e76eb60051c8b3028cf895f3336c2b71a4550f17c2dce0a95",
+      "kind": "definition",
+      "module": "Ledger",
+      "name": "deposit"
+    },
+    {
+      "kind": "theorem",
+      "module": "Ledger",
+      "name": "deposit_credits",
+      "statement_id": "838df192c79bd963c23eac4e4dc9010d90eb4e4fb15b10718615b9e414dbff9a"
+    },
+    {
+      "kind": "theorem",
+      "module": "Ledger",
+      "name": "deposit_others",
+      "statement_id": "d82cfb56e1baf4b6a5c989d3a2c27c8233870f8373ccd9236fe0885febd353f4"
+    },
+    {
+      "alpha_id": "092ba7709e4f067383a5be02f891c3b645c77958c96f1c80678b1359bcba9c21",
+      "kind": "definition",
+      "module": "Ledger",
+      "name": "moved"
+    },
+    {
+      "alpha_id": "640ec78f447c17cf966d11615884bda7340b2956724f2146d1cf5bec568e52c1",
+      "kind": "definition",
+      "module": "Ledger",
+      "name": "transfer"
+    },
+    {
+      "kind": "theorem",
+      "module": "Ledger",
+      "name": "transfer_conserves",
+      "statement_id": "a82f1e70f359866500c0dfac96e90330e64cefafa32ccd41c09bc00fd0641b43"
+    },
+    {
+      "kind": "theorem",
+      "module": "Ledger",
+      "name": "transfer_credits",
+      "statement_id": "1f32d35c2edba2fb546ed0b072ec6a1242ab3fd48b497d594cb37eda8ae71d46"
+    },
+    {
+      "kind": "theorem",
+      "module": "Ledger",
+      "name": "transfer_debits",
+      "statement_id": "0fe50977606b2c52b69e66b8f0768a8f0bbb730dccc04920b2975b6fb92d8ab7"
+    },
+    {
+      "kind": "theorem",
+      "module": "Ledger",
+      "name": "transfer_others",
+      "statement_id": "9d56ede934e631e1a5edfa0f481b3067c7ec78d55d31b090a03dd8a7dd18ab24"
+    },
+    {
+      "kind": "theorem",
+      "module": "Ledger",
+      "name": "transfer_refused_source",
+      "statement_id": "e35ccce0a164b76efbdb38f1f6f9683380a14bf203f27d7981b3206c0f292816"
+    },
+    {
+      "kind": "theorem",
+      "module": "Ledger",
+      "name": "transfer_refused_target",
+      "statement_id": "af85e5bb374b1605c59938e452b30198999af19239f6cc81d4778bdd26040ebd"
+    },
+    {
+      "alpha_id": "62bdfd54e059cfd631c9dae29b013d695a12e1c2f985b4fce35aea4ab884c989",
+      "kind": "definition",
+      "module": "Lines",
+      "name": "addIf"
+    },
+    {
+      "alpha_id": "4f46c19a3f2357b514d317929c0ba6d02eb78cc0710ef2b36d15956b2aadfc83",
+      "kind": "definition",
+      "module": "Lines",
+      "name": "addLine"
+    },
+    {
+      "alpha_id": "142ec1986f934a83aca210cdf396d619962a29baf6baa1f53bae8292c2d01563",
+      "kind": "definition",
+      "module": "Lines",
+      "name": "amountOf"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "amountOf_addLine",
+      "statement_id": "787329ab94a123eb49dc0f5b81d6f09af88412e850e59038ac0deb1747e7413d"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "amountOf_le_total",
+      "statement_id": "6dec3b227e4be9b09f0c61e955a8e19c287aa9ba31f94cadbb9b4d3497ae0b6d"
+    },
+    {
+      "alpha_id": "bd30c904cc1093382de617ab0262e0dcb87ca58e974a21f05b702e897d33bbce",
+      "kind": "definition",
+      "module": "Lines",
+      "name": "countOf"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "countOf_addIf_true",
+      "statement_id": "7c4738014356aab19dcdb68f6f2e53940a0c6ee5c09762518212926dd914136f"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "countOf_addLine",
+      "statement_id": "8c4f0345aa9cf74ac82a755787b81819afdd6f1f96c68303d3e15dd1c43ac763"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "countOf_removeLine",
+      "statement_id": "b540dcee62aff2f08961cc856735c4b7c529566ca01921a6296158fdd3390d09"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "countStep",
+      "statement_id": "8c87ecd0a9bb5d564742e28369ed79af9a163e64872634dcfaf45d3235798554"
+    },
+    {
+      "alpha_id": "202ae496b74779cd023a044512e52c6f59ef873f8325584bc87e0f278c842a21",
+      "kind": "definition",
+      "module": "Lines",
+      "name": "keepLine"
+    },
+    {
+      "alpha_id": "19773acc4d8352314c36e332a1dc7c3f769123b742983a3f08f951afddc8cbce",
+      "kind": "definition",
+      "module": "Lines",
+      "name": "removeIf"
+    },
+    {
+      "alpha_id": "7305b653806132b6ef3897fa8efb909ddab11d5443e0f6c3d2ef3147aa56ba00",
+      "kind": "definition",
+      "module": "Lines",
+      "name": "removeLine"
+    },
+    {
+      "alpha_id": "1a0daf6dab38d2ab00d7acba95a3c89b7238b282a204497df73fcf5086ad5429",
+      "kind": "definition",
+      "module": "Lines",
+      "name": "removedAmount"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "removedAmount_true",
+      "statement_id": "1fbf8945c7979d83456817e5c386680fb672733e57c6beeffdbb32bfc8f03fa4"
+    },
+    {
+      "alpha_id": "131e48082cf9cce340621e1f9d199b8c28609865694d7a8c746531c0830e012f",
+      "kind": "definition",
+      "module": "Lines",
+      "name": "removedCount"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "removedCount_count",
+      "statement_id": "46dbfe554f3676c2a7b2030c55cae24d0d44dd912b1298033431d0bfaa5f9695"
+    },
+    {
+      "alpha_id": "6f6a19d2aa3f5130a502bc4c0f0d8b30bebdc4f57fc9bc4aee92942423782518",
+      "kind": "definition",
+      "module": "Lines",
+      "name": "total"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "totalStep",
+      "statement_id": "f0c31f866e8fe8125cd98335499cb74eb8af0542a2548bceadd760cba59e2b9f"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "total_addIf_false",
+      "statement_id": "a54e2c63762c796373c504817665b251282709132a17ef7cc4c294c804008fd3"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "total_addIf_true",
+      "statement_id": "951a21707738230ad21088f3e5880b1fc61f8f19e3d8c56f4f276c85aced54f7"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "total_addLine",
+      "statement_id": "aa95ddf88d7a1c86aec9ac7639e06e50d81e5717fcf64ea0d6bd0bf5ea06a542"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "total_nil",
+      "statement_id": "12c43cd7fbb54c4de7c17c168a17dac27f2dd17a7af88ead85a0b5d25c5fabb8"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "total_removeIf",
+      "statement_id": "f6f3b0eca6a1e39eb0da9119899acc5e1929837571099e87be39341ade8eccb7"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "total_removeIf_false",
+      "statement_id": "ae2f76a26b3ccdbbdca4186d20a467fc8ec387f3911d6e7487af288eaf5f66c8"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lines",
+      "name": "total_removeLine",
+      "statement_id": "471671650194555b69d7eb6b1d8bcda21de2dacdc654a0e591b4783fbc797e52"
+    },
+    {
+      "alpha_id": "9f65c0edc9787c533a0803515322e25d89f2e6dcfff4f34a734d72a175dd3a10",
+      "kind": "definition",
+      "module": "Lists",
+      "name": "appendItems"
+    },
+    {
+      "alpha_id": "5320db69c96776a45fb61b4c40232eeda770288d8af4897dae15b901a5ec04cc",
+      "kind": "definition",
+      "module": "Lists",
+      "name": "countOf"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lists",
+      "name": "countOf_append",
+      "statement_id": "21106d8c6555d85f4a15838e3f51ddfeadcc7ed437d69172d58cab85a79837ac"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lists",
+      "name": "countOf_cons_other",
+      "statement_id": "f757dbbceda2fe41c747cb1795f83351687550e08e1aa2f0f440ffb864cd6bc3"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lists",
+      "name": "countOf_cons_same",
+      "statement_id": "2a98851052abd6ba354aeb102440a21c419251eb280e3cadbef55981da2fdc31"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lists",
+      "name": "countOf_removeFirst",
+      "statement_id": "5b904bbf9bfc99db7ff5104962559fcc6da89fb3ee21430b90914b71ab253a69"
+    },
+    {
+      "alpha_id": "d5dec4ccaa71fe75333dfc1b62cfde53dc0ab300a7ab548137d085ddff5ef85d",
+      "kind": "definition",
+      "module": "Lists",
+      "name": "keepUnless"
+    },
+    {
+      "alpha_id": "ed91ba6ff0ff6469a9fa7b3dd2562d7e925c59b3b35bb919f515ad5ba0aad9be",
+      "kind": "definition",
+      "module": "Lists",
+      "name": "oneIf"
+    },
+    {
+      "alpha_id": "e5d532248a5327b0bd9ad7d3d1ce97058425fde8d3253b57d134eeaa668af5f6",
+      "kind": "definition",
+      "module": "Lists",
+      "name": "pushIf"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lists",
+      "name": "pushIf_false",
+      "statement_id": "cb7ba924ab235ba79cb652fd0ddc9bae23960ed9d7b6f31ddc3c5fd2aeccc626"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lists",
+      "name": "pushIf_true",
+      "statement_id": "3dfa3a96e50f2338df0b782e247156e6273e821d47e4d96f72080c1ac8abad8f"
+    },
+    {
+      "alpha_id": "955e33314b02fd8b650b84a8ff39f920dd74c883df4a5884d4af1afec1dcfb5a",
+      "kind": "definition",
+      "module": "Lists",
+      "name": "removeFirst"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lists",
+      "name": "removeStep",
+      "statement_id": "29b26adbf30e803e0d789e7969cf9369a36ef01ec3159a8170b6d254bb4e0ba8"
+    },
+    {
+      "alpha_id": "cc148f566adb4c59eda373f5cb993ed98014381612bdd131b881606b2be94c22",
+      "kind": "definition",
+      "module": "Lists",
+      "name": "removedOne"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lists",
+      "name": "removedOne_count",
+      "statement_id": "cf8e93ae3f546dfd03653e56e2be656604ab66819a940039d1f554ac39c1518f"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lists",
+      "name": "removedOne_le_one",
+      "statement_id": "8f4e1b8cb5aa4602a76f0d0653bbac3554f1a26a4bae031fd862e2b3da102fe3"
+    },
+    {
+      "alpha_id": "500e92b69b3ca61754e5d5067afdd3e9e0c0010df9dd503b4aa03ff3ef690fea",
+      "kind": "definition",
+      "module": "Lists",
+      "name": "sumBy"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lists",
+      "name": "sumBy_append",
+      "statement_id": "1da5ef02ebc3d237a401ebd0fee94d54a3cafb0c6efa56d7c2eeac9d83e26e1e"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lists",
+      "name": "sumBy_cons",
+      "statement_id": "f19fe9b2b14d8973159d7b9e8fd1bce35b31f63354fab449d1d64e6f6c665a70"
+    },
+    {
+      "kind": "theorem",
+      "module": "Lists",
+      "name": "sumBy_nil",
+      "statement_id": "fe77da88cb9f2ed239aa4dc64d7acb916969bbfc380c5612dfb4b4a7a9e4bdcd"
+    },
+    {
+      "alpha_id": "8a480b8da6acb429ab95fdc50c534f23dad31d2e439aa57aa2b67c7798423a73",
+      "kind": "definition",
+      "module": "Machine",
+      "name": "guarded"
+    },
+    {
+      "kind": "theorem",
+      "module": "Machine",
+      "name": "guarded_keeps",
+      "statement_id": "221d6cc5afcb69996a6f5d89b75f6ff7a84a8f5b0e8ad5a322e7392c9c9d4d74"
+    },
+    {
+      "kind": "theorem",
+      "module": "Machine",
+      "name": "guarded_refuses",
+      "statement_id": "f8dd53d2211e220c7863ab197b687fc6c54ac1035ecd24e811216c3d28c2b9d1"
+    },
+    {
+      "alpha_id": "6e7c570284dc9246321a475e5021e8f3dd42d7713cd96c807692667ff88d3907",
+      "kind": "definition",
+      "module": "Machine",
+      "name": "run"
+    },
+    {
+      "kind": "theorem",
+      "module": "Machine",
+      "name": "run_cons",
+      "statement_id": "b08b36fc7a2d3b9f321fd5742f839cb8087d17df3b85216f10312a59f80c388d"
+    },
+    {
+      "kind": "theorem",
+      "module": "Machine",
+      "name": "run_keeps",
+      "statement_id": "3b41967f11ac9ad31d70d018b2c85e32a2179be927be48273476d76124ef84de"
+    },
+    {
+      "kind": "theorem",
+      "module": "Machine",
+      "name": "run_nil",
+      "statement_id": "db63ea75b9e7263e506f0bd7b99a781a20cbaa50b0fe9c8308b6ab7b33442f80"
+    },
+    {
+      "alpha_id": "a8393659d01f90712a9ad7071460204bab171204a6ae3dc696499e62e22883e5",
+      "kind": "definition",
+      "module": "Tables",
+      "name": "adjust"
+    },
+    {
+      "kind": "theorem",
+      "module": "Tables",
+      "name": "adjust_other",
+      "statement_id": "cd6d50e619a4fc4bc92d51d69c199c5f75c57efcbc984f0d3b5e1e058f233622"
+    },
+    {
+      "kind": "theorem",
+      "module": "Tables",
+      "name": "adjust_same",
+      "statement_id": "74cf84a7d283559a2bcd34829fbe5c3026404fec78428a41584f2dcd2245e239"
+    },
+    {
+      "alpha_id": "b1594727389c1bdbe9a0d53785a0b7ab748aebabe8982895685d28a8de956b4d",
+      "kind": "definition",
+      "module": "Tables",
+      "name": "lower"
+    },
+    {
+      "kind": "theorem",
+      "module": "Tables",
+      "name": "lower_other",
+      "statement_id": "f818cd59f9344b67aa2bd1e286572e00579cc73e38e3b1d160e939368f7838b1"
+    },
+    {
+      "kind": "theorem",
+      "module": "Tables",
+      "name": "lower_same",
+      "statement_id": "5e93a3c9f1ff77f827b93f2cfdaad5b0241cd3e1a76b64417aaa6fd620bb2333"
+    },
+    {
+      "alpha_id": "6a15487ecb1d3f710d5db65698b49c83475721d77632981a69d9398d848c0d42",
+      "kind": "definition",
+      "module": "Tables",
+      "name": "put"
+    },
+    {
+      "alpha_id": "9e9d17b9a361ec9122862f00c3055342237015c7ef191e61c8f20ec91e5c21c9",
+      "kind": "definition",
+      "module": "Tables",
+      "name": "valueOr"
+    },
+    {
+      "kind": "theorem",
+      "module": "Tables",
+      "name": "valueOr_nil",
+      "statement_id": "594c6abb41b88d88aef0d3c44c325eb91ffa28bcf57d81fb9298cb9dbfd06859"
+    },
+    {
+      "kind": "theorem",
+      "module": "Tables",
+      "name": "valueOr_put_other",
+      "statement_id": "7e3d69fd1b364fc11480881a9bae2ad9869d3808a141449eeb00a8525103a742"
+    },
+    {
+      "kind": "theorem",
+      "module": "Tables",
+      "name": "valueOr_put_same",
+      "statement_id": "3fa1109e10775c08e6a6edd2bef900de1d34b407e6442070535f118d90a97eb3"
+    }
+  ],
+  "package": "std-apps",
+  "spec": "lexlean/app-block-pins/1",
+  "version": "1.0.0"
+}

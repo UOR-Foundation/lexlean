@@ -111,6 +111,14 @@ fn package() {
         .flatten()
         .filter(|entry| entry.file_type().is_file())
     {
+        let relative = entry
+            .path()
+            .strip_prefix(root.join(PACKAGE).as_std_path())
+            .expect("under the package");
+        // Build roots and expected records are generated, never source.
+        if relative.starts_with(".lexlean") || relative.starts_with("expected") {
+            continue;
+        }
         assert!(
             entry
                 .path()

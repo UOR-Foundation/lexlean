@@ -20,9 +20,20 @@ definition{
   executable: true
 }
 
-structure{name: State, type_parameters: [], parameters: [], fields: [{name: lines, type: (List (Nat * Nat))}]}
+structure{
+  name: State,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: lines, type: (List (Nat * Nat))}]
+}
 
-definition{name: initial, parameters: [], result: State, body: (record State {lines := (nil (Nat * Nat))}), executable: true}
+definition{
+  name: initial,
+  parameters: [],
+  result: State,
+  body: (record State {lines := (nil (Nat * Nat))}),
+  executable: true
+}
 
 definition{
   name: totalOf,
@@ -91,7 +102,10 @@ theorem{
   name: addRaisesTotal,
   parameters: [state : State, item : Nat],
   statement: (((canAdd item) = true) -> ((totalOf (afterAdd state item)) = ((totalOf state) + (priceOf item)))),
-  proof: apply{arguments: [(canAdd item), item, (priceOf item), (project state lines)], theorem: LexLeanStdApps.Lines::total_addIf_true},
+  proof: apply{
+    arguments: [(canAdd item), item, (priceOf item), (project state lines)],
+    theorem: LexLeanStdApps.Lines::total_addIf_true
+  },
   axioms: [Quot.sound, propext]
 }
 
@@ -99,7 +113,10 @@ theorem{
   name: addCountsLine,
   parameters: [state : State, item : Nat],
   statement: (((canAdd item) = true) -> ((LexLeanStdApps.Lines::countOf item (project (afterAdd state item) lines)) = ((LexLeanStdApps.Lines::countOf item (project state lines)) + 1))),
-  proof: apply{arguments: [(canAdd item), item, (priceOf item), (project state lines)], theorem: LexLeanStdApps.Lines::countOf_addIf_true},
+  proof: apply{
+    arguments: [(canAdd item), item, (priceOf item), (project state lines)],
+    theorem: LexLeanStdApps.Lines::countOf_addIf_true
+  },
   axioms: [Quot.sound, propext]
 }
 
@@ -107,7 +124,10 @@ theorem{
   name: addUnknownKeepsTotal,
   parameters: [state : State, item : Nat],
   statement: (((canAdd item) = false) -> ((totalOf (afterAdd state item)) = (totalOf state))),
-  proof: apply{arguments: [(canAdd item), item, (priceOf item), (project state lines)], theorem: LexLeanStdApps.Lines::total_addIf_false},
+  proof: apply{
+    arguments: [(canAdd item), item, (priceOf item), (project state lines)],
+    theorem: LexLeanStdApps.Lines::total_addIf_false
+  },
   axioms: [propext]
 }
 
@@ -131,7 +151,10 @@ theorem{
   name: removeConservesTotal,
   parameters: [state : State, item : Nat],
   statement: (((totalOf (afterRemove state item)) + (LexLeanStdApps.Lines::removedAmount (canRemove state item) item (project state lines))) = (totalOf state)),
-  proof: apply{arguments: [(canRemove state item), item, (project state lines)], theorem: LexLeanStdApps.Lines::total_removeIf},
+  proof: apply{
+    arguments: [(canRemove state item), item, (project state lines)],
+    theorem: LexLeanStdApps.Lines::total_removeIf
+  },
   axioms: [Quot.sound, propext]
 }
 
@@ -139,7 +162,10 @@ theorem{
   name: removeTakesLinePrice,
   parameters: [state : State, item : Nat],
   statement: (((canRemove state item) = true) -> ((LexLeanStdApps.Lines::removedAmount (canRemove state item) item (project state lines)) = (LexLeanStdApps.Lines::amountOf item (project state lines)))),
-  proof: apply{arguments: [(canRemove state item), item, (project state lines)], theorem: LexLeanStdApps.Lines::removedAmount_true},
+  proof: apply{
+    arguments: [(canRemove state item), item, (project state lines)],
+    theorem: LexLeanStdApps.Lines::removedAmount_true
+  },
   axioms: [propext]
 }
 
@@ -147,7 +173,10 @@ theorem{
   name: removeAbsentKeepsTotal,
   parameters: [state : State, item : Nat],
   statement: (((canRemove state item) = false) -> ((totalOf (afterRemove state item)) = (totalOf state))),
-  proof: apply{arguments: [(canRemove state item), item, (project state lines)], theorem: LexLeanStdApps.Lines::total_removeIf_false},
+  proof: apply{
+    arguments: [(canRemove state item), item, (project state lines)],
+    theorem: LexLeanStdApps.Lines::total_removeIf_false
+  },
   axioms: [propext]
 }
 
@@ -171,7 +200,10 @@ theorem{
   name: removedNeverExceedsTotal,
   parameters: [state : State, item : Nat],
   statement: ((LexLeanStdApps.Lines::amountOf item (project state lines)) <= (totalOf state)),
-  proof: apply{arguments: [item, (project state lines)], theorem: LexLeanStdApps.Lines::amountOf_le_total},
+  proof: apply{
+    arguments: [item, (project state lines)],
+    theorem: LexLeanStdApps.Lines::amountOf_le_total
+  },
   axioms: [Quot.sound, propext]
 }
 \end{semanticmodule}

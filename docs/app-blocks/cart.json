@@ -17,11 +17,19 @@
     "proofs_by_induction": [
       "removeCostIsPrice",
       "removeKeepsSum"
-    ]
+    ],
+    "canonical_lines": 236,
+    "rejected_by_lean": [
+      "addRaisesTotal",
+      "removeCostIsPrice",
+      "removeStep",
+      "removeTakesFirst"
+    ],
+    "lean_errors": 7
   },
   "rewrite": {
     "source": "examples/cart/src/Main.lex.tex",
-    "lines": 178,
+    "lines": 210,
     "theorems": 12,
     "recursive_definitions": [],
     "helper_theorems": [],
@@ -59,6 +67,6 @@
       "total_removeIf_false",
       "total_removeLine"
     ],
-    "lines": 155
+    "lines": 181
   }
 }

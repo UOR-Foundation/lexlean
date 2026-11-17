@@ -29,7 +29,7 @@ workspace carried at those versions without a tag.
   declaration by its statement, and a change under a pin is refused by name. The
   `cart` example rewrites the drafted cart on `Lines`: 12 one-step theorems
   where the draft had 9, 4 recursive definitions, 2 helper lemmas, and 2
-  inductions, 7 of whose theorems did not verify (`docs/app-blocks/cart.json`).
+  inductions, and of whose theorems Lean rejected 4 (`docs/app-blocks/cart.json`).
 
 ## 0.4.3
 

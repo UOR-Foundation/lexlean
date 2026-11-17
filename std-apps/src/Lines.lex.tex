@@ -6,9 +6,7 @@ definition{
   name: total,
   parameters: [lines : (List (Nat * Nat))],
   result: Nat,
-  body: (match lines
-    | List.nil => 0
-    | List.cons head rest => ((second head) + (total rest))),
+  body: (match lines | List.nil => 0 | List.cons head rest => ((second head) + (total rest))),
   executable: true,
   recursive_argument: lines
 }
@@ -48,7 +46,12 @@ definition{
 
 definition{
   name: keepLine,
-  parameters: [same : Bool, head : (Nat * Nat), rest : (List (Nat * Nat)), kept : (List (Nat * Nat))],
+  parameters: [
+    same : Bool,
+    head : (Nat * Nat),
+    rest : (List (Nat * Nat)),
+    kept : (List (Nat * Nat))
+  ],
   result: (List (Nat * Nat)),
   body: (match same | Bool.true => rest | Bool.false => (cons head kept)),
   executable: true
@@ -159,7 +162,11 @@ theorem{
   proof: induction{
     branches: [
       {proof: linear_arithmetic{definitions: [amountOf, total]}, binders: [], constructor: nil},
-      {proof: linear_arithmetic{definitions: [amountOf, total]}, binders: [head, rest, hypothesis], constructor: cons}
+      {
+        proof: linear_arithmetic{definitions: [amountOf, total]},
+        binders: [head, rest, hypothesis],
+        constructor: cons
+      }
     ],
     scrutinee: lines
   },
@@ -168,7 +175,14 @@ theorem{
 
 theorem{
   name: totalStep,
-  parameters: [same : Bool, item : Nat, head : (Nat * Nat), rest : (List (Nat * Nat)), kept : (List (Nat * Nat)), later : Nat],
+  parameters: [
+    same : Bool,
+    item : Nat,
+    head : (Nat * Nat),
+    rest : (List (Nat * Nat)),
+    kept : (List (Nat * Nat)),
+    later : Nat
+  ],
   statement: ((((first head) =? item) = same) -> ((((total kept) + later) = (total rest)) -> (((total (keepLine same head rest kept)) + (if ((first head) =? item) then (second head) else later)) = ((second head) + (total rest))))),
   proof: cases{
     branches: [
@@ -187,7 +201,11 @@ theorem{
   proof: induction{
     branches: [
       {proof: reflexivity{}, binders: [], constructor: nil},
-      {proof: simplify{definitions: [amountOf, hypothesis, removeLine, total, totalStep]}, binders: [head, rest, hypothesis], constructor: cons}
+      {
+        proof: simplify{definitions: [amountOf, hypothesis, removeLine, total, totalStep]},
+        binders: [head, rest, hypothesis],
+        constructor: cons
+      }
     ],
     scrutinee: lines
   },
@@ -196,11 +214,22 @@ theorem{
 
 theorem{
   name: countStep,
-  parameters: [same : Bool, item : Nat, head : (Nat * Nat), rest : (List (Nat * Nat)), kept : (List (Nat * Nat)), later : Nat],
+  parameters: [
+    same : Bool,
+    item : Nat,
+    head : (Nat * Nat),
+    rest : (List (Nat * Nat)),
+    kept : (List (Nat * Nat)),
+    later : Nat
+  ],
   statement: ((((first head) =? item) = same) -> ((((countOf item kept) + later) = (countOf item rest)) -> (((countOf item (keepLine same head rest kept)) + (if ((first head) =? item) then 1 else later)) = ((if ((first head) =? item) then 1 else 0) + (countOf item rest))))),
   proof: cases{
     branches: [
-      {proof: linear_arithmetic{definitions: [countOf, keepLine]}, binders: [], constructor: "false"},
+      {
+        proof: linear_arithmetic{definitions: [countOf, keepLine]},
+        binders: [],
+        constructor: "false"
+      },
       {proof: linear_arithmetic{definitions: [countOf, keepLine]}, binders: [], constructor: "true"}
     ],
     scrutinee: same
@@ -215,7 +244,11 @@ theorem{
   proof: induction{
     branches: [
       {proof: reflexivity{}, binders: [], constructor: nil},
-      {proof: simplify{definitions: [countOf, countStep, hypothesis, removeLine, removedCount]}, binders: [head, rest, hypothesis], constructor: cons}
+      {
+        proof: simplify{definitions: [countOf, countStep, hypothesis, removeLine, removedCount]},
+        binders: [head, rest, hypothesis],
+        constructor: cons
+      }
     ],
     scrutinee: lines
   },
@@ -229,7 +262,11 @@ theorem{
   proof: induction{
     branches: [
       {proof: reflexivity{}, binders: [], constructor: nil},
-      {proof: linear_arithmetic{definitions: [countOf, removedCount]}, binders: [head, rest, hypothesis], constructor: cons}
+      {
+        proof: linear_arithmetic{definitions: [countOf, removedCount]},
+        binders: [head, rest, hypothesis],
+        constructor: cons
+      }
     ],
     scrutinee: lines
   },
@@ -242,8 +279,16 @@ theorem{
   statement: (((total (removeIf allowed item lines)) + (removedAmount allowed item lines)) = (total lines)),
   proof: cases{
     branches: [
-      {proof: linear_arithmetic{definitions: [removeIf, removedAmount]}, binders: [], constructor: "false"},
-      {proof: simplify{definitions: [removeIf, removedAmount, total_removeLine]}, binders: [], constructor: "true"}
+      {
+        proof: linear_arithmetic{definitions: [removeIf, removedAmount]},
+        binders: [],
+        constructor: "false"
+      },
+      {
+        proof: simplify{definitions: [removeIf, removedAmount, total_removeLine]},
+        binders: [],
+        constructor: "true"
+      }
     ],
     scrutinee: allowed
   },

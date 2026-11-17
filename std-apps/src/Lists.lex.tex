@@ -102,7 +102,11 @@ theorem{
   proof: induction{
     branches: [
       {proof: linear_arithmetic{definitions: [appendItems, sumBy]}, binders: [], constructor: nil},
-      {proof: linear_arithmetic{definitions: [appendItems, sumBy]}, binders: [head, rest, hypothesis], constructor: cons}
+      {
+        proof: linear_arithmetic{definitions: [appendItems, sumBy]},
+        binders: [head, rest, hypothesis],
+        constructor: cons
+      }
     ],
     scrutinee: items
   },
@@ -115,8 +119,16 @@ theorem{
   statement: ((countOf item (appendItems items more)) = ((countOf item items) + (countOf item more))),
   proof: induction{
     branches: [
-      {proof: linear_arithmetic{definitions: [appendItems, countOf]}, binders: [], constructor: nil},
-      {proof: linear_arithmetic{definitions: [appendItems, countOf]}, binders: [head, rest, hypothesis], constructor: cons}
+      {
+        proof: linear_arithmetic{definitions: [appendItems, countOf]},
+        binders: [],
+        constructor: nil
+      },
+      {
+        proof: linear_arithmetic{definitions: [appendItems, countOf]},
+        binders: [head, rest, hypothesis],
+        constructor: cons
+      }
     ],
     scrutinee: items
   },
@@ -141,12 +153,27 @@ theorem{
 
 theorem{
   name: removeStep,
-  parameters: [same : Bool, item : Nat, head : Nat, rest : (List Nat), kept : (List Nat), later : Nat],
+  parameters: [
+    same : Bool,
+    item : Nat,
+    head : Nat,
+    rest : (List Nat),
+    kept : (List Nat),
+    later : Nat
+  ],
   statement: (((head =? item) = same) -> ((((countOf item kept) + later) = (countOf item rest)) -> (((countOf item (keepUnless same head rest kept)) + (if (head =? item) then 1 else later)) = ((oneIf (head =? item)) + (countOf item rest))))),
   proof: cases{
     branches: [
-      {proof: linear_arithmetic{definitions: [countOf, keepUnless, oneIf]}, binders: [], constructor: "false"},
-      {proof: linear_arithmetic{definitions: [countOf, keepUnless, oneIf]}, binders: [], constructor: "true"}
+      {
+        proof: linear_arithmetic{definitions: [countOf, keepUnless, oneIf]},
+        binders: [],
+        constructor: "false"
+      },
+      {
+        proof: linear_arithmetic{definitions: [countOf, keepUnless, oneIf]},
+        binders: [],
+        constructor: "true"
+      }
     ],
     scrutinee: same
   },
@@ -160,7 +187,11 @@ theorem{
   proof: induction{
     branches: [
       {proof: reflexivity{}, binders: [], constructor: nil},
-      {proof: simplify{definitions: [countOf, hypothesis, removeFirst, removeStep, removedOne]}, binders: [head, rest, hypothesis], constructor: cons}
+      {
+        proof: simplify{definitions: [countOf, hypothesis, removeFirst, removeStep, removedOne]},
+        binders: [head, rest, hypothesis],
+        constructor: cons
+      }
     ],
     scrutinee: items
   },
@@ -174,7 +205,11 @@ theorem{
   proof: induction{
     branches: [
       {proof: reflexivity{}, binders: [], constructor: nil},
-      {proof: linear_arithmetic{definitions: [countOf, oneIf, removedOne]}, binders: [head, rest, hypothesis], constructor: cons}
+      {
+        proof: linear_arithmetic{definitions: [countOf, oneIf, removedOne]},
+        binders: [head, rest, hypothesis],
+        constructor: cons
+      }
     ],
     scrutinee: items
   },
@@ -188,7 +223,11 @@ theorem{
   proof: induction{
     branches: [
       {proof: linear_arithmetic{definitions: [removedOne]}, binders: [], constructor: nil},
-      {proof: linear_arithmetic{definitions: [removedOne]}, binders: [head, rest, hypothesis], constructor: cons}
+      {
+        proof: linear_arithmetic{definitions: [removedOne]},
+        binders: [head, rest, hypothesis],
+        constructor: cons
+      }
     ],
     scrutinee: items
   },

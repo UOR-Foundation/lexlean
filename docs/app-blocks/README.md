@@ -8,7 +8,7 @@ are its register rows. This page says how to use it.
 ## Why it exists
 
 An agent-written cart had to invent a sum, a count and a remove-first, then
-prove that removal conserves the sum. Seven of its theorems failed. The
+prove that removal conserves the sum. Lean rejected 4 of its 9 theorems. The
 failures came from the proof steps themselves, not from the agent:
 
 - `linear_arithmetic` unfolds definitions but cannot cite a theorem.
@@ -61,7 +61,7 @@ verdant-engine, the cart draft and this repository's examples.
 
 `examples/cart` is the worked case. It has 12 theorems, each one step. The
 draft it replaces had 4 recursive definitions, 2 helper lemmas and 2
-inductions. The cart reaches 17 declarations of `Lines` (155 lines), and the
+inductions. The cart reaches 17 declarations of `Lines` (181 lines), and the
 application no longer writes any of them. `cart.json` records these counts.
 
 ## Stability: pins and versions

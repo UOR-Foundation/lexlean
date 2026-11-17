@@ -34,7 +34,13 @@ theorem{
 theorem{
   name: run_cons,
   type_parameters: [S, E],
-  parameters: [faults : (Fn ('S) Nat), step : (Fn ('S 'E) 'S), state : 'S, event : 'E, rest : (List 'E)],
+  parameters: [
+    faults : (Fn ('S) Nat),
+    step : (Fn ('S 'E) 'S),
+    state : 'S,
+    event : 'E,
+    rest : (List 'E)
+  ],
   statement: ((run ['S, 'E] faults step state (cons event rest)) = (run ['S, 'E] faults step (guarded ['S, 'E] faults step state event) rest)),
   proof: reflexivity{}
 }
@@ -65,7 +71,11 @@ theorem{
   proof: induction{
     branches: [
       {proof: reflexivity{}, binders: [], constructor: nil},
-      {proof: simplify{definitions: [guarded_keeps, hypothesis, run]}, binders: [event, rest, hypothesis], constructor: cons}
+      {
+        proof: simplify{definitions: [guarded_keeps, hypothesis, run]},
+        binders: [event, rest, hypothesis],
+        constructor: cons
+      }
     ],
     generalizing: [state],
     scrutinee: events
