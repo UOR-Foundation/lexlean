@@ -88,7 +88,11 @@ def step (t : Tables) (j : Json) : Except String (Tables × Option (Name × Expr
   if let .ok id := nat j "il" then
     let l ← if let .ok s := nat j "succ" then pure (Level.succ (← level t s))
       else if let .ok p := j.getObjVal? "param" then pure (Level.param (← name t (Json.mkObj [("p", p)]) "p"))
-      else throw "a level other than succ or param"
+      else if let .ok m := j.getObjVal? "max" then
+        pure (Level.max (← level t (← (← m.getArrVal? 0).getNat?)) (← level t (← (← m.getArrVal? 1).getNat?)))
+      else if let .ok m := j.getObjVal? "imax" then
+        pure (Level.imax (← level t (← (← m.getArrVal? 0).getNat?)) (← level t (← (← m.getArrVal? 1).getNat?)))
+      else throw "a level other than succ, max, imax, or param"
     return ({ t with levels := t.levels.insert id l }, none)
   if let .ok id := nat j "ie" then
     let e ←
