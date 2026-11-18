@@ -238,6 +238,100 @@ pub struct RenderedBuild {
     pub manifest_bytes: Vec<u8>,
 }
 
+/// One Lean module a host elaborates for a selection (§23.4 `lean-modules`).
+pub(crate) struct LeanModule {
+    /// `text-laws` or `runtime` for a shipped library module, `project` for
+    /// a generated module of the selection.
+    kind: &'static str,
+    /// The source module name of a project module.
+    module: Option<String>,
+    /// The Lean module name.
+    lean_module: String,
+    /// The exact Lean text: for a project module, the bytes `build` writes
+    /// at its `modules/` path.
+    text: String,
+}
+
+/// The `lexlean/lean-modules/1` document: every Lean module a host
+/// elaborates for a selection, in elaboration order, and the identities that
+/// pin them (§23.4).
+pub(crate) struct LeanModules {
+    language: String,
+    semantics_id: Sha256Digest,
+    source_id: Sha256Digest,
+    semantic_id: Sha256Digest,
+    build_id: Sha256Digest,
+    modules: Vec<LeanModule>,
+}
+
+impl LeanModules {
+    /// The source module names of the project modules.
+    pub(crate) fn project_modules(&self) -> BTreeSet<String> {
+        self.modules
+            .iter()
+            .filter_map(|module| module.module.clone())
+            .collect()
+    }
+
+    /// The source ID.
+    pub(crate) fn source_id(&self) -> Sha256Digest {
+        self.source_id
+    }
+
+    /// The semantic ID.
+    pub(crate) fn semantic_id(&self) -> Sha256Digest {
+        self.semantic_id
+    }
+
+    /// The build ID `build` publishes the same modules under.
+    pub(crate) fn build_id(&self) -> Sha256Digest {
+        self.build_id
+    }
+
+    /// The canonical file bytes of the document.
+    pub(crate) fn canonical_bytes(&self) -> Vec<u8> {
+        let modules = self
+            .modules
+            .iter()
+            .map(|module| {
+                let mut row = vec![
+                    ("kind", Json::Str(module.kind.to_owned())),
+                    ("lean_module", Json::Str(module.lean_module.clone())),
+                    (
+                        "sha256",
+                        Json::Str(Sha256Digest::of(module.text.as_bytes()).to_hex()),
+                    ),
+                    ("text", Json::Str(module.text.clone())),
+                ];
+                if let Some(name) = &module.module {
+                    row.push(("module", Json::Str(name.clone())));
+                }
+                Json::object(row)
+            })
+            .collect();
+        Json::object(vec![
+            ("spec", Json::Str("lexlean/lean-modules/1".to_owned())),
+            (
+                "compiler",
+                Json::object(vec![
+                    ("version", Json::Str(crate::COMPILER_VERSION.to_owned())),
+                    ("semantics_id", Json::Str(self.semantics_id.to_hex())),
+                ]),
+            ),
+            ("language", Json::Str(self.language.clone())),
+            (
+                "lean_toolchain",
+                Json::Str(crate::LEAN_TOOLCHAIN.to_owned()),
+            ),
+            ("source_id", Json::Str(self.source_id.to_hex())),
+            ("semantic_id", Json::Str(self.semantic_id.to_hex())),
+            ("build_id", Json::Str(self.build_id.to_hex())),
+            ("modules", Json::Arr(modules)),
+        ])
+        .to_file_bytes()
+    }
+}
+
 fn file_row(kind: &str, path: &str, bytes: &[u8]) -> FileRow {
     FileRow {
         kind: kind.to_owned(),
@@ -977,6 +1071,90 @@ impl Engine {
             &self.project.config.language,
             crate::compiler_semantics_id_for(&self.project.config.language),
         ))
+    }
+
+    /// The Lean modules of a selection as `lexlean lean-modules` prints them
+    /// (§23.4): the `check` pipeline and [`render_build`], with no lock and
+    /// no publication, so it runs where `build` is refused (§8.3). It is not
+    /// an [`Engine`] method of §24.1; the CLI is its one caller.
+    pub(crate) fn lean_modules(&self, request: &BuildRequest) -> Result<LeanModules, LexLeanError> {
+        self.bound("lean-modules", self.lean_modules_inner(request))
+    }
+
+    fn lean_modules_inner(&self, request: &BuildRequest) -> Result<LeanModules, LexLeanError> {
+        let (checked, _lock) = self.checked(&request.selection)?;
+        let rendered = render_build(&self.project, &checked)?;
+        let mut modules: Vec<LeanModule> = Vec::new();
+        // The shipped libraries the generated modules import come first, in
+        // the order verification compiles them (§22.3): the text laws, then
+        // the runtime closed under its own imports, leaving out a runtime
+        // module the project generates itself (the runtime's own project).
+        if rendered
+            .modules
+            .iter()
+            .any(|module| crate::text_laws::imports_laws(&module.lean_text))
+        {
+            for file in crate::text_laws::stage().map_err(LexLeanError::from_diagnostic)? {
+                modules.push(LeanModule {
+                    kind: "text-laws",
+                    module: None,
+                    lean_module: file.module,
+                    text: file.text,
+                });
+            }
+        }
+        let runtime = crate::backend::runtime::imported_by(
+            rendered
+                .modules
+                .iter()
+                .map(|module| module.lean_text.as_str()),
+        )
+        .map_err(LexLeanError::from_diagnostic)?;
+        for library in runtime {
+            if rendered
+                .modules
+                .iter()
+                .any(|module| module.lean_module == library.name)
+            {
+                continue;
+            }
+            modules.push(LeanModule {
+                kind: "runtime",
+                module: None,
+                lean_module: library.name.clone(),
+                text: library.text.clone(),
+            });
+        }
+        // The project's modules in the order verification elaborates them:
+        // topological frontiers of the import graph, each in module order.
+        let frontiers = crate::verify::partition::elaboration_order(
+            rendered.modules.len(),
+            &|index| rendered.modules[index].module.clone(),
+            &|index| {
+                checked.modules[&rendered.modules[index].module]
+                    .document
+                    .imports
+                    .to_vec()
+            },
+        )
+        .map_err(LexLeanError::from_diagnostic)?;
+        for index in frontiers.into_iter().flatten() {
+            let module = &rendered.modules[index];
+            modules.push(LeanModule {
+                kind: "project",
+                module: Some(module.module.clone()),
+                lean_module: module.lean_module.clone(),
+                text: module.lean_text.clone(),
+            });
+        }
+        Ok(LeanModules {
+            language: self.project.config.language.clone(),
+            semantics_id: crate::compiler_semantics_id_for(&self.project.config.language),
+            source_id: checked.source_id,
+            semantic_id: checked.semantic_id,
+            build_id: rendered.build_id,
+            modules,
+        })
     }
 
     fn check_inner(

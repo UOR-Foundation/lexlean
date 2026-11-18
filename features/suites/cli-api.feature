@@ -186,6 +186,12 @@ Feature: cli-api
     When lexlean snapshot runs in human and json mode on each, natively and under the WASI host
     Then human mode prints exactly the canonical snapshot bytes with check's IDs, json mode prints check's command result named snapshot, a refused project prints no snapshot and check's diagnostics, nothing is written, and the WASI bytes equal the native bytes
 
+  @CL-27 @build
+  Scenario: lexlean lean-modules prints the Lean modules a build of a selection elaborates and takes no lock and writes nothing: in human mode its stdout is the canonical lexlean/lean-modules/1 document, whose project modules are exactly the Lean files lexlean build publishes under the same build ID, byte for byte, after the shipped text-laws and runtime modules they import, each module after every module it imports, with the compiler semantics ID and pinned Lean toolchain of the build manifest; in json mode it prints one command result named lean-modules with check's IDs and that build ID; a project check refuses gives the same exit code and diagnostics and no document; and the executable built for wasm32-wasip1 and run by a WASI host, where build is refused, prints the same bytes on every example that checks.
+    Given every example project that checks, one whose module check refuses, and the lexlean executable built for wasm32-wasip1 run by Node's node:wasi
+    When lexlean lean-modules runs in human and json mode on each, natively and under the WASI host, and lexlean build runs natively on the same project
+    Then the document's project modules are the Lean files build publishes under its build ID with the manifest's toolchain and compiler, the shipped modules are the compiler's own and precede their importers, json mode prints check's IDs and the build ID, a refused project prints no document and check's diagnostics, nothing is written, and the WASI bytes equal the native bytes
+
   @CL-25 @build
   Scenario: The lexlean executable builds for wasm32-wasip1 with the pinned toolchain and, run by a WASI host, gives the native executable's exit code and JSON output for check on every single-step check fixture and every example; there a module with two names of one file is refused with LLC0104, nesting beyond the depth its linked stack hosts is refused with LLS8002, and a command that changes the project is refused with LLV7010 and leaves the project unchanged.
     Given the lexlean executable built for wasm32-wasip1 from this tree and Node's node:wasi over the real file system

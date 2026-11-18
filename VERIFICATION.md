@@ -1030,6 +1030,40 @@ That the pinned Lean indexes an array in constant time and writes one in
 place when it is referenced once is cited (`LEAN-ARRAY-4-32-2`), not gated
 here: no case measures time.
 
+### lean-modules can differ from build, write, or differ on WASI (CL-27)
+
+`CL-27` holds `lexlean lean-modules` (§23.4). `conformance_cl_27` runs it on
+every example project that checks, then runs `build` on the same copy. The
+document must be canonical JSON, and it must write nothing. Its build ID,
+language, Lean toolchain, compiler, and source and semantic IDs must be the
+manifest's. It must have one `project` row per Lean output of the manifest,
+whose text is the file `build` wrote, byte for byte, and whose `sha256` is that
+file's manifest row. Its `runtime` and `text-laws` rows must be the compiler's
+own texts, and every row must come after each row it imports. In JSON mode the
+command result must name `lean-modules` with `check`'s IDs and modules, the
+build ID, and no artifact. A module `check` refuses must give `check`'s exit
+code and diagnostics and no document. Built for `wasm32-wasip1` and run under
+Node's `node:wasi`, the executable must print the native bytes on every example
+and write nothing, and `build` must stay refused there. The case passed in
+552 s, the module build included, on Linux x86-64 (WSL 2): 18 documents agree.
+
+Planted: the project text loses its final LF.
+
+```text
+CL-27: .../examples/collections: Collections.Tables is the bytes build writes at modules/Collections/Tables.lean
+```
+
+The first run of the case also found a real defect. On WASI the printer of a
+native core module asked for a thread, so `examples/uor-atlas` was refused:
+
+```text
+error[LLS8002]: a stack of 5324800 bytes for rendering a native core module 87 expressions deep could not be reserved: Not supported (os error 58)
+```
+
+The printer now runs on the instance's linked stack there, and the
+`uor-atlas` document, 54,153,022 bytes, is the native one. Under Node 22 it
+renders in 44 s; `models` takes 1.6 s and `nat-add-zero` 0.8 s.
+
 ### snapshot can differ from the API, write, or differ on WASI (CL-26)
 
 `CL-26` holds `lexlean snapshot` (§23.4). `conformance_cl_26` runs it on every

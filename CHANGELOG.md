@@ -17,6 +17,23 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- `lexlean lean-modules [--all | INPUT...]` prints the Lean modules a build
+  of a selection elaborates (SPEC.md §23.4, `CL-27`). It renders the build as
+  `build` does and publishes nothing, so it takes no lock and writes nothing,
+  and the executable built for `wasm32-wasip1`, where `build` is refused,
+  prints the native bytes. Human mode writes one canonical
+  `lexlean/lean-modules/1` document: the manifest's compiler, language, Lean
+  toolchain, and source, semantic, and build IDs, then every module in the
+  order verification elaborates it, the shipped text-laws and runtime modules
+  the project imports first, each with its Lean module name, exact text, and
+  SHA-256. A project module's text is the file `build` writes under that build
+  ID, byte for byte. JSON mode writes `check`'s command result named
+  `lean-modules` with the build ID. A host with Lean and no file lock, such as
+  a browser worker, can now elaborate exactly what native LexLean generates.
+  On `wasm32-wasip1` the printer of a native core module now runs on the
+  instance's one stack instead of a thread WASI cannot start, which refused
+  `examples/uor-atlas` with `LLS8002`; no native output changes. No language
+  identity moves; the register is 501.
 - `lexlean snapshot [--all | INPUT...]` writes the semantic snapshot of a
   selection (SPEC.md §23.4, `CL-26`). In human mode its stdout is exactly the
   snapshot's canonical file bytes, the bytes `Engine::snapshot` serializes, so

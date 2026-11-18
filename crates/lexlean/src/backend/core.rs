@@ -1475,7 +1475,31 @@ fn elaborator_state(row: &CoreDeclaration) -> Option<String> {
     (!parts.is_empty()).then(|| parts.join("; "))
 }
 
+/// Run `work` on the instance's one stack: WASI has no threads (§8.3). The
+/// check pipeline admitted the module on that same stack, linked at
+/// `config::WASI_STACK_BYTES` and planned at more bytes a level than the
+/// printer uses, so a module that checks there renders there; one deeper
+/// than the stack holds is refused as a stack that cannot be had elsewhere.
+#[cfg(target_os = "wasi")]
+fn on_stack_for<T: Send>(depth: u64, work: impl FnOnce() -> T + Send) -> Result<T, Diagnostic> {
+    let bytes = usize::try_from(depth)
+        .unwrap_or(usize::MAX)
+        .saturating_mul(48 << 10)
+        .saturating_add(1 << 20);
+    if bytes > crate::config::WASI_STACK_BYTES {
+        return Err(Diagnostic::new(
+            code!("LLS8002"),
+            format!(
+                "a stack of {bytes} bytes for rendering a native core module {depth} expressions deep exceeds the {} bytes this host links",
+                crate::config::WASI_STACK_BYTES
+            ),
+        ));
+    }
+    Ok(work())
+}
+
 /// Run `work` on a thread whose stack is sized for expressions `depth` deep.
+#[cfg(not(target_os = "wasi"))]
 fn on_stack_for<T: Send>(depth: u64, work: impl FnOnce() -> T + Send) -> Result<T, Diagnostic> {
     let bytes = usize::try_from(depth)
         .unwrap_or(usize::MAX)

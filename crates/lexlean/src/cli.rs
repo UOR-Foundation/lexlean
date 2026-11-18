@@ -104,6 +104,14 @@ enum CommandKind {
         /// Explicit input modules.
         inputs: Vec<Utf8PathBuf>,
     },
+    /// Write the Lean modules a build of a selection elaborates to stdout.
+    LeanModules {
+        /// Every module beneath every source root.
+        #[arg(long)]
+        all: bool,
+        /// Explicit input modules.
+        inputs: Vec<Utf8PathBuf>,
+    },
     /// Build a selection to the fixed content-addressed layout.
     Build {
         /// Every module beneath every source root.
@@ -173,11 +181,12 @@ enum ProductionAction {
 }
 
 /// The command names, in the order of §23.4.
-const COMMAND_NAMES: [&str; 11] = [
+const COMMAND_NAMES: [&str; 12] = [
     "init",
     "lock",
     "check",
     "snapshot",
+    "lean-modules",
     "build",
     "verify",
     "fmt",
@@ -439,7 +448,8 @@ struct Outcome {
     summary: String,
     explanation: Option<String>,
     /// The bytes human mode writes in place of a summary: the semantic
-    /// snapshot's canonical file bytes for `snapshot` (§23.4).
+    /// snapshot's canonical file bytes for `snapshot`, the
+    /// `lexlean/lean-modules/1` document for `lean-modules` (§23.4).
     document: Option<Vec<u8>>,
 }
 
@@ -584,6 +594,7 @@ pub fn run(
         CommandKind::Lock { .. } => "lock",
         CommandKind::Check { .. } => "check",
         CommandKind::Snapshot { .. } => "snapshot",
+        CommandKind::LeanModules { .. } => "lean-modules",
         CommandKind::Build { .. } => "build",
         CommandKind::Verify { .. } => "verify",
         CommandKind::Fmt { .. } => "fmt",
@@ -690,6 +701,19 @@ pub fn run(
                     outcome.ids.source_id = Some(snapshot.source_id());
                     outcome.ids.semantic_id = Some(snapshot.semantic_id());
                     outcome.document = Some(snapshot.canonical_bytes());
+                    Ok(())
+                }
+                CommandKind::LeanModules { all, inputs } => {
+                    // `build`'s rendering without its publication, so it
+                    // takes no lock and writes nothing (§8.3, §23.4).
+                    let rendered = engine.lean_modules(&BuildRequest {
+                        selection: selection_from(all, inputs)?,
+                    })?;
+                    outcome.modules = rendered.project_modules();
+                    outcome.ids.source_id = Some(rendered.source_id());
+                    outcome.ids.semantic_id = Some(rendered.semantic_id());
+                    outcome.ids.build_id = Some(rendered.build_id());
+                    outcome.document = Some(rendered.canonical_bytes());
                     Ok(())
                 }
                 CommandKind::Build { all, inputs } => {
