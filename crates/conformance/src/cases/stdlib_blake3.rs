@@ -451,7 +451,15 @@ fn run_on_stack() {
             "{name}: {}",
             String::from_utf8_lossy(&ran.stderr)
         );
-        crate::stack_bounds::observe(&format!("stdlib/{name}"), &binary);
+        // PD-08: the harness crates are named for the member, the committed
+        // packages for the root, as `roots.json` lists them.
+        let package = match *member {
+            "blake3" => "stdlib/blake3",
+            "blake3Hex" => "stdlib/blake3_hex",
+            "pieceChain" => "stdlib/piece_chain",
+            _ => "stdlib/piece_root",
+        };
+        crate::stack_bounds::observe(package, &binary);
         let stdout = String::from_utf8(ran.stdout).expect("utf8");
         let printed: Vec<Json> = stdout
             .lines()
