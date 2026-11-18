@@ -672,7 +672,7 @@ pub(crate) fn run(id: &str) {
             assert!(
                 rendered.contains(&format!(
                     ".lexlean/build/{}",
-                    fresh_build.build_id.expect("built").label()
+                    fresh_build.build_id.expect("built").hex()
                 )),
                 "the build directory is project-relative: {rendered}"
             );

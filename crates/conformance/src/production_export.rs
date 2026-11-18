@@ -148,7 +148,7 @@ pub fn gnaf_evidence(project: &P) -> Gnaf {
         {"function": summing.clone(), "prepares": []},
         {"function": summing, "prepares": []},
     ]);
-    request["universe"] = serde_json::json!("0".repeat(64));
+    request["universe"] = serde_json::json!(format!("blake3:{}", "0".repeat(64)));
     let mut parsed: lexlean::gnaf::Request =
         serde_json::from_value(request).expect("a request value");
     parsed.universe = lexlean::gnaf::universe_id(&parsed).expect("universe");

@@ -673,7 +673,7 @@ pub fn run(
                         let artifact = format!(
                             "{}/build/{}",
                             engine.project().config.build_root,
-                            id.label()
+                            id.hex()
                         );
                         outcome.summary =
                             format!("built {} at {artifact}\n", modules(result.units.len()));
@@ -693,7 +693,7 @@ pub fn run(
                     outcome.artifacts.push(format!(
                         "{}/verified/{}",
                         engine.project().config.build_root,
-                        result.attestation_id.label()
+                        result.attestation_id.hex()
                     ));
                     outcome.summary = format!(
                         "verified {}; attestation {}\n",
