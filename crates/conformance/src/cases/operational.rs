@@ -950,7 +950,7 @@ fn parts_equal_the_whole() {
             .join("lake");
         let mut changed = std::fs::read(&pinned).expect("the pinned lake");
         changed.push(0);
-        let changed_address = lexlean::Kappa::of(&changed).to_hex();
+        let changed_address = lexlean::Kappa::of(&changed).label();
         let home = support::fake_elan_home(&[("lake".to_owned(), changed)]);
         let home_text = home.path().to_string_lossy().into_owned();
         let project = P::copy_example(example);
