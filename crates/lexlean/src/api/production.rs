@@ -1443,13 +1443,7 @@ fn build_inner(
     // The bundle states exactly what it holds; replay is the check.
     replay_files(&files)?;
     let guard = acquire_lock(project)?;
-    publish_tree(
-        project,
-        BUNDLE_AREA,
-        &result.result_id.hex().to_owned(),
-        &files,
-        &guard,
-    )?;
+    publish_tree(project, BUNDLE_AREA, result.result_id.hex(), &files, &guard)?;
     drop(guard);
     Ok(ProductionOutput {
         bundle: Utf8PathBuf::from(format!(
@@ -1667,11 +1661,7 @@ fn replay_files(files: &[(String, Vec<u8>)]) -> Result<ReplayReport, LexLeanErro
     )?;
     bind(
         "the compiler input the attestation binds",
-        attestation.compiler_input
-            == (
-                compiler_input.len() as u64,
-                Kappa::of(compiler_input),
-            ),
+        attestation.compiler_input == (compiler_input.len() as u64, Kappa::of(compiler_input)),
     )?;
     require_compiler_input_identity(compiler_input).map_err(replay_error)?;
     bind(
@@ -1687,7 +1677,7 @@ fn replay_files(files: &[(String, Vec<u8>)]) -> Result<ReplayReport, LexLeanErro
         .into_iter()
         .map(|descriptor| (descriptor.id.clone(), descriptor))
         .collect();
-    let semantic_hex = result.source.semantic_id.hex().to_owned();
+    let semantic_hex = result.source.semantic_id.label();
 
     if !strictly_ascending(&result.roots, |root| root.root.clone()) || result.roots.is_empty() {
         return Err(replay_error(

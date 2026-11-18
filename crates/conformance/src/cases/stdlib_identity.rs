@@ -60,9 +60,10 @@ pub(super) fn run(id: &str) {
     let root = support::repo_root();
 
     // Armed: the two sides are two implementations, so agreement is evidence.
-    super::stdlib_digest::has_no_hash_crate(&super::stdlib_digest::workspace_metadata()).unwrap_or_else(
-        |reason| panic!("{reason}: the compiler's digest and the oracle are one implementation"),
-    );
+    super::stdlib_digest::has_no_hash_crate(&super::stdlib_digest::workspace_metadata())
+        .unwrap_or_else(|reason| {
+            panic!("{reason}: the compiler's digest and the oracle are one implementation")
+        });
 
     // Every tracked file, by the compiler and by the oracle.
     let listing = std::process::Command::new("git")
@@ -150,9 +151,7 @@ pub(super) fn run(id: &str) {
     let last = pin.len() - 1;
     pin[last] = if pin[last] == b'0' { b'1' } else { b'0' };
     assert_ne!(
-        lexlean::compiler_semantics_id_for("1.2")
-            .label()
-            .as_bytes(),
+        lexlean::compiler_semantics_id_for("1.2").label().as_bytes(),
         pin.as_slice(),
         "a bit changed in a pinned compiler-semantics ID is found"
     );

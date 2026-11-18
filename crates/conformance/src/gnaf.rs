@@ -1122,19 +1122,25 @@ pub const AUTHORITY: (&str, &str, &str, &str) = (
 /// The vendored copy of the authority, relative to the repository root.
 pub const AUTHORITY_PATH: &str = "model/authorities/UOR-GNAF-v1-draft.2.md";
 
+/// The κ-label of the vendored copy (SPEC.md §21.1): LexLean's pin of it. The
+/// last member of [`AUTHORITY`] is the SHA-256 the issuer's repository pins,
+/// the external digest bound to it.
+pub const AUTHORITY_KAPPA: &str =
+    "blake3:71918658ef59d3a62babc34da1b84b96f455e41767533ad7009e8a91e6efbe43";
+
 /// UOR-GNAF §20's dependency manifest: the draft's exact revision, every
 /// profile this instantiation depends on with its role, every restriction
 /// of the admitted universe, and the strongest honest claim classes.
 #[must_use]
 pub fn manifest() -> Json {
-    let (authority, identifier, revision, sha256) = AUTHORITY;
+    let (authority, identifier, revision, _) = AUTHORITY;
     json!({
         "spec": MANIFEST_SPEC,
         "authority": {
             "id": authority,
             "identifier": identifier,
             "revision": revision,
-            "sha256": sha256,
+            "kappa": AUTHORITY_KAPPA,
             "vendored": AUTHORITY_PATH,
         },
         "profiles": [
@@ -1170,7 +1176,7 @@ pub fn manifest() -> Json {
              "statement": "lexlean/gnaf-request/2 is LexLean's own request form; no UOR-GNAF interchange profile is claimed."},
             {"name": "address", "role": "realization-only",
              "source": "crates/lexlean/src/gnaf.rs",
-             "statement": "The SystemUniverseId is the framed SHA-256 lexlean-gnaf-universe-v1 of the problem, machine, and carrier; no UOR-GNAF address profile is claimed."},
+             "statement": "The SystemUniverseId is the framed κ-label lexlean-gnaf-universe-v2 of the problem, machine, and carrier; no UOR-GNAF address profile is claimed."},
         ],
         "measured": [],
         "restrictions": [

@@ -1167,8 +1167,7 @@ pub fn run(id: &str) {
                 for path in ["Cargo.toml", "src/lib.rs"] {
                     assert_eq!(
                         provenance["files"][path],
-                        lexlean::artifact::content_id::Kappa::of(&first.files[path])
-                            .label(),
+                        lexlean::artifact::content_id::Kappa::of(&first.files[path]).label(),
                         "{shown}/{path}"
                     );
                 }

@@ -163,10 +163,7 @@ impl Store {
                     return;
                 };
                 let suffix = &file[stem.len()..];
-                digests.push_str(&format!(
-                    "{index} {} {suffix}\n",
-                    Kappa::of(&bytes).label()
-                ));
+                digests.push_str(&format!("{index} {} {suffix}\n", Kappa::of(&bytes).label()));
                 if std::fs::write(scratch.path().join(format!("{position}.out")), bytes).is_err() {
                     return;
                 }
@@ -193,12 +190,7 @@ impl Store {
 /// The key of one process: its tool, executable, normalized arguments, and
 /// the content identity of the module it is about.
 #[must_use]
-pub fn key(
-    tool: &str,
-    executable: Kappa,
-    argv: &[String],
-    identity: Kappa,
-) -> Kappa {
+pub fn key(tool: &str, executable: Kappa, argv: &[String], identity: Kappa) -> Kappa {
     let mut bytes = Vec::new();
     for part in [DOMAIN, tool, &executable.label(), &identity.label()] {
         bytes.extend_from_slice(part.as_bytes());
@@ -489,11 +481,8 @@ impl Session {
         }
         inside.sort();
         inside.dedup();
-        let mut bytes = format!(
-            "{DOMAIN}\0prefix\0{name}\0{}\0",
-            self.module(name)?.label()
-        )
-        .into_bytes();
+        let mut bytes =
+            format!("{DOMAIN}\0prefix\0{name}\0{}\0", self.module(name)?.label()).into_bytes();
         for module in inside {
             bytes.extend_from_slice(
                 format!("{module}\0{}\0", self.module(&module)?.label()).as_bytes(),
@@ -540,9 +529,7 @@ impl Session {
                 .then(|| Kappa::of(format!("{DOMAIN}\0toolchain\0{name}").as_bytes()));
         };
         if open.iter().any(|other| other == name) {
-            return Some(Kappa::of(
-                format!("{DOMAIN}\0cycle\0{name}").as_bytes(),
-            ));
+            return Some(Kappa::of(format!("{DOMAIN}\0cycle\0{name}").as_bytes()));
         }
         open.push(name.to_owned());
         let identity = self.of_text(name, &text, open);
@@ -555,11 +542,8 @@ impl Session {
     }
 
     fn of_text(&self, label: &str, text: &[u8], open: &mut Vec<String>) -> Option<Kappa> {
-        let mut bytes = format!(
-            "{DOMAIN}\0module\0{label}\0{}\0",
-            Kappa::of(text).label()
-        )
-        .into_bytes();
+        let mut bytes =
+            format!("{DOMAIN}\0module\0{label}\0{}\0", Kappa::of(text).label()).into_bytes();
         for import in imports(&String::from_utf8_lossy(text)) {
             let identity = self.visit(&import, open)?;
             bytes.extend_from_slice(format!("{import}\0{}\0", identity.label()).as_bytes());

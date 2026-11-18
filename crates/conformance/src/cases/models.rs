@@ -10,7 +10,7 @@
 use std::collections::BTreeSet;
 use std::sync::OnceLock;
 
-use lexlean::{CheckRequest, Selection, Kappa, VerifyRequest};
+use lexlean::{CheckRequest, Kappa, Selection, VerifyRequest};
 use serde_json::{json, Value as Json};
 
 use crate::support::{self, VerifiedFixture, P};
@@ -369,7 +369,7 @@ fn md_01() {
     let nat = json!({"kind": "nat"});
     let under_1_1 = [
         (
-            json!({"kind": "artifact", "name": "w", "role": "binary", "kappa": "0".repeat(64),
+            json!({"kind": "artifact", "name": "w", "role": "binary", "kappa": format!("blake3:{}", "0".repeat(64)),
                    "length": 1, "schema": {"kind": "bytes"}, "type": {"kind": "bytes"}}),
             "`artifact declaration` is a language-1.2 construct",
         ),
@@ -781,7 +781,7 @@ fn md_02() {
     });
     refused(&length, "LLR3007", "has 5 bytes, not the declared length 6");
     let unconfigured = mutated("Recognizer", "banner", |declaration| {
-        declaration["kappa"] = json!("0".repeat(64));
+        declaration["kappa"] = json!(format!("blake3:{}", "0".repeat(64)));
     });
     refused(&unconfigured, "LLR3007", "has no project artifact source");
     // LLR3008: shape, element, type, role, encoding.

@@ -2144,9 +2144,7 @@ impl SemanticDeclaration {
         let canonical = crate::artifact::canonical_json::Json::parse(text.as_bytes())
             .expect("serialized definition is JSON")
             .to_canonical_string();
-        Some(crate::artifact::content_id::Kappa::of(
-            canonical.as_bytes(),
-        ))
+        Some(crate::artifact::content_id::Kappa::of(canonical.as_bytes()))
     }
 }
 

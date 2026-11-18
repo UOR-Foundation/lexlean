@@ -283,10 +283,7 @@ fn global_json(global: &GlobalRef) -> Json {
         GlobalRef::DefinedLexicon(defined) => Json::object(vec![
             ("kind", Json::Str("defined".to_owned())),
             ("entry", Json::Str(defined.entry.clone())),
-            (
-                "signature_kappa",
-                Json::Str(defined.signature_hash.label()),
-            ),
+            ("signature_kappa", Json::Str(defined.signature_hash.label())),
         ]),
     }
 }

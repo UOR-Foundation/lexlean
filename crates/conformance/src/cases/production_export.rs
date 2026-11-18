@@ -9,7 +9,7 @@ use lexlean::api::production::{
     self, CertificateRole, CertificationStatus, Evidence, EvidenceKind, Expectation, Optimality,
     PackageName, ProductionRequest, ProductionResult, RootRequest, TargetRef, REQUEST_SPEC,
 };
-use lexlean::{Engine, LexLeanError, Kappa};
+use lexlean::{Engine, Kappa, LexLeanError};
 
 use crate::production_consumer;
 use crate::production_export::{self as harness, Exported, GNAF_ROOT};
@@ -1257,9 +1257,7 @@ pub fn run(id: &str) {
                 ),
                 (
                     &["lexlean", "compiler_semantics"],
-                    Some(serde_json::json!(
-                        sha(b"foreign compiler semantics").label()
-                    )),
+                    Some(serde_json::json!(sha(b"foreign compiler semantics").label())),
                 ),
                 (&["lexlean", "version"], Some(serde_json::json!("0.0.1"))),
                 (&["toolchain"], None),
@@ -1858,7 +1856,7 @@ pub fn cli() {
     assert_eq!(value["success"], true);
     assert_eq!(
         value["artifacts"],
-        serde_json::json!([format!(".lexlean/production/{}", result.result_id.label())])
+        serde_json::json!([format!(".lexlean/production/{}", result.result_id.hex())])
     );
     assert_eq!(value["source_id"], result.source.source_id.label());
     assert_eq!(value["semantic_id"], result.source.semantic_id.label());

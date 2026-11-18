@@ -866,8 +866,7 @@ impl CoreModule {
                 }
             };
             let digest =
-                crate::artifact::content_id::Kappa::of(shape.to_string().as_bytes())
-                    .label();
+                crate::artifact::content_id::Kappa::of(shape.to_string().as_bytes()).label();
             memo.insert(index, digest);
             stack.pop();
         }

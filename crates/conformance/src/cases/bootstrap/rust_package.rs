@@ -401,7 +401,7 @@ const VERSIONS: &[&str] = &[
 const PROFILES: &[&str] = &["rust-std", "rust-core", "rust-wasm", "", "rust-Std", "std"];
 const SPECS: &[&str] = &[
     "lexlean/rust-package/2",
-    "lexlean/rust-package/2",
+    "lexlean/rust-package/9",
     "",
     "lexlean/rust-provenance/2",
 ];

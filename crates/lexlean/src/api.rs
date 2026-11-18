@@ -87,6 +87,10 @@ pub enum VerifyPart {
 }
 
 /// What a part of a verification produced.
+// A κ-label is 71 bytes where the earlier digest was 32, which tips the
+// published variant past the lint's threshold. One value is returned per
+// verification part, so boxing it would change the public API for no saving.
+#[allow(clippy::large_enum_variant)]
 pub enum VerifyPartOutcome {
     /// A shard's output directory, and the number of processes it ran.
     Shard {
@@ -609,13 +613,7 @@ fn publish_build_locked(
     build: &RenderedBuild,
     guard: &MutationGuard,
 ) -> Result<Utf8PathBuf, LexLeanError> {
-    publish_tree(
-        project,
-        "build",
-        &build.build_id.hex().to_owned(),
-        &build.files,
-        guard,
-    )
+    publish_tree(project, "build", build.build_id.hex(), &build.files, guard)
 }
 
 /// Publish `files` atomically at `<build_root>/<area>/<name>`, a

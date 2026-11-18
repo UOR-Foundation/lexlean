@@ -927,7 +927,7 @@ pub(crate) fn run(id: &str) {
                     assert!(
                         stdout.starts_with(&format!(
                             "built 1 module at .lexlean/build/{}",
-                            baseline.label()
+                            baseline.hex()
                         )),
                         "{stdout}"
                     );

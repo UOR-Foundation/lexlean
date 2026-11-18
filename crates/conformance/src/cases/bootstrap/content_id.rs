@@ -214,9 +214,7 @@ fn committed_builds() -> Vec<(Kappa, Kappa, Kappa)> {
             continue;
         };
         let json: Json2 = serde_json::from_slice(&bytes).expect("a build manifest");
-        let id = |key: &str| {
-            Kappa::parse(json[key].as_str().expect("an ID")).expect("a digest")
-        };
+        let id = |key: &str| Kappa::parse(json[key].as_str().expect("an ID")).expect("a digest");
         out.push((id("source_id"), id("semantic_id"), id("build_id")));
     }
     out

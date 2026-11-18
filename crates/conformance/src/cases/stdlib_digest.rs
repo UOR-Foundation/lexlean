@@ -21,7 +21,14 @@ const VECTORS: &str = "tests/stdlib/blake3/test_vectors.json";
 
 /// The hash crates a shipped crate must not depend on: the identity has one
 /// implementation, the certified package, and no crate beside it.
-const HASH_CRATES: [&str; 6] = ["sha2", "blake3", "uor-addr", "uor-prism", "uor-prism-crypto", "ring"];
+const HASH_CRATES: [&str; 6] = [
+    "sha2",
+    "blake3",
+    "uor-addr",
+    "uor-prism",
+    "uor-prism-crypto",
+    "ring",
+];
 
 /// The longest message length every block and chunk boundary is covered up to.
 const LENGTHS: usize = 3_100;
@@ -148,7 +155,10 @@ fn vectors() -> Vec<(Vec<u8>, String)> {
 /// The first message on which `label` differs from the authority or the
 /// oracle, if any: every authority case by its stated digest, every length to
 /// `LENGTHS`, and the neighbours of every power of two to 4 MiB by the oracle.
-fn first_disagreement(label: &dyn Fn(&[u8]) -> String, cases: &[(Vec<u8>, String)]) -> Option<String> {
+fn first_disagreement(
+    label: &dyn Fn(&[u8]) -> String,
+    cases: &[(Vec<u8>, String)],
+) -> Option<String> {
     for (message, stated) in cases {
         if &label(message) != stated {
             return Some(format!("BLAKE3 test vector of {} bytes", message.len()));
@@ -233,7 +243,10 @@ fn plant_iv(cases: &[(Vec<u8>, String)]) -> Vec<String> {
     let planted = export.replace("1779033703u32", "1779033702u32");
     let directory = tempfile::tempdir().expect("a temporary directory");
     std::fs::write(directory.path().join("package.rs"), planted).expect("the planted package");
-    let lengths: Vec<String> = cases.iter().map(|(message, _)| message.len().to_string()).collect();
+    let lengths: Vec<String> = cases
+        .iter()
+        .map(|(message, _)| message.len().to_string())
+        .collect();
     let harness = directory.path().join("main.rs");
     std::fs::write(
         &harness,
@@ -311,7 +324,11 @@ pub(super) fn run(id: &str) {
     assert_eq!(cases.len(), 35, "the reference team's 35 cases");
     for (message, stated) in &cases {
         assert_eq!(&oracle(message), stated, "the vector and `blake3` agree");
-        assert_eq!(&uor_addr_label(message), stated, "the vector and uor-addr agree");
+        assert_eq!(
+            &uor_addr_label(message),
+            stated,
+            "the vector and uor-addr agree"
+        );
     }
 
     // The compiler's own κ-label against all of them.
@@ -370,8 +387,7 @@ pub(super) fn run(id: &str) {
         link_is_the_export(&diverging, &export).is_err(),
         "a link that differs from the export by one byte is found"
     );
-    let truncated =
-        |message: &[u8]| Kappa::of(&message[..message.len().saturating_sub(1)]).label();
+    let truncated = |message: &[u8]| Kappa::of(&message[..message.len().saturating_sub(1)]).label();
     assert!(
         first_disagreement(&truncated, &cases).is_some(),
         "a message truncated by one byte is found"

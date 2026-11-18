@@ -2643,11 +2643,7 @@ fn latex_model(
                 },
             );
             latex_line(text, "Value type", &render.ty(r#type));
-            latex_line(
-                text,
-                "Content",
-                &format!("{length} bytes, κ-label {kappa}"),
-            );
+            latex_line(text, "Content", &format!("{length} bytes, κ-label {kappa}"));
             latex_line(text, "Axiom policy", &latex_policy(axioms));
         }
         SemanticDeclaration::Contract {

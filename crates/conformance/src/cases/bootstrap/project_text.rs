@@ -7,8 +7,8 @@
 //! it: the ten header keys in their fixed order with the pinned Lean
 //! toolchain, the lexicon sources sorted by package (or the empty array when
 //! there is none), the artifact sources and the source packages in their
-//! order, the eleven limits, and the PDF provider; `configSha256` is the
-//! lower-case hex SHA-256 of that text. It writes through the TOML writers of
+//! order, the eleven limits, and the PDF provider; `configKappa` is the
+//! κ-label of that text. It writes through the TOML writers of
 //! `BS-31`'s `LockText`. Every committed `lexlean.toml` that parses is a run.
 //!
 //! Each planted defect names the one vector that catches it.
@@ -30,7 +30,7 @@ use crate::support::{self, repo_root};
 const MODULE: &str = "LexLeanBoot.ProjectText";
 const ROOTS: [(&str, &[&str]); 2] = [
     ("canonicalProject", &["allocation", "overflow"]),
-    ("configSha256", &["allocation", "overflow"]),
+    ("configKappa", &["allocation", "overflow"]),
 ];
 
 /// The most a part of a certificate of a root may be, as the row states.
@@ -121,7 +121,12 @@ fn enc(config: &ProjectConfig) -> Value {
                 config
                     .artifact_sources
                     .iter()
-                    .map(|artifact| adt(0, vec![bytes(artifact.kappa.as_bytes()), text(&artifact.path)]))
+                    .map(|artifact| {
+                        adt(
+                            0,
+                            vec![bytes(artifact.kappa.as_bytes()), text(&artifact.path)],
+                        )
+                    })
                     .collect(),
             ),
             list(

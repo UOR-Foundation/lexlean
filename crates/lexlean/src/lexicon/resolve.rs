@@ -867,10 +867,7 @@ impl Closure {
                 Json::object(vec![
                     ("id", Json::Str(package.id.clone())),
                     ("version", Json::Str(package.version.clone())),
-                    (
-                        "manifest_kappa",
-                        Json::Str(package.manifest_kappa.label()),
-                    ),
+                    ("manifest_kappa", Json::Str(package.manifest_kappa.label())),
                     ("tree_kappa", Json::Str(package.tree_kappa.label())),
                     ("entries", Json::Arr(entries)),
                 ])

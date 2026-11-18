@@ -322,14 +322,13 @@ pub fn parse_lock(path: &str, bytes: &[u8]) -> Result<Lock, Vec<Diagnostic>> {
             raw.lean_toolchain
         )));
     }
-    let hex =
-        |field: &str, value: &str, out: &mut Vec<Diagnostic>| match Kappa::parse(value) {
-            Ok(digest) => digest,
-            Err(reason) => {
-                out.push(lock_error(format!("{path}: {field}: {reason}")));
-                Kappa::ZERO
-            }
-        };
+    let hex = |field: &str, value: &str, out: &mut Vec<Diagnostic>| match Kappa::parse(value) {
+        Ok(digest) => digest,
+        Err(reason) => {
+            out.push(lock_error(format!("{path}: {field}: {reason}")));
+            Kappa::ZERO
+        }
+    };
     let compiler_semantics = hex(
         "compiler_semantics",
         &raw.compiler_semantics,
@@ -871,7 +870,7 @@ fn resolve_git_package(
             };
             if let Ok(files) = collect_package_files(&candidate, &candidate_relative) {
                 if let Ok(package) = load_package(&candidate_relative, &files, None, load_ctx) {
-                    if package.id == id && name == package.tree_kappa.hex().to_owned() {
+                    if package.id == id && name == package.tree_kappa.hex() {
                         return Ok(package);
                     }
                 }
@@ -1115,13 +1114,14 @@ fn acquire_git_package(
             .and_then(|()| file.sync_all())
             .map_err(|io_error| git_environment("cache", io_error))?;
     }
-    let cache_dir = cache_base.join(package.tree_kappa.hex().to_owned());
+    let cache_dir = cache_base.join(package.tree_kappa.hex());
     let staged = cache_staging.keep();
     if let Err(io_error) = std::fs::rename(&staged, cache_dir.as_std_path()) {
         let _ = std::fs::remove_dir_all(&staged);
         // A concurrent acquisition may have published the same content;
         // that is only acceptable when it validates.
-        let cache_dir_relative = format!("{cache_relative}/{}", package.tree_kappa.hex().to_owned());
+        let cache_dir_relative =
+            format!("{cache_relative}/{}", package.tree_kappa.hex().to_owned());
         let existing = project.confined_dir(&cache_dir_relative).and_then(|dir| {
             collect_package_files(&dir, &cache_dir_relative).map_err(|mut d| {
                 d.pop()

@@ -350,7 +350,7 @@ fn tl_01() {
     // Another spec tag.
     let project = P::tooling("core");
     let mut value = data(&project);
-    value["spec"] = json!("lexlean/tooling-module/2");
+    value["spec"] = json!("lexlean/tooling-module/9");
     assert!(
         !schema_violations(&value).is_empty(),
         "another spec tag: the committed schema must refuse it"

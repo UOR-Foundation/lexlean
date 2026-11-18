@@ -257,10 +257,9 @@ impl Model {
             .iter()
             .map(|byte| format!("{byte:02x}"))
             .collect();
-        if a.acquired_sha256
-            .as_deref()
-            .is_some_and(|stated_acquired| !stated_acquired.is_empty() && stated_acquired != acquired)
-        {
+        if a.acquired_sha256.as_deref().is_some_and(|stated_acquired| {
+            !stated_acquired.is_empty() && stated_acquired != acquired
+        }) {
             return Err(bad(format!(
                 "{}: the vendored copy is not the acquired bytes {} (R6)",
                 a.id,

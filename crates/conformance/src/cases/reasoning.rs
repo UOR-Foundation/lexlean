@@ -10,7 +10,7 @@ use std::collections::BTreeSet;
 use std::sync::OnceLock;
 
 use lexlean::calculus::{interp, Outcome, Value};
-use lexlean::{CheckRequest, Selection, Kappa, VerifyRequest};
+use lexlean::{CheckRequest, Kappa, Selection, VerifyRequest};
 use serde_json::{json, Value as Json};
 
 use crate::support::{self, VerifiedFixture, P};

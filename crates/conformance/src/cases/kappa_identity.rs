@@ -52,9 +52,11 @@ fn audit() {
     // The digest type of the old recipes, planted in the compiler's content
     // identity.
     let sha_type = format!("{}{}", "Sha", "256Digest");
-    let digest_type = planted(&texts, "crates/lexlean/src/artifact/content_id.rs", |text| {
-        format!("{text}\npub struct {sha_type}(pub [u8; 32]);\n")
-    });
+    let digest_type = planted(
+        &texts,
+        "crates/lexlean/src/artifact/content_id.rs",
+        |text| format!("{text}\npub struct {sha_type}(pub [u8; 32]);\n"),
+    );
     assert!(
         repo_model::hashes::check(&digest_type).is_err(),
         "a SHA-256 digest type in the compiler is refused"
@@ -122,7 +124,8 @@ fn kappa(value: &Json) -> Kappa {
 /// uor-addr's typed κ-label of `carrier` on its `blake3` σ-axis.
 fn uor_addr(carrier: &[u8]) -> String {
     let label = support::oracle_kappa(carrier).label();
-    let typed = uor_addr::KappaLabel::<71>::from_bytes(label.as_bytes()).expect("uor-addr accepts it");
+    let typed =
+        uor_addr::KappaLabel::<71>::from_bytes(label.as_bytes()).expect("uor-addr accepts it");
     assert_eq!(typed.sigma_axis(), Some("blake3"));
     typed.as_str().to_owned()
 }
@@ -156,8 +159,10 @@ fn recompute(vector: &Json) -> (Option<Vec<u8>>, Kappa) {
                 .iter()
                 .map(|row| (text(&row["path"]).to_owned(), hex(text(&row["bytes"]))))
                 .collect();
-            let borrowed: Vec<(&str, &[u8])> =
-                rows.iter().map(|(path, bytes)| (path.as_str(), bytes.as_slice())).collect();
+            let borrowed: Vec<(&str, &[u8])> = rows
+                .iter()
+                .map(|(path, bytes)| (path.as_str(), bytes.as_slice()))
+                .collect();
             (None, content_id::tree_kappa(&borrowed))
         }
         "source" => {
@@ -206,8 +211,10 @@ fn recompute(vector: &Json) -> (Option<Vec<u8>>, Kappa) {
                 frames.push(("reference", text(&reference["name"]).as_bytes().to_vec()));
                 frames.push(("reference-id", kappa(&reference["id"]).as_bytes().to_vec()));
             }
-            let borrowed: Vec<(&str, &[u8])> =
-                frames.iter().map(|(label, bytes)| (*label, bytes.as_slice())).collect();
+            let borrowed: Vec<(&str, &[u8])> = frames
+                .iter()
+                .map(|(label, bytes)| (*label, bytes.as_slice()))
+                .collect();
             let (carrier, label) = framed("lexlean-declaration-group-v2", &borrowed);
             (Some(carrier), label)
         }
@@ -215,7 +222,10 @@ fn recompute(vector: &Json) -> (Option<Vec<u8>>, Kappa) {
             let group = kappa(&inputs["group"]);
             let (carrier, label) = framed(
                 "lexlean-declaration-v2",
-                &[("group", group.as_bytes()), ("name", text(&inputs["name"]).as_bytes())],
+                &[
+                    ("group", group.as_bytes()),
+                    ("name", text(&inputs["name"]).as_bytes()),
+                ],
             );
             (Some(carrier), label)
         }
@@ -235,9 +245,11 @@ fn covers_every_field(recipe: &dyn Fn(&[&[u8]]) -> String, inputs: &[&[u8]]) -> 
     })
 }
 
+type Listing = [(String, Vec<u8>)];
+
 /// Whether two module listings that differ only in where a path ends and its
 /// source begins get different labels.
-fn separates_boundaries(recipe: &dyn Fn(&[(String, Vec<u8>)]) -> String) -> bool {
+fn separates_boundaries(recipe: &dyn Fn(&Listing) -> String) -> bool {
     let left = vec![("src/A.lex.tex".to_owned(), b"xy".to_vec())];
     let right = vec![("src/A.lex.texx".to_owned(), b"y".to_vec())];
     recipe(&left) != recipe(&right)
@@ -257,23 +269,52 @@ fn vectors() {
     let vectors = document["vectors"].as_array().expect("vectors");
     let kinds: std::collections::BTreeSet<&str> =
         vectors.iter().map(|vector| text(&vector["kind"])).collect();
-    for kind in ["leaf", "tree", "source", "semantic", "declaration", "entry-signature"] {
+    for kind in [
+        "leaf",
+        "tree",
+        "source",
+        "semantic",
+        "declaration",
+        "entry-signature",
+    ] {
         assert!(kinds.contains(kind), "{VECTORS} has a `{kind}` vector");
     }
     for vector in vectors {
         let stated_carrier = hex(text(&vector["carrier"]));
         let stated = text(&vector["kappa"]);
         // Both oracles give the stated label from the stated carrier.
-        assert_eq!(support::oracle_kappa(&stated_carrier).label(), stated, "the blake3 crate");
-        assert_eq!(uor_addr(&stated_carrier), stated, "uor-addr's blake3 σ-axis");
+        assert_eq!(
+            support::oracle_kappa(&stated_carrier).label(),
+            stated,
+            "the blake3 crate"
+        );
+        assert_eq!(
+            uor_addr(&stated_carrier),
+            stated,
+            "uor-addr's blake3 σ-axis"
+        );
         // The compiler gives the stated label, and its carrier where it
         // exposes one.
         let (carrier, label) = recompute(vector);
-        assert_eq!(label.as_str(), stated, "the compiler's {} label", text(&vector["kind"]));
+        assert_eq!(
+            label.as_str(),
+            stated,
+            "the compiler's {} label",
+            text(&vector["kind"])
+        );
         if let Some(carrier) = carrier {
-            assert_eq!(carrier, stated_carrier, "the compiler's {} carrier", text(&vector["kind"]));
+            assert_eq!(
+                carrier,
+                stated_carrier,
+                "the compiler's {} carrier",
+                text(&vector["kind"])
+            );
         }
-        assert_eq!(Kappa::of(&stated_carrier).as_str(), stated, "the certified package");
+        assert_eq!(
+            Kappa::of(&stated_carrier).as_str(),
+            stated,
+            "the certified package"
+        );
     }
 
     // The source recipe covers its project, lock, path, and source.
@@ -281,12 +322,18 @@ fn vectors() {
         content_id::source_id(
             inputs[0],
             inputs[1],
-            &[(String::from_utf8(inputs[2].to_vec()).expect("a path"), inputs[3].to_vec())],
+            &[(
+                String::from_utf8(inputs[2].to_vec()).expect("a path"),
+                inputs[3].to_vec(),
+            )],
         )
         .label()
     };
     let fields: [&[u8]; 4] = [b"project", b"lock", b"src/Main.lex.tex", b"source"];
-    assert!(covers_every_field(&source, &fields), "the source recipe covers every field");
+    assert!(
+        covers_every_field(&source, &fields),
+        "the source recipe covers every field"
+    );
     // Planted: a source recipe that leaves the lock out.
     let without_lock = |inputs: &[&[u8]]| {
         let mut hasher = FramedHasher::new("lexlean-source-v2");
@@ -301,8 +348,12 @@ fn vectors() {
     );
 
     // Two different modules are two different sources.
-    let framed_sources = |rows: &[(String, Vec<u8>)]| content_id::source_id(b"p", b"l", rows).label();
-    assert!(separates_boundaries(&framed_sources), "framing separates a path from its source");
+    let framed_sources =
+        |rows: &[(String, Vec<u8>)]| content_id::source_id(b"p", b"l", rows).label();
+    assert!(
+        separates_boundaries(&framed_sources),
+        "framing separates a path from its source"
+    );
     // Planted: the same rows written without their length prefixes.
     let unframed = |rows: &[(String, Vec<u8>)]| {
         let mut carrier = b"lexlean-source-v2\0".to_vec();
@@ -319,7 +370,10 @@ fn vectors() {
 
     // A changed lexicon entry changes its label: the signature is the leaf.
     let signature = |_entry: &str, signature: &str| Kappa::of(signature.as_bytes()).label();
-    assert!(distinguishes_signatures(&signature), "an entry's label follows its signature");
+    assert!(
+        distinguishes_signatures(&signature),
+        "an entry's label follows its signature"
+    );
     // Planted: a label of the entry's name alone.
     let by_name = |entry: &str, _signature: &str| Kappa::of(entry.as_bytes()).label();
     assert!(

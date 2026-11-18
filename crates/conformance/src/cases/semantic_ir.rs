@@ -3,7 +3,6 @@
 use std::collections::BTreeSet;
 use std::process::Command;
 
-
 use crate::support::{self, P};
 
 mod boolean;

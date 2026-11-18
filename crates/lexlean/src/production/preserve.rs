@@ -1816,17 +1816,12 @@ pub fn record(roots: &[CertifiedRoot]) -> crate::artifact::canonical_json::Json 
                                 "program",
                                 Json::object(vec![
                                     ("byte_length", Json::from_usize(root.program.len())),
-                                    (
-                                        "kappa",
-                                        Json::Str(Kappa::of(&root.program).label()),
-                                    ),
+                                    ("kappa", Json::Str(Kappa::of(&root.program).label())),
                                 ]),
                             ),
                             (
                                 "kappa",
-                                Json::Str(
-                                    Kappa::of(recorded_bytes(&root.certificate)).label(),
-                                ),
+                                Json::Str(Kappa::of(recorded_bytes(&root.certificate)).label()),
                             ),
                             (
                                 "renderings",
@@ -1888,10 +1883,8 @@ pub fn record(roots: &[CertifiedRoot]) -> crate::artifact::canonical_json::Json 
                                                 (
                                                     "kappa",
                                                     Json::Str(
-                                                        Kappa::of(recorded_bytes(
-                                                            certificate,
-                                                        ))
-                                                        .label(),
+                                                        Kappa::of(recorded_bytes(certificate))
+                                                            .label(),
                                                     ),
                                                 ),
                                                 (
@@ -1914,10 +1907,8 @@ pub fn record(roots: &[CertifiedRoot]) -> crate::artifact::canonical_json::Json 
                                                         (
                                                             "kappa",
                                                             Json::Str(
-                                                                Kappa::of(recorded_bytes(
-                                                                    composed,
-                                                                ))
-                                                                .label(),
+                                                                Kappa::of(recorded_bytes(composed))
+                                                                    .label(),
                                                             ),
                                                         ),
                                                     ]),

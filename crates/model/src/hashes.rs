@@ -210,7 +210,9 @@ pub fn refused(file: &str, line: &str) -> bool {
     for name in FUNCTION_NAMES {
         rest = rest.replace(&name.to_lowercase(), "");
     }
-    let mentions = spellings().iter().any(|spelling| rest.contains(spelling.as_str()))
+    let mentions = spellings()
+        .iter()
+        .any(|spelling| rest.contains(spelling.as_str()))
         || line.contains(&bare_digest_pattern());
     if !mentions {
         return false;

@@ -1381,12 +1381,8 @@ pub fn run_part(
         partition::import(part.inputs(), &olean_root, part.publishes()).map_err(fail)?;
     // Every record another part wrote was run by the toolchain this run's
     // preflight hashed: the attestation lists them under its digests.
-    partition::check_toolchain(
-        &imported,
-        toolchain.lean.kappa,
-        toolchain.leanchecker.kappa,
-    )
-    .map_err(fail)?;
+    partition::check_toolchain(&imported, toolchain.lean.kappa, toolchain.leanchecker.kappa)
+        .map_err(fail)?;
 
     // The leanchecker identity (module documentation), before any replay:
     // the preflight's toolchain-relative path and digest line, then the
@@ -3081,10 +3077,7 @@ pub fn run_part(
             "build_manifest",
             Json::object(vec![
                 ("byte_length", Json::from_usize(build.manifest_bytes.len())),
-                (
-                    "kappa",
-                    Json::Str(Kappa::of(&build.manifest_bytes).label()),
-                ),
+                ("kappa", Json::Str(Kappa::of(&build.manifest_bytes).label())),
             ]),
         ),
         ("oleans", Json::Arr(olean_rows)),
@@ -3135,7 +3128,7 @@ pub fn run_part(
 
     stages.enter("publication");
     // Stage 16: atomic publication (§21.8).
-    let target = verified_root.join(this_attestation_id.hex().to_owned());
+    let target = verified_root.join(this_attestation_id.hex());
     if target.as_std_path().exists() {
         // A repeated verification of identical content reuses the
         // published set only after every staged file validates against it

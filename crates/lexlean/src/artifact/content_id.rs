@@ -92,7 +92,10 @@ impl Kappa {
         if digits.len() != 64 {
             return Err(format!("expected 64 hex digits, found {}", digits.len()));
         }
-        if !digits.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')) {
+        if !digits
+            .bytes()
+            .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+        {
             return Err("lowercase hexadecimal is mandatory".to_owned());
         }
         let mut out = [0u8; KAPPA_BYTES];

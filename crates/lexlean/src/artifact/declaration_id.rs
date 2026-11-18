@@ -308,10 +308,7 @@ fn frame_references(
 
 /// Hash every strongly connected group of the reference graph, referenced
 /// groups first, and return every declaration's ID.
-fn hash_groups(
-    context: &Context<'_>,
-    prepared: &BTreeMap<Key, Prepared>,
-) -> BTreeMap<Key, Kappa> {
+fn hash_groups(context: &Context<'_>, prepared: &BTreeMap<Key, Prepared>) -> BTreeMap<Key, Kappa> {
     let mut ids = BTreeMap::new();
     // Tarjan's algorithm emits each component after every component it
     // reaches, which is the order the hash chain needs.

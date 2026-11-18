@@ -15,7 +15,7 @@ use lexlean::api::production::{
     self, Evidence, EvidenceKind, Expectation, PackageName, ProductionOutput, ProductionRequest,
     ReplayReport, RootRequest, TargetRef, REQUEST_SPEC,
 };
-use lexlean::{CheckRequest, Engine, LexLeanError, LockRequest, Selection, Kappa};
+use lexlean::{CheckRequest, Engine, Kappa, LexLeanError, LockRequest, Selection};
 use serde::Deserialize;
 
 /// The application's roots (`roots.json` beside its expected packages).
@@ -115,11 +115,7 @@ pub fn request(
                 .iter()
                 .map(|id| TargetRef {
                     id: id.clone(),
-                    digest: pins
-                        .targets
-                        .get(id)
-                        .copied()
-                        .unwrap_or(Kappa::ZERO),
+                    digest: pins.targets.get(id).copied().unwrap_or(Kappa::ZERO),
                 })
                 .collect(),
         })

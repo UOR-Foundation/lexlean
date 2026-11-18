@@ -1,7 +1,6 @@
 //! The `configuration-lock` suite: CF-01..CF-15.
 
 use lexlean::{CheckRequest, Engine, LockRequest, Selection};
-use sha2::Digest;
 
 use crate::support::{self, P};
 
@@ -53,7 +52,7 @@ fn path_package_project() -> P {
 }
 
 /// The exact `[pdf]` table used to exercise the lock's provider record.
-const PDF_TABLE: &str = "\n[pdf]\nmode = \"external\"\nprogram = \"tools/render\"\nprogram_kappa = \"0000000000000000000000000000000000000000000000000000000000000000\"\nversion_argv = [\"--version\"]\nversion_stdout_kappa = \"1111111111111111111111111111111111111111111111111111111111111111\"\ncompile_argv = [\"--outdir\", \"{out_dir}\", \"{input}\"]\noutput = \"{stem}.pdf\"\nresources = [\"assets/a.txt\"]\n";
+const PDF_TABLE: &str = "\n[pdf]\nmode = \"external\"\nprogram = \"tools/render\"\nprogram_kappa = \"blake3:0000000000000000000000000000000000000000000000000000000000000000\"\nversion_argv = [\"--version\"]\nversion_stdout_kappa = \"blake3:1111111111111111111111111111111111111111111111111111111111111111\"\ncompile_argv = [\"--outdir\", \"{out_dir}\", \"{input}\"]\noutput = \"{stem}.pdf\"\nresources = [\"assets/a.txt\"]\n";
 
 #[allow(clippy::too_many_lines)]
 pub(crate) fn run(id: &str) {
@@ -72,7 +71,7 @@ pub(crate) fn run(id: &str) {
             wrong_spec.edit(
                 "lexlean.toml",
                 "spec = \"lexlean/project/2\"",
-                "spec = \"lexlean/project/2\"",
+                "spec = \"lexlean/project/9\"",
             );
             load_fails_with(&wrong_spec, "LLC0103");
 
@@ -554,10 +553,10 @@ pub(crate) fn run(id: &str) {
             pdf.relock();
             let lock_text = pdf.read("lexlean.lock");
             let expected_pdf = format!(
-                "\n[pdf]\nprogram = \"tools/render\"\nprogram_kappa = \"{}\"\nversion_argv = [\"--version\"]\nversion_stdout_kappa = \"{}\"\ncompile_argv = [\"--outdir\", \"{{out_dir}}\", \"{{input}}\"]\noutput = \"{{stem}}.pdf\"\n\n[[pdf.resource]]\npath = \"assets/a.txt\"\nsha256 = \"{}\"\n",
+                "\n[pdf]\nprogram = \"tools/render\"\nprogram_kappa = \"blake3:{}\"\nversion_argv = [\"--version\"]\nversion_stdout_kappa = \"blake3:{}\"\ncompile_argv = [\"--outdir\", \"{{out_dir}}\", \"{{input}}\"]\noutput = \"{{stem}}.pdf\"\n\n[[pdf.resource]]\npath = \"assets/a.txt\"\nkappa = \"{}\"\n",
                 "0".repeat(64),
                 "1".repeat(64),
-                hex(&sha2::Sha256::digest(b"resource\n"))
+                support::oracle_kappa(b"resource\n").label()
             );
             assert!(
                 lock_text.ends_with(&expected_pdf),
@@ -670,15 +669,15 @@ pub(crate) fn run(id: &str) {
                 std::fs::read(base.join("entries/nzz.toml").as_std_path()).expect("read"),
             ));
             files.sort_by(|a, b| a.0.as_bytes().cmp(b.0.as_bytes()));
-            let mut hasher = sha2::Sha256::new();
-            hasher.update(b"lexlean-tree-v1\0");
+            let mut hasher = blake3::Hasher::new();
+            hasher.update(b"lexlean-tree-v2\0");
             for (path, bytes) in &files {
-                hasher.update(u32::try_from(path.len()).expect("short path").to_be_bytes());
+                hasher.update(&u32::try_from(path.len()).expect("short path").to_be_bytes());
                 hasher.update(path.as_bytes());
-                hasher.update((bytes.len() as u64).to_be_bytes());
+                hasher.update(&(bytes.len() as u64).to_be_bytes());
                 hasher.update(bytes);
             }
-            let manual = hex(&hasher.finalize());
+            let manual = support::oracle_finish(&hasher).label();
             assert_eq!(
                 manual, digest_hex,
                 "§11.5: the locked digest equals the manual layout"
@@ -1296,15 +1295,11 @@ pub(crate) fn run(id: &str) {
 
             // 5. An unsupported lock schema fails parsing with LLC0103.
             let bad_lock =
-                bytes10.replacen("spec = \"lexlean/lock/3\"", "spec = \"lexlean/lock/3\"", 1);
+                bytes10.replacen("spec = \"lexlean/lock/3\"", "spec = \"lexlean/lock/9\"", 1);
             let error = lexlean::api::parse_lock_bytes("lexlean.lock", bad_lock.as_bytes())
                 .expect_err("bad lock spec fails");
             assert!(error.iter().any(|d| d.code.as_str() == "LLC0103"));
         }
         other => panic!("no configuration-lock case is wired for {other}"),
     }
-}
-
-fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{b:02x}")).collect()
 }

@@ -204,10 +204,7 @@ impl ChildRecord {
                 Json::Arr(self.argv.iter().cloned().map(Json::Str).collect()),
             ),
             ("exit_code", Json::Int(i64::from(self.exit_code))),
-            (
-                "executable_kappa",
-                Json::Str(self.executable_kappa.label()),
-            ),
+            ("executable_kappa", Json::Str(self.executable_kappa.label())),
             ("stdout", Json::Str(self.stdout.clone())),
             ("stderr", Json::Str(self.stderr.clone())),
             (
