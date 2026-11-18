@@ -557,6 +557,40 @@ fn nat_of(e: &Expr) -> Option<u128> {
     }
 }
 
+/// The constants the producer's terms name, or that evaluation unfolds
+/// without the library naming them: the library export must hold them.
+pub const VOCABULARY: &[&str] = &["congrArg", "Eq.mpr", "String.ofList", "Char.ofNat"];
+
+/// A string literal as the pinned kernel unfolds one where its structure is
+/// needed (`string_lit_to_constructor`): `String.ofList` of its characters,
+/// each `Char.ofNat` of its code point.
+fn string_of_list(text: &str) -> Expr {
+    let char_type = c("Char");
+    let list = text.chars().rev().fold(
+        app(Expr::Const("List.nil".to_owned(), vec![Level::Zero]), [char_type.clone()]),
+        |rest, ch| {
+            app(
+                Expr::Const("List.cons".to_owned(), vec![Level::Zero]),
+                [
+                    char_type.clone(),
+                    app(c("Char.ofNat"), [nat(u128::from(u32::from(ch)))]),
+                    rest,
+                ],
+            )
+        },
+    );
+    app(c("String.ofList"), [list])
+}
+
+/// `e` in weak head normal form where it is a value whose structure is
+/// needed: a string literal is unfolded and reduced again.
+fn literal_unfolded(e: Expr, whnf: impl Fn(&Expr) -> R<Expr>) -> R<Expr> {
+    match &e {
+        Expr::Str(text) => whnf(&string_of_list(text)),
+        _ => Ok(e),
+    }
+}
+
 fn nat(n: u128) -> Expr {
     Expr::Nat(n.to_string())
 }
@@ -704,7 +738,7 @@ impl<'l> Eval<'l> {
                 }
                 Expr::Let(_, _, v, b) => e = app(instantiate(b, v), args),
                 Expr::Proj(_, index, s) => {
-                    let s = self.whnf(s)?;
+                    let s = literal_unfolded(self.whnf(s)?, |x| self.whnf(x))?;
                     let Some((ctor, _, cargs)) = self.as_ctor(&s) else {
                         return Ok(e);
                     };
@@ -748,7 +782,7 @@ impl<'l> Eval<'l> {
                             return Ok(e);
                         };
                         let induct = name.strip_suffix(".rec").unwrap_or(name);
-                        let major = self.whnf(major)?;
+                        let major = literal_unfolded(self.whnf(major)?, |x| self.whnf(x))?;
                         if !matches!(self.as_ctor(&major), Some((ref k, ..)) if self.ctor_of(k) == Some(induct))
                         {
                             return Ok(e);

@@ -297,6 +297,7 @@ pub fn export_roots(modules: &[KernelModule], runtime: &[&str]) -> Vec<String> {
     let mut roots: BTreeSet<String> = lower::VOCABULARY
         .iter()
         .chain(prove::VOCABULARY)
+        .chain(eval::VOCABULARY)
         .map(|name| (*name).to_owned())
         .collect();
     for (module, names) in lower::RUNTIME_VOCABULARY {
