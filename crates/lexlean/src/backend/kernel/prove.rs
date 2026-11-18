@@ -26,6 +26,8 @@ pub struct Produced<'a> {
     pub world: &'a World<'a>,
     /// Lean theorem name to the constant its produced proof is declared as.
     pub theorems: &'a BTreeMap<String, String>,
+    /// Evaluation over the library's terms, when a library is given.
+    pub evaluation: Option<&'a super::eval::Eval<'a>>,
 }
 
 fn kind_of(proof: &SemanticProof) -> String {
@@ -135,6 +137,14 @@ impl Produced<'_> {
     /// type, the one case is the statement itself.
     fn term_cases(&self, scrutinee: &SemanticTerm, statement: &SemanticTerm, ctx: &Ctx) -> R<Expr> {
         let w = self.world;
+        // Evaluation with splits and rewrites, over the library's own
+        // definitions, proves what enumeration does and more; enumeration
+        // remains for a production with no library.
+        if let Some(evaluation) = self.evaluation {
+            let goal = w.term(ctx, statement)?;
+            let decidable = w.decidable(ctx, statement).ok();
+            return evaluation.prove(&goal, decidable);
+        }
         // Every local of a finite type, the split term's first: a value the
         // split term reaches through a definition can rest on a local it does
         // not name.

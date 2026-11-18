@@ -14,6 +14,9 @@
 //! (`suffix.ndjson`), each produced theorem's own part (`parts/`), and what
 //! became of each theorem (`production.json`). Without a library the
 //! declarations are self-contained, for `crates/conformance/lean/KernelCheck.lean`.
+//! `produce <out> <library.ndjson> self-contained` writes them
+//! self-contained too, while `term_cases` is still proved by evaluating the
+//! library's terms.
 
 use std::fmt::Write as _;
 use std::path::Path;
@@ -25,9 +28,14 @@ use crate::Fail;
 pub fn kernel_terms(arguments: &[String]) -> Result<(), Fail> {
     match arguments {
         [step, project, out] if step == "stage" => stage(Path::new(project), Path::new(out)),
-        [step, out, library] if step == "produce" => produce(Path::new(out), Some(Path::new(library))),
-        [step, out] if step == "produce" => produce(Path::new(out), None),
-        _ => Err("cargo xtask kernel-terms stage <lexlean.toml> <out> | produce <out> [<library.ndjson>]".into()),
+        [step, out, library] if step == "produce" => {
+            produce(Path::new(out), Some(Path::new(library)), true)
+        }
+        [step, out, library, mode] if step == "produce" && mode == "self-contained" => {
+            produce(Path::new(out), Some(Path::new(library)), false)
+        }
+        [step, out] if step == "produce" => produce(Path::new(out), None, false),
+        _ => Err("cargo xtask kernel-terms stage <lexlean.toml> <out> | produce <out> [<library.ndjson> [self-contained]]".into()),
     }
 }
 
@@ -94,14 +102,20 @@ fn stage(project: &Path, out: &Path) -> Result<(), Fail> {
     Ok(())
 }
 
-fn produce(out: &Path, library: Option<&Path>) -> Result<(), Fail> {
+/// `continuing`: the declarations continue the library's numbering;
+/// otherwise they are self-contained and the library is only evaluated.
+fn produce(out: &Path, library: Option<&Path>, continuing: bool) -> Result<(), Fail> {
     let snapshot: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(out.join("snapshot.json"))?)?;
     let modules = lexlean::backend::kernel::modules_from_snapshot(&snapshot)
         .map_err(|diagnostic| diagnostic.message.clone())?;
     let library = library.map(std::fs::read_to_string).transpose()?;
     let started = std::time::Instant::now();
-    let production = lexlean::backend::kernel::produce(&modules, library.as_deref())
+    let production = lexlean::backend::kernel::produce_evaluating(
+        &modules,
+        library.as_deref().filter(|_| continuing),
+        library.as_deref(),
+    )
         .map_err(|diagnostic| diagnostic.message.clone())?;
     let elapsed = started.elapsed();
     std::fs::write(out.join("suffix.ndjson"), &production.suffix)?;

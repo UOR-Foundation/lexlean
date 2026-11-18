@@ -1,0 +1,119 @@
+name: s2-measure
+
+# Measures kernel-term production of `term_cases` by evaluation on the
+# compiler project: stage and compile its Lean, export the library with
+# lean4export, produce self-contained declarations while evaluating over that
+# library, and judge them with the pinned Lean's kernel (KernelCheck.lean).
+# Runs on a measure/ branch only; it is evidence, not a gate.
+
+on:
+  push:
+    branches: ["measure/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+      - name: Install elan and the pinned Lean toolchain
+        run: |
+          set -euo pipefail
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/elan" toolchain install "$(cat lean-toolchain)"
+      - name: Reserve overflow memory
+        run: |
+          set -euo pipefail
+          sudo fallocate -l 4G "$RUNNER_TEMP/measure.swap"
+          sudo chmod 600 "$RUNNER_TEMP/measure.swap"
+          sudo mkswap "$RUNNER_TEMP/measure.swap"
+          sudo swapon "$RUNNER_TEMP/measure.swap"
+      - name: Build lean4export 3.1.0 for the pinned Lean
+        run: |
+          set -euo pipefail
+          git clone https://github.com/leanprover/lean4export "$RUNNER_TEMP/l4e"
+          cd "$RUNNER_TEMP/l4e"
+          git checkout 86e4a339507466921dc8c5417c8cb1de1ce7df60
+          lake build
+      - name: Build xtask
+        run: cargo build --release -p xtask
+      - name: Stage, compile, and export the compiler project
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/work"
+          lean=$(elan which lean)
+          target/release/xtask kernel-terms stage compiler/lexlean.toml "$work"
+          export LEAN_PATH="$work/oleans:$("$lean" --print-prefix)/lib/lean"
+          modules=()
+          start=$(date +%s)
+          while IFS=$'\t' read -r module file; do
+            out="$work/oleans/${file#src/}"
+            out="${out%.lean}.olean"
+            mkdir -p "$(dirname "$out")"
+            "$lean" -R "$work/src" -o "$out" "$work/$file" > "$work/lean.out" 2>&1 || { cat "$work/lean.out"; exit 1; }
+            modules+=("$module")
+          done < "$work/order.txt"
+          echo "compiled ${#modules[@]} modules in $(( $(date +%s) - start )) s"
+          mapfile -t roots < "$work/roots.txt"
+          "$RUNNER_TEMP/l4e/.lake/build/bin/lean4export" "${modules[@]}" -- "${roots[@]}" > "$work/library.ndjson"
+          ls -la "$work/library.ndjson"
+      - name: Produce, evaluating term_cases over the library
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/work"
+          /usr/bin/time -v target/release/xtask kernel-terms produce "$work" "$work/library.ndjson" self-contained 2>&1 | grep -E "kernel-terms|Maximum resident|Elapsed"
+          python3 - "$work" <<'PY'
+          import json, sys, collections
+          rows = json.load(open(sys.argv[1] + "/production.json"))["rows"]
+          c = collections.Counter(("produced" if "produced" in r else r["refused"][:110]) for r in rows if r["form"] == "term_cases")
+          for k, v in c.most_common(25):
+              print(v, k)
+          PY
+      - name: Judge with the pinned Lean's kernel
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/work"
+          lean=$(elan which lean)
+          mods=$(cut -f1 "$work/order.txt" | tr '\n' ' ')
+          cd "$work"
+          LEAN_PATH="$work/oleans:$("$lean" --print-prefix)/lib/lean" timeout 18000 "$lean" --run "$GITHUB_WORKSPACE/crates/conformance/lean/KernelCheck.lean" "$work/suffix.ndjson" $mods > "$work/check.txt" 2>&1 || true
+          tail -5 "$work/check.txt"
+          python3 - "$work" <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
+          import json, sys, collections
+          work = sys.argv[1]
+          rows = json.load(open(work + "/production.json"))["rows"]
+          form = {"LexLeanKernel." + r["theorem"]: r["form"] for r in rows if "produced" in r}
+          c = collections.Counter()
+          refused = collections.Counter()
+          for line in open(work + "/check.txt"):
+              parts = line.split()
+              if len(parts) > 1 and parts[0] in ("accepted", "refused"):
+                  name = parts[1].rstrip(":")
+                  if name in form:
+                      c[(form[name], parts[0])] += 1
+                      if parts[0] == "refused" and form[name] == "term_cases":
+                          refused[line.strip()[:160]] += 1
+          total = collections.Counter(r["form"] for r in rows)
+          print("| form | theorems | produced | kernel-accepted |")
+          print("|---|---|---|---|")
+          for f in sorted(total):
+              print(f"| {f} | {total[f]} | {sum(1 for r in rows if r['form']==f and 'produced' in r)} | {c[(f,'accepted')]} |")
+          print()
+          for k, v in refused.most_common(15):
+              print(v, k)
+          PY
+      - name: Keep the evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: s2-measure
+          path: |
+            ${{ runner.temp }}/work/production.json
+            ${{ runner.temp }}/work/check.txt
+          if-no-files-found: ignore

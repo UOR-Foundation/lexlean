@@ -11,6 +11,7 @@
 //! Lean's theorem, so the kernel accepts it only if the statement the
 //! producer proved is definitionally the statement as written.
 
+mod eval;
 mod export;
 mod expr;
 mod lower;
@@ -371,8 +372,30 @@ fn collect_laws(proof: &SemanticProof, out: &mut BTreeSet<String>) {
 /// `LLV7103` when `library` is not lean4export 3.1.0 NDJSON. A theorem the
 /// producers do not cover is a refused row, not an error.
 pub fn produce(modules: &[KernelModule], library: Option<&str>) -> Result<Production, Diagnostic> {
+    produce_evaluating(modules, library, library)
+}
+
+/// `produce`, evaluating `term_cases` over the export `evaluation` whether
+/// or not the declarations continue it: with `library` absent and
+/// `evaluation` given, the declarations are self-contained, for a checker
+/// that holds the compiled project, while their proofs are still found by
+/// evaluating the library's terms.
+///
+/// # Errors
+///
+/// As `produce`, for either export.
+pub fn produce_evaluating(
+    modules: &[KernelModule],
+    library: Option<&str>,
+    evaluation: Option<&str>,
+) -> Result<Production, Diagnostic> {
     let mut tables = export::Tables::parse(library.unwrap_or_default()).map_err(refusal)?;
     let pristine = tables.clone();
+    // The library's own terms, which `term_cases` evaluates with.
+    let terms_of = match evaluation {
+        Some(text) => Some(eval::Library::parse(text).map_err(refusal)?),
+        None => None,
+    };
     // Each produced theorem's type, value, and the produced theorems it names.
     let mut terms: BTreeMap<String, (Expr, Expr, BTreeSet<String>)> = BTreeMap::new();
     let world = World::new(modules);
@@ -412,9 +435,12 @@ pub fn produce(modules: &[KernelModule], library: Option<&str>) -> Result<Produc
                         Some(lower::absolute(&ty, &module.name)),
                     );
                 }
+                let fresh = || world.fresh();
+                let evaluation = terms_of.as_ref().map(|lib| eval::Eval::new(lib, &fresh));
                 let producers = prove::Produced {
                     world: &world,
                     theorems: &produced,
+                    evaluation: evaluation.as_ref(),
                 };
                 let mut ty = world.term(&ctx, statement)?;
                 let mut value = producers.prove(proof, statement, &ctx)?;

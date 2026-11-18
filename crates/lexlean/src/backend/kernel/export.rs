@@ -162,22 +162,26 @@ impl Tables {
 
     /// The number of a level.
     pub fn level(&mut self, level: &Level) -> u64 {
-        match level {
-            Level::Zero => 0,
-            Level::Succ(inner) => {
-                let inner = self.level(inner);
-                let body = json!({"succ": inner});
-                let key = body.to_string();
-                if let Some(id) = self.levels.get(&key) {
-                    return *id;
-                }
-                let id = self.next_level;
-                self.next_level += 1;
-                self.push(&json!({"il": id, "succ": inner}));
-                self.levels.insert(key, id);
-                id
-            }
+        let body = match level {
+            Level::Zero => return 0,
+            Level::Succ(inner) => json!({"succ": self.level(inner)}),
+            Level::Max(a, b) => json!({"max": [self.level(a), self.level(b)]}),
+            Level::IMax(a, b) => json!({"imax": [self.level(a), self.level(b)]}),
+            Level::Param(name) => json!({"param": self.name(name)}),
+        };
+        let key = body.to_string();
+        if let Some(id) = self.levels.get(&key) {
+            return *id;
         }
+        let id = self.next_level;
+        self.next_level += 1;
+        let mut line = body;
+        if let Some(map) = line.as_object_mut() {
+            map.insert("il".to_owned(), json!(id));
+        }
+        self.push(&line);
+        self.levels.insert(key, id);
+        id
     }
 
     fn intern(&mut self, body: Value) -> u64 {
@@ -203,6 +207,16 @@ impl Tables {
     /// Refuses an expression with a free variable: a producer left a binder
     /// open.
     pub fn expr(&mut self, expr: &Expr) -> Result<u64, String> {
+        self.expr_shared(expr, &mut HashMap::new())
+    }
+
+    /// `expr` over a term whose subterms are shared: each shared subterm is
+    /// numbered once, not once per path to it.
+    fn expr_shared(&mut self, expr: &Expr, memo: &mut HashMap<usize, u64>) -> Result<u64, String> {
+        let key = std::ptr::from_ref(expr) as usize;
+        if let Some(id) = memo.get(&key) {
+            return Ok(*id);
+        }
         let body = match expr {
             Expr::BVar(index) => json!({"bvar": index}),
             Expr::FVar(id) => return Err(format!("a produced term has free variable {id}")),
@@ -213,8 +227,8 @@ impl Tables {
                 json!({"const": {"name": name, "us": us}})
             }
             Expr::App(f, a) => {
-                let f = self.expr(f)?;
-                let a = self.expr(a)?;
+                let f = self.expr_shared(f, memo)?;
+                let a = self.expr_shared(a, memo)?;
                 json!({"app": {"arg": a, "fn": f}})
             }
             Expr::Lam(name, ty, body) | Expr::Pi(name, ty, body) => {
@@ -223,22 +237,29 @@ impl Tables {
                 } else {
                     "forallE"
                 };
-                let ty = self.expr(ty)?;
-                let body = self.expr(body)?;
+                let ty = self.expr_shared(ty, memo)?;
+                let body = self.expr_shared(body, memo)?;
                 let name = self.name(name);
                 json!({key: {"binderInfo": "default", "body": body, "name": name, "type": ty}})
             }
             Expr::Let(name, ty, value, body) => {
-                let ty = self.expr(ty)?;
-                let value = self.expr(value)?;
-                let body = self.expr(body)?;
+                let ty = self.expr_shared(ty, memo)?;
+                let value = self.expr_shared(value, memo)?;
+                let body = self.expr_shared(body, memo)?;
                 let name = self.name(name);
                 json!({"letE": {"body": body, "name": name, "nondep": false, "type": ty, "value": value}})
             }
             Expr::Nat(value) => json!({"natVal": value}),
             Expr::Str(value) => json!({"strVal": value}),
+            Expr::Proj(type_name, index, value) => {
+                let value = self.expr_shared(value, memo)?;
+                let type_name = self.name(type_name);
+                json!({"proj": {"idx": index, "struct": value, "typeName": type_name}})
+            }
         };
-        Ok(self.intern(body))
+        let id = self.intern(body);
+        memo.insert(key, id);
+        Ok(id)
     }
 
     /// Appends a theorem declaration.

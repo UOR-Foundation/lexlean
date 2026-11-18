@@ -6,11 +6,15 @@
 use std::rc::Rc;
 
 /// A universe level. LexLean data lives in `Type` and its proofs in `Prop`,
-/// so no produced term needs a level variable, `max`, or `imax`.
+/// so a term a producer states needs only `Zero` and `Succ`; the others
+/// occur in the library's own terms, which evaluation copies.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Level {
     Zero,
     Succ(Rc<Level>),
+    Max(Rc<Level>, Rc<Level>),
+    IMax(Rc<Level>, Rc<Level>),
+    Param(String),
 }
 
 impl Level {
@@ -34,6 +38,8 @@ pub enum Expr {
     Let(String, Rc<Expr>, Rc<Expr>, Rc<Expr>),
     Nat(String),
     Str(String),
+    /// Field `index` of a value of structure `type_name`.
+    Proj(String, u32, Rc<Expr>),
 }
 
 /// A constant with no universe arguments.
@@ -69,30 +75,48 @@ impl Expr {
     /// Replaces free variable `id` by de Bruijn index `depth`.
     #[must_use]
     pub fn abstract_fvar(&self, id: u32, depth: u32) -> Self {
-        match self {
+        self.abstract_shared(id, depth, &mut std::collections::HashMap::new())
+    }
+
+    /// `abstract_fvar` over a term whose subterms are shared, each shared
+    /// subterm visited once per depth rather than once per path to it.
+    fn abstract_shared(
+        &self,
+        id: u32,
+        depth: u32,
+        memo: &mut std::collections::HashMap<(usize, u32), Self>,
+    ) -> Self {
+        let key = (std::ptr::from_ref(self) as usize, depth);
+        if let Some(done) = memo.get(&key) {
+            return done.clone();
+        }
+        let out = match self {
             Self::FVar(other) if *other == id => Self::BVar(depth),
             Self::App(f, a) => Self::App(
-                Rc::new(f.abstract_fvar(id, depth)),
-                Rc::new(a.abstract_fvar(id, depth)),
+                Rc::new(f.abstract_shared(id, depth, memo)),
+                Rc::new(a.abstract_shared(id, depth, memo)),
             ),
             Self::Lam(n, t, b) => Self::Lam(
                 n.clone(),
-                Rc::new(t.abstract_fvar(id, depth)),
-                Rc::new(b.abstract_fvar(id, depth + 1)),
+                Rc::new(t.abstract_shared(id, depth, memo)),
+                Rc::new(b.abstract_shared(id, depth + 1, memo)),
             ),
             Self::Pi(n, t, b) => Self::Pi(
                 n.clone(),
-                Rc::new(t.abstract_fvar(id, depth)),
-                Rc::new(b.abstract_fvar(id, depth + 1)),
+                Rc::new(t.abstract_shared(id, depth, memo)),
+                Rc::new(b.abstract_shared(id, depth + 1, memo)),
             ),
             Self::Let(n, t, v, b) => Self::Let(
                 n.clone(),
-                Rc::new(t.abstract_fvar(id, depth)),
-                Rc::new(v.abstract_fvar(id, depth)),
-                Rc::new(b.abstract_fvar(id, depth + 1)),
+                Rc::new(t.abstract_shared(id, depth, memo)),
+                Rc::new(v.abstract_shared(id, depth, memo)),
+                Rc::new(b.abstract_shared(id, depth + 1, memo)),
             ),
+            Self::Proj(t, i, e) => Self::Proj(t.clone(), *i, Rc::new(e.abstract_shared(id, depth, memo))),
             other => other.clone(),
-        }
+        };
+        memo.insert(key, out.clone());
+        out
     }
 
     /// Replaces free variable `id` by `by`, which holds no loose index.
@@ -120,28 +144,44 @@ impl Expr {
                 Rc::new(v.replace_fvar(id, by)),
                 Rc::new(b.replace_fvar(id, by)),
             ),
+            Self::Proj(t, i, e) => Self::Proj(t.clone(), *i, Rc::new(e.replace_fvar(id, by))),
             other => other.clone(),
         }
     }
 
     /// Every constant the expression names, into `out`.
     pub fn constants(&self, out: &mut std::collections::BTreeSet<String>) {
+        self.constants_shared(out, &mut std::collections::HashSet::new());
+    }
+
+    fn constants_shared(
+        &self,
+        out: &mut std::collections::BTreeSet<String>,
+        seen: &mut std::collections::HashSet<usize>,
+    ) {
+        if !seen.insert(std::ptr::from_ref(self) as usize) {
+            return;
+        }
         match self {
             Self::Const(name, _) => {
                 out.insert(name.clone());
             }
             Self::App(f, a) => {
-                f.constants(out);
-                a.constants(out);
+                f.constants_shared(out, seen);
+                a.constants_shared(out, seen);
             }
             Self::Lam(_, t, b) | Self::Pi(_, t, b) => {
-                t.constants(out);
-                b.constants(out);
+                t.constants_shared(out, seen);
+                b.constants_shared(out, seen);
             }
             Self::Let(_, t, v, b) => {
-                t.constants(out);
-                v.constants(out);
-                b.constants(out);
+                t.constants_shared(out, seen);
+                v.constants_shared(out, seen);
+                b.constants_shared(out, seen);
+            }
+            Self::Proj(t, _, e) => {
+                out.insert(t.clone());
+                e.constants_shared(out, seen);
             }
             _ => {}
         }
