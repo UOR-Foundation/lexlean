@@ -16,7 +16,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use lexlean::calculus::Value;
-use lexlean::diagnostic::{sort_canonical, Diagnostic, DiagnosticCode, Label, Note, Span};
+use lexlean::diagnostic::{
+    sort_canonical, Diagnostic, DiagnosticCode, Edit, Label, Note, Repair, RepairKind, Span,
+};
 use lexlean::LexLeanError;
 use serde_json::Value as Json2;
 
@@ -189,11 +191,45 @@ fn diagnostic_of(json: &Json2) -> Diagnostic {
     }
     diagnostic.help = strings_of(&json["help"]);
     diagnostic.causes = strings_of(&json["causes"]);
+    if let Some(repairs) = json.get("repairs") {
+        diagnostic.repairs = repairs
+            .as_array()
+            .expect("repairs")
+            .iter()
+            .map(repair_of)
+            .collect();
+    }
     diagnostic
+}
+
+fn repair_of(json: &Json2) -> Repair {
+    let kind = json["kind"].as_str().expect("a kind");
+    Repair {
+        kind: RepairKind::ALL
+            .into_iter()
+            .find(|candidate| candidate.as_str() == kind)
+            .expect("a registered repair kind"),
+        message: json["message"].as_str().expect("a message").to_owned(),
+        edits: json["edits"]
+            .as_array()
+            .expect("edits")
+            .iter()
+            .map(|edit| Edit {
+                span: span_of(&edit["span"]),
+                replacement: edit["replacement"]
+                    .as_str()
+                    .expect("a replacement")
+                    .to_owned(),
+            })
+            .collect(),
+    }
 }
 
 /// The committed expected diagnostics of every negative fixture, each file's
 /// set with its path; each is first checked to be what the oracle writes.
+/// The check reads a diagnostic's repairs, so that it stays byte-exact; the
+/// set it returns has none, because the `Diagnostics` source writes the
+/// §20.1 diagnostic and a repair (§20.7) is outside BS-29.
 fn committed() -> Vec<(String, Vec<Diagnostic>)> {
     let root = repo_root().join("tests/negative");
     let mut names: Vec<String> = std::fs::read_dir(root.as_std_path())
@@ -228,6 +264,13 @@ fn committed() -> Vec<(String, Vec<Diagnostic>)> {
             String::from_utf8_lossy(&bytes).trim_end().as_bytes(),
             "{name}: the committed diagnostics are what the oracle writes"
         );
+        let diagnostics = diagnostics
+            .into_iter()
+            .map(|mut diagnostic| {
+                diagnostic.repairs.clear();
+                diagnostic
+            })
+            .collect();
         out.push((name, diagnostics));
     }
     out

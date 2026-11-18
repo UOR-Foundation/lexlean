@@ -1557,9 +1557,12 @@ const FIXED_WIDTH: &[(&str, &str)] = &[
 /// equality read on the mathematical values (literals evaluated first);
 /// read every remaining fixed-width value as the bounded natural number of
 /// its bits, so `omega` knows its range; split every `if` and `match` left
-/// in the goal; and decide each case with `omega`. A goal the simplifier
+/// in the goal; simplify each case again, because a split can expose a named
+/// definition applied to a constructor or a projection of a record literal
+/// that `omega` would otherwise read as an opaque atom; and decide each case
+/// with `omega`. A goal the simplifier
 /// closed leaves nothing for `omega`.
-fn linear_arithmetic(pad: &str, definitions: &[String]) -> String {
+pub(crate) fn linear_arithmetic(pad: &str, definitions: &[String]) -> String {
     let rewrites = crate::ir::semantic::laws::registry()
         .map(|registry| registry.rewrites.as_slice())
         .unwrap_or_default();
@@ -1586,9 +1589,9 @@ fn linear_arithmetic(pad: &str, definitions: &[String]) -> String {
         format!("{pad}subst_vars\n")
     };
     format!(
-        "{pad}intros\n{subst}{pad}try set_option linter.unusedSimpArgs false in simp only [{}] at *\n{pad}try set_option linter.unusedSimpArgs false in simp only [{}] at *\n{pad}all_goals (repeat' split)\n{pad}all_goals omega\n",
-        lemmas.join(", "),
-        bits.join(", ")
+        "{pad}intros\n{subst}{pad}try set_option linter.unusedSimpArgs false in simp only [{l}] at *\n{pad}try set_option linter.unusedSimpArgs false in simp only [{b}] at *\n{pad}all_goals (repeat' split)\n{pad}all_goals (try set_option linter.unusedSimpArgs false in simp only [{l}] at *)\n{pad}all_goals omega\n",
+        l = lemmas.join(", "),
+        b = bits.join(", ")
     )
 }
 

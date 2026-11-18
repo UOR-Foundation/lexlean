@@ -4489,3 +4489,33 @@ math = "(seq (slot 0) (space) (token equals) (space) (slot 1))"
     project.relock();
     project
 }
+
+/// The repairs of `kind` every diagnostic of a failure carries (§20.7).
+#[must_use]
+pub fn repairs_of<'a>(error: &'a LexLeanError, kind: &str) -> Vec<&'a lexlean::diagnostic::Repair> {
+    error
+        .diagnostics
+        .iter()
+        .flat_map(|diagnostic| diagnostic.repairs.iter())
+        .filter(|repair| repair.kind.as_str() == kind)
+        .collect()
+}
+
+/// Apply every repair of a failure to the project's files, as an agent
+/// would: each edit replaces its span's bytes, last offset first (§20.7).
+pub fn apply_repairs(project: &P, error: &LexLeanError) {
+    let repairs: Vec<lexlean::diagnostic::Repair> = error
+        .diagnostics
+        .iter()
+        .flat_map(|diagnostic| diagnostic.repairs.iter().cloned())
+        .collect();
+    assert!(!repairs.is_empty(), "the failure carries a repair: {error}");
+    let paths: std::collections::BTreeSet<String> = repairs
+        .iter()
+        .flat_map(|repair| repair.edits.iter().map(|edit| edit.span.path.clone()))
+        .collect();
+    for path in paths {
+        let text = project.read_raw(&path);
+        project.write(&path, &lexlean::repair::apply(&text, &path, &repairs));
+    }
+}

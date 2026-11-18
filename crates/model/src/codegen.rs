@@ -179,6 +179,18 @@ pub fn render_errors(model: &Model) -> String {
         let _ = writeln!(w, "{}", row.statement);
         let _ = writeln!(w);
         let _ = writeln!(w, "Class: `{}`. Exit code: {}.", row.class, row.exit);
+        if !row.repairs.is_empty() {
+            let _ = writeln!(w);
+            let _ = writeln!(w, "{}", repairs_line(&row.repairs));
+        }
     }
     out
+}
+
+/// The `explain` line naming the repair kinds of a code (SPEC.md §20.7);
+/// `lexlean explain` prints the same line.
+#[must_use]
+pub fn repairs_line(kinds: &[String]) -> String {
+    let named: Vec<String> = kinds.iter().map(|kind| format!("`{kind}`")).collect();
+    format!("Repairs: {}.", named.join(", "))
 }

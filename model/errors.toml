@@ -370,6 +370,7 @@ class = "language"
 exit = 1
 title = "Arity, binder, category, or conservative type mismatch"
 statement = "Arity, binder, category, or conservative type mismatch."
+repairs = ["quote", "sort"]
 
 [[error]]
 code = "LLT4002"
@@ -489,6 +490,7 @@ class = "language"
 exit = 1
 title = "Generated Lean elaboration or compilation failure"
 statement = "Generated Lean elaboration or compilation failure."
+repairs = ["unfold"]
 
 [[error]]
 code = "LLV7003"
@@ -510,6 +512,7 @@ class = "language"
 exit = 1
 title = "Axiom policy violation"
 statement = "Axiom policy violation."
+repairs = ["axioms"]
 
 [[error]]
 code = "LLV7006"

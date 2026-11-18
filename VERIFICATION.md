@@ -1727,6 +1727,16 @@ kernel whose zero-divisor `if` is left unsplit, with
 `error[LLV7002]: Lean rejected FoldLaws.Kernels (error): omega could not
 prove the goal` at `src/Kernels.lex.tex:79` (`halving_shrinks`).
 
+Planted (b2): the script without the second simplification after the split
+(the step `all_goals (try ... simp only [...] at *)`). `conformance_pf_21`
+refuses the rendered script at its first comparison (`the fixed script with
+the unfolded definition`, `proofs.rs:966`). The same compiler run by `lexlean verify` on the case's record copy
+of `examples/fold-laws` shows what the step is for: Lean refuses
+`bag_add_raises` with `error[LLV7002]: Lean rejected FoldLaws.Kernels
+(error): omega could not prove the goal`, whose counterexample names
+`bagTotal { items := item :: bag.items }.items` as an atom (Windows x86-64,
+pinned Lean 4.32.2). With the step the copy verifies.
+
 Planted (c): the backend leaves out one registered rewrite
 (`LexLeanLaws.listFold_add_nat_self`) from the script. `conformance_pf_22`,
 whose expected script is read from the committed registry rather than from

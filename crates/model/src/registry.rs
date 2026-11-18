@@ -257,7 +257,14 @@ pub struct ErrorRow {
     pub title: String,
     /// The registered meaning.
     pub statement: String,
+    /// The closed repair kinds a diagnostic of this code may carry (SPEC.md
+    /// §20.7), sorted; absent when it carries none.
+    #[serde(default)]
+    pub repairs: Vec<String>,
 }
+
+/// The closed repair kinds of SPEC.md §20.7, sorted.
+pub const REPAIR_KINDS: [&str; 4] = ["axioms", "quote", "sort", "unfold"];
 
 impl Errors {
     /// Look up a row.
@@ -294,6 +301,17 @@ impl Errors {
             }
             if row.statement.trim().is_empty() {
                 return Err(bad(format!("{}: an empty statement", row.code)));
+            }
+            if row.repairs.windows(2).any(|pair| pair[0] >= pair[1])
+                || row
+                    .repairs
+                    .iter()
+                    .any(|kind| !REPAIR_KINDS.contains(&kind.as_str()))
+            {
+                return Err(bad(format!(
+                    "{}: repairs must be sorted, unique, and among {REPAIR_KINDS:?}",
+                    row.code
+                )));
             }
             let exit_ok = matches!(
                 (row.class.as_str(), row.exit),

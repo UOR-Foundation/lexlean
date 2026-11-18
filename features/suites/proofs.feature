@@ -146,11 +146,11 @@ Feature: proofs
     And the mixed operands, the strings, and the language-1.1 use fail with LLT4001
 
   @PF-21 @build
-  Scenario: The language-1.2 linear_arithmetic proof form reads the runtime: it rewrites less_than, equal, negate, quotient, remainder, and fixed-width order and equality into linear arithmetic over mathematical values, splits every if and match left in the goal, proves integer kernels for all inputs, and is refused by Lean on a false one.
+  Scenario: The language-1.2 linear_arithmetic proof form reads the runtime: it rewrites less_than, equal, negate, quotient, remainder, and fixed-width order and equality into linear arithmetic over mathematical values, splits every if and match left in the goal and simplifies each split goal again, proves integer kernels for all inputs, and is refused by Lean on a false one.
     Given the committed fold-laws example, whose clamped requantization step, truncating division, and fixed-width order theorems are proved by linear_arithmetic
-    When it is rendered and verified, and copies state a clamp bound one too small, a quotient identity with the wrong remainder sign, and a fixed-width order one past its literal
-    Then the generated Lean is the fixed script: the runtime bridges and the registered rewrites, the fixed-width bit reading, the split of every if and match, and omega, and it verifies for all inputs
-    And each false copy checks but fails verification with LLV7002
+    When it is rendered and verified, copies state a clamp bound one too small, a quotient identity with the wrong remainder sign, and a fixed-width order one past its literal, and a copy adds a record whose list-field update sits under an if with a theorem about a recursive sum over that field
+    Then the generated Lean is the fixed script: the runtime bridges and the registered rewrites, the fixed-width bit reading, the split of every if and match, the same simplification again on every split goal, and omega, and it verifies for all inputs
+    And each false copy checks but fails verification with LLV7002, and the record copy verifies
 
   @PF-22 @build
   Scenario: The runtime module LexLeanRuntime.Laws states the fold laws as LexLean source with every row's axioms pinned, and linear_arithmetic rewrites additive list, set, and map folds into sums that are linear and invariant under append and reverse, so fold equalities verify for all inputs with decide only on closed instances.
@@ -172,3 +172,17 @@ Feature: proofs
     When the runtime is built, the example is rendered and verified, copies put != in a rule, leave a field unbounded, compare a sum, use the form as a branch, a language-1.1 module uses the form, and a copy drops the occupancy test from a rule
     Then the regions module is a native core module importing only Init with every row within propext and Quot.sound, and each property lowers to one application of LexLeanRegions.holds whose obligation the kernel decides
     And the malformed copies and the language-1.1 use fail with LLT4001 and the defective rule fails verification with LLV7002 at exactly the properties it breaks
+
+  @PF-25 @build
+  Scenario: A definitions list of a linear_arithmetic or term_cases proof that is not sorted and unique is refused with LLT4001 carrying a sort repair whose one edit replaces the list with its sorted, deduplicated form, and applying it makes the module check; a list that names anything but a prior document declaration carries no sort repair.
+    Given the committed fold-laws example with one linear_arithmetic definitions list reordered, and a copy whose reordered list names a declaration that does not exist
+    When each copy is checked
+    Then the reordered copy fails with LLT4001 carrying one sort repair whose edit is the sorted list, and the repaired copy checks
+    And the copy naming a missing declaration fails with LLT4001 and carries no sort repair
+
+  @PF-26 @build
+  Scenario: A Boolean branch constructor written bare in a cases proof whose scrutinee is a Bool parameter of its theorem is refused with LLT4001 carrying a quote repair that writes it as the string "false" or "true", and applying it makes the module check; a bare constructor under a scrutinee that is not a Bool parameter carries no quote repair.
+    Given the committed fold-laws example with a theorem added whose cases proof over a Bool parameter writes its branch constructors bare, and a copy whose scrutinee is a Nat parameter
+    When each copy is checked
+    Then the Bool copy fails with LLT4001 carrying one quote repair for both constructors, and the repaired copy checks
+    And the Nat copy fails with LLT4001 and carries no quote repair
