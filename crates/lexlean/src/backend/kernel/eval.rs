@@ -832,21 +832,28 @@ impl<'l> Eval<'l> {
                     return Ok((w, None));
                 };
                 let type_levels = levels[levels.len() - level_params.len()..].to_vec();
+                // The innermost place first: a major premise that is itself
+                // stuck is split where it is stuck. Splitting it here
+                // instead would pair each of its constructors with every
+                // case of what it is stuck on, cases no value reaches, and
+                // those do not close.
+                let (inner, stuck) = self.expose(&args[at])?;
+                let mut rebuilt = args.clone();
+                rebuilt[at] = inner.clone();
+                let rebuilt = app(head.clone(), rebuilt);
+                if stuck.is_some() {
+                    return Ok((rebuilt, stuck));
+                }
                 if *type_indices == 0 && !*recursive && !self.is_prop_induct(&induct)? {
                     let stuck = Stuck {
-                        major: args[at].clone(),
+                        major: inner,
                         induct,
                         levels: type_levels,
                         params: args[..*params as usize].to_vec(),
                     };
-                    return Ok((w, Some(stuck)));
+                    return Ok((rebuilt, Some(stuck)));
                 }
-                // The major premise is of a type that is not split; whatever
-                // it is stuck on may be.
-                let (inner, stuck) = self.expose(&args[at])?;
-                let mut rebuilt = args.clone();
-                rebuilt[at] = inner;
-                Ok((app(head.clone(), rebuilt), stuck))
+                Ok((rebuilt, None))
             }
             Expr::Proj(t, i, s) => {
                 let (inner, stuck) = self.expose(s)?;
@@ -926,9 +933,13 @@ impl<'l> Eval<'l> {
                 let (hb, xb) = spine(&b);
                 let neutral = match &ha {
                     Expr::FVar(_) => true,
-                    Expr::Const(name, _) => {
-                        matches!(self.decl(name), Some(Decl::Opaque | Decl::Quot | Decl::Induct { .. }) | None)
-                    }
+                    // A recursor here is stuck on a major premise that is
+                    // not split (a recursive type's), so two applications of
+                    // it are equal when their arguments are.
+                    Expr::Const(name, _) => matches!(
+                        self.decl(name),
+                        Some(Decl::Opaque | Decl::Quot | Decl::Induct { .. } | Decl::Rec { .. }) | None
+                    ),
                     _ => false,
                 };
                 if !neutral || ha != hb || xa.len() != xb.len() {
