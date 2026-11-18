@@ -977,7 +977,7 @@ statement = "Under language 1.2 the order propositions <= and < take two operand
 id = "PF-21"
 level = "build"
 suite = "proofs"
-statement = "The language-1.2 linear_arithmetic proof form reads the runtime: it rewrites less_than, equal, negate, quotient, remainder, and fixed-width order and equality into linear arithmetic over mathematical values, splits every if and match left in the goal, proves integer kernels for all inputs, and is refused by Lean on a false one."
+statement = "The language-1.2 linear_arithmetic proof form reads the runtime: it rewrites less_than, equal, negate, quotient, remainder, and fixed-width order and equality into linear arithmetic over mathematical values, splits every if and match left in the goal and simplifies each split goal again, proves integer kernels for all inputs, and is refused by Lean on a false one."
 
 [[id]]
 id = "PF-22"
@@ -996,6 +996,18 @@ id = "PF-24"
 level = "build"
 suite = "proofs"
 statement = "The runtime module LexLeanRuntime.Regions states the decision-region checker and its soundness theorem as LexLean source with every row's axioms within propext and Quot.sound, and the language-1.2 region_check proof form lowers a property of a first-match decision fragment to that checker's data, closes it with one kernel-decided obligation, is refused in linking outside the fragment or as a branch, and by Lean for a defective rule."
+
+[[id]]
+id = "PF-25"
+level = "build"
+suite = "proofs"
+statement = "A definitions list of a linear_arithmetic or term_cases proof that is not sorted and unique is refused with LLT4001 carrying a sort repair whose one edit replaces the list with its sorted, deduplicated form, and applying it makes the module check; a list that names anything but a prior document declaration carries no sort repair."
+
+[[id]]
+id = "PF-26"
+level = "build"
+suite = "proofs"
+statement = "A Boolean branch constructor written bare in a cases proof whose scrutinee is a Bool parameter of its theorem is refused with LLT4001 carrying a quote repair that writes it as the string \"false\" or \"true\", and applying it makes the module check; a bare constructor under a scrutinee that is not a Bool parameter carries no quote repair."
 
 [[id]]
 id = "LN-01"
@@ -1374,6 +1386,18 @@ id = "VR-23"
 level = "build"
 suite = "verification"
 statement = "A project verified as the parts of one run, each shard running the processes its plan names with the oleans of the shards it needs and the join reading every shard's records, publishes a verified directory byte-identical to the whole verification's with the same attestation identity, and a shard whose plan leaves a module without its imports, a join missing a record, a join reading a record of an executable other than its own, or a part that ran a toolchain other than its own, is refused."
+
+[[id]]
+id = "VR-24"
+level = "build"
+suite = "verification"
+statement = "A Lean rejection of a theorem proved by linear_arithmetic carries an unfold repair only when the verifier has elaborated a copy of the theorem with the extended definitions list and Lean accepted it without a message: the repair adds the fewest definitions of the lists it tried, applying it makes the project verify, and a theorem no unfolding repairs, such as a false one, carries no unfold repair; the probe publishes nothing and enters no record."
+
+[[id]]
+id = "VR-25"
+level = "build"
+suite = "verification"
+statement = "An axiom-policy violation of a semantic theorem carries an axioms repair that makes its policy the observed set when every axiom the repair adds is propext or Quot.sound, and applying it makes the project verify; a violation whose observed set would add any other axiom, such as Classical.choice, carries no repair."
 
 [[id]]
 id = "CL-01"
