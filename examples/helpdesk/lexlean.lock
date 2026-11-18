@@ -62,7 +62,7 @@ version = "1.0.0"
 kind = "path"
 source = "stdlib"
 module_prefix = "LexLeanStd"
-tree_sha256 = "3dbb7f5e15d9b05060550c7225e2e6628cd6db238792eed58ddc09cc05e2c5fe"
+tree_sha256 = "2f439a9af3bad8f8e41117bc648549bc15b6558f11d29dff5a87bea2f4f39765"
 manifest_sha256 = "dda7cbce25ad5e319c32e714b5e5165e66153f11316e2eaf04aff10c25f38b4e"
 imports = []
 

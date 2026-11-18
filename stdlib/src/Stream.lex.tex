@@ -49,15 +49,16 @@ definition{
 theorem{
   name: feed_all_append,
   type_parameters: [State, Item],
-  parameters: [feed : (Fn ('State 'Item) 'State), state : 'State, left : (List 'Item), right : (List 'Item)],
+  parameters: [
+    feed : (Fn ('State 'Item) 'State),
+    state : 'State,
+    left : (List 'Item),
+    right : (List 'Item)
+  ],
   statement: ((feedAll ['State, 'Item] feed state (appendItems ['Item] left right)) = (feedAll ['State, 'Item] feed (feedAll ['State, 'Item] feed state left) right)),
   proof: induction{
     branches: [
-      {
-        proof: simplify{definitions: [appendItems, feedAll]},
-        binders: [],
-        constructor: nil
-      },
+      {proof: simplify{definitions: [appendItems, feedAll]}, binders: [], constructor: nil},
       {
         proof: simplify{definitions: [appendItems, feedAll, hypothesis]},
         binders: [item, rest, hypothesis],
