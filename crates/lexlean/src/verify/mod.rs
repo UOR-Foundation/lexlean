@@ -1750,7 +1750,7 @@ pub fn run_part(
                                         tool: "lean",
                                         module: Some(module_name.clone()),
                                         program: &toolchain.lake.path,
-                                        executable_sha256: toolchain.lean.sha256,
+                                        executable_kappa: toolchain.lean.kappa,
                                         argv: vec![
                                             "env".to_owned(),
                                             "lean".to_owned(),

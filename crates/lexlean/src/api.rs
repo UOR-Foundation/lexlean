@@ -87,7 +87,7 @@ pub enum VerifyPart {
 }
 
 /// What a part of a verification produced.
-// A κ-label is 71 bytes where a SHA-256 digest was 32, which tips the
+// A κ-label is 71 bytes where the earlier digest was 32, which tips the
 // published variant past the lint's threshold. One value is returned per
 // verification part, so boxing it would change the public API for no saving.
 #[allow(clippy::large_enum_variant)]

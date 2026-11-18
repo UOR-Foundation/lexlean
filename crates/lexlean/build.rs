@@ -21,6 +21,8 @@ use std::path::{Path, PathBuf};
 // The standard library's certified BLAKE3 κ-label package (SPEC.md §17.22,
 // §21.1), the same committed copy the crate compiles, so the address of the
 // compiler is the κ-label every other identity is.
+// The bytes are the export's, so the formatter leaves them as they are.
+#[rustfmt::skip]
 #[path = "blake3_package.rs"]
 #[allow(warnings, clippy::all, clippy::pedantic, clippy::nursery)]
 mod blake3_package;

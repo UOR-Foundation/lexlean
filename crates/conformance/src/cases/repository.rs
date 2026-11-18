@@ -4214,9 +4214,9 @@ fn bootstrap_custody_decisions() {
     use crate::export_custody::{check, Custody, Identity, SPEC};
     use std::collections::BTreeMap;
     let pins: BTreeMap<String, String> = [
-        ("Cargo.lock", "a".repeat(64)),
-        ("lean-toolchain", "b".repeat(64)),
-        ("rust-toolchain.toml", "c".repeat(64)),
+        ("Cargo.lock", format!("blake3:{}", "a".repeat(64))),
+        ("lean-toolchain", format!("blake3:{}", "b".repeat(64))),
+        ("rust-toolchain.toml", format!("blake3:{}", "c".repeat(64))),
     ]
     .into_iter()
     .map(|(name, digest)| (name.to_owned(), digest))
