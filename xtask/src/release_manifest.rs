@@ -390,11 +390,7 @@ mod tests {
         assert!(tree_manifest(&root, "checksums.txt").is_err());
         std::fs::write(root.join("z"), b"last").unwrap();
         std::fs::write(root.join("a"), b"first").unwrap();
-        let expected = format!(
-            "{}  a\n{}  z\n",
-            sha256_hex(b"first"),
-            sha256_hex(b"last")
-        );
+        let expected = format!("{}  a\n{}  z\n", sha256_hex(b"first"), sha256_hex(b"last"));
         assert_eq!(tree_manifest(&root, "checksums.txt").unwrap(), expected);
         assert!(tree_manifest(&root.join("missing"), "checksums.txt").is_err());
         // Some supported filesystems reject control-bearing names themselves.

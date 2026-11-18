@@ -31,10 +31,7 @@ pub fn semantics_records(root: &Path, write: bool) -> Result<(), Fail> {
     let core = runtime::core().map_err(|error| format!("the core runtime: {error}"))?;
     let std_text = runtime::std().map_err(|error| format!("the std runtime: {error}"))?;
     let records = [
-        (
-            "rust_runtime_core",
-            Kappa::of(core.as_bytes()).label(),
-        ),
+        ("rust_runtime_core", Kappa::of(core.as_bytes()).label()),
         ("rust_renderer", renderer_digest(&files).label()),
         (
             "rust_runtime_std",
