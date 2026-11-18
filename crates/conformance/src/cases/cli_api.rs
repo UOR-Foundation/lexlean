@@ -738,7 +738,7 @@ pub(crate) fn run(id: &str) {
                 "LexLeanError",
                 "ErrorClass",
                 "Diagnostic",
-                "Sha256Digest",
+                "Kappa",
             ] {
                 assert!(
                     lib.contains(&format!("{name},"))
@@ -862,7 +862,7 @@ pub(crate) fn run(id: &str) {
             // Nasty configuration and lock bytes never panic either.
             for bytes in [
                 b"\xFF\xFE".to_vec(),
-                b"spec = \"lexlean/project/1\"\n[[lexicon_source]]\n[[lexicon_source]]\n".to_vec(),
+                b"spec = \"lexlean/project/2\"\n[[lexicon_source]]\n[[lexicon_source]]\n".to_vec(),
                 vec![b'['; 10_000],
                 b"limits = 5\n".to_vec(),
             ] {
@@ -927,7 +927,7 @@ pub(crate) fn run(id: &str) {
                     assert!(
                         stdout.starts_with(&format!(
                             "built 1 module at .lexlean/build/{}",
-                            baseline.to_hex()
+                            baseline.label()
                         )),
                         "{stdout}"
                     );
@@ -1025,7 +1025,7 @@ pub(crate) fn run(id: &str) {
                 "lexlean {}\nlanguage {}\ncompiler-semantics {}\nlean-toolchain {}\n",
                 lexlean::COMPILER_VERSION,
                 lexlean::LANGUAGE_VERSION,
-                lexlean::compiler_semantics_id().to_hex(),
+                lexlean::compiler_semantics_id().label(),
                 lexlean::LEAN_TOOLCHAIN
             );
             assert_eq!(stdout, expected, "§30.3: the exact four-line report");
@@ -1047,7 +1047,7 @@ pub(crate) fn run(id: &str) {
                 .expect("snapshot repeats");
             assert_eq!(first.canonical_bytes(), second.canonical_bytes());
             assert_eq!(first.snapshot_id(), second.snapshot_id());
-            assert_eq!(first.spec(), "lexlean/semantic-snapshot/1");
+            assert_eq!(first.spec(), "lexlean/semantic-snapshot/3");
             assert_eq!(first.language(), lexlean::LANGUAGE_VERSION);
             assert!(first.modules().iter().all(|module| {
                 !module.source().path().starts_with('/')

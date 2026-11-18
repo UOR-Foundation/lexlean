@@ -7,7 +7,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use camino::{Utf8Path, Utf8PathBuf};
 
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::{build_id, Sha256Digest};
+use crate::artifact::content_id::{build_id, Kappa};
 use crate::artifact::manifest::{BuildManifest, FileRow, ModuleRow};
 use crate::artifact::source_map::{ArtifactKind, MapArtifact, MapSource, SourceMap};
 use crate::code;
@@ -87,6 +87,10 @@ pub enum VerifyPart {
 }
 
 /// What a part of a verification produced.
+// A κ-label is 71 bytes where a SHA-256 digest was 32, which tips the
+// published variant past the lint's threshold. One value is returned per
+// verification part, so boxing it would change the public API for no saving.
+#[allow(clippy::large_enum_variant)]
 pub enum VerifyPartOutcome {
     /// A shard's output directory, and the number of processes it ran.
     Shard {
@@ -169,11 +173,11 @@ pub struct VerifiedUnit {
 /// A project result set (§24.4): always a set, never a singular unit.
 pub struct ProjectResultSet<U> {
     /// The source ID.
-    pub source_id: Sha256Digest,
+    pub source_id: Kappa,
     /// The semantic ID.
-    pub semantic_id: Sha256Digest,
+    pub semantic_id: Kappa,
     /// The build ID, present after a build.
-    pub build_id: Option<Sha256Digest>,
+    pub build_id: Option<Kappa>,
     /// Units by module name.
     pub units: BTreeMap<String, U>,
 }
@@ -181,13 +185,13 @@ pub struct ProjectResultSet<U> {
 /// A verified project (§24.4).
 pub struct VerifiedProject {
     /// The source ID.
-    pub source_id: Sha256Digest,
+    pub source_id: Kappa,
     /// The semantic ID.
-    pub semantic_id: Sha256Digest,
+    pub semantic_id: Kappa,
     /// The build ID.
-    pub build_id: Sha256Digest,
+    pub build_id: Kappa,
     /// The attestation ID.
-    pub attestation_id: Sha256Digest,
+    pub attestation_id: Kappa,
     /// The published verified directory.
     pub root: Utf8PathBuf,
     /// Units by module name.
@@ -226,7 +230,7 @@ pub struct RenderedModule {
 /// A fully rendered build (§21.5).
 pub struct RenderedBuild {
     /// The build ID.
-    pub build_id: Sha256Digest,
+    pub build_id: Kappa,
     /// Modules in sorted name order.
     pub modules: Vec<RenderedModule>,
     /// Every file of the build directory as `(relative path, bytes)`,
@@ -243,7 +247,7 @@ fn file_row(kind: &str, path: &str, bytes: &[u8]) -> FileRow {
         kind: kind.to_owned(),
         path: path.to_owned(),
         byte_length: bytes.len(),
-        sha256: Sha256Digest::of(bytes),
+        kappa: Kappa::of(bytes),
     }
 }
 
@@ -326,7 +330,7 @@ fn render_build_inline(
             sources: vec![MapSource::File {
                 id: 0,
                 path: checked_module.document.source_path.clone(),
-                sha256: checked_module.document.source_sha256,
+                kappa: checked_module.document.source_kappa,
             }],
             artifacts: vec![
                 MapArtifact {
@@ -492,12 +496,12 @@ fn render_build_inline(
         &project.config.lockfile,
         &checked.canonical_lock,
     ));
-    for (path, byte_length, sha256) in &checked.artifacts {
+    for (path, byte_length, kappa) in &checked.artifacts {
         inputs.push(FileRow {
             kind: "model-artifact".to_owned(),
             path: path.clone(),
             byte_length: *byte_length,
-            sha256: *sha256,
+            kappa: *kappa,
         });
     }
     for (name, checked_module) in &checked.modules {
@@ -535,7 +539,7 @@ fn render_build_inline(
             kind: "lexicon".to_owned(),
             path,
             byte_length: package.total_bytes,
-            sha256: package.tree_sha256,
+            kappa: package.tree_kappa,
         });
     }
 
@@ -633,13 +637,7 @@ fn publish_build_locked(
     build: &RenderedBuild,
     guard: &MutationGuard,
 ) -> Result<Utf8PathBuf, LexLeanError> {
-    publish_tree(
-        project,
-        "build",
-        &build.build_id.to_hex(),
-        &build.files,
-        guard,
-    )
+    publish_tree(project, "build", build.build_id.hex(), &build.files, guard)
 }
 
 /// Publish `files` atomically at `<build_root>/<area>/<name>`, a
@@ -1488,13 +1486,13 @@ pub fn parse_lock_bytes(path: &str, bytes: &[u8]) -> Result<Lock, Vec<Diagnostic
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct CommandIds {
     /// The source ID.
-    pub source_id: Option<Sha256Digest>,
+    pub source_id: Option<Kappa>,
     /// The semantic ID.
-    pub semantic_id: Option<Sha256Digest>,
+    pub semantic_id: Option<Kappa>,
     /// The build ID.
-    pub build_id: Option<Sha256Digest>,
+    pub build_id: Option<Kappa>,
     /// The attestation ID.
-    pub attestation_id: Option<Sha256Digest>,
+    pub attestation_id: Option<Kappa>,
 }
 
 /// The canonical JSON command-result object (§20.6). Absent IDs are
@@ -1535,7 +1533,7 @@ pub fn command_result_json(
         ("attestation_id", ids.attestation_id),
     ] {
         if let Some(id) = id {
-            fields.push((name, Json::Str(id.to_hex())));
+            fields.push((name, Json::Str(id.label())));
         }
     }
     if let Some(text) = explanation {

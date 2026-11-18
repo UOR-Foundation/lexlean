@@ -9,7 +9,7 @@ use lexlean::api::production::{
     self, CertificateRole, CertificationStatus, Evidence, EvidenceKind, Expectation, Optimality,
     PackageName, ProductionRequest, ProductionResult, RootRequest, TargetRef, REQUEST_SPEC,
 };
-use lexlean::{Engine, LexLeanError, Sha256Digest};
+use lexlean::{Engine, Kappa, LexLeanError};
 
 use crate::production_consumer;
 use crate::production_export::{self as harness, Exported, GNAF_ROOT};
@@ -74,7 +74,7 @@ fn unstable_paths(source: &str, hidden: &BTreeSet<String>) -> Vec<String> {
     found
 }
 
-fn digests() -> BTreeMap<String, Sha256Digest> {
+fn digests() -> BTreeMap<String, Kappa> {
     production::targets()
         .expect("targets")
         .into_iter()
@@ -100,7 +100,7 @@ fn request_for(roots: &[(&str, &str, &[&str])]) -> ProductionRequest {
                     .iter()
                     .map(|id| TargetRef {
                         id: (*id).to_owned(),
-                        digest: digests.get(*id).copied().unwrap_or(Sha256Digest([0; 32])),
+                        digest: digests.get(*id).copied().unwrap_or(Kappa::ZERO),
                     })
                     .collect(),
             })
@@ -136,8 +136,8 @@ fn refused(project: &P, request: &ProductionRequest, code: &str) -> LexLeanError
     error
 }
 
-fn sha(bytes: &[u8]) -> Sha256Digest {
-    Sha256Digest::of(bytes)
+fn sha(bytes: &[u8]) -> Kappa {
+    Kappa::of(bytes)
 }
 
 /// The production example exported a second time, from another absolute
@@ -322,13 +322,13 @@ fn rewrite_attestation(bundle: &Utf8Path, path: &[&str], value: Option<serde_jso
     let canonical_body = lexlean::artifact::canonical_json::Json::parse(&harness::canonical(&body))
         .expect("canonical body");
     let id = lexlean::artifact::content_id::attestation_id(&canonical_body.to_canonical_string());
-    body["attestation_id"] = serde_json::json!(id.to_hex());
+    body["attestation_id"] = serde_json::json!(id.label());
     let bytes = harness::canonical(&body);
     std::fs::write(file.as_std_path(), &bytes).expect("write attestation");
     rewrite_result(bundle, |result| {
         result.verification.attestation_id = id;
         result.verification.attestation.byte_length = u64::try_from(bytes.len()).expect("length");
-        result.verification.attestation.sha256 = sha(&bytes);
+        result.verification.attestation.kappa = sha(&bytes);
     });
 }
 
@@ -346,12 +346,12 @@ fn rewrite_compiler_input_identity(bundle: &Utf8Path, field: &str, value: &str) 
     rewrite_attestation(
         bundle,
         &["compiler_input"],
-        Some(serde_json::json!({"byte_length": bytes.len(), "sha256": sha(&bytes).to_hex()})),
+        Some(serde_json::json!({"byte_length": bytes.len(), "kappa": sha(&bytes).label()})),
     );
     rewrite_result(bundle, |result| {
         result.verification.compiler_input.byte_length =
             u64::try_from(bytes.len()).expect("length");
-        result.verification.compiler_input.sha256 = sha(&bytes);
+        result.verification.compiler_input.kappa = sha(&bytes);
     });
 }
 
@@ -400,14 +400,14 @@ fn assert_valid(name: &str, value: &serde_json::Value, what: &str) {
     );
 }
 
-/// The recorded schema versions: `(file, spec, sha256)` rows.
+/// The recorded schema versions: `(file, spec, kappa)` rows.
 fn recorded_versions() -> Vec<(String, String, String)> {
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     struct Row {
         schema: String,
         spec: String,
-        sha256: String,
+        kappa: String,
     }
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
@@ -424,7 +424,7 @@ fn recorded_versions() -> Vec<(String, String, String)> {
     versions
         .version
         .into_iter()
-        .map(|row| (row.schema, row.spec, row.sha256))
+        .map(|row| (row.schema, row.spec, row.kappa))
         .collect()
 }
 
@@ -458,7 +458,7 @@ pub fn schema_versions_hold(
                 "{name}: the schema states `{stated}`, the façade `{current}`"
             ));
         }
-        let digest = sha(bytes).to_hex();
+        let digest = sha(bytes).label();
         let row = versions
             .iter()
             .find(|(schema, spec, _)| schema == name && spec == current)
@@ -650,7 +650,7 @@ pub fn run(id: &str) {
                 assert_eq!(result.source.source_id, checked.source_id);
                 assert_eq!(result.source.semantic_id, checked.semantic_id);
                 assert_eq!(
-                    result.source.lock_sha256,
+                    result.source.lock_kappa,
                     sha(
                         &std::fs::read(exported.project.root.join("lexlean.lock").as_std_path())
                             .expect("lock")
@@ -670,21 +670,21 @@ pub fn run(id: &str) {
                         .expect("preservation");
                 assert_eq!(
                     attestation["attestation_id"],
-                    result.verification.attestation_id.to_hex()
+                    result.verification.attestation_id.label()
                 );
                 assert_eq!(
-                    attestation["compiler_input"]["sha256"],
-                    sha(&compiler_input).to_hex()
+                    attestation["compiler_input"]["kappa"],
+                    sha(&compiler_input).label()
                 );
                 assert_eq!(
-                    attestation["preservation"]["sha256"],
-                    sha(&preservation).to_hex()
+                    attestation["preservation"]["kappa"],
+                    sha(&preservation).label()
                 );
                 assert_eq!(
-                    result.verification.compiler_input.sha256,
+                    result.verification.compiler_input.kappa,
                     sha(&compiler_input)
                 );
-                assert_eq!(result.verification.preservation.sha256, sha(&preservation));
+                assert_eq!(result.verification.preservation.kappa, sha(&preservation));
                 let shipped: usize = application
                     .roots
                     .iter()
@@ -764,10 +764,10 @@ pub fn run(id: &str) {
                             .expect("provenance"),
                         )
                         .expect("provenance JSON");
-                        assert_eq!(provenance["compiler_semantics"], this_compiler.to_hex());
+                        assert_eq!(provenance["compiler_semantics"], this_compiler.label());
                         assert_eq!(
                             provenance["sources"],
-                            serde_json::json!([result.source.semantic_id.to_hex()])
+                            serde_json::json!([result.source.semantic_id.label()])
                         );
                         assert_eq!(provenance["profile"], output.target.id);
                         assert_eq!(
@@ -815,7 +815,7 @@ pub fn run(id: &str) {
                 "LLC0203",
             );
             let mut stale = request_for(&[("Production.Main.checkedSum", "pkg", &["rust-std"])]);
-            stale.roots[0].targets[0].digest = Sha256Digest::of(b"another descriptor");
+            stale.roots[0].targets[0].digest = Kappa::of(b"another descriptor");
             refused(&project, &stale, "LLC0203");
             // The digest is the framed SHA-256 of the whole canonical
             // descriptor without it, recomputed independently, so every
@@ -879,7 +879,7 @@ pub fn run(id: &str) {
                 request.expect = Expectation {
                     source_id: pins.expect.source_id.filter(|_| source),
                     semantic_id: pins.expect.semantic_id.filter(|_| semantic),
-                    lock_sha256: pins.expect.lock_sha256.filter(|_| lock),
+                    lock_kappa: pins.expect.lock_kappa.filter(|_| lock),
                 };
                 request
             };
@@ -960,7 +960,7 @@ pub fn run(id: &str) {
                 harness::GNAF_CERTIFICATE,
                 std::str::from_utf8(&gnaf.certificate).expect("utf8"),
             );
-            let offer = |root: &str, request: &str, certificate: &str, id: Sha256Digest| {
+            let offer = |root: &str, request: &str, certificate: &str, id: Kappa| {
                 let mut asked = request_for(&[(root, "pkg", &["rust-std"])]);
                 asked.evidence = vec![Evidence {
                     root: root.to_owned(),
@@ -1000,7 +1000,7 @@ pub fn run(id: &str) {
             // A certificate for another universe earns a refused verdict.
             let mut foreign: lexlean::gnaf::certification::Certificate =
                 serde_json::from_slice(&gnaf.certificate).expect("certificate");
-            foreign.universe = Sha256Digest::of(b"another universe");
+            foreign.universe = Kappa::of(b"another universe");
             let foreign_id =
                 lexlean::gnaf::certification::certificate_id(&foreign).expect("identity");
             project.write(
@@ -1257,9 +1257,7 @@ pub fn run(id: &str) {
                 ),
                 (
                     &["lexlean", "compiler_semantics"],
-                    Some(serde_json::json!(
-                        sha(b"foreign compiler semantics").to_hex()
-                    )),
+                    Some(serde_json::json!(sha(b"foreign compiler semantics").label())),
                 ),
                 (&["lexlean", "version"], Some(serde_json::json!("0.0.1"))),
                 (&["toolchain"], None),
@@ -1311,7 +1309,7 @@ pub fn run(id: &str) {
                     )),
                 ),
                 (&["spec"], None),
-                (&["spec"], Some(serde_json::json!("lexlean/attestation/1"))),
+                (&["spec"], Some(serde_json::json!("lexlean/attestation/3"))),
                 (&["status"], None),
                 (&["status"], Some(serde_json::json!("unverified"))),
             ];
@@ -1412,7 +1410,7 @@ pub fn run(id: &str) {
                     .as_str()
                     .expect("the bundle artifact"),
             );
-            let digests = |root: &Utf8Path| -> BTreeMap<String, Sha256Digest> {
+            let digests = |root: &Utf8Path| -> BTreeMap<String, Kappa> {
                 harness::tree(root)
                     .into_iter()
                     .map(|(path, bytes)| (path, sha(&bytes)))
@@ -1576,8 +1574,8 @@ pub fn run(id: &str) {
             // Exhaustive destructuring: a new field fails to compile here, and
             // each field's type is one of the closed forms.
             fn name(_: &String) {}
-            fn digest(_: &Sha256Digest) {}
-            fn pinned(_: &Option<Sha256Digest>) {}
+            fn digest(_: &Kappa) {}
+            fn pinned(_: &Option<Kappa>) {}
             let request = request_for(&[("Production.Main.checkedSum", "pkg", &["rust-std"])]);
             let ProductionRequest {
                 spec,
@@ -1607,11 +1605,11 @@ pub fn run(id: &str) {
             let Expectation {
                 source_id,
                 semantic_id,
-                lock_sha256,
+                lock_kappa,
             } = expect;
             pinned(source_id);
             pinned(semantic_id);
-            pinned(lock_sha256);
+            pinned(lock_kappa);
             for Evidence {
                 root,
                 kind,
@@ -1793,7 +1791,7 @@ pub fn cli() {
     };
     project.write(
         "malformed.json",
-        "{\"spec\":\"lexlean/production-request/1\",\"roots\":[],\"lean\":1}",
+        "{\"spec\":\"lexlean/production-request/2\",\"roots\":[],\"lean\":1}",
     );
     write(
         "unknown-root.json",
@@ -1869,14 +1867,14 @@ pub fn cli() {
     assert_eq!(value["success"], true);
     assert_eq!(
         value["artifacts"],
-        serde_json::json!([format!(".lexlean/production/{}", result.result_id.to_hex())])
+        serde_json::json!([format!(".lexlean/production/{}", result.result_id.label())])
     );
-    assert_eq!(value["source_id"], result.source.source_id.to_hex());
-    assert_eq!(value["semantic_id"], result.source.semantic_id.to_hex());
-    assert_eq!(value["build_id"], result.verification.build_id.to_hex());
+    assert_eq!(value["source_id"], result.source.source_id.label());
+    assert_eq!(value["semantic_id"], result.source.semantic_id.label());
+    assert_eq!(value["build_id"], result.verification.build_id.label());
     assert_eq!(
         value["attestation_id"],
-        result.verification.attestation_id.to_hex()
+        result.verification.attestation_id.label()
     );
     // Replay needs no project, and a rejected replay exits 1.
     let bundle = harness::exported("production").bundle();
@@ -1889,7 +1887,7 @@ pub fn cli() {
         stdout,
         format!(
             "replayed result {}: {} outputs, bindings verified; not re-run: {}\n",
-            result.result_id.to_hex(),
+            result.result_id.label(),
             harness::exported("production").report.outputs,
             production::NOT_RECHECKED.join(", ")
         )

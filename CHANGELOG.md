@@ -17,6 +17,20 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- Every identity LexLean computes, names, or pins is a UOR κ-label on the BLAKE3 σ-axis,
+  `blake3:<64 lowercase hex>` (§21.1): the κ-label uor-addr writes on its `blake3` axis and the
+  address Hologram's store re-derives for the same bytes. The standard library's new certified
+  `LexLeanStd.Blake3` module (production root `blake3Label`) computes it; the crate compiles a
+  committed copy of its export, held byte for byte to the export (`SL-06`), in place of the `sha2`
+  crate, and no hash crate ships. Recipes keep the §21.1 framing on `-v2` domains, and an identity
+  framed into another is framed as its label. Every language's compiler-semantics ID moves, and
+  every format whose accepted bytes change raises its spec (`project/2`, `lock/3` and `/4`,
+  `semantic-snapshot/3` and `/4`, `attestation/3` and `/4`, `build-manifest/2`, and the rest),
+  with `*sha256*` fields renamed `*kappa*`. SHA-256 remains only where a format LexLean does not
+  own requires it, which the new `audit-hashes` (`AR-15`) enforces; `tests/kappa/vectors.json`
+  (`AR-16`) states cross-implementation vectors that an independent generator, the `blake3`
+  crate, and uor-addr reproduce. In WASM the identity hashes about six times faster than the
+  `sha2` crate it replaces.
 - Diagnostics carry machine-applicable repairs (SPEC.md §20.7, `PF-25`,
   `PF-26`, `VR-24`, `VR-25`; no new diagnostic code; every language identity
   moves, because the diagnostic schema is in each digest). A repair is a

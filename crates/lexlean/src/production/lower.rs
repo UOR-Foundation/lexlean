@@ -2270,7 +2270,7 @@ impl Lowerer<'_> {
                         | SemanticDeclaration::Artifact {
                             name: _,
                             role: _,
-                            sha256: _,
+                            kappa: _,
                             length: _,
                             schema: _,
                             r#type: _,
@@ -2475,7 +2475,7 @@ impl Lowerer<'_> {
                         | SemanticDeclaration::Artifact {
                             name: _,
                             role: _,
-                            sha256: _,
+                            kappa: _,
                             length: _,
                             schema: _,
                             r#type: _,

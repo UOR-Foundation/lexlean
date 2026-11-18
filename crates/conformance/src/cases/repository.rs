@@ -1316,7 +1316,7 @@ pub(crate) fn run(id: &str) {
             let model = repo_model::Model::load(&root.join("model").into_std_path_buf())
                 .expect("the model loads");
             let table = spec_table();
-            assert_eq!(table.len(), 501, "§31 has 501 rows");
+            assert_eq!(table.len(), 504, "§31 has 504 rows");
             assert_eq!(model.ids.id.len(), table.len(), "register row count");
             for ((spec_id, spec_suite, spec_statement), row) in
                 table.iter().zip(model.ids.id.iter())
@@ -1460,9 +1460,9 @@ pub(crate) fn run(id: &str) {
             // stale one: that build locks and checks with it consistently.
             assert_eq!(
                 lexlean::LANGUAGE_1_2_SEMANTICS_ID,
-                twelve.to_hex(),
+                twelve.label(),
                 "RP-10: lexlean::LANGUAGE_1_2_SEMANTICS_ID is stale; the tree's language-1.2 ID is {}",
-                twelve.to_hex()
+                twelve.label()
             );
             assert_eq!(
                 eleven,
@@ -3099,7 +3099,7 @@ fn rp_19() {
     };
     let project = support::P::copy_example("production");
     refused(&project, &["--diagnostic-format", "json", "verify"]);
-    let digests: std::collections::BTreeMap<String, lexlean::Sha256Digest> = production::targets()
+    let digests: std::collections::BTreeMap<String, lexlean::Kappa> = production::targets()
         .expect("targets")
         .into_iter()
         .map(|descriptor| (descriptor.id, descriptor.digest))
@@ -4257,7 +4257,7 @@ fn bootstrap_custody_decisions() {
         toolchains,
         executables,
         bundle_path: ".lexlean/production/bundle".to_owned(),
-        bundle_sha256: bundle.0.clone(),
+        bundle_kappa: bundle.0.clone(),
         bundle_files: bundle.1,
     };
     check(&record, &here, &bundle).expect("§9.4: the run's own export, from an earlier attempt");
@@ -4312,7 +4312,7 @@ fn bootstrap_custody_decisions() {
         ),
         (
             "bundle",
-            Box::new(|record| record.bundle_sha256 = "f".repeat(64)),
+            Box::new(|record| record.bundle_kappa = "f".repeat(64)),
         ),
         ("bundle", Box::new(|record| record.bundle_files += 1)),
         (

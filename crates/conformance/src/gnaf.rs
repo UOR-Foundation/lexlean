@@ -20,7 +20,7 @@ use lexlean::gnaf::{
     Machine, Objective, OperandSize, Plan, Prepared, Request, Scope, FIXTURE_SPEC, HOST_CAPACITY,
     MANIFEST_SPEC, MODEL, REQUEST_SPEC,
 };
-use lexlean::Sha256Digest;
+use lexlean::Kappa;
 use serde_json::{json, Value as Json};
 
 /// The axioms Lean's `#print axioms` reports for a definition that runs the
@@ -301,8 +301,8 @@ fn accounted(kind: ActionKind, charge: Charge) -> Action {
 }
 
 /// A prepared artifact's identity: the SHA-256 of the bytes it names.
-fn artifact(bytes: &str) -> Sha256Digest {
-    Sha256Digest::of(bytes.as_bytes())
+fn artifact(bytes: &str) -> Kappa {
+    Kappa::of(bytes.as_bytes())
 }
 
 /// The machine every valid request starts from: the host's capacity,
@@ -397,7 +397,7 @@ fn request(
         machine: machine(),
         carrier,
         completeness: Completeness::GrammarEquality,
-        universe: Sha256Digest([0; 32]),
+        universe: Kappa::ZERO,
         objective,
         claim,
         scope: Scope::GrammarUniverse,
@@ -1167,7 +1167,7 @@ pub fn manifest() -> Json {
              "statement": "lexlean::gnaf::certification loads a certificate, refuses what exceeds its capacity before reading a premise, and gives the verdict the model gives it; its verdicts are evidence through the kernel's agreement on the committed certificates."},
             {"name": "interchange", "role": "realization-only",
              "source": "schemas/gnaf-request.schema.json",
-             "statement": "lexlean/gnaf-request/1 is LexLean's own request form; no UOR-GNAF interchange profile is claimed."},
+             "statement": "lexlean/gnaf-request/2 is LexLean's own request form; no UOR-GNAF interchange profile is claimed."},
             {"name": "address", "role": "realization-only",
              "source": "crates/lexlean/src/gnaf.rs",
              "statement": "The SystemUniverseId is the framed SHA-256 lexlean-gnaf-universe-v1 of the problem, machine, and carrier; no UOR-GNAF address profile is claimed."},

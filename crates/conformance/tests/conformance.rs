@@ -1031,6 +1031,16 @@ fn conformance_ar_14() {
 }
 
 #[test]
+fn conformance_ar_15() {
+    repo_conformance::cases::run("AR-15");
+}
+
+#[test]
+fn conformance_ar_16() {
+    repo_conformance::cases::run("AR-16");
+}
+
+#[test]
 fn conformance_vr_01() {
     repo_conformance::cases::run("VR-01");
 }
@@ -2253,6 +2263,11 @@ fn conformance_sl_04() {
 #[test]
 fn conformance_sl_05() {
     repo_conformance::cases::run("SL-05");
+}
+
+#[test]
+fn conformance_sl_06() {
+    repo_conformance::cases::run("SL-06");
 }
 
 #[test]

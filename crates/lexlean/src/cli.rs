@@ -153,7 +153,7 @@ enum ProductionAction {
     Targets,
     /// Verify the project and publish the bundle a request names.
     Build {
-        /// The `lexlean/production-request/1` file.
+        /// The `lexlean/production-request/2` file.
         #[arg(long)]
         request: Utf8PathBuf,
     },
@@ -363,7 +363,7 @@ fn version_text() -> String {
         "lexlean {}\nlanguage {}\ncompiler-semantics {}\nlean-toolchain {}\n",
         crate::COMPILER_VERSION,
         crate::LANGUAGE_VERSION,
-        crate::compiler_semantics_id().to_hex(),
+        crate::compiler_semantics_id().label(),
         crate::LEAN_TOOLCHAIN
     );
     // A build without the production data shares the compiler-semantics IDs
@@ -630,7 +630,7 @@ pub fn run(
             let report = crate::api::production::verify_artifact(&path)?;
             outcome.summary = format!(
                 "replayed result {}: {} outputs, bindings verified; not re-run: {}\n",
-                report.result_id.to_hex(),
+                report.result_id.label(),
                 report.outputs,
                 report.not_rechecked.join(", ")
             );
@@ -685,8 +685,8 @@ pub fn run(
                     outcome.summary = format!(
                         "checked {} (source {}, semantic {})\n",
                         modules(result.units.len()),
-                        result.source_id.to_hex(),
-                        result.semantic_id.to_hex()
+                        result.source_id.label(),
+                        result.semantic_id.label()
                     );
                     Ok(())
                 }
@@ -702,7 +702,7 @@ pub fn run(
                         let artifact = format!(
                             "{}/build/{}",
                             engine.project().config.build_root,
-                            id.to_hex()
+                            id.label()
                         );
                         outcome.summary =
                             format!("built {} at {artifact}\n", modules(result.units.len()));
@@ -722,12 +722,12 @@ pub fn run(
                     outcome.artifacts.push(format!(
                         "{}/verified/{}",
                         engine.project().config.build_root,
-                        result.attestation_id.to_hex()
+                        result.attestation_id.label()
                     ));
                     outcome.summary = format!(
                         "verified {}; attestation {}\n",
                         modules(result.units.len()),
-                        result.attestation_id.to_hex()
+                        result.attestation_id.label()
                     );
                     Ok(())
                 }
@@ -811,7 +811,7 @@ pub fn run(
                     outcome.summary = format!(
                         "exported {packages} packages at {}; result {}{host}\n",
                         output.bundle,
-                        result.result_id.to_hex()
+                        result.result_id.label()
                     );
                     Ok(())
                 }

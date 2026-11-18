@@ -866,8 +866,7 @@ impl CoreModule {
                 }
             };
             let digest =
-                crate::artifact::content_id::Sha256Digest::of(shape.to_string().as_bytes())
-                    .to_hex();
+                crate::artifact::content_id::Kappa::of(shape.to_string().as_bytes()).label();
             memo.insert(index, digest);
             stack.pop();
         }

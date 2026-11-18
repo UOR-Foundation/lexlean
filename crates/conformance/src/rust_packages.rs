@@ -93,10 +93,10 @@ pub fn bound_to_source(committed: &Committed) -> Result<(), String> {
             .as_std_path(),
     )
     .map_err(|error| format!("the {module} source: {error}"))?;
-    let digest = lexlean::artifact::content_id::Sha256Digest::of(&source).to_hex();
+    let digest = lexlean::artifact::content_id::Kappa::of(&source).label();
     if map["semantic_id"] != semantic.as_str()
         || map["sources"][0]["path"] != format!("src/{module}.lex.tex").as_str()
-        || map["sources"][0]["sha256"] != digest.as_str()
+        || map["sources"][0]["kappa"] != digest.as_str()
     {
         return Err(format!(
             "the build {semantic} does not bind the committed {module} source {digest}"

@@ -13,7 +13,7 @@ use lexlean::gnaf::certification::{
 use lexlean::gnaf::{
     self, Answer, ClaimClass, Objective, Rejection, Request, Scope, Selector, Status,
 };
-use lexlean::Sha256Digest;
+use lexlean::Kappa;
 use serde_json::{json, Value as Json};
 
 use crate::certification as generated;
@@ -288,7 +288,7 @@ fn gc_01() {
     refuses(
         &bytes(&spec),
         "LLB6007",
-        "expected `lexlean/gnaf-certificate/1`",
+        "expected `lexlean/gnaf-certificate/2`",
     );
     let mut premise = base.clone();
     premise["premises"][0] = json!({"kind": "excluded"});
@@ -311,7 +311,7 @@ fn gc_01() {
     // A fixture stating another identity is refused, however it is edited.
     let committed_fixture = fixture("lb-argmin-over-systems");
     let mut forged = serde_json::to_value(&committed_fixture).expect("json");
-    forged["id"] = json!(Sha256Digest::of(b"another certificate").to_hex());
+    forged["id"] = json!(Kappa::of(b"another certificate").label());
     let error = certification::load_fixture(&bytes(&forged)).expect_err("a forged identity");
     support::expect_code(&error, "LLB6007");
     assert!(error.to_string().contains("identity"), "{error}");
@@ -331,7 +331,7 @@ fn gc_01() {
             &serde_json::to_value(&forged).expect("json")
         )
         .is_empty()
-            || forged["id"] != json!(committed_fixture.id.to_hex()),
+            || forged["id"] != json!(committed_fixture.id.label()),
         "a forged identity is a different document"
     );
 

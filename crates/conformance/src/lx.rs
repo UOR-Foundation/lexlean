@@ -1,4 +1,4 @@
-//! Builders for LexLean semantic-module JSON (`lexlean/semantic-module/2`),
+//! Builders for LexLean semantic-module JSON (`lexlean/semantic-module/3`),
 //! shared by every generator of a `compiler` module.
 //!
 //! Each builder returns exactly the object the schema names, with no
@@ -211,7 +211,7 @@ pub fn recursive(argument: &str, mut definition: Json) -> Json {
 ///
 /// Panics if the declarations are not a module of the closed schema.
 pub fn module_tex(name: &str, imports: &[&str], declarations: Vec<Json>) -> String {
-    let data = json!({"spec": "lexlean/semantic-module/2", "declarations": declarations});
+    let data = json!({"spec": "lexlean/semantic-module/3", "declarations": declarations});
     lexlean::sdk::assemble(
         &lexlean::sdk::SourceHeader {
             name,
