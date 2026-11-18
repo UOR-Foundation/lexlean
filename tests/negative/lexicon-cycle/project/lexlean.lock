@@ -1,20 +1,20 @@
-spec = "lexlean/lock/1"
+spec = "lexlean/lock/3"
 language = "1.0"
-compiler_semantics = "4bd46ef62ba56a77cb3c6453346671a809ccd665fc1f5334e4b1b9dce01f3245"
-project_config_sha256 = "8f554680b81df1d006eb8c5d7a42bd2cafcfc944cb5b466ea0ecd7d023800564"
+compiler_semantics = "blake3:033237f7056dad2227e8d0344867d657f07f17f90e98d0dfa9b7bf684b3132e9"
+project_config_kappa = "blake3:f8f3131987189cef9491ec066be8fbd4aa4ece41ad72621fdf249a3d8a146d92"
 lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[workspace_file]]
 path = "lake-manifest.json"
-sha256 = "c144718a29e00f42e3627e1aef3ddd8704cfde4e19568b4279f078c1cc29b7b8"
+kappa = "blake3:f67409921d617fb82cdf81b54ee172d6622799a3af1c933014e41e47ab0ff32b"
 
 [[workspace_file]]
 path = "lakefile.toml"
-sha256 = "db88f1cb05d4d4f5b8658d31c7eade34c4e6fb16fbb56f450c0160abc6ec42cb"
+kappa = "blake3:2389a7fb6aa94ec479f4e25c8879dad4878d5be001c22bee02637d57c74d15f0"
 
 [[workspace_file]]
 path = "lean-toolchain"
-sha256 = "2bdc48adfa58d0017e538a0ad117c5d73d35deec879978f909406a80c8037273"
+kappa = "blake3:a97821a267801086f27c546268ed08ab29cf5a2d15de1258094c5f95ace394aa"
 
 [[package]]
 id = "lexlean.core"
@@ -22,8 +22,8 @@ version = "1.0.0"
 kind = "builtin"
 source = "embedded"
 revision = "compiler-semantics"
-tree_sha256 = "e729489584d93b0fd07ddc7bb6d0544b737b2a1f3a769713614c00902228df17"
-manifest_sha256 = "3de2c46e1eea7eabf082c18797aae7c12113195c806f01115b3f1a13f7ab4ec1"
+tree_kappa = "blake3:c52aac6ad8da8eaa47e1dd7889bc753b429d63edd302a8f29b0543ffa9c81749"
+manifest_kappa = "blake3:2a3d21dc3ee623e0ca321b370300231414630b9df5c081589ccb7feb369fd64a"
 imports = []
 
 [[package]]
@@ -32,8 +32,8 @@ version = "1.0.0"
 kind = "builtin"
 source = "embedded"
 revision = "compiler-semantics"
-tree_sha256 = "e9cd250c90898cf771b26cfc8e02f516f39279133f003097aa1db7f6b8d91980"
-manifest_sha256 = "fdd3c80a33cabc0fd6463bc825588ea73af948328cc8d47f2c17d3e6652b8fb4"
+tree_kappa = "blake3:009d77b67df20e833dee0e6bc01358f4bacdb0b26e33ccc95a260393de6deeac"
+manifest_kappa = "blake3:b2a8b75a359c8b8e9865c2f8ba865e2ad026d99ba245a108ec4deb6eaa9e70d4"
 imports = ["lexlean.core@1.0.0"]
 
 [[package]]
@@ -42,8 +42,8 @@ version = "1.0.0"
 kind = "builtin"
 source = "embedded"
 revision = "compiler-semantics"
-tree_sha256 = "339e91b34e061513b5bfb09f8ff3be179223afaf913ab7cfa1fff47f198be94e"
-manifest_sha256 = "fb1fe55701cbc3f73a731fe9f4b06a17dcdda064093732938074af482ba08bab"
+tree_kappa = "blake3:a90c4b1f2cade8d1dc83cf60a5d27c548b3248efb70f97a841e7b82a7c4c6e32"
+manifest_kappa = "blake3:89745bca9a2e17a97ff6c8f215009f40a59d8511dda4c49bef2a178f0fdc70a5"
 imports = ["lexlean.core@1.0.0"]
 
 [[package]]
@@ -52,8 +52,8 @@ version = "1.0.0"
 kind = "builtin"
 source = "embedded"
 revision = "compiler-semantics"
-tree_sha256 = "203f94337738ba8b5c134709e920ae76966838af5d16e0aa48cdd92d520d95a4"
-manifest_sha256 = "49d0f41e154d0754384f2e766dc3a0bef72b4ee960f73fe4acfec247bcab73a2"
+tree_kappa = "blake3:2a0944f50d1dcbff11f46d79ad62eb4dc4111ff61c79c971a087b2da1f6813f7"
+manifest_kappa = "blake3:5e94f8662f15f9a5878e851b7ea5b9b6b123d59e87d291c9964a8246ee36d29c"
 imports = ["lexlean.core@1.0.0", "lexlean.std.int@1.0.0", "lexlean.std.nat@1.0.0"]
 
 [[package]]
@@ -62,8 +62,8 @@ version = "1.0.0"
 kind = "path"
 source = "lexicons/test-cyca"
 revision = "none"
-tree_sha256 = "82ea28032066c7dda549899bb05872d613cfc9c77d670f5c0ed4d52c63e48cfe"
-manifest_sha256 = "a9ffe55db96c6d7dfe8100923b32ddf4d207f7559457e35d831657aee6b8d163"
+tree_kappa = "blake3:f8c0870d248158b83d3616fadff790db2d546898b08ce22dea4d421bf799a81c"
+manifest_kappa = "blake3:a004ec60849b23cdd12cffc7992e67cd13e77c92ef8cf1276cdf69b7371972a4"
 imports = ["lexlean.core@1.0.0", "test.cycb@1.0.0"]
 
 [[package]]
@@ -72,6 +72,6 @@ version = "1.0.0"
 kind = "path"
 source = "lexicons/test-cycb"
 revision = "none"
-tree_sha256 = "b2268535f5d7663d1ba75670610df86687e5683f0259f3c3b2393de63b5d7160"
-manifest_sha256 = "b02b124cd376735d88dda069f6edf979a243bd6b5fcc1f77fcf3d2ff9166a632"
+tree_kappa = "blake3:e6df13d18f780686a0708c2015265747c05f369ce0161e8fdd4d22a987d01717"
+manifest_kappa = "blake3:e76b95c16885f4a73970da78d529ab10a62f825a4861c1314ea7dc864f1ba8a5"
 imports = ["lexlean.core@1.0.0", "test.cyca@1.0.0"]
