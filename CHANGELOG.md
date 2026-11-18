@@ -44,6 +44,15 @@ workspace carried at those versions without a tag.
   agent-written cart model with every unfold list emptied, one round of
   repairs fixes three of its seven failing theorems; the other four need a
   backend or proof change no unfold can make.
+- The `linear_arithmetic` script simplifies every goal its split leaves with
+  the same lemmas as its first `simp only` (SPEC.md §17.12, `PF-21`; no new
+  diagnostic code; no language identity moves, because the compiler-semantics
+  IDs hash the language data, not the backend). A split can expose a named
+  recursive definition applied to a constructor, or the projection of a
+  record literal, which `omega` read as opaque atoms: a theorem about a sum
+  over a record's list field whose update sits under an `if` was refused
+  with LLV7002 and now verifies. The generated Lean of every module with
+  this proof form changes, so the goldens move.
 
 ## 0.4.3
 
