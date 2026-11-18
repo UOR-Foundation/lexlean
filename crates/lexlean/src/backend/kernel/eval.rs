@@ -661,6 +661,29 @@ pub struct Eval<'l> {
     steps: Cell<usize>,
     splits: Cell<usize>,
     depth: Cell<usize>,
+    /// Each term already reduced, by the identity of its shared parts, with
+    /// the term itself kept so that no part's address is reused while its
+    /// entry stands. A matched term's scrutinee is reduced to decide the
+    /// match, and again wherever the match is exposed or compared; without
+    /// this each of those repeats the whole reduction.
+    reduced: RefCell<HashMap<Identity, (Expr, Expr)>>,
+}
+
+/// A term's identity: the addresses of the shared parts it is built from.
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+enum Identity {
+    App(usize, usize),
+    Proj(usize, u32),
+}
+
+impl Identity {
+    fn of(e: &Expr) -> Option<Self> {
+        match e {
+            Expr::App(f, a) => Some(Self::App(Rc::as_ptr(f) as usize, Rc::as_ptr(a) as usize)),
+            Expr::Proj(_, i, s) => Some(Self::Proj(Rc::as_ptr(s) as usize, *i)),
+            _ => None,
+        }
+    }
 }
 
 impl<'l> Eval<'l> {
@@ -671,6 +694,7 @@ impl<'l> Eval<'l> {
             steps: Cell::new(0),
             splits: Cell::new(0),
             depth: Cell::new(0),
+            reduced: RefCell::new(HashMap::new()),
         }
     }
 
@@ -719,8 +743,21 @@ impl<'l> Eval<'l> {
     }
 
     /// Weak head normal form.
-    #[allow(clippy::too_many_lines)]
     pub fn whnf(&self, e: &Expr) -> R<Expr> {
+        let Some(identity) = Identity::of(e) else {
+            return self.reduce(e);
+        };
+        if let Some((_, out)) = self.reduced.borrow().get(&identity) {
+            return Ok(out.clone());
+        }
+        let out = self.reduce(e)?;
+        self.reduced.borrow_mut().insert(identity, (e.clone(), out.clone()));
+        Ok(out)
+    }
+
+    /// `whnf`, without consulting what is already reduced.
+    #[allow(clippy::too_many_lines)]
+    fn reduce(&self, e: &Expr) -> R<Expr> {
         let _nested = self.nest()?;
         let mut e = e.clone();
         loop {
