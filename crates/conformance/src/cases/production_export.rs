@@ -1867,7 +1867,7 @@ pub fn cli() {
     assert_eq!(value["success"], true);
     assert_eq!(
         value["artifacts"],
-        serde_json::json!([format!(".lexlean/production/{}", result.result_id.label())])
+        serde_json::json!([format!(".lexlean/production/{}", result.result_id.hex())])
     );
     assert_eq!(value["source_id"], result.source.source_id.label());
     assert_eq!(value["semantic_id"], result.source.semantic_id.label());
