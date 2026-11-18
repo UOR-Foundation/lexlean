@@ -32,7 +32,7 @@ use std::sync::{Mutex, PoisonError};
 use camino::{Utf8Path, Utf8PathBuf};
 
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::config::Limits;
 use crate::diagnostic::Diagnostic;
 use crate::verify::child::{ChildRecord, ChildSpec, Normalizer};
@@ -40,7 +40,7 @@ use crate::verify::child::{ChildRecord, ChildSpec, Normalizer};
 /// The environment variable that names the store directory.
 pub const STORE_VARIABLE: &str = "LEXLEAN_VERIFY_STORE";
 
-const DOMAIN: &str = "lexlean/verify-store/1";
+const DOMAIN: &str = "lexlean/verify-store/2";
 
 /// A process store directory.
 #[derive(Debug, Clone)]
@@ -62,8 +62,8 @@ impl Store {
         })
     }
 
-    fn entry(&self, key: &Sha256Digest) -> PathBuf {
-        let hex = key.to_hex();
+    fn entry(&self, key: &Kappa) -> PathBuf {
+        let hex = key.hex().to_owned();
         self.root.join(&hex[..2]).join(hex)
     }
 
@@ -71,9 +71,9 @@ impl Store {
     /// wrote to `outputs`, or `None` when the store does not hold it whole.
     fn restore(
         &self,
-        key: &Sha256Digest,
+        key: &Kappa,
         outputs: &[Utf8PathBuf],
-        executable: Sha256Digest,
+        executable: Kappa,
     ) -> Option<ChildRecord> {
         let entry = self.entry(key);
         let manifest = std::fs::read_to_string(entry.join("outputs.txt")).ok()?;
@@ -81,7 +81,7 @@ impl Store {
             &Json::parse(&std::fs::read(entry.join("record.json")).ok()?).ok()?,
         )
         .ok()?;
-        if record.executable_sha256 != executable || record.exit_code != 0 {
+        if record.executable_kappa != executable || record.exit_code != 0 {
             return None;
         }
         // One line per file written: the output it belongs to, the suffix
@@ -95,7 +95,7 @@ impl Store {
             let suffix = fields.next().unwrap_or("");
             let output = outputs.get(index)?;
             let stored = std::fs::read(entry.join(format!("{position}.out"))).ok()?;
-            if Sha256Digest::of(&stored).to_hex() != digest {
+            if Kappa::of(&stored).label() != digest {
                 return None;
             }
             files.push((
@@ -126,7 +126,7 @@ impl Store {
 
     /// Store a process that succeeded. A failure to store is dropped: the
     /// store never decides a result.
-    fn save(&self, key: &Sha256Digest, outputs: &[Utf8PathBuf], record: &ChildRecord) {
+    fn save(&self, key: &Kappa, outputs: &[Utf8PathBuf], record: &ChildRecord) {
         let entry = self.entry(key);
         let Some(parent) = entry.parent() else { return };
         if entry.is_dir() || std::fs::create_dir_all(parent).is_err() {
@@ -165,7 +165,7 @@ impl Store {
                 let suffix = &file[stem.len()..];
                 digests.push_str(&format!(
                     "{index} {} {suffix}\n",
-                    Sha256Digest::of(&bytes).to_hex()
+                    Kappa::of(&bytes).label()
                 ));
                 if std::fs::write(scratch.path().join(format!("{position}.out")), bytes).is_err() {
                     return;
@@ -195,12 +195,12 @@ impl Store {
 #[must_use]
 pub fn key(
     tool: &str,
-    executable: Sha256Digest,
+    executable: Kappa,
     argv: &[String],
-    identity: Sha256Digest,
-) -> Sha256Digest {
+    identity: Kappa,
+) -> Kappa {
     let mut bytes = Vec::new();
-    for part in [DOMAIN, tool, &executable.to_hex(), &identity.to_hex()] {
+    for part in [DOMAIN, tool, &executable.label(), &identity.label()] {
         bytes.extend_from_slice(part.as_bytes());
         bytes.push(0);
     }
@@ -208,7 +208,7 @@ pub fn key(
         bytes.extend_from_slice(argument.as_bytes());
         bytes.push(0);
     }
-    Sha256Digest::of(&bytes)
+    Kappa::of(&bytes)
 }
 
 /// Run `process` unless the store holds the process `key`; a process that
@@ -219,9 +219,9 @@ pub fn key(
 /// What `process` returns.
 pub fn stored(
     store: Option<&Store>,
-    key: Option<Sha256Digest>,
+    key: Option<Kappa>,
     outputs: &[Utf8PathBuf],
-    executable: Sha256Digest,
+    executable: Kappa,
     process: impl FnOnce() -> Result<ChildRecord, Diagnostic>,
 ) -> Result<ChildRecord, Diagnostic> {
     let (Some(store), Some(key)) = (store, key) else {
@@ -272,8 +272,8 @@ pub struct Session {
     store: Store,
     roots: Vec<Utf8PathBuf>,
     toolchain: Utf8PathBuf,
-    known: Mutex<BTreeMap<String, Option<Sha256Digest>>>,
-    files: Mutex<BTreeMap<Utf8PathBuf, Option<Sha256Digest>>>,
+    known: Mutex<BTreeMap<String, Option<Kappa>>>,
+    files: Mutex<BTreeMap<Utf8PathBuf, Option<Kappa>>>,
 }
 
 /// The file names under a toolchain or a Lake build directory that a `lean`,
@@ -299,7 +299,7 @@ fn loaded(relative: &str) -> bool {
 /// so a library directory linked from elsewhere is bound like one inside it.
 /// A link that does not resolve, or a directory reached a second time (a
 /// link cycle or an alias), makes the tree unreadable: `None`, a miss.
-fn tree(root: &Utf8Path) -> Option<Sha256Digest> {
+fn tree(root: &Utf8Path) -> Option<Kappa> {
     let mut files: Vec<String> = Vec::new();
     let mut seen: std::collections::BTreeSet<PathBuf> = std::collections::BTreeSet::new();
     let mut stack = vec![root.to_path_buf()];
@@ -334,7 +334,7 @@ fn tree(root: &Utf8Path) -> Option<Sha256Digest> {
     // key binds, and the store answers only once it is read.
     let width = std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get);
     let chunk = files.len().div_ceil(width).max(1);
-    let digests: Vec<Option<Vec<Sha256Digest>>> = std::thread::scope(|scope| {
+    let digests: Vec<Option<Vec<Kappa>>> = std::thread::scope(|scope| {
         files
             .chunks(chunk)
             .map(|part| {
@@ -343,7 +343,7 @@ fn tree(root: &Utf8Path) -> Option<Sha256Digest> {
                         .map(|relative| {
                             std::fs::read(root.join(relative).as_std_path())
                                 .ok()
-                                .map(|bytes| Sha256Digest::of(&bytes))
+                                .map(|bytes| Kappa::of(&bytes))
                         })
                         .collect::<Option<Vec<_>>>()
                 })
@@ -357,10 +357,10 @@ fn tree(root: &Utf8Path) -> Option<Sha256Digest> {
     let mut names = files.iter();
     for part in digests {
         for digest in part? {
-            bytes.extend_from_slice(format!("{}\0{}\0", names.next()?, digest.to_hex()).as_bytes());
+            bytes.extend_from_slice(format!("{}\0{}\0", names.next()?, digest.label()).as_bytes());
         }
     }
-    Some(Sha256Digest::of(&bytes))
+    Some(Kappa::of(&bytes))
 }
 
 impl Session {
@@ -380,8 +380,8 @@ impl Session {
     fn digest_of(
         &self,
         path: &Utf8Path,
-        read: impl FnOnce(&Utf8Path) -> Option<Sha256Digest>,
-    ) -> Option<Sha256Digest> {
+        read: impl FnOnce(&Utf8Path) -> Option<Kappa>,
+    ) -> Option<Kappa> {
         if let Some(known) = self
             .files
             .lock()
@@ -403,20 +403,20 @@ impl Session {
     /// build directory of its working directory, and its normalized
     /// environment rows. `None` when one of them cannot be read whole, or
     /// when the process does not run under the toolchain's home.
-    fn context(&self, spec: &ChildSpec<'_>, normalizer: &Normalizer) -> Option<Sha256Digest> {
+    fn context(&self, spec: &ChildSpec<'_>, normalizer: &Normalizer) -> Option<Kappa> {
         let crate::verify::child::ChildHome::Toolchain { toolchain_bin } = spec.home else {
             return None;
         };
         let program = self.digest_of(spec.program, |path| {
             std::fs::read(path.as_std_path())
                 .ok()
-                .map(|bytes| Sha256Digest::of(&bytes))
+                .map(|bytes| Kappa::of(&bytes))
         })?;
         let toolchain = self.digest_of(&self.toolchain, tree)?;
         let mut bytes = format!(
             "{DOMAIN}\0context\0{}\0{}\0{}\0{}\0",
-            program.to_hex(),
-            toolchain.to_hex(),
+            program.label(),
+            toolchain.label(),
             normalizer.normalize_arg(toolchain_bin.as_str()),
             normalizer.normalize_arg(spec.cwd.as_str()),
         )
@@ -431,7 +431,7 @@ impl Session {
         ] {
             let path = spec.cwd.join(name);
             let row = match std::fs::read(path.as_std_path()) {
-                Ok(text) => Sha256Digest::of(&text).to_hex(),
+                Ok(text) => Kappa::of(&text).label(),
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => "absent".to_owned(),
                 Err(_) => return None,
             };
@@ -439,7 +439,7 @@ impl Session {
         }
         let lake = spec.cwd.join(".lake");
         let lake_row = if lake.as_std_path().exists() {
-            self.digest_of(&lake, tree)?.to_hex()
+            self.digest_of(&lake, tree)?.label()
         } else {
             "absent".to_owned()
         };
@@ -449,14 +449,14 @@ impl Session {
                 format!("{key}\0{}\0", normalizer.normalize_arg(value)).as_bytes(),
             );
         }
-        Some(Sha256Digest::of(&bytes))
+        Some(Kappa::of(&bytes))
     }
 
     /// The content identity of the staged module `name`: its text and the
     /// identities of its imports. A module no root holds is bound when the
     /// toolchain's library holds it, and is then identified by its name;
     /// otherwise it, and everything that imports it, is unbound (`None`).
-    pub fn module(&self, name: &str) -> Option<Sha256Digest> {
+    pub fn module(&self, name: &str) -> Option<Kappa> {
         let mut open = Vec::new();
         self.visit(name, &mut open)
     }
@@ -464,7 +464,7 @@ impl Session {
     /// The content identity of what a `leanchecker` replay of the prefix
     /// `name` reads: the module and every staged module inside its namespace,
     /// which the replay checks with it (ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§22.4).
-    pub fn prefix(&self, name: &str) -> Option<Sha256Digest> {
+    pub fn prefix(&self, name: &str) -> Option<Kappa> {
         let mut inside: Vec<String> = Vec::new();
         let relative = name.replace('.', "/");
         for root in &self.roots {
@@ -491,19 +491,19 @@ impl Session {
         inside.dedup();
         let mut bytes = format!(
             "{DOMAIN}\0prefix\0{name}\0{}\0",
-            self.module(name)?.to_hex()
+            self.module(name)?.label()
         )
         .into_bytes();
         for module in inside {
             bytes.extend_from_slice(
-                format!("{module}\0{}\0", self.module(&module)?.to_hex()).as_bytes(),
+                format!("{module}\0{}\0", self.module(&module)?.label()).as_bytes(),
             );
         }
-        Some(Sha256Digest::of(&bytes))
+        Some(Kappa::of(&bytes))
     }
 
     /// The content identity of the source at `path` and its imports.
-    pub fn source(&self, path: &Utf8Path) -> Option<Sha256Digest> {
+    pub fn source(&self, path: &Utf8Path) -> Option<Kappa> {
         let text = std::fs::read(path.as_std_path()).ok()?;
         let mut open = Vec::new();
         // Labelled by its file name: the staging directory it lies in is a
@@ -511,7 +511,7 @@ impl Session {
         self.of_text(path.file_name()?, &text, &mut open)
     }
 
-    fn visit(&self, name: &str, open: &mut Vec<String>) -> Option<Sha256Digest> {
+    fn visit(&self, name: &str, open: &mut Vec<String>) -> Option<Kappa> {
         if let Some(identity) = self
             .known
             .lock()
@@ -537,10 +537,10 @@ impl Session {
             return library
                 .as_std_path()
                 .is_file()
-                .then(|| Sha256Digest::of(format!("{DOMAIN}\0toolchain\0{name}").as_bytes()));
+                .then(|| Kappa::of(format!("{DOMAIN}\0toolchain\0{name}").as_bytes()));
         };
         if open.iter().any(|other| other == name) {
-            return Some(Sha256Digest::of(
+            return Some(Kappa::of(
                 format!("{DOMAIN}\0cycle\0{name}").as_bytes(),
             ));
         }
@@ -554,17 +554,17 @@ impl Session {
         identity
     }
 
-    fn of_text(&self, label: &str, text: &[u8], open: &mut Vec<String>) -> Option<Sha256Digest> {
+    fn of_text(&self, label: &str, text: &[u8], open: &mut Vec<String>) -> Option<Kappa> {
         let mut bytes = format!(
             "{DOMAIN}\0module\0{label}\0{}\0",
-            Sha256Digest::of(text).to_hex()
+            Kappa::of(text).label()
         )
         .into_bytes();
         for import in imports(&String::from_utf8_lossy(text)) {
             let identity = self.visit(&import, open)?;
-            bytes.extend_from_slice(format!("{import}\0{}\0", identity.to_hex()).as_bytes());
+            bytes.extend_from_slice(format!("{import}\0{}\0", identity.label()).as_bytes());
         }
-        Some(Sha256Digest::of(&bytes))
+        Some(Kappa::of(&bytes))
     }
 
     /// Run the process `spec` about the content `identity` unless the store
@@ -578,7 +578,7 @@ impl Session {
         spec: &ChildSpec<'_>,
         limits: &Limits,
         normalizer: &Normalizer,
-        identity: Sha256Digest,
+        identity: Kappa,
         outputs: &[Utf8PathBuf],
     ) -> Result<ChildRecord, Diagnostic> {
         let argv: Vec<String> = spec
@@ -591,20 +591,20 @@ impl Session {
         let Some(context) = self.context(spec, normalizer) else {
             return crate::verify::child::run(spec, limits, normalizer);
         };
-        let identity = Sha256Digest::of(
+        let identity = Kappa::of(
             format!(
                 "{DOMAIN}\0bound\0{}\0{}\0",
-                identity.to_hex(),
-                context.to_hex()
+                identity.label(),
+                context.label()
             )
             .as_bytes(),
         );
-        let key = key(spec.tool, spec.executable_sha256, &argv, identity);
+        let key = key(spec.tool, spec.executable_kappa, &argv, identity);
         stored(
             Some(&self.store),
             Some(key),
             outputs,
-            spec.executable_sha256,
+            spec.executable_kappa,
             || crate::verify::child::run(spec, limits, normalizer),
         )
     }
@@ -620,7 +620,7 @@ pub fn run(
     spec: &ChildSpec<'_>,
     limits: &Limits,
     normalizer: &Normalizer,
-    identity: impl FnOnce(&Session) -> Option<Sha256Digest>,
+    identity: impl FnOnce(&Session) -> Option<Kappa>,
     outputs: &[Utf8PathBuf],
 ) -> Result<ChildRecord, Diagnostic> {
     match session.and_then(|session| identity(session).map(|identity| (session, identity))) {
@@ -789,7 +789,7 @@ mod tests {
                 exit_code,
                 stdout: String::new(),
                 stderr: String::new(),
-                executable_sha256: Sha256Digest::of(b"lean"),
+                executable_kappa: Kappa::of(b"lean"),
             })
         }
     }
@@ -801,9 +801,9 @@ mod tests {
             root: base.join("store").into_std_path_buf(),
         };
         let output = base.join("out/M.olean");
-        let key = Sha256Digest::of(b"key");
+        let key = Kappa::of(b"key");
         let runs = std::cell::Cell::new(0);
-        let lean = Sha256Digest::of(b"lean");
+        let lean = Kappa::of(b"lean");
         stored(
             Some(&store),
             Some(key),
@@ -837,9 +837,9 @@ mod tests {
             root: base.join("store").into_std_path_buf(),
         };
         let output = base.join("out/M.olean");
-        let key = Sha256Digest::of(b"key");
+        let key = Kappa::of(b"key");
         let runs = std::cell::Cell::new(0);
-        let lean = Sha256Digest::of(b"lean");
+        let lean = Kappa::of(b"lean");
         stored(
             Some(&store),
             Some(key),
@@ -878,13 +878,13 @@ mod tests {
             root: base.join("store").into_std_path_buf(),
         };
         let output = base.join("out/M.olean");
-        let key = Sha256Digest::of(b"key");
+        let key = Kappa::of(b"key");
         let runs = std::cell::Cell::new(0);
         stored(
             Some(&store),
             Some(key),
             std::slice::from_ref(&output),
-            Sha256Digest::of(b"lean"),
+            Kappa::of(b"lean"),
             process(&output, "olean", 0, &runs),
         )
         .expect("run");
@@ -893,7 +893,7 @@ mod tests {
             Some(&store),
             Some(key),
             std::slice::from_ref(&output),
-            Sha256Digest::of(b"another lean"),
+            Kappa::of(b"another lean"),
             process(&output, "olean", 0, &runs),
         )
         .expect("run");
@@ -911,9 +911,9 @@ mod tests {
             root: base.join("store").into_std_path_buf(),
         };
         let output = base.join("out/M.olean");
-        let key = Sha256Digest::of(b"key");
+        let key = Kappa::of(b"key");
         let runs = std::cell::Cell::new(0);
-        let lean = Sha256Digest::of(b"lean");
+        let lean = Kappa::of(b"lean");
         // Planted defect S3: a process that exited 1 but wrote its output.
         stored(
             Some(&store),
