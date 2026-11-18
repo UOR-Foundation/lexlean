@@ -1183,11 +1183,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
-          - { os: macos-15, target: aarch64-apple-darwin }
+          # Two test threads on ARM Linux: its runner was shut down twice
+          # (runs 44271786254, 44294059974), each time about 29 minutes in
+          # while bs_05..bs_08 ran together, every one starting compilers of
+          # its own. The passing run took 66 minutes, so halving stays far
+          # inside the bound. macOS keeps its runner's 3.
+          - { os: ubuntu-24.04-arm, test_threads: 2, target: aarch64-unknown-linux-gnu }
+          - { os: macos-15, test_threads: 3, target: aarch64-apple-darwin }
     runs-on: ${{ matrix.os }}
     # Keep the existing bound; scheduling changes do not extend it.
     timeout-minutes: 240
+    env:
+      RUST_TEST_THREADS: ${{ matrix.test_threads }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install the pinned Rust toolchain
