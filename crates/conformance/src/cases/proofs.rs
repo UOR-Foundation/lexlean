@@ -119,9 +119,9 @@ fn linear_script(definitions: &[&str]) -> String {
         "  subst_vars\n"
     };
     format!(
-        "  intros\n{subst}  try set_option linter.unusedSimpArgs false in simp only [{}] at *\n  try set_option linter.unusedSimpArgs false in simp only [{}] at *\n  all_goals (repeat' split)\n  all_goals omega\n",
-        lemmas.join(", "),
-        bits.join(", ")
+        "  intros\n{subst}  try set_option linter.unusedSimpArgs false in simp only [{l}] at *\n  try set_option linter.unusedSimpArgs false in simp only [{b}] at *\n  all_goals (repeat' split)\n  all_goals (try set_option linter.unusedSimpArgs false in simp only [{l}] at *)\n  all_goals omega\n",
+        l = lemmas.join(", "),
+        b = bits.join(", ")
     )
 }
 
@@ -164,6 +164,38 @@ pub(crate) fn fold_laws_with(file: &str, edits: &[(&str, &str)]) -> P {
     copy.write(file, &source);
     copy
 }
+
+/// A record whose update sits under an `if`, and a theorem about a recursive
+/// sum over its list field, appended to the fold-laws kernels (PF-21).
+const RECORD_SPLIT: &str = r"
+structure{name: Bag, type_parameters: [], parameters: [], fields: [{name: items, type: (List Nat)}]}
+
+definition{
+  name: bagTotal,
+  parameters: [items : (List Nat)],
+  result: Nat,
+  body: (match items
+    | List.nil => 0
+    | List.cons head rest => (head + (bagTotal rest))),
+  recursive_argument: items
+}
+
+definition{
+  name: bagAdd,
+  parameters: [bag : Bag, item : Nat],
+  result: Bag,
+  body: (if (prim less_than 0 item : Bool) then (record Bag {items := (cons item (project bag items))}) else bag),
+  axioms: [propext]
+}
+
+theorem{
+  name: bag_add_raises,
+  parameters: [bag : Bag, item : Nat],
+  statement: ((0 < item) -> ((bagTotal (project (bagAdd bag item) items)) = ((bagTotal (project bag items)) + item))),
+  proof: linear_arithmetic{definitions: [bagAdd, bagTotal]},
+  axioms: [Quot.sound, propext]
+}
+\end{semanticmodule}";
 
 /// [`fold_laws_with`] expecting linking to refuse the copy with `message`.
 fn fold_laws_rejected(file: &str, from: &str, to: &str, message: &str) {
@@ -972,6 +1004,22 @@ pub(crate) fn run(id: &str) {
                     "{error}"
                 );
             }
+            // Splitting `bagAdd`'s `if` leaves `bagTotal` applied to a cons
+            // and the projection of a record literal; without simplifying
+            // each case again `omega` reads both as opaque atoms and Lean
+            // refuses the theorem with LLV7002.
+            let record = fold_laws_with(
+                "src/Kernels.lex.tex",
+                &[("\n\\end{semanticmodule}", RECORD_SPLIT)],
+            );
+            record.check_ok();
+            let build = support::rendered(&record);
+            let kernels = support::lean_text(&build, "Kernels");
+            assert!(
+                kernels.contains(&linear_script(&["bagAdd", "bagTotal"])),
+                "the record theorem is proved by the fixed script\n{kernels}"
+            );
+            let _ = support::verify_ok_backed("PF-21", &record);
         }
         // §17.12, §22.6: the fold laws as LexLean source.
         "PF-22" => {
