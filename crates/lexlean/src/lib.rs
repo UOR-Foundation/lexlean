@@ -106,6 +106,8 @@ use artifact::content_id::tree_kappa;
 /// export. A copy rather than a link, because the build script computes the
 /// address of its compiler with the same package and a build script cannot
 /// follow a link that a host checks out as a text file.
+// The bytes are the export's, so the formatter leaves them as they are.
+#[rustfmt::skip]
 #[path = "../blake3_package.rs"]
 #[allow(warnings, missing_docs, clippy::all, clippy::pedantic, clippy::nursery)]
 pub(crate) mod blake3_package;
@@ -340,7 +342,7 @@ fn embedded_digest(keep: impl Fn(&str) -> bool) -> Kappa {
 /// consistently with itself, so agreement on verdicts could not reveal it.
 /// The 1.0 and 1.1 IDs need no constant: no file they cover is left out.
 pub const LANGUAGE_1_2_SEMANTICS_ID: &str =
-    "blake3:e4a98e52c87a21efa1bbf8ae54e5281bf83dca75f96b502a567a236a1d78f34a";
+    "blake3:d9bfce294eed51dda554a357ddcd1cc59140e8c92aeb6cf60b1b3547a0a7b59c";
 
 /// The compiler-semantics ID for one selected language. Language 1.0 excludes
 /// all files introduced solely for 1.1 and 1.2, and Language 1.1 excludes

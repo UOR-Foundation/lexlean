@@ -482,7 +482,7 @@ struct ManifestAuthority {
     id: String,
     identifier: String,
     revision: String,
-    sha256: String,
+    kappa: String,
     vendored: String,
 }
 
@@ -1621,8 +1621,8 @@ fn gn_07() {
         assert!(evaluate.contains(order), "evaluate answers by `{order}`");
     }
 
-    // The authority: vendored, its bytes' SHA-256 recomputed, pinned by
-    // revision, and some-true.
+    // The authority: vendored, its bytes' κ-label recomputed, pinned by
+    // revision, and some-true; the issuer's digest is the acquired one.
     let model = repo_model::Model::load_from_repo_root().expect("model");
     let (identity, identifier, revision, sha256) = fixtures::AUTHORITY;
     let authority = model
@@ -1639,14 +1639,18 @@ fn gn_07() {
         .contains(revision));
     assert!(authority.citation.contains(revision));
     assert_eq!(authority.acquired_sha256.as_deref(), Some(sha256));
-    assert_eq!(authority.checksum, format!("sha256:{sha256}"));
+    assert_eq!(authority.checksum, fixtures::AUTHORITY_KAPPA);
     assert_eq!(
         authority.vendored.as_deref(),
         Some(fixtures::AUTHORITY_PATH)
     );
     let vendored = std::fs::read(repo_root().join(fixtures::AUTHORITY_PATH).as_std_path())
         .expect("the vendored authority");
-    assert_eq!(Kappa::of(&vendored).label(), sha256);
+    assert_eq!(Kappa::of(&vendored).label(), fixtures::AUTHORITY_KAPPA);
+    assert_eq!(
+        crate::support::oracle_kappa(&vendored).label(),
+        fixtures::AUTHORITY_KAPPA
+    );
     assert_eq!(authority.canonical_identifier.as_deref(), Some(identifier));
     assert_eq!(authority.source_role.as_deref(), Some("normative"));
     assert_eq!(authority.license.as_deref(), Some("Apache-2.0 OR MIT"));
@@ -1716,10 +1720,11 @@ fn gn_08() {
         Some(manifest.authority.revision.as_str()),
         row.revision.as_deref()
     );
-    assert_eq!(manifest.authority.sha256, sha256);
+    assert_eq!(manifest.authority.kappa, fixtures::AUTHORITY_KAPPA);
+    assert_eq!(row.acquired_sha256.as_deref(), Some(sha256));
     assert_eq!(
-        Some(manifest.authority.sha256.as_str()),
-        row.acquired_sha256.as_deref()
+        Some(manifest.authority.kappa.as_str()),
+        Some(row.checksum.as_str())
     );
     assert_eq!(manifest.authority.vendored, fixtures::AUTHORITY_PATH);
     // §20: every kind, operation, machine, cost, proof, interchange, and
