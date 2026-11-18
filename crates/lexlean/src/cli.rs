@@ -699,11 +699,8 @@ pub fn run(
                     outcome.ids.semantic_id = Some(result.semantic_id);
                     outcome.ids.build_id = result.build_id;
                     if let Some(id) = result.build_id {
-                        let artifact = format!(
-                            "{}/build/{}",
-                            engine.project().config.build_root,
-                            id.hex()
-                        );
+                        let artifact =
+                            format!("{}/build/{}", engine.project().config.build_root, id.hex());
                         outcome.summary =
                             format!("built {} at {artifact}\n", modules(result.units.len()));
                         outcome.artifacts.push(artifact);
