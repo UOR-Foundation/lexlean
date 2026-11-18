@@ -64,6 +64,7 @@ mod security;
 mod semantic_ir;
 mod std_packages;
 mod stdlib;
+mod stdlib_blake3;
 mod stdlib_buffer;
 mod stdlib_json;
 mod stdlib_json_read;
