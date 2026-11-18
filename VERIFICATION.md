@@ -14880,9 +14880,9 @@ parts, disjoint and complete (RP-13).
 
 ## The WASI cases as their own part (2026-11-18)
 
-`CL-25`..`CL-27` each build `lexlean` for `wasm32-wasip1` in the release
+`CL-25`..`CL-28` each build `lexlean` for `wasm32-wasip1` in the release
 profile and run it under Node beside the native executable; `CL-27` also
-builds every example that checks. In the remainder they overlapped the rest
+builds every example that checks, and `CL-28` verifies three with Lean. In the remainder they overlapped the rest
 of `bdd` and the leg's `golden` and `repro` recipes. With `CL-27` on the
 `release/v0.4` base, the `rest` leg of run 44396317256 lost its runner 55
 minutes in ("The hosted runner lost communication with the server"), as did
