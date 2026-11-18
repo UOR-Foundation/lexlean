@@ -136,7 +136,7 @@ theorem{
   parameters: [state : State, item : Nat],
   statement: (((canAdd item) = true) -> ((replyAdd state item) = (answerAdded))),
   proof: linear_arithmetic{definitions: [answerAdded, answerUnknown, canAdd, replyAdd]},
-  axioms: [Quot.sound, propext]
+  axioms: [propext]
 }
 
 theorem{
@@ -185,7 +185,7 @@ theorem{
   parameters: [state : State, item : Nat],
   statement: (((canRemove state item) = true) -> ((replyRemove state item) = (answerRemoved))),
   proof: linear_arithmetic{definitions: [answerRefused, answerRemoved, canRemove, replyRemove]},
-  axioms: [Quot.sound, propext]
+  axioms: [propext]
 }
 
 theorem{

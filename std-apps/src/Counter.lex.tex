@@ -55,7 +55,7 @@ theorem{
   parameters: [cap : Nat, count : Nat],
   statement: ((count < cap) -> ((bump cap count) = (count + 1))),
   proof: linear_arithmetic{definitions: [bump]},
-  axioms: [Quot.sound, propext]
+  axioms: [propext]
 }
 
 theorem{
@@ -87,7 +87,7 @@ theorem{
   parameters: [cap : Nat, step : Nat, count : Nat],
   statement: (((count + step) <= cap) -> ((bumpBy cap step count) = (count + step))),
   proof: linear_arithmetic{definitions: [bumpBy]},
-  axioms: [Quot.sound, propext]
+  axioms: [propext]
 }
 
 theorem{
