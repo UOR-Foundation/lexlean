@@ -250,6 +250,9 @@ pub(crate) struct LeanModule {
     /// The exact Lean text: for a project module, the bytes `build` writes
     /// at its `modules/` path.
     text: String,
+    /// The axiom policies verification holds the module's declarations to
+    /// (§22.6): its entries of [`crate::verify::policy::table`].
+    policies: Vec<crate::verify::policy::Entry>,
 }
 
 /// The `lexlean/lean-modules/1` document: every Lean module a host
@@ -306,6 +309,37 @@ impl LeanModules {
                 if let Some(name) = &module.module {
                     row.push(("module", Json::Str(name.clone())));
                 }
+                let policies = module
+                    .policies
+                    .iter()
+                    .map(|entry| {
+                        let mut policy = vec![
+                            ("declaration", Json::Str(entry.name.clone())),
+                            ("kind", Json::Str(entry.policy.kind().to_owned())),
+                            (
+                                "axioms",
+                                Json::Arr(
+                                    entry
+                                        .policy
+                                        .axioms()
+                                        .iter()
+                                        .cloned()
+                                        .map(Json::Str)
+                                        .collect(),
+                                ),
+                            ),
+                            ("rule", Json::Str(entry.rule.token().to_owned())),
+                        ];
+                        if let crate::verify::policy::Rule::Model { members } = &entry.rule {
+                            policy.push((
+                                "members",
+                                Json::Arr(members.iter().cloned().map(Json::Str).collect()),
+                            ));
+                        }
+                        Json::object(policy)
+                    })
+                    .collect();
+                row.push(("axiom_policies", Json::Arr(policies)));
                 Json::object(row)
             })
             .collect();
@@ -1100,29 +1134,36 @@ impl Engine {
                     module: None,
                     lean_module: file.module,
                     text: file.text,
+                    policies: Vec::new(),
                 });
             }
         }
-        let runtime = crate::backend::runtime::imported_by(
+        let mut runtime = crate::backend::runtime::imported_by(
             rendered
                 .modules
                 .iter()
                 .map(|module| module.lean_text.as_str()),
         )
         .map_err(LexLeanError::from_diagnostic)?;
-        for library in runtime {
-            if rendered
+        runtime.retain(|library| {
+            !rendered
                 .modules
                 .iter()
                 .any(|module| module.lean_module == library.name)
-            {
-                continue;
-            }
+        });
+        // The table verification's policy stage evaluates, by module.
+        let mut policies: BTreeMap<String, Vec<crate::verify::policy::Entry>> =
+            crate::verify::policy::table(&checked, &rendered.modules, &runtime)
+                .into_iter()
+                .map(|table| (table.lean_module, table.entries))
+                .collect();
+        for library in runtime {
             modules.push(LeanModule {
                 kind: "runtime",
                 module: None,
                 lean_module: library.name.clone(),
                 text: library.text.clone(),
+                policies: policies.remove(&library.name).unwrap_or_default(),
             });
         }
         // The project's modules in the order verification elaborates them:
@@ -1145,6 +1186,7 @@ impl Engine {
                 module: Some(module.module.clone()),
                 lean_module: module.lean_module.clone(),
                 text: module.lean_text.clone(),
+                policies: policies.remove(&module.lean_module).unwrap_or_default(),
             });
         }
         Ok(LeanModules {

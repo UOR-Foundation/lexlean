@@ -1538,6 +1538,12 @@ suite = "cli-api"
 statement = "lexlean lean-modules prints the Lean modules a build of a selection elaborates and takes no lock and writes nothing: in human mode its stdout is the canonical lexlean/lean-modules/1 document, whose project modules are exactly the Lean files lexlean build publishes under the same build ID, byte for byte, after the shipped text-laws and runtime modules they import, each module after every module it imports, with the compiler semantics ID and pinned Lean toolchain of the build manifest; in json mode it prints one command result named lean-modules with check's IDs and that build ID; a project check refuses gives the same exit code and diagnostics and no document; and the executable built for wasm32-wasip1 and run by a WASI host, where build is refused, prints the same bytes on every example that checks."
 
 [[id]]
+id = "CL-28"
+level = "build"
+suite = "cli-api"
+statement = "lexlean lean-modules prints, on each module of its document, the axiom-policy table verification's policy stage evaluates: every declaration that stage holds, in its order, with its policy kind, its axioms, and its rule (document, core, semantic, model with the generated declarations it governs, or runtime); a verification of the same project attests exactly those rows in that order, a core row only where the audit reports its name; and the executable built for wasm32-wasip1 prints the same table."
+
+[[id]]
 id = "SE-01"
 level = "build"
 suite = "security"

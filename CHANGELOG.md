@@ -17,6 +17,15 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- `lexlean lean-modules` prints each module's axiom policies (SPEC.md §22.6,
+  §23.4, `CL-28`). Verification's policy stage now evaluates one table,
+  `lexlean::verify::policy::table`, and the command prints that same table
+  under `axiom_policies`, so a host that elaborates the modules itself holds
+  them to exactly the rules `verify` applies. Each row gives the declaration,
+  its policy kind and axioms, and its rule: `document`, `core`, `semantic`,
+  `model` with the generated declarations it governs, or `runtime`. Stage 11
+  keeps its diagnostics and attestation rows byte for byte. No language
+  identity moves; the register is 502.
 - `lexlean lean-modules [--all | INPUT...]` prints the Lean modules a build
   of a selection elaborates (SPEC.md §23.4, `CL-27`). It renders the build as
   `build` does and publishes nothing, so it takes no lock and writes nothing,

@@ -186,6 +186,12 @@ Feature: cli-api
     When lexlean snapshot runs in human and json mode on each, natively and under the WASI host
     Then human mode prints exactly the canonical snapshot bytes with check's IDs, json mode prints check's command result named snapshot, a refused project prints no snapshot and check's diagnostics, nothing is written, and the WASI bytes equal the native bytes
 
+  @CL-28 @build
+  Scenario: lexlean lean-modules prints, on each module of its document, the axiom-policy table verification's policy stage evaluates: every declaration that stage holds, in its order, with its policy kind, its axioms, and its rule (document, core, semantic, model with the generated declarations it governs, or runtime); a verification of the same project attests exactly those rows in that order, a core row only where the audit reports its name; and the executable built for wasm32-wasip1 prints the same table.
+    Given every example project that checks, and three that between them use the document, semantic, model, and runtime rules, verified with the pinned Lean
+    When lexlean lean-modules prints each one's document
+    Then every policy row has a kind, its axioms, and a rule, a model names its generated declarations, and each verification attests exactly the printed rows in their order
+
   @CL-27 @build
   Scenario: lexlean lean-modules prints the Lean modules a build of a selection elaborates and takes no lock and writes nothing: in human mode its stdout is the canonical lexlean/lean-modules/1 document, whose project modules are exactly the Lean files lexlean build publishes under the same build ID, byte for byte, after the shipped text-laws and runtime modules they import, each module after every module it imports, with the compiler semantics ID and pinned Lean toolchain of the build manifest; in json mode it prints one command result named lean-modules with check's IDs and that build ID; a project check refuses gives the same exit code and diagnostics and no document; and the executable built for wasm32-wasip1 and run by a WASI host, where build is refused, prints the same bytes on every example that checks.
     Given every example project that checks, one whose module check refuses, and the lexlean executable built for wasm32-wasip1 run by Node's node:wasi
