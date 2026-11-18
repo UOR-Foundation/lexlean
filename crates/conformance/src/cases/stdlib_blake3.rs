@@ -153,8 +153,8 @@ fn official() -> Vec<(Vec<u8>, [u8; 32])> {
     cases
         .iter()
         .map(|case| {
-            let length = usize::try_from(case["input_len"].as_u64().expect("input_len"))
-                .expect("a length");
+            let length =
+                usize::try_from(case["input_len"].as_u64().expect("input_len")).expect("a length");
             let message: Vec<u8> = (0..length)
                 .map(|at| u8::try_from(at % 251).expect("a byte"))
                 .collect();
@@ -447,7 +447,11 @@ pub(super) fn run(id: &str) {
                 serde_json::from_str(line).unwrap_or_else(|error| panic!("{name}: {error}: {line}"))
             })
             .collect();
-        assert_eq!(printed.len(), outcomes.len(), "{member}: one outcome per run");
+        assert_eq!(
+            printed.len(),
+            outcomes.len(),
+            "{member}: one outcome per run"
+        );
         let disagreements: Vec<String> = printed
             .iter()
             .zip(outcomes)
@@ -481,7 +485,11 @@ pub(super) fn run(id: &str) {
     let checked = support::checked_project(&planted);
     let hex_root = lower_in(&checked, &planted, MODULE, "blake3Hex");
     let first: Vec<Run> = corpus("blake3Hex", 0, 0, 1);
-    assert_eq!(first.len(), 1, "the empty input is the one vector of length 0");
+    assert_eq!(
+        first.len(),
+        1,
+        "the empty input is the one vector of length 0"
+    );
     let disagreements = evaluate(&hex_root, &first);
     assert_eq!(
         disagreements.len(),
@@ -543,8 +551,8 @@ fn evaluate(lowered: &Lowered, corpus: &[Run]) -> Vec<String> {
         .enumerate()
         .filter_map(|(run, (arguments, expected))| {
             let outcome = interp::run(&lowered.program, FUEL, lowered.entry(), arguments);
-            let observed = rust::observable(&outcome)
-                .unwrap_or_else(|| panic!("run {run}: {outcome:?}"));
+            let observed =
+                rust::observable(&outcome).unwrap_or_else(|| panic!("run {run}: {outcome:?}"));
             (&observed != expected).then(|| format!("run {run}: {observed} != {expected}"))
         })
         .collect()
