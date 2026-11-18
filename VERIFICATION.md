@@ -1875,6 +1875,30 @@ BS-38: the planted module is refused: LLV7002: Lean rejected `LanguageTwelve.Mai
 test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 499 filtered out; finished in 240.64s
 ```
 
+### term_cases by enumeration can fail (LN-14, BS-39)
+
+`term_cases` is produced by splitting every finite-typed local and closing
+each leaf by evaluation (§18.10). `conformance_ln_14` plants a false
+statement in every run: `code_small` is restated as `code flag <= 0`, which
+fails when the Boolean is `false`. Production writes the planted term, and
+the kernel refuses it; every unplanted theorem is accepted, its binding with
+exactly the declared axioms and its proof with a subset of them.
+
+`conformance_bs_39` verifies the enumeration model in
+`bootstrap/src/KernelTerms.lex.tex` under the pinned Lean, then plants an
+off-by-one in `enumerateBranches` (`ctor := (index + 1)`), so every branch
+names the next constructor. Lean refuses the planted module with `LLV7002`.
+
+Command and host: `cargo test --release -p repo-conformance --test conformance
+-- conformance_ln_13 conformance_ln_14 conformance_bs_39`, WSL Ubuntu on
+Windows x86-64, rustc 1.97.1, pinned Lean 4.32.2.
+
+```text
+test conformance_bs_39 ... ok
+test conformance_ln_14 ... ok
+test conformance_ln_13 ... ok
+```
+
 ### a derived row is made by the pinned Lean and never stored (SM-34)
 
 A version 2 row may be derived: it states no universe parameters, type, or value,

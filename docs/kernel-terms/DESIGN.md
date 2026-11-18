@@ -271,6 +271,22 @@ Native Lean (the 4.32.1 checker over the whole file, library included) accepted 
 declarations. The WebAssembly kernel accepted every whole file as well. The compiler's whole check took 356 s in the
 tab kernel.
 
+## Phase 1: `term_cases`
+
+Lean proves `term_cases` with `cases h : t <;> simp only [defs, h]`, which rewrites `t` after unfolding `defs`. The
+producer here does not rewrite. It enumerates instead: every local of a finite type (`Bool`, or a document type whose
+constructors carry no field) is split with `casesOn`, and each case is closed by `Eq.refl` or `decide`. Once those
+locals are constructors, the kernel computes the split term and the statement itself (`LN-14`; the LexLean model and
+its proofs are `BS-39`).
+
+On the compiler project, judged by Lean's kernel through `KernelCheck.lean`, enumeration is accepted for 84 of the 285
+`term_cases` theorems: all of `RuntimeKeysBool` and `RuntimeSupport`, and parts of `RustStd` and `RustRuntime`. The
+other 201 split on a comparison of numbers (the numeric `RuntimeKeys*` modules), which no finite split fixes. They need
+the split term abstracted from the unfolded statement and rewritten with `Eq.mpr`/`congrArg`. A first attempt (branch
+`claude/kernel-terms-s2-wip`) reached 65 acceptances with 188 definitional mismatches, so a faithful unfolding engine
+is the next step, shared with `simplify`. `linear_arithmetic` (261 theorems) needs that engine and a certificate
+producer and is not started.
+
 ## Not done
 
 - **Definitions and types still come from Lean.** The library export holds the project's definitions and inductive

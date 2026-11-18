@@ -2579,6 +2579,7 @@ fn case(id: &str) {
         "BS-36" => kernel_terms::bs_36(),
         "BS-37" => kernel_terms::bs_37(),
         "BS-38" => kernel_terms::bs_38(),
+        "BS-39" => kernel_terms::bs_39(),
         other => panic!("no bootstrap case is wired for {other}"),
     }
 }

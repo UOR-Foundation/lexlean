@@ -1,4 +1,4 @@
-//! `BS-35` to `BS-38` (SPEC.md §17.23, §18.10): kernel-term production's
+//! `BS-35` to `BS-39` (SPEC.md §17.23, §18.10): kernel-term production's
 //! producers as language-1.2 source, `LexLeanBoot.KernelTerms`.
 //!
 //! `BS-35` holds the three checks the producers decide by (`checkFrom`,
@@ -685,6 +685,25 @@ pub(super) fn bs_38() {
         (
             "| Equation.other => (ctor Produced.refused (ctor Refusal.notAnEquation))),",
             "| Equation.other => (ctor Produced.refused (ctor Refusal.missingCase 0))),",
+        ),
+    );
+}
+
+pub(super) fn bs_39() {
+    theorems(
+        "BS-39",
+        &[
+            "enumerate_none_total",
+            "enumerate_one_total",
+            "enumerate_two_total",
+            "enumerate_three_total",
+            "enumerate_four_total",
+            "enumerate_selects",
+        ],
+        &[],
+        (
+            "ctor := index, binders := 0,",
+            "ctor := (index + 1), binders := 0,",
         ),
     );
 }

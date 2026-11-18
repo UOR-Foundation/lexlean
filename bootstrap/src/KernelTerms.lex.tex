@@ -646,5 +646,69 @@ theorem{
   },
   axioms: [propext]
 }
+
+definition{
+  name: termAt,
+  parameters: [terms : (List Term), position : Nat],
+  result: Term,
+  body: (match terms
+    | List.nil => (ctor Term.sort 0)
+    | List.cons head rest => (if (position =? 0) then head else (termAt rest (prim subtract position 1 : Nat)))),
+  executable: true,
+  recursive_argument: terms
+}
+
+definition{
+  name: enumerateBranches,
+  parameters: [ctors : (List Ctor), index : Nat, proofs : (List Term)],
+  result: (List Branch),
+  body: (match ctors
+    | List.nil => (nil Branch)
+    | List.cons head rest => (cons (record Branch {ctor := index, binders := 0, proof := (termAt proofs index)}) (enumerateBranches rest (index + 1) proofs))),
+  executable: true,
+  recursive_argument: ctors
+}
+
+theorem{
+  name: enumerate_none_total,
+  parameters: [proofs : (List Term)],
+  statement: ((passes (checkFrom (nil Ctor) 0 (enumerateBranches (nil Ctor) 0 proofs) false)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: enumerate_one_total,
+  parameters: [proofs : (List Term)],
+  statement: ((passes (checkFrom (cons (record Ctor {fields := 0, recursive := 0}) (nil Ctor)) 0 (enumerateBranches (cons (record Ctor {fields := 0, recursive := 0}) (nil Ctor)) 0 proofs) false)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: enumerate_two_total,
+  parameters: [proofs : (List Term)],
+  statement: ((passes (checkFrom (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (nil Ctor))) 0 (enumerateBranches (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (nil Ctor))) 0 proofs) false)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: enumerate_three_total,
+  parameters: [proofs : (List Term)],
+  statement: ((passes (checkFrom (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (nil Ctor)))) 0 (enumerateBranches (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (nil Ctor)))) 0 proofs) false)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: enumerate_four_total,
+  parameters: [proofs : (List Term)],
+  statement: ((passes (checkFrom (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (nil Ctor))))) 0 (enumerateBranches (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (nil Ctor))))) 0 proofs) false)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: enumerate_selects,
+  parameters: [one : Term, other : Term],
+  statement: ((casesTerm 7 (nil Term) (ctor Term.bvar 0) (ctor Term.bvar 1) (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (nil Ctor))) (enumerateBranches (cons (record Ctor {fields := 0, recursive := 0}) (cons (record Ctor {fields := 0, recursive := 0}) (nil Ctor))) 0 (cons one (cons other (nil Term))))) = (ctor Produced.made (ctor Term.app (ctor Term.app (ctor Term.app (ctor Term.app (ctor Term.const 7) (ctor Term.bvar 0)) (ctor Term.bvar 1)) one) other))),
+  proof: reflexivity{}
+}
 \end{semanticmodule}
 \end{lexlean}

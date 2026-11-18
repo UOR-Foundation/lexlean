@@ -9340,11 +9340,13 @@ theorem directly from the linked IR, with no elaborator, no tactic, and no
 Lean process, so that a checker holding Lean's kernel alone (a browser tab
 running the kernel compiled to WebAssembly) can judge the theorem. The
 producers are untrusted: a theorem is established only when Lean's kernel
-accepts the produced declaration and its axioms equal the theorem's declared
-axioms exactly (§22.6).
+accepts the produced declaration, its axioms are among the theorem's declared
+axioms (§22.6), and its binding to Lean's theorem keeps the declared axioms
+exactly. A proof by evaluation can rest on fewer axioms than the rewriting
+Lean's tactic performed.
 
 A theorem is produced when every node of its proof tree is one of these
-forms, each lowered to one fixed term:
+forms, each lowered to one fixed term shape:
 
 | Form | Kernel term |
 |---|---|
@@ -9354,6 +9356,7 @@ forms, each lowered to one fixed term:
 | `induction` | `@T.rec params motive m₁ … mₙ x g₁ … gₖ`, the motive quantifying the generalized parameters, each minor premise binding the fields, then one hypothesis per recursive field, then the generalized parameters |
 | `apply` | `@thm types args`, where `thm` is the produced proof of a prior theorem |
 | `law` | `@law types args premises`, `law` the registered fold law (§17.12) and each premise the produced proof of a prior theorem |
+| `term_cases` | by enumeration: `casesOn` over every local of a finite type (`Bool`, or a document type whose constructors carry no field), in scope order, each case closed as `reflexivity` (an equation) or `decide`; the split term's value is computed by the kernel and never rewritten, and a case the kernel cannot close is refused by it |
 
 In a branch, the goal is the statement with the scrutinee replaced, wherever
 it occurs, by the constructor applied to fresh field variables.

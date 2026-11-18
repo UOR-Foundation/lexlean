@@ -62,7 +62,9 @@ impl Produced<'_> {
                 generalizing,
                 branches,
             } => self.cases(scrutinee, generalizing, branches, statement, ctx, true),
-            SemanticProof::TermCases { scrutinee, .. } => self.term_cases(scrutinee, statement, ctx),
+            SemanticProof::TermCases { scrutinee, .. } => {
+                self.term_cases(scrutinee, statement, ctx)
+            }
             SemanticProof::Apply {
                 theorem,
                 type_arguments,
@@ -137,7 +139,10 @@ impl Produced<'_> {
         // split term reaches through a definition can rest on a local it does
         // not name.
         let mut names = Vec::new();
-        collect_vars(&serde_json::to_value(scrutinee).unwrap_or_default(), &mut names);
+        collect_vars(
+            &serde_json::to_value(scrutinee).unwrap_or_default(),
+            &mut names,
+        );
         for local in &ctx.locals {
             if !names.contains(&local.name) {
                 names.push(local.name.clone());
@@ -150,13 +155,20 @@ impl Produced<'_> {
             }
             // A variable of an infinite type stays a variable: the cases of
             // the finite ones may already fix the split term's value.
-            let Ok(local) = ctx.local(&name) else { continue };
+            let Ok(local) = ctx.local(&name) else {
+                continue;
+            };
             let Some(ty) = local.ty.clone() else { continue };
-            let Ok(shape) = w.shape(ctx, &ty) else { continue };
+            let Ok(shape) = w.shape(ctx, &ty) else {
+                continue;
+            };
             if shape.ctors.iter().any(|ctor| !ctor.fields.is_empty()) {
                 continue;
             }
-            finite.push((name, shape.ctors.iter().map(|ctor| ctor.short.clone()).collect()));
+            finite.push((
+                name,
+                shape.ctors.iter().map(|ctor| ctor.short.clone()).collect(),
+            ));
         }
         let mut leaf = statement;
         while let SemanticTerm::Let { body, .. } = leaf {

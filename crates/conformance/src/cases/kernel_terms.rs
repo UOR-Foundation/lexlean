@@ -241,7 +241,8 @@ pub(crate) fn ln_13() {
             "cases",
             "induction",
             "apply",
-            "law"
+            "law",
+            "term_cases"
         ],
         "the produced forms are the §18.10 table"
     );
@@ -410,4 +411,115 @@ pub(crate) fn ln_13() {
             "{lines:#?}"
         );
     }
+}
+
+/// The `LN-14` fixture: `term_cases` over a split term its Boolean fixes.
+const ENUMERATION: &str = r#"\begin{lexlean}{Main}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{languagetwelve.titles@1.0.0}
+\title{Typed let terms}
+\begin{semanticmodule}
+inductive{name: Shade, type_parameters: [], parameters: [], constructors: [{name: light, fields: []}, {name: dark, fields: []}]}
+
+definition{name: shadeOf, parameters: [flag : Bool], result: Shade, body: (if flag then (ctor Shade.light) else (ctor Shade.dark))}
+
+definition{
+  name: weight,
+  parameters: [flag : Bool, n : Nat],
+  result: Nat,
+  body: (match (shadeOf flag) | Shade.light => n | Shade.dark => n)
+}
+
+definition{
+  name: code,
+  parameters: [flag : Bool],
+  result: Nat,
+  body: (match (shadeOf flag) | Shade.light => 0 | Shade.dark => 1)
+}
+
+theorem{
+  name: weight_is,
+  parameters: [flag : Bool, n : Nat],
+  statement: ((weight flag n) = n),
+  proof: term_cases{definitions: [weight], scrutinee: (shadeOf flag)},
+  axioms: [propext]
+}
+
+theorem{
+  name: code_small,
+  parameters: [flag : Bool],
+  statement: ((code flag) <= 1),
+  proof: term_cases{definitions: [code], scrutinee: (shadeOf flag)},
+  axioms: [propext]
+}
+\end{semanticmodule}
+\end{lexlean}
+"#;
+
+pub(crate) fn ln_14() {
+    assert!(
+        kernel::PRODUCED_FORMS.contains(&"term_cases"),
+        "term_cases is a produced form"
+    );
+    let fixture = P::copy_example("language-1.2");
+    fixture.write("src/Main.lex.tex", ENUMERATION);
+    fixture.check_ok();
+    let original = snapshot(&fixture);
+    let production = produce(&original);
+    for name in ["weight_is", "code_small"] {
+        assert!(
+            matches!(
+                outcome(&production, name),
+                Outcome::Produced { bound: Some(_), .. }
+            ),
+            "{name}: {:?}",
+            outcome(&production, name)
+        );
+    }
+    // False only when the Boolean is `false`: `code false` is 1.
+    let mut planted = original.clone();
+    theorem(&mut planted, "code_small")["statement"]["right"]["value"] = Value::from("0");
+    let planted = produce(&planted);
+    assert!(
+        matches!(outcome(&planted, "code_small"), Outcome::Produced { .. }),
+        "the producer writes the planted code_small; the kernel must refuse it"
+    );
+    if !support::lean_backed("LN-14") {
+        return;
+    }
+    let compiled_project = compiled(&fixture);
+    let modules = lean_modules(&original);
+    let lines = judge(&compiled_project, &modules, &production.suffix);
+    for row in &production.rows {
+        // Lean's own proof keeps exactly the declared axioms; the produced
+        // proof, by evaluation where Lean rewrites, rests on no more.
+        let bound = format!("{}.bound.{}", kernel::NAMESPACE, row.theorem);
+        assert_eq!(
+            verdict(&lines, &bound),
+            format!("accepted {bound} axioms: {}", row.axioms.join(", ")),
+            "{lines:#?}"
+        );
+        let produced = format!("{}.{}", kernel::NAMESPACE, row.theorem);
+        let line = verdict(&lines, &produced);
+        let rests_on = line
+            .strip_prefix(&format!("accepted {produced} axioms: "))
+            .unwrap_or_else(|| panic!("{produced} is accepted: {lines:#?}"));
+        for axiom in rests_on.split(", ").filter(|axiom| !axiom.is_empty()) {
+            assert!(
+                row.axioms.iter().any(|declared| declared == axiom),
+                "{produced} rests on {axiom}, which is not declared"
+            );
+        }
+    }
+    let lines = judge(&compiled_project, &modules, &planted.suffix);
+    let code_small = production
+        .rows
+        .iter()
+        .find(|row| row.theorem.ends_with(".code_small"))
+        .map(|row| row.theorem.clone())
+        .expect("a row");
+    assert!(
+        verdict(&lines, &format!("{}.{code_small}", kernel::NAMESPACE)).starts_with("refused "),
+        "{lines:#?}"
+    );
 }

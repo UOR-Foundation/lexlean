@@ -1,4 +1,4 @@
-//! The `lean-backend` suite: LN-01..LN-13.
+//! The `lean-backend` suite: LN-01..LN-14.
 
 use lexlean::verify::source_audit::{audit, lex, LeanToken};
 
@@ -637,6 +637,8 @@ pub(crate) fn run(id: &str) {
         }
         // §18.10: kernel-term production.
         "LN-13" => super::kernel_terms::ln_13(),
+        // §18.10: term_cases by enumeration.
+        "LN-14" => super::kernel_terms::ln_14(),
         other => panic!("no lean-backend case is wired for {other}"),
     }
 }
