@@ -96,11 +96,8 @@ fn require_ident(what: &str, name: &str) -> Result<(), ToolingFailure> {
     }
 }
 
-fn is_sha256(text: &str) -> bool {
-    text.len() == 64
-        && text
-            .bytes()
-            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+fn is_kappa(text: &str) -> bool {
+    crate::artifact::content_id::Kappa::parse(text).is_ok()
 }
 
 /// Substitute type variables.
@@ -406,7 +403,7 @@ fn build(module: &ToolingModule) -> Result<Registry<'_>, ToolingFailure> {
                         "`{name}` is declared twice"
                     )));
                 }
-                pin(name, &source.file, &source.sha256)?;
+                pin(name, &source.file, &source.kappa)?;
                 registry.types.insert(
                     name,
                     TypeInfo {
@@ -488,7 +485,7 @@ fn build(module: &ToolingModule) -> Result<Registry<'_>, ToolingFailure> {
             source,
         } = declaration
         {
-            pin(name, &source.file, &source.sha256)?;
+            pin(name, &source.file, &source.kappa)?;
             if role.is_empty() {
                 return Err(ToolingFailure::registry(format!("`{name}` has no role")));
             }
@@ -1086,15 +1083,15 @@ fn check_traversals(module: &ToolingModule, registry: &Registry<'_>) -> Result<(
     Ok(())
 }
 
-fn pin(name: &str, file: &str, sha256: &str) -> Result<(), ToolingFailure> {
+fn pin(name: &str, file: &str, kappa: &str) -> Result<(), ToolingFailure> {
     if file.is_empty() || file.starts_with('/') || file.contains("..") {
         return Err(ToolingFailure::registry(format!(
             "`{name}`: the source file `{file}` is not a path within the toolchain source"
         )));
     }
-    if !is_sha256(sha256) {
+    if !is_kappa(kappa) {
         return Err(ToolingFailure::registry(format!(
-            "`{name}`: the source digest is not a lowercase SHA-256"
+            "`{name}`: the source digest is not a κ-label"
         )));
     }
     Ok(())

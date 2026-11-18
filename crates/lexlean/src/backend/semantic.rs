@@ -2167,7 +2167,7 @@ pub fn render_lean(
     // runtime modules, native modules of the embedded runtime project; a
     // language-1.1 module splices the frozen portable runtime inside its
     // namespace, as its released output did.
-    let language_1_2 = module.spec == "lexlean/semantic-module/2";
+    let language_1_2 = module.spec == "lexlean/semantic-module/3";
     let collections = reasoning
         || uses_collections(
             &serde_json::to_value((&lowered, module.elaboration.all_checks()))
@@ -2465,7 +2465,7 @@ pub fn render_lean(
                         // is reducible, so a proposition it names is decidable
                         // exactly when its body is, as a contract predicate
                         // over a finite domain must be.
-                        let attributes = if module.spec == "lexlean/semantic-module/2"
+                        let attributes = if module.spec == "lexlean/semantic-module/3"
                             && *result == SemanticType::Prop
                         {
                             "@[expose, reducible]"
@@ -2561,7 +2561,7 @@ pub fn render_lean(
             "phase lean-backend: semantic lowering produced a comment token",
         ));
     }
-    if module.spec == "lexlean/semantic-module/2" {
+    if module.spec == "lexlean/semantic-module/3" {
         emit_declarations(checked, &text, "semantic-lean-module", &starts, end)
     } else {
         Ok(emit(checked, &text, "semantic-lean-module"))
@@ -2673,7 +2673,7 @@ fn latex_model(
     match declaration {
         SemanticDeclaration::Artifact {
             role,
-            sha256,
+            kappa,
             length,
             schema,
             r#type,
@@ -2702,11 +2702,7 @@ fn latex_model(
                 },
             );
             latex_line(text, "Value type", &render.ty(r#type));
-            latex_line(
-                text,
-                "Content",
-                &format!("{length} bytes, SHA-256 {sha256}"),
-            );
+            latex_line(text, "Content", &format!("{length} bytes, κ-label {kappa}"));
             latex_line(text, "Axiom policy", &latex_policy(axioms));
         }
         SemanticDeclaration::Contract {
@@ -3369,7 +3365,7 @@ pub fn render_latex(
         document: true,
         qualify: None,
     };
-    let version_2 = module.spec == "lexlean/semantic-module/2";
+    let version_2 = module.spec == "lexlean/semantic-module/3";
     let mut text = String::from(
         "\\documentclass[11pt]{article}\n\\usepackage[T1]{fontenc}\n\\usepackage{amsmath,amssymb}\n\\begin{document}\n\\section*{Semantic declarations}\n",
     );

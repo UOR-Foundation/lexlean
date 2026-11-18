@@ -13,6 +13,34 @@ use lexlean::{
     BuildRequest, CheckRequest, Engine, FormatRequest, LockRequest, Selection, VerifyRequest,
 };
 
+/// The κ-label of a BLAKE3 digest: `blake3:` and its 64 lowercase hex digits.
+///
+/// # Panics
+///
+/// Never: the label is well formed by construction.
+#[must_use]
+pub fn kappa_of_digest(digest: &[u8; 32]) -> lexlean::Kappa {
+    use std::fmt::Write as _;
+    let mut label = String::from("blake3:");
+    for byte in digest {
+        write!(label, "{byte:02x}").expect("writing to a string");
+    }
+    lexlean::Kappa::parse(&label).expect("a well-formed κ-label")
+}
+
+/// The κ-label of `bytes` by the reference BLAKE3, the oracle that may
+/// falsify the compiler's certified package and never establishes it.
+#[must_use]
+pub fn oracle_kappa(bytes: &[u8]) -> lexlean::Kappa {
+    kappa_of_digest(blake3::hash(bytes).as_bytes())
+}
+
+/// The κ-label of a reference BLAKE3 hasher's input so far.
+#[must_use]
+pub fn oracle_finish(hasher: &blake3::Hasher) -> lexlean::Kappa {
+    kappa_of_digest(hasher.finalize().as_bytes())
+}
+
 /// The repository root.
 #[must_use]
 pub fn repo_root() -> Utf8PathBuf {
@@ -925,8 +953,8 @@ impl P {
 
     /// The published build directory for a build ID.
     #[must_use]
-    pub fn build_dir(&self, build_id: &lexlean::artifact::content_id::Sha256Digest) -> Utf8PathBuf {
-        self.root.join(".lexlean/build").join(build_id.to_hex())
+    pub fn build_dir(&self, build_id: &lexlean::artifact::content_id::Kappa) -> Utf8PathBuf {
+        self.root.join(".lexlean/build").join(build_id.label())
     }
 
     /// Append a path lexicon source to the configuration (before `[limits]`).
@@ -2520,7 +2548,7 @@ pub fn declares(text: &str, name: &str) -> bool {
 /// compiler-semantics ID (§21.2): a module written in the authoring notation
 /// contributes its data form. The rows are `(path, bytes)` in path order.
 #[must_use]
-pub fn identity_tree_digest(rows: &[(&str, &[u8])]) -> lexlean::artifact::content_id::Sha256Digest {
+pub fn identity_tree_digest(rows: &[(&str, &[u8])]) -> lexlean::artifact::content_id::Kappa {
     let normalized: Vec<(&str, std::borrow::Cow<'_, [u8]>)> = rows
         .iter()
         .map(|(path, bytes)| (*path, lexlean::identity_bytes(path, bytes)))
@@ -2529,7 +2557,7 @@ pub fn identity_tree_digest(rows: &[(&str, &[u8])]) -> lexlean::artifact::conten
         .iter()
         .map(|(path, bytes)| (*path, bytes.as_ref()))
         .collect();
-    lexlean::artifact::content_id::tree_digest(&borrowed)
+    lexlean::artifact::content_id::tree_kappa(&borrowed)
 }
 
 /// The normative tree the compiler-semantics ID is the digest of, read from
@@ -2626,9 +2654,9 @@ pub fn introduced_later() -> (Vec<String>, Vec<String>) {
 pub fn semantics_ids(
     rows: &[(&str, &[u8])],
 ) -> (
-    lexlean::artifact::content_id::Sha256Digest,
-    lexlean::artifact::content_id::Sha256Digest,
-    lexlean::artifact::content_id::Sha256Digest,
+    lexlean::artifact::content_id::Kappa,
+    lexlean::artifact::content_id::Kappa,
+    lexlean::artifact::content_id::Kappa,
 ) {
     let (only_1_2, only_1_1) = introduced_later();
     let excluded = |path: &str, lists: &[&Vec<String>]| {
@@ -2775,7 +2803,7 @@ pub fn probe_lean(
             },
         );
     }
-    let hex32: String = checked.semantic_id.to_hex()[..32].to_owned();
+    let hex32: String = checked.semantic_id.label()[..32].to_owned();
     let probe = lexlean::backend::lean::probe_module(&hex32, &externals, &checked.closure)
         .expect("probe renders");
     let _guard = env_shared();
@@ -2798,7 +2826,7 @@ pub fn probe_lean(
             tool: "lean",
             module: Some(probe.name.clone()),
             program: &toolchain.lake.path,
-            executable_sha256: toolchain.lean.sha256,
+            executable_kappa: toolchain.lean.kappa,
             argv: vec!["env".to_owned(), "lean".to_owned(), source.to_string()],
             cwd: &project.root,
             extra_env: vec![("LEAN_PATH".to_owned(), scratch.to_string())],

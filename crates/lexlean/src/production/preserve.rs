@@ -1733,7 +1733,7 @@ pub struct CertifiedRoot {
     pub renderings: Vec<CertifiedRendering>,
 }
 
-/// The identity of the library a record is about: the framed SHA-256 of
+/// The identity of the library a record is about: the framed κ-label of
 /// the module list and, in its order, every native source. A source written
 /// in the authoring notation contributes its data form (§21.2), as it does to
 /// the compiler-semantics ID: the form a library is written in is not part of
@@ -1749,7 +1749,7 @@ fn library_identity() -> String {
 #[must_use]
 pub fn library_identity_of(read: &dyn Fn(&str) -> String) -> String {
     use crate::artifact::content_id::FramedHasher;
-    let mut hasher = FramedHasher::new("lexlean-preservation-library-v1");
+    let mut hasher = FramedHasher::new("lexlean-preservation-library-v2");
     let registry = read(LIBRARY_PATH);
     hasher.frame("registry", registry.as_bytes());
     if let Ok(library) = registry_modules() {
@@ -1760,7 +1760,7 @@ pub fn library_identity_of(read: &dyn Fn(&str) -> String) -> String {
             }
         }
     }
-    hasher.finish().to_hex()
+    hasher.finish().label()
 }
 
 fn registry_modules() -> Result<Vec<String>, String> {
@@ -1768,21 +1768,21 @@ fn registry_modules() -> Result<Vec<String>, String> {
 }
 
 /// The tag of `preservation.json`.
-pub const PRESERVATION_SPEC: &str = "lexlean/preservation/1";
+pub const PRESERVATION_SPEC: &str = "lexlean/preservation/2";
 
 /// `preservation.json`: the registry identity, and per root its targets,
 /// certificate module, theorem, and certificate source identity.
 #[must_use]
 pub fn record(roots: &[CertifiedRoot]) -> crate::artifact::canonical_json::Json {
     use crate::artifact::canonical_json::Json;
-    use crate::artifact::content_id::Sha256Digest;
+    use crate::artifact::content_id::Kappa;
     let library_identity = library_identity();
     Json::object(vec![
         ("spec", Json::Str(PRESERVATION_SPEC.to_owned())),
         (
             "library",
             Json::object(vec![
-                ("registry_sha256", Json::Str(library_identity)),
+                ("registry_kappa", Json::Str(library_identity)),
                 (
                     "axioms",
                     Json::Arr(
@@ -1816,17 +1816,12 @@ pub fn record(roots: &[CertifiedRoot]) -> crate::artifact::canonical_json::Json 
                                 "program",
                                 Json::object(vec![
                                     ("byte_length", Json::from_usize(root.program.len())),
-                                    (
-                                        "sha256",
-                                        Json::Str(Sha256Digest::of(&root.program).to_hex()),
-                                    ),
+                                    ("kappa", Json::Str(Kappa::of(&root.program).label())),
                                 ]),
                             ),
                             (
-                                "sha256",
-                                Json::Str(
-                                    Sha256Digest::of(recorded_bytes(&root.certificate)).to_hex(),
-                                ),
+                                "kappa",
+                                Json::Str(Kappa::of(recorded_bytes(&root.certificate)).label()),
                             ),
                             (
                                 "renderings",
@@ -1868,12 +1863,12 @@ pub fn record(roots: &[CertifiedRoot]) -> crate::artifact::canonical_json::Json 
                                                             ),
                                                         ),
                                                         (
-                                                            "sha256",
+                                                            "kappa",
                                                             Json::Str(
-                                                                Sha256Digest::of(
+                                                                Kappa::of(
                                                                     rendering.crate_text.as_bytes(),
                                                                 )
-                                                                .to_hex(),
+                                                                .label(),
                                                             ),
                                                         ),
                                                     ]),
@@ -1886,12 +1881,10 @@ pub fn record(roots: &[CertifiedRoot]) -> crate::artifact::canonical_json::Json 
                                                     ),
                                                 ),
                                                 (
-                                                    "sha256",
+                                                    "kappa",
                                                     Json::Str(
-                                                        Sha256Digest::of(recorded_bytes(
-                                                            certificate,
-                                                        ))
-                                                        .to_hex(),
+                                                        Kappa::of(recorded_bytes(certificate))
+                                                            .label(),
                                                     ),
                                                 ),
                                                 (
@@ -1912,12 +1905,10 @@ pub fn record(roots: &[CertifiedRoot]) -> crate::artifact::canonical_json::Json 
                                                             ),
                                                         ),
                                                         (
-                                                            "sha256",
+                                                            "kappa",
                                                             Json::Str(
-                                                                Sha256Digest::of(recorded_bytes(
-                                                                    composed,
-                                                                ))
-                                                                .to_hex(),
+                                                                Kappa::of(recorded_bytes(composed))
+                                                                    .label(),
                                                             ),
                                                         ),
                                                     ]),

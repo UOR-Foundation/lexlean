@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 pub use crate::lexicon::lse::{BinderMode, Universe};
 
 /// An opaque monotonically assigned local identity, unique within one linked
@@ -118,7 +118,7 @@ pub struct ExternalConstRef {
     /// The fully qualified Lean name.
     pub lean_name: LeanName,
     /// The canonical signature hash.
-    pub signature_hash: Sha256Digest,
+    pub signature_hash: Kappa,
 }
 
 /// A document declaration reference (§17.2).
@@ -141,7 +141,7 @@ pub struct DefinedLexiconRef {
     /// The qualified entry.
     pub entry: QualifiedEntryId,
     /// The canonical signature hash.
-    pub signature_hash: Sha256Digest,
+    pub signature_hash: Kappa,
 }
 
 /// A global reference (§17.2), exactly.
@@ -270,8 +270,8 @@ fn global_json(global: &GlobalRef) -> Json {
             ("lean_module", Json::Str(external.lean_module.clone())),
             ("lean_name", Json::Str(external.lean_name.clone())),
             (
-                "signature_sha256",
-                Json::Str(external.signature_hash.to_hex()),
+                "signature_kappa",
+                Json::Str(external.signature_hash.label()),
             ),
         ]),
         GlobalRef::Document(document) => Json::object(vec![
@@ -283,10 +283,7 @@ fn global_json(global: &GlobalRef) -> Json {
         GlobalRef::DefinedLexicon(defined) => Json::object(vec![
             ("kind", Json::Str("defined".to_owned())),
             ("entry", Json::Str(defined.entry.clone())),
-            (
-                "signature_sha256",
-                Json::Str(defined.signature_hash.to_hex()),
-            ),
+            ("signature_kappa", Json::Str(defined.signature_hash.label())),
         ]),
     }
 }

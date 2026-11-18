@@ -75,19 +75,19 @@ theorem{
 artifact{
   name: topicWeights,
   type: (List (List Int)),
+  kappa: "blake3:e38fb6e56d317b97665b3170e483bb6d927e5fbcab8e6ddd2f0475114683d240",
   length: 18,
   role: parameters,
-  schema: int_tensor{element: int16, shape: [3, 3]},
-  sha256: dcad521bee95f3e0032ce4dcca4fa2fd6d21125c14f00898eb4336a466604617
+  schema: int_tensor{element: int16, shape: [3, 3]}
 }
 
 artifact{
   name: topicBias,
   type: (List Int),
+  kappa: "blake3:3dbd5a09e7a3cb05765522ff5d618722f3ab7784973a3e7c3b8a43c095404ba1",
   length: 6,
   role: parameters,
-  schema: int_tensor{element: int16, shape: [3]},
-  sha256: b0f66adc83641586656866813fd9dd0b8ebb63796075661ba45d1aa8089e1d44
+  schema: int_tensor{element: int16, shape: [3]}
 }
 
 contract{

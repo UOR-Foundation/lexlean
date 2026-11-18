@@ -3,7 +3,7 @@ Feature: calculus
   The production realization calculus: its closed syntax, canonical identity, kernel-checked denotation, realization library, and Rust profile (§17.14).
 
   @TC-01 @build
-  Scenario: Hand-constructed target programs have canonical bytes and a SHA-256 content identity, alpha-equivalent programs canonicalize to identical bytes and identity, an ill-typed program has neither, and every committed fixture validates against the target schemas.
+  Scenario: Hand-constructed target programs have canonical bytes and a κ-label content identity, alpha-equivalent programs canonicalize to identical bytes and identity, an ill-typed program has neither, and every committed fixture validates against the target schemas.
     Given every committed fixture under `compiler/fixtures/`
     When each is reread, renamed by an injective renaming of its locals, loaded, and run by the reference interpreter
     Then the committed bytes are canonical and schema-valid, every renaming has the same canonical bytes, identity, and outcome

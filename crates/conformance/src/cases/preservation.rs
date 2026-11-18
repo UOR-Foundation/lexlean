@@ -2386,10 +2386,10 @@ pub fn run(id: &str) {
                     )
                     .expect("the published certificate");
                     assert_eq!(
-                        row["sha256"].as_str(),
+                        row["kappa"].as_str(),
                         Some(
-                            lexlean::artifact::content_id::Sha256Digest::of(&text)
-                                .to_hex()
+                            lexlean::artifact::content_id::Kappa::of(&text)
+                                .label()
                                 .as_str()
                         ),
                         "{module}: the record binds the published certificate"
@@ -2397,17 +2397,17 @@ pub fn run(id: &str) {
                     // The program the certificates are about and each target's
                     // crate are published and bound too.
                     let digest = |path: &std::path::Path| {
-                        lexlean::artifact::content_id::Sha256Digest::of(
+                        lexlean::artifact::content_id::Kappa::of(
                             &std::fs::read(path).expect("a published file"),
                         )
-                        .to_hex()
+                        .label()
                     };
                     let index = rows
                         .iter()
                         .position(|candidate| candidate == row)
                         .expect("the row");
                     assert_eq!(
-                        row["program"]["sha256"].as_str(),
+                        row["program"]["kappa"].as_str(),
                         Some(
                             digest(&root.join(format!("preserve/program/R{index}.json"))).as_str()
                         ),
@@ -2416,7 +2416,7 @@ pub fn run(id: &str) {
                     for rendering in row["renderings"].as_array().expect("renderings") {
                         let target = rendering["target"].as_str().expect("a target");
                         assert_eq!(
-                            rendering["crate"]["sha256"].as_str(),
+                            rendering["crate"]["kappa"].as_str(),
                             Some(
                                 digest(&root.join(format!("preserve/crate/R{index}.{target}.rs")))
                                     .as_str()
@@ -2439,10 +2439,10 @@ pub fn run(id: &str) {
                             let text = std::fs::read(root.join("preserve").join(path))
                                 .expect("the published certificate");
                             assert_eq!(
-                                bound["sha256"].as_str(),
+                                bound["kappa"].as_str(),
                                 Some(
-                                    lexlean::artifact::content_id::Sha256Digest::of(&text)
-                                        .to_hex()
+                                    lexlean::artifact::content_id::Kappa::of(&text)
+                                        .label()
                                         .as_str()
                                 ),
                                 "{module}: the record binds the published certificate"
@@ -2455,10 +2455,10 @@ pub fn run(id: &str) {
                 )
                 .expect("attestation JSON");
                 assert_eq!(
-                    attestation["preservation"]["sha256"].as_str(),
+                    attestation["preservation"]["kappa"].as_str(),
                     Some(
-                        lexlean::artifact::content_id::Sha256Digest::of(&record_bytes)
-                            .to_hex()
+                        lexlean::artifact::content_id::Kappa::of(&record_bytes)
+                            .label()
                             .as_str()
                     ),
                     "the attestation binds preservation.json"
@@ -3508,7 +3508,7 @@ pub fn run(id: &str) {
                 let checked = support::checked_project(&project);
                 let limits = support::limits(&project);
                 let linked = linked_modules(&checked);
-                let hex = checked.semantic_id.to_hex()[..32].to_owned();
+                let hex = checked.semantic_id.label()[..32].to_owned();
                 for (index, root) in roots(&checked).expect("the reports").iter().enumerate() {
                     let lowered =
                         lower_root(&linked, &root.module, &root.name, root.report, &limits)
@@ -3812,7 +3812,7 @@ pub fn run(id: &str) {
                 let checked = support::checked_project(&project);
                 let limits = support::limits(&project);
                 let linked = linked_modules(&checked);
-                let hex = checked.semantic_id.to_hex()[..32].to_owned();
+                let hex = checked.semantic_id.label()[..32].to_owned();
                 let environment: BTreeSet<String> =
                     lexlean::production::certificate::LIBRARY_MODULES
                         .iter()
@@ -4341,7 +4341,7 @@ pub fn run(id: &str) {
                 let checked = support::checked_project(&project);
                 let limits = support::limits(&project);
                 let linked = linked_modules(&checked);
-                let hex = checked.semantic_id.to_hex()[..32].to_owned();
+                let hex = checked.semantic_id.label()[..32].to_owned();
                 let environment: BTreeSet<String> =
                     [lexlean::production::rust_cert::SOUNDNESS_MODULE.to_owned()]
                         .into_iter()

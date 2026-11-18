@@ -4,7 +4,7 @@
 use std::collections::BTreeMap;
 
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 
 /// One originating source in a module map.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -16,7 +16,7 @@ pub enum MapSource {
         /// Project-relative path.
         path: String,
         /// Digest of the normalized bytes.
-        sha256: Sha256Digest,
+        kappa: Kappa,
     },
     /// A glossary entry origin (canonical forms, renderer data).
     Glossary {
@@ -55,11 +55,11 @@ impl MapSource {
     fn to_json(&self) -> Json {
         let mut o = BTreeMap::new();
         match self {
-            Self::File { id, path, sha256 } => {
+            Self::File { id, path, kappa } => {
                 o.insert("id".to_owned(), Json::from_usize(*id));
                 o.insert("kind".to_owned(), Json::Str("file".to_owned()));
                 o.insert("path".to_owned(), Json::Str(path.clone()));
-                o.insert("sha256".to_owned(), Json::Str(sha256.to_hex()));
+                o.insert("kappa".to_owned(), Json::Str(kappa.label()));
             }
             Self::Glossary { id, package, entry } => {
                 o.insert("id".to_owned(), Json::from_usize(*id));
@@ -175,9 +175,9 @@ pub struct Mapping {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SourceMap {
     /// The project source ID.
-    pub source_id: Sha256Digest,
+    pub source_id: Kappa,
     /// The project semantic ID.
-    pub semantic_id: Sha256Digest,
+    pub semantic_id: Kappa,
     /// The source module name.
     pub module: String,
     /// Origin rows.
@@ -197,12 +197,12 @@ impl SourceMap {
         let mut o = BTreeMap::new();
         o.insert(
             "spec".to_owned(),
-            Json::Str("lexlean/source-map/1".to_owned()),
+            Json::Str("lexlean/source-map/2".to_owned()),
         );
-        o.insert("source_id".to_owned(), Json::Str(self.source_id.to_hex()));
+        o.insert("source_id".to_owned(), Json::Str(self.source_id.label()));
         o.insert(
             "semantic_id".to_owned(),
-            Json::Str(self.semantic_id.to_hex()),
+            Json::Str(self.semantic_id.label()),
         );
         o.insert("module".to_owned(), Json::Str(self.module.clone()));
         o.insert(

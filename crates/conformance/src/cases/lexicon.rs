@@ -1573,7 +1573,7 @@ math = "(seq (operator-name gsucc) (paren (slot 0)))"
             let tampered = P::example();
             let lock_text = tampered.read("lexlean.lock");
             let tampered_lock = lock_text
-                .replacen("spec = \"lexlean/lock/1\"", "spec = \"lexlean/lock/2\"", 1)
+                .replacen("spec = \"lexlean/lock/3\"", "spec = \"lexlean/lock/4\"", 1)
                 .replacen("language = \"1.0\"", "language = \"1.2\"", 1);
             tampered.write("lexlean.lock", &tampered_lock);
             let error = tampered

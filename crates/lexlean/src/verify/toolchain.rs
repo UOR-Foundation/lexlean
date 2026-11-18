@@ -4,7 +4,7 @@
 
 use camino::Utf8PathBuf;
 
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::code;
 use crate::config::Limits;
 use crate::diagnostic::Diagnostic;
@@ -15,8 +15,8 @@ use crate::verify::child::{run as run_child, ChildHome, ChildSpec, Normalizer};
 pub struct Tool {
     /// The absolute executable path.
     pub path: Utf8PathBuf,
-    /// SHA-256 of the executable bytes.
-    pub sha256: Sha256Digest,
+    /// κ-label of the executable bytes.
+    pub kappa: Kappa,
     /// The recorded, normalized version output.
     pub version_output: String,
 }
@@ -45,36 +45,36 @@ pub const ADDRESSES_SPEC: &str = "lexlean/verify-toolchain/1";
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Addresses {
     /// `lean`.
-    pub lean: Sha256Digest,
+    pub lean: Kappa,
     /// `lake`.
-    pub lake: Sha256Digest,
+    pub lake: Kappa,
     /// `leanchecker`.
-    pub leanchecker: Sha256Digest,
+    pub leanchecker: Kappa,
     /// The running `lexlean` executable.
-    pub lexlean: Sha256Digest,
+    pub lexlean: Kappa,
     /// The `rustc` that compiled this `lexlean` (its executable and driver
-    /// library, [`crate::build_identity::RUSTC_SHA256`]).
-    pub rustc: Sha256Digest,
+    /// library, [`crate::build_identity::RUSTC_KAPPA`]).
+    pub rustc: Kappa,
 }
 
 impl Addresses {
     /// The addresses of this preflighted toolchain, the running executable
     /// whose digest is `lexlean`, and the compiler that built it.
     #[must_use]
-    pub fn of(toolchain: &Toolchain, lexlean: Sha256Digest) -> Self {
+    pub fn of(toolchain: &Toolchain, lexlean: Kappa) -> Self {
         Self {
-            lean: toolchain.lean.sha256,
-            lake: toolchain.lake.sha256,
-            leanchecker: toolchain.leanchecker.sha256,
+            lean: toolchain.lean.kappa,
+            lake: toolchain.lake.kappa,
+            leanchecker: toolchain.leanchecker.kappa,
             lexlean,
-            rustc: Sha256Digest::from_hex(crate::build_identity::RUSTC_SHA256)
-                .expect("the build script writes a SHA-256"),
+            rustc: Kappa::parse(crate::build_identity::RUSTC_KAPPA)
+                .expect("the build script writes a κ-label"),
         }
     }
 
     /// Every tool with its address, in name order.
     #[must_use]
-    pub fn tools(&self) -> [(&'static str, Sha256Digest); 5] {
+    pub fn tools(&self) -> [(&'static str, Kappa); 5] {
         [
             ("lake", self.lake),
             ("lean", self.lean),
@@ -90,7 +90,7 @@ impl Addresses {
         use crate::artifact::canonical_json::Json;
         let mut pairs = vec![("spec", Json::Str(ADDRESSES_SPEC.to_owned()))];
         for (tool, address) in self.tools() {
-            pairs.push((tool, Json::Str(address.to_hex())));
+            pairs.push((tool, Json::Str(address.label())));
         }
         Json::object(pairs)
     }
@@ -110,8 +110,9 @@ impl Addresses {
             return Err(format!("`spec` must be `{ADDRESSES_SPEC}`"));
         }
         let address = |tool: &str| match fields.get(tool) {
-            Some(Json::Str(hex)) => Sha256Digest::from_hex(hex)
-                .map_err(|reason| format!("the address of `{tool}`: {reason}")),
+            Some(Json::Str(hex)) => {
+                Kappa::parse(hex).map_err(|reason| format!("the address of `{tool}`: {reason}"))
+            }
             _ => Err(format!("the address of `{tool}` is required")),
         };
         let addresses = Self {
@@ -133,10 +134,7 @@ impl Addresses {
     /// The first tool whose address differs between `self` and `other`, with
     /// both addresses, in name order.
     #[must_use]
-    pub fn first_difference(
-        &self,
-        other: &Self,
-    ) -> Option<(&'static str, Sha256Digest, Sha256Digest)> {
+    pub fn first_difference(&self, other: &Self) -> Option<(&'static str, Kappa, Kappa)> {
         self.tools()
             .into_iter()
             .zip(other.tools())
@@ -176,7 +174,7 @@ fn version_probe(
     path: &Utf8PathBuf,
     argv: &[&str],
     bin_dir: &Utf8PathBuf,
-    sha256: Sha256Digest,
+    kappa: Kappa,
     limits: &Limits,
 ) -> Result<String, Diagnostic> {
     let record = run_child(
@@ -184,7 +182,7 @@ fn version_probe(
             tool: name,
             module: None,
             program: path,
-            executable_sha256: sha256,
+            executable_kappa: kappa,
             argv: argv.iter().map(|argument| (*argument).to_owned()).collect(),
             cwd: bin_dir,
             extra_env: Vec::new(),
@@ -215,14 +213,14 @@ fn load_tool(
             "the pinned toolchain has no `{name}` executable: {path}: {io_error}"
         ))
     })?;
-    let sha256 = Sha256Digest::of(&bytes);
+    let kappa = Kappa::of(&bytes);
     let version_output = match version_argv {
-        Some(argv) => version_probe(name, &path, argv, bin_dir, sha256, limits)?,
+        Some(argv) => version_probe(name, &path, argv, bin_dir, kappa, limits)?,
         None => String::new(),
     };
     Ok(Tool {
         path,
-        sha256,
+        kappa,
         version_output,
     })
 }
@@ -262,8 +260,8 @@ pub fn preflight(limits: &Limits) -> Result<Toolchain, Diagnostic> {
     // the functional check.
     let mut leanchecker = load_tool(&bin_dir, "leanchecker", None, limits)?;
     leanchecker.version_output = format!(
-        "leanchecker bin/leanchecker sha256:{}",
-        leanchecker.sha256.to_hex()
+        "leanchecker bin/leanchecker kappa:{}",
+        leanchecker.kappa.label()
     );
     Ok(Toolchain {
         root,

@@ -229,11 +229,11 @@ type Files = (Vec<u8>, Vec<u8>);
 type Reshape = Box<dyn Fn(&mut Scaffold)>;
 
 fn sha256(data: &[u8]) -> String {
-    lexlean::Sha256Digest::of(data).to_hex()
+    lexlean::Kappa::of(data).label()
 }
 
 fn semantics() -> String {
-    lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_2).to_hex()
+    lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_2).label()
 }
 
 fn runtime_text(std: bool) -> String {
@@ -351,7 +351,7 @@ fn accepted(manifest: &Manifest) -> Option<(Render, Files)> {
         name: manifest.name.clone(),
         version: manifest.version.clone(),
         std: manifest.profile == "rust-std",
-        program: manifest.program.id().expect("an accepted program").to_hex(),
+        program: manifest.program.id().expect("an accepted program").label(),
         sources: manifest.sources.clone(),
         effects: manifest.effects.clone(),
         exports: manifest
@@ -431,10 +431,10 @@ const VERSIONS: &[&str] = &[
 ];
 const PROFILES: &[&str] = &["rust-std", "rust-core", "rust-wasm", "", "rust-Std", "std"];
 const SPECS: &[&str] = &[
-    "lexlean/rust-package/1",
     "lexlean/rust-package/2",
+    "lexlean/rust-package/9",
     "",
-    "lexlean/rust-provenance/1",
+    "lexlean/rust-provenance/2",
 ];
 const SOURCES: &[&str] = &[
     "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
@@ -710,7 +710,7 @@ const PLANTS: [Plant; 21] = [
     Plant {
         label: "the spec is not checked",
         root: 0,
-        site: "(if (same spec (text \"lexlean/rust-package/1\")) then",
+        site: "(if (same spec (text \"lexlean/rust-package/2\")) then",
         replacement: "(if true then",
     },
     Plant {

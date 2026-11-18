@@ -350,7 +350,7 @@ fn tl_01() {
     // Another spec tag.
     let project = P::tooling("core");
     let mut value = data(&project);
-    value["spec"] = json!("lexlean/tooling-module/2");
+    value["spec"] = json!("lexlean/tooling-module/9");
     assert!(
         !schema_violations(&value).is_empty(),
         "another spec tag: the committed schema must refuse it"
@@ -367,13 +367,13 @@ fn tl_01() {
     // not canonical.
     let project = P::tooling("core");
     let raw = data_text(&project);
-    let tail = ",\"spec\":\"lexlean/tooling-module/1\"}";
+    let tail = ",\"spec\":\"lexlean/tooling-module/2\"}";
     assert!(
         raw.ends_with(tail),
         "the canonical value ends with its spec"
     );
     let reordered = format!(
-        "{{\"spec\":\"lexlean/tooling-module/1\",{}}}",
+        "{{\"spec\":\"lexlean/tooling-module/2\",{}}}",
         &raw[1..raw.len() - tail.len()]
     );
     assert!(
@@ -891,14 +891,14 @@ fn tl_03() {
         },
     );
     plants.plant("core", "an uppercase digest", "LLT4014", "digest", |v| {
-        let digest = named(v, "Nat")["source"]["sha256"]
+        let digest = named(v, "Nat")["source"]["kappa"]
             .as_str()
             .expect("digest")
             .to_uppercase();
-        named(v, "Nat")["source"]["sha256"] = json!(digest);
+        named(v, "Nat")["source"]["kappa"] = json!(digest);
     });
     plants.plant("core", "a short digest", "LLT4014", "digest", |v| {
-        named(v, "Nat")["source"]["sha256"] = json!("abcd");
+        named(v, "Nat")["source"]["kappa"] = json!("abcd");
     });
 
     plants.finish("TL-03");
@@ -928,7 +928,7 @@ fn tl_03() {
                 .map(|byte| format!("{byte:02x}"))
                 .collect();
             assert_eq!(
-                pin["sha256"], digest,
+                pin["kappa"], digest,
                 "{fixture}: `{}` pins a digest that is not the pinned toolchain's {file}",
                 declaration["name"]
             );
@@ -1807,7 +1807,7 @@ fn elaborate(project: &P, text: &str) -> (i32, String) {
             tool: "lean",
             module: Some("Tool".to_owned()),
             program: &toolchain.lean.path,
-            executable_sha256: toolchain.lean.sha256,
+            executable_kappa: toolchain.lean.kappa,
             argv: vec![source.to_string()],
             cwd: &scratch,
             extra_env: Vec::new(),
