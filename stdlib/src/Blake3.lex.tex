@@ -2,7 +2,6 @@
 \useglossary{lexlean.std.nat@1.2.0}
 \title{Natural number addition}
 \begin{semanticmodule}
-
 structure{
   name: Digest,
   type_parameters: [],
@@ -224,7 +223,9 @@ definition{
   name: push,
   parameters: [stack : (List Digest), chain : Digest, total : Nat],
   result: (List Digest),
-  body: (let merged : (Nat * (Digest * (List Digest))) := (prim iterate (fun (state : (Nat * (Digest * (List Digest)))) => (let count : Nat := (first state); (let current : Digest := (first (second state)); (let rest : (List Digest) := (second (second state)); (if ((prim remainder count 2 0 : Nat) =? 0) then (match rest | List.nil => state | List.cons top below => ((prim quotient count 2 0 : Nat), ((parent top current false), below))) else state))))) 64 (total, (chain, stack)) : (Nat * (Digest * (List Digest)))); (cons (first (second merged)) (second (second merged)))),
+  body: (let merged : (Nat * (Digest * (List Digest))) := (prim iterate (fun (state : (Nat * (Digest * (List Digest)))) => (let count : Nat := (first state); (let current : Digest := (first (second state)); (let rest : (List Digest) := (second (second state)); (if ((prim remainder count 2 0 : Nat) =? 0) then (match rest
+    | List.nil => state
+    | List.cons top below => ((prim quotient count 2 0 : Nat), ((parent top current false), below))) else state))))) 64 (total, (chain, stack)) : (Nat * (Digest * (List Digest)))); (cons (first (second merged)) (second (second merged)))),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -333,7 +334,5 @@ theorem{
   proof: reflexivity{},
   axioms: [Quot.sound, propext]
 }
-
-
 \end{semanticmodule}
 \end{lexlean}
