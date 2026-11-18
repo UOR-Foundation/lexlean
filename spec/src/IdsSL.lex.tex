@@ -115,5 +115,13 @@ definition{
   body: (record Rows::IdRow {id := "SL-14", level := "build", suite := "stdlib", statement := "The standard library's `Map` module is language-1.2 source whose ten members over strictly ascending lists, a map as entries keyed by `Bytes` and a set as `Bytes` (`mapFromEntries`, `mapInsert`, `mapGet`, `mapRemove`, `mapExtend`, `setContains`, `setRemove`, `setUnion`, `setIntersection`, `setDifference`), are production roots eligible for `rust-std` with exactly their declared effects; each member's lowered program under the calculus evaluator and its rendered `rust-std` package under the pinned rustc agree with the `BTreeMap<Vec<u8>, Vec<u8>>` and `BTreeSet<Vec<u8>>` the compiler keeps its tables and name sets in, on a seeded corpus of keys that repeat and are prefixes of one another: collecting entries keeps the last of a repeated key, an insertion replaces the value of an equal key, a lookup returns the value of an equal key or nothing, a removal drops the entry of an equal key, an extension lets the other map's entries replace the map's, and a set is tested, removed from, joined, intersected, and differenced as a `BTreeSet` is; a defect planted in each member is detected by a fixed vector of its own; and every exported package is byte-identical to its committed package and realizes the member's lowered program.", sections := "§17.22"}),
   executable: true
 }
+
+definition{
+  name: sl17,
+  parameters: [],
+  result: Rows::IdRow,
+  body: (record Rows::IdRow {id := "SL-17", level := "build", suite := "stdlib", statement := "The standard library's `Stream` module is language-1.2 source stating a stream as a fold: `feedAll` folds a step over a list of items, `feedChunks` folds it chunk by chunk over a list of chunks, and `joinChunks` and `appendItems` concatenate them; its theorems `feed_all_append` and `chunking_invariance`, generic in the state and item types, are verified by Lean: folding a step over the chunks of any division of an input gives the state folding it over the whole input gives, so a result computed from a stream does not depend on where the stream was cut; a `feedChunks` planted to drop the last chunk is rejected by Lean.", sections := "§17.22"}),
+  executable: true
+}
 \end{semanticmodule}
 \end{lexlean}

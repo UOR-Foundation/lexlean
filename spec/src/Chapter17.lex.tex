@@ -5253,6 +5253,34 @@ definition{
   parameters: [],
   result: DocRows::Item,
   body: constructor{
+    arguments: [
+      (cons "The tenth module, `Stream`, states a stream as a fold. A consumer is a step" (cons "`feed : State -> Item -> State`; `feedAll` folds it over a list of items, and" (cons "`feedChunks` folds it over a list of chunks, one chunk after another." (nil String))))
+    ],
+    constructor: DocRows::Item.para,
+    type_arguments: []
+  },
+  executable: true
+}
+
+definition{
+  name: i0383,
+  parameters: [],
+  result: DocRows::Item,
+  body: constructor{
+    arguments: [
+      (cons "The theorem `chunking_invariance` says the two agree on every division of an input:" (cons "`feedChunks feed s chunks = feedAll feed s (joinChunks chunks)` for every state" (cons "type, item type, step, state and division. A result computed from a stream" (cons "therefore does not depend on where its transport cut it, which is what lets a" (cons "request be streamed in chunks of any length with no cap on the whole. The" (cons "theorems hold over `propext` alone (`SL-17`)." (nil String)))))))
+    ],
+    constructor: DocRows::Item.para,
+    type_arguments: []
+  },
+  executable: true
+}
+
+definition{
+  name: i0384,
+  parameters: [],
+  result: DocRows::Item,
+  body: constructor{
     arguments: [4, 1, "Source packages of the library"],
     constructor: DocRows::Item.heading,
     type_arguments: []
@@ -5261,7 +5289,7 @@ definition{
 }
 
 definition{
-  name: i0383,
+  name: i0385,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5275,7 +5303,7 @@ definition{
 }
 
 definition{
-  name: i0384,
+  name: i0386,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5289,7 +5317,7 @@ definition{
 }
 
 definition{
-  name: i0385,
+  name: i0387,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5303,7 +5331,7 @@ definition{
 }
 
 definition{
-  name: i0386,
+  name: i0388,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5317,7 +5345,7 @@ definition{
 }
 
 definition{
-  name: i0387,
+  name: i0389,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5331,7 +5359,7 @@ definition{
 }
 
 definition{
-  name: i0388,
+  name: i0390,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5345,7 +5373,7 @@ definition{
 }
 
 definition{
-  name: i0389,
+  name: i0391,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5359,7 +5387,7 @@ definition{
 }
 
 definition{
-  name: i0390,
+  name: i0392,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5373,7 +5401,7 @@ definition{
 }
 
 definition{
-  name: i0391,
+  name: i0393,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5387,7 +5415,7 @@ definition{
 }
 
 definition{
-  name: i0392,
+  name: i0394,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5401,7 +5429,7 @@ definition{
 }
 
 definition{
-  name: i0393,
+  name: i0395,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5415,7 +5443,7 @@ definition{
 }
 
 definition{
-  name: i0394,
+  name: i0396,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5429,7 +5457,7 @@ definition{
 }
 
 definition{
-  name: i0395,
+  name: i0397,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5443,7 +5471,7 @@ definition{
 }
 
 definition{
-  name: i0396,
+  name: i0398,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5457,7 +5485,7 @@ definition{
 }
 
 definition{
-  name: i0397,
+  name: i0399,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5469,7 +5497,7 @@ definition{
 }
 
 definition{
-  name: i0398,
+  name: i0400,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5483,7 +5511,7 @@ definition{
 }
 
 definition{
-  name: i0399,
+  name: i0401,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5497,7 +5525,7 @@ definition{
 }
 
 definition{
-  name: i0400,
+  name: i0402,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5511,7 +5539,7 @@ definition{
 }
 
 definition{
-  name: i0401,
+  name: i0403,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5525,7 +5553,7 @@ definition{
 }
 
 definition{
-  name: i0402,
+  name: i0404,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5539,7 +5567,7 @@ definition{
 }
 
 definition{
-  name: i0403,
+  name: i0405,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5553,7 +5581,7 @@ definition{
 }
 
 definition{
-  name: i0404,
+  name: i0406,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5567,7 +5595,7 @@ definition{
 }
 
 definition{
-  name: i0405,
+  name: i0407,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5581,7 +5609,7 @@ definition{
 }
 
 definition{
-  name: i0406,
+  name: i0408,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5595,7 +5623,7 @@ definition{
 }
 
 definition{
-  name: i0407,
+  name: i0409,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5609,7 +5637,7 @@ definition{
 }
 
 definition{
-  name: i0408,
+  name: i0410,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5623,7 +5651,7 @@ definition{
 }
 
 definition{
-  name: i0409,
+  name: i0411,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5637,7 +5665,7 @@ definition{
 }
 
 definition{
-  name: i0410,
+  name: i0412,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5651,7 +5679,7 @@ definition{
 }
 
 definition{
-  name: i0411,
+  name: i0413,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5665,7 +5693,7 @@ definition{
 }
 
 definition{
-  name: i0412,
+  name: i0414,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5679,7 +5707,7 @@ definition{
 }
 
 definition{
-  name: i0413,
+  name: i0415,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5693,7 +5721,7 @@ definition{
 }
 
 definition{
-  name: i0414,
+  name: i0416,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5707,7 +5735,7 @@ definition{
 }
 
 definition{
-  name: i0415,
+  name: i0417,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5721,7 +5749,7 @@ definition{
 }
 
 definition{
-  name: i0416,
+  name: i0418,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5735,7 +5763,7 @@ definition{
 }
 
 definition{
-  name: i0417,
+  name: i0419,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5749,7 +5777,7 @@ definition{
 }
 
 definition{
-  name: i0418,
+  name: i0420,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5763,7 +5791,7 @@ definition{
 }
 
 definition{
-  name: i0419,
+  name: i0421,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5777,7 +5805,7 @@ definition{
 }
 
 definition{
-  name: i0420,
+  name: i0422,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5791,7 +5819,7 @@ definition{
 }
 
 definition{
-  name: i0421,
+  name: i0423,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5805,7 +5833,7 @@ definition{
 }
 
 definition{
-  name: i0422,
+  name: i0424,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5819,7 +5847,7 @@ definition{
 }
 
 definition{
-  name: i0423,
+  name: i0425,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5833,7 +5861,7 @@ definition{
 }
 
 definition{
-  name: i0424,
+  name: i0426,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5847,7 +5875,7 @@ definition{
 }
 
 definition{
-  name: i0425,
+  name: i0427,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5861,7 +5889,7 @@ definition{
 }
 
 definition{
-  name: i0426,
+  name: i0428,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5875,7 +5903,7 @@ definition{
 }
 
 definition{
-  name: i0427,
+  name: i0429,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5889,7 +5917,7 @@ definition{
 }
 
 definition{
-  name: i0428,
+  name: i0430,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5903,7 +5931,7 @@ definition{
 }
 
 definition{
-  name: i0429,
+  name: i0431,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5917,7 +5945,7 @@ definition{
 }
 
 definition{
-  name: i0430,
+  name: i0432,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5931,7 +5959,7 @@ definition{
 }
 
 definition{
-  name: i0431,
+  name: i0433,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5945,7 +5973,7 @@ definition{
 }
 
 definition{
-  name: i0432,
+  name: i0434,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5959,7 +5987,7 @@ definition{
 }
 
 definition{
-  name: i0433,
+  name: i0435,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5973,7 +6001,7 @@ definition{
 }
 
 definition{
-  name: i0434,
+  name: i0436,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -5987,7 +6015,7 @@ definition{
 }
 
 definition{
-  name: i0435,
+  name: i0437,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6001,7 +6029,7 @@ definition{
 }
 
 definition{
-  name: i0436,
+  name: i0438,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6015,7 +6043,7 @@ definition{
 }
 
 definition{
-  name: i0437,
+  name: i0439,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6029,7 +6057,7 @@ definition{
 }
 
 definition{
-  name: i0438,
+  name: i0440,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6043,7 +6071,7 @@ definition{
 }
 
 definition{
-  name: i0439,
+  name: i0441,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6057,7 +6085,7 @@ definition{
 }
 
 definition{
-  name: i0440,
+  name: i0442,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6071,7 +6099,7 @@ definition{
 }
 
 definition{
-  name: i0441,
+  name: i0443,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6085,7 +6113,7 @@ definition{
 }
 
 definition{
-  name: i0442,
+  name: i0444,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6099,7 +6127,7 @@ definition{
 }
 
 definition{
-  name: i0443,
+  name: i0445,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6113,7 +6141,7 @@ definition{
 }
 
 definition{
-  name: i0444,
+  name: i0446,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6127,7 +6155,7 @@ definition{
 }
 
 definition{
-  name: i0445,
+  name: i0447,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6141,7 +6169,7 @@ definition{
 }
 
 definition{
-  name: i0446,
+  name: i0448,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6155,7 +6183,7 @@ definition{
 }
 
 definition{
-  name: i0447,
+  name: i0449,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6169,7 +6197,7 @@ definition{
 }
 
 definition{
-  name: i0448,
+  name: i0450,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6183,7 +6211,7 @@ definition{
 }
 
 definition{
-  name: i0449,
+  name: i0451,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6197,7 +6225,7 @@ definition{
 }
 
 definition{
-  name: i0450,
+  name: i0452,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6211,7 +6239,7 @@ definition{
 }
 
 definition{
-  name: i0451,
+  name: i0453,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6225,7 +6253,7 @@ definition{
 }
 
 definition{
-  name: i0452,
+  name: i0454,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6239,7 +6267,7 @@ definition{
 }
 
 definition{
-  name: i0453,
+  name: i0455,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6253,7 +6281,7 @@ definition{
 }
 
 definition{
-  name: i0454,
+  name: i0456,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6267,7 +6295,7 @@ definition{
 }
 
 definition{
-  name: i0455,
+  name: i0457,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6281,7 +6309,7 @@ definition{
 }
 
 definition{
-  name: i0456,
+  name: i0458,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6295,7 +6323,7 @@ definition{
 }
 
 definition{
-  name: i0457,
+  name: i0459,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6309,7 +6337,7 @@ definition{
 }
 
 definition{
-  name: i0458,
+  name: i0460,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6323,7 +6351,7 @@ definition{
 }
 
 definition{
-  name: i0459,
+  name: i0461,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6337,7 +6365,7 @@ definition{
 }
 
 definition{
-  name: i0460,
+  name: i0462,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6351,7 +6379,7 @@ definition{
 }
 
 definition{
-  name: i0461,
+  name: i0463,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6365,7 +6393,7 @@ definition{
 }
 
 definition{
-  name: i0462,
+  name: i0464,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6379,7 +6407,7 @@ definition{
 }
 
 definition{
-  name: i0463,
+  name: i0465,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6393,7 +6421,7 @@ definition{
 }
 
 definition{
-  name: i0464,
+  name: i0466,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6407,7 +6435,7 @@ definition{
 }
 
 definition{
-  name: i0465,
+  name: i0467,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6421,7 +6449,7 @@ definition{
 }
 
 definition{
-  name: i0466,
+  name: i0468,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6435,7 +6463,7 @@ definition{
 }
 
 definition{
-  name: i0467,
+  name: i0469,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6449,7 +6477,7 @@ definition{
 }
 
 definition{
-  name: i0468,
+  name: i0470,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6463,7 +6491,7 @@ definition{
 }
 
 definition{
-  name: i0469,
+  name: i0471,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6477,7 +6505,7 @@ definition{
 }
 
 definition{
-  name: i0470,
+  name: i0472,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6491,7 +6519,7 @@ definition{
 }
 
 definition{
-  name: i0471,
+  name: i0473,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6505,7 +6533,7 @@ definition{
 }
 
 definition{
-  name: i0472,
+  name: i0474,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6519,7 +6547,7 @@ definition{
 }
 
 definition{
-  name: i0473,
+  name: i0475,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6533,7 +6561,7 @@ definition{
 }
 
 definition{
-  name: i0474,
+  name: i0476,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6547,7 +6575,7 @@ definition{
 }
 
 definition{
-  name: i0475,
+  name: i0477,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6561,7 +6589,7 @@ definition{
 }
 
 definition{
-  name: i0476,
+  name: i0478,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6575,7 +6603,7 @@ definition{
 }
 
 definition{
-  name: i0477,
+  name: i0479,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6589,7 +6617,7 @@ definition{
 }
 
 definition{
-  name: i0478,
+  name: i0480,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6603,7 +6631,7 @@ definition{
 }
 
 definition{
-  name: i0479,
+  name: i0481,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6617,7 +6645,7 @@ definition{
 }
 
 definition{
-  name: i0480,
+  name: i0482,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6631,7 +6659,7 @@ definition{
 }
 
 definition{
-  name: i0481,
+  name: i0483,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6645,7 +6673,7 @@ definition{
 }
 
 definition{
-  name: i0482,
+  name: i0484,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6659,7 +6687,7 @@ definition{
 }
 
 definition{
-  name: i0483,
+  name: i0485,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6673,7 +6701,7 @@ definition{
 }
 
 definition{
-  name: i0484,
+  name: i0486,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6687,7 +6715,7 @@ definition{
 }
 
 definition{
-  name: i0485,
+  name: i0487,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6701,7 +6729,7 @@ definition{
 }
 
 definition{
-  name: i0486,
+  name: i0488,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6715,7 +6743,7 @@ definition{
 }
 
 definition{
-  name: i0487,
+  name: i0489,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6729,7 +6757,7 @@ definition{
 }
 
 definition{
-  name: i0488,
+  name: i0490,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6743,7 +6771,7 @@ definition{
 }
 
 definition{
-  name: i0489,
+  name: i0491,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6757,7 +6785,7 @@ definition{
 }
 
 definition{
-  name: i0490,
+  name: i0492,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6771,7 +6799,7 @@ definition{
 }
 
 definition{
-  name: i0491,
+  name: i0493,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6785,7 +6813,7 @@ definition{
 }
 
 definition{
-  name: i0492,
+  name: i0494,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6799,7 +6827,7 @@ definition{
 }
 
 definition{
-  name: i0493,
+  name: i0495,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6813,7 +6841,7 @@ definition{
 }
 
 definition{
-  name: i0494,
+  name: i0496,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6827,7 +6855,7 @@ definition{
 }
 
 definition{
-  name: i0495,
+  name: i0497,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6841,7 +6869,7 @@ definition{
 }
 
 definition{
-  name: i0496,
+  name: i0498,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6855,7 +6883,7 @@ definition{
 }
 
 definition{
-  name: i0497,
+  name: i0499,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6869,7 +6897,7 @@ definition{
 }
 
 definition{
-  name: i0498,
+  name: i0500,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6883,7 +6911,7 @@ definition{
 }
 
 definition{
-  name: i0499,
+  name: i0501,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6897,7 +6925,7 @@ definition{
 }
 
 definition{
-  name: i0500,
+  name: i0502,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6911,7 +6939,7 @@ definition{
 }
 
 definition{
-  name: i0501,
+  name: i0503,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6925,7 +6953,7 @@ definition{
 }
 
 definition{
-  name: i0502,
+  name: i0504,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6939,7 +6967,7 @@ definition{
 }
 
 definition{
-  name: i0503,
+  name: i0505,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6953,7 +6981,7 @@ definition{
 }
 
 definition{
-  name: i0504,
+  name: i0506,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6967,7 +6995,7 @@ definition{
 }
 
 definition{
-  name: i0505,
+  name: i0507,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6981,7 +7009,7 @@ definition{
 }
 
 definition{
-  name: i0506,
+  name: i0508,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -6995,7 +7023,7 @@ definition{
 }
 
 definition{
-  name: i0507,
+  name: i0509,
   parameters: [],
   result: DocRows::Item,
   body: constructor{

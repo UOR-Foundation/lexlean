@@ -1,0 +1,97 @@
+\begin{lexlean}{Stream}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Natural number addition}
+\begin{semanticmodule}
+definition{
+  name: appendItems,
+  type_parameters: [Item],
+  parameters: [left : (List 'Item), right : (List 'Item)],
+  result: (List 'Item),
+  body: (match left
+    | List.nil => right
+    | List.cons item rest => (cons item (appendItems ['Item] rest right))),
+  recursive_argument: left
+}
+
+definition{
+  name: joinChunks,
+  type_parameters: [Item],
+  parameters: [chunks : (List (List 'Item))],
+  result: (List 'Item),
+  body: (match chunks
+    | List.nil => (nil 'Item)
+    | List.cons chunk rest => (appendItems ['Item] chunk (joinChunks ['Item] rest))),
+  recursive_argument: chunks
+}
+
+definition{
+  name: feedAll,
+  type_parameters: [State, Item],
+  parameters: [feed : (Fn ('State 'Item) 'State), state : 'State, items : (List 'Item)],
+  result: 'State,
+  body: (match items
+    | List.nil => state
+    | List.cons item rest => (feedAll ['State, 'Item] feed (apply feed state item) rest)),
+  recursive_argument: items
+}
+
+definition{
+  name: feedChunks,
+  type_parameters: [State, Item],
+  parameters: [feed : (Fn ('State 'Item) 'State), state : 'State, chunks : (List (List 'Item))],
+  result: 'State,
+  body: (match chunks
+    | List.nil => state
+    | List.cons chunk rest => (feedChunks ['State, 'Item] feed (feedAll ['State, 'Item] feed state chunk) rest)),
+  recursive_argument: chunks
+}
+
+theorem{
+  name: feed_all_append,
+  type_parameters: [State, Item],
+  parameters: [feed : (Fn ('State 'Item) 'State), state : 'State, left : (List 'Item), right : (List 'Item)],
+  statement: ((feedAll ['State, 'Item] feed state (appendItems ['Item] left right)) = (feedAll ['State, 'Item] feed (feedAll ['State, 'Item] feed state left) right)),
+  proof: induction{
+    branches: [
+      {
+        proof: simplify{definitions: [appendItems, feedAll]},
+        binders: [],
+        constructor: nil
+      },
+      {
+        proof: simplify{definitions: [appendItems, feedAll, hypothesis]},
+        binders: [item, rest, hypothesis],
+        constructor: cons
+      }
+    ],
+    generalizing: [state],
+    scrutinee: left
+  },
+  axioms: [propext]
+}
+
+theorem{
+  name: chunking_invariance,
+  type_parameters: [State, Item],
+  parameters: [feed : (Fn ('State 'Item) 'State), state : 'State, chunks : (List (List 'Item))],
+  statement: ((feedChunks ['State, 'Item] feed state chunks) = (feedAll ['State, 'Item] feed state (joinChunks ['Item] chunks))),
+  proof: induction{
+    branches: [
+      {
+        proof: simplify{definitions: [feedAll, feedChunks, joinChunks]},
+        binders: [],
+        constructor: nil
+      },
+      {
+        proof: simplify{definitions: [feedChunks, feed_all_append, hypothesis, joinChunks]},
+        binders: [chunk, rest, hypothesis],
+        constructor: cons
+      }
+    ],
+    generalizing: [state],
+    scrutinee: chunks
+  },
+  axioms: [propext]
+}
+\end{semanticmodule}
+\end{lexlean}
