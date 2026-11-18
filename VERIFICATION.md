@@ -14877,3 +14877,18 @@ are about 20 minutes each. Both new parts run in the Intel and Windows
 `moves` lane, which held them as part of `rest`, so no host lane's work
 changes. `check-test-inventory` reports the 545 tests of `bdd` as the 41
 parts, disjoint and complete (RP-13).
+
+## The WASI cases as their own part (2026-11-18)
+
+`CL-25`..`CL-27` each build `lexlean` for `wasm32-wasip1` in the release
+profile and run it under Node beside the native executable; `CL-27` also
+builds every example that checks. In the remainder they overlapped the rest
+of `bdd` and the leg's `golden` and `repro` recipes. With `CL-27` on the
+`release/v0.4` base, the `rest` leg of run 44396317256 lost its runner 55
+minutes in ("The hosted runner lost communication with the server"), as did
+run 44396318041 with `CL-28` beside it, where the remainder otherwise
+finishes in 32 to 48 minutes. They become the `wasi` part, one leg of their
+own; no case's assertion changes. The part runs in the Intel and Windows
+`moves` lane, which held them as part of `rest`, so no host lane's work
+changes, and `check-test-inventory` still requires the parts to be disjoint
+and complete (RP-13).
