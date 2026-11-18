@@ -319,6 +319,13 @@
 'LexLeanBoot.KernelTerms.declare' does not depend on any axioms
 'LexLeanBoot.KernelTerms.declare_binds_statement' does not depend on any axioms
 'LexLeanBoot.KernelTerms.declaredType' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerateBranches' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerate_four_total' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerate_none_total' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerate_one_total' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerate_selects' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerate_three_total' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerate_two_total' does not depend on any axioms
 'LexLeanBoot.KernelTerms.equationCheck' does not depend on any axioms
 'LexLeanBoot.KernelTerms.equationOf' does not depend on any axioms
 'LexLeanBoot.KernelTerms.fnOf' does not depend on any axioms
@@ -343,6 +350,7 @@
 'LexLeanBoot.KernelTerms.refusalOf' does not depend on any axioms
 'LexLeanBoot.KernelTerms.repeated_case_refused' does not depend on any axioms
 'LexLeanBoot.KernelTerms.strayFrom' does not depend on any axioms
+'LexLeanBoot.KernelTerms.termAt' does not depend on any axioms
 'LexLeanBoot.KernelTerms.unknown_case_refused' does not depend on any axioms
 'LexLeanBoot.KernelTerms.unproduced_theorem_refused' does not depend on any axioms
 'LexLeanBoot.KernelTerms.unregistered_law_refused' does not depend on any axioms

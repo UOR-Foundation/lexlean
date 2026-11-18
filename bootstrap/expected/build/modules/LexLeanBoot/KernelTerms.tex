@@ -352,4 +352,48 @@
 \noindent Parameters: \texttt{(law : Nat) (registered : List (Nat)) (args : List (Term)) (premises : List (Nat)) (produced : List (Nat))}.\par
 \noindent Statement: \texttt{(isMade (lawTerm (law) (registered) (args) (premises) (produced)) = passes (lawCheck (law) (registered) (premises) (produced)))}.\par
 \noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{termAt}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(terms : List (Term)) (position : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Term}.\par
+\noindent Definition: \texttt{(match terms with | List.nil => Term.sort (0) | List.cons head rest => (if (Nat.beq (position) (0)) then head else termAt (rest) ((LexLeanRuntime.subtract (position) (1) : Nat))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{enumerateBranches}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(ctors : List (Ctor)) (index : Nat) (proofs : List (Term))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Branch)}.\par
+\noindent Definition: \texttt{(match ctors with | List.nil => ([] : List (Branch)) | List.cons \_ rest => ((\{ ctor := index, binders := 0, proof := termAt (proofs) (index) \} : Branch) :: enumerateBranches (rest) ((index + 1)) (proofs)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{enumerate\_none\_total}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(proofs : List (Term))}.\par
+\noindent Statement: \texttt{(passes (checkFrom (([] : List (Ctor))) (0) (enumerateBranches (([] : List (Ctor))) (0) (proofs)) (false)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{enumerate\_one\_total}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(proofs : List (Term))}.\par
+\noindent Statement: \texttt{(passes (checkFrom (((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor)))) (0) (enumerateBranches (((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor)))) (0) (proofs)) (false)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{enumerate\_two\_total}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(proofs : List (Term))}.\par
+\noindent Statement: \texttt{(passes (checkFrom (((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor))))) (0) (enumerateBranches (((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor))))) (0) (proofs)) (false)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{enumerate\_three\_total}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(proofs : List (Term))}.\par
+\noindent Statement: \texttt{(passes (checkFrom (((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor)))))) (0) (enumerateBranches (((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor)))))) (0) (proofs)) (false)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{enumerate\_four\_total}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(proofs : List (Term))}.\par
+\noindent Statement: \texttt{(passes (checkFrom (((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor))))))) (0) (enumerateBranches (((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor))))))) (0) (proofs)) (false)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{enumerate\_selects}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(one : Term) (other : Term)}.\par
+\noindent Statement: \texttt{(casesTerm (7) (([] : List (Term))) (Term.bvar (0)) (Term.bvar (1)) (((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor))))) (enumerateBranches (((\{ fields := 0, recursive := 0 \} : Ctor) :: ((\{ fields := 0, recursive := 0 \} : Ctor) :: ([] : List (Ctor))))) (0) ((one :: (other :: ([] : List (Term)))))) = Produced.made (Term.app (Term.app (Term.app (Term.app (Term.const (7)) (Term.bvar (0))) (Term.bvar (1))) (one)) (other)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
 \end{document}

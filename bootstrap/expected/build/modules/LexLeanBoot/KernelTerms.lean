@@ -1,5 +1,6 @@
 module
 public import Init
+public import LexLeanRuntime.Portable
 set_option autoImplicit false
 set_option maxRecDepth 100000
 set_option maxHeartbeats 1000000000
@@ -221,5 +222,31 @@ public theorem law_total (law : Nat) (registered : List (Nat)) (args : List (Ter
   set_option linter.unusedSimpArgs false in
   cases llCase : lawCheck (law) (registered) (premises) (produced) <;>
     simp (config := {decide := true}) only [isMade, lawTerm, passes, llCase, ite_true, ite_false]
+
+@[expose] public def termAt : (terms : List (Term)) -> (position : Nat) -> Term
+  | List.nil, _position => Term.sort (0)
+  | List.cons head rest, position => (if (Nat.beq (position) (0)) then head else termAt (rest) ((LexLeanRuntime.subtract (position) (1) : Nat)))
+
+@[expose] public def enumerateBranches : (ctors : List (Ctor)) -> (index : Nat) -> (proofs : List (Term)) -> List (Branch)
+  | List.nil, _index, _proofs => ([] : List (Branch))
+  | List.cons _ rest, index, proofs => (({ ctor := index, binders := 0, proof := termAt (proofs) (index) } : Branch) :: enumerateBranches (rest) ((index + 1)) (proofs))
+
+public theorem enumerate_none_total (proofs : List (Term)) : (passes (checkFrom (([] : List (Ctor))) (0) (enumerateBranches (([] : List (Ctor))) (0) (proofs)) (false)) = true) := by
+  rfl
+
+public theorem enumerate_one_total (proofs : List (Term)) : (passes (checkFrom ((({ fields := 0, recursive := 0 } : Ctor) :: ([] : List (Ctor)))) (0) (enumerateBranches ((({ fields := 0, recursive := 0 } : Ctor) :: ([] : List (Ctor)))) (0) (proofs)) (false)) = true) := by
+  rfl
+
+public theorem enumerate_two_total (proofs : List (Term)) : (passes (checkFrom ((({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: ([] : List (Ctor))))) (0) (enumerateBranches ((({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: ([] : List (Ctor))))) (0) (proofs)) (false)) = true) := by
+  rfl
+
+public theorem enumerate_three_total (proofs : List (Term)) : (passes (checkFrom ((({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: ([] : List (Ctor)))))) (0) (enumerateBranches ((({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: ([] : List (Ctor)))))) (0) (proofs)) (false)) = true) := by
+  rfl
+
+public theorem enumerate_four_total (proofs : List (Term)) : (passes (checkFrom ((({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: ([] : List (Ctor))))))) (0) (enumerateBranches ((({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: ([] : List (Ctor))))))) (0) (proofs)) (false)) = true) := by
+  rfl
+
+public theorem enumerate_selects (one : Term) (other : Term) : (casesTerm (7) (([] : List (Term))) (Term.bvar (0)) (Term.bvar (1)) ((({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: ([] : List (Ctor))))) (enumerateBranches ((({ fields := 0, recursive := 0 } : Ctor) :: (({ fields := 0, recursive := 0 } : Ctor) :: ([] : List (Ctor))))) (0) ((one :: (other :: ([] : List (Term)))))) = Produced.made (Term.app (Term.app (Term.app (Term.app (Term.const (7)) (Term.bvar (0))) (Term.bvar (1))) (one)) (other))) := by
+  rfl
 
 end LexLeanBoot.KernelTerms
