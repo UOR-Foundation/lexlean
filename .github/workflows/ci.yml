@@ -1188,8 +1188,8 @@ jobs:
           # while bs_05..bs_08 ran together, every one starting compilers of
           # its own. The passing run took 66 minutes, so halving stays far
           # inside the bound. macOS keeps its runner's 3.
-          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, test_threads: 2 }
-          - { os: macos-15, target: aarch64-apple-darwin, test_threads: 3 }
+          - { os: ubuntu-24.04-arm, test_threads: 2, target: aarch64-unknown-linux-gnu }
+          - { os: macos-15, test_threads: 3, target: aarch64-apple-darwin }
     runs-on: ${{ matrix.os }}
     # Keep the existing bound; scheduling changes do not extend it.
     timeout-minutes: 240
