@@ -1110,7 +1110,7 @@ impl<'a> Walk<'a> {
                         | SemanticDeclaration::Artifact {
                             name: _,
                             role: _,
-                            sha256: _,
+                            kappa: _,
                             length: _,
                             schema: _,
                             r#type: _,
@@ -1305,7 +1305,7 @@ impl<'a> Walk<'a> {
                 SemanticDeclaration::Artifact {
                     name: _,
                     role: _,
-                    sha256: _,
+                    kappa: _,
                     length: _,
                     schema: _,
                     r#type: _,
@@ -1657,7 +1657,7 @@ impl<'a> Walk<'a> {
             | SemanticDeclaration::Artifact {
                 name: _,
                 role: _,
-                sha256: _,
+                kappa: _,
                 length: _,
                 schema: _,
                 r#type: _,
@@ -2265,7 +2265,7 @@ impl<'a> Walk<'a> {
             Some(SemanticDeclaration::Artifact {
                 name: _,
                 role: _,
-                sha256: _,
+                kappa: _,
                 length: _,
                 schema: _,
                 r#type: _,
@@ -2525,7 +2525,7 @@ impl<'a> Walk<'a> {
                 | SemanticDeclaration::Artifact {
                     name: _,
                     role: _,
-                    sha256: _,
+                    kappa: _,
                     length: _,
                     schema: _,
                     r#type: _,
@@ -2763,7 +2763,7 @@ fn inductive_group(
             | SemanticDeclaration::Artifact {
                 name: _,
                 role: _,
-                sha256: _,
+                kappa: _,
                 length: _,
                 schema: _,
                 r#type: _,
@@ -3461,7 +3461,7 @@ pub fn analyse_module(
             | SemanticDeclaration::Artifact {
                 name: _,
                 role: _,
-                sha256: _,
+                kappa: _,
                 length: _,
                 schema: _,
                 r#type: _,
@@ -3617,7 +3617,7 @@ mod tests {
     /// only the analysis can show that it refuses them too.
     fn ineligibility(declarations: &str) -> String {
         let text =
-            format!(r#"{{"declarations":{declarations},"spec":"lexlean/semantic-module/2"}}"#);
+            format!(r#"{{"declarations":{declarations},"spec":"lexlean/semantic-module/3"}}"#);
         let semantic: SemanticModule = serde_json::from_str(&text).expect("module JSON");
         let modules = BTreeMap::from([(
             "Main".to_owned(),

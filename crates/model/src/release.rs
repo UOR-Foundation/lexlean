@@ -576,7 +576,7 @@ pub fn check(root: &Path, hidden_tests: &BTreeSet<String>) -> Result<(), Vec<Str
         .map(|language| {
             (
                 (*language).to_owned(),
-                lexlean::compiler_semantics_id_for(language).to_hex(),
+                lexlean::compiler_semantics_id_for(language).label(),
             )
         })
         .collect();
@@ -596,7 +596,7 @@ pub fn check(root: &Path, hidden_tests: &BTreeSet<String>) -> Result<(), Vec<Str
             let mut listed = Vec::new();
             for (index, line) in text.lines().enumerate() {
                 match line.split_once(' ') {
-                    Some((language, id)) if is_hex(id, 64) => {
+                    Some((language, id)) if lexlean::Kappa::parse(id).is_ok() => {
                         match compiled_id(language) {
                             Some(expected) if expected == id => {}
                             Some(expected) => fail(

@@ -1,14 +1,14 @@
 //! `BS-33` (SPEC.md §10.1, §17.23): the canonical text of the project
 //! manifest and its digest as language-1.2 source, `LexLeanBoot.ProjectText`,
 //! held to the byte to `lexlean::config::ProjectConfig::{canonical_toml,
-//! config_sha256}`.
+//! config_kappa}`.
 //!
 //! `canonicalProject` writes a configuration as `lexlean lock` canonicalizes
 //! it: the ten header keys in their fixed order with the pinned Lean
 //! toolchain, the lexicon sources sorted by package (or the empty array when
 //! there is none), the artifact sources and the source packages in their
-//! order, the eleven limits, and the PDF provider; `configSha256` is the
-//! lower-case hex SHA-256 of that text. It writes through the TOML writers of
+//! order, the eleven limits, and the PDF provider; `configKappa` is the
+//! κ-label of that text. It writes through the TOML writers of
 //! `BS-31`'s `LockText`. Every committed `lexlean.toml` that parses is a run.
 //!
 //! Each planted defect names the one vector that catches it.
@@ -19,7 +19,7 @@ use lexlean::calculus::Value;
 use lexlean::config::{
     parse_project, ArtifactSource, LexiconSource, Limits, PdfProvider, ProjectConfig, SourcePackage,
 };
-use lexlean::Sha256Digest;
+use lexlean::Kappa;
 use serde_json::Value as Json2;
 
 use super::rust_validate::{eligibility_of, rustc_differential};
@@ -30,7 +30,7 @@ use crate::support::{self, repo_root};
 const MODULE: &str = "LexLeanBoot.ProjectText";
 const ROOTS: [(&str, &[&str]); 2] = [
     ("canonicalProject", &["allocation", "overflow"]),
-    ("configSha256", &["allocation", "overflow"]),
+    ("configKappa", &["allocation", "overflow"]),
 ];
 
 /// The most a part of a certificate of a root may be, as the row states.
@@ -94,9 +94,9 @@ fn enc_pdf(pdf: &PdfProvider) -> Value {
         0,
         vec![
             text(&pdf.program),
-            bytes(&pdf.program_sha256.0),
+            bytes(pdf.program_kappa.as_bytes()),
             texts(&pdf.version_argv),
-            bytes(&pdf.version_stdout_sha256.0),
+            bytes(pdf.version_stdout_kappa.as_bytes()),
             texts(&pdf.compile_argv),
             text(&pdf.output),
             texts(&pdf.resources),
@@ -121,7 +121,12 @@ fn enc(config: &ProjectConfig) -> Value {
                 config
                     .artifact_sources
                     .iter()
-                    .map(|artifact| adt(0, vec![bytes(&artifact.sha256.0), text(&artifact.path)]))
+                    .map(|artifact| {
+                        adt(
+                            0,
+                            vec![bytes(artifact.kappa.as_bytes()), text(&artifact.path)],
+                        )
+                    })
                     .collect(),
             ),
             list(
@@ -156,7 +161,7 @@ fn text_run(config: &ProjectConfig) -> Run {
 fn digest_run(config: &ProjectConfig) -> Run {
     (
         vec![enc(config)],
-        serde_json::to_value(text(&config.config_sha256().to_hex())).expect("a value is JSON"),
+        serde_json::to_value(text(&config.config_kappa().label())).expect("a value is JSON"),
     )
 }
 
@@ -207,12 +212,12 @@ fn committed() -> (Vec<ProjectConfig>, usize, usize) {
 
 // ------------------------------------------------------------------ vectors
 
-fn sha(byte: u8) -> Sha256Digest {
+fn sha(byte: u8) -> Kappa {
     let mut out = [0u8; 32];
     for (index, slot) in out.iter_mut().enumerate() {
         *slot = byte.wrapping_add(u8::try_from(index).expect("a byte"));
     }
-    Sha256Digest(out)
+    crate::support::kappa_of_digest(&out)
 }
 
 fn strings(items: &[&str]) -> Vec<String> {
@@ -262,9 +267,9 @@ fn builtin(package: &str) -> LexiconSource {
 fn pdf() -> PdfProvider {
     PdfProvider {
         program: "lualatex".to_owned(),
-        program_sha256: sha(0x30),
+        program_kappa: sha(0x30),
         version_argv: strings(&["--version"]),
-        version_stdout_sha256: sha(0x40),
+        version_stdout_kappa: sha(0x40),
         compile_argv: strings(&["-interaction=nonstopmode", "main.tex"]),
         output: "main.pdf".to_owned(),
         resources: strings(&["fonts/a.otf", "logo.png"]),
@@ -342,7 +347,7 @@ fn named() -> Vec<Vector> {
         0,
         text_run(&ProjectConfig {
             artifact_sources: vec![ArtifactSource {
-                sha256: sha(0xab),
+                kappa: sha(0xab),
                 path: "models/m.bin".to_owned(),
             }],
             ..minimal()
@@ -417,12 +422,12 @@ fn drawn_texts(seeded: &mut Seeded) -> Vec<String> {
     (0..count).map(|_| drawn_text(seeded)).collect()
 }
 
-fn drawn_sha(seeded: &mut Seeded) -> Sha256Digest {
+fn drawn_sha(seeded: &mut Seeded) -> Kappa {
     let mut out = [0u8; 32];
     for slot in &mut out {
         *slot = u8::try_from(seeded.below(256)).expect("a byte");
     }
-    Sha256Digest(out)
+    crate::support::kappa_of_digest(&out)
 }
 
 fn drawn_number(seeded: &mut Seeded) -> u64 {
@@ -455,7 +460,7 @@ fn drawn_config(seeded: &mut Seeded) -> ProjectConfig {
         .collect();
     let artifact_sources = (0..seeded.below(3))
         .map(|_| ArtifactSource {
-            sha256: drawn_sha(seeded),
+            kappa: drawn_sha(seeded),
             path: drawn_text(seeded),
         })
         .collect();
@@ -482,9 +487,9 @@ fn drawn_config(seeded: &mut Seeded) -> ProjectConfig {
     let pdf = if seeded.chance(30) {
         Some(PdfProvider {
             program: drawn_text(seeded),
-            program_sha256: drawn_sha(seeded),
+            program_kappa: drawn_sha(seeded),
             version_argv: drawn_texts(seeded),
-            version_stdout_sha256: drawn_sha(seeded),
+            version_stdout_kappa: drawn_sha(seeded),
             compile_argv: drawn_texts(seeded),
             output: drawn_text(seeded),
             resources: drawn_texts(seeded),
@@ -604,7 +609,7 @@ const PLANTS: &[Plant] = &[
     Plant {
         label: "the spec is another",
         root: 1,
-        site: "(lit \"lexlean/project/1\")",
+        site: "(lit \"lexlean/project/2\")",
         replacement: "(lit \"lexlean/project/2\")",
         vector: "the digest of a minimal project",
     },

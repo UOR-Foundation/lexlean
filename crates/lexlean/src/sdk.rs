@@ -389,7 +389,7 @@ mod tests {
     };
 
     fn module() -> serde_json::Value {
-        json!({"spec": "lexlean/semantic-module/2", "declarations": [
+        json!({"spec": "lexlean/semantic-module/3", "declarations": [
             {"kind": "theorem", "name": "t", "parameters": [],
              "statement": {"kind": "bool", "value": true}, "proof": {"kind": "decide"}}
         ]})

@@ -1,7 +1,7 @@
 //! `BS-32` (SPEC.md §11.5, §17.23, §19.8, §21.1–§21.5, §22.9): the labeled
 //! hash recipes of content identity as language-1.2 source,
 //! `LexLeanBoot.ContentId`, held to the byte to
-//! `lexlean::artifact::content_id::{tree_digest, source_id, semantic_id_for,
+//! `lexlean::artifact::content_id::{tree_kappa, source_id, semantic_id_for,
 //! build_id, attestation_id, pdf_recipe_id}`.
 //!
 //! Each root writes its recipe's domain, a NUL, and its frames, each frame a
@@ -15,10 +15,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use lexlean::artifact::content_id::{
-    attestation_id, build_id, pdf_recipe_id, semantic_id_for, source_id, tree_digest,
+    attestation_id, build_id, pdf_recipe_id, semantic_id_for, source_id, tree_kappa,
 };
 use lexlean::calculus::Value;
-use lexlean::Sha256Digest;
+use lexlean::Kappa;
 use serde_json::Value as Json2;
 
 use super::rust_validate::{eligibility_of, rustc_differential};
@@ -58,12 +58,12 @@ fn rows_value(rows: &Rows) -> Value {
     )
 }
 
-fn digest_of(value: &[u8]) -> Sha256Digest {
-    Sha256Digest(value.try_into().expect("a digest is 32 bytes"))
+fn digest_of(value: &[u8]) -> Kappa {
+    Kappa::parse(utf8(value)).expect("the recipe gives a κ-label")
 }
 
-fn out(digest: Sha256Digest) -> Json2 {
-    serde_json::to_value(bytes(&digest.0)).expect("a value is JSON")
+fn out(digest: Kappa) -> Json2 {
+    serde_json::to_value(bytes(digest.as_bytes())).expect("a value is JSON")
 }
 
 fn utf8(value: &[u8]) -> &str {
@@ -75,7 +75,7 @@ fn tree_run(rows: &Rows) -> Run {
         .iter()
         .map(|(path, content)| (utf8(path), content.as_slice()))
         .collect();
-    (vec![rows_value(rows)], out(tree_digest(&borrowed)))
+    (vec![rows_value(rows)], out(tree_kappa(&borrowed)))
 }
 
 fn source_run(project: &[u8], lock: &[u8], rows: &Rows) -> Run {
@@ -205,7 +205,7 @@ fn committed_projects() -> Vec<(Vec<u8>, Vec<u8>, Rows)> {
 }
 
 /// The source, semantic, and build IDs of each committed build manifest.
-fn committed_builds() -> Vec<(Sha256Digest, Sha256Digest, Sha256Digest)> {
+fn committed_builds() -> Vec<(Kappa, Kappa, Kappa)> {
     let mut dirs = Vec::new();
     projects_under(repo_root().as_std_path(), &mut dirs);
     let mut out = Vec::new();
@@ -214,9 +214,7 @@ fn committed_builds() -> Vec<(Sha256Digest, Sha256Digest, Sha256Digest)> {
             continue;
         };
         let json: Json2 = serde_json::from_slice(&bytes).expect("a build manifest");
-        let id = |key: &str| {
-            Sha256Digest::from_hex(json[key].as_str().expect("an ID")).expect("a digest")
-        };
+        let id = |key: &str| Kappa::parse(json[key].as_str().expect("an ID")).expect("a digest");
         out.push((id("source_id"), id("semantic_id"), id("build_id")));
     }
     out
@@ -651,7 +649,7 @@ pub(super) fn case() {
         rustc_corpus[1].push(source);
     }
     for (source, semantic, _) in &builds {
-        let run = build_run(&source.0, &semantic.0);
+        let run = build_run(source.as_bytes(), semantic.as_bytes());
         evaluator_corpus[3].push(run.clone());
         rustc_corpus[3].push(run);
     }

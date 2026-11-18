@@ -738,7 +738,7 @@ pub(crate) fn run(id: &str) {
                 "LexLeanError",
                 "ErrorClass",
                 "Diagnostic",
-                "Sha256Digest",
+                "Kappa",
             ] {
                 assert!(
                     lib.contains(&format!("{name},"))
@@ -862,7 +862,7 @@ pub(crate) fn run(id: &str) {
             // Nasty configuration and lock bytes never panic either.
             for bytes in [
                 b"\xFF\xFE".to_vec(),
-                b"spec = \"lexlean/project/1\"\n[[lexicon_source]]\n[[lexicon_source]]\n".to_vec(),
+                b"spec = \"lexlean/project/2\"\n[[lexicon_source]]\n[[lexicon_source]]\n".to_vec(),
                 vec![b'['; 10_000],
                 b"limits = 5\n".to_vec(),
             ] {
@@ -927,7 +927,7 @@ pub(crate) fn run(id: &str) {
                     assert!(
                         stdout.starts_with(&format!(
                             "built 1 module at .lexlean/build/{}",
-                            baseline.to_hex()
+                            baseline.hex()
                         )),
                         "{stdout}"
                     );
@@ -1028,7 +1028,7 @@ pub(crate) fn run(id: &str) {
                 let _ = write!(
                     expected,
                     "language {language}\ncompiler-semantics {}\n",
-                    lexlean::compiler_semantics_id_for(language).to_hex()
+                    lexlean::compiler_semantics_id_for(language).label()
                 );
             }
             let _ = writeln!(expected, "lean-toolchain {}", lexlean::LEAN_TOOLCHAIN);
@@ -1040,7 +1040,7 @@ pub(crate) fn run(id: &str) {
                 assert!(
                     stdout.contains(&format!(
                         "\nlanguage {language}\ncompiler-semantics {}\n",
-                        lexlean::compiler_semantics_id_for(language).to_hex()
+                        lexlean::compiler_semantics_id_for(language).label()
                     )),
                     "§30.3: language {language} is reported with its own semantics ID: {stdout:?}"
                 );
@@ -1059,7 +1059,7 @@ pub(crate) fn run(id: &str) {
                     let _ = writeln!(
                         filled,
                         "compiler-semantics {}",
-                        lexlean::compiler_semantics_id_for(named).to_hex()
+                        lexlean::compiler_semantics_id_for(named).label()
                     );
                 } else {
                     language = line.strip_prefix("language ");
@@ -1088,7 +1088,7 @@ pub(crate) fn run(id: &str) {
                 .expect("snapshot repeats");
             assert_eq!(first.canonical_bytes(), second.canonical_bytes());
             assert_eq!(first.snapshot_id(), second.snapshot_id());
-            assert_eq!(first.spec(), "lexlean/semantic-snapshot/1");
+            assert_eq!(first.spec(), "lexlean/semantic-snapshot/3");
             assert_eq!(first.language(), lexlean::LANGUAGE_VERSION);
             assert!(first.modules().iter().all(|module| {
                 !module.source().path().starts_with('/')

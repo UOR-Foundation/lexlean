@@ -1253,9 +1253,9 @@ pub(crate) fn run(id: &str) {
             // stale one: that build locks and checks with it consistently.
             assert_eq!(
                 lexlean::LANGUAGE_1_2_SEMANTICS_ID,
-                twelve.to_hex(),
+                twelve.label(),
                 "RP-10: lexlean::LANGUAGE_1_2_SEMANTICS_ID is stale; the tree's language-1.2 ID is {}",
-                twelve.to_hex()
+                twelve.label()
             );
             assert_eq!(
                 eleven,
@@ -2877,7 +2877,7 @@ fn rp_19() {
     };
     let project = support::P::copy_example("production");
     refused(&project, &["--diagnostic-format", "json", "verify"]);
-    let digests: std::collections::BTreeMap<String, lexlean::Sha256Digest> = production::targets()
+    let digests: std::collections::BTreeMap<String, lexlean::Kappa> = production::targets()
         .expect("targets")
         .into_iter()
         .map(|descriptor| (descriptor.id, descriptor.digest))
@@ -3128,7 +3128,7 @@ fn rp_17() {
         .map(|language| {
             format!(
                 "{language} {}\n",
-                lexlean::compiler_semantics_id_for(language).to_hex()
+                lexlean::compiler_semantics_id_for(language).label()
             )
         })
         .collect();
@@ -3191,7 +3191,7 @@ fn rp_17() {
     );
     let four_lines = format!(
         "lexlean 0.5.0\nlanguage 1.0\ncompiler-semantics {}\nlean-toolchain {}\n",
-        lexlean::compiler_semantics_id_for("1.0").to_hex(),
+        lexlean::compiler_semantics_id_for("1.0").label(),
         lexlean::LEAN_TOOLCHAIN
     );
     plant(
@@ -3203,7 +3203,7 @@ fn rp_17() {
     );
     let without_1_2 = format!(
         "1.2 {}\n",
-        lexlean::compiler_semantics_id_for("1.2").to_hex()
+        lexlean::compiler_semantics_id_for("1.2").label()
     );
     plant(
         "release/compiler-semantics-id.txt",
@@ -3215,7 +3215,7 @@ fn rp_17() {
 
     // A listed ID that is not the compiler's: the list is compared with the
     // IDs compiled into this source, not with the report alone.
-    let id_1_1 = lexlean::compiler_semantics_id_for("1.1").to_hex();
+    let id_1_1 = lexlean::compiler_semantics_id_for("1.1").label();
     let other = {
         let first = if id_1_1.starts_with('0') { "1" } else { "0" };
         format!("{first}{}", &id_1_1[1..])
@@ -4186,9 +4186,9 @@ fn bootstrap_custody_decisions() {
     use crate::export_custody::{check, Custody, Identity, SPEC};
     use std::collections::BTreeMap;
     let pins: BTreeMap<String, String> = [
-        ("Cargo.lock", "a".repeat(64)),
-        ("lean-toolchain", "b".repeat(64)),
-        ("rust-toolchain.toml", "c".repeat(64)),
+        ("Cargo.lock", format!("blake3:{}", "a".repeat(64))),
+        ("lean-toolchain", format!("blake3:{}", "b".repeat(64))),
+        ("rust-toolchain.toml", format!("blake3:{}", "c".repeat(64))),
     ]
     .into_iter()
     .map(|(name, digest)| (name.to_owned(), digest))
@@ -4218,7 +4218,7 @@ fn bootstrap_custody_decisions() {
         pins,
         toolchains,
         bundle_path: ".lexlean/production/bundle".to_owned(),
-        bundle_sha256: bundle.0.clone(),
+        bundle_kappa: bundle.0.clone(),
         bundle_files: bundle.1,
     };
     check(&record, &here, &bundle).expect("§9.4: the run's own export, from an earlier attempt");
@@ -4254,7 +4254,7 @@ fn bootstrap_custody_decisions() {
         ),
         (
             "bundle",
-            Box::new(|record| record.bundle_sha256 = "f".repeat(64)),
+            Box::new(|record| record.bundle_kappa = "f".repeat(64)),
         ),
         ("bundle", Box::new(|record| record.bundle_files += 1)),
         (

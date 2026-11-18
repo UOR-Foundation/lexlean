@@ -3,9 +3,8 @@
 use std::collections::BTreeMap;
 
 use lexlean::artifact::canonical_json::Json;
-use lexlean::artifact::content_id::Sha256Digest;
+use lexlean::artifact::content_id::Kappa;
 use serde_json::Value;
-use sha2::Digest;
 
 use crate::support::P;
 
@@ -73,8 +72,8 @@ fn outputs_of_kind(project: &P, kind: &str) -> Vec<(String, Value)> {
             let path = row["path"].as_str().expect("path").to_owned();
             let bytes = std::fs::read(dir.join(&path).as_std_path()).expect("declarations file");
             assert_eq!(
-                Sha256Digest::of(&bytes).to_hex(),
-                row["sha256"].as_str().expect("sha256"),
+                Kappa::of(&bytes).label(),
+                row["kappa"].as_str().expect("kappa"),
                 "§21.6: the manifest row hashes the declarations file"
             );
             (
@@ -127,10 +126,10 @@ fn changed(
         .collect()
 }
 
-fn frame(hasher: &mut sha2::Sha256, label: &str, bytes: &[u8]) {
-    hasher.update(u32::try_from(label.len()).expect("short").to_be_bytes());
+fn frame(hasher: &mut blake3::Hasher, label: &str, bytes: &[u8]) {
+    hasher.update(&u32::try_from(label.len()).expect("short").to_be_bytes());
     hasher.update(label.as_bytes());
-    hasher.update((bytes.len() as u64).to_be_bytes());
+    hasher.update(&(bytes.len() as u64).to_be_bytes());
     hasher.update(bytes);
 }
 
@@ -154,12 +153,12 @@ fn declaration_json(project: &P, name: &str) -> String {
 
 /// §21.9 recomputed by hand for a declaration in a group of its own.
 fn recompute(json: &str, name: &str, references: &[(&str, &str)]) -> String {
-    let mut group = sha2::Sha256::new();
-    group.update(b"lexlean-declaration-group-v1\0");
+    let mut group = blake3::Hasher::new();
+    group.update(b"lexlean-declaration-group-v2\0");
     frame(
         &mut group,
         "compiler-semantics",
-        &lexlean::compiler_semantics_id_for("1.2").0,
+        lexlean::compiler_semantics_id_for("1.2").as_bytes(),
     );
     frame(&mut group, "language", b"1.2");
     frame(&mut group, "toolchain", b"leanprover/lean4:v4.32.1");
@@ -169,16 +168,15 @@ fn recompute(json: &str, name: &str, references: &[(&str, &str)]) -> String {
         frame(
             &mut group,
             "reference-id",
-            &Sha256Digest::from_hex(id).expect("hex").0,
+            Kappa::parse(id).expect("a κ-label").as_bytes(),
         );
     }
-    let group: [u8; 32] = group.finalize().into();
-    let mut member = sha2::Sha256::new();
-    member.update(b"lexlean-declaration-v1\0");
-    frame(&mut member, "group", &group);
+    let group = crate::support::oracle_finish(&group);
+    let mut member = blake3::Hasher::new();
+    member.update(b"lexlean-declaration-v2\0");
+    frame(&mut member, "group", group.as_bytes());
     frame(&mut member, "name", name.as_bytes());
-    let id: [u8; 32] = member.finalize().into();
-    Sha256Digest(id).to_hex()
+    crate::support::oracle_finish(&member).label()
 }
 
 /// Run the case of `SM-38`.
@@ -201,7 +199,7 @@ pub fn run() {
         violations.is_empty(),
         "the declarations file violates api/schemas/declarations.schema.json: {violations:?}"
     );
-    assert_eq!(file["spec"], "lexlean/declarations/1");
+    assert_eq!(file["spec"], "lexlean/declarations/2");
     assert_eq!(file["module"], "Main");
     let names: Vec<&str> = file["declarations"]
         .as_array()

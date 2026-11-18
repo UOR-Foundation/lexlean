@@ -149,7 +149,7 @@ fn write_items(text: &str, items: &[ItemJson]) -> Result<String, ModelError> {
             )
         })
         .collect();
-    let data = json!({"spec": "lexlean/semantic-module/2", "declarations": declarations});
+    let data = json!({"spec": "lexlean/semantic-module/3", "declarations": declarations});
     lexlean::sdk::write_module(text, &data)
         .map_err(|error| refuse(format!("the SDK refuses the module: {}", error.message)))
 }

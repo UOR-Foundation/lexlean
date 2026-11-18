@@ -1033,10 +1033,7 @@ pub fn run(id: &str) {
                 .find(|row| row.path == "production/Production/Main.eligibility.json")
                 .expect("the manifest records the report");
             assert_eq!(row.kind, "production-eligibility");
-            assert_eq!(
-                row.sha256,
-                lexlean::artifact::content_id::Sha256Digest::of(&bytes)
-            );
+            assert_eq!(row.kappa, lexlean::artifact::content_id::Kappa::of(&bytes));
             // Every reported effect names its sources, and every construct is
             // a runtime row of the registry.
             for root in value["roots"].as_array().expect("roots") {

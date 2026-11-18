@@ -3,7 +3,7 @@
 \importmodule{LockText}
 \importmodule{LexLeanStd.Numeral}
 \importmodule{LexLeanStd.Order}
-\importmodule{LexLeanStd.Sha256}
+\importmodule{LexLeanStd.Blake3}
 \title{Natural number addition}
 \begin{semanticmodule}
 inductive{
@@ -60,9 +60,9 @@ structure{
   parameters: [],
   fields: [
     {name: program, type: Bytes},
-    {name: programSha256, type: Bytes},
+    {name: programKappa, type: Bytes},
     {name: versionArgv, type: (List Bytes)},
-    {name: versionStdoutSha256, type: Bytes},
+    {name: versionStdoutKappa, type: Bytes},
     {name: compileArgv, type: (List Bytes)},
     {name: output, type: Bytes},
     {name: resources, type: (List Bytes)}
@@ -196,7 +196,7 @@ definition{
   name: artifactText,
   parameters: [artifact : ArtifactSource],
   result: Bytes,
-  body: (cat (cat (header "[[artifact_source]]") (digestLine "sha256" (project artifact digest))) (stringLine "path" (project artifact location))),
+  body: (cat (cat (header "[[artifact_source]]") (digestLine "kappa" (project artifact digest))) (stringLine "path" (project artifact location))),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -222,7 +222,7 @@ definition{
   name: pdfText,
   parameters: [provider : PdfProvider],
   result: Bytes,
-  body: (cat (cat (cat (cat (cat (cat (cat (cat (header "[pdf]") (stringLine "mode" (lit "external"))) (stringLine "program" (project provider program))) (digestLine "program_sha256" (project provider programSha256))) (arrayLine "version_argv" (project provider versionArgv))) (digestLine "version_stdout_sha256" (project provider versionStdoutSha256))) (arrayLine "compile_argv" (project provider compileArgv))) (stringLine "output" (project provider output))) (arrayLine "resources" (project provider resources))),
+  body: (cat (cat (cat (cat (cat (cat (cat (cat (header "[pdf]") (stringLine "mode" (lit "external"))) (stringLine "program" (project provider program))) (digestLine "program_kappa" (project provider programKappa))) (arrayLine "version_argv" (project provider versionArgv))) (digestLine "version_stdout_kappa" (project provider versionStdoutKappa))) (arrayLine "compile_argv" (project provider compileArgv))) (stringLine "output" (project provider output))) (arrayLine "resources" (project provider resources))),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -231,7 +231,7 @@ definition{
   name: canonicalProject,
   parameters: [config : ProjectConfig],
   result: Bytes,
-  body: (let head : Bytes := (cat (cat (cat (cat (cat (cat (cat (cat (cat (stringLine "spec" (lit "lexlean/project/1")) (stringLine "name" (project config projectName))) (stringLine "language" (project config language))) (stringLine "module_prefix" (project config modulePrefix))) (arrayLine "source_roots" (project config sourceRoots))) (arrayLine "entrypoints" (project config entrypoints))) (stringLine "build_root" (project config buildRoot))) (stringLine "lockfile" (project config lockfile))) (stringLine "lean_workspace" (project config leanWorkspace))) (stringLine "lean_toolchain" (LockText::leanToolchain))); (let artifacts : Bytes := (prim list_fold (fun (acc : Bytes) (row : ArtifactSource) => (cat acc (artifactText row))) 0x (project config artifactSources) : Bytes); (let packages : Bytes := (prim list_fold (fun (acc : Bytes) (row : SourcePackage) => (cat acc (packageText row))) 0x (project config sourcePackages) : Bytes); (let tail : Bytes := (match (project config pdf)
+  body: (let head : Bytes := (cat (cat (cat (cat (cat (cat (cat (cat (cat (stringLine "spec" (lit "lexlean/project/2")) (stringLine "name" (project config projectName))) (stringLine "language" (project config language))) (stringLine "module_prefix" (project config modulePrefix))) (arrayLine "source_roots" (project config sourceRoots))) (arrayLine "entrypoints" (project config entrypoints))) (stringLine "build_root" (project config buildRoot))) (stringLine "lockfile" (project config lockfile))) (stringLine "lean_workspace" (project config leanWorkspace))) (stringLine "lean_toolchain" (LockText::leanToolchain))); (let artifacts : Bytes := (prim list_fold (fun (acc : Bytes) (row : ArtifactSource) => (cat acc (artifactText row))) 0x (project config artifactSources) : Bytes); (let packages : Bytes := (prim list_fold (fun (acc : Bytes) (row : SourcePackage) => (cat acc (packageText row))) 0x (project config sourcePackages) : Bytes); (let tail : Bytes := (match (project config pdf)
     | Option.some provider => (pdfText provider)
     | Option.none => 0x); (cat (cat (cat (cat (cat head (sourcesText (project config lexiconSources))) artifacts) packages) (limitsText (project config limits))) tail))))),
   axioms: [Quot.sound, propext],
@@ -240,10 +240,10 @@ definition{
 }
 
 definition{
-  name: configSha256,
+  name: configKappa,
   parameters: [config : ProjectConfig],
   result: Bytes,
-  body: (LexLeanStd.Sha256::sha256Hex (canonicalProject config)),
+  body: (LexLeanStd.Blake3::blake3Label (canonicalProject config)),
   axioms: [Quot.sound, propext],
   executable: true,
   production: {effects: [allocation, overflow], targets: [rust-std]}

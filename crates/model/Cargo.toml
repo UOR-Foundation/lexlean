@@ -17,6 +17,7 @@ categories.workspace = true
 
 # Build-time and CI only. Not a dependency of any shipped crate; it may use std.
 [dependencies]
+blake3 = { workspace = true }
 lexlean = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

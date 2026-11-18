@@ -8,7 +8,7 @@ definition{
   name: gc01,
   parameters: [],
   result: Rows::IdRow,
-  body: (record Rows::IdRow {id := "GC-01", level := "build", suite := "gnaf-certification", statement := "Every committed GNAF certificate and certificate fixture is canonical, validates against the certificate schemas, states the framed SHA-256 identity of its certificate and the universe identity of the request it names, and is read back with its committed verdict; a malformed certificate or a certificate fixture stating another identity fails closed with LLB6007, and a certificate beyond the host's capacity fails closed with LLS8002.", sections := "§17.18, §26.3"}),
+  body: (record Rows::IdRow {id := "GC-01", level := "build", suite := "gnaf-certification", statement := "Every committed GNAF certificate and certificate fixture is canonical, validates against the certificate schemas, states the framed κ-label identity of its certificate and the universe identity of the request it names, and is read back with its committed verdict; a malformed certificate or a certificate fixture stating another identity fails closed with LLB6007, and a certificate beyond the host's capacity fails closed with LLS8002.", sections := "§17.18, §26.3"}),
   executable: true
 }
 

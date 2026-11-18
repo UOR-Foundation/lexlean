@@ -89,7 +89,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "| Code | Issued without a position when |" (cons "| --- | --- |" (cons "| `LLC0001` | the command line is not valid, an `explain` code is not registered, `init` is refused, or a request file cannot be read |" (cons "| `LLC0101` | no project configuration is found, or the named one cannot be read |" (cons "| `LLC0108` | a project that declares a source package is outside the workspace rule, before any project is loaded |" (cons "| `LLC0201` | a production request is not a closed `lexlean/production-request/1` document |" (cons "| `LLS8001` | a path of the project or of a bundle is confined away, or `clean` meets a symlink |" (cons "| `LLV7008` | a host path is not UTF-8 |" (cons "| `LLV7010` | a host filesystem operation fails outside any project file |" (cons "| `LLV7102` | a published bundle does not replay |" (nil String)))))))))))
+      (cons "| Code | Issued without a position when |" (cons "| --- | --- |" (cons "| `LLC0001` | the command line is not valid, an `explain` code is not registered, `init` is refused, or a request file cannot be read |" (cons "| `LLC0101` | no project configuration is found, or the named one cannot be read |" (cons "| `LLC0108` | a project that declares a source package is outside the workspace rule, before any project is loaded |" (cons "| `LLC0201` | a production request is not a closed `lexlean/production-request/2` document |" (cons "| `LLS8001` | a path of the project or of a bundle is confined away, or `clean` meets a symlink |" (cons "| `LLV7008` | a host path is not UTF-8 |" (cons "| `LLV7010` | a host filesystem operation fails outside any project file |" (cons "| `LLV7102` | a published bundle does not replay |" (nil String)))))))))))
     ],
     constructor: DocRows::Item.table,
     type_arguments: []
@@ -194,7 +194,7 @@ definition{
   body: constructor{
     arguments: [
       "json",
-      (cons "{" (cons "  \"spec\": \"lexlean/source-map/1\"," (cons "  \"source_id\": \"...\"," (cons "  \"semantic_id\": \"...\"," (cons "  \"module\": \"Main\"," (cons "  \"sources\": []," (cons "  \"artifacts\": []," (cons "  \"nodes\": []," (cons "  \"mappings\": []" (cons "}" (nil String)))))))))))
+      (cons "{" (cons "  \"spec\": \"lexlean/source-map/2\"," (cons "  \"source_id\": \"...\"," (cons "  \"semantic_id\": \"...\"," (cons "  \"module\": \"Main\"," (cons "  \"sources\": []," (cons "  \"artifacts\": []," (cons "  \"nodes\": []," (cons "  \"mappings\": []" (cons "}" (nil String)))))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []

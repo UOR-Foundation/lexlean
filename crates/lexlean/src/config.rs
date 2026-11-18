@@ -3,7 +3,7 @@
 
 use serde::Deserialize;
 
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::code;
 use crate::diagnostic::{Diagnostic, Span};
 use crate::lexicon::lse::is_package_id;
@@ -154,12 +154,12 @@ impl LexiconSource {
 pub struct PdfProvider {
     /// The project-relative provider executable.
     pub program: String,
-    /// Required SHA-256 of the executable bytes.
-    pub program_sha256: Sha256Digest,
+    /// Required κ-label of the executable bytes.
+    pub program_kappa: Kappa,
     /// The version probe argv.
     pub version_argv: Vec<String>,
-    /// Required SHA-256 of the normalized version stdout.
-    pub version_stdout_sha256: Sha256Digest,
+    /// Required κ-label of the normalized version stdout.
+    pub version_stdout_kappa: Kappa,
     /// The compile argv with whole-argument placeholders.
     pub compile_argv: Vec<String>,
     /// The expected output file pattern containing `{stem}`.
@@ -169,12 +169,12 @@ pub struct PdfProvider {
 }
 
 /// Language 1.2: one content-addressed model artifact (§10.1, §17.12): a
-/// confined regular project file whose bytes have exactly this SHA-256.
+/// confined regular project file whose bytes have exactly this κ-label.
 /// Model declarations name artifacts by digest only, never by path.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArtifactSource {
-    /// The SHA-256 of the file's bytes.
-    pub sha256: Sha256Digest,
+    /// The κ-label of the file's bytes.
+    pub kappa: Kappa,
     /// The project-relative file.
     pub path: String,
 }
@@ -260,7 +260,7 @@ struct RawLexiconSource {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RawArtifactSource {
-    sha256: String,
+    kappa: String,
     path: String,
 }
 
@@ -278,9 +278,9 @@ struct RawSourcePackage {
 struct RawPdf {
     mode: String,
     program: String,
-    program_sha256: String,
+    program_kappa: String,
     version_argv: Vec<String>,
-    version_stdout_sha256: String,
+    version_stdout_kappa: String,
     compile_argv: Vec<String>,
     output: String,
     resources: Vec<String>,
@@ -413,12 +413,12 @@ pub fn is_module_segment(text: &str) -> bool {
             .all(|b| b.is_ascii_alphanumeric() || *b == b'_')
 }
 
-fn parse_hex64(path: &str, field: &str, text: &str, out: &mut Vec<Diagnostic>) -> Sha256Digest {
-    match Sha256Digest::from_hex(text) {
+fn parse_hex64(path: &str, field: &str, text: &str, out: &mut Vec<Diagnostic>) -> Kappa {
+    match Kappa::parse(text) {
         Ok(digest) => digest,
         Err(reason) => {
             out.push(config_error(path, format!("{field}: {reason}")));
-            Sha256Digest([0; 32])
+            Kappa::ZERO
         }
     }
 }
@@ -465,7 +465,7 @@ pub fn parse_project(path: &str, bytes: &[u8]) -> Result<ProjectConfig, Vec<Diag
             return Err(diagnostics);
         }
     };
-    if raw.spec != "lexlean/project/1" {
+    if raw.spec != "lexlean/project/2" {
         diagnostics.push(
             Diagnostic::new(
                 code!("LLC0103"),
@@ -812,10 +812,10 @@ pub fn parse_project(path: &str, bytes: &[u8]) -> Result<ProjectConfig, Vec<Diag
                 ));
             }
             artifact_sources.push(ArtifactSource {
-                sha256: parse_hex64(
+                kappa: parse_hex64(
                     path,
-                    "artifact_source.sha256",
-                    &raw_artifact.sha256,
+                    "artifact_source.kappa",
+                    &raw_artifact.kappa,
                     &mut diagnostics,
                 ),
                 path: raw_artifact.path.clone(),
@@ -823,11 +823,11 @@ pub fn parse_project(path: &str, bytes: &[u8]) -> Result<ProjectConfig, Vec<Diag
         }
         if !raw_artifacts
             .windows(2)
-            .all(|pair| pair[0].sha256 < pair[1].sha256)
+            .all(|pair| pair[0].kappa < pair[1].kappa)
         {
             diagnostics.push(config_error(
                 path,
-                "artifact_source tables must be strictly sorted by sha256",
+                "artifact_source tables must be strictly sorted by kappa",
             ));
         }
     }
@@ -998,17 +998,17 @@ pub fn parse_project(path: &str, bytes: &[u8]) -> Result<ProjectConfig, Vec<Diag
             }
             Some(PdfProvider {
                 program: raw_pdf.program.clone(),
-                program_sha256: parse_hex64(
+                program_kappa: parse_hex64(
                     path,
-                    "pdf.program_sha256",
-                    &raw_pdf.program_sha256,
+                    "pdf.program_kappa",
+                    &raw_pdf.program_kappa,
                     &mut diagnostics,
                 ),
                 version_argv: raw_pdf.version_argv.clone(),
-                version_stdout_sha256: parse_hex64(
+                version_stdout_kappa: parse_hex64(
                     path,
-                    "pdf.version_stdout_sha256",
-                    &raw_pdf.version_stdout_sha256,
+                    "pdf.version_stdout_kappa",
+                    &raw_pdf.version_stdout_kappa,
                     &mut diagnostics,
                 ),
                 compile_argv: raw_pdf.compile_argv.clone(),
@@ -1070,7 +1070,7 @@ impl ProjectConfig {
     #[must_use]
     pub fn canonical_toml(&self) -> String {
         let mut out = String::new();
-        out.push_str(&format!("spec = {}\n", toml_string("lexlean/project/1")));
+        out.push_str(&format!("spec = {}\n", toml_string("lexlean/project/2")));
         out.push_str(&format!("name = {}\n", toml_string(&self.name)));
         out.push_str(&format!("language = {}\n", toml_string(&self.language)));
         out.push_str(&format!(
@@ -1140,8 +1140,8 @@ impl ProjectConfig {
         for artifact in &self.artifact_sources {
             out.push_str("\n[[artifact_source]]\n");
             out.push_str(&format!(
-                "sha256 = {}\n",
-                toml_string(&artifact.sha256.to_hex())
+                "kappa = {}\n",
+                toml_string(&artifact.kappa.label())
             ));
             out.push_str(&format!("path = {}\n", toml_string(&artifact.path)));
         }
@@ -1163,16 +1163,16 @@ impl ProjectConfig {
             out.push_str("mode = \"external\"\n");
             out.push_str(&format!("program = {}\n", toml_string(&pdf.program)));
             out.push_str(&format!(
-                "program_sha256 = {}\n",
-                toml_string(&pdf.program_sha256.to_hex())
+                "program_kappa = {}\n",
+                toml_string(&pdf.program_kappa.label())
             ));
             out.push_str(&format!(
                 "version_argv = {}\n",
                 toml_array(&pdf.version_argv)
             ));
             out.push_str(&format!(
-                "version_stdout_sha256 = {}\n",
-                toml_string(&pdf.version_stdout_sha256.to_hex())
+                "version_stdout_kappa = {}\n",
+                toml_string(&pdf.version_stdout_kappa.label())
             ));
             out.push_str(&format!(
                 "compile_argv = {}\n",
@@ -1184,10 +1184,10 @@ impl ProjectConfig {
         out
     }
 
-    /// SHA-256 of the canonical serialization, `project_config_sha256`.
+    /// κ-label of the canonical serialization, `project_config_kappa`.
     #[must_use]
-    pub fn config_sha256(&self) -> Sha256Digest {
-        Sha256Digest::of(self.canonical_toml().as_bytes())
+    pub fn config_kappa(&self) -> Kappa {
+        Kappa::of(self.canonical_toml().as_bytes())
     }
 }
 

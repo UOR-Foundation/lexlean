@@ -1,6 +1,6 @@
 \begin{lexlean}{Blake3}
 \useglossary{lexlean.std.nat@1.2.0}
-\importmodule{LexLeanStd.Sha256}
+\importmodule{Sha256}
 \title{Natural number addition}
 \begin{semanticmodule}
 structure{
@@ -90,7 +90,7 @@ definition{
   name: g,
   parameters: [a : UInt32, b : UInt32, c : UInt32, d : UInt32, x : UInt32, y : UInt32],
   result: Quad,
-  body: (let a1 : UInt32 := (LexLeanStd.Sha256::add (LexLeanStd.Sha256::add a b) x); (let d1 : UInt32 := (LexLeanStd.Sha256::rotateRight (prim bit_xor d a1 : UInt32) (16 : UInt32) (16 : UInt32)); (let c1 : UInt32 := (LexLeanStd.Sha256::add c d1); (let b1 : UInt32 := (LexLeanStd.Sha256::rotateRight (prim bit_xor b c1 : UInt32) (12 : UInt32) (20 : UInt32)); (let a2 : UInt32 := (LexLeanStd.Sha256::add (LexLeanStd.Sha256::add a1 b1) y); (let d2 : UInt32 := (LexLeanStd.Sha256::rotateRight (prim bit_xor d1 a2 : UInt32) (8 : UInt32) (24 : UInt32)); (let c2 : UInt32 := (LexLeanStd.Sha256::add c1 d2); (let b2 : UInt32 := (LexLeanStd.Sha256::rotateRight (prim bit_xor b1 c2 : UInt32) (7 : UInt32) (25 : UInt32)); (record Quad {a := a2, b := b2, c := c2, d := d2}))))))))),
+  body: (let a1 : UInt32 := (Sha256::add (Sha256::add a b) x); (let d1 : UInt32 := (Sha256::rotateRight (prim bit_xor d a1 : UInt32) (16 : UInt32) (16 : UInt32)); (let c1 : UInt32 := (Sha256::add c d1); (let b1 : UInt32 := (Sha256::rotateRight (prim bit_xor b c1 : UInt32) (12 : UInt32) (20 : UInt32)); (let a2 : UInt32 := (Sha256::add (Sha256::add a1 b1) y); (let d2 : UInt32 := (Sha256::rotateRight (prim bit_xor d1 a2 : UInt32) (8 : UInt32) (24 : UInt32)); (let c2 : UInt32 := (Sha256::add c1 d2); (let b2 : UInt32 := (Sha256::rotateRight (prim bit_xor b1 c2 : UInt32) (7 : UInt32) (25 : UInt32)); (record Quad {a := a2, b := b2, c := c2, d := d2}))))))))),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -134,7 +134,7 @@ definition{
   name: compress,
   parameters: [cv : Cv, block : Block, counter : Nat, length : UInt32, flags : UInt32],
   result: Cv,
-  body: (let final : State := (first (prim iterate (fun (state : (State * Block)) => (roundStep state)) 7 ((record State {v0 := (project cv c0), v1 := (project cv c1), v2 := (project cv c2), v3 := (project cv c3), v4 := (project cv c4), v5 := (project cv c5), v6 := (project cv c6), v7 := (project cv c7), v8 := (1779033703 : UInt32), v9 := (3144134277 : UInt32), v10 := (1013904242 : UInt32), v11 := (2773480762 : UInt32), v12 := (LexLeanStd.Sha256::wordOfNat (prim remainder counter 4294967296 0 : Nat)), v13 := (LexLeanStd.Sha256::wordOfNat (prim quotient counter 4294967296 0 : Nat)), v14 := length, v15 := flags}), block) : (State * Block))); (record Cv {c0 := (prim bit_xor (project final v0) (project final v8) : UInt32), c1 := (prim bit_xor (project final v1) (project final v9) : UInt32), c2 := (prim bit_xor (project final v2) (project final v10) : UInt32), c3 := (prim bit_xor (project final v3) (project final v11) : UInt32), c4 := (prim bit_xor (project final v4) (project final v12) : UInt32), c5 := (prim bit_xor (project final v5) (project final v13) : UInt32), c6 := (prim bit_xor (project final v6) (project final v14) : UInt32), c7 := (prim bit_xor (project final v7) (project final v15) : UInt32)})),
+  body: (let final : State := (first (prim iterate (fun (state : (State * Block)) => (roundStep state)) 7 ((record State {v0 := (project cv c0), v1 := (project cv c1), v2 := (project cv c2), v3 := (project cv c3), v4 := (project cv c4), v5 := (project cv c5), v6 := (project cv c6), v7 := (project cv c7), v8 := (1779033703 : UInt32), v9 := (3144134277 : UInt32), v10 := (1013904242 : UInt32), v11 := (2773480762 : UInt32), v12 := (Sha256::wordOfNat (prim remainder counter 4294967296 0 : Nat)), v13 := (Sha256::wordOfNat (prim quotient counter 4294967296 0 : Nat)), v14 := length, v15 := flags}), block) : (State * Block))); (record Cv {c0 := (prim bit_xor (project final v0) (project final v8) : UInt32), c1 := (prim bit_xor (project final v1) (project final v9) : UInt32), c2 := (prim bit_xor (project final v2) (project final v10) : UInt32), c3 := (prim bit_xor (project final v3) (project final v11) : UInt32), c4 := (prim bit_xor (project final v4) (project final v12) : UInt32), c5 := (prim bit_xor (project final v5) (project final v13) : UInt32), c6 := (prim bit_xor (project final v6) (project final v14) : UInt32), c7 := (prim bit_xor (project final v7) (project final v15) : UInt32)})),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -164,7 +164,7 @@ definition{
   name: wordAt,
   parameters: [message : Bytes, position : Nat],
   result: UInt32,
-  body: (prim bit_or (byteAt message position) (prim bit_or (LexLeanStd.Sha256::shiftLeft (byteAt message (position + 1)) (8 : UInt32)) (prim bit_or (LexLeanStd.Sha256::shiftLeft (byteAt message (position + 2)) (16 : UInt32)) (LexLeanStd.Sha256::shiftLeft (byteAt message (position + 3)) (24 : UInt32)) : UInt32) : UInt32) : UInt32),
+  body: (prim bit_or (byteAt message position) (prim bit_or (Sha256::shiftLeft (byteAt message (position + 1)) (8 : UInt32)) (prim bit_or (Sha256::shiftLeft (byteAt message (position + 2)) (16 : UInt32)) (Sha256::shiftLeft (byteAt message (position + 3)) (24 : UInt32)) : UInt32) : UInt32) : UInt32),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -207,7 +207,7 @@ definition{
   name: chunk,
   parameters: [message : Bytes, size : Nat, index : Nat, root : Bool],
   result: Cv,
-  body: (let start : Nat := (prim multiply 1024 index : Nat); (let rest : Nat := (available size start); (let count : Nat := (blocks rest); (let last : Nat := (prim subtract count 1 : Nat); (compress (prefix message start index last) (load message (start + (prim multiply 64 last : Nat))) index (LexLeanStd.Sha256::wordOfNat (prim subtract rest (prim multiply 64 last : Nat) : Nat)) (prim bit_or (if (last =? 0) then (3 : UInt32) else (2 : UInt32)) (if root then (8 : UInt32) else (0 : UInt32)) : UInt32)))))),
+  body: (let start : Nat := (prim multiply 1024 index : Nat); (let rest : Nat := (available size start); (let count : Nat := (blocks rest); (let last : Nat := (prim subtract count 1 : Nat); (compress (prefix message start index last) (load message (start + (prim multiply 64 last : Nat))) index (Sha256::wordOfNat (prim subtract rest (prim multiply 64 last : Nat) : Nat)) (prim bit_or (if (last =? 0) then (3 : UInt32) else (2 : UInt32)) (if root then (8 : UInt32) else (0 : UInt32)) : UInt32)))))),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -275,7 +275,7 @@ definition{
   name: nibble,
   parameters: [value : UInt32, shift : UInt32],
   result: Bytes,
-  body: (LexLeanStd.Sha256::hexDigit (LexLeanStd.Sha256::shiftRight value shift)),
+  body: (Sha256::hexDigit (Sha256::shiftRight value shift)),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -307,6 +307,16 @@ definition{
   body: (let digest : Cv := (treeRoot message); (prim append (hexLittle (project digest c0)) (prim append (hexLittle (project digest c1)) (prim append (hexLittle (project digest c2)) (prim append (hexLittle (project digest c3)) (prim append (hexLittle (project digest c4)) (prim append (hexLittle (project digest c5)) (prim append (hexLittle (project digest c6)) (hexLittle (project digest c7)) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes)),
   axioms: [Quot.sound, propext],
   executable: true
+}
+
+definition{
+  name: blake3Label,
+  parameters: [message : Bytes],
+  result: Bytes,
+  body: (prim append (prim utf8_encode "blake3:" : Bytes) (blake3Hex message) : Bytes),
+  axioms: [Quot.sound, propext],
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
 }
 \end{semanticmodule}
 \end{lexlean}

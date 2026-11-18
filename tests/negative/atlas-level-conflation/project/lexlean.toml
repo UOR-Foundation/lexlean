@@ -1,4 +1,4 @@
-spec = "lexlean/project/1"
+spec = "lexlean/project/2"
 name = "atlas-level-conflation"
 language = "1.0"
 module_prefix = "LexLeanExample"

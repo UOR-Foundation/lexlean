@@ -30,6 +30,10 @@ same-file = "1.0"
 semver = "1.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["unbounded_depth"] }
+# The oracle of the compiler's κ-label (SPEC.md §21.1): the reference BLAKE3,
+# in the release the Hologram workspace and uor-addr lock, which may falsify the
+# certified package and never establishes it. Dev and CI only.
+blake3 = "=1.5.5"
 sha2 = "0.10"
 signal-hook = { version = "0.3", default-features = false, features = ["iterator"] }
 tempfile = "3"

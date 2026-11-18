@@ -218,8 +218,8 @@ pub const RENDERER_FILES: [&str; 9] = [
 /// (§21.1) per source file of [`RENDERER_FILES`], labeled by its name, so a
 /// change to any rendering is a change to LexLean's identity.
 #[must_use]
-pub fn renderer_digest(files: &[(&str, &[u8])]) -> crate::artifact::content_id::Sha256Digest {
-    let mut hasher = crate::artifact::content_id::FramedHasher::new("lexlean-rust-renderer-v1");
+pub fn renderer_digest(files: &[(&str, &[u8])]) -> crate::artifact::content_id::Kappa {
+    let mut hasher = crate::artifact::content_id::FramedHasher::new("lexlean-rust-renderer-v2");
     for (name, bytes) in files {
         hasher.frame(name, bytes);
     }
@@ -255,7 +255,7 @@ mod tests {
             .expect("UTF-8")
             .parse()
             .expect("TOML");
-        let digest = renderer_digest(&files).to_hex();
+        let digest = renderer_digest(&files).label();
         assert_eq!(
             table.get("rust_renderer").and_then(toml::Value::as_str),
             Some(digest.as_str()),

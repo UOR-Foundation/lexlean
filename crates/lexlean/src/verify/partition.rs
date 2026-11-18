@@ -22,7 +22,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use camino::{Utf8Path, Utf8PathBuf};
 
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::diagnostic::Diagnostic;
 use crate::verify::child::ChildRecord;
 
@@ -236,12 +236,12 @@ pub fn import(
 /// # Errors
 ///
 /// The first record, in the order elaborations, replays, audit members, and
-/// by name within each, whose `executable_sha256` is not the join's digest of
+/// by name within each, whose `executable_kappa` is not the join's digest of
 /// the tool that produced it, naming the record and both digests.
 pub fn check_toolchain(
     imported: &Imported,
-    lean: Sha256Digest,
-    leanchecker: Sha256Digest,
+    lean: Kappa,
+    leanchecker: Kappa,
 ) -> Result<(), Diagnostic> {
     for (what, tool, expected, records) in [
         ("elaboration", "lean", lean, &imported.lean),
@@ -249,13 +249,13 @@ pub fn check_toolchain(
         ("audit", "lean", lean, &imported.audit),
     ] {
         for (name, record) in records {
-            if record.executable_sha256 != expected {
+            if record.executable_kappa != expected {
                 return Err(malformed(
                     &format!("the imported {what} record of `{name}`"),
                     format!(
-                        "its executable_sha256 is {}, but the `{tool}` of this run's toolchain is {}; every part of a run must run the join's pinned toolchain",
-                        record.executable_sha256.to_hex(),
-                        expected.to_hex()
+                        "its executable_kappa is {}, but the `{tool}` of this run's toolchain is {}; every part of a run must run the join's pinned toolchain",
+                        record.executable_kappa.label(),
+                        expected.label()
                     ),
                 ));
             }
@@ -523,7 +523,7 @@ mod tests {
             exit_code: 0,
             stdout: "\n".to_owned(),
             stderr: String::new(),
-            executable_sha256: crate::artifact::content_id::Sha256Digest::of(b"lean"),
+            executable_kappa: crate::artifact::content_id::Kappa::of(b"lean"),
         };
         let audit_record = ChildRecord {
             module: Some("LexLeanAudit.X.M".to_owned()),
@@ -566,8 +566,8 @@ mod tests {
         assert!(imported.audit.contains_key("LexLeanAudit.X.M"));
         // The records name the join's `lean`; a join whose `lean` is another
         // executable refuses them, naming the record and both digests.
-        let lean = crate::artifact::content_id::Sha256Digest::of(b"lean");
-        let other = crate::artifact::content_id::Sha256Digest::of(b"another lean");
+        let lean = crate::artifact::content_id::Kappa::of(b"lean");
+        let other = crate::artifact::content_id::Kappa::of(b"another lean");
         check_toolchain(&imported, lean, other).expect("the records name the join's lean");
         let refused = check_toolchain(&imported, other, other)
             .expect_err("a record of another lean is refused");
@@ -575,8 +575,8 @@ mod tests {
         assert!(
             message.contains("LLI9001")
                 && message.contains("elaboration record of `X.M`")
-                && message.contains(&lean.to_hex())
-                && message.contains(&other.to_hex()),
+                && message.contains(&lean.label())
+                && message.contains(&other.label()),
             "{message}"
         );
         // The same part imported twice is a process that ran twice.

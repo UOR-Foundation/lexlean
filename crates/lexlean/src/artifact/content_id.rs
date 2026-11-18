@@ -1,90 +1,135 @@
-//! Content identity (SPEC.md §21.1–§21.5, §22.9, §19.8): the frame function,
-//! the tree digest, and every labeled hash recipe.
+//! Content identity (SPEC.md §21.1–§21.5, §22.9, §19.8): the κ-label, the
+//! frame function, the tree κ, and every labeled recipe.
+//!
+//! Every identity LexLean computes is a UOR κ-label on the BLAKE3 σ-axis,
+//! `blake3:` and the 64 lowercase hexadecimal digits of the BLAKE3 digest of
+//! its carrier, which is exactly the label uor-addr and Hologram's store give
+//! the same bytes. The digest is the standard library's certified
+//! `LexLeanStd.Blake3.blake3Label`, linked from the committed production
+//! export; no other implementation computes an identity.
 
-include!(concat!(env!("OUT_DIR"), "/sha256_package.rs"));
+include!(concat!(env!("OUT_DIR"), "/blake3_package.rs"));
 
-/// SHA-256 (SPEC.md §17.22, §21.1): the standard library's certified `Sha256`
-/// package, linked from the committed production export, and no other
-/// implementation.
-fn sha256(message: &[u8]) -> [u8; 32] {
-    // The package declares the effect `overflow` and its certificate states
-    // the result `Result<Digest, Overflow>`: `Overflow` is returned exactly
-    // when the message length in bits does not fit 64 bits, the end of FIPS
-    // 180-4's domain (2^61 bytes). No host allocates such a message, so this
-    // is an impossibility of the host and not a failure of any input (R5).
-    let sha256_package::Adt0::C0(a, b, c, d, e, f, g, h) =
-        sha256_package::run(sha256_package::Bytes::lit(message))
-            .expect("a message under 2^61 bytes is inside the domain of FIPS 180-4");
-    let mut out = [0u8; 32];
-    for (chunk, word) in out.chunks_exact_mut(4).zip([a, b, c, d, e, f, g, h]) {
-        chunk.copy_from_slice(&word.to_be_bytes());
-    }
-    out
+/// The κ-label of `message` as the certified package writes it.
+fn blake3_label(message: &[u8]) -> [u8; KAPPA_BYTES] {
+    // The package declares the effect `overflow`, which its arithmetic on
+    // byte offsets can raise only for a message whose length does not fit 64
+    // bits; no host allocates one, so this is an impossibility of the host and
+    // not a failure of any input (R5).
+    let label = blake3_package::run(blake3_package::Bytes::lit(message))
+        .expect("a message whose length fits 64 bits is inside the domain of BLAKE3");
+    label
+        .octets()
+        .try_into()
+        .expect("the package's label is `blake3:` and 64 hexadecimal digits")
 }
 
-/// A SHA-256 digest with lowercase-hex display.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Sha256Digest(pub [u8; 32]);
+/// The width of a κ-label on the BLAKE3 axis: `blake3:` and 64 hex digits.
+pub const KAPPA_BYTES: usize = 71;
 
-impl Sha256Digest {
-    /// Hash raw bytes.
+/// The σ-axis prefix of every κ-label LexLean computes.
+pub const KAPPA_PREFIX: &str = "blake3:";
+
+/// A UOR κ-label on the BLAKE3 σ-axis.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Kappa([u8; KAPPA_BYTES]);
+
+impl Kappa {
+    /// The κ-label of raw bytes: the content address of the bytes themselves.
     #[must_use]
     pub fn of(bytes: &[u8]) -> Self {
-        Self(sha256(bytes))
+        Self(blake3_label(bytes))
     }
 
-    /// The 64-character lowercase hexadecimal form.
+    /// The label of no content, `blake3:` and 64 zeros: the value a field
+    /// holds while the recipe that omits it is computed, and after an error
+    /// that ends the read of the document holding it. BLAKE3 gives it to no
+    /// input anyone can exhibit.
+    pub const ZERO: Self = {
+        let mut out = [b'0'; KAPPA_BYTES];
+        let prefix = KAPPA_PREFIX.as_bytes();
+        let mut index = 0;
+        while index < prefix.len() {
+            out[index] = prefix[index];
+            index += 1;
+        }
+        Self(out)
+    };
+
+    /// The label, `blake3:<64 hex>`.
     #[must_use]
-    pub fn to_hex(&self) -> String {
-        let mut out = String::with_capacity(64);
-        for byte in self.0 {
-            out.push(char::from_digit(u32::from(byte >> 4), 16).expect("nibble"));
-            out.push(char::from_digit(u32::from(byte & 0xf), 16).expect("nibble"));
-        }
-        out
+    pub fn as_str(&self) -> &str {
+        std::str::from_utf8(&self.0).expect("a κ-label is ASCII")
     }
 
-    /// Parse 64 lowercase hex digits.
-    pub fn from_hex(text: &str) -> Result<Self, String> {
-        let bytes = text.as_bytes();
-        if bytes.len() != 64 {
-            return Err(format!("expected 64 hex digits, found {}", bytes.len()));
+    /// The label as an owned string.
+    #[must_use]
+    pub fn label(&self) -> String {
+        self.as_str().to_owned()
+    }
+
+    /// The label's 71 bytes, which is how a κ is framed into another (§21.1).
+    #[must_use]
+    pub const fn as_bytes(&self) -> &[u8; KAPPA_BYTES] {
+        &self.0
+    }
+
+    /// The 64 hexadecimal digits of the digest, without the axis.
+    #[must_use]
+    pub fn hex(&self) -> &str {
+        &self.as_str()[KAPPA_PREFIX.len()..]
+    }
+
+    /// Parse a κ-label: `blake3:` and exactly 64 lowercase hex digits.
+    ///
+    /// # Errors
+    ///
+    /// The first way `text` is not such a label.
+    pub fn parse(text: &str) -> Result<Self, String> {
+        let Some(digits) = text.strip_prefix(KAPPA_PREFIX) else {
+            return Err(format!("a κ-label begins with `{KAPPA_PREFIX}`"));
+        };
+        if digits.len() != 64 {
+            return Err(format!("expected 64 hex digits, found {}", digits.len()));
         }
-        let mut out = [0u8; 32];
-        for (index, chunk) in bytes.chunks_exact(2).enumerate() {
-            let value = |b: u8| -> Result<u8, String> {
-                match b {
-                    b'0'..=b'9' => Ok(b - b'0'),
-                    b'a'..=b'f' => Ok(b - b'a' + 10),
-                    _ => Err("lowercase hexadecimal is mandatory".to_owned()),
-                }
-            };
-            out[index] = (value(chunk[0])? << 4) | value(chunk[1])?;
+        if !digits
+            .bytes()
+            .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+        {
+            return Err("lowercase hexadecimal is mandatory".to_owned());
         }
+        let mut out = [0u8; KAPPA_BYTES];
+        out.copy_from_slice(text.as_bytes());
         Ok(Self(out))
     }
 }
 
-impl std::fmt::Display for Sha256Digest {
+impl std::fmt::Debug for Kappa {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.to_hex())
+        f.write_str(self.as_str())
     }
 }
 
-impl serde::Serialize for Sha256Digest {
+impl std::fmt::Display for Kappa {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl serde::Serialize for Kappa {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_str(&self.to_hex())
+        serializer.serialize_str(self.as_str())
     }
 }
 
-impl<'de> serde::Deserialize<'de> for Sha256Digest {
+impl<'de> serde::Deserialize<'de> for Kappa {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let s = String::deserialize(deserializer)?;
-        Self::from_hex(&s).map_err(serde::de::Error::custom)
+        Self::parse(&s).map_err(serde::de::Error::custom)
     }
 }
 
-/// An incremental framed hasher over one labeled recipe (§21.1).
+/// An incremental framed carrier of one labeled recipe (§21.1).
 ///
 /// The package digests a whole message, so the frames are held until `finish`.
 pub struct FramedHasher {
@@ -93,7 +138,7 @@ pub struct FramedHasher {
 
 impl FramedHasher {
     /// Start a recipe with its domain-separation prefix, e.g.
-    /// `"lexlean-source-v1\0"`.
+    /// `"lexlean-source-v2\0"`.
     #[must_use]
     pub fn new(domain: &str) -> Self {
         let mut message = domain.as_bytes().to_vec();
@@ -115,25 +160,36 @@ impl FramedHasher {
         self.message.extend_from_slice(bytes);
     }
 
-    /// Finish the recipe.
+    /// Append a κ as its 71 label bytes, so that the outer κ covers its axis.
+    pub fn frame_kappa(&mut self, label: &str, kappa: Kappa) {
+        self.frame(label, kappa.as_bytes());
+    }
+
+    /// The carrier so far, for test vectors that publish what they hash.
     #[must_use]
-    pub fn finish(self) -> Sha256Digest {
-        Sha256Digest(sha256(&self.message))
+    pub fn carrier(&self) -> &[u8] {
+        &self.message
+    }
+
+    /// Finish the recipe: the κ-label of the carrier.
+    #[must_use]
+    pub fn finish(self) -> Kappa {
+        Kappa::of(&self.message)
     }
 }
 
-/// The §11.5 tree digest over `(relative path, bytes)` rows. The caller
+/// The §11.5 tree κ over `(relative path, bytes)` rows. The caller
 /// supplies rows already restricted to participating files; this function
 /// enforces bytewise-sorted path order and unique paths.
 #[must_use]
-pub fn tree_digest(files: &[(&str, &[u8])]) -> Sha256Digest {
+pub fn tree_kappa(files: &[(&str, &[u8])]) -> Kappa {
     debug_assert!(
         files
             .windows(2)
             .all(|pair| pair[0].0.as_bytes() < pair[1].0.as_bytes()),
-        "tree digest input must be strictly sorted by path bytes"
+        "tree κ input must be strictly sorted by path bytes"
     );
-    let mut message = b"lexlean-tree-v1\0".to_vec();
+    let mut message = b"lexlean-tree-v2\0".to_vec();
     for (path, bytes) in files {
         let path_bytes = path.as_bytes();
         message.extend_from_slice(
@@ -145,7 +201,7 @@ pub fn tree_digest(files: &[(&str, &[u8])]) -> Sha256Digest {
         message.extend_from_slice(&(bytes.len() as u64).to_be_bytes());
         message.extend_from_slice(bytes);
     }
-    Sha256Digest(sha256(&message))
+    Kappa::of(&message)
 }
 
 /// The source ID (§21.3). `sources` are `(project-relative path, normalized
@@ -155,8 +211,8 @@ pub fn source_id(
     canonical_project_toml: &[u8],
     canonical_lock: &[u8],
     sources: &[(String, Vec<u8>)],
-) -> Sha256Digest {
-    let mut hasher = FramedHasher::new("lexlean-source-v1");
+) -> Kappa {
+    let mut hasher = FramedHasher::new("lexlean-source-v2");
     hasher.frame("project", canonical_project_toml);
     hasher.frame("lock", canonical_lock);
     for (path, bytes) in sources {
@@ -169,13 +225,13 @@ pub fn source_id(
 /// The semantic ID (§21.4).
 #[must_use]
 pub fn semantic_id_for(
-    compiler_semantics: Sha256Digest,
+    compiler_semantics: Kappa,
     language: &str,
     linked_ir_json: &str,
     lexicon_closure_json: &str,
-) -> Sha256Digest {
-    let mut hasher = FramedHasher::new("lexlean-semantic-v1");
-    hasher.frame("compiler-semantics", &compiler_semantics.0);
+) -> Kappa {
+    let mut hasher = FramedHasher::new("lexlean-semantic-v2");
+    hasher.frame_kappa("compiler-semantics", compiler_semantics);
     hasher.frame("language", language.as_bytes());
     hasher.frame("toolchain", crate::LEAN_TOOLCHAIN.as_bytes());
     hasher.frame("linked-ir", linked_ir_json.as_bytes());
@@ -186,10 +242,10 @@ pub fn semantic_id_for(
 /// The language-1.0 semantic ID recipe retained for API compatibility.
 #[must_use]
 pub fn semantic_id(
-    compiler_semantics: Sha256Digest,
+    compiler_semantics: Kappa,
     linked_ir_json: &str,
     lexicon_closure_json: &str,
-) -> Sha256Digest {
+) -> Kappa {
     semantic_id_for(
         compiler_semantics,
         crate::LANGUAGE_VERSION,
@@ -200,18 +256,18 @@ pub fn semantic_id(
 
 /// The build ID (§21.5).
 #[must_use]
-pub fn build_id(source: Sha256Digest, semantic: Sha256Digest) -> Sha256Digest {
-    let mut hasher = FramedHasher::new("lexlean-build-v1");
-    hasher.frame("source-id", &source.0);
-    hasher.frame("semantic-id", &semantic.0);
+pub fn build_id(source: Kappa, semantic: Kappa) -> Kappa {
+    let mut hasher = FramedHasher::new("lexlean-build-v2");
+    hasher.frame_kappa("source-id", source);
+    hasher.frame_kappa("semantic-id", semantic);
     hasher.finish()
 }
 
 /// The attestation ID over the canonical body without its `attestation_id`
 /// field (§22.9).
 #[must_use]
-pub fn attestation_id(body_without_id_json: &str) -> Sha256Digest {
-    let mut hasher = FramedHasher::new("lexlean-attestation-v1");
+pub fn attestation_id(body_without_id_json: &str) -> Kappa {
+    let mut hasher = FramedHasher::new("lexlean-attestation-v2");
     hasher.frame("attestation-body", body_without_id_json.as_bytes());
     hasher.finish()
 }
@@ -219,16 +275,16 @@ pub fn attestation_id(body_without_id_json: &str) -> Sha256Digest {
 /// The PDF recipe ID (§19.8).
 #[must_use]
 pub fn pdf_recipe_id(
-    tex_sha256: Sha256Digest,
-    program_sha256: Sha256Digest,
-    version_stdout_sha256: Sha256Digest,
+    tex: Kappa,
+    program: Kappa,
+    version_output: Kappa,
     compile_argv_json: &str,
     resources_json: &str,
-) -> Sha256Digest {
-    let mut hasher = FramedHasher::new("lexlean-pdf-recipe-v1");
-    hasher.frame("tex", &tex_sha256.0);
-    hasher.frame("program", &program_sha256.0);
-    hasher.frame("version-output", &version_stdout_sha256.0);
+) -> Kappa {
+    let mut hasher = FramedHasher::new("lexlean-pdf-recipe-v2");
+    hasher.frame_kappa("tex", tex);
+    hasher.frame_kappa("program", program);
+    hasher.frame_kappa("version-output", version_output);
     hasher.frame("argv", compile_argv_json.as_bytes());
     hasher.frame("resources", resources_json.as_bytes());
     hasher.finish()

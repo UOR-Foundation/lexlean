@@ -1110,13 +1110,25 @@ fn rustc_differential(lowered: &BTreeMap<&'static str, Lowered>, members: &[&str
 /// A copy of the project with one edit to one module.
 fn planted(module: &str, from: &str, to: &str) -> P {
     let project = P::workspace_project("kappa", &MEMBERS);
-    let path = format!("src/{module}.lex.tex");
+    // `Blake3` is the standard library's module, the one the compiler's
+    // identities are computed by, so a plant in it is a plant in the source
+    // package, and the copy is relocked over the planted package.
+    let in_stdlib = module == "Blake3";
+    let path = if in_stdlib {
+        format!("../stdlib/src/{module}.lex.tex")
+    } else {
+        format!("src/{module}.lex.tex")
+    };
     let text = project.read_raw(&path);
     assert!(
         text.contains(from),
         "the plant site `{from}` exists in {module}"
     );
     project.write(&path, &text.replacen(from, to, 1));
+    if in_stdlib {
+        let (exit, _, stderr) = project.cli(&["lock"]);
+        assert_eq!(exit, 0, "the planted copy relocks: {stderr}");
+    }
     project
 }
 
@@ -1259,7 +1271,7 @@ fn package(id: &str) {
     ] {
         if repo_root().join(lock).as_std_path().exists() {
             assert_eq!(
-                lexlean::compiler_semantics_id_for(language).to_hex(),
+                lexlean::compiler_semantics_id_for(language).label(),
                 pinned(lock),
                 "{id}: the compiler-semantics ID of language {language} is the one {lock} pins"
             );

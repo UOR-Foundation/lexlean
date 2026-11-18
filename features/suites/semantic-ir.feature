@@ -162,10 +162,10 @@ Feature: semantic-ir
   Scenario: Language 1.2 semantic modules use the versioned module and snapshot schemas and accept the typed nonrecursive let term, which language 1.1 rejects before either backend runs.
     Given the committed language-1.2 example whose definition and theorem statement use the let term
     When it is checked, snapshotted, rendered, and verified, and copies are changed to language 1.1 or to the other module discriminator
-    Then the 1.2 snapshot uses lexlean/semantic-snapshot/2 and validates against the v2 module and snapshot schemas
+    Then the 1.2 snapshot uses lexlean/semantic-snapshot/4 and validates against the v2 module and snapshot schemas
     And the generated Lean contains the fixed let lowering and verifies with real Lean
     And the language-1.1 copy and a /2 module under 1.1 fail with LLT4001, and a /1 module under 1.2 is the data form, which fails with LLP2003, before any build root exists
-    And a mistyped, shadowing, or self-referential let binder is rejected and the 1.1 snapshot keeps lexlean/semantic-snapshot/1
+    And a mistyped, shadowing, or self-referential let binder is rejected and the 1.1 snapshot keeps lexlean/semantic-snapshot/3
 
   @SM-24 @build
   Scenario: Language 1.2 product types, pairs, projections, and product matches are typed, snapshotted under the v2 schemas, and give identical semantic IDs from distinct roots.
@@ -270,7 +270,7 @@ Feature: semantic-ir
     And each planted project is refused as LLT4001 naming the misuse, and no backend output is written
 
   @SM-38 @build
-  Scenario: A language-1.2 build publishes, for every semantic module, a declaration ID for each declaration and a statement ID for each theorem: the declaration ID is a framed SHA-256 of the declaration's canonical JSON and of the declaration IDs of the project declarations it references, with declarations that reference one another hashed as one group, and the statement ID omits the theorem's proof; changing one literal of one definition changes the declaration IDs of exactly that definition and of the declarations that reach it by reference, changing a theorem's proof alone leaves its statement ID unchanged, adding or reordering independent declarations changes no ID, the IDs equal their recomputation from the specified framed inputs, the file validates against `api/schemas/declarations.schema.json`, and a language-1.0 or 1.1 build publishes none.
+  Scenario: A language-1.2 build publishes, for every semantic module, a declaration ID for each declaration and a statement ID for each theorem: the declaration ID is a framed κ-label of the declaration's canonical JSON and of the declaration IDs of the project declarations it references, with declarations that reference one another hashed as one group, and the statement ID omits the theorem's proof; changing one literal of one definition changes the declaration IDs of exactly that definition and of the declarations that reach it by reference, changing a theorem's proof alone leaves its statement ID unchanged, adding or reordering independent declarations changes no ID, the IDs equal their recomputation from the specified framed inputs, the file validates against `api/schemas/declarations.schema.json`, and a language-1.0 or 1.1 build publishes none.
     Given a language-1.2 project whose definitions reference one another, with a mutual pair of inductive types, a definition nothing references, and a theorem over one definition
     When the project is built, its declarations file is read, and copies are built with one literal changed, with the theorem's proof changed, and with a declaration added and the declarations reordered
     Then the IDs equal their recomputation from the framed inputs, the file validates against its schema, and exactly the changed definition and the declarations that reach it change ID

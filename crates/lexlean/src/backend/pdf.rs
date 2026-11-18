@@ -18,7 +18,7 @@
 use camino::{Utf8Path, Utf8PathBuf};
 
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::{pdf_recipe_id, Sha256Digest};
+use crate::artifact::content_id::{pdf_recipe_id, Kappa};
 use crate::code;
 use crate::config::{Limits, PdfProvider};
 use crate::diagnostic::Diagnostic;
@@ -40,11 +40,11 @@ pub fn is_bare_file_name(name: &str) -> bool {
 #[derive(Debug)]
 pub struct PdfResult {
     /// The §19.8 recipe ID.
-    pub recipe_id: Sha256Digest,
+    pub recipe_id: Kappa,
     /// The produced PDF bytes.
     pub pdf_bytes: Vec<u8>,
-    /// SHA-256 of the PDF bytes.
-    pub pdf_sha256: Sha256Digest,
+    /// κ-label of the PDF bytes.
+    pub pdf_kappa: Kappa,
     /// The version probe record (tool `pdf`, argv as configured, output
     /// normalized by the verification normalizer).
     pub version: ChildRecord,
@@ -65,7 +65,7 @@ struct ProviderStep<'a> {
     /// The hash-checked provider executable.
     program: &'a Utf8Path,
     /// Its digest, already computed from the bytes that were checked.
-    executable_sha256: Sha256Digest,
+    executable_kappa: Kappa,
     /// The isolated working directory holding the staged inputs.
     workdir: &'a Utf8Path,
     /// The isolated temporary home (§25.4).
@@ -91,7 +91,7 @@ impl ProviderStep<'_> {
                 tool: "pdf",
                 module: Some(self.stem.to_owned()),
                 program: self.program,
-                executable_sha256: self.executable_sha256,
+                executable_kappa: self.executable_kappa,
                 argv: argv.to_vec(),
                 cwd: self.workdir,
                 extra_env: Vec::new(),
@@ -122,15 +122,15 @@ pub fn run_provider(
 ) -> Result<PdfResult, Diagnostic> {
     let limits = &project.config.limits;
 
-    // 1. Verify the provider executable SHA-256 (§19.7 step 1, SE-08).
+    // 1. Verify the provider executable κ-label (§19.7 step 1, SE-08).
     let program_path = project.confined_file(&provider.program)?;
     let program_bytes = std::fs::read(program_path.as_std_path())
         .map_err(|io_error| protocol(format!("{}: {io_error}", provider.program)))?;
-    let program_sha256 = Sha256Digest::of(&program_bytes);
-    if program_sha256 != provider.program_sha256 {
+    let program_kappa = Kappa::of(&program_bytes);
+    if program_kappa != provider.program_kappa {
         return Err(policy(format!(
-            "pdf program hash mismatch: configured {}, observed {program_sha256}",
-            provider.program_sha256.to_hex()
+            "pdf program hash mismatch: configured {}, observed {program_kappa}",
+            provider.program_kappa.label()
         )));
     }
 
@@ -162,7 +162,7 @@ pub fn run_provider(
     }
     std::fs::write(workdir.join(&tex_name).as_std_path(), tex_bytes)
         .map_err(|io_error| protocol(format!("pdf staging: {io_error}")))?;
-    let mut resource_rows: Vec<(String, Sha256Digest)> = Vec::new();
+    let mut resource_rows: Vec<(String, Kappa)> = Vec::new();
     let mut staged_names: std::collections::BTreeMap<String, String> =
         std::collections::BTreeMap::new();
     staged_names.insert(tex_name.clone(), "the canonical document".to_owned());
@@ -178,14 +178,14 @@ pub fn run_provider(
         }
         std::fs::write(workdir.join(name).as_std_path(), &bytes)
             .map_err(|io_error| protocol(format!("pdf staging: {io_error}")))?;
-        resource_rows.push((resource.clone(), Sha256Digest::of(&bytes)));
+        resource_rows.push((resource.clone(), Kappa::of(&bytes)));
     }
     resource_rows.sort_by(|a, b| a.0.cmp(&b.0));
 
     // 2–3. The version probe with no shell, stdout normalized and checked.
     let step = ProviderStep {
         program: &program_path,
-        executable_sha256: program_sha256,
+        executable_kappa: program_kappa,
         workdir: &workdir,
         home: &home,
         stem,
@@ -193,11 +193,11 @@ pub fn run_provider(
         normalizer,
     };
     let version = step.run(&provider.version_argv)?;
-    let observed_version = Sha256Digest::of(version.stdout.as_bytes());
-    if observed_version != provider.version_stdout_sha256 {
+    let observed_version = Kappa::of(version.stdout.as_bytes());
+    if observed_version != provider.version_stdout_kappa {
         return Err(policy(format!(
             "pdf version output hash mismatch: configured {}, observed {observed_version}",
-            provider.version_stdout_sha256.to_hex()
+            provider.version_stdout_kappa.label()
         )));
     }
 
@@ -272,7 +272,7 @@ pub fn run_provider(
     if !pdf_bytes.starts_with(b"%PDF-") {
         return Err(protocol("the provider output does not begin with %PDF-"));
     }
-    let pdf_sha256 = Sha256Digest::of(&pdf_bytes);
+    let pdf_kappa = Kappa::of(&pdf_bytes);
 
     // §19.8: the recipe content address over configured inputs.
     let argv_json = Json::Arr(
@@ -287,19 +287,19 @@ pub fn run_provider(
     let resources_json = Json::Arr(
         resource_rows
             .iter()
-            .map(|(path, sha256)| {
+            .map(|(path, kappa)| {
                 Json::object(vec![
                     ("path", Json::Str(path.clone())),
-                    ("sha256", Json::Str(sha256.to_hex())),
+                    ("kappa", Json::Str(kappa.label())),
                 ])
             })
             .collect(),
     )
     .to_canonical_string();
     let recipe_id = pdf_recipe_id(
-        Sha256Digest::of(tex_bytes),
-        provider.program_sha256,
-        provider.version_stdout_sha256,
+        Kappa::of(tex_bytes),
+        provider.program_kappa,
+        provider.version_stdout_kappa,
         &argv_json,
         &resources_json,
     );
@@ -307,7 +307,7 @@ pub fn run_provider(
     Ok(PdfResult {
         recipe_id,
         pdf_bytes,
-        pdf_sha256,
+        pdf_kappa,
         version,
         compile,
     })

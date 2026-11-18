@@ -16,6 +16,7 @@ pub mod classification;
 pub mod codegen;
 pub mod correspondence;
 pub mod exhaustive;
+pub mod hashes;
 pub mod isolation;
 pub mod project;
 pub mod registry;
@@ -220,11 +221,12 @@ impl Model {
 }
 
 impl Model {
-    /// R6: a vendored authority is the bytes its checksum names, recomputed
-    /// here rather than trusted; a checksum with nothing vendored hashes
-    /// nothing, so it is refused.
+    /// R6: a vendored authority is the bytes its checksum names, its κ-label
+    /// recomputed here rather than trusted; a checksum with nothing vendored
+    /// hashes nothing, so it is refused. The digest its publisher states for
+    /// the bytes acquired is bound to the same copy.
     fn check_vendored(&self, a: &AuthorityRow) -> Result<(), ModelError> {
-        use sha2::{Digest, Sha256};
+        use sha2::{Digest as _, Sha256 as Acquired};
         let bad = |m: String| ModelError::Inconsistent(m);
         let Some(path) = &a.vendored else {
             return if a.checksum == "none" {
@@ -236,28 +238,28 @@ impl Model {
                 )))
             };
         };
-        let Some(stated) = a.checksum.strip_prefix("sha256:") else {
+        let Some(stated) = a.checksum.strip_prefix("blake3:") else {
             return Err(bad(format!(
-                "{}: a vendored authority's checksum is `sha256:<hex>`, found `{}` (R6)",
+                "{}: a vendored authority's checksum is its κ-label `blake3:<hex>`, found `{}` (R6)",
                 a.id, a.checksum
             )));
         };
         let full = self.root.join(path);
         let bytes = std::fs::read(&full).map_err(|e| ModelError::Io(full.clone(), e))?;
-        let actual: String = Sha256::digest(&bytes)
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect();
+        let actual = blake3::hash(&bytes).to_hex().to_string();
         if actual != stated {
             return Err(bad(format!(
                 "{}: {path} hashes to {actual}, not its checksum {stated} (R6)",
                 a.id
             )));
         }
-        if a.acquired_sha256
-            .as_deref()
-            .is_some_and(|acquired| acquired != stated)
-        {
+        let acquired: String = Acquired::digest(&bytes)
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect();
+        if a.acquired_sha256.as_deref().is_some_and(|stated_acquired| {
+            !stated_acquired.is_empty() && stated_acquired != acquired
+        }) {
             return Err(bad(format!(
                 "{}: the vendored copy is not the acquired bytes {} (R6)",
                 a.id,

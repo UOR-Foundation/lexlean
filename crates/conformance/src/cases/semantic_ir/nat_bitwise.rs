@@ -91,7 +91,7 @@ pub fn run() {
     let legacy = plain
         .read("src/Main.lex.tex")
         .replace("@1.2.0", "@1.1.0")
-        .replace("lexlean/semantic-module/2", "lexlean/semantic-module/1");
+        .replace("lexlean/semantic-module/3", "lexlean/semantic-module/1");
     for (what, text, language, message) in [
         ("language 1.1", legacy, "1.1", "bitwise primitive on Nat"),
         (

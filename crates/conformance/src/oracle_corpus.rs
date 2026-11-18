@@ -752,7 +752,7 @@ pub fn probes() -> Vec<Probe> {
 }
 
 fn tex(module: &str, declarations: &[Json]) -> String {
-    let data = json!({"declarations": declarations, "spec": "lexlean/semantic-module/2"});
+    let data = json!({"declarations": declarations, "spec": "lexlean/semantic-module/3"});
     format!(
         "\\begin{{lexlean}}{{{module}}}\n\\useglossary{{lexlean.std.nat@1.2.0}}\n\\title{{Natural number addition}}\n\\begin{{semanticmodule}}\n\\semanticdata{{{data}}}\n\\end{{semanticmodule}}\n\\end{{lexlean}}\n"
     )

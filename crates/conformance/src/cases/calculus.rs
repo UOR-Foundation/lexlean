@@ -815,7 +815,7 @@ pub fn run(id: &str) {
             // Identity is the SHA-256 of the canonical bytes.
             assert_eq!(
                 program.id().expect("bound"),
-                lexlean::artifact::content_id::Sha256Digest::of(&program.to_file_bytes())
+                lexlean::artifact::content_id::Kappa::of(&program.to_file_bytes())
             );
         }
         // §17.14: every invalid target construct fails closed.
