@@ -67,7 +67,7 @@ jobs:
         run: |
           set -euo pipefail
           work="$RUNNER_TEMP/work"
-          /usr/bin/time -v target/release/xtask kernel-terms produce "$work" "$work/library.ndjson" self-contained 2>&1 | grep -E "kernel-terms|Maximum resident|Elapsed"
+          /usr/bin/time -v target/release/xtask kernel-terms produce "$work" "$work/library.ndjson" self-contained 2>&1 | grep -E "kernel-terms|Maximum resident|Elapsed|panicked|overflow|error|signal"
           python3 - "$work" <<'PY'
           import json, sys, collections
           rows = json.load(open(sys.argv[1] + "/production.json"))["rows"]

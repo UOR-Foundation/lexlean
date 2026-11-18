@@ -36,6 +36,18 @@ type R<T> = Result<T, String>;
 const STEPS: usize = 2_000_000;
 /// The most splits and rewrites one theorem's proof may hold.
 const SPLITS: usize = 512;
+/// The most nested reductions and comparisons: a refusal past it, where the
+/// thread's stack would otherwise end the whole production.
+const DEPTH: usize = 1024;
+
+/// One level of nesting, given back when dropped.
+struct Nested<'c>(&'c Cell<usize>);
+
+impl Drop for Nested<'_> {
+    fn drop(&mut self) {
+        self.0.set(self.0.get() - 1);
+    }
+}
 
 enum Node {
     BVar(u32),
@@ -614,6 +626,7 @@ pub struct Eval<'l> {
     fresh: &'l dyn Fn() -> u32,
     steps: Cell<usize>,
     splits: Cell<usize>,
+    depth: Cell<usize>,
 }
 
 impl<'l> Eval<'l> {
@@ -623,6 +636,7 @@ impl<'l> Eval<'l> {
             fresh,
             steps: Cell::new(0),
             splits: Cell::new(0),
+            depth: Cell::new(0),
         }
     }
 
@@ -633,6 +647,15 @@ impl<'l> Eval<'l> {
             return Err(format!("evaluation exceeds {STEPS} steps"));
         }
         Ok(())
+    }
+
+    fn nest(&self) -> R<Nested<'_>> {
+        let n = self.depth.get() + 1;
+        if n > DEPTH {
+            return Err(format!("evaluation nests deeper than {DEPTH}"));
+        }
+        self.depth.set(n);
+        Ok(Nested(&self.depth))
     }
 
     fn decl(&self, name: &str) -> Option<&'l Decl> {
@@ -664,6 +687,7 @@ impl<'l> Eval<'l> {
     /// Weak head normal form.
     #[allow(clippy::too_many_lines)]
     pub fn whnf(&self, e: &Expr) -> R<Expr> {
+        let _nested = self.nest()?;
         let mut e = e.clone();
         loop {
             self.tick()?;
@@ -803,6 +827,7 @@ impl<'l> Eval<'l> {
     /// stuck rebuilt into the term, and the major premise to split, the
     /// outermost one that can be.
     fn expose(&self, e: &Expr) -> R<(Expr, Option<Stuck>)> {
+        let _nested = self.nest()?;
         let w = self.whnf(e)?;
         let (head, args) = spine(&w);
         match &head {
@@ -867,6 +892,7 @@ impl<'l> Eval<'l> {
     /// them so, with each side reduced to where that split occurs in it.
     #[allow(clippy::too_many_lines)]
     fn compare(&self, a: &Expr, b: &Expr) -> R<(Expr, Expr, Compared)> {
+        let _nested = self.nest()?;
         if a == b {
             return Ok((a.clone(), b.clone(), Compared::Equal));
         }
