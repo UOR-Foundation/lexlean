@@ -1076,6 +1076,12 @@ suite = "lean-backend"
 statement = "Kernel-term production writes, with no elaborator and no tactic, a lean4export 3.1.0 theorem for every semantic theorem whose proof tree is reflexivity, decide, cases, induction, apply of a produced theorem, or law, typed by the statement lowered from the linked IR and bound to the theorem Lean elaborates; Lean's kernel accepts every produced theorem and binding of a module that uses each form, and refuses a produced theorem whose statement was altered, whose case takes another constructor's branch, or whose decide obligation is false, and production refuses a proof that omits a case."
 
 [[id]]
+id = "LN-14"
+level = "build"
+suite = "lean-backend"
+statement = "Kernel-term production writes a `term_cases` proof by enumeration: every local of a finite type (`Bool`, or a document type whose constructors carry no field) is split with `casesOn` in scope order, and each case is closed by `Eq.refl` for an equation and `decide` otherwise, so the split term's value is computed by the kernel and never rewritten; Lean's kernel accepts the produced theorem and its binding for a module whose `term_cases` split term is fixed by its finite locals, and refuses a produced theorem whose statement is false in one case."
+
+[[id]]
 id = "TX-01"
 level = "build"
 suite = "latex-pdf"
@@ -2929,6 +2935,12 @@ id = "BS-38"
 level = "build"
 suite = "bootstrap"
 statement = "`KernelTerms` proves, and the pinned Lean verifies, that each producer refuses exactly the inputs its check fails, with the check's own typed `Refusal`, and that a missing, repeated, or unknown case, a wrong binder count, a goal that is not an equation, an unproduced theorem, and an unregistered law are each refused with their own `Refusal`; a planted `checkFrom` that admits a missing case is refused by Lean; the producers are not claimed sound, which is the kernel's judgement of every produced term (§18.10)."
+
+[[id]]
+id = "BS-39"
+level = "build"
+suite = "bootstrap"
+statement = "`KernelTerms` states the enumeration producer of `term_cases` (`enumerateBranches`, which writes one branch per constructor, binding nothing, in constructor order) and proves, and the pinned Lean verifies, that `checkFrom` passes on its branches for a constructor shape of no field of each length from zero to four, so `casesTerm` makes a term for them (`enumerate_*_total`), and that the term's minor premises are the closing proofs in constructor order (`enumerate_selects`); a planted `enumerateBranches` that numbers the constructors from one is refused by Lean."
 
 [[id]]
 id = "PK-01"

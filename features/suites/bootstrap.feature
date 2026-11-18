@@ -236,3 +236,10 @@ Feature: bootstrap
     When the module is verified alone under the pinned Lean, and again with `checkFrom` admitting a missing case
     Then each `*_refuses_exactly` theorem and each named refusal theorem is verified with its declared axioms
     And the planted module fails verification with LLV7002
+
+  @BS-39 @build
+  Scenario: `KernelTerms` states the enumeration producer of `term_cases` (`enumerateBranches`, which writes one branch per constructor, binding nothing, in constructor order) and proves, and the pinned Lean verifies, that `checkFrom` passes on its branches for a constructor shape of no field of each length from zero to four, so `casesTerm` makes a term for them (`enumerate_*_total`), and that the term's minor premises are the closing proofs in constructor order (`enumerate_selects`); a planted `enumerateBranches` that numbers the constructors from one is refused by Lean.
+    Given the `KernelTerms` module of the committed `bootstrap` project
+    When the module is verified alone under the pinned Lean, and again with `enumerateBranches` numbering the constructors from one
+    Then each `enumerate_*` theorem is verified with its declared axioms
+    And the planted module fails verification with LLV7002

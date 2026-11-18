@@ -92,3 +92,10 @@ Feature: lean-backend
     When kernel terms are produced from its linked IR with no library and judged by `crates/conformance/lean/KernelCheck.lean` over its compiled modules
     Then every produced theorem and its binding are accepted with exactly the declared axioms
     And a planted altered statement, swapped case branch, and false decide are each refused by the kernel, and an omitted case is refused by production
+
+  @LN-14 @build
+  Scenario: Kernel-term production writes a `term_cases` proof by enumeration: every local of a finite type (`Bool`, or a document type whose constructors carry no field) is split with `casesOn` in scope order, and each case is closed by `Eq.refl` for an equation and `decide` otherwise, so the split term's value is computed by the kernel and never rewritten; Lean's kernel accepts the produced theorem and its binding for a module whose `term_cases` split term is fixed by its finite locals, and refuses a produced theorem whose statement is false in one case.
+    Given a language-1.2 semantic module whose `term_cases` theorem splits on a call over a Boolean and a natural-number parameter, and a copy whose statement is false when the Boolean is `true`
+    When kernel terms are produced from its linked IR with no library and judged by `crates/conformance/lean/KernelCheck.lean` over its compiled modules
+    Then the `term_cases` theorem and its binding are accepted with exactly the declared axioms
+    And the produced theorem of the false copy is refused by the kernel
