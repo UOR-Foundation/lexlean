@@ -110,6 +110,8 @@ def step (t : Tables) (j : Json) : Except String (Tables × Option (Name × Expr
         pure (Expr.letE (← name t b "name") (← expr t b "type") (← expr t b "value") (← expr t b "body") false)
       else if let .ok v := j.getObjVal? "natVal" then pure (Expr.lit (.natVal (← v.getStr?).toNat!))
       else if let .ok v := j.getObjVal? "strVal" then pure (Expr.lit (.strVal (← v.getStr?)))
+      else if let .ok p := j.getObjVal? "proj" then
+        pure (Expr.proj (← name t p "typeName") (← nat p "idx") (← expr t p "struct"))
       else throw s!"an expression form this checker does not read: {j.compress}"
     return ({ t with exprs := t.exprs.insert id e }, none)
   if let .ok d := j.getObjVal? "thm" then
