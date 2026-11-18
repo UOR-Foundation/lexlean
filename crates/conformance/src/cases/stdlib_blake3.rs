@@ -295,9 +295,22 @@ fn rustc_runs(member: &str) -> Vec<Run> {
 /// # Panics
 ///
 /// Panics when the case's assertion fails.
-#[allow(clippy::too_many_lines)]
 pub(super) fn run(id: &str) {
     assert_eq!(id, "SL-16");
+    // The evaluator recurses once per step of a compression, so the case
+    // runs on a stack sized for the longest vector it evaluates.
+    let outcome = std::thread::Builder::new()
+        .stack_size(256 << 20)
+        .spawn(run_on_stack)
+        .expect("thread")
+        .join();
+    if let Err(panic) = outcome {
+        std::panic::resume_unwind(panic);
+    }
+}
+
+#[allow(clippy::too_many_lines)]
+fn run_on_stack() {
     let project = P::stdlib();
     project.check_ok();
     let built = project.build_ok();
