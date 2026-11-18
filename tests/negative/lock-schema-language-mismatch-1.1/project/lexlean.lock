@@ -1,4 +1,4 @@
-spec = "lexlean/lock/3"
+spec = "lexlean/lock/4"
 language = "1.1"
 compiler_semantics = "blake3:efbf8b693712fedf0d3e581536b7f029bae2c4188048cc82347e4b6f68792c8b"
 project_config_kappa = "blake3:a7b5e8d28a376209812f12e3b8f8b414f1801e90774ca9aff5662a0033ef21a6"

@@ -78,7 +78,6 @@ definition{
   parameters: [digest : Bytes],
   result: LexLeanStd.Json::Json,
   body: (jsonText digest),
-  axioms: [Quot.sound, propext],
   executable: true
 }
 
@@ -136,7 +135,6 @@ definition{
   parameters: [row : FileRow],
   result: LexLeanStd.Json::Json,
   body: (ctor LexLeanStd.Json::Json.JObj (member "kind" (jsonText (project row kind)) (member "path" (jsonText (project row location)) (member "byte_length" (ctor LexLeanStd.Json::Json.JInt false (project row byteLength)) (member "kappa" (jsonDigest (project row digest)) (ctor LexLeanStd.Json::Json.JNil)))))),
-  axioms: [Quot.sound, propext],
   executable: true
 }
 
@@ -145,7 +143,7 @@ definition{
   parameters: [rows : (List FileRow)],
   result: LexLeanStd.Json::Json,
   body: (ctor LexLeanStd.Json::Json.JArr (prim list_fold (fun (acc : LexLeanStd.Json::Json) (row : FileRow) => (ctor LexLeanStd.Json::Json.JItem (rowJson row) acc)) (ctor LexLeanStd.Json::Json.JNil) (LexLeanStd.Order::reverseList [FileRow] (rowsSorted rows)) : LexLeanStd.Json::Json)),
-  axioms: [Quot.sound, propext],
+  axioms: [propext],
   executable: true
 }
 
@@ -172,7 +170,7 @@ definition{
   parameters: [manifest : BuildManifest],
   result: LexLeanStd.Json::Json,
   body: (ctor LexLeanStd.Json::Json.JObj (member "spec" (jsonText (lit "lexlean/build-manifest/2")) (member "compiler" (ctor LexLeanStd.Json::Json.JObj (member "version" (jsonText (project manifest compilerVersion)) (member "semantics_id" (jsonDigest (project manifest semanticsId)) (ctor LexLeanStd.Json::Json.JNil)))) (member "language" (jsonText (project manifest language)) (member "project" (jsonText (project manifest projectName)) (member "source_id" (jsonDigest (project manifest sourceId)) (member "semantic_id" (jsonDigest (project manifest semanticId)) (member "build_id" (jsonDigest (project manifest buildId)) (member "lean_toolchain" (jsonText (lit "leanprover/lean4:v4.32.1")) (member "selection" (textArray (project manifest selection)) (member "modules" (modulesJson (project manifest modules)) (member "inputs" (rowsJson (project manifest inputs)) (member "outputs" (rowsJson (project manifest outputs)) (ctor LexLeanStd.Json::Json.JNil)))))))))))))),
-  axioms: [Quot.sound, propext],
+  axioms: [propext],
   executable: true
 }
 

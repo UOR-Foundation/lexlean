@@ -148,6 +148,9 @@ pub fn gnaf_evidence(project: &P) -> Gnaf {
         {"function": summing.clone(), "prepares": []},
         {"function": summing, "prepares": []},
     ]);
+    // The template is a generated fixture, which a regeneration may still be
+    // rewriting; the request form is the compiler's, not the template's.
+    request["spec"] = serde_json::json!(lexlean::gnaf::REQUEST_SPEC);
     request["universe"] = serde_json::json!(format!("blake3:{}", "0".repeat(64)));
     let mut parsed: lexlean::gnaf::Request =
         serde_json::from_value(request).expect("a request value");
