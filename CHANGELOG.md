@@ -17,6 +17,17 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- A release tag publishes what a browser prover loads (SPEC.md §7, §30.3,
+  `RP-20`). `lexlean-<version>-lean-wasm.tar.gz` holds the `.olean`,
+  `.olean.server`, `.olean.private`, `.ir`, and `.ilean` files of every runtime
+  module, built by the pinned Lean from the Lake package that the new
+  `cargo xtask runtime-package` writes. It also holds the WASM prover's driver,
+  now committed under `lean/wasm-prover/driver/` from foundry `43b66b26d38b`
+  byte for byte. `lexlean-<version>.wasm.gz` is the `wasm32-wasip1` executable
+  without `production-data`. Each is built twice and refused unless the two
+  builds agree. `lean-wasm.json` labels every file by the BLAKE3 κ of its raw
+  bytes, with the commit and the Lean version. CI builds the driver and the
+  runtime package in `RP-20`. No language identity moves; the register is 500.
 - An Atlas shard of the gate drops the part it uploaded in an earlier attempt
   of its run before it runs (SPEC.md §9.4, `RP-14`). "Re-run all jobs"
   downloaded that part with the rest, and the shard refused the non-empty

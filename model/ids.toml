@@ -116,6 +116,12 @@ suite = "repository"
 statement = "A build of the lexlean crate without its default production-data feature embeds no file of language/preservation-1.2/library/, reports the compiler-semantics IDs of a default build and its version report with a fifth line naming the check-only variant, gives check and lock the same exit code, diagnostics, and lock bytes as a default build, and refuses production build and the verify of a project with a production root with LLC0205 before any build, verification, or export is published."
 
 [[id]]
+id = "RP-20"
+level = "build"
+suite = "repository"
+statement = "cargo xtask runtime-package writes the runtime modules this compiler generates, byte for byte, as a Lake package on the pinned Lean, which builds to the same .olean, .olean.server, .olean.private, .ir, and .ilean bytes from two directories; the WASM prover's driver under lean/wasm-prover/driver builds its elab and symlist executables with the pinned Lean; and a release tag builds both, with the wasm32-wasip1 executable without production-data from two clean builds, and attaches them with lean-wasm.json, which labels every file by the BLAKE3 κ of its raw bytes with the commit and Lean version."
+
+[[id]]
 id = "CF-01"
 level = "build"
 suite = "configuration-lock"

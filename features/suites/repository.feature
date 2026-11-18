@@ -138,3 +138,9 @@ Feature: repository
     And --version of the binary is the default report followed by the line variant check-only
     And every exit code, every JSON diagnostic, and every written lexlean.lock are byte-equal between the two
     And verify and production build exit 2 with LLC0205 and publish no build, verified, or production directory
+
+  @RP-20 @build
+  Scenario: cargo xtask runtime-package writes the runtime modules this compiler generates, byte for byte, as a Lake package on the pinned Lean, which builds to the same .olean, .olean.server, .olean.private, .ir, and .ilean bytes from two directories; the WASM prover's driver under lean/wasm-prover/driver builds its elab and symlist executables with the pinned Lean; and a release tag builds both, with the wasm32-wasip1 executable without production-data from two clean builds, and attaches them with lean-wasm.json, which labels every file by the BLAKE3 κ of its raw bytes with the commit and Lean version.
+    Given the runtime package cargo xtask runtime-package writes twice into two directories, the driver under lean/wasm-prover/driver, and the release workflow
+    When Lake builds both packages and the driver with the pinned Lean
+    Then the package holds the compiler's runtime texts, the two builds are the same bytes, the driver's executables are built, and the release builds, labels, and attaches the assets

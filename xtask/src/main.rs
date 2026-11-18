@@ -14,6 +14,7 @@ mod bump;
 mod ci;
 mod codegen;
 mod counts;
+mod lean_wasm;
 mod release_manifest;
 mod spec_links;
 
@@ -48,6 +49,9 @@ fn main() -> ExitCode {
         "ci-shards" => ci::ci_shards(&root),
         "release-artifacts" => release_artifacts(&root),
         "release-check" => release_check(&root),
+        "runtime-package" => {
+            lean_wasm::runtime_package(&root, &std::env::args().skip(2).collect::<Vec<_>>())
+        }
         "bump-version" => bump::bump_version(&root, &std::env::args().skip(2).collect::<Vec<_>>()),
         "validate" => codegen::check_model(&root, false).and_then(|()| spec_links::validate(&root)),
         _ => {
@@ -85,6 +89,8 @@ fn main() -> ExitCode {
                                          runs every process once in import order\n\
                  release-artifacts       §30.3: derive the release/ artifact set from the repository\n\
                  release-check           RP-12: refuse release until §30.3/§30.4 are fully satisfied\n\
+                 runtime-package         §30.3: write the runtime modules as a Lake package\n\
+                                         (--output DIR), for the release's .olean files\n\
                  bump-version X.Y.Z      §2.3, §9.4: move every site of the workspace version and the\n\
                                          lock's workspace rows to X.Y.Z (a release cut, `cut.yml`)\n\
                  validate                validate-model then validate-spec-links\n\
