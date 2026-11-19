@@ -681,6 +681,8 @@ pub fn run(id: &str) {
         "SL-13" => super::stdlib_json_read::run(id),
         // §17.22: maps and sets (#276).
         "SL-14" => super::stdlib_map::run(id),
+        // §17.22: BLAKE3 (#440).
+        "SL-16" => super::stdlib_blake3::run(id),
         other => panic!("no stdlib case is wired for {other}"),
     }
 }

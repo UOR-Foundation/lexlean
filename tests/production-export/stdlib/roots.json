@@ -97,6 +97,38 @@
       "version": "1.0.0"
     },
     {
+      "name": "blake3",
+      "root": "LexLeanStd.Blake3.blake3",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "name": "blake3_hex",
+      "root": "LexLeanStd.Blake3.blake3Hex",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "name": "piece_chain",
+      "root": "LexLeanStd.Blake3.pieceChain",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "name": "piece_root",
+      "root": "LexLeanStd.Blake3.pieceRoot",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
       "name": "decimal",
       "root": "LexLeanStd.Numeral.decimal",
       "targets": [
