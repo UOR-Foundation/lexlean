@@ -88,7 +88,7 @@
       "kind": "theorem",
       "module": "Counter",
       "name": "bumpBy_fits",
-      "statement_id": "d205e9b8b9bf97f58740563c8924b5c600a5aa28a0f2e3f3756563a098070b95"
+      "statement_id": "e0ec6f31f0c0386b2167c658217546e1148e3f59b9fdefcc0383be062d69c081"
     },
     {
       "kind": "theorem",
@@ -106,7 +106,7 @@
       "kind": "theorem",
       "module": "Counter",
       "name": "bump_grows",
-      "statement_id": "4006f90a70df65f7b8367fec58cd1e469434d563fde6aeedb8c3dce75ad40915"
+      "statement_id": "30513096daa9d11779a9de14b4963054e6d745cc881861f0ca69ed217cbd2f8e"
     },
     {
       "kind": "theorem",
