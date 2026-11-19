@@ -465,7 +465,7 @@ pub fn negatives() -> BTreeMap<String, (Vec<u8>, String)> {
             "sources-unordered",
             {
                 let mut out = base();
-                out.sources = vec!["b".repeat(64), "a".repeat(64)];
+                out.sources = vec![format!("blake3:{}", "b".repeat(64)), format!("blake3:{}", "a".repeat(64))];
                 out
             },
             "sources are strictly ascending",
