@@ -1,5 +1,5 @@
 [package]
-name = "config_sha256"
+name = "config_kappa"
 version = "1.0.0"
 edition = "2021"
 publish = false

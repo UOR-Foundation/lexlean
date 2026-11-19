@@ -857,28 +857,22 @@ pub fn format_int(p0: i64) -> Str {
 
 #[derive(Clone)]
 pub enum Fn0 {
-    F3(Bytes),
-    F4,
+    F2(Bytes),
 }
 
 impl Fn0 {
-    pub fn apply(&self, p0: List<Bytes>, p1: Bytes) -> List<Bytes> {
+    pub fn apply(&self, p0: bool, p1: Bytes) -> bool {
         match self {
-            Fn0::F3(k0) => f3(k0.clone(), p0, p1),
-            Fn0::F4 => f4(p0, p1),
+            Fn0::F2(k0) => f2(k0.clone(), p0, p1),
         }
     }
 }
 
-pub fn f0(v0: List<Bytes>, v1: Bytes) -> List<Bytes> {
-    f1(f2(Fn0::F3(v1), List::<Bytes>::nil(), v0))
+pub fn f0(v0: List<Bytes>, v1: Bytes) -> bool {
+    f1(Fn0::F2(v1), false, v0)
 }
 
-pub fn f1(v0: List<Bytes>) -> List<Bytes> {
-    f2(Fn0::F4, List::<Bytes>::nil(), v0)
-}
-
-pub fn f2(v0: Fn0, p4: List<Bytes>, p5: List<Bytes>) -> List<Bytes> {
+pub fn f1(v0: Fn0, p4: bool, p5: List<Bytes>) -> bool {
     let m3 = (p4, p5);
     {
         let mut m3 = m3;
@@ -888,10 +882,10 @@ pub fn f2(v0: Fn0, p4: List<Bytes>, p5: List<Bytes>) -> List<Bytes> {
                 let m1 = v2;
                 match m1.uncons() {
                     None => {
-                        Err::<(List<Bytes>, List<Bytes>), List<Bytes>>(v1)
+                        Err::<(bool, List<Bytes>), bool>(v1)
                     }
                     Some((v3, v4)) => {
-                        Ok::<(List<Bytes>, List<Bytes>), List<Bytes>>(({
+                        Ok::<(bool, List<Bytes>), bool>(({
                             let c2: Fn0 = v0.clone();
                             c2.apply(v1, v3)
                         }, v4))
@@ -906,20 +900,16 @@ pub fn f2(v0: Fn0, p4: List<Bytes>, p5: List<Bytes>) -> List<Bytes> {
     }
 }
 
-pub fn f3(v0: Bytes, v1: List<Bytes>, v2: Bytes) -> List<Bytes> {
-    f5(v0, v1, v2)
+pub fn f2(v0: Bytes, v1: bool, v2: Bytes) -> bool {
+    f3(v0, v1, v2)
 }
 
-pub fn f4(v0: List<Bytes>, v1: Bytes) -> List<Bytes> {
-    List::cons(v1, v0)
-}
-
-pub fn f5(v0: Bytes, v1: List<Bytes>, v2: Bytes) -> List<Bytes> {
-    let a6 = v0;
-    let a7 = v2.clone();
-    if equal(a6, a7) {
-        v1
+pub fn f3(v0: Bytes, v1: bool, v2: Bytes) -> bool {
+    if v1 {
+        true
     } else {
-        List::cons(v2, v1)
+        let a6 = v0;
+        let a7 = v2;
+        equal(a6, a7)
     }
 }

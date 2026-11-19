@@ -54,8 +54,8 @@
 \noindent Parameters: \texttt{(digest : ByteArray)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{LexLeanStd.Json.Json}.\par
-\noindent Definition: \texttt{jsonText (LexLeanStd.Numeral.hex (digest))}.\par
-\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\noindent Definition: \texttt{jsonText (digest)}.\par
+\noindent Axiom policy: \texttt{none}.\par
 \subsection*{\texttt{member}}
 \noindent Kind: \texttt{definition}.\par
 \noindent Parameters: \texttt{(key : String) (value : LexLeanStd.Json.Json) (rest : LexLeanStd.Json.Json)}.\par
@@ -107,8 +107,8 @@
 \noindent Parameters: \texttt{(row : FileRow)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{LexLeanStd.Json.Json}.\par
-\noindent Definition: \texttt{LexLeanStd.Json.Json.JObj (member ("kind") (jsonText ((row).kind)) (member ("path") (jsonText ((row).location)) (member ("byte\_length") (LexLeanStd.Json.Json.JInt (false) ((row).byteLength)) (member ("sha256") (jsonDigest ((row).digest)) (LexLeanStd.Json.Json.JNil)))))}.\par
-\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\noindent Definition: \texttt{LexLeanStd.Json.Json.JObj (member ("kind") (jsonText ((row).kind)) (member ("path") (jsonText ((row).location)) (member ("byte\_length") (LexLeanStd.Json.Json.JInt (false) ((row).byteLength)) (member ("kappa") (jsonDigest ((row).digest)) (LexLeanStd.Json.Json.JNil)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
 \subsection*{\texttt{rowsJson}}
 \noindent Kind: \texttt{definition}.\par
 \noindent Parameters: \texttt{(rows : List (FileRow))}.\par
@@ -116,7 +116,7 @@
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{LexLeanStd.Json.Json}.\par
 \noindent Definition: \texttt{LexLeanStd.Json.Json.JArr ((LexLeanCollections.listFold ((fun (acc : LexLeanStd.Json.Json) (row : FileRow) => LexLeanStd.Json.Json.JItem (rowJson (row)) (acc))) (LexLeanStd.Json.Json.JNil) (LexLeanStd.Order.reverseList (FileRow) (rowsSorted (rows))) : LexLeanStd.Json.Json))}.\par
-\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
 \subsection*{\texttt{moduleJson}}
 \noindent Kind: \texttt{definition}.\par
 \noindent Parameters: \texttt{(entry : ModuleRow)}.\par
@@ -137,8 +137,8 @@
 \noindent Parameters: \texttt{(manifest : BuildManifest)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{LexLeanStd.Json.Json}.\par
-\noindent Definition: \texttt{LexLeanStd.Json.Json.JObj (member ("spec") (jsonText (lit ("lexlean/build-manifest/1"))) (member ("compiler") (LexLeanStd.Json.Json.JObj (member ("version") (jsonText ((manifest).compilerVersion)) (member ("semantics\_id") (jsonDigest ((manifest).semanticsId)) (LexLeanStd.Json.Json.JNil)))) (member ("language") (jsonText ((manifest).language)) (member ("project") (jsonText ((manifest).projectName)) (member ("source\_id") (jsonDigest ((manifest).sourceId)) (member ("semantic\_id") (jsonDigest ((manifest).semanticId)) (member ("build\_id") (jsonDigest ((manifest).buildId)) (member ("lean\_toolchain") (jsonText (lit ("leanprover/lean4:v4.32.2"))) (member ("selection") (textArray ((manifest).selection)) (member ("modules") (modulesJson ((manifest).modules)) (member ("inputs") (rowsJson ((manifest).inputs)) (member ("outputs") (rowsJson ((manifest).outputs)) (LexLeanStd.Json.Json.JNil)))))))))))))}.\par
-\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\noindent Definition: \texttt{LexLeanStd.Json.Json.JObj (member ("spec") (jsonText (lit ("lexlean/build-manifest/2"))) (member ("compiler") (LexLeanStd.Json.Json.JObj (member ("version") (jsonText ((manifest).compilerVersion)) (member ("semantics\_id") (jsonDigest ((manifest).semanticsId)) (LexLeanStd.Json.Json.JNil)))) (member ("language") (jsonText ((manifest).language)) (member ("project") (jsonText ((manifest).projectName)) (member ("source\_id") (jsonDigest ((manifest).sourceId)) (member ("semantic\_id") (jsonDigest ((manifest).semanticId)) (member ("build\_id") (jsonDigest ((manifest).buildId)) (member ("lean\_toolchain") (jsonText (lit ("leanprover/lean4:v4.32.2"))) (member ("selection") (textArray ((manifest).selection)) (member ("modules") (modulesJson ((manifest).modules)) (member ("inputs") (rowsJson ((manifest).inputs)) (member ("outputs") (rowsJson ((manifest).outputs)) (LexLeanStd.Json.Json.JNil)))))))))))))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
 \subsection*{\texttt{buildManifest}}
 \noindent Kind: \texttt{definition}.\par
 \noindent Parameters: \texttt{(manifest : BuildManifest)}.\par
