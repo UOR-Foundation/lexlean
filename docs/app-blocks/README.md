@@ -2,7 +2,7 @@
 
 `std-apps` is a source package of proved blocks that an application cites by
 name instead of proving list and state facts again. SPEC.md §17.22
-(*Application building blocks*) is the contract; `SL-15`, `SL-16` and `EX-10`
+(*Application building blocks*) is the contract; `SL-15`, `SL-17` and `EX-10`
 are its register rows. This page says how to use it.
 
 ## Why it exists
@@ -73,14 +73,14 @@ Every declaration of the package is pinned in `std-apps/pins.json`:
 - every other declaration by the SHA-256 of its canonical linked form without
   its proof.
 
-A changed definition, statement, parameter or axiom policy fails `SL-16` and
+A changed definition, statement, parameter or axiom policy fails `SL-17` and
 names the declaration. A changed proof does not.
 
 To change a pinned declaration on purpose:
 
 1. Raise `version` in the pins file and in every importer.
 2. Record the change in `CHANGELOG.md`.
-3. Commit the pins that `SL-16` prints.
+3. Commit the pins that `SL-17` prints.
 
 The pins file sits outside the package's source roots. Announcing a change
 does not move any importer's lock, which pins the bytes (SPEC.md §10.5).

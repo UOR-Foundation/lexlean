@@ -10,7 +10,7 @@ or reflexivity. The cart defines no recursion of its own.
   `LexLeanStdApps.Lines`.
 - **Register rows whose gates run on it** (`model/ids.toml`, level `build`):
   - `EX-10`;
-  - `SL-15` and `SL-16`, whose plants break the lemmas it cites;
+  - `SL-15` and `SL-17`, whose plants break the lemmas it cites;
   - `EX-08` (every example is discovered and must pass the full example gate).
 - **What is claimed.** `cargo xtask verify-examples` runs the project through
   every stage and compares the results with `expected/` byte for byte

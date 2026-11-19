@@ -40,7 +40,7 @@ workspace carried at those versions without a tag.
   with LLV7002 and now verifies. The generated Lean of every module with
   this proof form changes, so the goldens move.
 - The source package `std-apps` (`LexLeanStdApps`) holds proved building
-  blocks for applications (SPEC.md §17.22, `SL-15`, `SL-16`, `EX-10`; no new
+  blocks for applications (SPEC.md §17.22, `SL-15`, `SL-17`, `EX-10`; no new
   diagnostic code; no language identity moves). Its seven modules, `Lists`,
   `Lines`, `Tables`, `Ledger`, `Counter`, `Machine`, and `Access`, are the state
   shapes a survey of forge, verdant-engine, an agent-drafted cart, and the

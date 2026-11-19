@@ -1,5 +1,5 @@
 //! The application building blocks (SPEC.md §17.22): `SL-15`, the `std-apps`
-//! source package of proved blocks; `SL-16`, the pinned identity of each of
+//! source package of proved blocks; `SL-17`, the pinned identity of each of
 //! its declarations; and `EX-10`, the `cart` example built on it.
 //!
 //! The package exists so that an application cites a proved lemma by name
@@ -35,7 +35,7 @@ const SAVINGS: &str = "docs/app-blocks/cart.json";
 /// would have to accept beyond its own proofs.
 const ADMITTED_AXIOMS: &[&str] = &["Classical.choice", "Quot.sound", "propext"];
 
-/// Run the case for `SL-15`, `SL-16`, or `EX-10`.
+/// Run the case for `SL-15`, `SL-17`, or `EX-10`.
 ///
 /// # Panics
 ///
@@ -43,7 +43,7 @@ const ADMITTED_AXIOMS: &[&str] = &["Classical.choice", "Quot.sound", "propext"];
 pub(crate) fn run(id: &str) {
     match id {
         "SL-15" => package(),
-        "SL-16" => pins(),
+        "SL-17" => pins(),
         "EX-10" => cart(),
         other => panic!("no application-block case is wired for {other}"),
     }
@@ -313,32 +313,32 @@ fn unannounced(pinned: &Value, found: &BTreeMap<(String, String), Value>) -> Vec
     changes
 }
 
-/// `SL-16`: the committed pins are the package's identities, every importer
+/// `SL-17`: the committed pins are the package's identities, every importer
 /// declares the pinned version, and a changed definition or a weakened lemma
 /// under a pinned identity is refused, naming it.
 fn pins() {
     let pinned: Value = serde_json::from_str(&read(PINS)).expect("the pins file is JSON");
-    assert_eq!(pinned["spec"], "lexlean/app-block-pins/1", "SL-16");
-    assert_eq!(pinned["package"], PACKAGE, "SL-16");
+    assert_eq!(pinned["spec"], "lexlean/app-block-pins/1", "SL-17");
+    assert_eq!(pinned["package"], PACKAGE, "SL-17");
     let version = pinned["version"].as_str().expect("version").to_owned();
 
     let project = package_project();
     let found = identities(&project);
     assert!(
         !found.is_empty(),
-        "SL-16: the package declares something to pin"
+        "SL-17: the package declares something to pin"
     );
     let changes = unannounced(&pinned, &found);
     assert!(
         changes.is_empty(),
-        "SL-16: the package changed under its pins without an announcement; if the change is intended, raise `version`, record it in CHANGELOG.md, and commit {PINS} as\n{}\nChanges:\n{}",
+        "SL-17: the package changed under its pins without an announcement; if the change is intended, raise `version`, record it in CHANGELOG.md, and commit {PINS} as\n{}\nChanges:\n{}",
         pins_text(&version, &found),
         changes.join("\n")
     );
     assert_eq!(
         read(PINS),
         pins_text(&version, &found),
-        "SL-16: {PINS} is canonical"
+        "SL-17: {PINS} is canonical"
     );
     // Every definition is pinned by its alpha identity and every theorem by
     // its statement: none slips through as neither.
@@ -350,7 +350,7 @@ fn pins() {
         };
         assert!(
             row[field].as_str().is_some_and(|id| id.len() == 64),
-            "SL-16: {module}.{name} is pinned by its {field}"
+            "SL-17: {module}.{name} is pinned by its {field}"
         );
     }
 
@@ -373,11 +373,11 @@ fn pins() {
             importers += 1;
             assert_eq!(
                 package.version, version,
-                "SL-16: `{member}` declares the pinned version of `{PACKAGE}`"
+                "SL-17: `{member}` declares the pinned version of `{PACKAGE}`"
             );
         }
     }
-    assert!(importers > 0, "SL-16: an importer of `{PACKAGE}` exists");
+    assert!(importers > 0, "SL-17: an importer of `{PACKAGE}` exists");
 
     // A changed definition under a pinned identity: the alpha identity moves
     // and the comparison names it.
@@ -387,7 +387,7 @@ fn pins() {
     let site = "| List.cons head rest => ((second head) + (total rest))),";
     assert!(
         text.contains(site),
-        "SL-16: the definition plant site exists"
+        "SL-17: the definition plant site exists"
     );
     changed.write_raw(
         lines,
@@ -398,14 +398,14 @@ fn pins() {
         refused
             .iter()
             .any(|change| change.starts_with("Lines.total changed under its pin")),
-        "SL-16: a changed definition is refused by name: {refused:?}"
+        "SL-17: a changed definition is refused by name: {refused:?}"
     );
 
     // A weakened lemma under a pinned identity: its statement identity moves.
     let weakened = package_project();
     let text = weakened.read_raw(lines);
     let site = "statement: ((amountOf item lines) <= (total lines)),";
-    assert!(text.contains(site), "SL-16: the lemma plant site exists");
+    assert!(text.contains(site), "SL-17: the lemma plant site exists");
     weakened.write_raw(
         lines,
         &text.replacen(
@@ -418,11 +418,11 @@ fn pins() {
     assert_eq!(
         refused.len(),
         1,
-        "SL-16: only the weakened lemma moves: {refused:?}"
+        "SL-17: only the weakened lemma moves: {refused:?}"
     );
     assert!(
         refused[0].starts_with("Lines.amountOf_le_total changed under its pin"),
-        "SL-16: a weakened lemma is refused by name: {refused:?}"
+        "SL-17: a weakened lemma is refused by name: {refused:?}"
     );
 
     // A proof that changes is not an identity change: the statement is what
@@ -430,7 +430,7 @@ fn pins() {
     let reproved = package_project();
     let text = reproved.read_raw(lines);
     let site = "proof: linear_arithmetic{definitions: [addLine, total]},";
-    assert!(text.contains(site), "SL-16: the proof plant site exists");
+    assert!(text.contains(site), "SL-17: the proof plant site exists");
     reproved.write_raw(
         lines,
         &text.replacen(
@@ -441,7 +441,7 @@ fn pins() {
     );
     assert!(
         unannounced(&pinned, &identities(&reproved)).is_empty(),
-        "SL-16: a changed proof keeps every pinned identity"
+        "SL-17: a changed proof keeps every pinned identity"
     );
 }
 

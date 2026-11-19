@@ -12408,10 +12408,10 @@ of `std-models`, `std-reasoning`, and `examples/helpdesk`, and
 `cargo xtask check-production-export --write` only
 `tests/production-export/helpdesk/`.
 
-### the application building blocks, their pins, and the cart can fail (`SL-15`, `SL-16`, `EX-10`)
+### the application building blocks, their pins, and the cart can fail (`SL-15`, `SL-17`, `EX-10`)
 
 The three cases were registered before their records existed (R3). With no
-pins file committed, `conformance_sl_16` failed at its first read:
+pins file committed, `conformance_sl_17` failed at its first read:
 
 ```text
 std-apps/pins.json: The system cannot find the file specified. (os error 2)
@@ -12424,7 +12424,7 @@ That text is the committed `std-apps/pins.json`.
 Each case also carries its plants and runs them every time. `conformance_sl_15`
 weakens `total_removeIf` to an inequality in a copy. The package still
 verifies, and the cart, which cites the lemma, is refused with `LLV7002`.
-`conformance_sl_16` changes the body of `total`, weakens `amountOf_le_total`,
+`conformance_sl_17` changes the body of `total`, weakens `amountOf_le_total`,
 and changes the proof of `total_addLine` in copies. The first two are refused
 by name, and the third keeps every pin.
 
@@ -12436,12 +12436,12 @@ own, cut for width. They were run on a Windows x86-64 host with the pinned
 
 | Planted defect | Case | Observed |
 | --- | --- | --- |
-| `Lines.total` drops the amount of its head | `conformance_sl_16` | `Lines.total changed under its pin: pinned {"alpha_id":"6f6a19d2…"}, found {"alpha_id":"0c32d785…"}` |
-| `total_removeIf` is weakened to an inequality | `conformance_sl_16` | `Lines.total_removeIf changed under its pin: pinned {"statement_id":"f6f3b0ec…"}, found {"statement_id":"07379f41…"}` |
+| `Lines.total` drops the amount of its head | `conformance_sl_17` | `Lines.total changed under its pin: pinned {"alpha_id":"6f6a19d2…"}, found {"alpha_id":"0c32d785…"}` |
+| `total_removeIf` is weakened to an inequality | `conformance_sl_17` | `Lines.total_removeIf changed under its pin: pinned {"statement_id":"f6f3b0ec…"}, found {"statement_id":"07379f41…"}` |
 | a cart theorem is proved by `simplify` | `conformance_ex_10` | `EX-10: every cart proof is one step: name: addKnownAccepted` |
 | the savings record counts 13 theorems | `conformance_ex_10` | `EX-10: the record counts the cart's theorems` (`left: Some(13)`, `right: Some(12)`) |
 
-On the same host the three cases pass: `conformance_sl_16` in 2.9 s,
+On the same host the three cases pass: `conformance_sl_17` in 2.9 s,
 `conformance_sl_15` in 215.8 s, which includes verifying the package and
 refusing the weakened lemma's importer, and `conformance_ex_10` in 54.0 s.
 

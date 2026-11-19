@@ -1,0 +1,34 @@
+module
+import LexLeanStd.Blake3
+#print axioms LexLeanStd.Blake3.Digest
+#print axioms LexLeanStd.Blake3.Quad
+#print axioms LexLeanStd.Blake3.Words
+#print axioms LexLeanStd.Blake3.add
+#print axioms LexLeanStd.Blake3.blake3
+#print axioms LexLeanStd.Blake3.blake3Hex
+#print axioms LexLeanStd.Blake3.blockWord
+#print axioms LexLeanStd.Blake3.byteAt
+#print axioms LexLeanStd.Blake3.chunkChain
+#print axioms LexLeanStd.Blake3.collapse
+#print axioms LexLeanStd.Blake3.compress
+#print axioms LexLeanStd.Blake3.hexDigest
+#print axioms LexLeanStd.Blake3.hexDigit
+#print axioms LexLeanStd.Blake3.hexWord
+#print axioms LexLeanStd.Blake3.initial
+#print axioms LexLeanStd.Blake3.load
+#print axioms LexLeanStd.Blake3.mix
+#print axioms LexLeanStd.Blake3.narrow
+#print axioms LexLeanStd.Blake3.official_0
+#print axioms LexLeanStd.Blake3.official_1
+#print axioms LexLeanStd.Blake3.parent
+#print axioms LexLeanStd.Blake3.permute
+#print axioms LexLeanStd.Blake3.pieceChain
+#print axioms LexLeanStd.Blake3.pieceRoot
+#print axioms LexLeanStd.Blake3.push
+#print axioms LexLeanStd.Blake3.rotateRight
+#print axioms LexLeanStd.Blake3.round
+#print axioms LexLeanStd.Blake3.shiftLeft
+#print axioms LexLeanStd.Blake3.shiftRight
+#print axioms LexLeanStd.Blake3.tree
+#print axioms LexLeanStd.Blake3.widen
+#print axioms LexLeanStd.Blake3.wordOfNat
