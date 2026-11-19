@@ -173,7 +173,20 @@ Measured in the same Chromium tab on the 4.32.2 kernel:
 | 20,000 generated theorems, first time, 8 kernels | 32 s |
 | The same after one edit | 0.19 s |
 
-**Not done.** No Firefox, Safari or phone has run it; only Chromium is installed here. The build needs WebAssembly exception handling and module workers, which current Firefox and Safari have, and it uses no threads or shared memory. Peers: declarations are stored by label but nothing was sent between tabs, so `KappaSync` is untested.
+**Other engines.** The same pin, unchanged, was then run headless in Playwright's Firefox 159 and WebKit 27.2 builds on the same desktop:
+
+| | Firefox 159 | WebKit 27.2 |
+| --- | --- | --- |
+| Store chosen | Hologram on OPFS | IndexedDB (OPFS writes failed there, so the fallback took over) |
+| Real `Kernels`, first visit | 2.2 s | 1.9 s |
+| Real `Kernels`, returning visit | under 1 ms, ready 0.15 s after the page starts, no kernel | under 1 ms, ready 0.35 s, no kernel |
+| 2,000 generated theorems, first time, 6 kernels | 5.8 s | 6.0 s |
+| The same after one edit | 0.11 s | 0.13 s |
+| One false theorem among 600 | fails alone | fails alone |
+
+No code was changed for either engine. Playwright's WebKit on Windows is the engine Safari uses, not Safari itself, and it ran on desktop hardware.
+
+**Not done.** No Safari on macOS or iOS, and no phone, has run it. Peers: declarations are stored by label but nothing was sent between tabs, so `KappaSync` is untested.
 
 **Open in the design.** Adding a theorem changes the module's list of names, which invalidates every chunk address. A finer rule would bind a chunk only to the names it mentions.
 
