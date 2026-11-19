@@ -2803,7 +2803,7 @@ pub fn probe_lean(
             },
         );
     }
-    let hex32: String = checked.semantic_id.label()[..32].to_owned();
+    let hex32: String = checked.semantic_id.hex()[..32].to_owned();
     let probe = lexlean::backend::lean::probe_module(&hex32, &externals, &checked.closure)
         .expect("probe renders");
     let _guard = env_shared();

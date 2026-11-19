@@ -904,11 +904,10 @@ fn tl_03() {
     plants.finish("TL-03");
 
     // The pins are the toolchain's own files: with the pinned toolchain
-    // installed, every digest is the SHA-256 of that file of its source tree.
+    // installed, every digest is the κ-label of that file of its source tree.
     if !support::lean_backed("TL-03") {
         return;
     }
-    use sha2::{Digest, Sha256};
     let toolchain = support::real_elan_home()
         .join("toolchains")
         .join(support::mangled_toolchain_name());
@@ -923,10 +922,7 @@ fn tl_03() {
             let path = toolchain.join(file);
             let bytes = std::fs::read(&path)
                 .unwrap_or_else(|error| panic!("{fixture}: {}: {error}", path.display()));
-            let digest: String = Sha256::digest(&bytes)
-                .iter()
-                .map(|byte| format!("{byte:02x}"))
-                .collect();
+            let digest = lexlean::artifact::content_id::Kappa::of(&bytes).label();
             assert_eq!(
                 pin["kappa"], digest,
                 "{fixture}: `{}` pins a digest that is not the pinned toolchain's {file}",

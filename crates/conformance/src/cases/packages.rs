@@ -118,7 +118,11 @@ fn pk_01() {
     assert!(lock.contains("imports = [\"base@1.0.0\"]\n"));
     for id in ["base", "lib"] {
         for field in ["tree_kappa", "manifest_kappa"] {
-            assert_eq!(locked(&lock, id, field).len(), 64, "{id} {field}");
+            let value = locked(&lock, id, field);
+            assert!(
+                lexlean::artifact::content_id::Kappa::parse(&value).is_ok(),
+                "{id} {field} is a κ-label: {value}"
+            );
         }
     }
     let engine = app.engine();

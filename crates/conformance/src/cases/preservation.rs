@@ -3508,7 +3508,7 @@ pub fn run(id: &str) {
                 let checked = support::checked_project(&project);
                 let limits = support::limits(&project);
                 let linked = linked_modules(&checked);
-                let hex = checked.semantic_id.label()[..32].to_owned();
+                let hex = checked.semantic_id.hex()[..32].to_owned();
                 for (index, root) in roots(&checked).expect("the reports").iter().enumerate() {
                     let lowered =
                         lower_root(&linked, &root.module, &root.name, root.report, &limits)
@@ -3812,7 +3812,7 @@ pub fn run(id: &str) {
                 let checked = support::checked_project(&project);
                 let limits = support::limits(&project);
                 let linked = linked_modules(&checked);
-                let hex = checked.semantic_id.label()[..32].to_owned();
+                let hex = checked.semantic_id.hex()[..32].to_owned();
                 let environment: BTreeSet<String> =
                     lexlean::production::certificate::LIBRARY_MODULES
                         .iter()
@@ -4341,7 +4341,7 @@ pub fn run(id: &str) {
                 let checked = support::checked_project(&project);
                 let limits = support::limits(&project);
                 let linked = linked_modules(&checked);
-                let hex = checked.semantic_id.label()[..32].to_owned();
+                let hex = checked.semantic_id.hex()[..32].to_owned();
                 let environment: BTreeSet<String> =
                     [lexlean::production::rust_cert::SOUNDNESS_MODULE.to_owned()]
                         .into_iter()

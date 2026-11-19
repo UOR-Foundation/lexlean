@@ -67,7 +67,8 @@ pub fn bound_to_source(committed: &Committed) -> Result<(), String> {
         ));
     }
     let audit = root.join("compiler/expected/verify/audit");
-    let reserved = format!("LexLeanAudit.A{}.", &semantic[..32]);
+    let kappa = lexlean::artifact::content_id::Kappa::parse(&semantic)?;
+    let reserved = format!("LexLeanAudit.A{}.", &kappa.hex()[..32]);
     let verified = std::fs::read_dir(audit.as_std_path())
         .map_err(|error| format!("{audit}: {error}"))?
         .flatten()
