@@ -380,3 +380,592 @@ pub(crate) fn cli() {
         }
     }
 }
+
+/// The example projects that check: every directory of `examples/` with a
+/// `lexlean.toml` whose native `check` exits 0.
+fn checking_examples() -> Vec<Utf8PathBuf> {
+    let root = support::repo_root();
+    let mut examples: Vec<Utf8PathBuf> = std::fs::read_dir(root.join("examples").as_std_path())
+        .expect("examples")
+        .flatten()
+        .filter(|entry| entry.path().join("lexlean.toml").is_file())
+        .filter_map(|entry| Utf8PathBuf::from_path_buf(entry.path()).ok())
+        .collect();
+    examples.sort();
+    examples
+        .into_iter()
+        .filter(|source| native(&copy(source).root, &["check"]).0 == 0)
+        .collect()
+}
+
+/// CL-26.
+pub(crate) fn snapshot() {
+    use sha2::{Digest, Sha256};
+
+    let examples = checking_examples();
+    assert!(
+        examples.len() >= 3,
+        "CL-26: {} example projects check",
+        examples.len()
+    );
+    let mut native_bytes = Vec::new();
+    for source in &examples {
+        let project = copy(source);
+        let before = support::file_set(&project.root);
+        // Human mode: stdout is exactly the snapshot's canonical file bytes,
+        // the bytes the public API serializes, and nothing else.
+        let (exit, stdout, stderr) = native(&project.root, &["snapshot"]);
+        assert_eq!(exit, 0, "CL-26: {source}: snapshot exits 0: {stderr}");
+        assert!(
+            stderr.is_empty(),
+            "CL-26: {source}: nothing on stderr: {stderr}"
+        );
+        let engine = project.engine();
+        let expected = engine
+            .snapshot(lexlean::api::CheckRequest {
+                selection: lexlean::api::Selection::Entrypoints,
+            })
+            .expect("the snapshot of a project that checks");
+        assert_eq!(
+            stdout.as_bytes(),
+            expected.canonical_bytes().as_slice(),
+            "CL-26: {source}: stdout is the snapshot's canonical bytes"
+        );
+        assert_eq!(
+            Sha256::digest(stdout.as_bytes()).as_slice(),
+            expected.snapshot_id().0.as_slice(),
+            "CL-26: {source}: the snapshot ID is the SHA-256 of stdout"
+        );
+        // The same IDs `check` reports, and the selection's own spec.
+        let (_, checked, _) = native(&project.root, &["--diagnostic-format", "json", "check"]);
+        let checked: serde_json::Value = serde_json::from_str(&checked).expect("check JSON");
+        let document: serde_json::Value = serde_json::from_str(&stdout).expect("snapshot JSON");
+        assert_eq!(
+            document["semantic_id"], checked["semantic_id"],
+            "CL-26: {source}: semantic ID"
+        );
+        assert_eq!(
+            document["source_id"], checked["source_id"],
+            "CL-26: {source}: source ID"
+        );
+        assert_eq!(
+            document["spec"],
+            serde_json::Value::from(lexlean::artifact::snapshot::snapshot_spec(
+                expected.language()
+            )),
+            "CL-26: {source}: the snapshot spec of the project's language"
+        );
+        // JSON mode: one command result, as `check` reports it, under `snapshot`.
+        let (exit, result, _) = native(&project.root, &["--diagnostic-format", "json", "snapshot"]);
+        let result: serde_json::Value = serde_json::from_str(&result).expect("command result");
+        assert_eq!(exit, 0, "CL-26: {source}: json snapshot exits 0");
+        assert_eq!(
+            result["command"], "snapshot",
+            "CL-26: {source}: the command result names snapshot"
+        );
+        assert_eq!(
+            result["semantic_id"], checked["semantic_id"],
+            "CL-26: {source}: json semantic ID"
+        );
+        assert_eq!(
+            result["modules"], checked["modules"],
+            "CL-26: {source}: json modules"
+        );
+        // It reads the project and writes nothing, like `check`.
+        assert_eq!(
+            support::file_set(&project.root),
+            before,
+            "CL-26: {source}: nothing is written"
+        );
+        native_bytes.push((source.clone(), stdout));
+    }
+
+    // A project `check` refuses gives no snapshot: the same exit code and
+    // diagnostics, and nothing on stdout in human mode.
+    let refused = copy(&support::repo_root().join("examples/nat-add-zero"));
+    std::fs::write(
+        refused.root.join("src/Main.lex.tex").as_std_path(),
+        "\\begin{lexlean}{Main}\n",
+    )
+    .expect("write a broken module");
+    let (check_exit, check_json, _) =
+        native(&refused.root, &["--diagnostic-format", "json", "check"]);
+    let (exit, stdout, stderr) = native(&refused.root, &["snapshot"]);
+    assert_ne!(
+        check_exit, 0,
+        "CL-26: the broken module is refused by check"
+    );
+    assert_eq!(
+        exit, check_exit,
+        "CL-26: snapshot exits as check does on a refused project"
+    );
+    assert!(
+        stdout.is_empty(),
+        "CL-26: a refused project prints no snapshot: {stdout}"
+    );
+    assert!(
+        !stderr.is_empty(),
+        "CL-26: a refused project's diagnostics are on stderr"
+    );
+    let (_, json, _) = native(&refused.root, &["--diagnostic-format", "json", "snapshot"]);
+    let json: serde_json::Value = serde_json::from_str(&json).expect("command result");
+    let check_json: serde_json::Value = serde_json::from_str(&check_json).expect("command result");
+    assert_eq!(
+        json["diagnostics"], check_json["diagnostics"],
+        "CL-26: the same diagnostics as check"
+    );
+
+    // On WASI the snapshot is the same bytes: it holds no path or host data
+    // (§24.1), so a browser worker gets what the native executable prints.
+    if !wasi_backed("CL-26") {
+        return;
+    }
+    let module = build();
+    let scratch = tempfile::Builder::new()
+        .prefix("lexlean-wasi-snapshot-")
+        .tempdir()
+        .expect("tempdir");
+    let host = Utf8PathBuf::from_path_buf(scratch.path().join("host.mjs")).expect("utf8 path");
+    std::fs::write(host.as_std_path(), HOST).expect("write the host");
+    for (source, bytes) in &native_bytes {
+        let project = copy(source);
+        let (exit, stdout, stderr) = wasi(&module, &host, &project.root, &["snapshot"]);
+        assert_eq!(
+            exit, 0,
+            "CL-26: {source}: snapshot on WASI exits 0: {stderr}"
+        );
+        assert!(
+            stdout == *bytes,
+            "CL-26: {source}: the WASI snapshot is the native snapshot, byte for byte"
+        );
+    }
+    eprintln!(
+        "CL-26: {} snapshots agree between the native and the WASI executable",
+        native_bytes.len()
+    );
+}
+
+/// The Lean module names a generated Lean text imports.
+fn lean_imports(text: &str) -> Vec<&str> {
+    text.lines()
+        .filter_map(|line| {
+            line.strip_prefix("public import ")
+                .or_else(|| line.strip_prefix("import "))
+                .map(str::trim)
+        })
+        .collect()
+}
+
+/// CL-27.
+#[allow(clippy::too_many_lines)]
+pub(crate) fn lean_modules() {
+    use lexlean::artifact::content_id::Sha256Digest;
+
+    let examples = checking_examples();
+    assert!(
+        examples.len() >= 3,
+        "CL-27: {} example projects check",
+        examples.len()
+    );
+    let mut native_bytes = Vec::new();
+    let mut runtime_seen = false;
+    for source in &examples {
+        let project = copy(source);
+        let before = support::file_set(&project.root);
+        // Human mode: one canonical document and nothing else; nothing is
+        // written, so no lock is taken and no build root is made.
+        let (exit, stdout, stderr) = native(&project.root, &["lean-modules"]);
+        assert_eq!(exit, 0, "CL-27: {source}: lean-modules exits 0: {stderr}");
+        assert!(
+            stderr.is_empty(),
+            "CL-27: {source}: nothing on stderr: {stderr}"
+        );
+        assert_eq!(
+            support::file_set(&project.root),
+            before,
+            "CL-27: {source}: nothing is written"
+        );
+        let document: serde_json::Value = serde_json::from_str(&stdout).expect("document JSON");
+        assert_eq!(
+            lexlean::artifact::canonical_json::Json::parse(stdout.as_bytes())
+                .expect("canonical JSON")
+                .to_file_bytes(),
+            stdout.as_bytes(),
+            "CL-27: {source}: the document is canonical JSON"
+        );
+        assert_eq!(
+            document["spec"], "lexlean/lean-modules/1",
+            "CL-27: {source}"
+        );
+
+        // What `build` publishes for the same selection: the same build ID,
+        // and for each Lean output of its manifest exactly the bytes and the
+        // module the document gives, and the toolchain and compiler it pins.
+        let (exit, built, stderr) =
+            native(&project.root, &["--diagnostic-format", "json", "build"]);
+        assert_eq!(exit, 0, "CL-27: {source}: build exits 0: {stderr}");
+        let built: serde_json::Value = serde_json::from_str(&built).expect("build result");
+        assert_eq!(
+            document["build_id"], built["build_id"],
+            "CL-27: {source}: the build ID build publishes"
+        );
+        let build_dir = project
+            .root
+            .join(built["artifacts"][0].as_str().expect("the build directory"));
+        let manifest: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(build_dir.join("manifest.json").as_std_path()).expect("manifest"),
+        )
+        .expect("manifest JSON");
+        for key in [
+            "language",
+            "lean_toolchain",
+            "compiler",
+            "source_id",
+            "semantic_id",
+        ] {
+            assert_eq!(
+                document[key], manifest[key],
+                "CL-27: {source}: `{key}` is the manifest's"
+            );
+        }
+        let rows = document["modules"].as_array().expect("modules");
+        let project_rows: Vec<&serde_json::Value> =
+            rows.iter().filter(|row| row["kind"] == "project").collect();
+        let lean_outputs: Vec<&serde_json::Value> = manifest["outputs"]
+            .as_array()
+            .expect("outputs")
+            .iter()
+            .filter(|row| row["kind"] == "lean")
+            .collect();
+        assert_eq!(
+            project_rows.len(),
+            lean_outputs.len(),
+            "CL-27: {source}: one project row per Lean file build writes"
+        );
+        for row in &project_rows {
+            let lean_module = row["lean_module"].as_str().expect("lean_module");
+            let path = format!("modules/{}.lean", lean_module.replace('.', "/"));
+            let written =
+                std::fs::read(build_dir.join(&path).as_std_path()).expect("the built Lean file");
+            let text = row["text"].as_str().expect("text");
+            assert!(
+                text.as_bytes() == written.as_slice(),
+                "CL-27: {source}: {lean_module} is the bytes build writes at {path}"
+            );
+            let output = lean_outputs
+                .iter()
+                .find(|output| output["path"] == path.as_str())
+                .unwrap_or_else(|| panic!("CL-27: {source}: the manifest lists {path}"));
+            assert_eq!(output["sha256"], row["sha256"], "CL-27: {source}: {path}");
+            let module = row["module"].as_str().expect("module");
+            assert!(
+                manifest["modules"]
+                    .as_array()
+                    .expect("manifest modules")
+                    .iter()
+                    .any(|m| m["module"] == module && m["lean_module"] == lean_module),
+                "CL-27: {source}: {module} is {lean_module} in the manifest"
+            );
+        }
+        // The shipped modules are the compiler's own, and every module comes
+        // after every module of the document it imports.
+        for (index, row) in rows.iter().enumerate() {
+            let lean_module = row["lean_module"].as_str().expect("lean_module");
+            let text = row["text"].as_str().expect("text");
+            assert_eq!(
+                row["sha256"].as_str().expect("sha256"),
+                Sha256Digest::of(text.as_bytes()).to_hex(),
+                "CL-27: {source}: {lean_module}'s digest"
+            );
+            match row["kind"].as_str().expect("kind") {
+                "project" => {}
+                "runtime" => {
+                    runtime_seen = true;
+                    let shipped = lexlean::backend::runtime::modules()
+                        .expect("the runtime")
+                        .iter()
+                        .find(|module| module.name == lean_module)
+                        .unwrap_or_else(|| panic!("CL-27: {lean_module} is a runtime module"));
+                    assert!(shipped.text == text, "CL-27: {source}: {lean_module}");
+                }
+                "text-laws" => assert_eq!(
+                    lexlean::text_laws::lean_text(lean_module).expect("a text-laws module"),
+                    text,
+                    "CL-27: {source}: {lean_module}"
+                ),
+                other => panic!("CL-27: {source}: kind `{other}`"),
+            }
+            for import in lean_imports(text) {
+                if let Some(at) = rows.iter().position(|other| other["lean_module"] == import) {
+                    assert!(
+                        at < index,
+                        "CL-27: {source}: {import} precedes {lean_module}, which imports it"
+                    );
+                }
+            }
+        }
+
+        // JSON mode: one command result with check's IDs and the build ID.
+        let fresh = copy(source);
+        let (_, checked, _) = native(&fresh.root, &["--diagnostic-format", "json", "check"]);
+        let checked: serde_json::Value = serde_json::from_str(&checked).expect("check JSON");
+        let (exit, result, _) = native(
+            &fresh.root,
+            &["--diagnostic-format", "json", "lean-modules"],
+        );
+        let result: serde_json::Value = serde_json::from_str(&result).expect("command result");
+        assert_eq!(exit, 0, "CL-27: {source}: json lean-modules exits 0");
+        assert_eq!(result["command"], "lean-modules", "CL-27: {source}");
+        for key in ["source_id", "semantic_id", "modules"] {
+            assert_eq!(result[key], checked[key], "CL-27: {source}: json `{key}`");
+        }
+        assert_eq!(
+            result["build_id"], document["build_id"],
+            "CL-27: {source}: json build ID"
+        );
+        assert_eq!(
+            result["artifacts"],
+            serde_json::json!([]),
+            "CL-27: {source}: no artifact is named"
+        );
+        native_bytes.push((source.clone(), stdout));
+    }
+    assert!(
+        runtime_seen,
+        "CL-27: some example imports the runtime, so its modules are compared"
+    );
+
+    // A project `check` refuses prints no document: the same exit code and
+    // diagnostics, and nothing on stdout in human mode.
+    let refused = copy(&support::repo_root().join("examples/nat-add-zero"));
+    std::fs::write(
+        refused.root.join("src/Main.lex.tex").as_std_path(),
+        "\\begin{lexlean}{Main}\n",
+    )
+    .expect("write a broken module");
+    let (check_exit, check_json, _) =
+        native(&refused.root, &["--diagnostic-format", "json", "check"]);
+    let (exit, stdout, stderr) = native(&refused.root, &["lean-modules"]);
+    assert_ne!(
+        check_exit, 0,
+        "CL-27: the broken module is refused by check"
+    );
+    assert_eq!(exit, check_exit, "CL-27: lean-modules exits as check does");
+    assert!(
+        stdout.is_empty(),
+        "CL-27: a refused project prints nothing: {stdout}"
+    );
+    assert!(!stderr.is_empty(), "CL-27: its diagnostics are on stderr");
+    let (_, json, _) = native(
+        &refused.root,
+        &["--diagnostic-format", "json", "lean-modules"],
+    );
+    let json: serde_json::Value = serde_json::from_str(&json).expect("command result");
+    let check_json: serde_json::Value = serde_json::from_str(&check_json).expect("command result");
+    assert_eq!(
+        json["diagnostics"], check_json["diagnostics"],
+        "CL-27: the same diagnostics as check"
+    );
+
+    // On WASI, where `build` is refused for want of a lock, the same bytes:
+    // the document holds no path or host data.
+    if !wasi_backed("CL-27") {
+        return;
+    }
+    let module = build();
+    let scratch = tempfile::Builder::new()
+        .prefix("lexlean-wasi-lean-modules-")
+        .tempdir()
+        .expect("tempdir");
+    let host = Utf8PathBuf::from_path_buf(scratch.path().join("host.mjs")).expect("utf8 path");
+    std::fs::write(host.as_std_path(), HOST).expect("write the host");
+    for (source, bytes) in &native_bytes {
+        let project = copy(source);
+        let before = support::file_set(&project.root);
+        let (exit, stdout, stderr) = wasi(&module, &host, &project.root, &["lean-modules"]);
+        assert_eq!(
+            exit, 0,
+            "CL-27: {source}: lean-modules on WASI exits 0: {stderr}"
+        );
+        assert!(
+            stdout == *bytes,
+            "CL-27: {source}: the WASI document is the native document, byte for byte"
+        );
+        assert_eq!(
+            support::file_set(&project.root),
+            before,
+            "CL-27: {source}: nothing is written on WASI"
+        );
+        // `build` stays refused there, so this command is the way to the
+        // bytes it would publish.
+        let (exit, _, _) = wasi(&module, &host, &project.root, &["build"]);
+        assert_eq!(exit, 3, "CL-27: {source}: build is refused on WASI");
+    }
+    eprintln!(
+        "CL-27: {} documents agree between the native and the WASI executable",
+        native_bytes.len()
+    );
+}
+
+/// The policy rows a verification attests for a `lexlean/lean-modules/1`
+/// document, in its order: one per entry, a model's members in its place, a
+/// `core` entry only when the attestation holds it (stage 11 skips a core
+/// name the audit does not report). Each is `(rule, name, kind, axioms)`.
+fn attested_rows(document: &serde_json::Value) -> Vec<(String, String, String, serde_json::Value)> {
+    // The stage reads the project's modules in module order, then the
+    // runtime modules; the document lists them in elaboration order.
+    let mut modules: Vec<&serde_json::Value> = document["modules"]
+        .as_array()
+        .expect("modules")
+        .iter()
+        .filter(|module| module["kind"] == "project")
+        .collect();
+    modules.sort_by_key(|module| module["module"].as_str().unwrap_or_default().to_owned());
+    modules.extend(
+        document["modules"]
+            .as_array()
+            .expect("modules")
+            .iter()
+            .filter(|module| module["kind"] == "runtime"),
+    );
+    let mut rows = Vec::new();
+    for module in modules {
+        for policy in module["axiom_policies"].as_array().expect("axiom_policies") {
+            let rule = policy["rule"].as_str().expect("rule").to_owned();
+            let axioms = policy["axioms"].clone();
+            if rule == "model" {
+                for member in policy["members"].as_array().expect("members") {
+                    rows.push((
+                        rule.clone(),
+                        member.as_str().expect("member").to_owned(),
+                        "allow".to_owned(),
+                        axioms.clone(),
+                    ));
+                }
+            } else {
+                rows.push((
+                    rule,
+                    policy["declaration"]
+                        .as_str()
+                        .expect("declaration")
+                        .to_owned(),
+                    policy["kind"].as_str().expect("kind").to_owned(),
+                    axioms,
+                ));
+            }
+        }
+    }
+    rows
+}
+
+/// CL-28.
+pub(crate) fn lean_module_policies() {
+    let root = support::repo_root();
+    let mut rules: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    // Without Lean: the table of every example that checks names every rule
+    // in the shape a host reads, and a model names the members it governs.
+    for source in checking_examples() {
+        let project = copy(&source);
+        let (exit, stdout, stderr) = native(&project.root, &["lean-modules"]);
+        assert_eq!(exit, 0, "CL-28: {source}: {stderr}");
+        let document: serde_json::Value = serde_json::from_str(&stdout).expect("document");
+        for module in document["modules"].as_array().expect("modules") {
+            let policies = module["axiom_policies"].as_array().expect("axiom_policies");
+            if module["kind"] == "text-laws" {
+                assert!(
+                    policies.is_empty(),
+                    "CL-28: {source}: stage 11 holds no text-laws declaration"
+                );
+            }
+            for policy in policies {
+                let rule = policy["rule"].as_str().expect("rule");
+                let kind = policy["kind"].as_str().expect("kind");
+                assert!(
+                    ["none", "allow", "exact"].contains(&kind),
+                    "CL-28: {source}: kind {kind}"
+                );
+                let axioms = policy["axioms"].as_array().expect("axioms");
+                if kind == "none" {
+                    assert!(axioms.is_empty(), "CL-28: {source}: {policy}");
+                }
+                match rule {
+                    "document" | "core" | "semantic" => assert!(policy.get("members").is_none()),
+                    // A model that generates nothing governs no member, and
+                    // then its union is empty.
+                    "model" => assert!(
+                        policy["members"].is_array(),
+                        "CL-28: {source}: a model names the declarations it governs"
+                    ),
+                    "runtime" => {
+                        assert_eq!(
+                            kind, "exact",
+                            "CL-28: {source}: a runtime declaration is exact"
+                        );
+                        assert_eq!(module["kind"], "runtime", "CL-28: {source}");
+                    }
+                    other => panic!("CL-28: {source}: rule `{other}`"),
+                }
+                rules.insert(rule.to_owned());
+            }
+        }
+    }
+    for rule in ["document", "core", "semantic", "model", "runtime"] {
+        assert!(
+            rules.contains(rule),
+            "CL-28: some example has a `{rule}` entry"
+        );
+    }
+
+    // With Lean: what `verify` attests is exactly the table, row for row in
+    // its order, on examples that between them use every rule but `core`,
+    // whose rule is the document rule but for an unreported name.
+    for name in ["peano-arithmetic", "list-induction", "models"] {
+        let project = copy(&root.join("examples").join(name));
+        let (exit, stdout, stderr) = native(&project.root, &["lean-modules"]);
+        assert_eq!(exit, 0, "CL-28: {name}: {stderr}");
+        let document: serde_json::Value = serde_json::from_str(&stdout).expect("document");
+        let Some(verified) = support::verify_ok_backed("CL-28", &project) else {
+            return;
+        };
+        let attestation: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(verified.root.join("attestation.json").as_std_path())
+                .expect("attestation"),
+        )
+        .expect("attestation JSON");
+        let attested: Vec<(String, String, serde_json::Value)> = attestation["declarations"]
+            .as_array()
+            .expect("declarations")
+            .iter()
+            .map(|row| {
+                (
+                    row["name"].as_str().expect("name").to_owned(),
+                    row["policy"]["kind"].as_str().expect("kind").to_owned(),
+                    row["policy"]["axioms"].clone(),
+                )
+            })
+            .collect();
+        let names: std::collections::BTreeSet<&str> =
+            attested.iter().map(|row| row.0.as_str()).collect();
+        let expected: Vec<(String, String, serde_json::Value)> = attested_rows(&document)
+            .into_iter()
+            .filter(|(rule, name, _, _)| rule != "core" || names.contains(name.as_str()))
+            .map(|(_, name, kind, axioms)| (name, kind, axioms))
+            .collect();
+        assert!(!expected.is_empty(), "CL-28: {name} has policies");
+        assert_eq!(
+            attested.len(),
+            expected.len(),
+            "CL-28: {name}: verify attests one row per printed row"
+        );
+        for (index, (attested, printed)) in attested.iter().zip(&expected).enumerate() {
+            assert_eq!(
+                attested, printed,
+                "CL-28: {name}: row {index}: verify attests the printed row"
+            );
+        }
+        eprintln!(
+            "CL-28: {name}: {} attested rows are the printed table",
+            attested.len()
+        );
+    }
+}

@@ -17,6 +17,42 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- `lexlean lean-modules` prints each module's axiom policies (SPEC.md §22.6,
+  §23.4, `CL-28`). Verification's policy stage now evaluates one table,
+  `lexlean::verify::policy::table`, and the command prints that same table
+  under `axiom_policies`, so a host that elaborates the modules itself holds
+  them to exactly the rules `verify` applies. Each row gives the declaration,
+  its policy kind and axioms, and its rule: `document`, `core`, `semantic`,
+  `model` with the generated declarations it governs, or `runtime`. Stage 11
+  keeps its diagnostics and attestation rows byte for byte. No language
+  identity moves; the register is 502.
+- `lexlean lean-modules [--all | INPUT...]` prints the Lean modules a build
+  of a selection elaborates (SPEC.md §23.4, `CL-27`). It renders the build as
+  `build` does and publishes nothing, so it takes no lock and writes nothing,
+  and the executable built for `wasm32-wasip1`, where `build` is refused,
+  prints the native bytes. Human mode writes one canonical
+  `lexlean/lean-modules/1` document: the manifest's compiler, language, Lean
+  toolchain, and source, semantic, and build IDs, then every module in the
+  order verification elaborates it, the shipped text-laws and runtime modules
+  the project imports first, each with its Lean module name, exact text, and
+  SHA-256. A project module's text is the file `build` writes under that build
+  ID, byte for byte. JSON mode writes `check`'s command result named
+  `lean-modules` with the build ID. A host with Lean and no file lock, such as
+  a browser worker, can now elaborate exactly what native LexLean generates.
+  On `wasm32-wasip1` the printer of a native core module now runs on the
+  instance's one stack instead of a thread WASI cannot start, which refused
+  `examples/uor-atlas` with `LLS8002`; no native output changes. No language
+  identity moves; the register is 501.
+- `lexlean snapshot [--all | INPUT...]` writes the semantic snapshot of a
+  selection (SPEC.md §23.4, `CL-26`). In human mode its stdout is exactly the
+  snapshot's canonical file bytes, the bytes `Engine::snapshot` serializes, so
+  their SHA-256 is the snapshot ID; in JSON mode it writes the command result
+  `check` writes, named `snapshot`. A project `check` refuses exits and
+  reports as `check` does and prints no snapshot, and the command writes
+  nothing. Since a snapshot holds no path or host data, the executable built
+  for `wasm32-wasip1` prints the native bytes, so a WASI host with no other
+  host, such as a browser worker, can take a model's snapshot. No language
+  identity moves; the register is 500.
 - A release tag publishes what a browser prover loads (SPEC.md §7, §30.3,
   `RP-20`). `lexlean-<version>-lean-wasm.tar.gz` holds the `.olean`,
   `.olean.server`, `.olean.private`, `.ir`, and `.ilean` files of every runtime
@@ -27,7 +63,7 @@ workspace carried at those versions without a tag.
   without `production-data`. Each is built twice and refused unless the two
   builds agree. `lean-wasm.json` labels every file by the BLAKE3 κ of its raw
   bytes, with the commit and the Lean version. CI builds the driver and the
-  runtime package in `RP-20`. No language identity moves; the register is 500.
+  runtime package in `RP-20`. No language identity moves; the register is 503.
 - An Atlas shard of the gate drops the part it uploaded in an earlier attempt
   of its run before it runs (SPEC.md §9.4, `RP-14`). "Re-run all jobs"
   downloaded that part with the rest, and the shard refused the non-empty

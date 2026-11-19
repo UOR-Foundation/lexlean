@@ -1057,6 +1057,91 @@ through the command line.
 That the pinned Lean indexes an array in constant time and writes one in
 place when it is referenced once is cited (`LEAN-ARRAY-4-32-2`), not gated
 here: no case measures time.
+
+### lean-modules can print a policy verify does not apply (CL-28)
+
+`CL-28` holds the `axiom_policies` of `lexlean lean-modules` (§22.6, §23.4).
+`conformance_cl_28` reads the table of every example that checks: each row
+must have a kind, axioms, and one of the five rules, a model must name its
+members, a runtime row must be exact, a text-laws module must have no row, and
+every rule must occur somewhere. It then verifies `peano-arithmetic`,
+`list-induction`, and `models` with the pinned Lean. The attestation's
+declaration rows must be exactly the printed rows, in stage order, with a
+model's members in its place and a `core` row only where the audit reports it.
+The case passed in 300 s on Linux x86-64 (WSL 2). The attestations hold 33, 7,
+and 806 rows, and the rows are the printed table.
+
+Planted: the printed kind is `none` or `allow` whatever the policy is.
+
+```text
+assertion `left == right` failed: CL-28: .../examples/collections: a runtime declaration is exact
+  left: "none"
+```
+
+Stage 11 now evaluates the table instead of walking the IR itself. The cases
+that drive `LLV7005` through real Lean pass unchanged on the refactored stage:
+`VR-11`, `VR-16`, `VR-25`, `MD-06`, `RT-03`, and `LM-02`. `CL-27` passes too,
+with the 18 documents, policies included, byte-identical under `node:wasi`.
+
+### lean-modules can differ from build, write, or differ on WASI (CL-27)
+
+`CL-27` holds `lexlean lean-modules` (§23.4). `conformance_cl_27` runs it on
+every example project that checks, then runs `build` on the same copy. The
+document must be canonical JSON, and it must write nothing. Its build ID,
+language, Lean toolchain, compiler, and source and semantic IDs must be the
+manifest's. It must have one `project` row per Lean output of the manifest,
+whose text is the file `build` wrote, byte for byte, and whose `sha256` is that
+file's manifest row. Its `runtime` and `text-laws` rows must be the compiler's
+own texts, and every row must come after each row it imports. In JSON mode the
+command result must name `lean-modules` with `check`'s IDs and modules, the
+build ID, and no artifact. A module `check` refuses must give `check`'s exit
+code and diagnostics and no document. Built for `wasm32-wasip1` and run under
+Node's `node:wasi`, the executable must print the native bytes on every example
+and write nothing, and `build` must stay refused there. The case passed in
+552 s, the module build included, on Linux x86-64 (WSL 2): 18 documents agree.
+
+Planted: the project text loses its final LF.
+
+```text
+CL-27: .../examples/collections: Collections.Tables is the bytes build writes at modules/Collections/Tables.lean
+```
+
+The first run of the case also found a real defect. On WASI the printer of a
+native core module asked for a thread, so `examples/uor-atlas` was refused:
+
+```text
+error[LLS8002]: a stack of 5324800 bytes for rendering a native core module 87 expressions deep could not be reserved: Not supported (os error 58)
+```
+
+The printer now runs on the instance's linked stack there, and the
+`uor-atlas` document, 54,153,022 bytes, is the native one. Under Node 22 it
+renders in 44 s; `models` takes 1.6 s and `nat-add-zero` 0.8 s.
+
+### snapshot can differ from the API, write, or differ on WASI (CL-26)
+
+`CL-26` holds `lexlean snapshot` (§23.4). `conformance_cl_26` runs it on every
+example project that checks. In human mode, stdout must equal
+`Engine::snapshot(..).canonical_bytes()` byte for byte, its SHA-256 the
+snapshot ID, its semantic and source IDs those `check` reports, and its spec
+the project's language's. In JSON mode the command result must name `snapshot`
+with `check`'s IDs and modules. Nothing may be written. A module `check`
+refuses must give `check`'s exit code and diagnostics and no snapshot. Built
+for `wasm32-wasip1` and run under Node's `node:wasi`, the executable must print
+the native bytes on every example. The case passed in 769 s, the module build
+included, on a shared Linux x86-64 host.
+
+Red first: run against the tree without the command,
+
+```text
+CL-26: .../examples/collections: snapshot exits 0: error[LLC0001]: unrecognized subcommand 'snapshot'
+```
+
+Measured beside it, outside the gate: on `examples/nat-add-zero` the native
+and WASI snapshots are both `d8497a00...`, 26,916 bytes, and under Node 22 a
+compiled `lexlean.wasm` (19,133,367 bytes, 4,112,161 gzipped, without
+`production-data`) checks it in 360 to 460 ms and takes its snapshot in 170 to
+300 ms.
+
 ### check on WASI can trap, merge two names of a file, or differ (CL-25)
 
 `CL-25` holds `lexlean check` on `wasm32-wasip1` (§8.3). `conformance_cl_25`
@@ -14820,3 +14905,18 @@ are about 20 minutes each. Both new parts run in the Intel and Windows
 `moves` lane, which held them as part of `rest`, so no host lane's work
 changes. `check-test-inventory` reports the 545 tests of `bdd` as the 41
 parts, disjoint and complete (RP-13).
+
+## The WASI cases as their own part (2026-11-18)
+
+`CL-25`..`CL-28` each build `lexlean` for `wasm32-wasip1` in the release
+profile and run it under Node beside the native executable; `CL-27` also
+builds every example that checks, and `CL-28` verifies three with Lean. In the remainder they overlapped the rest
+of `bdd` and the leg's `golden` and `repro` recipes. With `CL-27` on the
+`release/v0.4` base, the `rest` leg of run 44396317256 lost its runner 55
+minutes in ("The hosted runner lost communication with the server"), as did
+run 44396318041 with `CL-28` beside it, where the remainder otherwise
+finishes in 32 to 48 minutes. They become the `wasi` part, one leg of their
+own; no case's assertion changes. The part runs in the Intel and Windows
+`moves` lane, which held them as part of `rest`, so no host lane's work
+changes, and `check-test-inventory` still requires the parts to be disjoint
+and complete (RP-13).
