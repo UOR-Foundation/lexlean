@@ -4,7 +4,7 @@
 # This file is language data: it is embedded in the compiler and hashed into
 # the language-1.2 compiler-semantics ID, so changing a disposition changes
 # what LexLean accepts and therefore its identity. Every semantic construct
-# kind of `lexlean/semantic-module/2` has exactly one row; the conformance
+# kind of `lexlean/semantic-module/3` has exactly one row; the conformance
 # suite fails when a construct has no row, when a row names no construct,
 # and when the compiler's disposition disagrees with its row.
 

@@ -929,9 +929,9 @@ pub fn f4(v0: List<Bytes>, v1: Bytes) -> List<Bytes> {
 
 pub fn f5(v0: List<Bytes>, v1: List<Bytes>, v2: Bytes) -> List<Bytes> {
     if f6(v0, v2.clone()) {
-        v1
-    } else {
         List::cons(v2, v1)
+    } else {
+        v1
     }
 }
 

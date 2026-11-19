@@ -105,7 +105,7 @@ fn pk_01() {
     let app = P::package_workspace("app");
     app.relock();
     let lock = lock_text(&app);
-    assert!(lock.starts_with("spec = \"lexlean/lock/2\"\n"));
+    assert!(lock.starts_with("spec = \"lexlean/lock/4\"\n"));
     let base_row = "[[source_package]]\nid = \"base\"\nversion = \"1.0.0\"\nkind = \"path\"\nsource = \"base\"\nmodule_prefix = \"PkgBase\"\n";
     let lib_row = "[[source_package]]\nid = \"lib\"\nversion = \"1.0.0\"\nkind = \"path\"\nsource = \"lib\"\nmodule_prefix = \"PkgLib\"\n";
     assert!(lock.contains(base_row), "{lock}");
@@ -117,8 +117,12 @@ fn pk_01() {
     assert!(lock.contains("imports = []\n"));
     assert!(lock.contains("imports = [\"base@1.0.0\"]\n"));
     for id in ["base", "lib"] {
-        for field in ["tree_sha256", "manifest_sha256"] {
-            assert_eq!(locked(&lock, id, field).len(), 64, "{id} {field}");
+        for field in ["tree_kappa", "manifest_kappa"] {
+            let value = locked(&lock, id, field);
+            assert!(
+                lexlean::artifact::content_id::Kappa::parse(&value).is_ok(),
+                "{id} {field} is a κ-label: {value}"
+            );
         }
     }
     let engine = app.engine();
@@ -136,12 +140,12 @@ fn pk_01() {
         app.read_raw("lexlean.toml"),
         "the configuration is its own canonical serialization"
     );
-    let tree = locked(&lock, "lib", "tree_sha256");
+    let tree = locked(&lock, "lib", "tree_kappa");
     // The pin is of the package's bytes alone: the same package in another
     // workspace copy has the same digest.
     let other = P::package_workspace("app");
     other.relock();
-    assert_eq!(tree, locked(&lock_text(&other), "lib", "tree_sha256"));
+    assert_eq!(tree, locked(&lock_text(&other), "lib", "tree_kappa"));
 
     // A project without a source package keeps its bytes (§10.1).
     let example = P::example();
@@ -172,11 +176,11 @@ fn pk_01() {
     );
     let error = refused(&tampered, "LLC0105");
     let message = error.to_string();
-    let locked_digest = locked(&before, "base", "tree_sha256");
+    let locked_digest = locked(&before, "base", "tree_kappa");
     assert!(message.contains("`base`"), "{message}");
     assert!(message.contains(&locked_digest), "{message}");
     tampered.relock();
-    let observed = locked(&lock_text(&tampered), "base", "tree_sha256");
+    let observed = locked(&lock_text(&tampered), "base", "tree_kappa");
     assert_ne!(observed, locked_digest);
     assert!(message.contains(&observed), "{message}");
 
@@ -598,7 +602,7 @@ fn pk_03() {
     let verified_dir = app
         .root
         .join(".lexlean/verified")
-        .join(verified.attestation_id.to_hex());
+        .join(verified.attestation_id.hex());
     let attestation: serde_json::Value = serde_json::from_slice(
         &std::fs::read(verified_dir.join("attestation.json").as_std_path()).expect("attestation"),
     )

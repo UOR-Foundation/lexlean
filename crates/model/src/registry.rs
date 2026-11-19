@@ -166,7 +166,7 @@ pub struct Authorities {
 }
 
 /// A cited authority. Never re-derived or gated on; a copy of its source is
-/// vendored only with the SHA-256 that `validate-model` recomputes.
+/// vendored only with the κ-label that `validate-model` recomputes.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthorityRow {
@@ -176,7 +176,7 @@ pub struct AuthorityRow {
     pub name: String,
     /// What a third party needs to find the source.
     pub citation: String,
-    /// `sha256:<hex>` over the vendored copy, or `none` when nothing is
+    /// `blake3:<hex>`, the κ-label of the vendored copy, or `none` when nothing is
     /// vendored.
     pub checksum: String,
     /// The repository path of a vendored copy of the source, whose bytes

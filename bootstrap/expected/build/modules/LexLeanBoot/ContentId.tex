@@ -58,7 +58,7 @@
 \noindent Parameters: \texttt{(domain : ByteArray) (frames : ByteArray)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{digestBytes (LexLeanStd.Sha256.sha256 (cat (cat (domain) (ByteArray.mk \#[0])) (frames)))}.\par
+\noindent Definition: \texttt{LexLeanStd.Blake3.blake3Label (cat (cat (domain) (ByteArray.mk \#[0])) (frames))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{treeDigest}}
 \noindent Kind: \texttt{definition}.\par
@@ -67,7 +67,7 @@
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{framedHash (lit ("lexlean-tree-v1")) ((LexLeanCollections.listFold ((fun (acc : ByteArray) (row : (Prod (ByteArray) (ByteArray))) => cat (acc) (frame ((row).1) ((row).2)))) (ByteArray.mk \#[]) (files) : ByteArray))}.\par
+\noindent Definition: \texttt{framedHash (lit ("lexlean-tree-v2")) ((LexLeanCollections.listFold ((fun (acc : ByteArray) (row : (Prod (ByteArray) (ByteArray))) => cat (acc) (frame ((row).1) ((row).2)))) (ByteArray.mk \#[]) (files) : ByteArray))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{sourceId}}
 \noindent Kind: \texttt{definition}.\par
@@ -76,7 +76,7 @@
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{framedHash (lit ("lexlean-source-v1")) (cat (cat (frame (lit ("project")) (projectToml)) (frame (lit ("lock")) (lockText))) ((LexLeanCollections.listFold ((fun (acc : ByteArray) (row : (Prod (ByteArray) (ByteArray))) => cat (acc) (cat (frame (lit ("path")) ((row).1)) (frame (lit ("source")) ((row).2))))) (ByteArray.mk \#[]) (sources) : ByteArray)))}.\par
+\noindent Definition: \texttt{framedHash (lit ("lexlean-source-v2")) (cat (cat (frame (lit ("project")) (projectToml)) (frame (lit ("lock")) (lockText))) ((LexLeanCollections.listFold ((fun (acc : ByteArray) (row : (Prod (ByteArray) (ByteArray))) => cat (acc) (cat (frame (lit ("path")) ((row).1)) (frame (lit ("source")) ((row).2))))) (ByteArray.mk \#[]) (sources) : ByteArray)))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{semanticId}}
 \noindent Kind: \texttt{definition}.\par
@@ -84,7 +84,7 @@
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{framedHash (lit ("lexlean-semantic-v1")) (cat (cat (cat (cat (frame (lit ("compiler-semantics")) (compilerSemantics)) (frame (lit ("language")) (language))) (frame (lit ("toolchain")) (lit ("leanprover/lean4:v4.32.2")))) (frame (lit ("linked-ir")) (linkedIr))) (frame (lit ("lexicon-closure")) (lexiconClosure)))}.\par
+\noindent Definition: \texttt{framedHash (lit ("lexlean-semantic-v2")) (cat (cat (cat (cat (frame (lit ("compiler-semantics")) (compilerSemantics)) (frame (lit ("language")) (language))) (frame (lit ("toolchain")) (lit ("leanprover/lean4:v4.32.2")))) (frame (lit ("linked-ir")) (linkedIr))) (frame (lit ("lexicon-closure")) (lexiconClosure)))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{buildId}}
 \noindent Kind: \texttt{definition}.\par
@@ -92,7 +92,7 @@
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{framedHash (lit ("lexlean-build-v1")) (cat (frame (lit ("source-id")) (sourceDigest)) (frame (lit ("semantic-id")) (semanticDigest)))}.\par
+\noindent Definition: \texttt{framedHash (lit ("lexlean-build-v2")) (cat (frame (lit ("source-id")) (sourceDigest)) (frame (lit ("semantic-id")) (semanticDigest)))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{attestationId}}
 \noindent Kind: \texttt{definition}.\par
@@ -100,7 +100,7 @@
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{framedHash (lit ("lexlean-attestation-v1")) (frame (lit ("attestation-body")) (attestationBody))}.\par
+\noindent Definition: \texttt{framedHash (lit ("lexlean-attestation-v2")) (frame (lit ("attestation-body")) (attestationBody))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{pdfRecipeId}}
 \noindent Kind: \texttt{definition}.\par
@@ -108,6 +108,6 @@
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{framedHash (lit ("lexlean-pdf-recipe-v1")) (cat (cat (cat (cat (frame (lit ("tex")) (texDigest)) (frame (lit ("program")) (programDigest))) (frame (lit ("version-output")) (versionDigest))) (frame (lit ("argv")) (compileArgv))) (frame (lit ("resources")) (resources)))}.\par
+\noindent Definition: \texttt{framedHash (lit ("lexlean-pdf-recipe-v2")) (cat (cat (cat (cat (frame (lit ("tex")) (texDigest)) (frame (lit ("program")) (programDigest))) (frame (lit ("version-output")) (versionDigest))) (frame (lit ("argv")) (compileArgv))) (frame (lit ("resources")) (resources)))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \end{document}

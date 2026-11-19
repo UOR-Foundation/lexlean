@@ -453,7 +453,7 @@ pub(crate) fn run(id: &str) {
                         tool: "stub",
                         module: None,
                         program: &stub,
-                        executable_sha256: lexlean::Sha256Digest::of(b""),
+                        executable_kappa: lexlean::Kappa::of(b""),
                         argv: vec!["$HOME; echo pwned".to_owned(), "a b".to_owned()],
                         cwd,
                         extra_env: vec![],
@@ -528,7 +528,7 @@ pub(crate) fn run(id: &str) {
                                 tool: "stub",
                                 module: Some("Probe".to_owned()),
                                 program: &stub,
-                                executable_sha256: lexlean::Sha256Digest::of(b""),
+                                executable_kappa: lexlean::Kappa::of(b""),
                                 argv: vec!["one".to_owned()],
                                 cwd,
                                 extra_env: vec![("LEAN_PATH".to_owned(), "x:y".to_owned())],
@@ -763,7 +763,7 @@ pub(crate) fn run(id: &str) {
                         tool: "stub",
                         module: Some("Probe".to_owned()),
                         program,
-                        executable_sha256: lexlean::Sha256Digest::of(b""),
+                        executable_kappa: lexlean::Kappa::of(b""),
                         argv: vec![],
                         cwd,
                         extra_env: vec![],
@@ -886,7 +886,7 @@ pub(crate) fn run(id: &str) {
             };
             let attestation = &fixture.attestation;
             for tool in ["lean", "lake", "leanchecker"] {
-                let hex = attestation["toolchain"][tool]["executable_sha256"]
+                let hex = attestation["toolchain"][tool]["executable_kappa"]
                     .as_str()
                     .unwrap_or_else(|| panic!("{tool} hash recorded"));
                 assert_eq!(hex.len(), 64, "{tool}: a full SHA-256 is recorded");
@@ -902,9 +902,9 @@ pub(crate) fn run(id: &str) {
                 attestation["toolchain"]["leanchecker"]["version_output"]
                     .as_str()
                     .is_some_and(|text| {
-                        text.starts_with("leanchecker bin/leanchecker sha256:")
+                        text.starts_with("leanchecker bin/leanchecker kappa:")
                             && text.contains(
-                                attestation["toolchain"]["leanchecker"]["executable_sha256"]
+                                attestation["toolchain"]["leanchecker"]["executable_kappa"]
                                     .as_str()
                                     .unwrap_or("?"),
                             )
@@ -919,7 +919,7 @@ pub(crate) fn run(id: &str) {
                 )
                 .expect("parses");
                 assert!(
-                    record["executable_sha256"]
+                    record["executable_kappa"]
                         .as_str()
                         .is_some_and(|hex| hex.len() == 64),
                     "{name}: the executed binary's hash is recorded"
@@ -948,9 +948,9 @@ pub(crate) fn run(id: &str) {
             }
             let provider = lexlean::config::PdfProvider {
                 program: "tools/fakepdf".to_owned(),
-                program_sha256: lexlean::artifact::content_id::Sha256Digest::of(script.as_bytes()),
+                program_kappa: lexlean::artifact::content_id::Kappa::of(script.as_bytes()),
                 version_argv: vec!["--version".to_owned()],
-                version_stdout_sha256: lexlean::artifact::content_id::Sha256Digest::of(b"\n"),
+                version_stdout_kappa: lexlean::artifact::content_id::Kappa::of(b"\n"),
                 compile_argv: vec![
                     "--outdir".to_owned(),
                     "{out_dir}".to_owned(),
@@ -1270,7 +1270,7 @@ pub(crate) fn run(id: &str) {
             let (pointer_repo, pointer_commit) = git_fixture(
                 &[(
                     "pkg/entries/blob.toml",
-                    "version https://git-lfs.github.com/spec/v1\noid sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nsize 12\n",
+                    "version https://git-lfs.github.com/spec/v1\noid kappa:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nsize 12\n",
                 )],
                 |_| {},
             );

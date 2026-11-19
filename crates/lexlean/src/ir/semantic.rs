@@ -1371,7 +1371,7 @@ pub enum SemanticDeclaration {
     Artifact {
         name: String,
         role: ArtifactRole,
-        sha256: String,
+        kappa: String,
         length: u64,
         schema: ArtifactSchema,
         r#type: SemanticType,
@@ -2022,7 +2022,7 @@ impl SemanticDeclaration {
     /// binder renamed positionally in binding order. Alpha-equivalent
     /// definitions share it; any other difference changes it.
     #[must_use]
-    pub fn alpha_identity(&self) -> Option<crate::artifact::content_id::Sha256Digest> {
+    pub fn alpha_identity(&self) -> Option<crate::artifact::content_id::Kappa> {
         let Self::Definition {
             name,
             type_parameters,
@@ -2086,9 +2086,7 @@ impl SemanticDeclaration {
         let canonical = crate::artifact::canonical_json::Json::parse_unbounded(text.as_bytes())
             .expect("serialized definition is JSON")
             .to_canonical_string();
-        Some(crate::artifact::content_id::Sha256Digest::of(
-            canonical.as_bytes(),
-        ))
+        Some(crate::artifact::content_id::Kappa::of(canonical.as_bytes()))
     }
 }
 
@@ -2550,7 +2548,7 @@ fn ignored_member(
 pub fn semantic_module_spec(language: &str) -> Option<&'static str> {
     match language {
         crate::LANGUAGE_1_1 => Some("lexlean/semantic-module/1"),
-        crate::LANGUAGE_1_2 => Some("lexlean/semantic-module/2"),
+        crate::LANGUAGE_1_2 => Some("lexlean/semantic-module/3"),
         _ => None,
     }
 }
@@ -3793,7 +3791,7 @@ impl SemanticModule {
 
 #[derive(Default)]
 struct Environment<'a> {
-    /// Whether the module is language-1.2 data (`lexlean/semantic-module/2`).
+    /// Whether the module is language-1.2 data (`lexlean/semantic-module/3`).
     language_1_2: bool,
     imports: &'a [String],
     types: BTreeMap<String, TypeInfo>,

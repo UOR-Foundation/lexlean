@@ -279,7 +279,7 @@ pub struct SemanticModuleAst {
 /// The structurally parsed `toolingmodule` environment.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ToolingModuleAst {
-    /// Canonical `lexlean/tooling-module/1` JSON, or the verbatim body of the
+    /// Canonical `lexlean/tooling-module/2` JSON, or the verbatim body of the
     /// authoring notation (SPEC.md §17.21) when `surface`.
     pub data: BraceArg,
     /// Whether `data` is the authoring notation rather than the JSON argument

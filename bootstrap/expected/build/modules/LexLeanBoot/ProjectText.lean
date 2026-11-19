@@ -2,9 +2,9 @@ module
 public import Init
 public import LexLeanRuntime.Portable
 public import LexLeanRuntime.Collections
+public import LexLeanStd.Blake3
 public import LexLeanStd.Numeral
 public import LexLeanStd.Order
-public import LexLeanStd.Sha256
 public import LexLeanBoot.LockText
 set_option autoImplicit false
 set_option maxRecDepth 100000
@@ -41,9 +41,9 @@ public structure Limits where
 
 public structure PdfProvider where
   program : ByteArray
-  programSha256 : ByteArray
+  programKappa : ByteArray
   versionArgv : List (ByteArray)
-  versionStdoutSha256 : ByteArray
+  versionStdoutKappa : ByteArray
   compileArgv : List (ByteArray)
   output : ByteArray
   resources : List (ByteArray)
@@ -85,16 +85,16 @@ public structure ProjectConfig where
 
 @[expose] public def sourcesText (rows : List (LexiconSource)) : ByteArray := (match rows with | List.nil => cat (lit ("lexicon_source = []")) (_root_.ByteArray.mk #[(_root_.UInt8.ofNat (nat_lit 10))]) | List.cons _ _ => (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : LexiconSource) => cat (acc) (sourceText (row)))) (_root_.ByteArray.mk #[]) (sourcesSorted (rows)) : ByteArray))
 
-@[expose] public def artifactText (artifact : ArtifactSource) : ByteArray := cat (cat (header ("[[artifact_source]]")) (digestLine ("sha256") ((artifact).digest))) (stringLine ("path") ((artifact).location))
+@[expose] public def artifactText (artifact : ArtifactSource) : ByteArray := cat (cat (header ("[[artifact_source]]")) (digestLine ("kappa") ((artifact).digest))) (stringLine ("path") ((artifact).location))
 
 @[expose] public def packageText (member : SourcePackage) : ByteArray := cat (cat (cat (cat (header ("[[source_package]]")) (stringLine ("package") ((member).packageName))) (stringLine ("version") ((member).version))) (stringLine ("kind") (lit ("path")))) (stringLine ("path") ((member).location))
 
 @[expose] public def limitsText (given : Limits) : ByteArray := cat (cat (cat (cat (cat (cat (cat (cat (cat (cat (cat (header ("[limits]")) (numberLine ("max_file_bytes") ((given).maxFileBytes))) (numberLine ("max_total_source_bytes") ((given).maxTotalSourceBytes))) (numberLine ("max_primitive_atoms") ((given).maxPrimitiveAtoms))) (numberLine ("max_token_lattice_edges") ((given).maxTokenLatticeEdges))) (numberLine ("max_parse_states") ((given).maxParseStates))) (numberLine ("max_ir_nodes") ((given).maxIrNodes))) (numberLine ("max_scope_depth") ((given).maxScopeDepth))) (numberLine ("max_import_depth") ((given).maxImportDepth))) (numberLine ("max_diagnostics") ((given).maxDiagnostics))) (numberLine ("max_child_output_bytes") ((given).maxChildOutputBytes))) (numberLine ("child_timeout_ms") ((given).childTimeoutMs))
 
-@[expose] public def pdfText (provider : PdfProvider) : ByteArray := cat (cat (cat (cat (cat (cat (cat (cat (header ("[pdf]")) (stringLine ("mode") (lit ("external")))) (stringLine ("program") ((provider).program))) (digestLine ("program_sha256") ((provider).programSha256))) (arrayLine ("version_argv") ((provider).versionArgv))) (digestLine ("version_stdout_sha256") ((provider).versionStdoutSha256))) (arrayLine ("compile_argv") ((provider).compileArgv))) (stringLine ("output") ((provider).output))) (arrayLine ("resources") ((provider).resources))
+@[expose] public def pdfText (provider : PdfProvider) : ByteArray := cat (cat (cat (cat (cat (cat (cat (cat (header ("[pdf]")) (stringLine ("mode") (lit ("external")))) (stringLine ("program") ((provider).program))) (digestLine ("program_kappa") ((provider).programKappa))) (arrayLine ("version_argv") ((provider).versionArgv))) (digestLine ("version_stdout_kappa") ((provider).versionStdoutKappa))) (arrayLine ("compile_argv") ((provider).compileArgv))) (stringLine ("output") ((provider).output))) (arrayLine ("resources") ((provider).resources))
 
-@[expose] public def canonicalProject (config : ProjectConfig) : ByteArray := (let head : ByteArray := cat (cat (cat (cat (cat (cat (cat (cat (cat (stringLine ("spec") (lit ("lexlean/project/1"))) (stringLine ("name") ((config).projectName))) (stringLine ("language") ((config).language))) (stringLine ("module_prefix") ((config).modulePrefix))) (arrayLine ("source_roots") ((config).sourceRoots))) (arrayLine ("entrypoints") ((config).entrypoints))) (stringLine ("build_root") ((config).buildRoot))) (stringLine ("lockfile") ((config).lockfile))) (stringLine ("lean_workspace") ((config).leanWorkspace))) (stringLine ("lean_toolchain") (LexLeanBoot.LockText.leanToolchain)); (let artifacts : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : ArtifactSource) => cat (acc) (artifactText (row)))) (_root_.ByteArray.mk #[]) ((config).artifactSources) : ByteArray); (let packages : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : SourcePackage) => cat (acc) (packageText (row)))) (_root_.ByteArray.mk #[]) ((config).sourcePackages) : ByteArray); (let tail : ByteArray := (match (config).pdf with | Option.some provider => pdfText (provider) | Option.none => _root_.ByteArray.mk #[]); cat (cat (cat (cat (cat (head) (sourcesText ((config).lexiconSources))) (artifacts)) (packages)) (limitsText ((config).limits))) (tail)))))
+@[expose] public def canonicalProject (config : ProjectConfig) : ByteArray := (let head : ByteArray := cat (cat (cat (cat (cat (cat (cat (cat (cat (stringLine ("spec") (lit ("lexlean/project/2"))) (stringLine ("name") ((config).projectName))) (stringLine ("language") ((config).language))) (stringLine ("module_prefix") ((config).modulePrefix))) (arrayLine ("source_roots") ((config).sourceRoots))) (arrayLine ("entrypoints") ((config).entrypoints))) (stringLine ("build_root") ((config).buildRoot))) (stringLine ("lockfile") ((config).lockfile))) (stringLine ("lean_workspace") ((config).leanWorkspace))) (stringLine ("lean_toolchain") (LexLeanBoot.LockText.leanToolchain)); (let artifacts : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : ArtifactSource) => cat (acc) (artifactText (row)))) (_root_.ByteArray.mk #[]) ((config).artifactSources) : ByteArray); (let packages : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : SourcePackage) => cat (acc) (packageText (row)))) (_root_.ByteArray.mk #[]) ((config).sourcePackages) : ByteArray); (let tail : ByteArray := (match (config).pdf with | Option.some provider => pdfText (provider) | Option.none => _root_.ByteArray.mk #[]); cat (cat (cat (cat (cat (head) (sourcesText ((config).lexiconSources))) (artifacts)) (packages)) (limitsText ((config).limits))) (tail)))))
 
-@[expose] public def configSha256 (config : ProjectConfig) : ByteArray := LexLeanStd.Sha256.sha256Hex (canonicalProject (config))
+@[expose] public def configKappa (config : ProjectConfig) : ByteArray := LexLeanStd.Blake3.blake3Label (canonicalProject (config))
 
 end LexLeanBoot.ProjectText

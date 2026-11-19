@@ -414,7 +414,7 @@ fn fixture(project: &P) {
     assert_eq!(provenance["entry"], "run");
     assert_eq!(
         provenance["files"]["src/main.rs"],
-        lexlean::Sha256Digest::of(&files["src/main.rs"]).to_hex(),
+        lexlean::Kappa::of(&files["src/main.rs"]).label(),
         "the provenance holds the digest of the driver"
     );
 

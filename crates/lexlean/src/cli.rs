@@ -104,6 +104,14 @@ enum CommandKind {
         /// Explicit input modules.
         inputs: Vec<Utf8PathBuf>,
     },
+    /// Write the Lean modules a build of a selection elaborates to stdout.
+    LeanModules {
+        /// Every module beneath every source root.
+        #[arg(long)]
+        all: bool,
+        /// Explicit input modules.
+        inputs: Vec<Utf8PathBuf>,
+    },
     /// Build a selection to the fixed content-addressed layout.
     Build {
         /// Every module beneath every source root.
@@ -161,7 +169,7 @@ enum ProductionAction {
     Targets,
     /// Verify the project and publish the bundle a request names.
     Build {
-        /// The `lexlean/production-request/1` file.
+        /// The `lexlean/production-request/2` file.
         #[arg(long)]
         request: Utf8PathBuf,
     },
@@ -173,11 +181,12 @@ enum ProductionAction {
 }
 
 /// The command names, in the order of §23.4.
-const COMMAND_NAMES: [&str; 11] = [
+const COMMAND_NAMES: [&str; 12] = [
     "init",
     "lock",
     "check",
     "snapshot",
+    "lean-modules",
     "build",
     "verify",
     "fmt",
@@ -354,7 +363,7 @@ fn version_text() -> String {
         "lexlean {}\nlanguage {}\ncompiler-semantics {}\nlean-toolchain {}\n",
         crate::COMPILER_VERSION,
         crate::LANGUAGE_VERSION,
-        crate::compiler_semantics_id().to_hex(),
+        crate::compiler_semantics_id().label(),
         crate::LEAN_TOOLCHAIN
     );
     // A build without the production data shares the compiler-semantics IDs
@@ -439,7 +448,8 @@ struct Outcome {
     summary: String,
     explanation: Option<String>,
     /// The bytes human mode writes in place of a summary: the semantic
-    /// snapshot's canonical file bytes for `snapshot` (§23.4).
+    /// snapshot's canonical file bytes for `snapshot`, the
+    /// `lexlean/lean-modules/1` document for `lean-modules` (§23.4).
     document: Option<Vec<u8>>,
 }
 
@@ -584,6 +594,7 @@ pub fn run(
         CommandKind::Lock { .. } => "lock",
         CommandKind::Check { .. } => "check",
         CommandKind::Snapshot { .. } => "snapshot",
+        CommandKind::LeanModules { .. } => "lean-modules",
         CommandKind::Build { .. } => "build",
         CommandKind::Verify { .. } => "verify",
         CommandKind::Fmt { .. } => "fmt",
@@ -616,7 +627,7 @@ pub fn run(
             let report = crate::api::production::verify_artifact(&path)?;
             outcome.summary = format!(
                 "replayed result {}: {} outputs, bindings verified; not re-run: {}\n",
-                report.result_id.to_hex(),
+                report.result_id.label(),
                 report.outputs,
                 report.not_rechecked.join(", ")
             );
@@ -671,8 +682,8 @@ pub fn run(
                     outcome.summary = format!(
                         "checked {} (source {}, semantic {})\n",
                         modules(result.units.len()),
-                        result.source_id.to_hex(),
-                        result.semantic_id.to_hex()
+                        result.source_id.label(),
+                        result.semantic_id.label()
                     );
                     Ok(())
                 }
@@ -692,6 +703,19 @@ pub fn run(
                     outcome.document = Some(snapshot.canonical_bytes());
                     Ok(())
                 }
+                CommandKind::LeanModules { all, inputs } => {
+                    // `build`'s rendering without its publication, so it
+                    // takes no lock and writes nothing (§8.3, §23.4).
+                    let rendered = engine.lean_modules(&BuildRequest {
+                        selection: selection_from(all, inputs)?,
+                    })?;
+                    outcome.modules = rendered.project_modules();
+                    outcome.ids.source_id = Some(rendered.source_id());
+                    outcome.ids.semantic_id = Some(rendered.semantic_id());
+                    outcome.ids.build_id = Some(rendered.build_id());
+                    outcome.document = Some(rendered.canonical_bytes());
+                    Ok(())
+                }
                 CommandKind::Build { all, inputs } => {
                     let result = engine.build(BuildRequest {
                         selection: selection_from(all, inputs)?,
@@ -701,11 +725,8 @@ pub fn run(
                     outcome.ids.semantic_id = Some(result.semantic_id);
                     outcome.ids.build_id = result.build_id;
                     if let Some(id) = result.build_id {
-                        let artifact = format!(
-                            "{}/build/{}",
-                            engine.project().config.build_root,
-                            id.to_hex()
-                        );
+                        let artifact =
+                            format!("{}/build/{}", engine.project().config.build_root, id.hex());
                         outcome.summary =
                             format!("built {} at {artifact}\n", modules(result.units.len()));
                         outcome.artifacts.push(artifact);
@@ -724,12 +745,12 @@ pub fn run(
                     outcome.artifacts.push(format!(
                         "{}/verified/{}",
                         engine.project().config.build_root,
-                        result.attestation_id.to_hex()
+                        result.attestation_id.hex()
                     ));
                     outcome.summary = format!(
                         "verified {}; attestation {}\n",
                         modules(result.units.len()),
-                        result.attestation_id.to_hex()
+                        result.attestation_id.label()
                     );
                     Ok(())
                 }
@@ -813,7 +834,7 @@ pub fn run(
                     outcome.summary = format!(
                         "exported {packages} packages at {}; result {}{host}\n",
                         output.bundle,
-                        result.result_id.to_hex()
+                        result.result_id.label()
                     );
                     Ok(())
                 }

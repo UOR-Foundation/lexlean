@@ -3,8 +3,6 @@
 use std::collections::BTreeSet;
 use std::process::Command;
 
-use sha2::Digest;
-
 use crate::support::{self, P};
 
 mod arrays;
@@ -70,7 +68,7 @@ fn semantic_json_depth_diagnostic() {
             let bytes = snapshot.canonical_bytes();
             assert_eq!(
                 snapshot.snapshot_id(),
-                lexlean::Sha256Digest::of(&bytes),
+                lexlean::Kappa::of(&bytes),
                 "the snapshot ID is the digest of its canonical bytes"
             );
             bytes
@@ -227,13 +225,13 @@ fn semantic_json_depth_diagnostic_on_stack(project: &P) {
     project.check_ok();
     let parse_data = |data: &str| parse_data(data, None);
 
-    let empty = r#"{"declarations":[],"spec":"lexlean/semantic-module/2"}"#;
+    let empty = r#"{"declarations":[],"spec":"lexlean/semantic-module/3"}"#;
     let invalid = [
         empty.replace(",\"spec\"", " \"spec\""),
         empty.replace("{\"declarations\"", "{ \"declarations\""),
-        empty.replace("\"spec\":", "\"spec\":\"lexlean/semantic-module/2\",\"spec\":"),
+        empty.replace("\"spec\":", "\"spec\":\"lexlean/semantic-module/3\",\"spec\":"),
         empty.replace("\"declarations\":[]", "\"declarations\":[],\"foreign\":true"),
-        r#"{"declarations":[{"body":{"kind":"nat","prose":"foreign","value":"1"},"kind":"definition","name":"x","parameters":[],"result":{"kind":"nat"}}],"spec":"lexlean/semantic-module/2"}"#.to_owned(),
+        r#"{"declarations":[{"body":{"kind":"nat","prose":"foreign","value":"1"},"kind":"definition","name":"x","parameters":[],"result":{"kind":"nat"}}],"spec":"lexlean/semantic-module/3"}"#.to_owned(),
     ];
     for data in invalid {
         let error =
@@ -847,12 +845,12 @@ pub(crate) fn run(id: &str) {
             let inner =
                 lexlean::project::Project::load(&project.root.join("lexlean.toml")).expect("load");
             let checked = support::checked_project(&project);
-            let mut hasher = sha2::Sha256::new();
-            hasher.update(b"lexlean-source-v1\0");
-            let frame = |hasher: &mut sha2::Sha256, label: &str, bytes: &[u8]| {
-                hasher.update(u32::try_from(label.len()).expect("short").to_be_bytes());
+            let mut hasher = blake3::Hasher::new();
+            hasher.update(b"lexlean-source-v2\0");
+            let frame = |hasher: &mut blake3::Hasher, label: &str, bytes: &[u8]| {
+                hasher.update(&u32::try_from(label.len()).expect("short").to_be_bytes());
                 hasher.update(label.as_bytes());
-                hasher.update((bytes.len() as u64).to_be_bytes());
+                hasher.update(&(bytes.len() as u64).to_be_bytes());
                 hasher.update(bytes);
             };
             frame(
@@ -867,9 +865,8 @@ pub(crate) fn run(id: &str) {
                 "source",
                 checked.modules["Main"].normalized.as_bytes(),
             );
-            let manual: [u8; 32] = hasher.finalize().into();
             assert_eq!(
-                lexlean::artifact::content_id::Sha256Digest(manual),
+                support::oracle_finish(&hasher),
                 checked.source_id,
                 "§21.3: the source ID equals its manual recomputation"
             );
@@ -1183,7 +1180,7 @@ pub(crate) fn run(id: &str) {
                         .expect("language-1.1 attestation"),
                 )
                 .expect("attestation JSON");
-                let expected = lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_1).to_hex();
+                let expected = lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_1).label();
                 assert_eq!(
                     attestation["lexlean"]["compiler_semantics"].as_str(),
                     Some(expected.as_str()),
@@ -1634,7 +1631,7 @@ pub(crate) fn run(id: &str) {
             let twelve = P::language_1_2_example();
             twelve.check_ok();
             let (spec, value) = snapshot_of(&twelve);
-            assert_eq!(spec, "lexlean/semantic-snapshot/2");
+            assert_eq!(spec, "lexlean/semantic-snapshot/4");
             support::assert_schema("semantic-snapshot-v2", "the 1.2 snapshot", &value);
             support::assert_schema(
                 "semantic-module-v2",
@@ -1675,7 +1672,7 @@ pub(crate) fn run(id: &str) {
             eleven.edit("src/Main.lex.tex", "@1.2.0", "@1.1.0");
             eleven.edit(
                 "src/Main.lex.tex",
-                "lexlean/semantic-module/2",
+                "lexlean/semantic-module/3",
                 "lexlean/semantic-module/1",
             );
             eleven.relock();
@@ -1699,7 +1696,7 @@ pub(crate) fn run(id: &str) {
             let v1_under_12 = P::language_1_2_example();
             v1_under_12.edit(
                 "src/Main.lex.tex",
-                "lexlean/semantic-module/2",
+                "lexlean/semantic-module/3",
                 "lexlean/semantic-module/1",
             );
             let error = v1_under_12.check_fails_with("LLP2003");
@@ -1709,7 +1706,7 @@ pub(crate) fn run(id: &str) {
             v2_under_11.edit(
                 "src/Support.lex.tex",
                 "lexlean/semantic-module/1",
-                "lexlean/semantic-module/2",
+                "lexlean/semantic-module/3",
             );
             let error = v2_under_11.check_fails_with("LLT4001");
             assert!(error
@@ -1775,7 +1772,7 @@ pub(crate) fn run(id: &str) {
 
             // Language 1.1 keeps its historical envelope byte for byte.
             let (spec, value) = snapshot_of(&P::semantic_example());
-            assert_eq!(spec, "lexlean/semantic-snapshot/1");
+            assert_eq!(spec, "lexlean/semantic-snapshot/3");
             support::assert_schema("semantic-snapshot", "the 1.1 snapshot", &value);
         }
         "SM-24" => {
@@ -2995,7 +2992,7 @@ pub(crate) fn run(id: &str) {
                     // Language 1.1 reads the data form only.
                     formatted
                         .replace("@1.2.0", "@1.1.0")
-                        .replace("lexlean/semantic-module/2", "lexlean/semantic-module/1")
+                        .replace("lexlean/semantic-module/3", "lexlean/semantic-module/1")
                 } else {
                     text
                 };
