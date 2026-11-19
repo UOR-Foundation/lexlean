@@ -95,6 +95,15 @@ Native Lean 4.32.2 accepted the same packs, and accepted the library with all 31
 
 So coverage is full wherever `verify` has run, and it is Lean's own proof that is judged. What the emitter adds is that a proof it can find needs no published pack and no Lean at all, which is what an edit made in the tab needs. For a new theorem of a form the emitter does not cover, something still has to run Lean once.
 
+**Fold laws, by fusion.** Induction was then done once, in the library: if a relation between accumulators holds at the start and every step keeps it, it holds between the folds (`fold_rel1` to `fold_rel3`, and two variants that carry the list's length). These lemmas use no axioms. The emitter abstracts the folds over one list out of the goal to get the relation, and is left with two obligations that have no fold in them, which it compiles as arithmetic. Two derived facts cover the rest: a fold over `xs ++ ys` is the fold over `ys` started from the fold over `xs`, and a fold whose steps only add, started from `z`, is `z` plus the fold started from zero (itself proved by fusion). Equalities of pairs are split into their parts.
+
+| fold-laws, 31 theorems | Found by the emitter | Accepted by the kernel | Axioms identical to Lean's |
+| --- | --- | --- | --- |
+| Before fusion | 18 | 18 | 18 |
+| With fusion | 31 | 31 | 29 |
+
+The two that differ are instructive. For `requantized_total` the emitted proof uses fewer axioms than Lean's (no `Classical.choice`). For `statistics_one_pass` Lean's proof uses none and the emitted one rests on `propext` and `Quot.sound`, through the arithmetic core. Under an exact axiom policy neither is the same as Lean's result, so the rule adopted is: a proof found in place counts only if it rests on exactly the axioms declared for the theorem; otherwise Lean's own proof is judged instead. With that rule the whole example is covered as 29 found in place and 2 by Lean's own proof (a 245 KB pack, 41 KB gzipped), in 2.4 s on a first visit in Chromium, 3.1 s in Firefox and 2.6 s in WebKit, and 13 to 41 ms on a returning one. Native Lean 4.32.2 accepts all of it, including the library with all 31 emitted proofs judged from nothing.
+
 **Statements.** In this widened run the emitter no longer writes statements: it takes each one as Lean elaborated it and finds only the proof. Writing statements from the IR is direct work with no search, and the earlier runs did it for the integer fragment, but it is not shown here for the Boolean, natural and byte forms. D5 stands either way.
 
 **Pinned to the official kernel and library.**
