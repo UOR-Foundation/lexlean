@@ -355,10 +355,10 @@
 'LexLeanStdApps.Access.permit_granted_map' depends on axioms: [propext]
 'LexLeanStdApps.Counter.bump' does not depend on any axioms
 'LexLeanStdApps.Counter.bumpBy' does not depend on any axioms
-'LexLeanStdApps.Counter.bumpBy_fits' depends on axioms: [propext, Quot.sound]
+'LexLeanStdApps.Counter.bumpBy_fits' depends on axioms: [propext]
 'LexLeanStdApps.Counter.bumpBy_within' depends on axioms: [propext, Quot.sound]
 'LexLeanStdApps.Counter.bump_full' depends on axioms: [propext, Quot.sound]
-'LexLeanStdApps.Counter.bump_grows' depends on axioms: [propext, Quot.sound]
+'LexLeanStdApps.Counter.bump_grows' depends on axioms: [propext]
 'LexLeanStdApps.Counter.bump_never_lowers' depends on axioms: [propext, Quot.sound]
 'LexLeanStdApps.Counter.bump_within' depends on axioms: [propext, Quot.sound]
 'LexLeanStdApps.Counter.dropOne' does not depend on any axioms

@@ -47,7 +47,7 @@
 \noindent Kind: \texttt{theorem}.\par
 \noindent Parameters: \texttt{(cap : Nat) (count : Nat)}.\par
 \noindent Statement: \texttt{((count < cap) -> (bump (cap) (count) = (count + 1)))}.\par
-\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
 \subsection*{\texttt{bump\_full}}
 \noindent Kind: \texttt{theorem}.\par
 \noindent Parameters: \texttt{(cap : Nat) (count : Nat)}.\par
@@ -67,7 +67,7 @@
 \noindent Kind: \texttt{theorem}.\par
 \noindent Parameters: \texttt{(cap : Nat) (step : Nat) (count : Nat)}.\par
 \noindent Statement: \texttt{(((count + step) <= cap) -> (bumpBy (cap) (step) (count) = (count + step)))}.\par
-\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
 \subsection*{\texttt{dropOne\_bump}}
 \noindent Kind: \texttt{theorem}.\par
 \noindent Parameters: \texttt{(cap : Nat) (count : Nat)}.\par

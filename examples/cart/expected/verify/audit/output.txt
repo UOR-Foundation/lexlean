@@ -1,6 +1,6 @@
 'Cart.Main.State' does not depend on any axioms
 'Cart.Main.addCountsLine' depends on axioms: [propext, Quot.sound]
-'Cart.Main.addKnownAccepted' depends on axioms: [propext, Quot.sound]
+'Cart.Main.addKnownAccepted' depends on axioms: [propext]
 'Cart.Main.addRaisesTotal' depends on axioms: [propext, Quot.sound]
 'Cart.Main.addUnknownKeepsTotal' depends on axioms: [propext]
 'Cart.Main.addUnknownRefused' depends on axioms: [propext, Quot.sound]
@@ -18,7 +18,7 @@
 'Cart.Main.removeAbsentKeepsTotal' depends on axioms: [propext]
 'Cart.Main.removeAbsentRefused' depends on axioms: [propext, Quot.sound]
 'Cart.Main.removeConservesTotal' depends on axioms: [propext, Quot.sound]
-'Cart.Main.removePresentRemoved' depends on axioms: [propext, Quot.sound]
+'Cart.Main.removePresentRemoved' depends on axioms: [propext]
 'Cart.Main.removeTakesLinePrice' depends on axioms: [propext]
 'Cart.Main.removedNeverExceedsTotal' depends on axioms: [propext, Quot.sound]
 'Cart.Main.replyAdd' does not depend on any axioms

@@ -115,7 +115,7 @@
 \noindent Kind: \texttt{theorem}.\par
 \noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
 \noindent Statement: \texttt{((canAdd (item) = true) -> (replyAdd (state) (item) = answerAdded))}.\par
-\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
 \subsection*{\texttt{addUnknownRefused}}
 \noindent Kind: \texttt{theorem}.\par
 \noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
@@ -140,7 +140,7 @@
 \noindent Kind: \texttt{theorem}.\par
 \noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
 \noindent Statement: \texttt{((canRemove (state) (item) = true) -> (replyRemove (state) (item) = answerRemoved))}.\par
-\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
 \subsection*{\texttt{removeAbsentRefused}}
 \noindent Kind: \texttt{theorem}.\par
 \noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
