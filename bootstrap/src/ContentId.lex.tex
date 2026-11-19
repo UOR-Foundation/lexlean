@@ -1,7 +1,9 @@
 \begin{lexlean}{ContentId}
 \useglossary{lexlean.std.nat@1.2.0}
+\importmodule{LexLeanStd.Buffer}
 \importmodule{LexLeanStd.Numeral}
 \importmodule{LexLeanStd.Blake3}
+\importmodule{LexLeanStd.Text}
 \title{Natural number addition}
 \begin{semanticmodule}
 definition{
@@ -57,7 +59,7 @@ definition{
   name: treeDigest,
   parameters: [files : (List (Bytes * Bytes))],
   result: Bytes,
-  body: (framedHash (lit "lexlean-tree-v2") (prim list_fold (fun (acc : Bytes) (row : (Bytes * Bytes)) => (cat acc (frame (first row) (second row)))) 0x files : Bytes)),
+  body: (framedHash (lit "lexlean-tree-v2") (LexLeanStd.Buffer::joinAll (LexLeanStd.Text::reverse (prim list_fold (fun (acc : (List Bytes)) (row : (Bytes * Bytes)) => (cons (frame (first row) (second row)) acc)) (nil Bytes) files : (List Bytes))))),
   axioms: [Quot.sound, propext],
   executable: true,
   production: {effects: [allocation, overflow], targets: [rust-std]}
@@ -67,7 +69,7 @@ definition{
   name: sourceId,
   parameters: [projectToml : Bytes, lockText : Bytes, sources : (List (Bytes * Bytes))],
   result: Bytes,
-  body: (framedHash (lit "lexlean-source-v2") (cat (cat (frame (lit "project") projectToml) (frame (lit "lock") lockText)) (prim list_fold (fun (acc : Bytes) (row : (Bytes * Bytes)) => (cat acc (cat (frame (lit "path") (first row)) (frame (lit "source") (second row))))) 0x sources : Bytes))),
+  body: (framedHash (lit "lexlean-source-v2") (LexLeanStd.Buffer::joinAll (LexLeanStd.Text::reverse (prim list_fold (fun (acc : (List Bytes)) (row : (Bytes * Bytes)) => (cons (frame (lit "source") (second row)) (cons (frame (lit "path") (first row)) acc))) (cons (frame (lit "lock") lockText) (cons (frame (lit "project") projectToml) (nil Bytes))) sources : (List Bytes))))),
   axioms: [Quot.sound, propext],
   executable: true,
   production: {effects: [allocation, overflow], targets: [rust-std]}

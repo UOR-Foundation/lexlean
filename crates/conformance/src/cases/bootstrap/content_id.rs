@@ -443,8 +443,8 @@ const PLANTS: &[Plant] = &[
     Plant {
         label: "a source is not framed with its path",
         root: 1,
-        site: "(cat (frame (lit \"path\") (first row)) (frame (lit \"source\") (second row)))",
-        replacement: "(frame (lit \"source\") (second row))",
+        site: "(cons (frame (lit \"source\") (second row)) (cons (frame (lit \"path\") (first row)) acc))",
+        replacement: "(cons (frame (lit \"source\") (second row)) acc)",
         vector: "two sources",
     },
     Plant {
