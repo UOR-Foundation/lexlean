@@ -108,9 +108,24 @@ math = "(seq (operator-name dd{k}) (paren (slot 0)))"
     project
 }
 
-/// Run `git` in a fixture repository (test-side, not the compiler).
+/// The real `git`, found once on `PATH` while skipping every wrapper
+/// directory: cases run concurrently in one process, so `PATH` may name
+/// another case's wrapper, which is deleted when that case's step ends.
+fn real_git() -> &'static std::path::Path {
+    static GIT: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
+    GIT.get_or_init(|| {
+        let name = format!("git{}", std::env::consts::EXE_SUFFIX);
+        std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default())
+            .filter(|dir| !dir.to_string_lossy().contains("lexlean-gitwrap-"))
+            .map(|dir| dir.join(&name))
+            .find(|candidate| candidate.is_file())
+            .expect("git is available for the fixture")
+    })
+}
+
+/// Run the real `git` in a fixture repository (test-side, not the compiler).
 fn git_in(repo: &std::path::Path, arguments: &[&str]) -> String {
-    let output = std::process::Command::new("git")
+    let output = std::process::Command::new(real_git())
         .args(arguments)
         .current_dir(repo)
         .env("GIT_AUTHOR_NAME", "t")
@@ -187,15 +202,7 @@ fn git_wrapper(local_repo: &std::path::Path) -> GitWrapper {
         .prefix("lexlean-gitwrap-")
         .tempdir()
         .expect("tempdir");
-    // The real git is resolved from PATH while skipping any wrapper
-    // directory another concurrently running case may have prepended.
-    let real_git = std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default())
-        .filter(|dir| !dir.to_string_lossy().contains("lexlean-gitwrap-"))
-        .map(|dir| dir.join("git"))
-        .find(|candidate| candidate.is_file())
-        .expect("git is available for the fixture")
-        .display()
-        .to_string();
+    let real_git = real_git().display();
     let script = format!(
         "#!/bin/sh\nexec \"{real_git}\" -c \"url.{}.insteadOf={FIXTURE_URL}\" \"$@\"\n",
         local_repo.display()
