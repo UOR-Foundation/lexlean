@@ -100,3 +100,10 @@ Feature: stdlib
     When the project is checked and built, each member is lowered and run by the evaluator and by its rendered rust-std package on a seeded corpus of ascending maps and sets whose keys repeat and are prefixes of one another and of entries in no order, a defect is planted in each member in turn, and the project is exported under the pinned Lean
     Then the ten roots are eligible for rust-std with exactly their declared effects, and no run disagrees with the oracle
     And each planted defect disagrees with the oracle on its member's fixed vector, and every exported package is byte-identical to its committed package and realizes the member's lowered program
+
+  @SL-17 @build
+  Scenario: The standard library's `Stream` module is language-1.2 source stating a stream as a fold: `feedAll` folds a step over a list of items, `feedChunks` folds it chunk by chunk over a list of chunks, and `joinChunks` and `appendItems` concatenate them; its theorems `feed_all_append` and `chunking_invariance`, generic in the state and item types, are verified by Lean: folding a step over the chunks of any division of an input gives the state folding it over the whole input gives, so a result computed from a stream does not depend on where the stream was cut; a `feedChunks` planted to drop the last chunk is rejected by Lean.
+    Given the committed `stdlib` project with its `Stream` module
+    When the project is checked and verified under the pinned Lean, and `feedChunks` is planted to drop the last chunk and verified again
+    Then the project verifies with `chunking_invariance` and `feed_all_append` over `propext` alone
+    And Lean rejects the planted `feedChunks`

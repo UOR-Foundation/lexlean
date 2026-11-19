@@ -1,0 +1,46 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{appendItems}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Item)}.\par
+\noindent Parameters: \texttt{(left : List (Item)) (right : List (Item))}.\par
+\noindent Type: \texttt{List (Item)}.\par
+\noindent Definition: \texttt{(match left with | List.nil => right | List.cons item rest => (item :: appendItems (Item) (rest) (right)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{joinChunks}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Item)}.\par
+\noindent Parameters: \texttt{(chunks : List (List (Item)))}.\par
+\noindent Type: \texttt{List (Item)}.\par
+\noindent Definition: \texttt{(match chunks with | List.nil => ([] : List (Item)) | List.cons chunk rest => appendItems (Item) (chunk) (joinChunks (Item) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{feedAll}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(State, Item)}.\par
+\noindent Parameters: \texttt{(feed : ((State) -> (Item) -> (State))) (state : State) (items : List (Item))}.\par
+\noindent Type: \texttt{State}.\par
+\noindent Definition: \texttt{(match items with | List.nil => state | List.cons item rest => feedAll (State) (Item) (feed) ((feed (state) (item))) (rest))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{feedChunks}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(State, Item)}.\par
+\noindent Parameters: \texttt{(feed : ((State) -> (Item) -> (State))) (state : State) (chunks : List (List (Item)))}.\par
+\noindent Type: \texttt{State}.\par
+\noindent Definition: \texttt{(match chunks with | List.nil => state | List.cons chunk rest => feedChunks (State) (Item) (feed) (feedAll (State) (Item) (feed) (state) (chunk)) (rest))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{feed\_all\_append}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Type parameters: \texttt{(State, Item)}.\par
+\noindent Parameters: \texttt{(feed : ((State) -> (Item) -> (State))) (state : State) (left : List (Item)) (right : List (Item))}.\par
+\noindent Statement: \texttt{(feedAll (State) (Item) (feed) (state) (appendItems (Item) (left) (right)) = feedAll (State) (Item) (feed) (feedAll (State) (Item) (feed) (state) (left)) (right))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{chunking\_invariance}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Type parameters: \texttt{(State, Item)}.\par
+\noindent Parameters: \texttt{(feed : ((State) -> (Item) -> (State))) (state : State) (chunks : List (List (Item)))}.\par
+\noindent Statement: \texttt{(feedChunks (State) (Item) (feed) (state) (chunks) = feedAll (State) (Item) (feed) (state) (joinChunks (Item) (chunks)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\end{document}

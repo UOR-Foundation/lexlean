@@ -948,6 +948,7 @@ pub(crate) fn run(id: &str) {
                     ("verify/operational.rs", "TELEMETRY_VARIABLE"),
                     ("verify/operational.rs", "HINTS_VARIABLE"),
                     ("verify/operational.rs", "MEMORY_VARIABLE"),
+                    ("verify/store.rs", "STORE_VARIABLE"),
                     ("cli.rs", "\"NO_COLOR\""),
                     ("verify/child.rs", "\"HOME\""),
                     ("verify/child.rs", "\"PATH\""),
