@@ -598,7 +598,7 @@ fn pk_03() {
     let verified_dir = app
         .root
         .join(".lexlean/verified")
-        .join(verified.attestation_id.label());
+        .join(verified.attestation_id.hex());
     let attestation: serde_json::Value = serde_json::from_slice(
         &std::fs::read(verified_dir.join("attestation.json").as_std_path()).expect("attestation"),
     )

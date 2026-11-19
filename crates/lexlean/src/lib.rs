@@ -342,7 +342,7 @@ fn embedded_digest(keep: impl Fn(&str) -> bool) -> Kappa {
 /// consistently with itself, so agreement on verdicts could not reveal it.
 /// The 1.0 and 1.1 IDs need no constant: no file they cover is left out.
 pub const LANGUAGE_1_2_SEMANTICS_ID: &str =
-    "blake3:dea5f1964f7f0eb5c9d5bd6c4a194f0da0efa6bfef7fc596f82622d243d3908e";
+    "blake3:57d254ffc4d078dcae42d046d00f02eb51e5abb7edbd4c649bac51e68ceeb5ca";
 
 /// The compiler-semantics ID for one selected language. Language 1.0 excludes
 /// all files introduced solely for 1.1 and 1.2, and Language 1.1 excludes

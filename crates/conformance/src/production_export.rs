@@ -234,7 +234,7 @@ impl Exported {
             .and_then(Utf8Path::parent)
             .expect("a production bundle is below its build root's production area")
             .join("verified")
-            .join(self.output.result.verification.attestation_id.label())
+            .join(self.output.result.verification.attestation_id.hex())
     }
 }
 

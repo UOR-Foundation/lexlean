@@ -954,7 +954,7 @@ impl P {
     /// The published build directory for a build ID.
     #[must_use]
     pub fn build_dir(&self, build_id: &lexlean::artifact::content_id::Kappa) -> Utf8PathBuf {
-        self.root.join(".lexlean/build").join(build_id.label())
+        self.root.join(".lexlean/build").join(build_id.hex())
     }
 
     /// Append a path lexicon source to the configuration (before `[limits]`).
