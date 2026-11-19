@@ -1030,6 +1030,31 @@ That the pinned Lean indexes an array in constant time and writes one in
 place when it is referenced once is cited (`LEAN-ARRAY-4-32-2`), not gated
 here: no case measures time.
 
+### lean-modules can print a policy verify does not apply (CL-28)
+
+`CL-28` holds the `axiom_policies` of `lexlean lean-modules` (§22.6, §23.4).
+`conformance_cl_28` reads the table of every example that checks: each row
+must have a kind, axioms, and one of the five rules, a model must name its
+members, a runtime row must be exact, a text-laws module must have no row, and
+every rule must occur somewhere. It then verifies `peano-arithmetic`,
+`list-induction`, and `models` with the pinned Lean. The attestation's
+declaration rows must be exactly the printed rows, in stage order, with a
+model's members in its place and a `core` row only where the audit reports it.
+The case passed in 300 s on Linux x86-64 (WSL 2). The attestations hold 33, 7,
+and 806 rows, and the rows are the printed table.
+
+Planted: the printed kind is `none` or `allow` whatever the policy is.
+
+```text
+assertion `left == right` failed: CL-28: .../examples/collections: a runtime declaration is exact
+  left: "none"
+```
+
+Stage 11 now evaluates the table instead of walking the IR itself. The cases
+that drive `LLV7005` through real Lean pass unchanged on the refactored stage:
+`VR-11`, `VR-16`, `VR-25`, `MD-06`, `RT-03`, and `LM-02`. `CL-27` passes too,
+with the 18 documents, policies included, byte-identical under `node:wasi`.
+
 ### lean-modules can differ from build, write, or differ on WASI (CL-27)
 
 `CL-27` holds `lexlean lean-modules` (§23.4). `conformance_cl_27` runs it on
@@ -14855,9 +14880,9 @@ parts, disjoint and complete (RP-13).
 
 ## The WASI cases as their own part (2026-11-18)
 
-`CL-25`..`CL-27` each build `lexlean` for `wasm32-wasip1` in the release
+`CL-25`..`CL-28` each build `lexlean` for `wasm32-wasip1` in the release
 profile and run it under Node beside the native executable; `CL-27` also
-builds every example that checks. In the remainder they overlapped the rest
+builds every example that checks, and `CL-28` verifies three with Lean. In the remainder they overlapped the rest
 of `bdd` and the leg's `golden` and `repro` recipes. With `CL-27` on the
 `release/v0.4` base, the `rest` leg of run 44396317256 lost its runner 55
 minutes in ("The hosted runner lost communication with the server"), as did

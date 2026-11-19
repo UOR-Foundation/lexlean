@@ -806,3 +806,166 @@ pub(crate) fn lean_modules() {
         native_bytes.len()
     );
 }
+
+/// The policy rows a verification attests for a `lexlean/lean-modules/1`
+/// document, in its order: one per entry, a model's members in its place, a
+/// `core` entry only when the attestation holds it (stage 11 skips a core
+/// name the audit does not report). Each is `(rule, name, kind, axioms)`.
+fn attested_rows(document: &serde_json::Value) -> Vec<(String, String, String, serde_json::Value)> {
+    // The stage reads the project's modules in module order, then the
+    // runtime modules; the document lists them in elaboration order.
+    let mut modules: Vec<&serde_json::Value> = document["modules"]
+        .as_array()
+        .expect("modules")
+        .iter()
+        .filter(|module| module["kind"] == "project")
+        .collect();
+    modules.sort_by_key(|module| module["module"].as_str().unwrap_or_default().to_owned());
+    modules.extend(
+        document["modules"]
+            .as_array()
+            .expect("modules")
+            .iter()
+            .filter(|module| module["kind"] == "runtime"),
+    );
+    let mut rows = Vec::new();
+    for module in modules {
+        for policy in module["axiom_policies"].as_array().expect("axiom_policies") {
+            let rule = policy["rule"].as_str().expect("rule").to_owned();
+            let axioms = policy["axioms"].clone();
+            if rule == "model" {
+                for member in policy["members"].as_array().expect("members") {
+                    rows.push((
+                        rule.clone(),
+                        member.as_str().expect("member").to_owned(),
+                        "allow".to_owned(),
+                        axioms.clone(),
+                    ));
+                }
+            } else {
+                rows.push((
+                    rule,
+                    policy["declaration"]
+                        .as_str()
+                        .expect("declaration")
+                        .to_owned(),
+                    policy["kind"].as_str().expect("kind").to_owned(),
+                    axioms,
+                ));
+            }
+        }
+    }
+    rows
+}
+
+/// CL-28.
+pub(crate) fn lean_module_policies() {
+    let root = support::repo_root();
+    let mut rules: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    // Without Lean: the table of every example that checks names every rule
+    // in the shape a host reads, and a model names the members it governs.
+    for source in checking_examples() {
+        let project = copy(&source);
+        let (exit, stdout, stderr) = native(&project.root, &["lean-modules"]);
+        assert_eq!(exit, 0, "CL-28: {source}: {stderr}");
+        let document: serde_json::Value = serde_json::from_str(&stdout).expect("document");
+        for module in document["modules"].as_array().expect("modules") {
+            let policies = module["axiom_policies"].as_array().expect("axiom_policies");
+            if module["kind"] == "text-laws" {
+                assert!(
+                    policies.is_empty(),
+                    "CL-28: {source}: stage 11 holds no text-laws declaration"
+                );
+            }
+            for policy in policies {
+                let rule = policy["rule"].as_str().expect("rule");
+                let kind = policy["kind"].as_str().expect("kind");
+                assert!(
+                    ["none", "allow", "exact"].contains(&kind),
+                    "CL-28: {source}: kind {kind}"
+                );
+                let axioms = policy["axioms"].as_array().expect("axioms");
+                if kind == "none" {
+                    assert!(axioms.is_empty(), "CL-28: {source}: {policy}");
+                }
+                match rule {
+                    "document" | "core" | "semantic" => assert!(policy.get("members").is_none()),
+                    // A model that generates nothing governs no member, and
+                    // then its union is empty.
+                    "model" => assert!(
+                        policy["members"].is_array(),
+                        "CL-28: {source}: a model names the declarations it governs"
+                    ),
+                    "runtime" => {
+                        assert_eq!(
+                            kind, "exact",
+                            "CL-28: {source}: a runtime declaration is exact"
+                        );
+                        assert_eq!(module["kind"], "runtime", "CL-28: {source}");
+                    }
+                    other => panic!("CL-28: {source}: rule `{other}`"),
+                }
+                rules.insert(rule.to_owned());
+            }
+        }
+    }
+    for rule in ["document", "core", "semantic", "model", "runtime"] {
+        assert!(
+            rules.contains(rule),
+            "CL-28: some example has a `{rule}` entry"
+        );
+    }
+
+    // With Lean: what `verify` attests is exactly the table, row for row in
+    // its order, on examples that between them use every rule but `core`,
+    // whose rule is the document rule but for an unreported name.
+    for name in ["peano-arithmetic", "list-induction", "models"] {
+        let project = copy(&root.join("examples").join(name));
+        let (exit, stdout, stderr) = native(&project.root, &["lean-modules"]);
+        assert_eq!(exit, 0, "CL-28: {name}: {stderr}");
+        let document: serde_json::Value = serde_json::from_str(&stdout).expect("document");
+        let Some(verified) = support::verify_ok_backed("CL-28", &project) else {
+            return;
+        };
+        let attestation: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(verified.root.join("attestation.json").as_std_path())
+                .expect("attestation"),
+        )
+        .expect("attestation JSON");
+        let attested: Vec<(String, String, serde_json::Value)> = attestation["declarations"]
+            .as_array()
+            .expect("declarations")
+            .iter()
+            .map(|row| {
+                (
+                    row["name"].as_str().expect("name").to_owned(),
+                    row["policy"]["kind"].as_str().expect("kind").to_owned(),
+                    row["policy"]["axioms"].clone(),
+                )
+            })
+            .collect();
+        let names: std::collections::BTreeSet<&str> =
+            attested.iter().map(|row| row.0.as_str()).collect();
+        let expected: Vec<(String, String, serde_json::Value)> = attested_rows(&document)
+            .into_iter()
+            .filter(|(rule, name, _, _)| rule != "core" || names.contains(name.as_str()))
+            .map(|(_, name, kind, axioms)| (name, kind, axioms))
+            .collect();
+        assert!(!expected.is_empty(), "CL-28: {name} has policies");
+        assert_eq!(
+            attested.len(),
+            expected.len(),
+            "CL-28: {name}: verify attests one row per printed row"
+        );
+        for (index, (attested, printed)) in attested.iter().zip(&expected).enumerate() {
+            assert_eq!(
+                attested, printed,
+                "CL-28: {name}: row {index}: verify attests the printed row"
+            );
+        }
+        eprintln!(
+            "CL-28: {name}: {} attested rows are the printed table",
+            attested.len()
+        );
+    }
+}

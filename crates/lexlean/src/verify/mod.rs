@@ -26,6 +26,7 @@ pub mod leanchecker;
 pub mod lifeline;
 pub mod operational;
 pub mod partition;
+pub mod policy;
 pub mod pool;
 pub mod source_audit;
 pub mod telemetry;
@@ -2023,272 +2024,141 @@ pub fn run_part(
         }
         policy_diagnostics.push(diagnostic);
     };
-    for module in &build.modules {
-        let document = &checked.modules[&module.module].document;
-        for declaration in document.declarations() {
-            let full_name = format!("{}.{}", module.lean_module, declaration.lean_name);
-            let observed_set = observed.get(&full_name).cloned().unwrap_or_default();
-            if !declaration.policy.permits(&observed_set) {
-                let diagnostic = Diagnostic::new(
-                    code!("LLV7005"),
-                    format!(
-                        "`{full_name}` violates its {} axiom policy: observed [{}]",
-                        declaration.policy.kind(),
-                        observed_set.join(", ")
-                    ),
-                );
-                reject_policy(&full_name, diagnostic);
-            }
-            declaration_rows.push(Json::object(vec![
-                ("name", Json::Str(full_name)),
-                (
-                    "policy",
-                    Json::object(vec![
-                        ("kind", Json::Str(declaration.policy.kind().to_owned())),
-                        (
-                            "axioms",
-                            Json::Arr(
-                                declaration
-                                    .policy
-                                    .axioms()
-                                    .iter()
-                                    .cloned()
-                                    .map(Json::Str)
-                                    .collect(),
-                            ),
-                        ),
-                    ]),
-                ),
-                (
-                    "observed",
-                    Json::Arr(observed_set.into_iter().map(Json::Str).collect()),
-                ),
-                ("result", Json::Str("ok".to_owned())),
-            ]));
-        }
-        if let Some(core) = &document.core {
-            for declaration in &core.declarations {
-                let Some(observed_set) = observed.get(&declaration.name).cloned() else {
-                    continue;
-                };
-                if !declaration.policy.permits(&observed_set) {
-                    reject_policy(
-                        &declaration.name,
-                        Diagnostic::new(
-                            code!("LLV7005"),
-                            format!(
-                                "`{}` violates its {} axiom policy: observed [{}]",
-                                declaration.name,
-                                declaration.policy.kind(),
-                                observed_set.join(", ")
-                            ),
-                        ),
-                    );
-                }
-                declaration_rows.push(Json::object(vec![
-                    ("name", Json::Str(declaration.name.clone())),
+    // One attestation row per audited name, with the policy it was held to.
+    let row = |name: &str, kind: &str, axioms: &[String], observed_set: Vec<String>| {
+        Json::object(vec![
+            ("name", Json::Str(name.to_owned())),
+            (
+                "policy",
+                Json::object(vec![
+                    ("kind", Json::Str(kind.to_owned())),
                     (
-                        "policy",
-                        Json::object(vec![
-                            ("kind", Json::Str(declaration.policy.kind().to_owned())),
-                            (
-                                "axioms",
-                                Json::Arr(
-                                    declaration
-                                        .policy
-                                        .axioms()
-                                        .iter()
-                                        .cloned()
-                                        .map(Json::Str)
-                                        .collect(),
+                        "axioms",
+                        Json::Arr(axioms.iter().cloned().map(Json::Str).collect()),
+                    ),
+                ]),
+            ),
+            (
+                "observed",
+                Json::Arr(observed_set.into_iter().map(Json::Str).collect()),
+            ),
+            ("result", Json::Str("ok".to_owned())),
+        ])
+    };
+    // The table `lexlean lean-modules` prints is the one evaluated here, so a
+    // host that elaborates the modules itself holds them to these rules.
+    for module_table in policy::table(checked, &build.modules, &runtime_modules) {
+        for entry in &module_table.entries {
+            let name = entry.name.as_str();
+            let kind = entry.policy.kind();
+            let axioms = entry.policy.axioms();
+            match &entry.rule {
+                policy::Rule::Document | policy::Rule::Core => {
+                    let observed_set = match (observed.get(name), &entry.rule) {
+                        (Some(observed_set), _) => observed_set.clone(),
+                        (None, policy::Rule::Document) => Vec::new(),
+                        (None, _) => continue,
+                    };
+                    if !entry.policy.permits(&observed_set) {
+                        reject_policy(
+                            name,
+                            Diagnostic::new(
+                                code!("LLV7005"),
+                                format!(
+                                    "`{name}` violates its {kind} axiom policy: observed [{}]",
+                                    observed_set.join(", ")
                                 ),
                             ),
-                        ]),
-                    ),
-                    (
-                        "observed",
-                        Json::Arr(observed_set.into_iter().map(Json::Str).collect()),
-                    ),
-                    ("result", Json::Str("ok".to_owned())),
-                ]));
-            }
-        }
-        if let Some(semantic) = &document.semantic {
-            for (index, declaration) in semantic.declarations.iter().enumerate() {
-                // §17.12 (models): every Lean declaration a model declaration
-                // generates stays within its exact axiom set, and together
-                // they observe exactly that set.
-                if crate::ir::semantic::model::elaborated_construct(declaration).is_some() {
+                        );
+                    }
+                    declaration_rows.push(row(name, kind, axioms, observed_set));
+                }
+                policy::Rule::Model { members } => {
+                    // §17.12 (models): every Lean declaration a model
+                    // declaration generates stays within its exact axiom set,
+                    // and together they observe exactly that set.
+                    let short = name
+                        .strip_prefix(&format!("{}.", module_table.lean_module))
+                        .unwrap_or(name);
                     let mut union: BTreeSet<String> = BTreeSet::new();
-                    let generated: Vec<String> = semantic
-                        .elaborated(index)
-                        .unwrap_or_default()
-                        .iter()
-                        .map(|derived| derived.name().to_owned())
-                        .chain(
-                            semantic
-                                .elaboration
-                                .theorems(index)
-                                .iter()
-                                .map(|theorem| theorem.name.clone()),
-                        )
-                        .chain(
-                            semantic
-                                .elaboration
-                                .checks(index)
-                                .iter()
-                                .map(|check| check.name.clone()),
-                        )
-                        .collect();
-                    for name in generated {
-                        let full_name = format!("{}.{name}", module.lean_module);
-                        let observed_set = observed.get(&full_name).cloned().ok_or_else(|| {
+                    for full_name in members {
+                        let observed_set = observed.get(full_name).cloned().ok_or_else(|| {
                             fail(internal(format!(
                                 "generated declaration `{full_name}` is absent from the axiom audit"
                             )))
                         })?;
-                        if observed_set
-                            .iter()
-                            .any(|axiom| !declaration.axioms().contains(axiom))
-                        {
-                            reject_policy(&format!("{}.{}", module.lean_module, declaration.name()), Diagnostic::new(
-                                code!("LLV7005"),
-                                format!(
-                                    "`{full_name}`, generated by `{}`, violates its {} axiom policy: observed [{}]",
-                                    declaration.name(),
-                                    declaration.axiom_policy_kind(),
-                                    observed_set.join(", ")
+                        if observed_set.iter().any(|axiom| !axioms.contains(axiom)) {
+                            reject_policy(
+                                name,
+                                Diagnostic::new(
+                                    code!("LLV7005"),
+                                    format!(
+                                        "`{full_name}`, generated by `{short}`, violates its {kind} axiom policy: observed [{}]",
+                                        observed_set.join(", ")
+                                    ),
                                 ),
-                            ));
+                            );
                         }
                         union.extend(observed_set.iter().cloned());
-                        declaration_rows.push(Json::object(vec![
-                            ("name", Json::Str(full_name)),
-                            (
-                                "policy",
-                                Json::object(vec![
-                                    ("kind", Json::Str("allow".to_owned())),
-                                    (
-                                        "axioms",
-                                        Json::Arr(
-                                            declaration
-                                                .axioms()
-                                                .iter()
-                                                .cloned()
-                                                .map(Json::Str)
-                                                .collect(),
-                                        ),
-                                    ),
-                                ]),
-                            ),
-                            (
-                                "observed",
-                                Json::Arr(observed_set.into_iter().map(Json::Str).collect()),
-                            ),
-                            ("result", Json::Str("ok".to_owned())),
-                        ]));
+                        declaration_rows.push(row(full_name, "allow", axioms, observed_set));
                     }
-                    if union.into_iter().collect::<Vec<_>>() != declaration.axioms() {
-                        reject_policy(&format!("{}.{}", module.lean_module, declaration.name()), Diagnostic::new(
-                            code!("LLV7005"),
-                            format!(
-                                "`{}.{}` violates its {} axiom policy: its generated declarations observe exactly a different set",
-                                module.lean_module,
-                                declaration.name(),
-                                declaration.axiom_policy_kind()
-                            ),
-                        ));
-                    }
-                    continue;
-                }
-                let full_name = format!("{}.{}", module.lean_module, declaration.name());
-                let observed_set = observed.get(&full_name).cloned().ok_or_else(|| {
-                    fail(internal(format!(
-                        "semantic declaration `{full_name}` is absent from the axiom audit"
-                    )))
-                })?;
-                if observed_set != declaration.axioms() {
-                    reject_policy(
-                        &full_name,
-                        Diagnostic::new(
-                            code!("LLV7005"),
-                            format!(
-                                "`{full_name}` violates its {} axiom policy: observed [{}]",
-                                declaration.axiom_policy_kind(),
-                                observed_set.join(", ")
-                            ),
-                        ),
-                    );
-                }
-                declaration_rows.push(Json::object(vec![
-                    ("name", Json::Str(full_name)),
-                    (
-                        "policy",
-                        Json::object(vec![
-                            (
-                                "kind",
-                                Json::Str(declaration.axiom_policy_kind().to_owned()),
-                            ),
-                            (
-                                "axioms",
-                                Json::Arr(
-                                    declaration
-                                        .axioms()
-                                        .iter()
-                                        .cloned()
-                                        .map(Json::Str)
-                                        .collect(),
+                    if union.into_iter().collect::<Vec<_>>() != axioms {
+                        reject_policy(
+                            name,
+                            Diagnostic::new(
+                                code!("LLV7005"),
+                                format!(
+                                    "`{name}` violates its {kind} axiom policy: its generated declarations observe exactly a different set"
                                 ),
                             ),
-                        ]),
-                    ),
-                    (
-                        "observed",
-                        Json::Arr(observed_set.into_iter().map(Json::Str).collect()),
-                    ),
-                    ("result", Json::Str("ok".to_owned())),
-                ]));
+                        );
+                    }
+                }
+                policy::Rule::Semantic => {
+                    let observed_set = observed.get(name).cloned().ok_or_else(|| {
+                        fail(internal(format!(
+                            "semantic declaration `{name}` is absent from the axiom audit"
+                        )))
+                    })?;
+                    if observed_set != axioms {
+                        reject_policy(
+                            name,
+                            Diagnostic::new(
+                                code!("LLV7005"),
+                                format!(
+                                    "`{name}` violates its {kind} axiom policy: observed [{}]",
+                                    observed_set.join(", ")
+                                ),
+                            ),
+                        );
+                    }
+                    declaration_rows.push(row(name, kind, axioms, observed_set));
+                }
+                policy::Rule::Runtime => {
+                    // §17.12: every declaration of a runtime module the
+                    // project uses observes exactly the axioms its native
+                    // source pins.
+                    let observed_set = observed.get(name).cloned().ok_or_else(|| {
+                        fail(internal(format!(
+                            "runtime declaration `{name}` is absent from the axiom audit"
+                        )))
+                    })?;
+                    if observed_set != axioms {
+                        reject_policy(
+                            name,
+                            Diagnostic::new(
+                                code!("LLV7005"),
+                                format!(
+                                    "`{name}` of the runtime module `{}` violates its exact axiom policy: observed [{}]",
+                                    module_table.lean_module,
+                                    observed_set.join(", ")
+                                ),
+                            ),
+                        );
+                    }
+                    declaration_rows.push(row(name, kind, axioms, observed_set));
+                }
             }
-        }
-    }
-
-    // §17.12: every declaration of a runtime module the project uses observes
-    // exactly the axioms its native source pins.
-    for module in &runtime_modules {
-        for (name, axioms) in &module.declarations {
-            let observed_set = observed.get(name).cloned().ok_or_else(|| {
-                fail(internal(format!(
-                    "runtime declaration `{name}` is absent from the axiom audit"
-                )))
-            })?;
-            if observed_set != *axioms {
-                reject_policy(name, Diagnostic::new(
-                    code!("LLV7005"),
-                    format!(
-                        "`{name}` of the runtime module `{}` violates its exact axiom policy: observed [{}]",
-                        module.name,
-                        observed_set.join(", ")
-                    ),
-                ));
-            }
-            declaration_rows.push(Json::object(vec![
-                ("name", Json::Str(name.clone())),
-                (
-                    "policy",
-                    Json::object(vec![
-                        ("kind", Json::Str("exact".to_owned())),
-                        (
-                            "axioms",
-                            Json::Arr(axioms.iter().cloned().map(Json::Str).collect()),
-                        ),
-                    ]),
-                ),
-                (
-                    "observed",
-                    Json::Arr(observed_set.into_iter().map(Json::Str).collect()),
-                ),
-                ("result", Json::Str("ok".to_owned())),
-            ]));
         }
     }
 

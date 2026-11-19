@@ -1238,6 +1238,7 @@ pub(crate) fn run(id: &str) {
         "CL-25" => super::wasi::cli(),
         "CL-26" => super::wasi::snapshot(),
         "CL-27" => super::wasi::lean_modules(),
+        "CL-28" => super::wasi::lean_module_policies(),
         other => panic!("no cli-api case is wired for {other}"),
     }
 }
