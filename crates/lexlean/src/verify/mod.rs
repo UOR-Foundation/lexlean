@@ -29,6 +29,7 @@ pub mod partition;
 pub mod pool;
 mod repair;
 pub mod source_audit;
+pub mod store;
 pub mod telemetry;
 pub mod toolchain;
 pub mod workspace;
@@ -651,6 +652,7 @@ fn leanchecker_identity(
         workspace_root,
         limits,
         normalizer,
+        None,
     )?;
     let combined = format!("{}{}", record.stdout.trim_end(), record.stderr.trim_end());
     let observed = format!("{}\n", combined.trim_end());
@@ -1309,6 +1311,17 @@ pub fn run_part(
         )?;
     }
     release_non_diagnostic_buffers(build);
+    // The process store (§22.13), when the environment selects one: the
+    // staged sources the identities of this run's processes are read from,
+    // in the order of the search paths their processes read imports from.
+    let store_session = store::Store::from_env().map(|selected| {
+        store::Session::new(
+            selected,
+            vec![staging_utf8.join("preserve-src"), src_root.clone()],
+            toolchain.root.clone(),
+        )
+    });
+    let store_session = store_session.as_ref();
     let lean_path_env = format!("{olean_root}");
     // The records of this run's processes, by what they are and the module
     // or audit member they are of, and the records of the remaining stages
@@ -1376,7 +1389,8 @@ pub fn run_part(
     let probe_source = staging_utf8
         .join("probe")
         .join(format!("{probe_name}.lean"));
-    let probe_record = run_child(
+    let probe_record = store::run(
+        store_session,
         &ChildSpec {
             tool: "lean",
             module: Some(probe_name.clone()),
@@ -1395,6 +1409,8 @@ pub fn run_part(
         },
         &limits,
         &normalizer,
+        |session| session.source(&probe_source),
+        &[],
     )
     .map_err(fail)?;
     if probe_record.exit_code != 0 {
@@ -1538,7 +1554,8 @@ pub fn run_part(
                 ))
             })?;
         }
-        let record = run_child(
+        let record = store::run(
+            store_session,
             &ChildSpec {
                 tool: "lean",
                 module: Some(module.name.clone()),
@@ -1561,6 +1578,8 @@ pub fn run_part(
             },
             &limits,
             &normalizer,
+            |session| session.module(&module.name),
+            std::slice::from_ref(&olean),
         )
         .map_err(fail)?;
         if record.exit_code != 0
@@ -1686,7 +1705,8 @@ pub fn run_part(
                 let module_path = module_name.replace('.', "/");
                 let source = src_root.join(format!("{module_path}.lean"));
                 let olean = olean_root.join(format!("{module_path}.olean"));
-                run_child(
+                store::run(
+                    store_session,
                     &ChildSpec {
                         tool: "lean",
                         module: Some(module_name.clone()),
@@ -1709,6 +1729,8 @@ pub fn run_part(
                     },
                     &limits,
                     &normalizer,
+                    |session| session.module(module_name),
+                    std::slice::from_ref(&olean),
                 )
             },
             &|result: &Result<ChildRecord, Diagnostic>| {
@@ -1837,6 +1859,7 @@ pub fn run_part(
             &workspace_root,
             &limits,
             &normalizer,
+            store_session,
         )
         .map_err(fail)?;
         write_staged(
@@ -1869,6 +1892,7 @@ pub fn run_part(
                 &workspace_root,
                 &limits,
                 &normalizer,
+                store_session,
             )
             // A replay failure is about this module, so it points at the
             // module's source rather than at the project manifest (§20.1).
@@ -1921,7 +1945,8 @@ pub fn run_part(
             let audit = &audit_modules[audit_index];
             let source_relative = format!("audit/{}.lean", audit.name);
             let audit_source = staging_utf8.join(&source_relative);
-            run_child(
+            store::run(
+                store_session,
                 &ChildSpec {
                     tool: "lean",
                     module: Some(audit.name.clone()),
@@ -1940,6 +1965,8 @@ pub fn run_part(
                 },
                 &limits,
                 &normalizer,
+                |session| session.source(&audit_source),
+                &[],
             )
         },
         &|result: &Result<ChildRecord, Diagnostic>| {
@@ -2395,7 +2422,10 @@ pub fn run_part(
         let source = staging_utf8
             .join("extract")
             .join(format!("{}.lean", driver.name));
-        let record = run_child(
+        // The driver's report is a function of its text and the modules it
+        // imports, so the store answers it by that identity (§22.13).
+        let record = store::run(
+            store_session,
             &ChildSpec {
                 tool: "lean",
                 module: Some(driver.name.clone()),
@@ -2410,6 +2440,8 @@ pub fn run_part(
             },
             &limits,
             &normalizer,
+            |session| session.source(&source),
+            &[],
         )
         .map_err(fail)?;
         if record.exit_code != 0 {
@@ -2560,6 +2592,7 @@ pub fn run_part(
         }
         let compile = |file: &preserve::StagedFile, output: bool| {
             let source = preserve_src.join(&file.path);
+            let mut outputs: Vec<Utf8PathBuf> = Vec::new();
             let mut argv = vec![
                 "env".to_owned(),
                 "lean".to_owned(),
@@ -2575,9 +2608,11 @@ pub fn run_part(
                 }
                 argv.push("-o".to_owned());
                 argv.push(olean.to_string());
+                outputs.push(olean);
             }
             argv.push(source.to_string());
-            run_child(
+            store::run(
+                store_session,
                 &ChildSpec {
                     tool: "lean",
                     module: Some(file.module.clone()),
@@ -2592,6 +2627,8 @@ pub fn run_part(
                 },
                 &limits,
                 &normalizer,
+                |session| session.module(&file.module),
+                &outputs,
             )
         };
         for file in &stage.environment {
@@ -2662,6 +2699,7 @@ pub fn run_part(
                 &workspace_root,
                 &limits,
                 &normalizer,
+                store_session,
             )
             .map_err(fail)?;
             if replay.exit_code != 0 {
