@@ -1029,6 +1029,32 @@ through the command line.
 That the pinned Lean indexes an array in constant time and writes one in
 place when it is referenced once is cited (`LEAN-ARRAY-4-32-2`), not gated
 here: no case measures time.
+
+### snapshot can differ from the API, write, or differ on WASI (CL-26)
+
+`CL-26` holds `lexlean snapshot` (§23.4). `conformance_cl_26` runs it on every
+example project that checks. In human mode, stdout must equal
+`Engine::snapshot(..).canonical_bytes()` byte for byte, its SHA-256 the
+snapshot ID, its semantic and source IDs those `check` reports, and its spec
+the project's language's. In JSON mode the command result must name `snapshot`
+with `check`'s IDs and modules. Nothing may be written. A module `check`
+refuses must give `check`'s exit code and diagnostics and no snapshot. Built
+for `wasm32-wasip1` and run under Node's `node:wasi`, the executable must print
+the native bytes on every example. The case passed in 769 s, the module build
+included, on a shared Linux x86-64 host.
+
+Red first: run against the tree without the command,
+
+```text
+CL-26: .../examples/collections: snapshot exits 0: error[LLC0001]: unrecognized subcommand 'snapshot'
+```
+
+Measured beside it, outside the gate: on `examples/nat-add-zero` the native
+and WASI snapshots are both `d8497a00...`, 26,916 bytes, and under Node 22 a
+compiled `lexlean.wasm` (19,133,367 bytes, 4,112,161 gzipped, without
+`production-data`) checks it in 360 to 460 ms and takes its snapshot in 170 to
+300 ms.
+
 ### check on WASI can trap, merge two names of a file, or differ (CL-25)
 
 `CL-25` holds `lexlean check` on `wasm32-wasip1` (§8.3). `conformance_cl_25`
