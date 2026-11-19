@@ -96,6 +96,14 @@ enum CommandKind {
         /// Explicit input modules.
         inputs: Vec<Utf8PathBuf>,
     },
+    /// Write the semantic snapshot of a selection to stdout.
+    Snapshot {
+        /// Every module beneath every source root.
+        #[arg(long)]
+        all: bool,
+        /// Explicit input modules.
+        inputs: Vec<Utf8PathBuf>,
+    },
     /// Build a selection to the fixed content-addressed layout.
     Build {
         /// Every module beneath every source root.
@@ -165,10 +173,11 @@ enum ProductionAction {
 }
 
 /// The command names, in the order of §23.4.
-const COMMAND_NAMES: [&str; 10] = [
+const COMMAND_NAMES: [&str; 11] = [
     "init",
     "lock",
     "check",
+    "snapshot",
     "build",
     "verify",
     "fmt",
@@ -429,6 +438,9 @@ struct Outcome {
     ids: CommandIds,
     summary: String,
     explanation: Option<String>,
+    /// The bytes human mode writes in place of a summary: the semantic
+    /// snapshot's canonical file bytes for `snapshot` (§23.4).
+    document: Option<Vec<u8>>,
 }
 
 /// Emit a finished command's result in the selected mode and return the
@@ -463,6 +475,8 @@ fn emit(
         if exit_code == 0 {
             if let Some(explanation) = &outcome.explanation {
                 let _ = write!(stdout, "{explanation}");
+            } else if let Some(document) = &outcome.document {
+                let _ = stdout.write_all(document);
             } else if !outcome.summary.is_empty() {
                 let _ = write!(stdout, "{}", outcome.summary);
             }
@@ -569,6 +583,7 @@ pub fn run(
         CommandKind::Init { .. } => "init",
         CommandKind::Lock { .. } => "lock",
         CommandKind::Check { .. } => "check",
+        CommandKind::Snapshot { .. } => "snapshot",
         CommandKind::Build { .. } => "build",
         CommandKind::Verify { .. } => "verify",
         CommandKind::Fmt { .. } => "fmt",
@@ -659,6 +674,22 @@ pub fn run(
                         result.source_id.label(),
                         result.semantic_id.label()
                     );
+                    Ok(())
+                }
+                CommandKind::Snapshot { all, inputs } => {
+                    // The same pipeline as `check`, taking no lock; the
+                    // snapshot is the stable read-only DTO of §24.1.
+                    let snapshot = engine.snapshot(CheckRequest {
+                        selection: selection_from(all, inputs)?,
+                    })?;
+                    outcome.modules = snapshot
+                        .modules()
+                        .iter()
+                        .map(|module| module.name().to_owned())
+                        .collect();
+                    outcome.ids.source_id = Some(snapshot.source_id());
+                    outcome.ids.semantic_id = Some(snapshot.semantic_id());
+                    outcome.document = Some(snapshot.canonical_bytes());
                     Ok(())
                 }
                 CommandKind::Build { all, inputs } => {

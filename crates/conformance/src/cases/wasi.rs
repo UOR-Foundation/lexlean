@@ -380,3 +380,167 @@ pub(crate) fn cli() {
         }
     }
 }
+
+/// The example projects that check: every directory of `examples/` with a
+/// `lexlean.toml` whose native `check` exits 0.
+fn checking_examples() -> Vec<Utf8PathBuf> {
+    let root = support::repo_root();
+    let mut examples: Vec<Utf8PathBuf> = std::fs::read_dir(root.join("examples").as_std_path())
+        .expect("examples")
+        .flatten()
+        .filter(|entry| entry.path().join("lexlean.toml").is_file())
+        .filter_map(|entry| Utf8PathBuf::from_path_buf(entry.path()).ok())
+        .collect();
+    examples.sort();
+    examples
+        .into_iter()
+        .filter(|source| native(&copy(source).root, &["check"]).0 == 0)
+        .collect()
+}
+
+/// CL-26.
+pub(crate) fn snapshot() {
+    use sha2::{Digest, Sha256};
+
+    let examples = checking_examples();
+    assert!(
+        examples.len() >= 3,
+        "CL-26: {} example projects check",
+        examples.len()
+    );
+    let mut native_bytes = Vec::new();
+    for source in &examples {
+        let project = copy(source);
+        let before = support::file_set(&project.root);
+        // Human mode: stdout is exactly the snapshot's canonical file bytes,
+        // the bytes the public API serializes, and nothing else.
+        let (exit, stdout, stderr) = native(&project.root, &["snapshot"]);
+        assert_eq!(exit, 0, "CL-26: {source}: snapshot exits 0: {stderr}");
+        assert!(
+            stderr.is_empty(),
+            "CL-26: {source}: nothing on stderr: {stderr}"
+        );
+        let engine = project.engine();
+        let expected = engine
+            .snapshot(lexlean::api::CheckRequest {
+                selection: lexlean::api::Selection::Entrypoints,
+            })
+            .expect("the snapshot of a project that checks");
+        assert_eq!(
+            stdout.as_bytes(),
+            expected.canonical_bytes().as_slice(),
+            "CL-26: {source}: stdout is the snapshot's canonical bytes"
+        );
+        assert_eq!(
+            Sha256::digest(stdout.as_bytes()).as_slice(),
+            expected.snapshot_id().0.as_slice(),
+            "CL-26: {source}: the snapshot ID is the SHA-256 of stdout"
+        );
+        // The same IDs `check` reports, and the selection's own spec.
+        let (_, checked, _) = native(&project.root, &["--diagnostic-format", "json", "check"]);
+        let checked: serde_json::Value = serde_json::from_str(&checked).expect("check JSON");
+        let document: serde_json::Value = serde_json::from_str(&stdout).expect("snapshot JSON");
+        assert_eq!(
+            document["semantic_id"], checked["semantic_id"],
+            "CL-26: {source}: semantic ID"
+        );
+        assert_eq!(
+            document["source_id"], checked["source_id"],
+            "CL-26: {source}: source ID"
+        );
+        assert_eq!(
+            document["spec"],
+            serde_json::Value::from(lexlean::artifact::snapshot::snapshot_spec(
+                expected.language()
+            )),
+            "CL-26: {source}: the snapshot spec of the project's language"
+        );
+        // JSON mode: one command result, as `check` reports it, under `snapshot`.
+        let (exit, result, _) = native(&project.root, &["--diagnostic-format", "json", "snapshot"]);
+        let result: serde_json::Value = serde_json::from_str(&result).expect("command result");
+        assert_eq!(exit, 0, "CL-26: {source}: json snapshot exits 0");
+        assert_eq!(
+            result["command"], "snapshot",
+            "CL-26: {source}: the command result names snapshot"
+        );
+        assert_eq!(
+            result["semantic_id"], checked["semantic_id"],
+            "CL-26: {source}: json semantic ID"
+        );
+        assert_eq!(
+            result["modules"], checked["modules"],
+            "CL-26: {source}: json modules"
+        );
+        // It reads the project and writes nothing, like `check`.
+        assert_eq!(
+            support::file_set(&project.root),
+            before,
+            "CL-26: {source}: nothing is written"
+        );
+        native_bytes.push((source.clone(), stdout));
+    }
+
+    // A project `check` refuses gives no snapshot: the same exit code and
+    // diagnostics, and nothing on stdout in human mode.
+    let refused = copy(&support::repo_root().join("examples/nat-add-zero"));
+    std::fs::write(
+        refused.root.join("src/Main.lex.tex").as_std_path(),
+        "\\begin{lexlean}{Main}\n",
+    )
+    .expect("write a broken module");
+    let (check_exit, check_json, _) =
+        native(&refused.root, &["--diagnostic-format", "json", "check"]);
+    let (exit, stdout, stderr) = native(&refused.root, &["snapshot"]);
+    assert_ne!(
+        check_exit, 0,
+        "CL-26: the broken module is refused by check"
+    );
+    assert_eq!(
+        exit, check_exit,
+        "CL-26: snapshot exits as check does on a refused project"
+    );
+    assert!(
+        stdout.is_empty(),
+        "CL-26: a refused project prints no snapshot: {stdout}"
+    );
+    assert!(
+        !stderr.is_empty(),
+        "CL-26: a refused project's diagnostics are on stderr"
+    );
+    let (_, json, _) = native(&refused.root, &["--diagnostic-format", "json", "snapshot"]);
+    let json: serde_json::Value = serde_json::from_str(&json).expect("command result");
+    let check_json: serde_json::Value = serde_json::from_str(&check_json).expect("command result");
+    assert_eq!(
+        json["diagnostics"], check_json["diagnostics"],
+        "CL-26: the same diagnostics as check"
+    );
+
+    // On WASI the snapshot is the same bytes: it holds no path or host data
+    // (§24.1), so a browser worker gets what the native executable prints.
+    if !wasi_backed("CL-26") {
+        return;
+    }
+    let module = build();
+    let scratch = tempfile::Builder::new()
+        .prefix("lexlean-wasi-snapshot-")
+        .tempdir()
+        .expect("tempdir");
+    let host = Utf8PathBuf::from_path_buf(scratch.path().join("host.mjs")).expect("utf8 path");
+    std::fs::write(host.as_std_path(), HOST).expect("write the host");
+    for (source, bytes) in &native_bytes {
+        let project = copy(source);
+        let (exit, stdout, stderr) = wasi(&module, &host, &project.root, &["snapshot"]);
+        assert_eq!(
+            exit, 0,
+            "CL-26: {source}: snapshot on WASI exits 0: {stderr}"
+        );
+        assert!(
+            stdout == *bytes,
+            "CL-26: {source}: the WASI snapshot is the native snapshot, byte for byte"
+        );
+    }
+    eprintln!(
+        "CL-26: {} snapshots agree between the native and the WASI executable",
+        native_bytes.len()
+    );
+}
