@@ -10920,9 +10920,10 @@ returns the counter after the names it took; the next function starts there.
 The items so made are given to `applyMoves` and compared with the oracle's. The
 programs are those in which `rust::lower` succeeds and some function loops: 88
 vectors (44 within the 300 nodes the evaluator is given) of the rules of the
-earlier rows, `BS-04`, the committed programs, and four rules of this row (a
+earlier rows, `BS-04`, the committed programs, and five rules of this row (a
 function with a tail self call and a self call in a binding, a condition, or the
-scrutinee of a match, and a function with a parameter nothing reads, each beside
+scrutinee of a match, a function with a parameter nothing reads, and a function
+whose value is `bool` and whose condition is the self call itself, each beside
 a countdown that loops), and 79 seeded mutants drawn 3,000 times from the
 smaller committed programs.
 `loopFunction` says of each function that it loops exactly when
@@ -10940,12 +10941,14 @@ Measured certificate of `loopFunction` (bytes; the limit `max_file_bytes` is
 largest, 11.8% of the limit), part B 623,883, part E 160,793; the export took
 30 min 32 s.
 
-Each of twelve plants is made on a copy of `bootstrap/src/RustLoops.lex.tex` on
+Each of thirteen plants is made on a copy of `bootstrap/src/RustLoops.lex.tex` on
 every run and is caught by the oracle; the vector is the index among the
 vectors, then the mutants:
 
 - **a call to the function itself is not found by name**, vector 3.
 - **a binding that calls the function does not stop the loop**, vector 39.
+- **a condition that calls the function does not stop the loop**, vector 67 on
+  the tree that added it (the fifth rule).
 - **a parameter passed on as a clone is a change**, vector 0.
 - **the type of the state is nested to the left**, vector 0.
 - **the pattern of the state is nested to the left**, vector 0.
@@ -10968,7 +10971,14 @@ no vector that reaches them, with plants undetected on the vectors, the
 mutants, and the four rules written to reach them: that the condition of a
 conditional does not call the function, that the scrutinee of a match does not,
 and the handling of a block that is itself a tail. They are removed rather than
-claimed. A guard that only repeats a later one (a function with no tail self
+claimed. The first is restored: the lowering binds a self call that is an operand
+to a `let`, so the condition `n == 0` of the second rule never reached it, but a
+function whose value is `bool` takes the self call as the condition itself. The
+bootstrap's own lowered programs have such functions (five among those of the
+composed back end of issue 92), on which the root without the guard rendered a
+loop where `rust::lower` keeps the call. A fifth rule of that shape detects its
+plant. A `match` on such a value is lowered to an `if`, so the scrutinee guard
+still has no vector that reaches it, and stays removed. A guard that only repeats a later one (a function with no tail self
 call is refused again by the absence of a changed parameter) has no plant that
 could detect it, and is kept with no plant. (3) The counts of the earlier rows move with the
 package of this root and are recounted by the maintainer at the landing.
@@ -10983,7 +10993,7 @@ loop returned, and `applyMoves`; the chain so made is compared with the
 oracle's, the items of the types too. The programs are every program
 `rust::lower` succeeds on: 326 vectors (276 within the 300 nodes the evaluator
 is given) of the rules of the earlier rows, `BS-04`, the committed programs,
-the four rules of `BS-13`, and two rules of this row (a function whose
+the five rules of `BS-13`, and two rules of this row (a function whose
 uninhabited parameter, a function type no closure inhabits, is not its first,
 the second with live parameters on both sides of it); and 564 seeded mutants. On the normative host
 the evaluator agrees on the vectors and the mutants (the composition took 403 s),
