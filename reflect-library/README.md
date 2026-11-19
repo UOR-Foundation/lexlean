@@ -16,7 +16,9 @@ verified by LexLean itself, not beside the prover as handwritten Lean.
   bytes, pairs) to that checker's language.
 - Fold fusion: `fold_rel1`, `fold_rel2`, `fold_rel3`, their length-indexed forms, and `fold_append`.
 
-Every declaration is on `propext` and `Quot.sound` at most. Nothing uses `Classical.choice`.
+By the axioms `verify` observed: every declaration is on `propext` and `Quot.sound` at most, except `i8_lo` and
+`i8_hi` (the bounds of a signed byte), which also rest on `Classical.choice`. A proof that uses those two
+inherits it.
 
 ## Checked
 
