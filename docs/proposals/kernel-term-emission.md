@@ -76,9 +76,24 @@ On the whole `fold-laws` example, with statements taken from Lean's elaboration 
 | `Folds` | 9 | 1 | 1 |
 | `Main` | 6 | 1 | 1 |
 
-Every arithmetic theorem of the example is covered. The 13 not emitted are laws about folds over lists, which need induction; the arithmetic core does not apply to them, and they would need a second mechanism for the `law` form. Search and emit took 0.1 to 7 ms a theorem, the proofs are 0.1 to 26 KB, and the kernel took 1 to 180 ms each (the two monotonicity theorems are the large ones, at four sign cases times nine conditional cases).
+Every arithmetic theorem of the example is covered by the emitter. The 13 it does not emit are laws about folds over lists, which need induction; a fusion schema proved once would bring them in, and is not built. Until then they are covered as described under *Full coverage*. Search and emit took 0.1 to 7 ms a theorem, the proofs are 0.1 to 26 KB, and the kernel took 1 to 180 ms each (the two monotonicity theorems are the large ones, at four sign cases times nine conditional cases).
 
 Adding a form is adding lemmas, not touching the core: natural-number equality and remainder took four lemmas and about 25 lines of emitter, and brought in `parity_step`. It also exposed a weakness in the search (it forgot that variables are integers when it projected out an equality), fixed by substituting equalities exactly. The search is still not a complete decision procedure for integer arithmetic.
+
+**Full coverage.** What the emitter cannot find, Lean has already found: `verify` elaborates every theorem when a module is published. Those proof terms are exported as a pack that continues the library's file (the library is checked to be a byte prefix of the export that includes the proofs), and the pack is found by its κ-label. In the tab a pack is data, not code: it is outside the pin, its bytes are checked against its label, and the kernel judges every declaration in it. Each theorem is then bound to its expected statement by one more declaration, `LexBind.T : LexStmt.T := T`, which the kernel accepts only if the theorem's type is that statement.
+
+| fold-laws, 31 theorems | Result |
+| --- | --- |
+| Found by the emitter | 18, 63 KB of terms, kernel 0.27 s |
+| By Lean's own proof, from the pack | 13, pack 1.0 MB (164 KB gzipped), kernel 0.16 s |
+| Judged proved by the kernel | 31 of 31, each with Lean's exact axioms |
+| Same with Lean's own proof for all 31 | pack 2.3 MB (388 KB gzipped), kernel 0.65 s |
+| In the tab, first visit, whole example | 2.2 s Chromium, 3.6 s Firefox, 2.9 s WebKit |
+| In the tab, returning visit | 11 to 41 ms, no kernel started |
+
+Native Lean 4.32.2 accepted the same packs, and accepted the library with all 31 of Lean's proofs judged from nothing (2,739 declarations). A theorem offered as the proof of another's statement was refused, and so was a pack with one number altered.
+
+So coverage is full wherever `verify` has run, and it is Lean's own proof that is judged. What the emitter adds is that a proof it can find needs no published pack and no Lean at all, which is what an edit made in the tab needs. For a new theorem of a form the emitter does not cover, something still has to run Lean once.
 
 **Statements.** In this widened run the emitter no longer writes statements: it takes each one as Lean elaborated it and finds only the proof. Writing statements from the IR is direct work with no search, and the earlier runs did it for the integer fragment, but it is not shown here for the Boolean, natural and byte forms. D5 stands either way.
 
