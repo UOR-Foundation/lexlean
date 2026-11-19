@@ -21,7 +21,7 @@ The proposal is that `lexlean build` writes each proof as a kernel term, so that
 | D1 | `build` writes kernel terms for the proof forms it can | Yes, form by form |
 | D2 | Which kernel judges them | Lean's own kernel, native in `verify` and as WebAssembly in the tab. No new kernel |
 | D3 | What R9's "verified" requires | Unchanged. Add a separate, weaker status for "kernel-judged from emitted terms"; never report it as verified |
-| D4 | How search forms are proved | By reflection: a checker in a source package, its soundness theorem verified by the full pipeline |
+| D4 | How search forms are proved | By reflection: a small checker in a source package, and bridging lemmas around it, all verified by the full pipeline |
 | D5 | The oracle for emitted terms | Per declaration: the emitted statement equals the one Lean elaborated, and the kernel's verdict agrees with full `verify` |
 | D6 | The runtime's importability | `verify` keeps, or publishes by address, what an importer of the runtime needs |
 | D7 | The in-tab elaborator plan of 2026-11-18 | Keep it as the fallback prover and as the oracle of D5; emission takes forms off its load one at a time |
@@ -60,9 +60,36 @@ All runs used the kernel WebAssembly pinned in Foundry's manifest, under Node 22
 | `requantize_low` | 0.58 ms | 2.1 KB | 5.7 ms | identical to Lean's |
 | `requantize_high` | 0.49 ms | 2.1 KB | 5.2 ms | identical to Lean's |
 
-The other 14 theorems of `Kernels` were not emitted: one needs division to be monotone, five use statement forms the spike does not read, seven are over `Nat`, `UInt8` or `Int8`, and one is a closed evaluation that was not wired in. The false bound `1 <= requantize x` found no certificate, and a forged one was refused.
+That first checker covered 2 of the 16 theorems of `Kernels`. The false bound `1 <= requantize x` found no certificate, and a forged one was refused.
 
-The reflective library with the runtime is 5.2 MB, 886 KB gzipped, judged whole once in about 0.6 s and then held resident.
+**Coverage, widened.** The checker's core was then kept small and everything else moved into lemmas proved once and applied by the emitter around it:
+
+- The core reads integer inequalities with conditionals, and refutes over the integers: a certificate is a list of cuts (a combination divided by a common factor, its constant rounded down) and a final combination that is a negative constant. Its soundness theorem rests on `propext` and `Quot.sound`.
+- About fifty bridging lemmas turn each statement form into those inequalities or back: Boolean `lessThan` equal to true or false, equalities, truncating division and remainder by a constant (with the sign of the dividend taken both ways only when the search needs it), natural numbers, `UInt8` and `Int8`.
+- A closed equality is proved by `Eq.refl`; the kernel evaluates both sides.
+
+On the whole `fold-laws` example, with statements taken from Lean's elaboration (see below):
+
+| Module | Theorems | Emitted and accepted | Axioms identical to Lean's own proof |
+| --- | --- | --- | --- |
+| `Kernels` | 16 | 16 | 16 |
+| `Folds` | 9 | 1 | 1 |
+| `Main` | 6 | 1 | 1 |
+
+Every arithmetic theorem of the example is covered. The 13 not emitted are laws about folds over lists, which need induction; the arithmetic core does not apply to them, and they would need a second mechanism for the `law` form. Search and emit took 0.1 to 7 ms a theorem, the proofs are 0.1 to 26 KB, and the kernel took 1 to 180 ms each (the two monotonicity theorems are the large ones, at four sign cases times nine conditional cases).
+
+Adding a form is adding lemmas, not touching the core: natural-number equality and remainder took four lemmas and about 25 lines of emitter, and brought in `parity_step`. It also exposed a weakness in the search (it forgot that variables are integers when it projected out an equality), fixed by substituting equalities exactly. The search is still not a complete decision procedure for integer arithmetic.
+
+**Statements.** In this widened run the emitter no longer writes statements: it takes each one as Lean elaborated it and finds only the proof. Writing statements from the IR is direct work with no search, and the earlier runs did it for the integer fragment, but it is not shown here for the Boolean, natural and byte forms. D5 stands either way.
+
+**Pinned to the official kernel and library.**
+
+- The library the tab holds is exported from the official Lean 4.32.2 toolchain's own compiled files, from the runtime `lexlean verify` compiled under that toolchain, and from the reflective library compiled by the same.
+- The WebAssembly kernel is Foundry's build of Lean 4.32.1's kernel source (commit `f054605a`), by hash the one its manifest pins. It is one patch release behind LexLean's pin.
+- So every emitted proof was also judged natively by Lean 4.32.2 itself (commit `f3b06c70`), through `Environment.replay`: it accepted the same 18 declarations, accepted all 2,433 declarations of the library and the proofs judged from nothing in 1.3 s, and refused a proof with one number altered.
+- Not checked: the toolchain's files against the release archive's hashes. The local `lexlean` carried the spike's switch that keeps verify's scratch files.
+
+The reflective library with the runtime, the bridges and the statements is 7.3 MB, 1.2 MB gzipped, judged whole once in about 1.3 s in the tab's kernel and then held resident.
 
 ## 4. Scale
 
