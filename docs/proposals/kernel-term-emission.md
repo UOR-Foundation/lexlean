@@ -85,11 +85,9 @@ Adding a form is adding lemmas, not touching the core: natural-number equality a
 **Pinned to the official kernel and library.**
 
 - The library the tab holds is exported from the official Lean 4.32.2 toolchain's own compiled files, from the runtime `lexlean verify` compiled under that toolchain, and from the reflective library compiled by the same.
-- The WebAssembly kernel is Foundry's build of Lean 4.32.1's kernel source (commit `f054605a`), by hash the one its manifest pins. It is one patch release behind LexLean's pin.
-- So every emitted proof was also judged natively by Lean 4.32.2 itself (commit `f3b06c70`), through `Environment.replay`: it accepted the same 18 declarations, accepted all 2,433 declarations of the library and the proofs judged from nothing in 1.3 s, and refused a proof with one number altered.
-- Not checked: the toolchain's files against the release archive's hashes. The local `lexlean` carried the spike's switch that keeps verify's scratch files.
-
-The reflective library with the runtime, the bridges and the statements is 7.3 MB, 1.2 MB gzipped, judged whole once in about 1.3 s in the tab's kernel and then held resident.
+- The WebAssembly kernel was first Foundry's build of Lean 4.32.1. It was then rebuilt from a clean checkout of Lean 4.32.2 (`f3b06c70`) with Foundry's scripts and Emscripten 6.0.13: 2,235,146 bytes, 421 KB gzipped, `sha256:49cdfae0…`. Nothing under `src/kernel` is changed; the build's one patch touches two files of `src/runtime/uv`. The build took about two minutes on this desktop and carries the commit hash in its bytes. Every suite passes on it.
+- Every emitted proof was also judged natively by Lean 4.32.2 itself, through `Environment.replay`: it accepted the same 18 declarations, accepted all 2,433 declarations of the library and the proofs judged from nothing in 1.3 s, and refused a proof with one number altered.
+- Not checked: the toolchain's files against the release archive's hashes; whether the kernel build is byte-reproducible. The local `lexlean` carried the spike's switch that keeps verify's scratch files.
 
 ## 4. Scale
 
@@ -157,7 +155,25 @@ With 20 workers on the 24-thread machine the first run took 20.1 s: the kernels 
 
 A memo segment altered in place in OPFS was refused by the store on the next load ("OPFS content failed σ-axis verification"), and the prover judged the module again.
 
-**Not done.** Peers: declarations are stored by address but nothing was sent between tabs, so `KappaSync` is untested here. The workers load the emitter and the kernel's loader by URL, while the page addresses the bytes it fetched; a shipped version must hand the workers the addressed bytes. No Firefox, Safari or phone has run it.
+**One label for everything.** The tab was then rebuilt around a pin: one JSON document that names the Lean version and commit and gives the κ-label of every file that runs or is judged (kernel, loader, library, emitter, prover, worker, store). The pin's own label is the environment, so every memo address changes if any byte does.
+
+- **Boot.** The page's inline script is the only code that runs unverified, and it only verifies: the hashing code against SHA-256 with the browser's own `crypto.subtle`, then every other file against its BLAKE3 label. Modules and workers are then built from those checked bytes, never from a URL. An altered file is refused before anything runs; so is a pin other than the one asked for.
+- **The library is judged in the tab.** The first kernel a session starts judges the whole library (1.2 to 1.9 s), and that verdict is remembered under the library's and the kernel's labels. No published binding is trusted.
+- **Any storage.** Because objects are found by the label of their own bytes, the store needs no trust: Hologram's OPFS store, else IndexedDB with the label re-derived on read, else memory. All three were run.
+- **Only the kernels the work needs.** One kernel for a small module, up to the limit for a large one.
+
+Measured in the same Chromium tab on the 4.32.2 kernel:
+
+| What | Result |
+| --- | --- |
+| Download, gzipped | 1.75 MB: library 1.22 MB, kernel 0.43 MB, everything else 0.10 MB |
+| Fetch and verify all ten files (9.4 MB) | 0.10 to 0.16 s |
+| The real `Kernels` module, 16 theorems, first visit | 2.0 to 3.0 s, of which 1.2 to 1.6 s is judging the library, once |
+| The same, any later visit | 0.3 ms, ready 0.11 s after the page starts, no kernel started |
+| 20,000 generated theorems, first time, 8 kernels | 32 s |
+| The same after one edit | 0.19 s |
+
+**Not done.** No Firefox, Safari or phone has run it; only Chromium is installed here. The build needs WebAssembly exception handling and module workers, which current Firefox and Safari have, and it uses no threads or shared memory. Peers: declarations are stored by label but nothing was sent between tabs, so `KappaSync` is untested.
 
 **Open in the design.** Adding a theorem changes the module's list of names, which invalidates every chunk address. A finer rule would bind a chunk only to the names it mentions.
 
