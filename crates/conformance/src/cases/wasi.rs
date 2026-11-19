@@ -400,8 +400,6 @@ fn checking_examples() -> Vec<Utf8PathBuf> {
 
 /// CL-26.
 pub(crate) fn snapshot() {
-    use sha2::{Digest, Sha256};
-
     let examples = checking_examples();
     assert!(
         examples.len() >= 3,
@@ -432,9 +430,9 @@ pub(crate) fn snapshot() {
             "CL-26: {source}: stdout is the snapshot's canonical bytes"
         );
         assert_eq!(
-            Sha256::digest(stdout.as_bytes()).as_slice(),
-            expected.snapshot_id().0.as_slice(),
-            "CL-26: {source}: the snapshot ID is the SHA-256 of stdout"
+            lexlean::artifact::content_id::Kappa::of(stdout.as_bytes()),
+            expected.snapshot_id(),
+            "CL-26: {source}: the snapshot ID is the κ-label of stdout"
         );
         // The same IDs `check` reports, and the selection's own spec.
         let (_, checked, _) = native(&project.root, &["--diagnostic-format", "json", "check"]);
@@ -559,7 +557,7 @@ fn lean_imports(text: &str) -> Vec<&str> {
 /// CL-27.
 #[allow(clippy::too_many_lines)]
 pub(crate) fn lean_modules() {
-    use lexlean::artifact::content_id::Sha256Digest;
+    use lexlean::artifact::content_id::Kappa;
 
     let examples = checking_examples();
     assert!(
@@ -656,7 +654,7 @@ pub(crate) fn lean_modules() {
                 .iter()
                 .find(|output| output["path"] == path.as_str())
                 .unwrap_or_else(|| panic!("CL-27: {source}: the manifest lists {path}"));
-            assert_eq!(output["sha256"], row["sha256"], "CL-27: {source}: {path}");
+            assert_eq!(output["kappa"], row["kappa"], "CL-27: {source}: {path}");
             let module = row["module"].as_str().expect("module");
             assert!(
                 manifest["modules"]
@@ -673,8 +671,8 @@ pub(crate) fn lean_modules() {
             let lean_module = row["lean_module"].as_str().expect("lean_module");
             let text = row["text"].as_str().expect("text");
             assert_eq!(
-                row["sha256"].as_str().expect("sha256"),
-                Sha256Digest::of(text.as_bytes()).to_hex(),
+                row["kappa"].as_str().expect("kappa"),
+                Kappa::of(text.as_bytes()).label(),
                 "CL-27: {source}: {lean_module}'s digest"
             );
             match row["kind"].as_str().expect("kind") {

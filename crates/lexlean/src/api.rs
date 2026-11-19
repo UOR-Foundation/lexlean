@@ -264,10 +264,10 @@ pub(crate) struct LeanModule {
 /// pin them (§23.4).
 pub(crate) struct LeanModules {
     language: String,
-    semantics_id: Sha256Digest,
-    source_id: Sha256Digest,
-    semantic_id: Sha256Digest,
-    build_id: Sha256Digest,
+    semantics_id: Kappa,
+    source_id: Kappa,
+    semantic_id: Kappa,
+    build_id: Kappa,
     modules: Vec<LeanModule>,
 }
 
@@ -281,17 +281,17 @@ impl LeanModules {
     }
 
     /// The source ID.
-    pub(crate) fn source_id(&self) -> Sha256Digest {
+    pub(crate) fn source_id(&self) -> Kappa {
         self.source_id
     }
 
     /// The semantic ID.
-    pub(crate) fn semantic_id(&self) -> Sha256Digest {
+    pub(crate) fn semantic_id(&self) -> Kappa {
         self.semantic_id
     }
 
     /// The build ID `build` publishes the same modules under.
-    pub(crate) fn build_id(&self) -> Sha256Digest {
+    pub(crate) fn build_id(&self) -> Kappa {
         self.build_id
     }
 
@@ -305,8 +305,8 @@ impl LeanModules {
                     ("kind", Json::Str(module.kind.to_owned())),
                     ("lean_module", Json::Str(module.lean_module.clone())),
                     (
-                        "sha256",
-                        Json::Str(Sha256Digest::of(module.text.as_bytes()).to_hex()),
+                        "kappa",
+                        Json::Str(Kappa::of(module.text.as_bytes()).label()),
                     ),
                     ("text", Json::Str(module.text.clone())),
                 ];
@@ -353,7 +353,7 @@ impl LeanModules {
                 "compiler",
                 Json::object(vec![
                     ("version", Json::Str(crate::COMPILER_VERSION.to_owned())),
-                    ("semantics_id", Json::Str(self.semantics_id.to_hex())),
+                    ("semantics_id", Json::Str(self.semantics_id.label())),
                 ]),
             ),
             ("language", Json::Str(self.language.clone())),
@@ -361,9 +361,9 @@ impl LeanModules {
                 "lean_toolchain",
                 Json::Str(crate::LEAN_TOOLCHAIN.to_owned()),
             ),
-            ("source_id", Json::Str(self.source_id.to_hex())),
-            ("semantic_id", Json::Str(self.semantic_id.to_hex())),
-            ("build_id", Json::Str(self.build_id.to_hex())),
+            ("source_id", Json::Str(self.source_id.label())),
+            ("semantic_id", Json::Str(self.semantic_id.label())),
+            ("build_id", Json::Str(self.build_id.label())),
             ("modules", Json::Arr(modules)),
         ])
         .to_file_bytes()

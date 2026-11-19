@@ -1278,7 +1278,7 @@ pub(crate) fn gnaf_definitions() -> serde_json::Map<String, Json> {
         ),
         (
             "digest",
-            json!({"pattern": "^[0-9a-f]{64}$", "type": "string"}),
+            json!({"pattern": "^blake3:[0-9a-f]{64}$", "type": "string"}),
         ),
         (
             "capacity",

@@ -49,7 +49,7 @@ workspace carried at those versions without a tag.
   toolchain, and source, semantic, and build IDs, then every module in the
   order verification elaborates it, the shipped text-laws and runtime modules
   the project imports first, each with its Lean module name, exact text, and
-  SHA-256. A project module's text is the file `build` writes under that build
+  κ-label. A project module's text is the file `build` writes under that build
   ID, byte for byte. JSON mode writes `check`'s command result named
   `lean-modules` with the build ID. A host with Lean and no file lock, such as
   a browser worker, can now elaborate exactly what native LexLean generates.
@@ -60,13 +60,24 @@ workspace carried at those versions without a tag.
 - `lexlean snapshot [--all | INPUT...]` writes the semantic snapshot of a
   selection (SPEC.md §23.4, `CL-26`). In human mode its stdout is exactly the
   snapshot's canonical file bytes, the bytes `Engine::snapshot` serializes, so
-  their SHA-256 is the snapshot ID; in JSON mode it writes the command result
+  their κ-label is the snapshot ID; in JSON mode it writes the command result
   `check` writes, named `snapshot`. A project `check` refuses exits and
   reports as `check` does and prints no snapshot, and the command writes
   nothing. Since a snapshot holds no path or host data, the executable built
   for `wasm32-wasip1` prints the native bytes, so a WASI host with no other
   host, such as a browser worker, can take a model's snapshot. No language
   identity moves; the register is 500.
+- A release tag publishes what a browser prover loads (SPEC.md §7, §30.3,
+  `RP-20`). `lexlean-<version>-lean-wasm.tar.gz` holds the `.olean`,
+  `.olean.server`, `.olean.private`, `.ir`, and `.ilean` files of every runtime
+  module, built by the pinned Lean from the Lake package that the new
+  `cargo xtask runtime-package` writes. It also holds the WASM prover's driver,
+  now committed under `lean/wasm-prover/driver/` from foundry `43b66b26d38b`
+  byte for byte. `lexlean-<version>.wasm.gz` is the `wasm32-wasip1` executable
+  without `production-data`. Each is built twice and refused unless the two
+  builds agree. `lean-wasm.json` labels every file by the BLAKE3 κ of its raw
+  bytes, with the commit and the Lean version. CI builds the driver and the
+  runtime package in `RP-20`. No language identity moves; the register is 503.
 - An Atlas shard of the gate drops the part it uploaded in an earlier attempt
   of its run before it runs (SPEC.md §9.4, `RP-14`). "Re-run all jobs"
   downloaded that part with the rest, and the shard refused the non-empty

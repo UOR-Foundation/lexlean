@@ -41,6 +41,34 @@ Outside `vv`:
 
 ## Falsifiability records
 
+### browser prover assets can differ, fail to build, or go unpublished (RP-20)
+
+`RP-20` holds the assets a browser prover loads (§7, §30.3).
+`conformance_rp_20` runs `cargo xtask runtime-package` and checks four
+things. Every runtime source must be the compiler's runtime text, with the
+pinned toolchain, every module listed, and one Lake library over all of them.
+A second run into the same directory must be refused. The four driver files
+under `lean/wasm-prover/driver/` must pin the same Lean and declare `elab` and
+`symlist`. The release's `lean-wasm` job and its `publish` wiring must build,
+wait for, and attach the three assets. With Lean, two packages in two
+directories must build to the same `.olean`, `.olean.server`,
+`.olean.private`, `.ir`, and `.ilean` bytes, and the driver's two executables
+must build. The case passed in 16 s on Linux x86-64 (WSL 2), with 30 runtime
+build files identical.
+
+Planted: `publish` does not wait for `lean-wasm`.
+
+```text
+publish: "release.yml job `publish` has no `needs: [identity, crate, gate, binaries, manifest, lean-wasm]`"
+```
+
+Measured beside it, outside the gate: `.github/lean-wasm.sh 0.4.3` on that
+host took 412 s and produced 35 labelled files. Lake's `.trace` and
+`setup.json` files record the build directory and differ between two
+directories, so the script neither compares nor publishes them. Every file it
+publishes agreed byte for byte across the two builds, `lexlean.wasm` across
+two clean target directories included.
+
 ### semantic snapshot nesting can fail
 
 Before the correction for #430, the focused
