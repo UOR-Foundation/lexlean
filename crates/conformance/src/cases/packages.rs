@@ -401,7 +401,7 @@ fn pk_01() {
         &artifact,
         "../base/lexlean.toml",
         "\n[limits]",
-        "\n[[artifact_source]]\nsha256 = \"0000000000000000000000000000000000000000000000000000000000000000\"\npath = \"artifact.bin\"\n\n[limits]",
+        "\n[[artifact_source]]\nkappa = \"blake3:0000000000000000000000000000000000000000000000000000000000000000\"\npath = \"artifact.bin\"\n\n[limits]",
     );
     refused(&artifact, "LLC0101");
 }

@@ -36,7 +36,7 @@ const EVALUATOR_LIBRARY: usize = 16_384;
 
 const MANIFESTS: usize = 350;
 const ACCEPTED: usize = 331;
-const HEADER_RULES: usize = 182;
+const HEADER_RULES: usize = 186;
 const RENDER_RULES: usize = 137;
 const HEADER_MUTANTS: usize = 2_000;
 const RENDER_MUTANTS: usize = 331;
@@ -437,15 +437,17 @@ const SPECS: &[&str] = &[
     "lexlean/rust-provenance/2",
 ];
 const SOURCES: &[&str] = &[
-    "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
-    "1111111111111111111111111111111111111111111111111111111111111111",
-    "0000000000000000000000000000000000000000000000000000000000000000",
-    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-    "09D5F3630D4F28017017DA9DF6A1032805F8848C3BB64AA228C953FD1534D028",
-    "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d02",
-    "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d0280",
-    "g9d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
+    "blake3:09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
+    "blake3:1111111111111111111111111111111111111111111111111111111111111111",
+    "blake3:0000000000000000000000000000000000000000000000000000000000000000",
+    "blake3:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "blake3:09D5F3630D4F28017017DA9DF6A1032805F8848C3BB64AA228C953FD1534D028",
+    "blake3:09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d02",
+    "blake3:09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d0280",
+    "blake3:g9d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
     "",
+    "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
+    "sha256:09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
 ];
 const EFFECTS: &[&str] = &[
     "allocation",
@@ -728,8 +730,8 @@ const PLANTS: [Plant; 21] = [
     Plant {
         label: "the digests of Cargo.toml and lib.rs are swapped",
         root: 1,
-        site: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Sha256::sha256Hex cargo)) \",\") path (LexLeanStd.Sha256::sha256Hex library))",
-        replacement: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Sha256::sha256Hex library)) \",\") path (LexLeanStd.Sha256::sha256Hex cargo))",
+        site: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Blake3::blake3Label cargo)) \",\") path (LexLeanStd.Blake3::blake3Label library))",
+        replacement: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Blake3::blake3Label library)) \",\") path (LexLeanStd.Blake3::blake3Label cargo))",
     },
     Plant {
         label: "the library path is always src/lib.rs in Cargo.toml",

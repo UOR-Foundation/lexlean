@@ -978,7 +978,7 @@ pub fn f0(v0: Bytes, v1: Bytes, v2: Bytes, v3: Bytes, v4: List<Bytes>, v5: List<
                             Ok(f11(f2(Str::lit("sources are strictly ascending"))))
                         }
                     } else {
-                        Ok(f11(f2(Str::lit("every source is a lowercase SHA-256 hex identity"))))
+                        Ok(f11(f2(Str::lit("every source is a \u{3ba}-label"))))
                     }
                 } else {
                     Ok(f11(f12(f13(v3), f2(Str::lit(" is not a Rust profile")))))
@@ -1686,9 +1686,13 @@ pub fn f37(v0: Bytes) -> R<bool> {
         let a159 = v0.clone();
         length_bytes(a159)
     };
-    let a161 = 64u64;
+    let a161 = 71u64;
     if nat_eq(a160, a161) {
-        f16(v0, 1u64)
+        if f46(v0.clone(), f2(Str::lit("blake3:"))) {
+            f16(f35(v0, 7u64, 64u64), 1u64)
+        } else {
+            Ok(false)
+        }
     } else {
         Ok(false)
     }
@@ -1707,7 +1711,7 @@ pub fn f38(v0: (Option<Bytes>, bool), v1: Bytes) -> (Option<Bytes>, bool) {
             })
         }
         Some(v2) => {
-            let v3: bool = f46(v2, v1.clone());
+            let v3: bool = f47(v2, v1.clone());
             (Some(v1), {
                 let (_, h165) = v0;
                 if h165 {
@@ -1749,7 +1753,7 @@ pub fn f39(v0: Fn5, p169: Option<Bytes>, p170: List<Bytes>) -> R<Option<Bytes>> 
 }
 
 pub fn f40(v0: List<Bytes>, v1: Option<Bytes>, v2: Bytes) -> R<Option<Bytes>> {
-    f47(v0, v1, v2)
+    f48(v0, v1, v2)
 }
 
 pub fn f41(v0: Bytes, v1: u64, v2: u64) -> R<Option<u64>> {
@@ -1759,7 +1763,7 @@ pub fn f41(v0: Bytes, v1: u64, v2: u64) -> R<Option<u64>> {
             Ok(None::<u64>)
         }
         Some(v3) => {
-            if f48(v1, v3)? {
+            if f49(v1, v3)? {
                 Ok(Some({
                     let a172 = v2;
                     let a173 = 1u64;
@@ -1871,7 +1875,7 @@ pub fn f45(v0: Bytes) -> bool {
         };
         let a200 = 20u64;
         if nat_eq(a199, a200) {
-            let a201 = f46(f2(Str::lit("18446744073709551615")), v0);
+            let a201 = f47(f2(Str::lit("18446744073709551615")), v0);
             bool_not(a201)
         } else {
             false
@@ -1880,22 +1884,44 @@ pub fn f45(v0: Bytes) -> bool {
 }
 
 pub fn f46(v0: Bytes, v1: Bytes) -> bool {
-    let a206 = {
-        let a202 = v0;
-        let a203 = v1;
-        compare_bytes(a202, a203)
+    let m206 = {
+        let a203 = v0;
+        let a204 = 0u64;
+        let a205 = {
+            let a202 = v1.clone();
+            length_bytes(a202)
+        };
+        slice_bytes(a203, a204, a205)
     };
-    let a207 = {
-        let a204 = Bytes::lit(&[]);
-        let a205 = Bytes::lit(&[0x01]);
-        compare_bytes(a204, a205)
-    };
-    equal(a206, a207)
+    match m206 {
+        None => {
+            false
+        }
+        Some(v2) => {
+            let a207 = v2;
+            let a208 = v1;
+            equal(a207, a208)
+        }
+    }
 }
 
-pub fn f47(v0: List<Bytes>, v1: Option<Bytes>, v2: Bytes) -> R<Option<Bytes>> {
-    let m208 = v1.clone();
-    match m208 {
+pub fn f47(v0: Bytes, v1: Bytes) -> bool {
+    let a213 = {
+        let a209 = v0;
+        let a210 = v1;
+        compare_bytes(a209, a210)
+    };
+    let a214 = {
+        let a211 = Bytes::lit(&[]);
+        let a212 = Bytes::lit(&[0x01]);
+        compare_bytes(a211, a212)
+    };
+    equal(a213, a214)
+}
+
+pub fn f48(v0: List<Bytes>, v1: Option<Bytes>, v2: Bytes) -> R<Option<Bytes>> {
+    let m215 = v1.clone();
+    match m215 {
         None => {
             if f4(v0, v2.clone())? {
                 Ok(v1)
@@ -1909,17 +1935,17 @@ pub fn f47(v0: List<Bytes>, v1: Option<Bytes>, v2: Bytes) -> R<Option<Bytes>> {
     }
 }
 
-pub fn f48(v0: u64, v1: u8) -> R<bool> {
+pub fn f49(v0: u64, v1: u8) -> R<bool> {
     let v2: bool = f15(v1, 48u64, 57u64)?;
-    let a209 = v0;
-    let a210 = 0u64;
-    if nat_eq(a209, a210) {
+    let a216 = v0;
+    let a217 = 0u64;
+    if nat_eq(a216, a217) {
         Ok(v2)
     } else {
         let v3: bool = f15(v1, 97u64, 102u64)?;
-        let a211 = v0;
-        let a212 = 1u64;
-        if nat_eq(a211, a212) {
+        let a218 = v0;
+        let a219 = 1u64;
+        if nat_eq(a218, a219) {
             if v2 {
                 Ok(true)
             } else {
@@ -1928,9 +1954,9 @@ pub fn f48(v0: u64, v1: u8) -> R<bool> {
         } else {
             let v4: bool = f15(v1, 97u64, 122u64)?;
             let v5: bool = {
-                let a213 = v1;
-                let a214 = 95u8;
-                equal(a213, a214)
+                let a220 = v1;
+                let a221 = 95u8;
+                equal(a220, a221)
             };
             let v6: bool = if v4 {
                 true

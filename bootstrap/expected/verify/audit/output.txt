@@ -199,7 +199,6 @@
 'LexLeanBoot.ContentId.buildId' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.byteText' does not depend on any axioms
 'LexLeanBoot.ContentId.cat' does not depend on any axioms
-'LexLeanBoot.ContentId.digestBytes' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.frame' does not depend on any axioms
 'LexLeanBoot.ContentId.framedHash' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.lit' does not depend on any axioms
@@ -207,7 +206,6 @@
 'LexLeanBoot.ContentId.semanticId' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.sourceId' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.treeDigest' depends on axioms: [propext, Quot.sound]
-'LexLeanBoot.ContentId.wordBytes' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.Diagnostics.Diagnostic' does not depend on any axioms
 'LexLeanBoot.Diagnostics.Label' does not depend on any axioms
 'LexLeanBoot.Diagnostics.Note' does not depend on any axioms

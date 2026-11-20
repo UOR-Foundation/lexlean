@@ -147,7 +147,7 @@ fn set_artifact_sources(project: &P, mut sources: Vec<(String, String)>) {
     let mut out = text[..start].to_owned();
     for (kappa, path) in sources {
         out.push_str(&format!(
-            "\n[[artifact_source]]\nsha256 = \"{kappa}\"\npath = \"{path}\"\n"
+            "\n[[artifact_source]]\nkappa = \"{kappa}\"\npath = \"{path}\"\n"
         ));
     }
     out.push_str(&text[limits..]);
@@ -767,7 +767,7 @@ fn md_02() {
     refused(
         &missing,
         "LLR3007",
-        "model artifact `artifacts/banner.bin` with SHA-256",
+        "model artifact `artifacts/banner.bin` with κ-label",
     );
     let forged = P::copy_example(EXAMPLE);
     std::fs::write(

@@ -616,8 +616,8 @@ const PLANTS: &[Plant] = &[
     Plant {
         label: "the digest is of the name",
         root: 1,
-        site: "(LexLeanStd.Sha256::sha256Hex (canonicalProject config))",
-        replacement: "(LexLeanStd.Sha256::sha256Hex (project config projectName))",
+        site: "(LexLeanStd.Blake3::blake3Label (canonicalProject config))",
+        replacement: "(LexLeanStd.Blake3::blake3Label (project config projectName))",
         vector: "the digest of a pdf project",
     },
 ];

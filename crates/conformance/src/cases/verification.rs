@@ -149,9 +149,9 @@ pub(crate) fn run(id: &str) {
             for tool in ["lean", "lake", "leanchecker"] {
                 let record = &attestation["toolchain"][tool];
                 assert!(
-                    record["executable_kappa"]
-                        .as_str()
-                        .is_some_and(|hex| hex.len() == 64),
+                    record["executable_kappa"].as_str().is_some_and(|label| {
+                        lexlean::artifact::content_id::Kappa::parse(label).is_ok()
+                    }),
                     "{tool}: executable hash recorded: {attestation}"
                 );
             }
@@ -1046,9 +1046,11 @@ pub(crate) fn run(id: &str) {
                 panic!("the ID is a string")
             };
             assert_eq!(recomputed.label(), recorded_hex, "§22.9 recomputation");
+            // A directory name cannot hold the label's colon, so the
+            // directory is the label's hex digits.
             assert_eq!(
                 fixture.outcome.root.file_name(),
-                Some(recorded_hex.as_str()),
+                Some(recomputed.hex()),
                 "the directory is the attestation ID"
             );
             assert!(!body.contains("timestamp"), "no timestamp is hashed");

@@ -271,7 +271,9 @@ fn cached(label: &str, sources: &[Source], upstream: &[PathBuf]) -> PathBuf {
         digest.push_str(&format!("{}\n", directory.display()));
     }
     digest.push_str(lexlean::LEAN_TOOLCHAIN);
-    let key = lexlean::artifact::content_id::Kappa::of(digest.as_bytes()).label();
+    let key = lexlean::artifact::content_id::Kappa::of(digest.as_bytes())
+        .hex()
+        .to_owned();
     let base = std::env::current_exe()
         .ok()
         .and_then(|exe| {

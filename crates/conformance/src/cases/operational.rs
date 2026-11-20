@@ -917,7 +917,8 @@ fn parts_equal_the_whole() {
         .as_str()
         .expect("the addresses name lake")
         .to_owned();
-    let planted_lake = "f".repeat(lake.len());
+    // Another valid address, so the join reaches the toolchain check.
+    let planted_lake = format!("blake3:{}", "f".repeat(64));
     assert_ne!(lake, planted_lake);
     std::fs::write(
         addresses_path.as_std_path(),
@@ -993,7 +994,8 @@ fn parts_equal_the_whole() {
         .as_str()
         .expect("the record names its executable")
         .to_owned();
-    let planted = "0".repeat(recorded.len());
+    // Another valid κ-label, so the join reaches the toolchain check.
+    let planted = format!("blake3:{}", "0".repeat(64));
     assert_ne!(recorded, planted);
     std::fs::write(
         record_path.as_std_path(),

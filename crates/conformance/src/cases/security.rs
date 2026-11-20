@@ -886,10 +886,13 @@ pub(crate) fn run(id: &str) {
             };
             let attestation = &fixture.attestation;
             for tool in ["lean", "lake", "leanchecker"] {
-                let hex = attestation["toolchain"][tool]["executable_kappa"]
+                let kappa = attestation["toolchain"][tool]["executable_kappa"]
                     .as_str()
                     .unwrap_or_else(|| panic!("{tool} hash recorded"));
-                assert_eq!(hex.len(), 64, "{tool}: a full SHA-256 is recorded");
+                assert!(
+                    lexlean::Kappa::parse(kappa).is_ok(),
+                    "{tool}: a full κ-label is recorded, not {kappa}"
+                );
                 let identity = attestation["toolchain"][tool]["version_output"]
                     .as_str()
                     .unwrap_or_else(|| panic!("{tool} identity recorded"));
@@ -919,9 +922,9 @@ pub(crate) fn run(id: &str) {
                 )
                 .expect("parses");
                 assert!(
-                    record["executable_kappa"]
-                        .as_str()
-                        .is_some_and(|hex| hex.len() == 64),
+                    record["executable_kappa"].as_str().is_some_and(|label| {
+                        lexlean::artifact::content_id::Kappa::parse(label).is_ok()
+                    }),
                     "{name}: the executed binary's hash is recorded"
                 );
             }

@@ -503,12 +503,11 @@ pub(crate) fn run(id: &str) {
                     "{arguments:?}: sorted with import closure"
                 );
                 assert!(
-                    value["source_id"]
-                        .as_str()
-                        .is_some_and(|hex| hex.len() == 64)
-                        && value["semantic_id"]
-                            .as_str()
-                            .is_some_and(|hex| hex.len() == 64),
+                    value["source_id"].as_str().is_some_and(|label| {
+                        lexlean::artifact::content_id::Kappa::parse(label).is_ok()
+                    }) && value["semantic_id"].as_str().is_some_and(|label| {
+                        lexlean::artifact::content_id::Kappa::parse(label).is_ok()
+                    }),
                     "check reports its source and semantic IDs"
                 );
                 assert!(value.get("build_id").is_none(), "absent IDs are omitted");
