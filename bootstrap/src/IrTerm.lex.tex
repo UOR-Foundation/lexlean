@@ -165,7 +165,7 @@ definition{
     | GlobalRef.GExternal package entry leanModule leanName signature => (ctor LexLeanStd.Json::Json.JObj (member "kind" (jtext "external") (member "entry" (ctor LexLeanStd.Json::Json.JStr entry) (member "lean_module" (ctor LexLeanStd.Json::Json.JStr leanModule) (member "lean_name" (ctor LexLeanStd.Json::Json.JStr leanName) (member "signature_kappa" (ctor LexLeanStd.Json::Json.JStr signature) (ctor LexLeanStd.Json::Json.JNil)))))))
     | GlobalRef.GDocument sourceModule component leanName => (ctor LexLeanStd.Json::Json.JObj (member "kind" (jtext "document") (member "module" (ctor LexLeanStd.Json::Json.JStr sourceModule) (member "component" (ctor LexLeanStd.Json::Json.JStr component) (member "lean_name" (ctor LexLeanStd.Json::Json.JStr leanName) (ctor LexLeanStd.Json::Json.JNil))))))
     | GlobalRef.GDefined package entry signature => (ctor LexLeanStd.Json::Json.JObj (member "kind" (jtext "defined") (member "entry" (ctor LexLeanStd.Json::Json.JStr entry) (member "signature_kappa" (ctor LexLeanStd.Json::Json.JStr signature) (ctor LexLeanStd.Json::Json.JNil)))))),
-  axioms: [Quot.sound, propext],
+  axioms: [],
   executable: true
 }
 
@@ -274,7 +274,7 @@ definition{
   parameters: [global : GlobalRef, levels : LexiconLse::Universe],
   result: LexLeanStd.Json::Json,
   body: (let tail : LexLeanStd.Json::Json := (if (noLevels levels) then (ctor LexLeanStd.Json::Json.JNil) else (member "u" (ctor LexLeanStd.Json::Json.JArr (universeJson levels)) (ctor LexLeanStd.Json::Json.JNil))); (ctor LexLeanStd.Json::Json.JObj (member "k" (jtext "global") (member "g" (globalJson global) tail)))),
-  axioms: [Quot.sound, propext],
+  axioms: [],
   executable: true
 }
 
@@ -294,7 +294,7 @@ definition{
     | Term.TNil => ((ctor LexLeanStd.Json::Json.JNil), state)
     | Term.TItem head tail => (let first_ : (LexLeanStd.Json::Json * Renumber) := (termJson head state); (let rest : (LexLeanStd.Json::Json * Renumber) := (termJson tail (second first_)); ((ctor LexLeanStd.Json::Json.JItem (first first_) (first rest)), (second rest))))
     | Term.TBind localId mode spelling typed tail => (let typeJson : (LexLeanStd.Json::Json * Renumber) := (termJson typed state); (let index : (Nat * Renumber) := (bind (second typeJson) localId); (let rest : (LexLeanStd.Json::Json * Renumber) := (termJson tail (second index)); ((ctor LexLeanStd.Json::Json.JItem (binderJson (first index) mode spelling (first typeJson)) (first rest)), (second rest)))))),
-  axioms: [Quot.sound, propext],
+  axioms: [],
   executable: true,
   recursive_argument: term
 }

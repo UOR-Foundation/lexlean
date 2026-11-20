@@ -219,6 +219,7 @@ definition{
     | SemanticTypes::SemanticType.SFunction part0 part1 => rest
     | SemanticTypes::SemanticType.SMap part0 part1 => rest
     | SemanticTypes::SemanticType.SSet part0 => rest
+    | SemanticTypes::SemanticType.SArray part0 => rest
     | SemanticTypes::SemanticType.SNil => rest
     | SemanticTypes::SemanticType.SItem part0 part1 => (member key (ctor LexLeanStd.Json::Json.JArr (SemanticTypes::typeJson types)) rest)),
   executable: true

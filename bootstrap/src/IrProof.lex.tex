@@ -161,7 +161,7 @@ definition{
   ],
   result: (LexLeanStd.Json::Json * IrTerm::Renumber),
   body: (let written : (LexLeanStd.Json::Json * IrTerm::Renumber) := (IrTerm::termJson term state); ((IrTerm::member key (first written) rest), (second written))),
-  axioms: [Quot.sound, propext],
+  axioms: [],
   executable: true
 }
 
@@ -191,7 +191,7 @@ definition{
     | Proof.PRule backward term tail => (let written : (LexLeanStd.Json::Json * IrTerm::Renumber) := (IrTerm::termJson term state); (let rest : (LexLeanStd.Json::Json * IrTerm::Renumber) := (proofJson tail (second written)); ((ctor LexLeanStd.Json::Json.JItem (jobj (IrTerm::member "rev" (ctor LexLeanStd.Json::Json.JBool backward) (IrTerm::member "t" (first written) (jnil)))) (first rest)), (second rest))))
     | Proof.PCase ctorName leanName binders branch tail => (let bound : (LexLeanStd.Json::Json * IrTerm::Renumber) := (bindAll (caseLocals binders) state); (let inner : (LexLeanStd.Json::Json * IrTerm::Renumber) := (proofJson branch (second bound)); (let rest : (LexLeanStd.Json::Json * IrTerm::Renumber) := (proofJson tail (second inner)); ((ctor LexLeanStd.Json::Json.JItem (jobj (IrTerm::member "ctor" (ctor LexLeanStd.Json::Json.JStr ctorName) (IrTerm::member "lean" (ctor LexLeanStd.Json::Json.JStr leanName) (IrTerm::member "b" (jarr (first bound)) (IrTerm::member "p" (first inner) (jnil)))))) (first rest)), (second rest)))))
     | Proof.PStep term justification tail => (let written : (LexLeanStd.Json::Json * IrTerm::Renumber) := (IrTerm::termJson term state); (let justified : (LexLeanStd.Json::Json * IrTerm::Renumber) := (IrTerm::termJson justification (second written)); (let rest : (LexLeanStd.Json::Json * IrTerm::Renumber) := (proofJson tail (second justified)); ((ctor LexLeanStd.Json::Json.JItem (jobj (IrTerm::member "t" (first written) (IrTerm::member "p" (first justified) (jnil)))) (first rest)), (second rest)))))),
-  axioms: [Quot.sound, propext],
+  axioms: [],
   executable: true,
   recursive_argument: proof
 }
@@ -236,7 +236,7 @@ definition{
   body: (match body
     | DeclBody.BDefinition entry typed defined => (let written : (LexLeanStd.Json::Json * IrTerm::Renumber) := (IrTerm::termJson typed state); (let valued : (LexLeanStd.Json::Json * IrTerm::Renumber) := (IrTerm::termJson defined (second written)); ((tagged "definition" (IrTerm::member "entry" (ctor LexLeanStd.Json::Json.JStr entry) (IrTerm::member "t" (first written) (IrTerm::member "v" (first valued) (jnil))))), (second valued))))
     | DeclBody.BTheorem statement proof => (let stated : (LexLeanStd.Json::Json * IrTerm::Renumber) := (IrTerm::termJson statement state); (let proved : (LexLeanStd.Json::Json * IrTerm::Renumber) := (proofJson proof (second stated)); ((tagged "theorem" (IrTerm::member "s" (first stated) (IrTerm::member "p" (first proved) (jnil)))), (second proved))))),
-  axioms: [Quot.sound, propext],
+  axioms: [],
   executable: true
 }
 
@@ -245,7 +245,7 @@ definition{
   parameters: [declaration : Declaration, state : IrTerm::Renumber],
   result: (LexLeanStd.Json::Json * IrTerm::Renumber),
   body: (let bound : (LexLeanStd.Json::Json * IrTerm::Renumber) := (IrTerm::termJson (project declaration params) state); (let written : (LexLeanStd.Json::Json * IrTerm::Renumber) := (bodyJson (project declaration body) (second bound)); ((jobj (IrTerm::member "component" (ctor LexLeanStd.Json::Json.JStr (project declaration component)) (IrTerm::member "lean_name" (ctor LexLeanStd.Json::Json.JStr (project declaration leanName)) (IrTerm::member "kind" (kindName (project declaration kind)) (IrTerm::member "params" (jarr (first bound)) (IrTerm::member "body" (first written) (IrTerm::member "policy" (policyJson (project declaration policy)) (jnil)))))))), (second written)))),
-  axioms: [Quot.sound, propext],
+  axioms: [],
   executable: true
 }
 

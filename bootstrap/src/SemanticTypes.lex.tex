@@ -38,6 +38,7 @@ inductive{
     {name: SFunction, fields: [SemanticType, SemanticType]},
     {name: SMap, fields: [SemanticType, SemanticType]},
     {name: SSet, fields: [SemanticType]},
+    {name: SArray, fields: [SemanticType]},
     {name: SNil, fields: []},
     {name: SItem, fields: [SemanticType, SemanticType]}
   ]
@@ -103,7 +104,10 @@ inductive{
     {name: PGraphTopological, fields: []},
     {name: PLessThan, fields: []},
     {name: PToInt, fields: []},
-    {name: PToNat, fields: []}
+    {name: PToNat, fields: []},
+    {name: PArrayFromList, fields: []},
+    {name: PArrayToList, fields: []},
+    {name: PArraySet, fields: []}
   ]
 }
 
@@ -203,6 +207,7 @@ definition{
     | SemanticType.SFunction parameters outcome => (kinded "function" (member "parameters" (ctor LexLeanStd.Json::Json.JArr (typeJson parameters)) (member "result" (typeJson outcome) (ctor LexLeanStd.Json::Json.JNil))))
     | SemanticType.SMap key entry => (kinded "map" (member "key" (typeJson key) (member "value" (typeJson entry) (ctor LexLeanStd.Json::Json.JNil))))
     | SemanticType.SSet inner => (kinded "set" (member "element" (typeJson inner) (ctor LexLeanStd.Json::Json.JNil)))
+    | SemanticType.SArray inner => (kinded "array" (member "element" (typeJson inner) (ctor LexLeanStd.Json::Json.JNil)))
     | SemanticType.SNil => (ctor LexLeanStd.Json::Json.JNil)
     | SemanticType.SItem head tail => (ctor LexLeanStd.Json::Json.JItem (typeJson head) (typeJson tail))),
   executable: true,
@@ -244,6 +249,7 @@ definition{
     | SemanticType.SFunction parameters outcome => (cat (cat (lit "(") (prim list_fold (fun (acc : Bytes) (shown : Bytes) => (cat acc (cat (lit "(") (cat shown (lit ") -> "))))) 0x (displayItems parameters) : Bytes)) (cat (lit "(") (cat (typeDisplay outcome) (lit "))"))))
     | SemanticType.SMap key entry => (cat (cat (lit "Map (") (typeDisplay key)) (cat (cat (lit ") (") (typeDisplay entry)) (lit ")")))
     | SemanticType.SSet inner => (cat (lit "Set (") (cat (typeDisplay inner) (lit ")")))
+    | SemanticType.SArray inner => (cat (lit "Array (") (cat (typeDisplay inner) (lit ")")))
     | SemanticType.SNil => 0x
     | SemanticType.SItem head tail => 0x),
   executable: true,
@@ -284,6 +290,7 @@ definition{
     | SemanticType.SFunction parameters outcome => (nil Bytes)
     | SemanticType.SMap key entry => (nil Bytes)
     | SemanticType.SSet inner => (nil Bytes)
+    | SemanticType.SArray inner => (nil Bytes)
     | SemanticType.SNil => (nil Bytes)
     | SemanticType.SItem head tail => (cons (typeDisplay head) (displayItems tail))),
   executable: true,
@@ -351,7 +358,10 @@ definition{
     | SemanticPrimitive.PGraphTopological => (record PrimitiveFacts {serdeName := (lit "graph_topological"), languageOneTwo := true, widening := false, functionArgument := (ctor Option.none [Nat])})
     | SemanticPrimitive.PLessThan => (record PrimitiveFacts {serdeName := (lit "less_than"), languageOneTwo := true, widening := false, functionArgument := (ctor Option.none [Nat])})
     | SemanticPrimitive.PToInt => (record PrimitiveFacts {serdeName := (lit "to_int"), languageOneTwo := true, widening := true, functionArgument := (ctor Option.none [Nat])})
-    | SemanticPrimitive.PToNat => (record PrimitiveFacts {serdeName := (lit "to_nat"), languageOneTwo := true, widening := true, functionArgument := (ctor Option.none [Nat])})),
+    | SemanticPrimitive.PToNat => (record PrimitiveFacts {serdeName := (lit "to_nat"), languageOneTwo := true, widening := true, functionArgument := (ctor Option.none [Nat])})
+    | SemanticPrimitive.PArrayFromList => (record PrimitiveFacts {serdeName := (lit "array_from_list"), languageOneTwo := true, widening := false, functionArgument := (ctor Option.none [Nat])})
+    | SemanticPrimitive.PArrayToList => (record PrimitiveFacts {serdeName := (lit "array_to_list"), languageOneTwo := true, widening := false, functionArgument := (ctor Option.none [Nat])})
+    | SemanticPrimitive.PArraySet => (record PrimitiveFacts {serdeName := (lit "array_set"), languageOneTwo := true, widening := false, functionArgument := (ctor Option.none [Nat])})),
   executable: true,
   production: {effects: [allocation], targets: [rust-std]}
 }

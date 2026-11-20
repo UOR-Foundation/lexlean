@@ -108,7 +108,7 @@ definition{
     | PhraseItem.WWord entry form => ((jobj (IrTerm::member "k" (IrTerm::jtext "word") (IrTerm::member "entry" (jbytes entry) (IrTerm::member "form" (jbytes form) (jnil))))), state)
     | PhraseItem.WMath term => (let written : (LexLeanStd.Json::Json * IrTerm::Renumber) := (IrTerm::termJson term state); ((jobj (IrTerm::member "k" (IrTerm::jtext "math") (IrTerm::member "t" (first written) (jnil)))), (second written)))
     | PhraseItem.WPunct entry => ((jobj (IrTerm::member "k" (IrTerm::jtext "punct") (IrTerm::member "entry" (jbytes entry) (jnil)))), state)),
-  axioms: [Quot.sound, propext],
+  axioms: [],
   executable: true
 }
 
@@ -117,7 +117,7 @@ definition{
   parameters: [items : (List PhraseItem), state : IrTerm::Renumber],
   result: (LexLeanStd.Json::Json * IrTerm::Renumber),
   body: (let folded : ((List LexLeanStd.Json::Json) * IrTerm::Renumber) := (prim list_fold (fun (acc : ((List LexLeanStd.Json::Json) * IrTerm::Renumber)) (item : PhraseItem) => (let written : (LexLeanStd.Json::Json * IrTerm::Renumber) := (itemJson item (second acc)); ((cons (first written) (first acc)), (second written)))) ((nil LexLeanStd.Json::Json), state) items : ((List LexLeanStd.Json::Json) * IrTerm::Renumber)); ((jarr (prim list_fold (fun (chain : LexLeanStd.Json::Json) (written : LexLeanStd.Json::Json) => (ctor LexLeanStd.Json::Json.JItem written chain)) (jnil) (first folded) : LexLeanStd.Json::Json)), (second folded))),
-  axioms: [Quot.sound, propext],
+  axioms: [],
   executable: true
 }
 
@@ -130,7 +130,7 @@ definition{
     | Block.BDecl declaration => (let written : (LexLeanStd.Json::Json * IrTerm::Renumber) := (IrProof::declarationJson declaration state); ((jobj (IrTerm::member "k" (IrTerm::jtext "declaration") (IrTerm::member "d" (first written) (jnil)))), (second written)))
     | Block.BNil => ((jnil), state)
     | Block.BItem head tail => (let written : (LexLeanStd.Json::Json * IrTerm::Renumber) := (blockJson head state); (let rest : (LexLeanStd.Json::Json * IrTerm::Renumber) := (blockJson tail (second written)); ((ctor LexLeanStd.Json::Json.JItem (first written) (first rest)), (second rest))))),
-  axioms: [Quot.sound, propext],
+  axioms: [],
   executable: true,
   recursive_argument: block
 }
@@ -180,7 +180,7 @@ definition{
   parameters: [linked : DocumentModule],
   result: LexLeanStd.Json::Json,
   body: (let titled : (LexLeanStd.Json::Json * IrTerm::Renumber) := (phraseJson (project linked title) (IrTerm::hashing)); (let inner : (LexLeanStd.Json::Json * IrTerm::Renumber) := (blockJson (project linked blocks) (second titled)); (jobj (IrTerm::member "name" (jbytes (project linked name)) (IrTerm::member "lean_module" (jbytes (project linked leanModule)) (IrTerm::member "glossary" (textArray (project linked glossary)) (IrTerm::member "imports" (textArray (project linked imports)) (IrTerm::member "title" (first titled) (IrTerm::member "blocks" (jarr (first inner)) (optionalTail linked)))))))))),
-  axioms: [Quot.sound, propext],
+  axioms: [],
   executable: true
 }
 
@@ -189,7 +189,7 @@ definition{
   parameters: [modules : (List (Bytes * DocumentModule))],
   result: LexLeanStd.Json::Json,
   body: (jobj (IrTerm::member "spec" (IrTerm::jtext "lexlean/linked-ir/1") (IrTerm::member "modules" (jarr (chainOf (prim list_fold (fun (acc : (List LexLeanStd.Json::Json)) (entry : (Bytes * DocumentModule)) => (cons (moduleJson (second entry)) acc)) (nil LexLeanStd.Json::Json) (LexLeanStd.Order::reverseList [(Bytes * DocumentModule)] (LexLeanStd.Order::sortByKey [DocumentModule] modules)) : (List LexLeanStd.Json::Json)))) (jnil)))),
-  axioms: [Quot.sound, propext],
+  axioms: [propext],
   executable: true
 }
 

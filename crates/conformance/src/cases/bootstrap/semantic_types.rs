@@ -147,6 +147,7 @@ pub(super) fn enc_type(ty: &SemanticType) -> Value {
             adt("SemanticType", "SMap", vec![enc_type(key), enc_type(value)])
         }
         SemanticType::Set { element } => adt("SemanticType", "SSet", vec![enc_type(element)]),
+        SemanticType::Array { element } => adt("SemanticType", "SArray", vec![enc_type(element)]),
         other => panic!("no encoding of {other:?}"),
     }
 }
@@ -315,6 +316,17 @@ fn boxed(ty: SemanticType) -> Box<SemanticType> {
     Box::new(ty)
 }
 
+const ARRAY_ELEMENTS: &[SemanticType] = &[
+    SemanticType::Int8,
+    SemanticType::Int16,
+    SemanticType::Int32,
+    SemanticType::Int64,
+    SemanticType::UInt8,
+    SemanticType::UInt16,
+    SemanticType::UInt32,
+    SemanticType::UInt64,
+];
+
 const UNIT_TYPES: &[SemanticType] = &[
     SemanticType::Type,
     SemanticType::Nat,
@@ -415,6 +427,12 @@ fn named() -> Vec<Vector> {
         },
     );
     add(
+        "an array",
+        SemanticType::Array {
+            element: boxed(SemanticType::Int8),
+        },
+    );
+    add(
         "a function of two",
         SemanticType::Function {
             parameters: vec![SemanticType::Nat, SemanticType::Bool],
@@ -448,7 +466,7 @@ fn drawn_type(seeded: &mut Seeded, depth: usize) -> SemanticType {
     let kind = if depth == 0 {
         seeded.below(2)
     } else {
-        seeded.below(11)
+        seeded.below(12)
     };
     let next = depth.saturating_sub(1);
     match kind {
@@ -491,6 +509,10 @@ fn drawn_type(seeded: &mut Seeded, depth: usize) -> SemanticType {
         },
         9 => SemanticType::Set {
             element: boxed(drawn_type(seeded, next)),
+        },
+        // An array holds one fixed-width integer type (§17.12, *Arrays*).
+        10 => SemanticType::Array {
+            element: boxed(seeded.pick(ARRAY_ELEMENTS).clone()),
         },
         _ => seeded.pick(UNIT_TYPES).clone(),
     }
