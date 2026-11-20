@@ -12121,6 +12121,12 @@ bootstrap project's `child_timeout_ms` to 600,000 (10 minutes) rather than shrin
 certificate or raise `max_file_bytes` further; `bootstrap/lexlean.toml` carries that value from
 this slice on, and the bootstrap project's `project_config_sha256` and lock move with it.
 
+The root's signature identity follows #581: the oracle computes
+`Kappa::of` of the canonical signature, so the module imports
+`LexLeanStd.Blake3` and calls `blake3Label` where it was written against
+`LexLeanStd.Sha256::sha256Hex`, and the case encodes the oracle's identity by
+`label()`.
+
 ### the lexer of the authoring notation is source (BS-22)
 
 `BS-22` holds the two production roots of `LexLeanBoot.SurfaceLex`
@@ -12574,6 +12580,21 @@ certificate B at 6,006,217 bytes, past the case's default
 `CERTIFICATE_BUDGET = 6,029,312` (95.83% of `max_file_bytes`, rounded up to
 a 64 KiB multiple) -- the tightest margin of the eight new roots, 262,144
 bytes under `max_file_bytes` itself.
+On review of #532, the rows of `BS-35`, `BS-36`, `BS-37`, `BS-39`, and `BS-40`
+claimed more than their cases test, and by the owner's decision the rows were
+restated to what the cases test rather than the cases widened. Bounds: `BS-36`,
+`BS-37`, `BS-39`, and `BS-40` each stated no certificate part beyond 3,145,728
+bytes, while their measured parts are 3,874,213, 5,208,013, 4,215,238, and
+6,006,217 bytes and their cases assert 3,932,160, 5,242,880, 4,259,840, and
+6,029,312; each row now states its case's bound, the measured size rounded up to
+a 64 KiB multiple. Coverage: `BS-35` stated every committed source, and its case
+draws ranges of at most 48 atoms from the sources of at most 400,000 bytes;
+`BS-36` and `BS-37` stated every committed module and declaration, and their
+cases run the modules up to a size bound and one declaration in every 25 under
+the evaluator and in every 6 (`BS-36`) or 12 (`BS-37`) under rustc, because each
+run carries the schema and the whole corpus took 9 GB. The rows now state those
+bounds. No case, source, or certificate changed.
+
 ### the grammar of a mathematical island is source (BS-42)
 
 `BS-42` holds the production root `LexLeanBoot.GrammarMath.parseMath`

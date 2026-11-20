@@ -40,8 +40,8 @@ const ROOTS: [(&str, &[&str]); 2] = [
 
 /// The most a part of a certificate of a root may be, as the row states:
 /// `printSemanticModule`'s certificate B measured 3,874,213 bytes, past the
-/// default (`printAt`'s own is 3,812,490); raised to 62.49% of
-/// `max_file_bytes`, rounded up to a 64 KiB multiple.
+/// default (`printAt`'s own is 3,812,490); the row's bound
+/// is that size rounded up to a 64 KiB multiple.
 const CERTIFICATE_BUDGET: u64 = 3_932_160;
 /// Committed modules whose notation is at most this many bytes are printed
 /// whole under the evaluator, and under rustc those at most the second.
