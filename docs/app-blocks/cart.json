@@ -1,0 +1,72 @@
+{
+  "spec": "lexlean/app-block-savings/1",
+  "draft": {
+    "source": "cart-items draft/CartItems.lex.tex",
+    "lines": 214,
+    "theorems": 9,
+    "recursive_definitions": [
+      "countOf",
+      "removeCost",
+      "removeFirst",
+      "sumLines"
+    ],
+    "helper_theorems": [
+      "iteSame",
+      "removeStep"
+    ],
+    "proofs_by_induction": [
+      "removeCostIsPrice",
+      "removeKeepsSum"
+    ],
+    "canonical_lines": 236,
+    "rejected_by_lean": [
+      "addRaisesTotal",
+      "removeCostIsPrice",
+      "removeStep",
+      "removeTakesFirst"
+    ],
+    "lean_errors": 7
+  },
+  "rewrite": {
+    "source": "examples/cart/src/Main.lex.tex",
+    "lines": 210,
+    "theorems": 12,
+    "recursive_definitions": [],
+    "helper_theorems": [],
+    "proofs_by_induction": [],
+    "cited": [
+      "LexLeanStdApps.Lines::amountOf_le_total",
+      "LexLeanStdApps.Lines::countOf_addIf_true",
+      "LexLeanStdApps.Lines::removedAmount_true",
+      "LexLeanStdApps.Lines::total_addIf_false",
+      "LexLeanStdApps.Lines::total_addIf_true",
+      "LexLeanStdApps.Lines::total_removeIf",
+      "LexLeanStdApps.Lines::total_removeIf_false"
+    ]
+  },
+  "library_reached": {
+    "module": "LexLeanStdApps.Lines",
+    "definitions": [
+      "addIf",
+      "amountOf",
+      "countOf",
+      "keepLine",
+      "removeIf",
+      "removeLine",
+      "removedAmount",
+      "total"
+    ],
+    "theorems": [
+      "amountOf_le_total",
+      "countOf_addIf_true",
+      "removedAmount_true",
+      "totalStep",
+      "total_addIf_false",
+      "total_addIf_true",
+      "total_removeIf",
+      "total_removeIf_false",
+      "total_removeLine"
+    ],
+    "lines": 181
+  }
+}

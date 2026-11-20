@@ -4,6 +4,7 @@
 //! dispatch panics for an unwired ID, so a registered capability cannot
 //! pass before its case exists.
 
+mod app_blocks;
 mod artifacts;
 mod authoring;
 mod authoring_core;

@@ -1,0 +1,106 @@
+\begin{lexlean}{Access}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Natural number addition}
+\begin{semanticmodule}
+definition{
+  name: allows,
+  parameters: [rank : Nat, needed : Nat],
+  result: Bool,
+  body: (needed <=? rank),
+  executable: true
+}
+
+definition{
+  name: isOwner,
+  parameters: [owner : Nat, who : Nat],
+  result: Bool,
+  body: (owner =? who),
+  executable: true
+}
+
+definition{
+  name: permit,
+  type_parameters: [S],
+  parameters: [allowed : Bool, next : 'S, current : 'S],
+  result: 'S,
+  body: (match allowed | Bool.true => next | Bool.false => current),
+  executable: true
+}
+
+theorem{
+  name: permit_granted,
+  type_parameters: [S],
+  parameters: [allowed : Bool, next : 'S, current : 'S],
+  statement: ((allowed = true) -> ((permit ['S] allowed next current) = next)),
+  proof: linear_arithmetic{definitions: [permit]},
+  axioms: [propext]
+}
+
+theorem{
+  name: permit_denied,
+  type_parameters: [S],
+  parameters: [allowed : Bool, next : 'S, current : 'S],
+  statement: ((allowed = false) -> ((permit ['S] allowed next current) = current)),
+  proof: linear_arithmetic{definitions: [permit]},
+  axioms: [propext]
+}
+
+theorem{
+  name: permit_granted_map,
+  type_parameters: [S, T],
+  parameters: [observe : (Fn ('S) 'T), allowed : Bool, next : 'S, current : 'S],
+  statement: ((allowed = true) -> ((apply observe (permit ['S] allowed next current)) = (apply observe next))),
+  proof: linear_arithmetic{definitions: [permit]},
+  axioms: [propext]
+}
+
+theorem{
+  name: permit_denied_map,
+  type_parameters: [S, T],
+  parameters: [observe : (Fn ('S) 'T), allowed : Bool, next : 'S, current : 'S],
+  statement: ((allowed = false) -> ((apply observe (permit ['S] allowed next current)) = (apply observe current))),
+  proof: linear_arithmetic{definitions: [permit]},
+  axioms: [propext]
+}
+
+theorem{
+  name: allows_grants,
+  parameters: [rank : Nat, needed : Nat],
+  statement: ((needed <= rank) -> ((allows rank needed) = true)),
+  proof: linear_arithmetic{definitions: [allows]},
+  axioms: [propext]
+}
+
+theorem{
+  name: allows_refuses,
+  parameters: [rank : Nat, needed : Nat],
+  statement: ((rank < needed) -> ((allows rank needed) = false)),
+  proof: linear_arithmetic{definitions: [allows]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: allows_monotone,
+  parameters: [rank : Nat, higher : Nat, needed : Nat],
+  statement: ((rank <= higher) -> (((allows rank needed) = true) -> ((allows higher needed) = true))),
+  proof: linear_arithmetic{definitions: [allows]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: owner_self,
+  parameters: [owner : Nat],
+  statement: ((isOwner owner owner) = true),
+  proof: linear_arithmetic{definitions: [isOwner]},
+  axioms: [propext]
+}
+
+theorem{
+  name: owner_only,
+  parameters: [owner : Nat, who : Nat],
+  statement: (((isOwner owner who) = true) -> (owner = who)),
+  proof: linear_arithmetic{definitions: [isOwner]},
+  axioms: [propext]
+}
+\end{semanticmodule}
+\end{lexlean}

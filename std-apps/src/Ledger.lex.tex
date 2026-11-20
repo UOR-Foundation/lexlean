@@ -1,0 +1,102 @@
+\begin{lexlean}{Ledger}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Tables}
+\title{Natural number addition}
+\begin{semanticmodule}
+definition{
+  name: balance,
+  parameters: [account : Nat, book : (List (Nat * Nat))],
+  result: Nat,
+  body: (Tables::valueOr 0 account book),
+  executable: true
+}
+
+definition{
+  name: moved,
+  parameters: [source : Nat, target : Nat, amount : Nat, book : (List (Nat * Nat))],
+  result: Nat,
+  body: (if ((amount <=? (balance source book)) && (not (source =? target))) then amount else 0),
+  executable: true
+}
+
+definition{
+  name: transfer,
+  parameters: [source : Nat, target : Nat, amount : Nat, book : (List (Nat * Nat))],
+  result: (List (Nat * Nat)),
+  body: (Tables::put target ((balance target book) + (moved source target amount book)) (Tables::put source (prim subtract (balance source book) (moved source target amount book) : Nat) book)),
+  executable: true
+}
+
+definition{
+  name: deposit,
+  parameters: [account : Nat, amount : Nat, book : (List (Nat * Nat))],
+  result: (List (Nat * Nat)),
+  body: (Tables::put account ((balance account book) + amount) book),
+  executable: true
+}
+
+theorem{
+  name: transfer_conserves,
+  parameters: [source : Nat, target : Nat, amount : Nat, book : (List (Nat * Nat))],
+  statement: (((source =? target) = false) -> (((balance source (transfer source target amount book)) + (balance target (transfer source target amount book))) = ((balance source book) + (balance target book)))),
+  proof: linear_arithmetic{definitions: [Tables::put, Tables::valueOr, balance, moved, transfer]},
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: transfer_debits,
+  parameters: [source : Nat, target : Nat, amount : Nat, book : (List (Nat * Nat))],
+  statement: ((amount <= (balance source book)) -> (((source =? target) = false) -> (((balance source (transfer source target amount book)) + amount) = (balance source book)))),
+  proof: linear_arithmetic{definitions: [Tables::put, Tables::valueOr, balance, moved, transfer]},
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: transfer_credits,
+  parameters: [source : Nat, target : Nat, amount : Nat, book : (List (Nat * Nat))],
+  statement: ((amount <= (balance source book)) -> (((source =? target) = false) -> ((balance target (transfer source target amount book)) = ((balance target book) + amount)))),
+  proof: linear_arithmetic{definitions: [Tables::put, Tables::valueOr, balance, moved, transfer]},
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: transfer_refused_source,
+  parameters: [source : Nat, target : Nat, amount : Nat, book : (List (Nat * Nat))],
+  statement: (((source =? target) = false) -> (((balance source book) < amount) -> ((balance source (transfer source target amount book)) = (balance source book)))),
+  proof: linear_arithmetic{definitions: [Tables::put, Tables::valueOr, balance, moved, transfer]},
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: transfer_refused_target,
+  parameters: [source : Nat, target : Nat, amount : Nat, book : (List (Nat * Nat))],
+  statement: (((source =? target) = false) -> (((balance source book) < amount) -> ((balance target (transfer source target amount book)) = (balance target book)))),
+  proof: linear_arithmetic{definitions: [Tables::put, Tables::valueOr, balance, moved, transfer]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: transfer_others,
+  parameters: [source : Nat, target : Nat, other : Nat, amount : Nat, book : (List (Nat * Nat))],
+  statement: (((other =? source) = false) -> (((other =? target) = false) -> ((balance other (transfer source target amount book)) = (balance other book)))),
+  proof: linear_arithmetic{definitions: [Tables::put, Tables::valueOr, balance, moved, transfer]},
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: deposit_credits,
+  parameters: [account : Nat, amount : Nat, book : (List (Nat * Nat))],
+  statement: ((balance account (deposit account amount book)) = ((balance account book) + amount)),
+  proof: linear_arithmetic{definitions: [Tables::put, Tables::valueOr, balance, deposit]},
+  axioms: [propext]
+}
+
+theorem{
+  name: deposit_others,
+  parameters: [account : Nat, other : Nat, amount : Nat, book : (List (Nat * Nat))],
+  statement: (((other =? account) = false) -> ((balance other (deposit account amount book)) = (balance other book))),
+  proof: linear_arithmetic{definitions: [Tables::put, Tables::valueOr, balance, deposit]},
+  axioms: [Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}

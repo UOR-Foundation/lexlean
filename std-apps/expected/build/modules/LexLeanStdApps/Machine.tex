@@ -1,0 +1,52 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{guarded}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(S, E)}.\par
+\noindent Parameters: \texttt{(faults : ((S) -> (Nat))) (step : ((S) -> (E) -> (S))) (state : S) (event : E)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{S}.\par
+\noindent Definition: \texttt{(if ((Nat.beq ((faults (state))) (0)) \&\& (Nat.beq ((faults ((step (state) (event))))) (0))) then (step (state) (event)) else state)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{run}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(S, E)}.\par
+\noindent Parameters: \texttt{(faults : ((S) -> (Nat))) (step : ((S) -> (E) -> (S))) (state : S) (events : List (E))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{S}.\par
+\noindent Definition: \texttt{(match events with | List.nil => state | List.cons event rest => run (S) (E) (faults) (step) (guarded (S) (E) (faults) (step) (state) (event)) (rest))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{run\_nil}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Type parameters: \texttt{(S, E)}.\par
+\noindent Parameters: \texttt{(faults : ((S) -> (Nat))) (step : ((S) -> (E) -> (S))) (state : S)}.\par
+\noindent Statement: \texttt{(run (S) (E) (faults) (step) (state) (([] : List (E))) = state)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{run\_cons}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Type parameters: \texttt{(S, E)}.\par
+\noindent Parameters: \texttt{(faults : ((S) -> (Nat))) (step : ((S) -> (E) -> (S))) (state : S) (event : E) (rest : List (E))}.\par
+\noindent Statement: \texttt{(run (S) (E) (faults) (step) (state) ((event :: rest)) = run (S) (E) (faults) (step) (guarded (S) (E) (faults) (step) (state) (event)) (rest))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{guarded\_keeps}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Type parameters: \texttt{(S, E)}.\par
+\noindent Parameters: \texttt{(faults : ((S) -> (Nat))) (step : ((S) -> (E) -> (S))) (state : S) (event : E)}.\par
+\noindent Statement: \texttt{((faults (guarded (S) (E) (faults) (step) (state) (event))) = (faults (state)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{guarded\_refuses}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Type parameters: \texttt{(S, E)}.\par
+\noindent Parameters: \texttt{(faults : ((S) -> (Nat))) (step : ((S) -> (E) -> (S))) (state : S) (event : E)}.\par
+\noindent Statement: \texttt{((0 < (faults ((step (state) (event))))) -> ((faults (guarded (S) (E) (faults) (step) (state) (event))) = (faults (state))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{run\_keeps}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Type parameters: \texttt{(S, E)}.\par
+\noindent Parameters: \texttt{(faults : ((S) -> (Nat))) (step : ((S) -> (E) -> (S))) (state : S) (events : List (E))}.\par
+\noindent Statement: \texttt{((faults (run (S) (E) (faults) (step) (state) (events))) = (faults (state)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\end{document}

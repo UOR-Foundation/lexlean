@@ -1,0 +1,155 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{total}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match lines with | List.nil => 0 | List.cons head rest => ((head).2 + total (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{amountOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(item : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match lines with | List.nil => 0 | List.cons head rest => (if (Nat.beq ((head).1) (item)) then (head).2 else amountOf (item) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{countOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(item : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match lines with | List.nil => 0 | List.cons head rest => ((if (Nat.beq ((head).1) (item)) then 1 else 0) + countOf (item) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{removedCount}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(item : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match lines with | List.nil => 0 | List.cons head rest => (if (Nat.beq ((head).1) (item)) then 1 else removedCount (item) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{keepLine}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(same : Bool) (head : (Prod (Nat) (Nat))) (rest : List ((Prod (Nat) (Nat)))) (kept : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (Nat) (Nat)))}.\par
+\noindent Definition: \texttt{(match same with | Bool.true => rest | Bool.false => (head :: kept))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{removeLine}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(item : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (Nat) (Nat)))}.\par
+\noindent Definition: \texttt{(match lines with | List.nil => ([] : List ((Prod (Nat) (Nat)))) | List.cons head rest => keepLine ((Nat.beq ((head).1) (item))) (head) (rest) (removeLine (item) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{addLine}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(item : Nat) (amount : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (Nat) (Nat)))}.\par
+\noindent Definition: \texttt{((item, amount) :: lines)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{addIf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (item : Nat) (amount : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (Nat) (Nat)))}.\par
+\noindent Definition: \texttt{(match allowed with | Bool.true => ((item, amount) :: lines) | Bool.false => lines)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{removeIf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (item : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (Nat) (Nat)))}.\par
+\noindent Definition: \texttt{(match allowed with | Bool.true => removeLine (item) (lines) | Bool.false => lines)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{removedAmount}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (item : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match allowed with | Bool.true => amountOf (item) (lines) | Bool.false => 0)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{total\_nil}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(total (([] : List ((Prod (Nat) (Nat))))) = 0)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{total\_addLine}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(item : Nat) (amount : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(total (addLine (item) (amount) (lines)) = (total (lines) + amount))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{amountOf\_addLine}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(item : Nat) (amount : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(amountOf (item) (addLine (item) (amount) (lines)) = amount)}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{countOf\_addLine}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(item : Nat) (amount : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(countOf (item) (addLine (item) (amount) (lines)) = (countOf (item) (lines) + 1))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{total\_addIf\_true}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (item : Nat) (amount : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{((allowed = true) -> (total (addIf (allowed) (item) (amount) (lines)) = (total (lines) + amount)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{total\_addIf\_false}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (item : Nat) (amount : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{((allowed = false) -> (total (addIf (allowed) (item) (amount) (lines)) = total (lines)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{countOf\_addIf\_true}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (item : Nat) (amount : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{((allowed = true) -> (countOf (item) (addIf (allowed) (item) (amount) (lines)) = (countOf (item) (lines) + 1)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{amountOf\_le\_total}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(item : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(amountOf (item) (lines) <= total (lines))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{totalStep}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(same : Bool) (item : Nat) (head : (Prod (Nat) (Nat))) (rest : List ((Prod (Nat) (Nat)))) (kept : List ((Prod (Nat) (Nat)))) (later : Nat)}.\par
+\noindent Statement: \texttt{(((Nat.beq ((head).1) (item)) = same) -> (((total (kept) + later) = total (rest)) -> ((total (keepLine (same) (head) (rest) (kept)) + (if (Nat.beq ((head).1) (item)) then (head).2 else later)) = ((head).2 + total (rest)))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{total\_removeLine}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(item : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{((total (removeLine (item) (lines)) + amountOf (item) (lines)) = total (lines))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{countStep}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(same : Bool) (item : Nat) (head : (Prod (Nat) (Nat))) (rest : List ((Prod (Nat) (Nat)))) (kept : List ((Prod (Nat) (Nat)))) (later : Nat)}.\par
+\noindent Statement: \texttt{(((Nat.beq ((head).1) (item)) = same) -> (((countOf (item) (kept) + later) = countOf (item) (rest)) -> ((countOf (item) (keepLine (same) (head) (rest) (kept)) + (if (Nat.beq ((head).1) (item)) then 1 else later)) = ((if (Nat.beq ((head).1) (item)) then 1 else 0) + countOf (item) (rest)))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{countOf\_removeLine}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(item : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{((countOf (item) (removeLine (item) (lines)) + removedCount (item) (lines)) = countOf (item) (lines))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{removedCount\_count}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(item : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{((removedCount (item) (lines) + (LexLeanRuntime.subtract (countOf (item) (lines)) (1) : Nat)) = countOf (item) (lines))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{total\_removeIf}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (item : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{((total (removeIf (allowed) (item) (lines)) + removedAmount (allowed) (item) (lines)) = total (lines))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{total\_removeIf\_false}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (item : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{((allowed = false) -> (total (removeIf (allowed) (item) (lines)) = total (lines)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{removedAmount\_true}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(allowed : Bool) (item : Nat) (lines : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{((allowed = true) -> (removedAmount (allowed) (item) (lines) = amountOf (item) (lines)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\end{document}

@@ -1,0 +1,69 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{valueOr}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(fallback : Nat) (key : Nat) (entries : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match entries with | List.nil => fallback | List.cons head rest => (if (Nat.beq ((head).1) (key)) then (head).2 else valueOr (fallback) (key) (rest)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{put}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(key : Nat) (value : Nat) (entries : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (Nat) (Nat)))}.\par
+\noindent Definition: \texttt{((key, value) :: entries)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{adjust}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(key : Nat) (delta : Nat) (entries : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (Nat) (Nat)))}.\par
+\noindent Definition: \texttt{put (key) ((valueOr (0) (key) (entries) + delta)) (entries)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{lower}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(key : Nat) (delta : Nat) (entries : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (Nat) (Nat)))}.\par
+\noindent Definition: \texttt{put (key) ((LexLeanRuntime.subtract (valueOr (0) (key) (entries)) (delta) : Nat)) (entries)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{valueOr\_nil}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(fallback : Nat) (key : Nat)}.\par
+\noindent Statement: \texttt{(valueOr (fallback) (key) (([] : List ((Prod (Nat) (Nat))))) = fallback)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{valueOr\_put\_same}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(fallback : Nat) (key : Nat) (value : Nat) (entries : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(valueOr (fallback) (key) (put (key) (value) (entries)) = value)}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{valueOr\_put\_other}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(fallback : Nat) (key : Nat) (other : Nat) (value : Nat) (entries : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(((Nat.beq (key) (other)) = false) -> (valueOr (fallback) (other) (put (key) (value) (entries)) = valueOr (fallback) (other) (entries)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{adjust\_same}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(key : Nat) (delta : Nat) (entries : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(valueOr (0) (key) (adjust (key) (delta) (entries)) = (valueOr (0) (key) (entries) + delta))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{adjust\_other}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(key : Nat) (other : Nat) (delta : Nat) (entries : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(((Nat.beq (key) (other)) = false) -> (valueOr (0) (other) (adjust (key) (delta) (entries)) = valueOr (0) (other) (entries)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{lower\_same}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(key : Nat) (delta : Nat) (entries : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{((delta <= valueOr (0) (key) (entries)) -> ((valueOr (0) (key) (lower (key) (delta) (entries)) + delta) = valueOr (0) (key) (entries)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{lower\_other}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(key : Nat) (other : Nat) (delta : Nat) (entries : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(((Nat.beq (key) (other)) = false) -> (valueOr (0) (other) (lower (key) (delta) (entries)) = valueOr (0) (other) (entries)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\end{document}

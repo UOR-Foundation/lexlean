@@ -66,3 +66,11 @@ Feature: examples
     Then its lock pins the three packages, it holds no file of Lean or Rust source, and its roots `classify`, `plan`, and `dispatch` agree with the evaluator and with their rendered packages
     And every exported package is byte-identical to its committed package
     And each plant is refused with exactly its prescribed diagnostic code before any backend output
+
+  @EX-10 @build
+  Scenario: The `cart` example is the shopping cart an agent drafted, rewritten on the `std-apps` package: priced lines added and removed under guards, with a reply for each request; every one of its theorems is one step that applies a block lemma, unfolds the cart's own definitions with `linear_arithmetic`, or is reflexivity, all of them verify under the pinned Lean, the cart defines no recursion of its own, and `docs/app-blocks/cart.json` records its lines and theorems against those of the draft and the block lemmas it cites.
+    Given the committed `cart` example with the `std-apps` project beside the workspace file, and its savings record
+    When the example is checked, built, and verified under the pinned Lean, and its proofs and the record are read
+    Then every proof is one `apply`, `linear_arithmetic`, or reflexivity step, every applied theorem is a block lemma, and the cart defines no recursion
+    And the record counts the cart's lines and theorems and lists exactly the lemmas it cites
+    And every theorem verifies with its exact axiom policy

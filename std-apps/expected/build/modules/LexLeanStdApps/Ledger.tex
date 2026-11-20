@@ -1,0 +1,74 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{balance}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(account : Nat) (book : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{LexLeanStdApps.Tables.valueOr (0) (account) (book)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{moved}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(source : Nat) (target : Nat) (amount : Nat) (book : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(if ((Nat.ble (amount) (balance (source) (book))) \&\& (!(Nat.beq (source) (target)))) then amount else 0)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{transfer}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(source : Nat) (target : Nat) (amount : Nat) (book : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (Nat) (Nat)))}.\par
+\noindent Definition: \texttt{LexLeanStdApps.Tables.put (target) ((balance (target) (book) + moved (source) (target) (amount) (book))) (LexLeanStdApps.Tables.put (source) ((LexLeanRuntime.subtract (balance (source) (book)) (moved (source) (target) (amount) (book)) : Nat)) (book))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{deposit}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(account : Nat) (amount : Nat) (book : List ((Prod (Nat) (Nat))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (Nat) (Nat)))}.\par
+\noindent Definition: \texttt{LexLeanStdApps.Tables.put (account) ((balance (account) (book) + amount)) (book)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{transfer\_conserves}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(source : Nat) (target : Nat) (amount : Nat) (book : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(((Nat.beq (source) (target)) = false) -> ((balance (source) (transfer (source) (target) (amount) (book)) + balance (target) (transfer (source) (target) (amount) (book))) = (balance (source) (book) + balance (target) (book))))}.\par
+\noindent Axiom policy: \texttt{exact [Classical.choice, Quot.sound, propext]}.\par
+\subsection*{\texttt{transfer\_debits}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(source : Nat) (target : Nat) (amount : Nat) (book : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{((amount <= balance (source) (book)) -> (((Nat.beq (source) (target)) = false) -> ((balance (source) (transfer (source) (target) (amount) (book)) + amount) = balance (source) (book))))}.\par
+\noindent Axiom policy: \texttt{exact [Classical.choice, Quot.sound, propext]}.\par
+\subsection*{\texttt{transfer\_credits}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(source : Nat) (target : Nat) (amount : Nat) (book : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{((amount <= balance (source) (book)) -> (((Nat.beq (source) (target)) = false) -> (balance (target) (transfer (source) (target) (amount) (book)) = (balance (target) (book) + amount))))}.\par
+\noindent Axiom policy: \texttt{exact [Classical.choice, Quot.sound, propext]}.\par
+\subsection*{\texttt{transfer\_refused\_source}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(source : Nat) (target : Nat) (amount : Nat) (book : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(((Nat.beq (source) (target)) = false) -> ((balance (source) (book) < amount) -> (balance (source) (transfer (source) (target) (amount) (book)) = balance (source) (book))))}.\par
+\noindent Axiom policy: \texttt{exact [Classical.choice, Quot.sound, propext]}.\par
+\subsection*{\texttt{transfer\_refused\_target}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(source : Nat) (target : Nat) (amount : Nat) (book : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(((Nat.beq (source) (target)) = false) -> ((balance (source) (book) < amount) -> (balance (target) (transfer (source) (target) (amount) (book)) = balance (target) (book))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{transfer\_others}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(source : Nat) (target : Nat) (other : Nat) (amount : Nat) (book : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(((Nat.beq (other) (source)) = false) -> (((Nat.beq (other) (target)) = false) -> (balance (other) (transfer (source) (target) (amount) (book)) = balance (other) (book))))}.\par
+\noindent Axiom policy: \texttt{exact [Classical.choice, Quot.sound, propext]}.\par
+\subsection*{\texttt{deposit\_credits}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(account : Nat) (amount : Nat) (book : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(balance (account) (deposit (account) (amount) (book)) = (balance (account) (book) + amount))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{deposit\_others}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(account : Nat) (other : Nat) (amount : Nat) (book : List ((Prod (Nat) (Nat))))}.\par
+\noindent Statement: \texttt{(((Nat.beq (other) (account)) = false) -> (balance (other) (deposit (account) (amount) (book)) = balance (other) (book)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\end{document}

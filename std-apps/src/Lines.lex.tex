@@ -1,0 +1,314 @@
+\begin{lexlean}{Lines}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Natural number addition}
+\begin{semanticmodule}
+definition{
+  name: total,
+  parameters: [lines : (List (Nat * Nat))],
+  result: Nat,
+  body: (match lines | List.nil => 0 | List.cons head rest => ((second head) + (total rest))),
+  executable: true,
+  recursive_argument: lines
+}
+
+definition{
+  name: amountOf,
+  parameters: [item : Nat, lines : (List (Nat * Nat))],
+  result: Nat,
+  body: (match lines
+    | List.nil => 0
+    | List.cons head rest => (if ((first head) =? item) then (second head) else (amountOf item rest))),
+  executable: true,
+  recursive_argument: lines
+}
+
+definition{
+  name: countOf,
+  parameters: [item : Nat, lines : (List (Nat * Nat))],
+  result: Nat,
+  body: (match lines
+    | List.nil => 0
+    | List.cons head rest => ((if ((first head) =? item) then 1 else 0) + (countOf item rest))),
+  executable: true,
+  recursive_argument: lines
+}
+
+definition{
+  name: removedCount,
+  parameters: [item : Nat, lines : (List (Nat * Nat))],
+  result: Nat,
+  body: (match lines
+    | List.nil => 0
+    | List.cons head rest => (if ((first head) =? item) then 1 else (removedCount item rest))),
+  executable: true,
+  recursive_argument: lines
+}
+
+definition{
+  name: keepLine,
+  parameters: [
+    same : Bool,
+    head : (Nat * Nat),
+    rest : (List (Nat * Nat)),
+    kept : (List (Nat * Nat))
+  ],
+  result: (List (Nat * Nat)),
+  body: (match same | Bool.true => rest | Bool.false => (cons head kept)),
+  executable: true
+}
+
+definition{
+  name: removeLine,
+  parameters: [item : Nat, lines : (List (Nat * Nat))],
+  result: (List (Nat * Nat)),
+  body: (match lines
+    | List.nil => (nil (Nat * Nat))
+    | List.cons head rest => (keepLine ((first head) =? item) head rest (removeLine item rest))),
+  executable: true,
+  recursive_argument: lines
+}
+
+definition{
+  name: addLine,
+  parameters: [item : Nat, amount : Nat, lines : (List (Nat * Nat))],
+  result: (List (Nat * Nat)),
+  body: (cons (item, amount) lines),
+  executable: true
+}
+
+definition{
+  name: addIf,
+  parameters: [allowed : Bool, item : Nat, amount : Nat, lines : (List (Nat * Nat))],
+  result: (List (Nat * Nat)),
+  body: (match allowed | Bool.true => (cons (item, amount) lines) | Bool.false => lines),
+  executable: true
+}
+
+definition{
+  name: removeIf,
+  parameters: [allowed : Bool, item : Nat, lines : (List (Nat * Nat))],
+  result: (List (Nat * Nat)),
+  body: (match allowed | Bool.true => (removeLine item lines) | Bool.false => lines),
+  executable: true
+}
+
+definition{
+  name: removedAmount,
+  parameters: [allowed : Bool, item : Nat, lines : (List (Nat * Nat))],
+  result: Nat,
+  body: (match allowed | Bool.true => (amountOf item lines) | Bool.false => 0),
+  executable: true
+}
+
+theorem{
+  name: total_nil,
+  parameters: [],
+  statement: ((total (nil (Nat * Nat))) = 0),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: total_addLine,
+  parameters: [item : Nat, amount : Nat, lines : (List (Nat * Nat))],
+  statement: ((total (addLine item amount lines)) = ((total lines) + amount)),
+  proof: linear_arithmetic{definitions: [addLine, total]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: amountOf_addLine,
+  parameters: [item : Nat, amount : Nat, lines : (List (Nat * Nat))],
+  statement: ((amountOf item (addLine item amount lines)) = amount),
+  proof: linear_arithmetic{definitions: [addLine, amountOf]},
+  axioms: [propext]
+}
+
+theorem{
+  name: countOf_addLine,
+  parameters: [item : Nat, amount : Nat, lines : (List (Nat * Nat))],
+  statement: ((countOf item (addLine item amount lines)) = ((countOf item lines) + 1)),
+  proof: linear_arithmetic{definitions: [addLine, countOf]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: total_addIf_true,
+  parameters: [allowed : Bool, item : Nat, amount : Nat, lines : (List (Nat * Nat))],
+  statement: ((allowed = true) -> ((total (addIf allowed item amount lines)) = ((total lines) + amount))),
+  proof: linear_arithmetic{definitions: [addIf, total]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: total_addIf_false,
+  parameters: [allowed : Bool, item : Nat, amount : Nat, lines : (List (Nat * Nat))],
+  statement: ((allowed = false) -> ((total (addIf allowed item amount lines)) = (total lines))),
+  proof: linear_arithmetic{definitions: [addIf, total]},
+  axioms: [propext]
+}
+
+theorem{
+  name: countOf_addIf_true,
+  parameters: [allowed : Bool, item : Nat, amount : Nat, lines : (List (Nat * Nat))],
+  statement: ((allowed = true) -> ((countOf item (addIf allowed item amount lines)) = ((countOf item lines) + 1))),
+  proof: linear_arithmetic{definitions: [addIf, countOf]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: amountOf_le_total,
+  parameters: [item : Nat, lines : (List (Nat * Nat))],
+  statement: ((amountOf item lines) <= (total lines)),
+  proof: induction{
+    branches: [
+      {proof: linear_arithmetic{definitions: [amountOf, total]}, binders: [], constructor: nil},
+      {
+        proof: linear_arithmetic{definitions: [amountOf, total]},
+        binders: [head, rest, hypothesis],
+        constructor: cons
+      }
+    ],
+    scrutinee: lines
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: totalStep,
+  parameters: [
+    same : Bool,
+    item : Nat,
+    head : (Nat * Nat),
+    rest : (List (Nat * Nat)),
+    kept : (List (Nat * Nat)),
+    later : Nat
+  ],
+  statement: ((((first head) =? item) = same) -> ((((total kept) + later) = (total rest)) -> (((total (keepLine same head rest kept)) + (if ((first head) =? item) then (second head) else later)) = ((second head) + (total rest))))),
+  proof: cases{
+    branches: [
+      {proof: linear_arithmetic{definitions: [keepLine, total]}, binders: [], constructor: "false"},
+      {proof: linear_arithmetic{definitions: [keepLine, total]}, binders: [], constructor: "true"}
+    ],
+    scrutinee: same
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: total_removeLine,
+  parameters: [item : Nat, lines : (List (Nat * Nat))],
+  statement: (((total (removeLine item lines)) + (amountOf item lines)) = (total lines)),
+  proof: induction{
+    branches: [
+      {proof: reflexivity{}, binders: [], constructor: nil},
+      {
+        proof: simplify{definitions: [amountOf, hypothesis, removeLine, total, totalStep]},
+        binders: [head, rest, hypothesis],
+        constructor: cons
+      }
+    ],
+    scrutinee: lines
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: countStep,
+  parameters: [
+    same : Bool,
+    item : Nat,
+    head : (Nat * Nat),
+    rest : (List (Nat * Nat)),
+    kept : (List (Nat * Nat)),
+    later : Nat
+  ],
+  statement: ((((first head) =? item) = same) -> ((((countOf item kept) + later) = (countOf item rest)) -> (((countOf item (keepLine same head rest kept)) + (if ((first head) =? item) then 1 else later)) = ((if ((first head) =? item) then 1 else 0) + (countOf item rest))))),
+  proof: cases{
+    branches: [
+      {
+        proof: linear_arithmetic{definitions: [countOf, keepLine]},
+        binders: [],
+        constructor: "false"
+      },
+      {proof: linear_arithmetic{definitions: [countOf, keepLine]}, binders: [], constructor: "true"}
+    ],
+    scrutinee: same
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: countOf_removeLine,
+  parameters: [item : Nat, lines : (List (Nat * Nat))],
+  statement: (((countOf item (removeLine item lines)) + (removedCount item lines)) = (countOf item lines)),
+  proof: induction{
+    branches: [
+      {proof: reflexivity{}, binders: [], constructor: nil},
+      {
+        proof: simplify{definitions: [countOf, countStep, hypothesis, removeLine, removedCount]},
+        binders: [head, rest, hypothesis],
+        constructor: cons
+      }
+    ],
+    scrutinee: lines
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: removedCount_count,
+  parameters: [item : Nat, lines : (List (Nat * Nat))],
+  statement: (((removedCount item lines) + (prim subtract (countOf item lines) 1 : Nat)) = (countOf item lines)),
+  proof: induction{
+    branches: [
+      {proof: reflexivity{}, binders: [], constructor: nil},
+      {
+        proof: linear_arithmetic{definitions: [countOf, removedCount]},
+        binders: [head, rest, hypothesis],
+        constructor: cons
+      }
+    ],
+    scrutinee: lines
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: total_removeIf,
+  parameters: [allowed : Bool, item : Nat, lines : (List (Nat * Nat))],
+  statement: (((total (removeIf allowed item lines)) + (removedAmount allowed item lines)) = (total lines)),
+  proof: cases{
+    branches: [
+      {
+        proof: linear_arithmetic{definitions: [removeIf, removedAmount]},
+        binders: [],
+        constructor: "false"
+      },
+      {
+        proof: simplify{definitions: [removeIf, removedAmount, total_removeLine]},
+        binders: [],
+        constructor: "true"
+      }
+    ],
+    scrutinee: allowed
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: total_removeIf_false,
+  parameters: [allowed : Bool, item : Nat, lines : (List (Nat * Nat))],
+  statement: ((allowed = false) -> ((total (removeIf allowed item lines)) = (total lines))),
+  proof: linear_arithmetic{definitions: [removeIf]},
+  axioms: [propext]
+}
+
+theorem{
+  name: removedAmount_true,
+  parameters: [allowed : Bool, item : Nat, lines : (List (Nat * Nat))],
+  statement: ((allowed = true) -> ((removedAmount allowed item lines) = (amountOf item lines))),
+  proof: linear_arithmetic{definitions: [removedAmount]},
+  axioms: [propext]
+}
+\end{semanticmodule}
+\end{lexlean}

@@ -1,2 +1,2 @@
 spec = "lexlean/workspace/1"
-members = ["bootstrap", "examples/helpdesk", "std-models", "std-reasoning", "stdlib"]
+members = ["bootstrap", "examples/cart", "examples/helpdesk", "std-apps", "std-models", "std-reasoning", "stdlib"]

@@ -1,0 +1,154 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{answerAdded}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{0}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{answerUnknown}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{1}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{answerRemoved}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{2}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{answerRefused}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{3}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{priceOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(item : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(if (Nat.beq (item) (1)) then 250 else (if (Nat.beq (item) (2)) then 400 else (if (Nat.beq (item) (3)) then 1200 else 0)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{State}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{lines}: \texttt{List ((Prod (Nat) (Nat)))}.\par
+\subsection*{\texttt{initial}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{State}.\par
+\noindent Definition: \texttt{(\{ lines := ([] : List ((Prod (Nat) (Nat)))) \} : State)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{totalOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : State)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{LexLeanStdApps.Lines.total ((state).lines)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{canAdd}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(item : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(Nat.blt (0) (priceOf (item)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{afterAdd}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{State}.\par
+\noindent Definition: \texttt{(\{ lines := LexLeanStdApps.Lines.addIf (canAdd (item)) (item) (priceOf (item)) ((state).lines) \} : State)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{replyAdd}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(if canAdd (item) then answerAdded else answerUnknown)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{canRemove}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(Nat.blt (0) (LexLeanStdApps.Lines.countOf (item) ((state).lines)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{afterRemove}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{State}.\par
+\noindent Definition: \texttt{(\{ lines := LexLeanStdApps.Lines.removeIf (canRemove (state) (item)) (item) ((state).lines) \} : State)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{replyRemove}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(if canRemove (state) (item) then answerRemoved else answerRefused)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{initialEmpty}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(totalOf (initial) = 0)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{addRaisesTotal}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Statement: \texttt{((canAdd (item) = true) -> (totalOf (afterAdd (state) (item)) = (totalOf (state) + priceOf (item))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{addCountsLine}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Statement: \texttt{((canAdd (item) = true) -> (LexLeanStdApps.Lines.countOf (item) ((afterAdd (state) (item)).lines) = (LexLeanStdApps.Lines.countOf (item) ((state).lines) + 1)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{addUnknownKeepsTotal}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Statement: \texttt{((canAdd (item) = false) -> (totalOf (afterAdd (state) (item)) = totalOf (state)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{addKnownAccepted}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Statement: \texttt{((canAdd (item) = true) -> (replyAdd (state) (item) = answerAdded))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{addUnknownRefused}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Statement: \texttt{((canAdd (item) = false) -> (replyAdd (state) (item) = answerUnknown))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{removeConservesTotal}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Statement: \texttt{((totalOf (afterRemove (state) (item)) + LexLeanStdApps.Lines.removedAmount (canRemove (state) (item)) (item) ((state).lines)) = totalOf (state))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{removeTakesLinePrice}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Statement: \texttt{((canRemove (state) (item) = true) -> (LexLeanStdApps.Lines.removedAmount (canRemove (state) (item)) (item) ((state).lines) = LexLeanStdApps.Lines.amountOf (item) ((state).lines)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{removeAbsentKeepsTotal}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Statement: \texttt{((canRemove (state) (item) = false) -> (totalOf (afterRemove (state) (item)) = totalOf (state)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{removePresentRemoved}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Statement: \texttt{((canRemove (state) (item) = true) -> (replyRemove (state) (item) = answerRemoved))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{removeAbsentRefused}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Statement: \texttt{((canRemove (state) (item) = false) -> (replyRemove (state) (item) = answerRefused))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{removedNeverExceedsTotal}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(state : State) (item : Nat)}.\par
+\noindent Statement: \texttt{(LexLeanStdApps.Lines.amountOf (item) ((state).lines) <= totalOf (state))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\end{document}
