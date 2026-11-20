@@ -537,3 +537,9 @@ Class: `language`. Exit code: 1.
 A production bundle does not replay: its result identity, a file digest, a binding between the result, the attestation, the preservation record, and its packages, a re-rendered package, a target descriptor, the producing compiler's semantics, or a recomputed certificate verdict disagrees with what the bundle states, or the bundle holds a file it does not state.
 
 Class: `language`. Exit code: 1.
+
+## `LLV7103` --- Kernel-term production input rejected
+
+Kernel-term production was given a library export that is not lean4export 3.1.0 NDJSON or a semantic snapshot this compiler does not write.
+
+Class: `language`. Exit code: 1.

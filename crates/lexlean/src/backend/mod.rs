@@ -4,6 +4,7 @@
 
 pub mod core;
 pub mod core_v2;
+pub mod kernel;
 pub mod latex;
 pub mod lean;
 pub mod lean_tokens;

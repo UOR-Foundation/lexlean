@@ -39,6 +39,9 @@
     "bootstrap/check_arguments": {
       "debug": 4915200
     },
+    "bootstrap/check_from": {
+      "debug": 1703936
+    },
     "bootstrap/check_program": {
       "debug": 13697024
     },

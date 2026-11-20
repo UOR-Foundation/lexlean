@@ -11,9 +11,11 @@ use camino::Utf8PathBuf;
 
 mod audit;
 mod bump;
+mod census;
 mod ci;
 mod codegen;
 mod counts;
+mod kernel_terms;
 mod release_manifest;
 mod spec_links;
 
@@ -41,6 +43,15 @@ fn main() -> ExitCode {
         "export-bootstrap" => export_bootstrap(&std::env::args().skip(2).collect::<Vec<_>>()),
         "check-package" => check_package(&root),
         "counts" => counts::counts(&root, write),
+        "kernel-terms" => kernel_terms::kernel_terms(&std::env::args().skip(2).collect::<Vec<_>>()),
+        "proof-census" => census::census(
+            &root,
+            write,
+            &std::env::args()
+                .skip(2)
+                .filter(|argument| argument != "--write")
+                .collect::<Vec<_>>(),
+        ),
         "check-test-inventory" => ci::check_test_inventory(&root),
         "bdd" => ci::bdd(&root),
         "ci-summary" => ci::ci_summary(&root, &std::env::args().skip(2).collect::<Vec<_>>()),
@@ -66,6 +77,10 @@ fn main() -> ExitCode {
                                          their generator\n\
                  counts                  §17.23: write the counts a bootstrap case reported under\n\
                                          LEXLEAN_COUNTS=fast|report into its constants and statements\n\
+                 kernel-terms            §18.10: stage a project's Lean for export, or produce kernel
+                                         terms over a library export (docs/kernel-terms/run.sh)
+                 proof-census            §18.10: count each semantic proof form over every project's
+                                         linked IR and compare with docs/kernel-terms/census.json
                  check-production-export §24.7: the consumer's exported packages equal the committed\n\
                                          packages under tests/production-export\n\
                  check-freshness         §9.4: every committed build oracle's recorded inputs, every lock,
