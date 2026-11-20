@@ -2236,8 +2236,8 @@ const PLANTS: [super::Plant; 12] = [
     },
     super::Plant {
         label: "a shift takes a u64 count",
-        site: "(ctor Ty.TCons (ctor Ty.TFixed (ctor IntKind.U32)) (ctor Ty.TNil))) types (ctor Ty.TOption lead)); (let no104",
-        replacement: "(ctor Ty.TCons (ctor Ty.TFixed (ctor IntKind.U64)) (ctor Ty.TNil))) types (ctor Ty.TOption lead)); (let no104",
+        site: "| Prim.ShiftLeft => (if ((tyTag lead) =? 4) then (exactly operation (ctor Ty.TCons lead (ctor Ty.TCons (ctor Ty.TFixed (ctor IntKind.U32))",
+        replacement: "| Prim.ShiftLeft => (if ((tyTag lead) =? 4) then (exactly operation (ctor Ty.TCons lead (ctor Ty.TCons (ctor Ty.TFixed (ctor IntKind.U64))",
         root: "checkProgram",
     },
     super::Plant {
