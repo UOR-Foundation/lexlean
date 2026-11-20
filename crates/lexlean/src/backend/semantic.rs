@@ -396,7 +396,7 @@ fn reflected_iff(fields: &[SemanticReflectionField]) -> String {
 }
 
 /// How a primitive is spelled in generated Lean.
-enum Spelling {
+pub(crate) enum Spelling {
     /// A widening conversion, printed bare: linking elaborates every one
     /// before Lean is rendered (§17.12), and the canonical document states the
     /// conversion itself, by a name no Lean runtime declares.
@@ -413,7 +413,7 @@ enum Spelling {
 
 /// The spelling of every primitive, named one by one so that a primitive
 /// added to the IR is a compile error here and not a mislabelled call (RP-15).
-fn spelling(operation: SemanticPrimitive) -> Spelling {
+pub(crate) fn spelling(operation: SemanticPrimitive) -> Spelling {
     match operation {
         SemanticPrimitive::ToNat => Spelling::Widening("toNat"),
         SemanticPrimitive::ToInt => Spelling::Widening("toInt"),

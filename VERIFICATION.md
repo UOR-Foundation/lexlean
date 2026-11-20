@@ -1804,6 +1804,111 @@ check fails
 test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 482 filtered out
 ```
 
+### kernel-term production can fail (LN-13)
+
+Kernel-term production (§18.10) writes proof terms with no elaborator; Lean's
+kernel is what makes one count. `conformance_ln_13` plants four faults in the
+IR in every run, and requires three things:
+
+- the kernel refuses the altered statement's binding, the swapped case branch,
+  and the false decide;
+- production refuses the omitted case;
+- every unplanted theorem and binding is accepted with exactly its declared
+  axioms, by `crates/conformance/lean/KernelCheck.lean` (`addDeclCore`) under
+  the pinned Lean.
+
+A defect in the producers themselves is caught too. Planted:
+`cases` passes its minor premises in reverse constructor order (`minors.reverse()`
+before `@T.casesOn` is applied in `crates/lexlean/src/backend/kernel/prove.rs`).
+
+Command and host: `cargo test --release -p repo-conformance --test conformance --
+conformance_ln_13 conformance_rp_07`, WSL Ubuntu on Windows x86-64, rustc
+1.97.1, pinned Lean 4.32.2. The plant was then reverted, and the case passes on
+the reverted tree.
+
+```text
+test conformance_rp_07 ... ok
+test conformance_ln_13 ... FAILED
+thread 'conformance_ln_13' panicked at crates/conformance/src/cases/kernel_terms.rs:353:13:
+assertion `left == right` failed: [
+    "accepted LexLeanKernel.LanguageTwelve.Main.double_two axioms: ",
+```
+
+The kernel refuses `LexLeanKernel.LanguageTwelve.Main.flip_flip`, whose `false`
+case now receives the `true` case's proof. The same plants, and the live corpus,
+run through the browser path in `docs/kernel-terms/run.sh`: lean4export, the
+native checker, and the WebAssembly kernel with the library resident.
+`docs/kernel-terms/DESIGN.md` records those results.
+
+### kernel-term producers modelled in LexLean can fail (BS-35 to BS-38)
+
+`bootstrap/src/KernelTerms.lex.tex` states kernel-term production's
+producers as LexLean source (SPEC.md §17.23, §18.10). The planted defects
+below are run by the cases themselves on every run. Command and host:
+`cargo test --release -p repo-conformance --test conformance --
+conformance_bs_35 conformance_bs_36 conformance_bs_37 conformance_bs_38`,
+WSL Ubuntu on Windows x86-64, rustc 1.97.1, pinned Lean 4.32.2.
+
+`conformance_bs_35` plants five defects in the source of the three checks.
+On the normative host, each plant is detected by the one vector it names,
+under the calculus evaluator:
+
+```text
+BS-35: checkFrom: the evaluator agrees on 315 runs
+BS-35: memberCheck: the evaluator agrees on 304 runs
+BS-35: lawCheck: the evaluator agrees on 304 runs
+BS-35: plant detected: a constructor with no branch passes: run 0 on [...]
+BS-35: plant detected: a repeated branch passes: run 0 on [...]
+BS-35: plant detected: the hypotheses of an induction are not counted: run 0 on [...]
+BS-35: plant detected: a branch past the last constructor passes: run 0 on [...]
+BS-35: plant detected: an unregistered law is reported as an unproduced premise: run 0 on [...]
+BS-35: stage-0 check: 6023 rustc runs agree with the oracle
+```
+
+`conformance_bs_36`, `conformance_bs_37`, and `conformance_bs_38` verify
+the module alone under the pinned Lean, and require each theorem to be
+proved with exactly its declared axioms. Each then verifies a planted copy,
+and Lean refuses it with `LLV7002`:
+
+- binding: `declare` types the declaration by its proof term;
+- totality: `casesTerm` refuses every branch list its check passes;
+- refusal: `checkFrom` admits a missing case, and `reflexivityTerm`
+  refuses a non-equation with `missingCase`.
+
+Run with `--nocapture`, every plant is refused:
+
+```text
+BS-37: the planted module is refused: LLV7002: Lean rejected `LanguageTwelve.Main` (error): unsolved goals
+BS-38: the planted module is refused: LLV7002: Lean rejected `LanguageTwelve.Main` (error): Tactic `rfl` failed: The left-hand side
+BS-36: the planted module is refused: LLV7002: Lean rejected `LanguageTwelve.Main` (error): Tactic `rfl` failed: The left-hand side
+BS-38: the planted module is refused: LLV7002: Lean rejected `LanguageTwelve.Main` (error): unsolved goals
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 499 filtered out; finished in 240.64s
+```
+
+### term_cases by enumeration can fail (LN-14, BS-39)
+
+`term_cases` is produced by splitting every finite-typed local and closing
+each leaf by evaluation (§18.10). `conformance_ln_14` plants a false
+statement in every run: `code_small` is restated as `code flag <= 0`, which
+fails when the Boolean is `false`. Production writes the planted term, and
+the kernel refuses it; every unplanted theorem is accepted, its binding with
+exactly the declared axioms and its proof with a subset of them.
+
+`conformance_bs_39` verifies the enumeration model in
+`bootstrap/src/KernelTerms.lex.tex` under the pinned Lean, then plants an
+off-by-one in `enumerateBranches` (`ctor := (index + 1)`), so every branch
+names the next constructor. Lean refuses the planted module with `LLV7002`.
+
+Command and host: `cargo test --release -p repo-conformance --test conformance
+-- conformance_ln_13 conformance_ln_14 conformance_bs_39`, WSL Ubuntu on
+Windows x86-64, rustc 1.97.1, pinned Lean 4.32.2.
+
+```text
+test conformance_bs_39 ... ok
+test conformance_ln_14 ... ok
+test conformance_ln_13 ... ok
+```
+
 ### a derived row is made by the pinned Lean and never stored (SM-34)
 
 A version 2 row may be derived: it states no universe parameters, type, or value,

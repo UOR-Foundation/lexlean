@@ -1,0 +1,574 @@
+{
+  "not_linked": {
+    "language/core-1.1/entries/env": "LLC0101: invalid project configuration: TOML parse error at line 2, column 1",
+    "language/core-1.2/entries/env": "LLC0101: invalid project configuration: TOML parse error at line 2, column 1",
+    "language/core/entries/env": "LLC0101: invalid project configuration: TOML parse error at line 2, column 1",
+    "language/lcnf-1.2/tooling": "LLT4013: phase link: a tooling module is accepted only in the tooling projects the compiler embeds, not in a user project"
+  },
+  "produced_forms": [
+    "reflexivity",
+    "decide",
+    "cases",
+    "induction",
+    "apply",
+    "law"
+  ],
+  "projects": {
+    "bootstrap": {
+      "generated_template_theorems": 0,
+      "modules": 39,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "reflexivity": 3
+        },
+        "phase0_producible": 3,
+        "theorems": 3,
+        "whole": {
+          "reflexivity": 3
+        }
+      }
+    },
+    "compiler": {
+      "generated_template_theorems": 281,
+      "modules": 39,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "apply": 16,
+          "cases": 35,
+          "decide": 7,
+          "induction": 51,
+          "linear_arithmetic": 48,
+          "reflexivity": 461,
+          "simplify": 142,
+          "term_cases": 288
+        },
+        "phase0_producible": 463,
+        "theorems": 876,
+        "whole": {
+          "apply": 14,
+          "cases": 6,
+          "decide": 7,
+          "induction": 51,
+          "linear_arithmetic": 48,
+          "reflexivity": 439,
+          "simplify": 26,
+          "term_cases": 285
+        }
+      }
+    },
+    "compiler/proofs": {
+      "generated_template_theorems": 0,
+      "modules": 13,
+      "prose_or_core_theorems": 4175,
+      "written": {
+        "nodes": {},
+        "phase0_producible": 0,
+        "theorems": 0,
+        "whole": {}
+      }
+    },
+    "examples/collections": {
+      "generated_template_theorems": 0,
+      "modules": 3,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "decide": 50,
+          "reflexivity": 1
+        },
+        "phase0_producible": 51,
+        "theorems": 51,
+        "whole": {
+          "decide": 50,
+          "reflexivity": 1
+        }
+      }
+    },
+    "examples/decision-regions": {
+      "generated_template_theorems": 0,
+      "modules": 1,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "region_check": 4
+        },
+        "phase0_producible": 0,
+        "theorems": 4,
+        "whole": {
+          "region_check": 4
+        }
+      }
+    },
+    "examples/fold-laws": {
+      "generated_template_theorems": 0,
+      "modules": 3,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "apply": 1,
+          "decide": 2,
+          "law": 3,
+          "linear_arithmetic": 25
+        },
+        "phase0_producible": 6,
+        "theorems": 31,
+        "whole": {
+          "apply": 1,
+          "decide": 2,
+          "law": 3,
+          "linear_arithmetic": 25
+        }
+      }
+    },
+    "examples/helpdesk": {
+      "generated_template_theorems": 28,
+      "modules": 6,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "cases": 1,
+          "decide": 7,
+          "linear_arithmetic": 8,
+          "reflexivity": 6,
+          "simplify": 2
+        },
+        "phase0_producible": 13,
+        "theorems": 22,
+        "whole": {
+          "cases": 1,
+          "decide": 7,
+          "linear_arithmetic": 8,
+          "reflexivity": 6
+        }
+      }
+    },
+    "examples/higher-order": {
+      "generated_template_theorems": 0,
+      "modules": 2,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "apply": 1,
+          "induction": 1,
+          "reflexivity": 5,
+          "simplify": 2
+        },
+        "phase0_producible": 6,
+        "theorems": 7,
+        "whole": {
+          "apply": 1,
+          "induction": 1,
+          "reflexivity": 5
+        }
+      }
+    },
+    "examples/language-1.2": {
+      "generated_template_theorems": 0,
+      "modules": 1,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "reflexivity": 2
+        },
+        "phase0_producible": 2,
+        "theorems": 2,
+        "whole": {
+          "reflexivity": 2
+        }
+      }
+    },
+    "examples/list-induction": {
+      "generated_template_theorems": 0,
+      "modules": 1,
+      "prose_or_core_theorems": 7,
+      "written": {
+        "nodes": {},
+        "phase0_producible": 0,
+        "theorems": 0,
+        "whole": {}
+      }
+    },
+    "examples/models": {
+      "generated_template_theorems": 0,
+      "modules": 9,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "apply": 6,
+          "cases": 15,
+          "constructor": 1,
+          "decide": 187,
+          "linear_arithmetic": 44,
+          "reflexivity": 18
+        },
+        "phase0_producible": 107,
+        "theorems": 152,
+        "whole": {
+          "apply": 4,
+          "cases": 15,
+          "constructor": 1,
+          "decide": 88,
+          "linear_arithmetic": 44
+        }
+      }
+    },
+    "examples/nat-add-zero": {
+      "generated_template_theorems": 0,
+      "modules": 1,
+      "prose_or_core_theorems": 1,
+      "written": {
+        "nodes": {},
+        "phase0_producible": 0,
+        "theorems": 0,
+        "whole": {}
+      }
+    },
+    "examples/nested-induction": {
+      "generated_template_theorems": 0,
+      "modules": 1,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "linear_arithmetic": 9,
+          "nested_induction": 1
+        },
+        "phase0_producible": 0,
+        "theorems": 1,
+        "whole": {
+          "nested_induction": 1
+        }
+      }
+    },
+    "examples/peano-arithmetic": {
+      "generated_template_theorems": 0,
+      "modules": 5,
+      "prose_or_core_theorems": 28,
+      "written": {
+        "nodes": {},
+        "phase0_producible": 0,
+        "theorems": 0,
+        "whole": {}
+      }
+    },
+    "examples/production": {
+      "generated_template_theorems": 0,
+      "modules": 2,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "decide": 3,
+          "linear_arithmetic": 1
+        },
+        "phase0_producible": 3,
+        "theorems": 4,
+        "whole": {
+          "decide": 3,
+          "linear_arithmetic": 1
+        }
+      }
+    },
+    "examples/production-coverage": {
+      "generated_template_theorems": 0,
+      "modules": 8,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "decide": 1,
+          "linear_arithmetic": 8
+        },
+        "phase0_producible": 1,
+        "theorems": 9,
+        "whole": {
+          "decide": 1,
+          "linear_arithmetic": 8
+        }
+      }
+    },
+    "examples/propositional-logic": {
+      "generated_template_theorems": 0,
+      "modules": 1,
+      "prose_or_core_theorems": 10,
+      "written": {
+        "nodes": {},
+        "phase0_producible": 0,
+        "theorems": 0,
+        "whole": {}
+      }
+    },
+    "examples/reasoning": {
+      "generated_template_theorems": 305,
+      "modules": 5,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "apply": 3,
+          "linear_arithmetic": 50,
+          "reflexivity": 37
+        },
+        "phase0_producible": 40,
+        "theorems": 90,
+        "whole": {
+          "apply": 3,
+          "linear_arithmetic": 50,
+          "reflexivity": 37
+        }
+      }
+    },
+    "examples/recursion": {
+      "generated_template_theorems": 0,
+      "modules": 2,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "decide": 7,
+          "linear_arithmetic": 8,
+          "reflexivity": 3
+        },
+        "phase0_producible": 10,
+        "theorems": 18,
+        "whole": {
+          "decide": 7,
+          "linear_arithmetic": 8,
+          "reflexivity": 3
+        }
+      }
+    },
+    "examples/recursive-data": {
+      "generated_template_theorems": 0,
+      "modules": 2,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "decide": 1,
+          "induction": 1,
+          "reflexivity": 6,
+          "simplify": 2
+        },
+        "phase0_producible": 7,
+        "theorems": 8,
+        "whole": {
+          "decide": 1,
+          "induction": 1,
+          "reflexivity": 6
+        }
+      }
+    },
+    "examples/semantic-1.1": {
+      "generated_template_theorems": 0,
+      "modules": 11,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "apply": 1,
+          "boolean_reflection": 1,
+          "cases": 1,
+          "congruence": 1,
+          "constructor": 1,
+          "decide": 4,
+          "induction": 1,
+          "reflexivity": 5,
+          "simplify": 1
+        },
+        "phase0_producible": 6,
+        "theorems": 10,
+        "whole": {
+          "apply": 1,
+          "boolean_reflection": 1,
+          "cases": 1,
+          "congruence": 1,
+          "constructor": 1,
+          "decide": 2,
+          "induction": 1,
+          "reflexivity": 1,
+          "simplify": 1
+        }
+      }
+    },
+    "examples/uor-atlas": {
+      "generated_template_theorems": 0,
+      "modules": 86,
+      "prose_or_core_theorems": 3683,
+      "written": {
+        "nodes": {},
+        "phase0_producible": 0,
+        "theorems": 0,
+        "whole": {}
+      }
+    },
+    "external:HOLOGRAM/prism": {
+      "generated_template_theorems": 0,
+      "modules": 4,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "linear_arithmetic": 4
+        },
+        "phase0_producible": 0,
+        "theorems": 4,
+        "whole": {
+          "linear_arithmetic": 4
+        }
+      }
+    },
+    "external:forge/app": {
+      "generated_template_theorems": 0,
+      "modules": 21,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "linear_arithmetic": 59,
+          "reflexivity": 101
+        },
+        "phase0_producible": 101,
+        "theorems": 160,
+        "whole": {
+          "linear_arithmetic": 59,
+          "reflexivity": 101
+        }
+      }
+    },
+    "language/package-1.2/library": {
+      "generated_template_theorems": 0,
+      "modules": 1,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "reflexivity": 1
+        },
+        "phase0_producible": 1,
+        "theorems": 1,
+        "whole": {
+          "reflexivity": 1
+        }
+      }
+    },
+    "language/preservation-1.2/library": {
+      "generated_template_theorems": 0,
+      "modules": 13,
+      "prose_or_core_theorems": 8089,
+      "written": {
+        "nodes": {},
+        "phase0_producible": 0,
+        "theorems": 0,
+        "whole": {}
+      }
+    },
+    "language/runtime-1.2/library": {
+      "generated_template_theorems": 0,
+      "modules": 6,
+      "prose_or_core_theorems": 345,
+      "written": {
+        "nodes": {},
+        "phase0_producible": 0,
+        "theorems": 0,
+        "whole": {}
+      }
+    },
+    "language/text-1.2/library": {
+      "generated_template_theorems": 0,
+      "modules": 1,
+      "prose_or_core_theorems": 124,
+      "written": {
+        "nodes": {},
+        "phase0_producible": 0,
+        "theorems": 0,
+        "whole": {}
+      }
+    },
+    "std-models": {
+      "generated_template_theorems": 0,
+      "modules": 1,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "cases": 1,
+          "decide": 7,
+          "simplify": 2
+        },
+        "phase0_producible": 7,
+        "theorems": 8,
+        "whole": {
+          "cases": 1,
+          "decide": 7
+        }
+      }
+    },
+    "std-reasoning": {
+      "generated_template_theorems": 28,
+      "modules": 1,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "linear_arithmetic": 6,
+          "reflexivity": 2
+        },
+        "phase0_producible": 2,
+        "theorems": 8,
+        "whole": {
+          "linear_arithmetic": 6,
+          "reflexivity": 2
+        }
+      }
+    },
+    "stdlib": {
+      "generated_template_theorems": 0,
+      "modules": 9,
+      "prose_or_core_theorems": 0,
+      "written": {
+        "nodes": {
+          "reflexivity": 3
+        },
+        "phase0_producible": 3,
+        "theorems": 3,
+        "whole": {
+          "reflexivity": 3
+        }
+      }
+    }
+  },
+  "spec": "lexlean/proof-census/1",
+  "totals": {
+    "generated_template_theorems": 642,
+    "prose_or_core_theorems": 16462,
+    "written": {
+      "nodes": {
+        "apply": 28,
+        "boolean_reflection": 1,
+        "cases": 53,
+        "congruence": 1,
+        "constructor": 2,
+        "decide": 276,
+        "induction": 54,
+        "law": 3,
+        "linear_arithmetic": 270,
+        "nested_induction": 1,
+        "reflexivity": 654,
+        "region_check": 4,
+        "simplify": 151,
+        "term_cases": 288
+      },
+      "phase0_producible": 832,
+      "theorems": 1472,
+      "whole": {
+        "apply": 24,
+        "boolean_reflection": 1,
+        "cases": 24,
+        "congruence": 1,
+        "constructor": 2,
+        "decide": 175,
+        "induction": 54,
+        "law": 3,
+        "linear_arithmetic": 261,
+        "nested_induction": 1,
+        "reflexivity": 610,
+        "region_check": 4,
+        "simplify": 27,
+        "term_cases": 285
+      }
+    },
+    "written_nodes": 1786,
+    "written_nodes_in_produced_forms": 1068
+  }
+}
