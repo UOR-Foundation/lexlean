@@ -391,6 +391,60 @@ workspace carried at those versions without a tag.
   feature disables a normative capability. A default build is unchanged.
   A landing that moves the language-1.2 ID now also updates the constant;
   `RP-10` names the new value when it is stale.
+
+- The declarations of reasoning and text components, and semantic modules of every
+  kind, as language-1.2 source, eighth slice of the typed IR (SPEC.md §17.23, §17.12,
+  `BS-72`, #269; no new diagnostic code, no change to the language-1.2 identity).
+  `reasoningDeclarationText` and `wholeSemanticModuleText` of `SemanticReasoning` return the
+  canonical JSON of the serde form of those declarations and of `SemanticModule`, for
+  every committed semantic module. The register is 504 IDs.
+- The declarations of artifacts, contracts, realizations, evidence, and models as
+  language-1.2 source, seventh slice of the typed IR (SPEC.md §17.23, §17.12, `BS-71`,
+  #269; no new diagnostic code, no change to the language-1.2 identity).
+  `modelDeclarationText` of `SemanticModels` returns the canonical JSON of the serde
+  form of those declarations; the module and its case's encoders and examples are
+  generated from one description of the oracle's types. The register is 503 IDs.
+- The ordinary declarations of the semantic module language and its modules as
+  language-1.2 source, sixth slice of the typed IR (SPEC.md §17.23, §17.11, §17.12,
+  `BS-70`, #269; no new diagnostic code, no change to the language-1.2 identity).
+  `semanticDeclarationText` and `semanticModuleText` of `SemanticDecls` return the canonical JSON of
+  the serde form of `SemanticDeclaration` and `SemanticModule`, the latter for every
+  module of the `bootstrap/` project and the standard library, and admit `recursion`.
+  The register is 502 IDs.
+- The closed terms and proofs of the semantic module language as language-1.2 source,
+  fifth slice of the typed IR (SPEC.md §17.23, §17.11, §17.12, `BS-69`, #269; no new
+  diagnostic code, no change to the language-1.2 identity). `semanticTermText` and
+  `semanticProofText` of `SemanticTerms` return the canonical JSON of the serde form of
+  `SemanticTerm` and `SemanticProof`, and admit `recursion`. The register is 501 IDs.
+- The closed types of the semantic module language, its primitives, and its integer
+  families as language-1.2 source, fourth slice of the typed IR (SPEC.md §17.23, §17.11,
+  §17.12, `BS-68`, #269; no new diagnostic code, no change to the language-1.2
+  identity). `primitiveFacts`, `integerName`, `typeText`, and `typeSpelling` of
+  `SemanticTypes` return the facts of `SemanticPrimitive` and `SemanticInteger`, the
+  canonical JSON of the serde form of `SemanticType`, and its `Display`. The register
+  is 500 IDs.
+- The document IR, the linked project, and the semantic ID as language-1.2 source, third
+  slice of the typed IR (SPEC.md §17.23, §17.5, §17.9, §21.4, `BS-67`, #269; no new
+  diagnostic code, no change to the language-1.2 identity). `moduleText`,
+  `linkedText`, and `projectSemanticId` of `IrDocument` return what
+  `DocumentModule::to_json`, `LinkedProject::to_json`, and the linker's semantic ID
+  return, and admit `recursion`. The register is 499 IDs.
+- The proof and declaration IR in their canonical JSON, and the axiom policy check, as
+  language-1.2 source, second slice of the typed IR (SPEC.md §17.23, §17.4, §17.5,
+  §15.9, `BS-66`, #269; no new diagnostic code, no change to the language-1.2
+  identity). `proofText`, `declarationText`, and `permits` of `IrProof` return what
+  `Proof::to_json`, `Declaration::to_json`, and `AxiomPolicy::permits` return; the
+  JSON roots admit `recursion`. The register is 498 IDs.
+- The bootstrap project configures `max_child_output_bytes = 268435456` (SPEC.md
+  §17.23, the maintainer's decision): with `BS-65` the Lean extraction of its
+  production export writes more than the 33,554,432 bytes it configured. A semantic
+  input, so its lock and every package move.
+- The linked term IR in its canonical JSON as language-1.2 source, first slice of the
+  typed IR (SPEC.md §17.23, §17.3, §17.9, `BS-65`, #269; no new diagnostic code, no
+  change to the language-1.2 identity). `termText`, `canonicalKey`, `eqKey`,
+  `nodeCount`, and `termDepth` of `IrTerm` return what `Term::to_json`,
+  `canonical_key`, `eq_key`, `node_count`, and `depth` return, and admit
+  `recursion`. The register is 497 IDs.
 - `RB-24`, the driver of a command root (#271). A `rust-std` root of the type of a
   command's step gets `src/main.rs` beside `src/lib.rs`: a loop, printed from the
   new language-1.2 module `RuntimeHost`, that calls the step and carries out each

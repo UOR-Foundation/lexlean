@@ -31,6 +31,9 @@ mod gnaf_validate;
 mod grammar_math;
 mod grammar_proof;
 mod lexicon_entry;
+mod ir_document;
+mod ir_proof;
+mod ir_term;
 mod lexicon_lre;
 mod lexicon_lse;
 mod lexicon_schema;
@@ -55,6 +58,11 @@ mod rust_validate;
 mod scan;
 mod semantic_print;
 mod semantic_read;
+mod semantic_decls;
+mod semantic_models;
+mod semantic_reasoning;
+mod semantic_terms;
+mod semantic_types;
 mod structural_grammar;
 mod surface_doc;
 mod surface_generic;
@@ -2602,6 +2610,14 @@ fn case(id: &str) {
         "BS-53" => toml_read::case(),
         "BS-54" => package_ref::case(),
         "BS-55" => lexicon_entry::case(),
+        "BS-65" => ir_term::case(),
+        "BS-66" => ir_proof::case(),
+        "BS-67" => ir_document::case(),
+        "BS-68" => semantic_types::case(),
+        "BS-69" => semantic_terms::case(),
+        "BS-70" => semantic_decls::case(),
+        "BS-71" => semantic_models::case(),
+        "BS-72" => semantic_reasoning::case(),
         other => panic!("no bootstrap case is wired for {other}"),
     }
 }

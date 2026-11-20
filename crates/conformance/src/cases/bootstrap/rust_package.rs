@@ -34,12 +34,12 @@ const CAPACITY: usize = 1 << 24;
 /// bytes. Under rustc every library is rendered.
 const EVALUATOR_LIBRARY: usize = 16_384;
 
-const MANIFESTS: usize = 376;
-const ACCEPTED: usize = 357;
+const MANIFESTS: usize = 381;
+const ACCEPTED: usize = 362;
 const HEADER_RULES: usize = 186;
 const RENDER_RULES: usize = 137;
 const HEADER_MUTANTS: usize = 2_000;
-const RENDER_MUTANTS: usize = 357;
+const RENDER_MUTANTS: usize = 362;
 const EVALUATOR_RENDERS: usize = 241;
 
 fn nat(value: usize) -> Value {

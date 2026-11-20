@@ -511,5 +511,77 @@
     "width": "",
     "memory_kib": "",
     "hints": ""
+  },
+  {
+    "part": "bdd-bootstrap-ir-term",
+    "recipes": "bdd",
+    "examples_part": "",
+    "bdd_part": "bootstrap-ir-term",
+    "width": "",
+    "memory_kib": "",
+    "hints": ""
+  },
+  {
+    "part": "bdd-bootstrap-ir-proof",
+    "recipes": "bdd",
+    "examples_part": "",
+    "bdd_part": "bootstrap-ir-proof",
+    "width": "",
+    "memory_kib": "",
+    "hints": ""
+  },
+  {
+    "part": "bdd-bootstrap-ir-document",
+    "recipes": "bdd",
+    "examples_part": "",
+    "bdd_part": "bootstrap-ir-document",
+    "width": "",
+    "memory_kib": "",
+    "hints": ""
+  },
+  {
+    "part": "bdd-bootstrap-semantic-types",
+    "recipes": "bdd",
+    "examples_part": "",
+    "bdd_part": "bootstrap-semantic-types",
+    "width": "",
+    "memory_kib": "",
+    "hints": ""
+  },
+  {
+    "part": "bdd-bootstrap-semantic-terms",
+    "recipes": "bdd",
+    "examples_part": "",
+    "bdd_part": "bootstrap-semantic-terms",
+    "width": "",
+    "memory_kib": "",
+    "hints": ""
+  },
+  {
+    "part": "bdd-bootstrap-semantic-decls",
+    "recipes": "bdd",
+    "examples_part": "",
+    "bdd_part": "bootstrap-semantic-decls",
+    "width": "",
+    "memory_kib": "",
+    "hints": ""
+  },
+  {
+    "part": "bdd-bootstrap-semantic-models",
+    "recipes": "bdd",
+    "examples_part": "",
+    "bdd_part": "bootstrap-semantic-models",
+    "width": "",
+    "memory_kib": "",
+    "hints": ""
+  },
+  {
+    "part": "bdd-bootstrap-semantic-reasoning",
+    "recipes": "bdd",
+    "examples_part": "",
+    "bdd_part": "bootstrap-semantic-reasoning",
+    "width": "",
+    "memory_kib": "",
+    "hints": ""
   }
 ]
