@@ -6720,7 +6720,7 @@ root's crate. Every root whose closure declares an overflow is run on an input
 on which it overflows, so the overflow arm of each statement is exercised on
 the interpreter, Lean, the machine, and rustc, except the roots below, whose
 declared overflow no input reaches (the registry's effect rows
-over-approximate). Of the 59 certified roots of the four examples, 44
+over-approximate). Of the 60 certified roots of the four examples, 44
 declare an overflow, 19 of them reach it, and the other 25 rest on the
 kernel proof alone for the overflow arm of E, B, and the machine, because
 either the operands that can overflow do not depend on the root's parameters,
