@@ -147,7 +147,7 @@
 \noindent Parameters: \texttt{(source : ByteArray)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{Bool}.\par
-\noindent Definition: \texttt{(if (Nat.beq ((LexLeanRuntime.length (source) : Nat)) (64)) then allIn (source) (1) else false)}.\par
+\noindent Definition: \texttt{(if (Nat.beq ((LexLeanRuntime.length (source) : Nat)) (71)) then (if LexLeanStd.Text.startsWith (source) (text ("blake3:")) then allIn (LexLeanStd.Text.sliceOr (source) (7) (64)) (1) else false) else false)}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{identities}}
 \noindent Kind: \texttt{definition}.\par
@@ -207,7 +207,7 @@
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
 \noindent Type: \texttt{Except (ByteArray) (Bool)}.\par
-\noindent Definition: \texttt{(if same (spec) (text ("lexlean/rust-package/2")) then (let available : Bool := (if snake (name) then (if member (keywords (0)) (name) then false else (!member (reservedCrates (0)) (name))) else false); (if available then (if versionOk (version) then (let std : Bool := same (profile) (text ("rust-std")); (let core : Bool := same (profile) (text ("rust-core")); (if (std || core) then (if identities (sources) then (if ascending (sources) then checkEffects (core) (effects) (registered) else refuse (text ("sources are strictly ascending"))) else refuse (text ("every source is a lowercase SHA-256 hex identity"))) else refuse (cat (ticked (profile)) (text (" is not a Rust profile")))))) else refuse (cat (ticked (version)) (text (" is not a version of three canonical decimals each at most 18446744073709551615")))) else refuse (cat (text ("identifier collision: ")) (cat (ticked (name)) (text (" is not an available crate name")))))) else refuse (cat (text ("package manifest has spec ")) (cat (ticked (spec)) (text (", expected `lexlean/rust-package/2`")))))}.\par
+\noindent Definition: \texttt{(if same (spec) (text ("lexlean/rust-package/2")) then (let available : Bool := (if snake (name) then (if member (keywords (0)) (name) then false else (!member (reservedCrates (0)) (name))) else false); (if available then (if versionOk (version) then (let std : Bool := same (profile) (text ("rust-std")); (let core : Bool := same (profile) (text ("rust-core")); (if (std || core) then (if identities (sources) then (if ascending (sources) then checkEffects (core) (effects) (registered) else refuse (text ("sources are strictly ascending"))) else refuse (text ("every source is a <U+03BA>-label"))) else refuse (cat (ticked (profile)) (text (" is not a Rust profile")))))) else refuse (cat (ticked (version)) (text (" is not a version of three canonical decimals each at most 18446744073709551615")))) else refuse (cat (text ("identifier collision: ")) (cat (ticked (name)) (text (" is not an available crate name")))))) else refuse (cat (text ("package manifest has spec ")) (cat (ticked (spec)) (text (", expected `lexlean/rust-package/2`")))))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{put}}
 \noindent Kind: \texttt{definition}.\par
