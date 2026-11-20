@@ -312,6 +312,15 @@
     "bootstrap-lse-types": [
       "BS-52"
     ],
+    "bootstrap-toml-read": [
+      "BS-53"
+    ],
+    "bootstrap-package-ref": [
+      "BS-54"
+    ],
+    "bootstrap-lexicon-entry": [
+      "BS-55"
+    ],
     "stdlib": [
       "EX-09",
       "SL-01",

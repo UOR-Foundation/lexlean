@@ -11948,6 +11948,179 @@ case then stops at the stack-bound step, `bootstrap/check_signature is no
 package of the committed exports`, as each bootstrap member does before its
 regeneration, which produces the two packages and measures their stack bounds.
 
+### a reader for the compiler's own TOML subset is source (BS-53)
+
+`BS-53` holds the one production root of `LexLeanBoot.TomlRead`
+(`bootstrap/src/TomlRead.lex.tex`) to the `toml` crate: the sections and rows a TOML text holds,
+or none when the text lies outside the subset the compiler's own committed files use (a lexicon
+manifest, an entry file, `language/bootstrap.toml`, or `language/renderer-tokens.toml`). The
+reader is a line-oriented scan over `LexLeanStd.Text::lines` with no recursion: each line extends
+the row it is building (a basic string decoding only the escapes `\\`, `\"`, `\n`, `\t`, `\r`, a
+boolean, a canonical decimal, or a string array that may span lines), closes it at a `[table]` or
+`[[array of table]]` header or at the end of the text, and a repeated `[[name]]` header appends a
+further row to the one section it already opened; duplicate keys in one row and a redefined table
+are refused, as the `toml` crate refuses them. Anything the reader does not fully understand (an
+unsupported escape, a literal or multi-line string, a float, a date, an inline table, or a dotted
+key) is refused too, even though the `toml` crate accepts it. None of the reader admits
+`recursion`.
+
+The case holds the root to the `toml` crate on hand-built documents that reach every scalar type,
+every supported escape, single-line and multi-line arrays with and without a trailing comma, `#`
+comments, a `[table]` header, a repeated `[[array-of-table]]` header, one dotted
+`[[table.array]]` header, CRLF line endings, and the boundary of the subset; on every TOML
+document the compiler's own lexicon manifests, entry files, `language/bootstrap.toml`, and
+`language/renderer-tokens.toml` commit, each converted from the `toml` crate's own read of the
+same bytes, with file order recovered from the text since `toml::Table` does not keep it; and on
+seeded documents that mix flat in-subset fields with a boundary violation. Each of the 8 planted
+defects names the one vector that catches it, and the case asserts that the site of each plant
+occurs once. The row's statement carries no counts.
+
+The case was first compiled and run on the normative host over `release/v0.4` at `f8854bf7db`
+(`cargo test -p repo-conformance --test conformance -- conformance_bs_53`). Its corpus is 37
+named vectors and 826 committed TOML documents, and 200 and 1,500 seeded documents. The evaluator
+agrees with the `toml` crate on 1,063 runs, the rendered package under the pinned rustc on 2,363
+runs, and each of the 8 planted defects is detected by its own vector. The case then stops at the
+stack-bound step, `bootstrap/toml_parse is no package of the committed exports`, as each
+bootstrap member does before its regeneration, which produces the package.
+
+### a package@version reference is source (BS-54)
+
+`BS-54` holds the one production root of `LexLeanBoot.PackageRef`
+(`bootstrap/src/PackageRef.lex.tex`) to `lexicon::package::PackageRef::parse`: the package and
+the exact version of a `package@version` text, or none. The package is held to
+`LexiconLse::isPackageId` (`BS-25`); the version is held to the full SemVer 2.0.0 grammar, not
+only the plain `X.Y.Z` every committed reference happens to write, since the oracle is
+`semver::Version::parse` itself and a project's own `imports` may write a pre-release or build
+metadata. None of the root admits `recursion`.
+
+The case holds the root to the oracle on hand-built references that reach a pre-release, build
+metadata, both, a leading zero in a core or a numeric pre-release part (refused), build metadata
+with a leading zero (allowed, since that rule is only for a numeric identifier outside build
+metadata), an empty or malformed segment, a non-ascii-alnum pre-release byte, an invalid package
+ID, and a missing or a doubled at-sign; on every `package@version` text a `\useglossary`
+directive or a `lexicon.toml` manifest's `imports` commits; and on seeded references mixing a
+random package word, random core parts, and an optional pre-release and build each occasionally
+malformed. Each of the 5 planted defects names the one vector that catches it, and the case
+asserts that the site of each plant occurs once. The row's statement carries no counts.
+
+The case was first compiled and run on the normative host over `release/v0.4` at `f8854bf7db`
+(`cargo test -p repo-conformance --test conformance -- conformance_bs_54`). Its corpus is 28
+named vectors and 37 committed references, and 300 and 2,000 seeded references. The evaluator
+agrees with the oracle on 365 runs, the rendered package under the pinned rustc on 2,065 runs,
+and each of the 5 planted defects is detected by its own vector. The case then stops at the
+stack-bound step, `bootstrap/parse_package_ref is no package of the committed exports`, as each
+bootstrap member does before its regeneration, which produces the package.
+
+### a lexicon entry is source (BS-55)
+
+`BS-55` holds the one production root of `LexLeanBoot.LexiconEntry`
+(`bootstrap/src/LexiconEntry.lex.tex`) to `lexicon::entry::parse_entry`: the entry, or every
+diagnostic the oracle raises, in the oracle's own order. The root does not collapse to
+`Option Entry`: past its four hard gates it keeps validating every remaining section (header,
+signature, denotation, forms, render, calculation, eliminator) and returns the full diagnostic
+list, never only the first, reproducing the oracle's own "keep validating to report every
+problem" behavior on the paths where the oracle does that. The root admits `recursion`, reached
+through `LexiconLse::printLse`.
+
+One message is approximated, in the style `BS-25` and `BS-26` state their own boundaries: the
+text of `toml::from_str::<RawEntry>`'s own error stays in the host. Rust's `parse_entry` collapses
+two different causes to this one message, `format!("invalid entry file: {parse_error}")` --
+the text is not TOML at all, or the TOML does not have `RawEntry`'s shape (a required key
+missing, an unknown key present, or a value of the wrong type) -- because `serde`'s one call
+reports both through the same `toml::de::Error`. `LexiconEntry.lex.tex` has no such detail to
+report for either cause and emits the bare literal `invalid entry file` at both of its own hard
+gates (the first, on `TomlRead::tomlParse`; the second, on its own shape extraction). For these
+two causes only, over 6 named vectors of the case (one for the first cause, five for the
+second, one per class of the shape table below): the code and the refusal (`kind`) are exact,
+and the message is exact up to this fixed prefix, which is also the whole of the Lean side's
+message. Every other diagnostic of the root, over every other vector, is exact, byte for byte.
+
+The case does not compare against a hand-written prefix text: each of the 6 vectors' own
+expected value is built from the real oracle's own output, and the case asserts, before
+trimming it, that the oracle's own message starts with the fixed prefix and that its code and
+refusal are what this boundary expects -- so a change to the oracle's message that broke this
+relation would fail the case loudly, not pass it by comparing against a prefix that no longer
+holds.
+
+The shape boundary -- the specification against which the second cause is checked -- is this
+table, read from `RawEntry` and its nested `Raw*` types in `entry.rs`. Checked individually:
+every one of the seven -- `RawEntry`, `RawDenotation`, `RawForm`, `RawRender`, `RawCalculation`,
+`RawEliminator`, `RawEliminatorConstructor` -- carries its own `#[serde(deny_unknown_fields)]`
+(`entry.rs` has exactly seven `#[serde(...)]` attributes in the whole file, one per struct, and
+none of the other six is anything else); so an unlisted key at any of these tables is also a
+hard-gate failure, same as a required key missing or a value of the wrong type, at every one of
+them, not just some. No field of any of the seven carries `#[serde(rename)]`, `alias`, or
+`flatten`: every Rust field name is the TOML key verbatim, so the table below names both with
+one column.
+
+| Table | Field | Rust requirement | Lean extraction |
+| --- | --- | --- | --- |
+| root | `spec`, `id`, `category`, `surface_arity`, `frame` | required scalar | `getStr`/`getNat`; `Option.none` on absence or the wrong `Value` variant |
+| root | `signature`, `associativity` | `Option<String>` | `getOptStr`; `Option.some Option.none` on absence, never a hard failure by itself |
+| root | `universes` | `Option<Vec<String>>` | `getOptArr` |
+| root | `precedence` | `Option<u32>` | `getOptNat` |
+| root | `denotation` | required table | `TomlRead::docSection ["denotation"]`; `Option.none` if the table is absent |
+| root | `form` | required `Vec<RawForm>` (no `#[serde(default)]`) | `formRowsOrEmpty`: a `[[form]]`-shaped section if one exists, else a root-level `form = []` row read as zero forms, else `Option.none` -- neither representation present is the shape failure, not either one alone |
+| root | `render`, `calculation`, `eliminator` | `Option<table>` | absent is `Option.none` at the Lean level too, never a failure |
+| `[denotation]` | `kind` | required scalar | `extractDenotationRow`'s `getStr`; checked against `denotationAllowedKeys` first |
+| `[denotation]` | `constructor`, `module`, `name`, `component`, `value` | `Option<String>` | `getOptStr` |
+| `[[form]]` row | `id`, `channel`, `surface`, `canonical_source`, `features` | required (scalar or array) | `extractForm`; checked against `formAllowedKeys` first |
+| `[render]` | `math`, `text` | `Option<String>` | `getOptStr`; an absent `[render]` table reads as an all-`Option.none` row, not a failure |
+| `[calculation]` | `kind` | required scalar | `getStr`, only when `[calculation]` is present at all |
+| `[eliminator]` | `cases_lean_name`, `induction_lean_name` | required scalar | `getStr`; checked against `eliminatorAllowedKeys` first |
+| `[eliminator]` | `constructor` | required `Vec<RawEliminatorConstructor>` (no default) | `constructorRowsOrEmpty`, the same three-way read as root `form`: `[[eliminator.constructor]]` sections, or a `constructor = []` row inside `[eliminator]`'s own row, or neither (the shape failure) |
+| `[[eliminator.constructor]]` row | `entry`, `lean_name`, `fields`, `induction_hypotheses` | required (scalar or array) | `extractConstructor`; checked against `eliminatorConstructorAllowedKeys` first |
+
+Every row whose Lean extraction reads "checked against ... first" or is itself a required-field
+read that returns `Option.none` on absence or a type mismatch propagates that `Option.none` up
+through `extractRaw`, reproducing the same single hard-gate failure `toml::from_str` would raise
+in Rust for the same input, before any diagnostic of the accumulating pass is considered. The
+case holds hand-built vectors to a representative of every row of this table that can fail it: a
+missing required scalar, an entry omitting `form` under both representations, an eliminator
+omitting `constructor` under both representations, an unknown key, and a value of the wrong
+type -- each refused at the one approximated message, and `form = []` held separately, as the
+one case in the table's `form` row that is in-shape and reaches the ordinary "an entry declares
+at least one form" diagnostic rather than the shape failure.
+
+The case was first compiled and run on the normative host (`cargo test -p repo-conformance
+--test conformance -- conformance_bs_55`). Its corpus is 35 named vectors and 1,009 committed
+lexicon entries. The evaluator agrees with the oracle on 1,194 runs, the rendered `rust-std`
+package under the pinned rustc on 2,244 runs, and each of the 5 planted defects -- the entry-ID
+check dropped, the non-core-category check dropped, the empty-eliminator-constructor-list check
+dropped, the empty-form check dropped, and the header's two checks reordered -- is detected by
+its own vector. The case then stops at the stack-bound step,
+`bootstrap/parse_entry is no package of the committed exports`, as each bootstrap member does
+before its regeneration, which produces the package.
+
+Compiling and running the case against the real `entry.rs` surfaced two defects the design
+review alone had not: `LexiconEntry.lex.tex` was missing the unconditional "an entry declares at
+least one form" diagnostic entirely (`entry.rs` raises it before its per-form loop, regardless
+of category; grepping the Lean source for the literal message found no match), fixed in
+`validateForms` by prepending it to the fold's own accumulator; and the case's own
+reordering-plant swap was asymmetric (one site's text included its own `(if ... )` wrapper, the
+other did not), which produced a dangling `then` the first time the plant was ever actually
+exercised end to end, fixed by making both sites symmetric.
+
+A single-module `lexlean verify` of `LexiconEntry.lex.tex`, with `max_file_bytes` at the current
+16,777,216 (16 MiB) and `LEXLEAN_CI_TELEMETRY` recording every child process, passed: `verified
+11 modules`, exit 0, 24 minutes 5 seconds of wall clock (1,444.83 s; `/usr/bin/time -v`: user
+1,138.05 s, system 412.53 s, 107% CPU), maximum resident set size 2,288,048 KiB (2.23 GiB), on a
+machine with 10-12 GiB free and nothing else heavy running. The telemetry's own per-process
+records (`wall_ms`, `peak_rss_kib` per `lean`/`leanchecker`/`lake` child) name the longest two
+children by a wide margin as the two phases of `parseEntry`'s own certificate B (the `R0.RustStd`
+phase identified earlier): `lean` type-checking it at 229,966 ms (230 s, peak RSS 2,390,504 KiB),
+`leanchecker` replaying it at 207,939 ms (208 s, peak RSS 1,920,052 KiB); every other child in
+the run, including the general preservation library's own largest module, stayed under 85
+seconds. Both numbers were under the bootstrap project's `child_timeout_ms` of 300,000 as it
+stood at the time of this measurement, but with real margin, not an artifact of a contended
+run: scaling by the 0.4-2.1x spread a differently-shaped module (`LexLeanPreservation.RustLemmas`)
+showed across ten CI children against this same laptop (36-177 s in CI against 84.5 s locally),
+`parseEntry`'s certificate B could plausibly run from about 100 to 480 seconds in CI -- past the
+300-second timeout at the slow end. On this measurement, the maintainer decided to raise the
+bootstrap project's `child_timeout_ms` to 600,000 (10 minutes) rather than shrink the
+certificate or raise `max_file_bytes` further; `bootstrap/lexlean.toml` carries that value from
+this slice on, and the bootstrap project's `project_config_sha256` and lock move with it.
+
 ### the lexer of the authoring notation is source (BS-22)
 
 `BS-22` holds the two production roots of `LexLeanBoot.SurfaceLex`
