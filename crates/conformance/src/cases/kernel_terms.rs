@@ -523,3 +523,156 @@ pub(crate) fn ln_14() {
         "{lines:#?}"
     );
 }
+
+fn declare(snapshot: &Value) -> kernel::Declarations {
+    let modules = kernel::modules_from_snapshot(snapshot).expect("a snapshot this compiler wrote");
+    kernel::declare(&modules, None).expect("self-contained declarations")
+}
+
+/// What each line of an export declares, by its kind (`def`, `inductive`, `thm`).
+fn declared_kinds(lines: &str) -> Vec<&'static str> {
+    lines
+        .lines()
+        .filter_map(|line| {
+            let value: Value = serde_json::from_str(line).expect("every line is JSON");
+            ["def", "inductive", "thm"]
+                .into_iter()
+                .find(|kind| value.get(*kind).is_some())
+        })
+        .collect()
+}
+
+pub(crate) fn ln_15() {
+    let mut judged = Vec::new();
+    for example in ["higher-order", "recursion"] {
+        let fixture = P::copy_example(example);
+        fixture.check_ok();
+        let original = snapshot(&fixture);
+        let declared = declare(&original);
+        assert!(
+            declared.refused.is_empty(),
+            "{example}: {:?}",
+            declared.refused
+        );
+        assert!(!declared.production.rows.is_empty());
+        for row in &declared.production.rows {
+            assert_eq!(
+                declared.statements.get(&row.theorem),
+                Some(&format!("{}.{}", kernel::declare::STATEMENT, row.theorem)),
+                "{} has its statement",
+                row.theorem
+            );
+            if let Outcome::Produced { bound, .. } = &row.outcome {
+                assert_eq!(
+                    *bound, None,
+                    "nothing is bound where no Lean compiled the project"
+                );
+            }
+        }
+        let kinds = declared_kinds(&declared.declarations);
+        for kind in ["inductive", "def"] {
+            assert!(
+                kinds.contains(&kind),
+                "{example} declares a {kind}: {kinds:?}"
+            );
+        }
+        assert!(
+            declared
+                .production
+                .suffix
+                .starts_with(&declared.declarations),
+            "production continues the declarations"
+        );
+        assert_eq!(
+            declare(&original).production.suffix,
+            declared.production.suffix,
+            "declarations are deterministic"
+        );
+        judged.push((fixture, declared, kinds.len()));
+    }
+
+    // What is not written is refused with its reason, and so is what names it.
+    let classes = P::copy_example("semantic-1.1");
+    classes.check_ok();
+    let refused = declare(&snapshot(&classes)).refused;
+    for kind in ["a class", "a instance"] {
+        assert!(
+            refused.iter().any(|r| r.reason.starts_with(kind)),
+            "{kind} is refused: {refused:?}"
+        );
+    }
+    // A type given a value parameter is refused, and so is every declaration that names it.
+    let (recursion, _, _) = &judged[1];
+    let mut planted = snapshot(recursion);
+    let rose = planted["modules"]
+        .as_array_mut()
+        .expect("modules")
+        .iter_mut()
+        .filter_map(|module| module.get_mut("semantic"))
+        .flat_map(|semantic| {
+            semantic["declarations"]
+                .as_array_mut()
+                .expect("declarations")
+                .iter_mut()
+        })
+        .find(|declaration| declaration["name"] == "Rose")
+        .expect("the recursion example declares Rose");
+    rose["parameters"] = serde_json::json!([{"name": "bound", "type": {"kind": "nat"}}]);
+    let refused = declare(&planted).refused;
+    assert!(
+        refused
+            .iter()
+            .any(|r| r.name.ends_with(".Rose") && r.reason.contains("value parameters")),
+        "{refused:?}"
+    );
+    assert!(
+        refused.iter().any(|r| r.name.ends_with(".roseSize")),
+        "a declaration naming a refused one is refused: {refused:?}"
+    );
+
+    if !support::lean_backed("LN-15") {
+        return;
+    }
+    // Lean's kernel with its own library and the runtime, and nothing of the project.
+    for (fixture, declared, declarations) in &judged {
+        let compiled = compiled(fixture);
+        let mut modules = vec!["Init".to_owned()];
+        for entry in walkdir::WalkDir::new(compiled.path().join("oleans"))
+            .into_iter()
+            .flatten()
+        {
+            let path = entry.path();
+            if path.extension().is_some_and(|e| e == "olean") {
+                let relative = path
+                    .strip_prefix(compiled.path().join("oleans"))
+                    .expect("under oleans")
+                    .with_extension("");
+                let module = relative.to_string_lossy().replace(['/', '\\'], ".");
+                if module.starts_with("LexLeanRuntime.") {
+                    modules.push(module);
+                }
+            }
+        }
+        let lines = judge(&compiled, &modules, &declared.production.suffix);
+        assert!(
+            lines.iter().all(|line| line.starts_with("accepted ")),
+            "{lines:#?}"
+        );
+        let produced = declared
+            .production
+            .rows
+            .iter()
+            .filter(|row| matches!(row.outcome, Outcome::Produced { .. }))
+            .count();
+        assert_eq!(lines.len(), declarations + produced, "{lines:#?}");
+        for row in &declared.production.rows {
+            if matches!(row.outcome, Outcome::Produced { .. }) {
+                let constant = format!("{}.{}", kernel::NAMESPACE, row.theorem);
+                assert!(
+                    verdict(&lines, &constant).starts_with(&format!("accepted {constant} ")),
+                    "{lines:#?}"
+                );
+            }
+        }
+    }
+}

@@ -5,7 +5,8 @@ Lean's own kernel over produced kernel terms (SPEC.md §18.10), with nothing but
 
 Imports the named modules (the project's generated modules, compiled by the pinned Lean with every olean part, on
 LEAN_PATH), reads a
-self-contained lean4export 3.1.0 file (one whose numbering starts empty), and adds each theorem it declares
+self-contained lean4export 3.1.0 file (one whose numbering starts empty), and adds each theorem, definition, and
+inductive type it declares
 through `Kernel.Environment.addDeclCore`, the C++ kernel, in order. Nothing in the file is believed: a theorem is
 reported accepted only if the kernel adds it. For each one it prints
 
@@ -77,7 +78,10 @@ partial def axiomsOf (env : Kernel.Environment) (n : Name) : StateM NameSet Name
         found := found.insert a
   return found
 
-def step (t : Tables) (j : Json) : Except String (Tables × Option (Name × Expr × Expr)) := do
+def names (t : Tables) (j : Json) (key : String) : Except String (List Name) := do
+  (← (← j.getObjVal? key).getArr?).toList.mapM fun n => name t (Json.mkObj [("n", n)]) "n"
+
+def step (t : Tables) (j : Json) : Except String (Tables × Option (Name × Declaration)) := do
   if let .ok id := nat j "in" then
     if let .ok s := j.getObjVal? "str" then
       let pre ← name t s "pre"
@@ -109,7 +113,39 @@ def step (t : Tables) (j : Json) : Except String (Tables × Option (Name × Expr
       else throw s!"an expression form this checker does not read: {j.compress}"
     return ({ t with exprs := t.exprs.insert id e }, none)
   if let .ok d := j.getObjVal? "thm" then
-    return (t, some (← name t d "name", ← expr t d "type", ← expr t d "value"))
+    let n ← name t d "name"
+    let type ← expr t d "type"
+    let value ← expr t d "value"
+    return (t, some (n, .thmDecl { name := n, levelParams := [], type, value, all := [n] }))
+  -- A project's own declarations (SPEC.md §18.10): a definition at its height, and an inductive type whose
+  -- recursor the kernel generates, so a recursor in the line, if any, is not read.
+  if let .ok d := j.getObjVal? "def" then
+    let n ← name t d "name"
+    let levelParams ← names t d "levelParams"
+    let type ← expr t d "type"
+    let value ← expr t d "value"
+    let height ← (← (← d.getObjVal? "hints").getObjVal? "regular").getNat?
+    let hints := ReducibilityHints.regular height.toUInt32
+    let val : DefinitionVal := { name := n, levelParams, type, value, hints, safety := .safe, all := [n] }
+    return (t, some (n, .defnDecl val))
+  if let .ok i := j.getObjVal? "inductive" then
+    -- A group of mutual types, and nested ones, whose auxiliary types the kernel builds itself.
+    let ctorRows ← (← i.getObjVal? "ctors").getArr?
+    let tys ← (← (← i.getObjVal? "types").getArr?).toList.mapM fun ty => do
+      let n ← name t ty "name"
+      let type ← expr t ty "type"
+      let mine ← ctorRows.toList.filterMapM fun k => do
+        if (← name t k "induct") == n then
+          let cn ← name t k "name"
+          let ct ← expr t k "type"
+          pure (some ({ name := cn, type := ct } : Constructor))
+        else pure none
+      pure ({ name := n, type, ctors := mine } : InductiveType)
+    let some first := (← (← i.getObjVal? "types").getArr?)[0]? | throw "an inductive line without a type"
+    let levelParams ← names t first "levelParams"
+    let numParams ← nat first "numParams"
+    let n ← name t first "name"
+    return (t, some (n, .inductDecl levelParams numParams tys false))
   throw s!"a line this checker does not read: {j.compress.take 120}"
 
 end KernelCheck
@@ -128,8 +164,7 @@ def main (args : List String) : IO UInt32 := do
     let json ← IO.ofExcept (Json.parse line)
     let (next, decl) ← IO.ofExcept (step tables json)
     tables := next
-    if let some (n, type, value) := decl then
-      let d := Declaration.thmDecl { name := n, levelParams := [], type, value, all := [n] }
+    if let some (n, d) := decl then
       match kernel.addDeclCore 0 d (cancelTk? := none) with
       | .ok env' =>
         kernel := env'

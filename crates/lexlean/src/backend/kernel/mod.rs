@@ -11,6 +11,7 @@
 //! Lean's theorem, so the kernel accepts it only if the statement the
 //! producer proved is definitionally the statement as written.
 
+pub mod declare;
 mod export;
 mod expr;
 mod lower;
@@ -357,6 +358,22 @@ fn collect_laws(proof: &SemanticProof, out: &mut BTreeSet<String>) {
     }
 }
 
+/// Every constant the lowering and the producers may name in any project:
+/// the library a checker holds for projects it has not seen, whose own
+/// declarations it is given (§18.10).
+#[must_use]
+pub fn library_roots() -> Vec<String> {
+    let mut roots: BTreeSet<String> = lower::VOCABULARY
+        .iter()
+        .chain(prove::VOCABULARY)
+        .map(|name| (*name).to_owned())
+        .collect();
+    for (_, names) in lower::RUNTIME_VOCABULARY {
+        roots.extend(names.iter().map(|name| (*name).to_owned()));
+    }
+    roots.into_iter().collect()
+}
+
 /// Produces every theorem of `modules` whose proof is in the produced forms,
 /// as declarations continuing the export `library`: each produced term may
 /// name only constants the library declares, and a binding is written for
@@ -371,11 +388,78 @@ fn collect_laws(proof: &SemanticProof, out: &mut BTreeSet<String>) {
 /// `LLV7103` when `library` is not lean4export 3.1.0 NDJSON. A theorem the
 /// producers do not cover is a refused row, not an error.
 pub fn produce(modules: &[KernelModule], library: Option<&str>) -> Result<Production, Diagnostic> {
+    let tables = export::Tables::parse(library.unwrap_or_default()).map_err(refusal)?;
+    let world = World::new(modules);
+    Ok(produce_in(&world, tables, library.is_some(), true, None))
+}
+
+/// The project's own declarations (§18.10) and the theorems produced over
+/// them.
+pub struct Declarations {
+    /// lean4export lines continuing the library export that declare the
+    /// project's types, eliminators, projections, definitions, and theorem
+    /// statements.
+    pub declarations: String,
+    /// Each theorem whose statement was declared, and that statement.
+    pub statements: BTreeMap<String, String>,
+    /// What was not declared, and why.
+    pub refused: Vec<declare::Refusal>,
+    /// Production over the library and the declarations: its suffix holds
+    /// the declarations' lines, then the produced theorems'.
+    pub production: Production,
+}
+
+/// Declares the project's own declarations from the linked IR, continuing
+/// the export `library`, and produces every theorem it can over them (§18.10).
+/// Nothing is bound to a theorem Lean elaborated: no Lean compiled the
+/// project, and each produced theorem's type is the declared statement's
+/// body, lowered by the same code.
+///
+/// Without a library the lines are self-contained, for a checker that holds
+/// the pinned library compiled.
+///
+/// # Errors
+///
+/// `LLV7103` when `library` is not lean4export 3.1.0 NDJSON. A declaration
+/// that is not written is a refusal, not an error.
+pub fn declare(
+    modules: &[KernelModule],
+    library: Option<&str>,
+) -> Result<Declarations, Diagnostic> {
     let mut tables = export::Tables::parse(library.unwrap_or_default()).map_err(refusal)?;
+    let world = World::new(modules);
+    let declared = declare::write(&world, &mut tables, library.is_some());
+    let declarations = tables.suffix();
+    let production = produce_in(
+        &world,
+        tables,
+        library.is_some(),
+        false,
+        Some(&declared.statements),
+    );
+    Ok(Declarations {
+        declarations,
+        statements: declared.statements,
+        refused: declared.refused,
+        production,
+    })
+}
+
+/// Production over `tables`. With `checked`, a produced term may name only
+/// constants the tables declare; with `bind`, each produced theorem is bound
+/// to Lean's when the tables hold it, or always when they are not `checked`.
+/// With `stated`, only a theorem whose statement was declared is produced.
+fn produce_in(
+    world: &World<'_>,
+    mut tables: export::Tables,
+    checked: bool,
+    bind: bool,
+    stated: Option<&BTreeMap<String, String>>,
+) -> Production {
+    let modules = world.modules;
     let pristine = tables.clone();
     // Each produced theorem's type, value, and the produced theorems it names.
     let mut terms: BTreeMap<String, (Expr, Expr, BTreeSet<String>)> = BTreeMap::new();
-    let world = World::new(modules);
     let mut produced: BTreeMap<String, String> = BTreeMap::new();
     let mut rows = Vec::new();
     for (index, module) in modules.iter().enumerate() {
@@ -395,6 +479,9 @@ pub fn produce(modules: &[KernelModule], library: Option<&str>) -> Result<Produc
             let constant = format!("{NAMESPACE}.{lean}");
             let mark = tables.checkpoint();
             let attempt = (|| -> Result<Option<String>, String> {
+                if stated.is_some_and(|stated| !stated.contains_key(&lean)) {
+                    return Err("its statement is not declared".to_owned());
+                }
                 let mut ctx = Ctx::new(index);
                 let mut binders: Vec<(String, u32, Expr)> = Vec::new();
                 for parameter in type_parameters {
@@ -413,7 +500,7 @@ pub fn produce(modules: &[KernelModule], library: Option<&str>) -> Result<Produc
                     );
                 }
                 let producers = prove::Produced {
-                    world: &world,
+                    world,
                     theorems: &produced,
                 };
                 let mut ty = world.term(&ctx, statement)?;
@@ -425,10 +512,7 @@ pub fn produce(modules: &[KernelModule], library: Option<&str>) -> Result<Produc
                 let mut named = BTreeSet::new();
                 ty.constants(&mut named);
                 value.constants(&mut named);
-                if let Some(missing) = named
-                    .iter()
-                    .find(|name| library.is_some() && !tables.declares(name))
-                {
+                if let Some(missing) = named.iter().find(|name| checked && !tables.declares(name)) {
                     return Err(format!("the library does not declare `{missing}`"));
                 }
                 tables.theorem(&constant, &ty, &value)?;
@@ -440,7 +524,7 @@ pub fn produce(modules: &[KernelModule], library: Option<&str>) -> Result<Produc
                     })
                     .collect();
                 terms.insert(lean.clone(), (ty.clone(), value.clone(), applied));
-                if library.is_none() || tables.declares(&lean) {
+                if bind && (!checked || tables.declares(&lean)) {
                     let bound = format!("{NAMESPACE}.bound.{lean}");
                     tables.theorem(&bound, &ty, &Expr::Const(lean.clone(), Vec::new()))?;
                     return Ok(Some(bound));
@@ -465,10 +549,10 @@ pub fn produce(modules: &[KernelModule], library: Option<&str>) -> Result<Produc
             });
         }
     }
-    Ok(Production {
+    Production {
         suffix: tables.suffix(),
         rows,
         pristine,
         terms,
-    })
+    }
 }

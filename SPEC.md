@@ -9423,6 +9423,32 @@ the kernel accepts it only if the produced statement is definitionally the
 statement as written. A library export or snapshot production cannot read is
 `LLV7103`.
 
+**Project declarations.** Where no Lean has compiled the project, the
+project's own declarations are written from the linked IR too
+(`kernel::declare`), as lean4export lines that continue the library export.
+Each structure and inductive type without value parameters is an inductive
+declaration, a mutual or nested group one declaration, whose recursors the
+kernel generates (`T.rec`, and `T.rec_j` for the group's j-th nested
+occurrence); each type's `casesOn` is defined from its group's recursor over
+one universe parameter as Lean defines it, every other member's motive
+`fun _ => PUnit`; and each structure field's projection goes through
+`casesOn`. A definition's structural recursion is written through the
+recursor of its recursive argument's family: the motive of each family
+member is the tuple of the group's functions recursing on it, and each
+recursive call on a field takes its function's component of that field's
+induction hypothesis. Well-founded recursion is written with fuel: the group
+is one `Nat.rec` over the fuel, and each function is that recursor at its
+measure plus one, which is the function whenever the termination evidence
+holds, as it must for the project to verify; the value at no fuel is never
+reached. Each theorem's statement is the proposition `LexStmt.T`, and the
+statement of each nested member of a nested induction is
+`LexStmt.T.<binder>`, the motive the induction takes for it. Every term is
+lowered as a statement is lowered above, so a construct has one kernel
+meaning. Production then runs over these declarations; nothing is bound to a
+theorem Lean elaborated, since none exists. A declaration of a kind this does
+not write (a type with value parameters, a class, or an instance) is refused
+with its reason, and so is every declaration that names it.
+
 The producers' decisions are those of the bootstrap module `KernelTerms` (§17.23), which
 proves binding, totality, and refusal of the producers it states (`BS-36` to `BS-38`); the
 stage-0 producer decides through the same three checks, which `BS-35` holds to their rendered
@@ -12036,6 +12062,7 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `LN-12` | `lean-backend` | Generated file paths and module names exactly mirror the configured module prefix and source module. | §15.1, §18.1 |
 | `LN-13` | `lean-backend` | Kernel-term production writes, with no elaborator and no tactic, a lean4export 3.1.0 theorem for every semantic theorem whose proof tree is reflexivity, decide, cases, induction, apply of a produced theorem, or law, typed by the statement lowered from the linked IR and bound to the theorem Lean elaborates; Lean's kernel accepts every produced theorem and binding of a module that uses each form, and refuses a produced theorem whose statement was altered, whose case takes another constructor's branch, or whose decide obligation is false, and production refuses a proof that omits a case. | §18.10 |
 | `LN-14` | `lean-backend` | Kernel-term production writes a `term_cases` proof by enumeration: every local of a finite type (`Bool`, or a document type whose constructors carry no field) is split with `casesOn` in scope order, and each case is closed by `Eq.refl` for an equation and `decide` otherwise, so the split term's value is computed by the kernel and never rewritten; Lean's kernel accepts the produced theorem and its binding for a module whose `term_cases` split term is fixed by its finite locals, and refuses a produced theorem whose statement is false in one case. | §18.10 |
+| `LN-15` | `lean-backend` | Kernel declarations write, from the linked IR with no elaborator, a project's own declarations as lean4export 3.1.0 lines: each structure and inductive type without value parameters, a mutual or nested group as one inductive declaration, whose recursors the kernel generates; each type's casesOn, defined from its group's recursor over one universe parameter; each structure field's projection; each definition, its structural recursion (mutual or nested) written through its family's recursor with a tuple motive and its well-founded recursion through fuel of its measure plus one; and each theorem's statement as the proposition LexStmt.T, with the member statements of a nested induction, every term lowered as kernel-term production lowers a statement; production then runs over them unbound, the lines are deterministic, a declaration of a kind not written (a type with value parameters, a class, or an instance) is refused with its reason together with every declaration that names it, and Lean's kernel, holding only its own library and the runtime, accepts every declaration and every produced theorem of a module with an inductive type, a structure, and structural recursion, and of a module with mutual and nested types, mutual and nested recursion, and well-founded recursion. | §18.10 |
 | `TX-01` | `latex-pdf` | Canonical LaTeX is rendered solely from linked IR and never copies source text or controls. | §19.1 |
 | `TX-02` | `latex-pdf` | Every module uses the exact canonical LaTeX preamble and no host or timestamp metadata. | §19.2 |
 | `TX-03` | `latex-pdf` | Statements use only canonical controlled proposition and definition renderings. | §19.3, §19.4 |
