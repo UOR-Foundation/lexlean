@@ -210,8 +210,7 @@ impl Writer<'_, '_> {
         Ok(self.b.apps(beq, &[carrier, decide]))
     }
 
-    /// The `Decimal` instance of the type a decimal is parsed to or printed
-    /// from.
+    /// The `Decimal` instance of the type a decimal is parsed to.
     fn decimal_instance(&mut self, site: &Site, ty: &SemanticType) -> Result<Term, String> {
         if matches!(ty, SemanticType::Int) {
             return self.runtime(site, "LexLeanRuntime", "instDecimalInt");
@@ -222,6 +221,19 @@ impl Writer<'_, '_> {
         let fixed = self.fixed_instance(site, ty)?;
         let to_string = self.b.konst(&format!("instToString{name}"));
         Ok(self.b.apps(head, &[carrier, fixed, to_string]))
+    }
+
+    /// Formatting takes the runtime's `DecimalFormat` instance, without the
+    /// parser's Decimal evidence: `ToString` at `Int` and the unsigned widths,
+    /// and at the signed widths a spelling that, unlike `Int.repr`, uses no
+    /// axiom.
+    fn decimal_format_instance(&mut self, site: &Site, ty: &SemanticType) -> Result<Term, String> {
+        let name = if matches!(ty, SemanticType::Int) {
+            "Int"
+        } else {
+            Self::fixed_name(ty)?
+        };
+        self.runtime(site, "LexLeanRuntime", &format!("instDecimalFormat{name}"))
     }
 
     /// A primitive's runtime call on operands of the given types, as the
@@ -549,7 +561,7 @@ impl Writer<'_, '_> {
             SemanticPrimitive::FormatDecimal => {
                 let ty = first.ok_or("a decimal format without an operand")?;
                 leading.push(self.lean_ty(ty)?);
-                leading.push(self.decimal_instance(site, ty)?);
+                leading.push(self.decimal_format_instance(site, ty)?);
             }
             SemanticPrimitive::Utf8Encode
             | SemanticPrimitive::Utf8Decode

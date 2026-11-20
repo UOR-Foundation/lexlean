@@ -77,7 +77,7 @@ definition{
   parameters: [a : Int, b : Int8],
   result: (String * String),
   body: ((prim format_decimal a : String), (prim format_decimal b : String)),
-  axioms: [Classical.choice, Quot.sound, propext],
+  axioms: [propext],
   executable: true,
   production: {effects: [allocation], targets: [rust-std]}
 }
