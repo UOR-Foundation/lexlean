@@ -835,7 +835,7 @@ pub(super) fn enc_model_declaration(value: &SemanticDeclaration) -> Value {
         SemanticDeclaration::Artifact {
             name,
             role,
-            sha256,
+            kappa,
             length,
             schema,
             r#type,
@@ -846,7 +846,7 @@ pub(super) fn enc_model_declaration(value: &SemanticDeclaration) -> Value {
             vec![
                 text(name),
                 enc_artifact_role(role),
-                text(sha256),
+                text(kappa),
                 nat(*length),
                 enc_artifact_schema(schema),
                 enc_type(r#type),
@@ -954,7 +954,7 @@ pub(super) fn example_model_declaration(step: usize) -> SemanticDeclaration {
         0 => SemanticDeclaration::Artifact {
             name: format!("s{rest}"),
             role: example_artifact_role(rest),
-            sha256: format!("s{rest}"),
+            kappa: format!("s{rest}"),
             length: u64::try_from(rest).expect("a step") + 1,
             schema: example_artifact_schema(rest),
             r#type: if rest.is_multiple_of(2) {

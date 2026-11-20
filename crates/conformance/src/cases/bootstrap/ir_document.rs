@@ -21,7 +21,7 @@ use lexlean::calculus::Value;
 use lexlean::ir::document::{Block, DocumentModule, LinkedProject, Phrase, PhraseItem, Section};
 use lexlean::ir::term::{Binder, BinderMode, LocalId, Term, Universe};
 use lexlean::lexicon::lse::QualifiedId;
-use lexlean::{Selection, Sha256Digest};
+use lexlean::{Kappa, Selection};
 use serde_json::Value as Json2;
 
 use super::ir_proof::enc_declaration;
@@ -209,7 +209,7 @@ fn enc_module(module: &DocumentModule) -> Value {
             text(&module.name),
             text(&module.lean_module),
             text(&module.source_path),
-            bytes(&module.source_sha256.0),
+            bytes(module.source_kappa.as_bytes()),
             option(module.origin.as_deref().map(text)),
             texts(&module.glossary),
             texts(&module.imports),
@@ -274,19 +274,19 @@ struct Identity {
     project: LinkedProject,
     language: String,
     closure: String,
-    semantic_id: Sha256Digest,
+    semantic_id: Kappa,
 }
 
 fn identity_run(identity: &Identity) -> Run {
     let modules: Vec<(&String, &DocumentModule)> = identity.project.modules.iter().collect();
     (
         vec![
-            bytes(&lexlean::compiler_semantics_id_for(&identity.language).0),
+            bytes(lexlean::compiler_semantics_id_for(&identity.language).as_bytes()),
             text(&identity.language),
             enc_modules(&modules),
             text(&identity.closure),
         ],
-        serde_json::to_value(bytes(&identity.semantic_id.0)).expect("a value is JSON"),
+        serde_json::to_value(bytes(identity.semantic_id.as_bytes())).expect("a value is JSON"),
     )
 }
 
@@ -415,7 +415,7 @@ fn module(name: &str, lean_module: &str) -> DocumentModule {
         name: name.to_owned(),
         lean_module: lean_module.to_owned(),
         source_path: format!("src/{name}.lex.tex"),
-        source_sha256: Sha256Digest([3; 32]),
+        source_kappa: Kappa::of(&[3; 32]),
         origin: None,
         glossary: vec!["lexlean.std.nat@1.2.0".to_owned()],
         imports: Vec::new(),

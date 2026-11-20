@@ -162,9 +162,9 @@ definition{
   result: LexLeanStd.Json::Json,
   body: (match global
     | GlobalRef.GCore core => (ctor LexLeanStd.Json::Json.JObj (member "kind" (jtext "core") (member "name" (ctor LexLeanStd.Json::Json.JStr (coreName core)) (ctor LexLeanStd.Json::Json.JNil))))
-    | GlobalRef.GExternal package entry leanModule leanName signature => (ctor LexLeanStd.Json::Json.JObj (member "kind" (jtext "external") (member "entry" (ctor LexLeanStd.Json::Json.JStr entry) (member "lean_module" (ctor LexLeanStd.Json::Json.JStr leanModule) (member "lean_name" (ctor LexLeanStd.Json::Json.JStr leanName) (member "signature_sha256" (ctor LexLeanStd.Json::Json.JStr (LexLeanStd.Numeral::hex signature)) (ctor LexLeanStd.Json::Json.JNil)))))))
+    | GlobalRef.GExternal package entry leanModule leanName signature => (ctor LexLeanStd.Json::Json.JObj (member "kind" (jtext "external") (member "entry" (ctor LexLeanStd.Json::Json.JStr entry) (member "lean_module" (ctor LexLeanStd.Json::Json.JStr leanModule) (member "lean_name" (ctor LexLeanStd.Json::Json.JStr leanName) (member "signature_kappa" (ctor LexLeanStd.Json::Json.JStr signature) (ctor LexLeanStd.Json::Json.JNil)))))))
     | GlobalRef.GDocument sourceModule component leanName => (ctor LexLeanStd.Json::Json.JObj (member "kind" (jtext "document") (member "module" (ctor LexLeanStd.Json::Json.JStr sourceModule) (member "component" (ctor LexLeanStd.Json::Json.JStr component) (member "lean_name" (ctor LexLeanStd.Json::Json.JStr leanName) (ctor LexLeanStd.Json::Json.JNil))))))
-    | GlobalRef.GDefined package entry signature => (ctor LexLeanStd.Json::Json.JObj (member "kind" (jtext "defined") (member "entry" (ctor LexLeanStd.Json::Json.JStr entry) (member "signature_sha256" (ctor LexLeanStd.Json::Json.JStr (LexLeanStd.Numeral::hex signature)) (ctor LexLeanStd.Json::Json.JNil)))))),
+    | GlobalRef.GDefined package entry signature => (ctor LexLeanStd.Json::Json.JObj (member "kind" (jtext "defined") (member "entry" (ctor LexLeanStd.Json::Json.JStr entry) (member "signature_kappa" (ctor LexLeanStd.Json::Json.JStr signature) (ctor LexLeanStd.Json::Json.JNil)))))),
   axioms: [Quot.sound, propext],
   executable: true
 }

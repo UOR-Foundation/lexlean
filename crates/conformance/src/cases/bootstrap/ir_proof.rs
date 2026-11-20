@@ -23,7 +23,7 @@ use lexlean::ir::term::{
     Binder, BinderMode, CoreRef, ExternalConstRef, GlobalRef, LocalId, Renumber, Term, Universe,
 };
 use lexlean::lexicon::lse::QualifiedId;
-use lexlean::Sha256Digest;
+use lexlean::Kappa;
 use serde_json::Value as Json2;
 
 use super::ir_term::{binder_chain, enc_global, enc_term, linked_modules, nat, term_chain};
@@ -438,7 +438,7 @@ fn external() -> Term {
             entry: "lexlean.std.nat::nat".to_owned(),
             lean_module: "Init.Prelude".to_owned(),
             lean_name: "Nat".to_owned(),
-            signature_hash: Sha256Digest([7; 32]),
+            signature_hash: Kappa::of(&[7; 32]),
         }),
         Vec::new(),
     )

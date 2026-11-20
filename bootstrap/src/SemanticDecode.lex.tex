@@ -3309,7 +3309,7 @@ definition{
       | LexLeanStd.Json::Json.JArr part0 => (ctor Option.none [SemanticModels::ModelDeclaration])
       | LexLeanStd.Json::Json.JObj part0 => (let members : LexLeanStd.Json::Json := part0; (match (kindOf members)
         | Option.none => (ctor Option.none [SemanticModels::ModelDeclaration])
-        | Option.some tag => (if (prim equal tag (lit "artifact") : Bool) then (if (closedKeys members (cons (lit "name") (cons (lit "role") (cons (lit "sha256") (cons (lit "length") (cons (lit "schema") (cons (lit "type") (cons (lit "axioms") (cons (lit "kind") (nil Bytes)))))))))) then (let decoded0 : (Option Bytes) := (match (lookup members (lit "name"))
+        | Option.some tag => (if (prim equal tag (lit "artifact") : Bool) then (if (closedKeys members (cons (lit "name") (cons (lit "role") (cons (lit "kappa") (cons (lit "length") (cons (lit "schema") (cons (lit "type") (cons (lit "axioms") (cons (lit "kind") (nil Bytes)))))))))) then (let decoded0 : (Option Bytes) := (match (lookup members (lit "name"))
           | Option.some found => (decStr found)
           | Option.none => (ctor Option.none [Bytes])); (match decoded0
           | Option.none => (ctor Option.none [SemanticModels::ModelDeclaration])
@@ -3317,7 +3317,7 @@ definition{
             | Option.some found => (decArtifactRole budget found)
             | Option.none => (ctor Option.none [SemanticModels::ArtifactRole])); (match decoded1
             | Option.none => (ctor Option.none [SemanticModels::ModelDeclaration])
-            | Option.some field1 => (let decoded2 : (Option Bytes) := (match (lookup members (lit "sha256"))
+            | Option.some field1 => (let decoded2 : (Option Bytes) := (match (lookup members (lit "kappa"))
               | Option.some found => (decStr found)
               | Option.none => (ctor Option.none [Bytes])); (match decoded2
               | Option.none => (ctor Option.none [SemanticModels::ModelDeclaration])

@@ -25,7 +25,7 @@ use lexlean::ir::term::{
     Binder, BinderMode, CoreRef, DefinedLexiconRef, DocumentDeclRef, ExternalConstRef, GlobalRef,
     ImplicitBinderId, LocalId, Renumber, Term, Universe,
 };
-use lexlean::{Selection, Sha256Digest};
+use lexlean::{Kappa, Selection};
 use serde_json::Value as Json2;
 
 use super::rust_validate::{eligibility_of, rustc_differential};
@@ -180,7 +180,7 @@ pub(super) fn enc_global(global: &GlobalRef) -> Value {
                 text(&external.entry),
                 text(&external.lean_module),
                 text(&external.lean_name),
-                bytes(&external.signature_hash.0),
+                bytes(external.signature_hash.as_bytes()),
             ],
         ),
         GlobalRef::Document(document) => adt(
@@ -198,7 +198,7 @@ pub(super) fn enc_global(global: &GlobalRef) -> Value {
             vec![
                 text(&defined.package),
                 text(&defined.entry),
-                bytes(&defined.signature_hash.0),
+                bytes(defined.signature_hash.as_bytes()),
             ],
         ),
     }
@@ -469,12 +469,12 @@ fn committed() -> Vec<Term> {
 
 // ------------------------------------------------------------------ vectors
 
-fn sha(byte: u8) -> Sha256Digest {
+fn sha(byte: u8) -> Kappa {
     let mut out = [0u8; 32];
     for (index, slot) in out.iter_mut().enumerate() {
         *slot = byte.wrapping_add(u8::try_from(index).expect("a byte"));
     }
-    Sha256Digest(out)
+    Kappa::of(&out)
 }
 
 fn local(id: u64) -> Term {
@@ -709,12 +709,12 @@ fn drawn_text(seeded: &mut Seeded) -> String {
     (0..count).map(|_| *seeded.pick(PIECES)).collect()
 }
 
-fn drawn_sha(seeded: &mut Seeded) -> Sha256Digest {
+fn drawn_sha(seeded: &mut Seeded) -> Kappa {
     let mut out = [0u8; 32];
     for slot in &mut out {
         *slot = u8::try_from(seeded.below(256)).expect("a byte");
     }
-    Sha256Digest(out)
+    Kappa::of(&out)
 }
 
 fn drawn_universe(seeded: &mut Seeded, depth: usize) -> Universe {
@@ -939,7 +939,7 @@ const PLANTS: &[Plant] = &[
     },
     Plant {
         label: "a defined global loses its hash",
-        site: "(jtext \"defined\") (member \"entry\" (ctor LexLeanStd.Json::Json.JStr entry) (member \"signature_sha256\" (ctor LexLeanStd.Json::Json.JStr (LexLeanStd.Numeral::hex signature)) (ctor LexLeanStd.Json::Json.JNil)))",
+        site: "(jtext \"defined\") (member \"entry\" (ctor LexLeanStd.Json::Json.JStr entry) (member \"signature_kappa\" (ctor LexLeanStd.Json::Json.JStr signature) (ctor LexLeanStd.Json::Json.JNil)))",
         replacement: "(jtext \"defined\") (member \"entry\" (ctor LexLeanStd.Json::Json.JStr entry) (ctor LexLeanStd.Json::Json.JNil))",
         root: 0,
         vector: "a defined global",
