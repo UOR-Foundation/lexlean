@@ -1,0 +1,363 @@
+\begin{lexlean}{LexiconGraph}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{LexLeanStd.Map}
+\importmodule{LexLeanStd.Numeral}
+\importmodule{LexLeanStd.Order}
+\title{Natural number addition}
+\begin{semanticmodule}
+structure{
+  name: GraphPackage,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: id, type: Bytes}, {name: version, type: Bytes}, {name: imports, type: (List (Bytes * Bytes))}]
+}
+
+structure{
+  name: GraphDiagnostic,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: code, type: Bytes}, {name: message, type: Bytes}, {name: cycle, type: (Option ((List Bytes) * (List Bytes)))}]
+}
+
+inductive{
+  name: GraphOutcome,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: GraphAccepted, fields: [(List Nat), (List (Bytes * (List Bytes)))]},
+    {name: GraphRefused, fields: [(List GraphDiagnostic)]}
+  ]
+}
+
+structure{
+  name: Walk,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: states, type: (List Nat)}, {name: depths, type: (List Nat)}, {name: order, type: (List Nat)}, {name: stack, type: (List (Nat * Nat))}, {name: root, type: Nat}, {name: diags, type: (List GraphDiagnostic)}, {name: cycle, type: (Option GraphDiagnostic)}]
+}
+
+definition{
+  name: lit,
+  parameters: [literal : String],
+  result: Bytes,
+  body: (prim utf8_encode literal : Bytes),
+  executable: true
+}
+
+definition{
+  name: cat,
+  parameters: [left : Bytes, right : Bytes],
+  result: Bytes,
+  body: (prim append left right : Bytes),
+  executable: true
+}
+
+definition{
+  name: refText,
+  parameters: [package : Bytes, version : Bytes],
+  result: Bytes,
+  body: (cat package (cat (lit "@") version)),
+  executable: true
+}
+
+definition{
+  name: quoted,
+  parameters: [text : Bytes],
+  result: Bytes,
+  body: (cat (lit "`") (cat text (lit "`"))),
+  executable: true
+}
+
+definition{
+  name: plainDiag,
+  parameters: [code : Bytes, message : Bytes],
+  result: GraphDiagnostic,
+  body: (record GraphDiagnostic {code := code, message := message, cycle := (ctor Option.none [((List Bytes) * (List Bytes))])}),
+  executable: true
+}
+
+definition{
+  name: countPackages,
+  parameters: [packages : (List GraphPackage)],
+  result: Nat,
+  body: (prim list_fold (fun (count : Nat) (package : GraphPackage) => (count + 1)) 0 packages : Nat),
+  executable: true
+}
+
+definition{
+  name: countImports,
+  parameters: [packages : (List GraphPackage)],
+  result: Nat,
+  body: (prim list_fold (fun (count : Nat) (package : GraphPackage) => (prim list_fold (fun (inner : Nat) (import : (Bytes * Bytes)) => (inner + 1)) count (project package imports) : Nat)) 0 packages : Nat),
+  executable: true
+}
+
+definition{
+  name: indexOf,
+  parameters: [packages : (List GraphPackage), wanted : Bytes],
+  result: (Option Nat),
+  body: (second (prim list_fold (fun [wanted] (state : (Nat * (Option Nat))) (package : GraphPackage) => (match (second state)
+    | Option.some found => (((first state) + 1), (ctor Option.some [Nat] found))
+    | Option.none => (if (prim equal (project package id) wanted : Bool) then (((first state) + 1), (ctor Option.some [Nat] (first state))) else (((first state) + 1), (ctor Option.none [Nat]))))) (0, (ctor Option.none [Nat])) packages : (Nat * (Option Nat)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: indexOr,
+  parameters: [packages : (List GraphPackage), wanted : Bytes],
+  result: Nat,
+  body: (match (indexOf packages wanted)
+    | Option.some found => found
+    | Option.none => 0),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: natAt,
+  parameters: [values : (List Nat), position : Nat],
+  result: Nat,
+  body: (match (prim index values position : (Option Nat))
+    | Option.some value => value
+    | Option.none => 0),
+  executable: true
+}
+
+definition{
+  name: setNat,
+  parameters: [values : (List Nat), position : Nat, value : Nat],
+  result: (List Nat),
+  body: (LexLeanStd.Order::reverseList [Nat] (second (prim list_fold (fun [position, value] (state : (Nat * (List Nat))) (item : Nat) => (((first state) + 1), (cons (if ((first state) =? position) then value else item) (second state)))) (0, (nil Nat)) values : (Nat * (List Nat))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: zeros,
+  parameters: [packages : (List GraphPackage)],
+  result: (List Nat),
+  body: (prim list_fold (fun (made : (List Nat)) (package : GraphPackage) => (cons 0 made)) (nil Nat) packages : (List Nat)),
+  executable: true
+}
+
+definition{
+  name: duplicateDiags,
+  parameters: [packages : (List GraphPackage)],
+  result: (List GraphDiagnostic),
+  body: (LexLeanStd.Order::reverseList [GraphDiagnostic] (second (prim list_fold (fun (state : ((List Bytes) * (List GraphDiagnostic))) (package : GraphPackage) => (if (LexLeanStd.Map::setContains (first state) (project package id)) then ((first state), (cons (plainDiag (lit "LLR3002") (cat (lit "duplicate package ") (quoted (project package id)))) (second state))) else ((cons (project package id) (first state)), (second state)))) ((nil Bytes), (nil GraphDiagnostic)) packages : ((List Bytes) * (List GraphDiagnostic))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: importDiag,
+  parameters: [packages : (List GraphPackage), owner : Bytes, kept : (List GraphDiagnostic), import : (Bytes * Bytes)],
+  result: (List GraphDiagnostic),
+  body: (let shown : Bytes := (cat owner (cat (lit ": import ") (quoted (refText (first import) (second import))))); (match (indexOf packages (first import))
+    | Option.some found => (match (prim index packages found : (Option GraphPackage))
+      | Option.some target => (if (prim equal (project target version) (second import) : Bool) then kept else (cons (plainDiag (lit "LLR3001") (cat shown (lit " does not match the loaded version"))) kept))
+      | Option.none => kept)
+    | Option.none => (cons (plainDiag (lit "LLR3001") (cat shown (lit " is not available"))) kept))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: importDiags,
+  parameters: [packages : (List GraphPackage)],
+  result: (List GraphDiagnostic),
+  body: (LexLeanStd.Order::reverseList [GraphDiagnostic] (prim list_fold (fun [packages] (kept : (List GraphDiagnostic)) (package : GraphPackage) => (prim list_fold (fun [package, packages] (inner : (List GraphDiagnostic)) (import : (Bytes * Bytes)) => (importDiag packages (project package id) inner import)) kept (project package imports) : (List GraphDiagnostic))) (nil GraphDiagnostic) packages : (List GraphDiagnostic))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: countIn,
+  parameters: [packages : (List GraphPackage), wanted : Bytes],
+  result: Nat,
+  body: (prim list_fold (fun [wanted] (count : Nat) (package : GraphPackage) => (if (prim equal (project package id) wanted : Bool) then (count + 1) else count)) 0 packages : Nat),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: availableVersions,
+  parameters: [packages : (List GraphPackage), members : (List (Bytes * Bytes))],
+  result: (List (Bytes * Bytes)),
+  body: (let unique : (List (Bytes * Bytes)) := (prim list_fold (fun [packages] (kept : (List (Bytes * Bytes))) (package : GraphPackage) => (if ((countIn packages (project package id)) =? 1) then (LexLeanStd.Map::mapInsert kept (project package id) (project package version)) else kept)) (nil (Bytes * Bytes)) packages : (List (Bytes * Bytes))); (prim list_fold (fun [packages] (kept : (List (Bytes * Bytes))) (member : (Bytes * Bytes)) => (if ((countIn packages (first member)) =? 0) then (LexLeanStd.Map::mapInsert kept (first member) (second member)) else kept)) unique members : (List (Bytes * Bytes)))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: reverseEdges,
+  parameters: [packages : (List GraphPackage), available : (List (Bytes * Bytes))],
+  result: (List (Bytes * Bytes)),
+  body: (prim list_fold (fun [available, packages] (kept : (List (Bytes * Bytes))) (package : GraphPackage) => (if ((countIn packages (project package id)) =? 1) then (prim list_fold (fun [available, package] (inner : (List (Bytes * Bytes))) (import : (Bytes * Bytes)) => (match (LexLeanStd.Map::mapGet available (first import))
+    | Option.some version => (if (prim equal version (second import) : Bool) then (cons ((refText (first import) (second import)), (refText (project package id) (project package version))) inner) else inner)
+    | Option.none => inner)) kept (project package imports) : (List (Bytes * Bytes))) else kept)) (nil (Bytes * Bytes)) packages : (List (Bytes * Bytes))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: reachStep,
+  parameters: [edges : (List (Bytes * Bytes)), reached : (List Bytes)],
+  result: (Option (List Bytes)),
+  body: (let grown : (List Bytes) := (prim list_fold (fun [reached] (kept : (List Bytes)) (edge : (Bytes * Bytes)) => (if (LexLeanStd.Map::setContains reached (first edge)) then (LexLeanStd.Order::insertSorted kept (second edge)) else kept)) reached edges : (List Bytes)); (if ((prim length grown : Nat) =? (prim length reached : Nat)) then (ctor Option.none [(List Bytes)]) else (ctor Option.some [(List Bytes)] grown))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: packageImporters,
+  parameters: [packages : (List GraphPackage), members : (List (Bytes * Bytes))],
+  result: (List Bytes),
+  body: (let edges : (List (Bytes * Bytes)) := (reverseEdges packages (availableVersions packages members)); (let start : (List Bytes) := (prim list_fold (fun (kept : (List Bytes)) (member : (Bytes * Bytes)) => (LexLeanStd.Order::insertSorted kept (refText (first member) (second member)))) (nil Bytes) members : (List Bytes)); (first (prim iterate_until (fun [edges] (reached : (List Bytes)) => (reachStep edges reached)) ((prim length edges : Nat) + 2) start : ((List Bytes) * Bool))))),
+  axioms: [Quot.sound, propext],
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+
+definition{
+  name: dropUntil,
+  parameters: [target : Nat, nodes : (List Nat)],
+  result: (List Nat),
+  body: (LexLeanStd.Order::reverseList [Nat] (second (prim list_fold (fun [target] (state : (Bool * (List Nat))) (node : Nat) => (if (first state) then (true, (cons node (second state))) else (if (node =? target) then (true, (cons node (second state))) else (false, (second state))))) (false, (nil Nat)) nodes : (Bool * (List Nat))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: cycleDiag,
+  parameters: [packages : (List GraphPackage), stack : (List (Nat * Nat)), target : Nat],
+  result: GraphDiagnostic,
+  body: (let bottomUp : (List Nat) := (prim list_fold (fun (kept : (List Nat)) (frame : (Nat * Nat)) => (cons (first frame) kept)) (nil Nat) stack : (List Nat)); (let onCycle : (List Nat) := (dropUntil target bottomUp); (let named : (List GraphPackage) := (LexLeanStd.Order::reverseList [GraphPackage] (prim list_fold (fun [packages] (kept : (List GraphPackage)) (node : Nat) => (match (prim index packages node : (Option GraphPackage))
+    | Option.some package => (cons package kept)
+    | Option.none => kept)) (nil GraphPackage) onCycle : (List GraphPackage))); (let targetId : Bytes := (match (prim index packages target : (Option GraphPackage))
+    | Option.some package => (project package id)
+    | Option.none => 0x); (let ids : (List Bytes) := (LexLeanStd.Order::reverseList [Bytes] (cons targetId (prim list_fold (fun (kept : (List Bytes)) (package : GraphPackage) => (cons (project package id) kept)) (nil Bytes) named : (List Bytes)))); (let members : (List (Bytes * Bytes)) := (LexLeanStd.Order::reverseList [(Bytes * Bytes)] (prim list_fold (fun (kept : (List (Bytes * Bytes))) (package : GraphPackage) => (cons ((project package id), (project package version)) kept)) (nil (Bytes * Bytes)) named : (List (Bytes * Bytes)))); (record GraphDiagnostic {code := (lit "LLR3003"), message := (cat (lit "package import cycle through ") (quoted targetId)), cycle := (ctor Option.some [((List Bytes) * (List Bytes))] (ids, (packageImporters packages members)))}))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: depthDiag,
+  parameters: [maxImportDepth : Nat, deepest : Nat, wanted : Bytes],
+  result: GraphDiagnostic,
+  body: (plainDiag (lit "LLS8002") (cat (lit "max_import_depth exceeded in phase lexicon closure: configured ") (cat (LexLeanStd.Numeral::decimal maxImportDepth) (cat (lit ", observed import depth ") (cat (LexLeanStd.Numeral::decimal (deepest + 1)) (cat (lit " at package ") (quoted wanted))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: deepestOf,
+  parameters: [packages : (List GraphPackage), depths : (List Nat), package : GraphPackage],
+  result: Nat,
+  body: (prim list_fold (fun [depths, packages] (deepest : Nat) (import : (Bytes * Bytes)) => (let reached : Nat := ((natAt depths (indexOr packages (first import))) + 1); (if (deepest <? reached) then reached else deepest))) 0 (project package imports) : Nat),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: finishNode,
+  parameters: [packages : (List GraphPackage), maxImportDepth : Nat, walk : Walk, node : Nat, package : GraphPackage, rest : (List (Nat * Nat))],
+  result: Walk,
+  body: (let deepest : Nat := (deepestOf packages (project walk depths) package); (record Walk {states := (setNat (project walk states) node 2), depths := (setNat (project walk depths) node deepest), order := (cons node (project walk order)), stack := rest, root := (project walk root), diags := (if (maxImportDepth <=? deepest) then (cons (depthDiag maxImportDepth deepest (project package id)) (project walk diags)) else (project walk diags)), cycle := (project walk cycle)})),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: followImport,
+  parameters: [packages : (List GraphPackage), walk : Walk, node : Nat, next : Nat, import : (Bytes * Bytes), rest : (List (Nat * Nat))],
+  result: Walk,
+  body: (let target : Nat := (indexOr packages (first import)); (let stack : (List (Nat * Nat)) := (cons (node, (next + 1)) rest); (let state : Nat := (natAt (project walk states) target); (if (state =? 1) then (record Walk {states := (project walk states), depths := (project walk depths), order := (project walk order), stack := stack, root := (project walk root), diags := (project walk diags), cycle := (ctor Option.some [GraphDiagnostic] (cycleDiag packages stack target))}) else (if (state =? 2) then (record Walk {states := (project walk states), depths := (project walk depths), order := (project walk order), stack := stack, root := (project walk root), diags := (project walk diags), cycle := (project walk cycle)}) else (record Walk {states := (setNat (project walk states) target 1), depths := (project walk depths), order := (project walk order), stack := (cons (target, 0) stack), root := (project walk root), diags := (project walk diags), cycle := (project walk cycle)})))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: startRoot,
+  parameters: [walk : Walk],
+  result: Walk,
+  body: (let root : Nat := (project walk root); (if ((natAt (project walk states) root) =? 2) then (record Walk {states := (project walk states), depths := (project walk depths), order := (project walk order), stack := (project walk stack), root := (root + 1), diags := (project walk diags), cycle := (project walk cycle)}) else (record Walk {states := (setNat (project walk states) root 1), depths := (project walk depths), order := (project walk order), stack := (cons (root, 0) (nil (Nat * Nat))), root := (root + 1), diags := (project walk diags), cycle := (project walk cycle)}))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: walkStep,
+  parameters: [packages : (List GraphPackage), count : Nat, maxImportDepth : Nat, walk : Walk],
+  result: (Option Walk),
+  body: (match (project walk cycle)
+    | Option.some found => (ctor Option.none [Walk])
+    | Option.none => (match (project walk stack)
+      | List.nil => (if (count <=? (project walk root)) then (ctor Option.none [Walk]) else (ctor Option.some [Walk] (startRoot walk)))
+      | List.cons top rest => (match (prim index packages (first top) : (Option GraphPackage))
+        | Option.none => (ctor Option.none [Walk])
+        | Option.some package => (match (prim index (project package imports) (second top) : (Option (Bytes * Bytes)))
+          | Option.some import => (ctor Option.some [Walk] (followImport packages walk (first top) (second top) import rest))
+          | Option.none => (ctor Option.some [Walk] (finishNode packages maxImportDepth walk (first top) package rest)))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: lookupClosure,
+  parameters: [closures : (List (Bytes * (List Bytes))), wanted : Bytes],
+  result: (List Bytes),
+  body: (prim list_fold (fun [wanted] (found : (List Bytes)) (entry : (Bytes * (List Bytes))) => (if (prim equal (first entry) wanted : Bool) then (second entry) else found)) (nil Bytes) closures : (List Bytes)),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: closureOf,
+  parameters: [closures : (List (Bytes * (List Bytes))), package : GraphPackage],
+  result: (List Bytes),
+  body: (prim list_fold (fun [closures] (visible : (List Bytes)) (import : (Bytes * Bytes)) => (LexLeanStd.Map::setUnion (LexLeanStd.Order::insertSorted visible (first import)) (lookupClosure closures (first import)))) (LexLeanStd.Order::insertSorted (nil Bytes) (project package id)) (project package imports) : (List Bytes)),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: importClosures,
+  parameters: [packages : (List GraphPackage), order : (List Nat)],
+  result: (List (Bytes * (List Bytes))),
+  body: (LexLeanStd.Order::reverseList [(Bytes * (List Bytes))] (prim list_fold (fun [packages] (closures : (List (Bytes * (List Bytes)))) (node : Nat) => (match (prim index packages node : (Option GraphPackage))
+    | Option.some package => (cons ((project package id), (closureOf closures package)) closures)
+    | Option.none => closures)) (nil (Bytes * (List Bytes))) order : (List (Bytes * (List Bytes))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: walkGraph,
+  parameters: [packages : (List GraphPackage), maxImportDepth : Nat],
+  result: GraphOutcome,
+  body: (let count : Nat := (countPackages packages); (let start : Walk := (record Walk {states := (zeros packages), depths := (zeros packages), order := (nil Nat), stack := (nil (Nat * Nat)), root := 0, diags := (nil GraphDiagnostic), cycle := (ctor Option.none [GraphDiagnostic])}); (let walked : Walk := (first (prim iterate_until (fun [count, maxImportDepth, packages] (walk : Walk) => (walkStep packages count maxImportDepth walk)) ((count + count) + ((countImports packages) + 2)) start : (Walk * Bool))); (let diags : (List GraphDiagnostic) := (LexLeanStd.Order::reverseList [GraphDiagnostic] (project walked diags)); (match (project walked cycle)
+    | Option.some found => (ctor GraphOutcome.GraphRefused (LexLeanStd.Order::reverseList [GraphDiagnostic] (cons found (project walked diags))))
+    | Option.none => (match diags
+      | List.cons head tail => (ctor GraphOutcome.GraphRefused diags)
+      | List.nil => (let order : (List Nat) := (LexLeanStd.Order::reverseList [Nat] (project walked order)); (ctor GraphOutcome.GraphAccepted order (importClosures packages order))))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: packageGraph,
+  parameters: [packages : (List GraphPackage), maxImportDepth : Nat],
+  result: GraphOutcome,
+  body: (match (duplicateDiags packages)
+    | List.cons head tail => (ctor GraphOutcome.GraphRefused (cons head tail))
+    | List.nil => (match (importDiags packages)
+      | List.cons head tail => (ctor GraphOutcome.GraphRefused (cons head tail))
+      | List.nil => (walkGraph packages maxImportDepth))),
+  axioms: [Quot.sound, propext],
+  executable: true,
+  production: {effects: [allocation, overflow], targets: [rust-std]}
+}
+\end{semanticmodule}
+\end{lexlean}

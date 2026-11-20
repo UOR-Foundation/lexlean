@@ -727,6 +727,22 @@
         "rust-std"
       ],
       "version": "1.0.0"
+    },
+    {
+      "name": "package_graph",
+      "root": "LexLeanBoot.LexiconGraph.packageGraph",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "name": "package_importers",
+      "root": "LexLeanBoot.LexiconGraph.packageImporters",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
     }
   ]
 }

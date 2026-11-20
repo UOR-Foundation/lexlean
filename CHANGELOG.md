@@ -17,6 +17,13 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- The package graph of a lexicon closure is source (SPEC.md §13.6, §13.11): `BS-56`, the module
+  `LexiconGraph`, whose roots `packageGraph` and `packageImporters` return what
+  `lexicon::resolve::package_graph` and `lexicon::import_reachability::importers` return: the
+  topological order and import closures, or the refusals `LLR3002`, `LLR3001`, `LLR3003`, and
+  `LLS8002` in the oracle's order. `package_graph` is the first stage of `Closure::build`, moved
+  into its own function with no change in behavior. No new diagnostic code, no change to the
+  language-1.2 identity. The register is 521 IDs.
 - A lexicon entry is source (SPEC.md §13.1 to §13.6): `BS-55`, the module `LexiconEntry`, held
   to `lexicon::entry::parse_entry` on the compiler's own committed lexicon packages, returning
   every diagnostic the oracle raises rather than only the first. By the maintainer's decision

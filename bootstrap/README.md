@@ -95,3 +95,6 @@ of SPEC.md §13.1 and §12.2.
 `src/LexiconEntry.lex.tex` (SPEC.md §17.23, `BS-55`) imports `TomlRead` (`BS-53`), `LexiconLse`
 (`BS-25`), `LexiconLre` (`BS-26`), `LexiconSchema` (`BS-50`), `LseScopes` (`BS-51`), and
 `PrimitiveScan` (`BS-03`): a lexicon entry of SPEC.md §13.1 to §13.6.
+`src/LexiconGraph.lex.tex` (SPEC.md §17.23, `BS-56`) imports the standard library's `Map`,
+`Numeral`, and `Order`: the package graph of a lexicon closure of SPEC.md §13.6 and §13.11, the
+first stage of `Closure::build`.
