@@ -22,6 +22,8 @@ pub struct Tables {
     exprs: HashMap<String, u64>,
     next_expr: u64,
     declared: BTreeSet<String>,
+    /// The names declared since the export, in order, for `rewind`.
+    appended: Vec<String>,
     lines: Vec<String>,
 }
 
@@ -53,6 +55,7 @@ impl Tables {
             exprs: HashMap::new(),
             next_expr: 0,
             declared: BTreeSet::new(),
+            appended: Vec::new(),
             lines: Vec::new(),
         };
         for line in text.lines().filter(|line| !line.is_empty()) {
@@ -177,6 +180,19 @@ impl Tables {
                 self.levels.insert(key, id);
                 id
             }
+            Level::Param(name) => {
+                let name = self.name(name);
+                let body = json!({"param": name});
+                let key = body.to_string();
+                if let Some(id) = self.levels.get(&key) {
+                    return *id;
+                }
+                let id = self.next_level;
+                self.next_level += 1;
+                self.push(&json!({"il": id, "param": name}));
+                self.levels.insert(key, id);
+                id
+            }
         }
     }
 
@@ -254,7 +270,94 @@ impl Tables {
         let value = self.expr(value)?;
         let id = self.name(name);
         self.push(&json!({"thm": {"all": [id], "levelParams": [], "name": id, "type": ty, "value": value}}));
+        self.declare(name);
+        Ok(())
+    }
+
+    fn declare(&mut self, name: &str) {
         self.declared.insert(name.to_owned());
+        self.appended.push(name.to_owned());
+    }
+
+    fn fresh(&self, name: &str) -> Result<(), String> {
+        if self.declared.contains(name) {
+            return Err(format!("`{name}` is already declared"));
+        }
+        Ok(())
+    }
+
+    /// Appends a definition over the universe parameters `levels`, unfolded
+    /// by the kernel at dependency `height` (Lean's regular hint).
+    ///
+    /// # Errors
+    ///
+    /// Refuses a name already declared, or an open term.
+    pub fn definition(
+        &mut self,
+        name: &str,
+        levels: &[String],
+        ty: &Expr,
+        value: &Expr,
+        height: u32,
+    ) -> Result<(), String> {
+        self.fresh(name)?;
+        let ty = self.expr(ty)?;
+        let value = self.expr(value)?;
+        let params: Vec<u64> = levels.iter().map(|level| self.name(level)).collect();
+        let id = self.name(name);
+        self.push(&json!({"def": {"all": [id], "hints": {"regular": height}, "levelParams": params, "name": id, "safety": "safe", "type": ty, "value": value}}));
+        self.declare(name);
+        Ok(())
+    }
+
+    /// Appends a group of inductive types, mutual or nested, over `params`
+    /// shared parameters and no indices: each `(name, type, recursive,
+    /// constructors)`, each constructor `(name, type, fields)`. The
+    /// recursors are left out: the kernel generates them when it adds the
+    /// group, the auxiliary ones of `nested` nested occurrences included.
+    ///
+    /// # Errors
+    ///
+    /// Refuses a name already declared, or an open term.
+    #[allow(clippy::type_complexity)]
+    pub fn inductive(
+        &mut self,
+        types: &[(String, Expr, bool, Vec<(String, Expr, usize)>)],
+        params: usize,
+        nested: usize,
+    ) -> Result<(), String> {
+        for (name, _, _, ctors) in types {
+            self.fresh(name)?;
+            for (ctor, _, _) in ctors {
+                self.fresh(ctor)?;
+            }
+        }
+        let ids: Vec<u64> = types.iter().map(|(name, ..)| self.name(name)).collect();
+        let mut type_rows = Vec::new();
+        let mut ctor_rows = Vec::new();
+        for ((_, ty, recursive, ctors), id) in types.iter().zip(&ids) {
+            let ty = self.expr(ty)?;
+            let mut ctor_ids = Vec::new();
+            for (index, (ctor, ctor_ty, fields)) in ctors.iter().enumerate() {
+                let ctor_ty = self.expr(ctor_ty)?;
+                let ctor_id = self.name(ctor);
+                ctor_ids.push(ctor_id);
+                ctor_rows.push(json!({"cidx": index, "induct": id, "isUnsafe": false, "levelParams": [], "name": ctor_id, "numFields": fields, "numParams": params, "type": ctor_ty}));
+            }
+            type_rows.push(json!({"all": ids, "ctors": ctor_ids, "isRec": recursive, "isReflexive": false, "isUnsafe": false, "levelParams": [], "name": id, "numIndices": 0, "numNested": nested, "numParams": params, "type": ty}));
+        }
+        self.push(&json!({"inductive": {"ctors": ctor_rows, "recs": [], "types": type_rows}}));
+        for (name, _, _, ctors) in types {
+            self.declare(name);
+            self.declare(&format!("{name}.rec"));
+            for (ctor, _, _) in ctors {
+                self.declare(ctor);
+            }
+        }
+        // The auxiliary recursors of the nested occurrences, named after the first type.
+        for k in 1..=nested {
+            self.declare(&format!("{}.rec_{k}", types[0].0));
+        }
         Ok(())
     }
 
@@ -272,6 +375,9 @@ impl Tables {
     /// Discards the lines appended since `mark`, for a theorem whose
     /// production failed after it began writing.
     pub fn rewind(&mut self, mark: &Checkpoint) {
+        for name in self.appended.drain(mark.declared..) {
+            self.declared.remove(&name);
+        }
         self.lines.truncate(mark.lines);
         self.names.retain(|_, id| *id < mark.next_name);
         self.levels.retain(|_, id| *id < mark.next_level);
@@ -285,6 +391,7 @@ impl Tables {
     #[must_use]
     pub fn checkpoint(&self) -> Checkpoint {
         Checkpoint {
+            declared: self.appended.len(),
             lines: self.lines.len(),
             next_name: self.next_name,
             next_level: self.next_level,
@@ -295,6 +402,7 @@ impl Tables {
 
 /// The table state at a point of writing.
 pub struct Checkpoint {
+    declared: usize,
     lines: usize,
     next_name: u64,
     next_level: u64,

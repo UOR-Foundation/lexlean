@@ -14,6 +14,15 @@
 //! (`suffix.ndjson`), each produced theorem's own part (`parts/`), and what
 //! became of each theorem (`production.json`). Without a library the
 //! declarations are self-contained, for `crates/conformance/lean/KernelCheck.lean`.
+//!
+//! `declare <out> [<library.ndjson>]` reads the same snapshot and writes the
+//! project's own declarations and the theorems produced over them
+//! (`declarations.ndjson`), and each theorem's statement, form, proof,
+//! axioms, and outcome, with every declaration refused (`declarations.json`):
+//! what a checker holding only the library proves the project from.
+//!
+//! `roots` prints every constant the lowering and the producers may name in
+//! any project: the roots of the library such a checker holds.
 
 use std::fmt::Write as _;
 use std::path::Path;
@@ -27,7 +36,15 @@ pub fn kernel_terms(arguments: &[String]) -> Result<(), Fail> {
         [step, project, out] if step == "stage" => stage(Path::new(project), Path::new(out)),
         [step, out, library] if step == "produce" => produce(Path::new(out), Some(Path::new(library))),
         [step, out] if step == "produce" => produce(Path::new(out), None),
-        _ => Err("cargo xtask kernel-terms stage <lexlean.toml> <out> | produce <out> [<library.ndjson>]".into()),
+        [step, out, library] if step == "declare" => declare(Path::new(out), Some(Path::new(library))),
+        [step, out] if step == "declare" => declare(Path::new(out), None),
+        [step] if step == "roots" => {
+            for root in lexlean::backend::kernel::library_roots() {
+                println!("{root}");
+            }
+            Ok(())
+        }
+        _ => Err("cargo xtask kernel-terms stage <lexlean.toml> <out> | produce <out> [<library.ndjson>] | declare <out> [<library.ndjson>] | roots".into()),
     }
 }
 
@@ -149,6 +166,92 @@ fn produce(out: &Path, library: Option<&Path>) -> Result<(), Fail> {
         production.rows.len(),
         elapsed.as_secs_f64() * 1000.0,
         production.suffix.len()
+    );
+    Ok(())
+}
+
+fn declare(out: &Path, library: Option<&Path>) -> Result<(), Fail> {
+    // A byte literal is a list thousands of cells deep, and writing it recurses through each cell.
+    let (out, library) = (out.to_path_buf(), library.map(Path::to_path_buf));
+    std::thread::Builder::new()
+        .stack_size(1 << 30)
+        .spawn(move || declare_in(&out, library.as_deref()).map_err(|error| error.to_string()))?
+        .join()
+        .map_err(|_| "declaring panicked")??;
+    Ok(())
+}
+
+fn declare_in(out: &Path, library: Option<&Path>) -> Result<(), Fail> {
+    let snapshot: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("snapshot.json"))?)?;
+    let modules = lexlean::backend::kernel::modules_from_snapshot(&snapshot)
+        .map_err(|diagnostic| diagnostic.message.clone())?;
+    let library = library.map(std::fs::read_to_string).transpose()?;
+    let declared = lexlean::backend::kernel::declare(&modules, library.as_deref())
+        .map_err(|diagnostic| diagnostic.message.clone())?;
+    std::fs::write(out.join("declarations.ndjson"), &declared.production.suffix)?;
+    let mut proofs = std::collections::BTreeMap::new();
+    for module in &modules {
+        for declaration in &module.semantic.declarations {
+            if let lexlean::ir::semantic::SemanticDeclaration::Theorem { name, proof, .. } =
+                declaration
+            {
+                proofs.insert(
+                    format!("{}.{name}", module.lean_module),
+                    serde_json::to_value(proof)?,
+                );
+            }
+        }
+    }
+    let theorems: Vec<serde_json::Value> = declared
+        .production
+        .rows
+        .iter()
+        .map(|row| {
+            let mut value = json!({
+                "theorem": row.theorem, "form": row.form, "axioms": row.axioms,
+                "statement": declared.statements.get(&row.theorem),
+                "proof": proofs.get(&row.theorem),
+            });
+            match &row.outcome {
+                lexlean::backend::kernel::Outcome::Produced { constant, .. } => {
+                    value["produced"] = json!(constant)
+                }
+                lexlean::backend::kernel::Outcome::Refused { reason } => {
+                    value["refused"] = json!(reason)
+                }
+            }
+            value
+        })
+        .collect();
+    let refused: Vec<serde_json::Value> = declared
+        .refused
+        .iter()
+        .map(|r| json!({"name": r.name, "reason": r.reason}))
+        .collect();
+    std::fs::write(
+        out.join("declarations.json"),
+        serde_json::to_string_pretty(&json!({
+            "spec": "lexlean/kernel-declarations/2",
+            "library": library.is_some(),
+            "theorems": theorems,
+            "refused": refused,
+        }))?,
+    )?;
+    println!(
+        "kernel-terms declare: {} theorems, {} stated, {} produced, {} declarations refused",
+        declared.production.rows.len(),
+        declared.statements.len(),
+        declared
+            .production
+            .rows
+            .iter()
+            .filter(|row| matches!(
+                row.outcome,
+                lexlean::backend::kernel::Outcome::Produced { .. }
+            ))
+            .count(),
+        declared.refused.len()
     );
     Ok(())
 }

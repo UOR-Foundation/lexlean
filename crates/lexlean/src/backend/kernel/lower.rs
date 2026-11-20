@@ -102,11 +102,12 @@ impl<'a> World<'a> {
 
     fn declarations(&self, module: usize) -> impl Iterator<Item = &'a SemanticDeclaration> {
         let module = &self.modules[module];
+        // An elaborated declaration is what Lean realizes for its name, so it
+        // is found before the source declaration it stands for.
         module
-            .semantic
-            .declarations
+            .elaborated
             .iter()
-            .chain(module.elaborated.iter())
+            .chain(module.semantic.declarations.iter())
     }
 
     /// The declaration a member names, and its module.
@@ -210,7 +211,7 @@ pub fn absolute(ty: &SemanticType, module: &str) -> SemanticType {
 }
 
 /// A type with its type parameters replaced.
-fn substitute(ty: &SemanticType, by: &HashMap<String, SemanticType>) -> SemanticType {
+pub(super) fn substitute(ty: &SemanticType, by: &HashMap<String, SemanticType>) -> SemanticType {
     let s = |inner: &SemanticType| Box::new(substitute(inner, by));
     match ty {
         SemanticType::Parameter { name } => by.get(name).cloned().unwrap_or_else(|| ty.clone()),
@@ -356,6 +357,13 @@ fn number_instance(class: &str, ty: &SemanticType) -> R<String> {
         ("Add", "Nat") => "instAddNat".to_owned(),
         ("Add", "Int") => "Int.instAdd".to_owned(),
         ("Add", other) => format!("instAdd{other}"),
+        ("Mul", "Nat") => "instMulNat".to_owned(),
+        ("Mul", "Int") => "Int.instMul".to_owned(),
+        ("Mul", other) => format!("instMul{other}"),
+        ("Neg", "Int") => "Int.instNegInt".to_owned(),
+        // A signed width's own instance; an unsigned width's, Lean's top-level one.
+        ("Neg", other) if other.starts_with('U') => format!("instNeg{other}"),
+        ("Neg", other) => format!("{other}.instNeg"),
         ("Sub", "Nat") => "instSubNat".to_owned(),
         ("Sub", "Int") => "Int.instSub".to_owned(),
         ("Sub", other) => format!("instSub{other}"),
@@ -494,8 +502,10 @@ impl World<'_> {
                 }
                 app(c(&self.constant(ctx.module, member)?), arguments_out)
             }
-            other @ (SemanticType::ContractViolation | SemanticType::ReasoningFailure) => {
-                return Err(format!("type `{}`", kind_of_type(other)))
+            // A contract violation and a reasoning failure are pairs of
+            // Booleans (§18.4).
+            SemanticType::ContractViolation | SemanticType::ReasoningFailure => {
+                app(cu("Prod", &[0, 0]), [c("Bool"), c("Bool")])
             }
         })
     }
@@ -558,6 +568,16 @@ impl World<'_> {
                 vec![self.ty(ctx, left)?, self.ty(ctx, right)?],
                 vec![("mk", vec![(**left).clone(), (**right).clone()])],
             ),
+            // `Except ε α`, its error constructor first.
+            SemanticType::Result { ok, error } => builtin(
+                "Except",
+                vec![0, 0],
+                vec![self.ty(ctx, error)?, self.ty(ctx, ok)?],
+                vec![
+                    ("error", vec![(**error).clone()]),
+                    ("ok", vec![(**ok).clone()]),
+                ],
+            ),
             SemanticType::Named { member, arguments } => {
                 let (module, declaration) = self.find(ctx.module, member)?;
                 let owner = self.constant(ctx.module, member)?;
@@ -573,11 +593,10 @@ impl World<'_> {
                         mutual,
                         ..
                     } => {
-                        if !parameters.is_empty() || mutual.is_some() {
-                            return Err(format!(
-                                "type `{}` has value parameters or a mutual group",
-                                member.name
-                            ));
+                        // A mutual type has its own `casesOn` too (§18.10).
+                        let _ = mutual;
+                        if !parameters.is_empty() {
+                            return Err(format!("type `{}` has value parameters", member.name));
                         }
                         (
                             type_parameters,
@@ -650,7 +669,6 @@ impl World<'_> {
             | SemanticType::String
             | SemanticType::Bytes
             | SemanticType::Ordering
-            | SemanticType::Result { .. }
             | SemanticType::Function { .. }
             | SemanticType::Map { .. }
             | SemanticType::Set { .. }
@@ -764,6 +782,15 @@ impl World<'_> {
         let here = self.module_name(ctx).to_owned();
         let targs: Vec<SemanticType> = type_arguments.iter().map(|t| absolute(t, &here)).collect();
         if constructor.module.is_none() {
+            if let Some(owner) = constructor.name.split('.').next() {
+                if crate::backend::semantic::violation_pattern(constructor).is_some() {
+                    return Ok(if owner == "ContractViolation" {
+                        SemanticType::ContractViolation
+                    } else {
+                        SemanticType::ReasoningFailure
+                    });
+                }
+            }
             let one = || {
                 targs
                     .first()
@@ -895,8 +922,15 @@ impl World<'_> {
                 branches,
             } => {
                 let ty = self.infer(ctx, scrutinee)?;
-                let shape = self.shape(ctx, &ty)?;
                 let branch = branches.first().ok_or("a match without branches")?;
+                // A failure's cases bind nothing.
+                if matches!(
+                    ty,
+                    SemanticType::ContractViolation | SemanticType::ReasoningFailure
+                ) {
+                    return self.infer(ctx, &branch.body);
+                }
+                let shape = self.shape(ctx, &ty)?;
                 let short = branch
                     .constructor
                     .name
@@ -979,9 +1013,8 @@ impl World<'_> {
                     result: Box::new(result),
                 }
             }
-            other @ (SemanticTerm::Bytes { .. }
-            | SemanticTerm::InstanceValue { .. }
-            | SemanticTerm::CheckedApply { .. }) => {
+            SemanticTerm::Bytes { .. } => SemanticType::Bytes,
+            other @ (SemanticTerm::InstanceValue { .. } | SemanticTerm::CheckedApply { .. }) => {
                 return Err(format!("term `{}`", kind_of_term(other)))
             }
         })
@@ -1139,6 +1172,25 @@ impl World<'_> {
                 }
                 app(c(&format!("{owner}.mk")), out)
             }
+            SemanticTerm::Constructor { constructor, .. }
+                if crate::backend::semantic::violation_pattern(constructor).is_some() =>
+            {
+                // A contract violation or reasoning failure is its pair of Booleans (§17.12).
+                let pattern =
+                    crate::backend::semantic::violation_pattern(constructor).unwrap_or_default();
+                let flag = |part: &str| {
+                    c(if part.contains("true") {
+                        "Bool.true"
+                    } else {
+                        "Bool.false"
+                    })
+                };
+                let (first, second) = pattern.split_once(',').unwrap_or_default();
+                app(
+                    cu("Prod.mk", &[0, 0]),
+                    [c("Bool"), c("Bool"), flag(first), flag(second)],
+                )
+            }
             SemanticTerm::Constructor {
                 constructor,
                 type_arguments,
@@ -1255,6 +1307,65 @@ impl World<'_> {
                         instance,
                         self.term(ctx, then_value)?,
                         self.term(ctx, else_value)?,
+                    ],
+                )
+            }
+            SemanticTerm::Match {
+                scrutinee,
+                branches,
+            } if matches!(
+                self.infer(ctx, scrutinee)?,
+                SemanticType::ContractViolation | SemanticType::ReasoningFailure
+            ) =>
+            {
+                // A pair of Booleans: `Prod.casesOn`, then each Boolean in turn,
+                // `false` first, each case the branch of its pattern (§17.12).
+                let result = self.infer(ctx, term)?;
+                let level = eq_level(&result);
+                let result_ty = self.ty(ctx, &result)?;
+                let branch = |first: bool, second: bool| -> R<Expr> {
+                    let wanted = format!("({first}, {second})");
+                    let found = branches
+                        .iter()
+                        .find(|b| {
+                            crate::backend::semantic::violation_pattern(&b.constructor)
+                                == Some(wanted.as_str())
+                        })
+                        .ok_or_else(|| format!("a match without the case `{wanted}`"))?;
+                    self.term(ctx, &found.body)
+                };
+                let bool_motive = lam("b", self.fresh(), c("Bool"), &result_ty);
+                let by_second = |first: bool, b: u32| -> R<Expr> {
+                    Ok(app(
+                        cu("Bool.casesOn", &[level]),
+                        [
+                            bool_motive.clone(),
+                            Expr::FVar(b),
+                            branch(first, false)?,
+                            branch(first, true)?,
+                        ],
+                    ))
+                };
+                let (a, b) = (self.fresh(), self.fresh());
+                let inner = app(
+                    cu("Bool.casesOn", &[level]),
+                    [
+                        bool_motive.clone(),
+                        Expr::FVar(a),
+                        by_second(false, b)?,
+                        by_second(true, b)?,
+                    ],
+                );
+                let pair = app(cu("Prod", &[0, 0]), [c("Bool"), c("Bool")]);
+                let minor = lam("a", a, c("Bool"), &lam("b", b, c("Bool"), &inner));
+                app(
+                    cu("Prod.casesOn", &[level, 0, 0]),
+                    [
+                        c("Bool"),
+                        c("Bool"),
+                        lam("x", self.fresh(), pair, &result_ty),
+                        self.term(ctx, scrutinee)?,
+                        minor,
                     ],
                 )
             }
@@ -1466,9 +1577,30 @@ impl World<'_> {
                 }
                 app(self.term(ctx, function)?, out)
             }
-            other @ (SemanticTerm::Bytes { .. }
-            | SemanticTerm::InstanceValue { .. }
-            | SemanticTerm::CheckedApply { .. }) => {
+            // A byte literal, as certificate A writes it: `ByteArray.mk [b, …].toArray`.
+            SemanticTerm::Bytes { hex } => {
+                if hex.len() % 2 != 0 {
+                    return Err(format!("byte literal `{hex}` has odd length"));
+                }
+                let mut list = app(cu("List.nil", &[0]), [c("UInt8")]);
+                for at in (0..hex.len()).step_by(2).rev() {
+                    let value = u8::from_str_radix(hex.get(at..at + 2).unwrap_or_default(), 16)
+                        .map_err(|_| format!("byte literal `{hex}` is not hexadecimal"))?;
+                    let byte = self.term(
+                        ctx,
+                        &SemanticTerm::Integer {
+                            representation: SemanticInteger::UInt8,
+                            value: value.to_string(),
+                        },
+                    )?;
+                    list = app(cu("List.cons", &[0]), [c("UInt8"), byte, list]);
+                }
+                app(
+                    c("ByteArray.mk"),
+                    [app(cu("List.toArray", &[0]), [c("UInt8"), list])],
+                )
+            }
+            other @ (SemanticTerm::InstanceValue { .. } | SemanticTerm::CheckedApply { .. }) => {
                 return Err(format!("term `{}`", kind_of_term(other)))
             }
         })
@@ -1513,13 +1645,88 @@ impl World<'_> {
                 other => Err(format!("a set operand of type `{}`", kind_of_type(&other))),
             }
         };
-        let key = |ty: &SemanticType| -> R<Expr> { Ok(c(&number_instance("Key", ty)?)) };
+        let key = |ty: &SemanticType| -> R<Expr> { self.key(ctx, ty) };
         // The implicit type arguments and the instance of each primitive.
         let (types, instance): (Vec<SemanticType>, Option<Expr>) = match operation {
             SemanticPrimitive::Subtract => {
                 let ty = operand(0)?;
                 let instance = c(&number_instance("Sub", &ty)?);
                 (vec![ty], Some(instance))
+            }
+            SemanticPrimitive::Multiply => {
+                let ty = operand(0)?;
+                let instance = c(&number_instance("Mul", &ty)?);
+                (vec![ty], Some(instance))
+            }
+            SemanticPrimitive::Negate => {
+                let ty = operand(0)?;
+                let instance = c(&number_instance("Neg", &ty)?);
+                (vec![ty], Some(instance))
+            }
+            // Byte arrays compare by `ByteArray.instBEq`; every other type by
+            // `BEq` from decidable equality, as Lean's `instBEqOfDecidableEq`.
+            SemanticPrimitive::Equal if operand(0)? == SemanticType::Bytes => {
+                (vec![SemanticType::Bytes], Some(c("ByteArray.instBEq")))
+            }
+            SemanticPrimitive::Equal => {
+                let ty = operand(0)?;
+                let instance = app(
+                    cu("instBEqOfDecidableEq", &[0]),
+                    [self.ty(ctx, &ty)?, self.decidable_eq(ctx, &ty)?],
+                );
+                (vec![ty], Some(instance))
+            }
+            SemanticPrimitive::Index => {
+                let ty = operand(0)?;
+                let (item, instance) = match &ty {
+                    SemanticType::Bytes => (
+                        SemanticType::UInt8,
+                        c("LexLeanRuntime.instIndexableByteArrayUInt8"),
+                    ),
+                    SemanticType::List { element } => (
+                        (**element).clone(),
+                        app(
+                            c("LexLeanRuntime.instIndexableList"),
+                            [self.ty(ctx, element)?],
+                        ),
+                    ),
+                    other => return Err(format!("`Index` of `{}`", kind_of_type(other))),
+                };
+                (vec![ty, item], Some(instance))
+            }
+            SemanticPrimitive::Slice => {
+                let ty = operand(0)?;
+                let instance = match &ty {
+                    SemanticType::Bytes => c("LexLeanRuntime.instSliceableByteArray"),
+                    SemanticType::List { element } => app(
+                        c("LexLeanRuntime.instSliceableList"),
+                        [self.ty(ctx, element)?],
+                    ),
+                    other => return Err(format!("`Slice` of `{}`", kind_of_type(other))),
+                };
+                (vec![ty], Some(instance))
+            }
+            SemanticPrimitive::CompareBytes => (vec![], None),
+            // A fixed-width operation takes the width's `Fixed` instance.
+            SemanticPrimitive::CheckedAdd
+            | SemanticPrimitive::CheckedSubtract
+            | SemanticPrimitive::CheckedMultiply
+            | SemanticPrimitive::CheckedNegate
+            | SemanticPrimitive::BitAnd
+            | SemanticPrimitive::BitOr
+            | SemanticPrimitive::BitXor
+            | SemanticPrimitive::BitNot
+            | SemanticPrimitive::ShiftLeft
+            | SemanticPrimitive::ShiftRight => {
+                let ty = operand(0)?;
+                let name = match integer_type(&ty) {
+                    Some((name, _)) if name != "Int" => name,
+                    _ => return Err(format!("`{operation:?}` of `{}`", kind_of_type(&ty))),
+                };
+                (
+                    vec![ty],
+                    Some(c(&format!("LexLeanRuntime.instFixed{name}"))),
+                )
             }
             SemanticPrimitive::Quotient | SemanticPrimitive::Remainder => {
                 let ty = operand(0)?;
@@ -1539,6 +1746,7 @@ impl World<'_> {
                         [self.ty(ctx, element)?],
                     ),
                     (SemanticType::String, true) => c("LexLeanRuntime.instLengthableString"),
+                    (SemanticType::Bytes, false) => c("LexLeanRuntime.instAppendableByteArray"),
                     (SemanticType::Bytes, true) => c("LexLeanRuntime.instLengthableByteArray"),
                     (other, _) => {
                         return Err(format!("`{operation:?}` of `{}`", kind_of_type(other)))
@@ -1596,26 +1804,10 @@ impl World<'_> {
                 let instance = key(&k)?;
                 (vec![k], Some(instance))
             }
-            other @ (SemanticPrimitive::Multiply
-            | SemanticPrimitive::Negate
-            | SemanticPrimitive::CheckedConvert
-            | SemanticPrimitive::CheckedAdd
-            | SemanticPrimitive::CheckedSubtract
-            | SemanticPrimitive::CheckedMultiply
-            | SemanticPrimitive::CheckedNegate
+            other @ (SemanticPrimitive::CheckedConvert
             | SemanticPrimitive::CheckedQuotient
-            | SemanticPrimitive::BitAnd
-            | SemanticPrimitive::BitOr
-            | SemanticPrimitive::BitXor
-            | SemanticPrimitive::BitNot
-            | SemanticPrimitive::ShiftLeft
-            | SemanticPrimitive::ShiftRight
-            | SemanticPrimitive::Index
-            | SemanticPrimitive::Slice
             | SemanticPrimitive::Utf8Encode
             | SemanticPrimitive::Utf8Decode
-            | SemanticPrimitive::CompareBytes
-            | SemanticPrimitive::Equal
             | SemanticPrimitive::SplitExact
             | SemanticPrimitive::Join
             | SemanticPrimitive::ParseDecimal
@@ -1632,6 +1824,24 @@ impl World<'_> {
             out.push(self.term(ctx, argument)?);
         }
         Ok(app(c(&function), out))
+    }
+
+    /// A `LexLeanCollections.Key` instance of a type: a scalar's own, and a
+    /// pair's from its components'.
+    fn key(&self, ctx: &Ctx, ty: &SemanticType) -> R<Expr> {
+        match ty {
+            SemanticType::Bool => Ok(c("LexLeanCollections.instKeyBool")),
+            SemanticType::Product { left, right } => Ok(app(
+                c("LexLeanCollections.instKeyProd"),
+                [
+                    self.ty(ctx, left)?,
+                    self.ty(ctx, right)?,
+                    self.key(ctx, left)?,
+                    self.key(ctx, right)?,
+                ],
+            )),
+            other => Ok(c(&number_instance("Key", other)?)),
+        }
     }
 
     /// A `DecidableEq` instance of a type.
@@ -1660,6 +1870,15 @@ impl World<'_> {
             )?,
             SemanticType::Bool => c("instDecidableEqBool"),
             SemanticType::String => c("instDecidableEqString"),
+            SemanticType::ContractViolation | SemanticType::ReasoningFailure => app(
+                cu("instDecidableEqProd", &[0, 0]),
+                [
+                    c("Bool"),
+                    c("Bool"),
+                    c("instDecidableEqBool"),
+                    c("instDecidableEqBool"),
+                ],
+            ),
             SemanticType::List { element } => app(
                 cu("instDecidableEqList", &[0]),
                 [self.ty(ctx, element)?, self.decidable_eq(ctx, element)?],
@@ -1690,9 +1909,7 @@ impl World<'_> {
             | SemanticType::Ordering
             | SemanticType::Result { .. }
             | SemanticType::Named { .. }
-            | SemanticType::Function { .. }
-            | SemanticType::ContractViolation
-            | SemanticType::ReasoningFailure) => {
+            | SemanticType::Function { .. }) => {
                 return Err(format!("decidable equality of `{}`", kind_of_type(other)))
             }
         })
@@ -1978,6 +2195,27 @@ pub const VOCABULARY: &[&str] = &[
     "instDecidableEqUInt64",
     "UInt64.decLe",
     "UInt64.decLt",
+    "Except.casesOn",
+    "Except.rec",
+    "instMulNat",
+    "Int.instMul",
+    "instBEqOfDecidableEq",
+    "ByteArray.instBEq",
+    "ByteArray.mk",
+    "List.toArray",
+    "UInt8",
+    "instMulInt8",
+    "instMulInt16",
+    "instMulInt32",
+    "instMulInt64",
+    "instMulUInt8",
+    "instMulUInt16",
+    "instMulUInt32",
+    "instMulUInt64",
+    "instNegUInt8",
+    "instNegUInt16",
+    "instNegUInt32",
+    "instNegUInt64",
 ];
 
 /// The runtime constants a statement's lowering may name, by the runtime
@@ -1998,6 +2236,35 @@ pub const RUNTIME_VOCABULARY: &[(&str, &[&str])] = &[
             "LexLeanRuntime.instLengthableString",
             "LexLeanRuntime.instLengthableByteArray",
             "LexLeanRuntime.instAppendableList",
+            "LexLeanRuntime.multiply",
+            "LexLeanRuntime.negate",
+            "LexLeanRuntime.equal",
+            "LexLeanRuntime.index",
+            "LexLeanRuntime.slice",
+            "LexLeanRuntime.compareBytes",
+            "LexLeanRuntime.checkedAdd",
+            "LexLeanRuntime.checkedSubtract",
+            "LexLeanRuntime.checkedMultiply",
+            "LexLeanRuntime.checkedNegate",
+            "LexLeanRuntime.bitAnd",
+            "LexLeanRuntime.bitOr",
+            "LexLeanRuntime.bitXor",
+            "LexLeanRuntime.bitNot",
+            "LexLeanRuntime.shiftLeft",
+            "LexLeanRuntime.shiftRight",
+            "LexLeanRuntime.instAppendableByteArray",
+            "LexLeanRuntime.instIndexableList",
+            "LexLeanRuntime.instIndexableByteArrayUInt8",
+            "LexLeanRuntime.instSliceableByteArray",
+            "LexLeanRuntime.instSliceableList",
+            "LexLeanRuntime.instFixedInt8",
+            "LexLeanRuntime.instFixedInt16",
+            "LexLeanRuntime.instFixedInt32",
+            "LexLeanRuntime.instFixedInt64",
+            "LexLeanRuntime.instFixedUInt8",
+            "LexLeanRuntime.instFixedUInt16",
+            "LexLeanRuntime.instFixedUInt32",
+            "LexLeanRuntime.instFixedUInt64",
         ],
     ),
     (
@@ -2039,6 +2306,8 @@ pub const RUNTIME_VOCABULARY: &[(&str, &[&str])] = &[
             "LexLeanCollections.instKeyUInt16",
             "LexLeanCollections.instKeyUInt32",
             "LexLeanCollections.instKeyUInt64",
+            "LexLeanCollections.instKeyBool",
+            "LexLeanCollections.instKeyProd",
         ],
     ),
 ];

@@ -6,11 +6,14 @@
 use std::rc::Rc;
 
 /// A universe level. LexLean data lives in `Type` and its proofs in `Prop`,
-/// so no produced term needs a level variable, `max`, or `imax`.
+/// so no produced term needs `max` or `imax`; a level variable is needed only
+/// by a declared type's `casesOn`, which both a value match (`Type`) and a
+/// proof by cases (`Prop`) eliminate through.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Level {
     Zero,
     Succ(Rc<Level>),
+    Param(String),
 }
 
 impl Level {
