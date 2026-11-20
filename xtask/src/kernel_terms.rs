@@ -187,71 +187,22 @@ fn declare_in(out: &Path, library: Option<&Path>) -> Result<(), Fail> {
     let modules = lexlean::backend::kernel::modules_from_snapshot(&snapshot)
         .map_err(|diagnostic| diagnostic.message.clone())?;
     let library = library.map(std::fs::read_to_string).transpose()?;
-    let declared = lexlean::backend::kernel::declare(&modules, library.as_deref())
+    // The one document `lexlean declare` prints (§23.4): its suffix is
+    // declarations.ndjson, the rest declarations.json.
+    let document = lexlean::backend::kernel::declarations_document(&modules, library.as_deref())
         .map_err(|diagnostic| diagnostic.message.clone())?;
-    std::fs::write(out.join("declarations.ndjson"), &declared.production.suffix)?;
-    let mut proofs = std::collections::BTreeMap::new();
-    for module in &modules {
-        for declaration in &module.semantic.declarations {
-            if let lexlean::ir::semantic::SemanticDeclaration::Theorem { name, proof, .. } =
-                declaration
-            {
-                proofs.insert(
-                    format!("{}.{name}", module.lean_module),
-                    serde_json::to_value(proof)?,
-                );
-            }
-        }
-    }
-    let theorems: Vec<serde_json::Value> = declared
-        .production
-        .rows
-        .iter()
-        .map(|row| {
-            let mut value = json!({
-                "theorem": row.theorem, "form": row.form, "axioms": row.axioms,
-                "statement": declared.statements.get(&row.theorem),
-                "proof": proofs.get(&row.theorem),
-            });
-            match &row.outcome {
-                lexlean::backend::kernel::Outcome::Produced { constant, .. } => {
-                    value["produced"] = json!(constant)
-                }
-                lexlean::backend::kernel::Outcome::Refused { reason } => {
-                    value["refused"] = json!(reason)
-                }
-            }
-            value
-        })
-        .collect();
-    let refused: Vec<serde_json::Value> = declared
-        .refused
-        .iter()
-        .map(|r| json!({"name": r.name, "reason": r.reason}))
-        .collect();
-    std::fs::write(
-        out.join("declarations.json"),
-        serde_json::to_string_pretty(&json!({
-            "spec": "lexlean/kernel-declarations/2",
-            "library": library.is_some(),
-            "theorems": theorems,
-            "refused": refused,
-        }))?,
-    )?;
-    println!(
-        "kernel-terms declare: {} theorems, {} stated, {} produced, {} declarations refused",
-        declared.production.rows.len(),
-        declared.statements.len(),
-        declared
-            .production
-            .rows
-            .iter()
-            .filter(|row| matches!(
-                row.outcome,
-                lexlean::backend::kernel::Outcome::Produced { .. }
-            ))
-            .count(),
-        declared.refused.len()
-    );
+    let mut value: serde_json::Value = serde_json::from_slice(&document.to_file_bytes())?;
+    let suffix = value
+        .as_object_mut()
+        .and_then(|object| object.remove("suffix"))
+        .and_then(|suffix| suffix.as_str().map(str::to_owned))
+        .ok_or("the declarations document has a suffix")?;
+    std::fs::write(out.join("declarations.ndjson"), &suffix)?;
+    std::fs::write(out.join("declarations.json"), serde_json::to_string_pretty(&value)?)?;
+    let theorems = value["theorems"].as_array().map_or(0, Vec::len);
+    let stated = value["theorems"].as_array().map_or(0, |rows| rows.iter().filter(|row| row.get("statement").is_some()).count());
+    let produced = value["theorems"].as_array().map_or(0, |rows| rows.iter().filter(|row| row.get("produced").is_some()).count());
+    let refused = value["refused"].as_array().map_or(0, Vec::len);
+    println!("kernel-terms declare: {theorems} theorems, {stated} stated, {produced} produced, {refused} declarations refused");
     Ok(())
 }

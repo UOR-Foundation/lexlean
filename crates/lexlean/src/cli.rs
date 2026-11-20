@@ -96,6 +96,17 @@ enum CommandKind {
         /// Explicit input modules.
         inputs: Vec<Utf8PathBuf>,
     },
+    /// Write the kernel declarations of a selection to stdout.
+    Declare {
+        /// A lean4export 3.1.0 library export the declarations continue.
+        #[arg(long)]
+        library: Option<Utf8PathBuf>,
+        /// Every module beneath every source root.
+        #[arg(long)]
+        all: bool,
+        /// Explicit input modules.
+        inputs: Vec<Utf8PathBuf>,
+    },
     /// Build a selection to the fixed content-addressed layout.
     Build {
         /// Every module beneath every source root.
@@ -165,10 +176,11 @@ enum ProductionAction {
 }
 
 /// The command names, in the order of §23.4.
-const COMMAND_NAMES: [&str; 10] = [
+const COMMAND_NAMES: [&str; 11] = [
     "init",
     "lock",
     "check",
+    "declare",
     "build",
     "verify",
     "fmt",
@@ -458,6 +470,9 @@ struct Outcome {
     ids: CommandIds,
     summary: String,
     explanation: Option<String>,
+    /// The bytes human mode writes in place of a summary: the kernel
+    /// declarations document for `declare` (§23.4).
+    document: Option<Vec<u8>>,
 }
 
 /// Emit a finished command's result in the selected mode and return the
@@ -492,6 +507,8 @@ fn emit(
         if exit_code == 0 {
             if let Some(explanation) = &outcome.explanation {
                 let _ = write!(stdout, "{explanation}");
+            } else if let Some(document) = &outcome.document {
+                let _ = stdout.write_all(document);
             } else if !outcome.summary.is_empty() {
                 let _ = write!(stdout, "{}", outcome.summary);
             }
@@ -598,6 +615,7 @@ pub fn run(
         CommandKind::Init { .. } => "init",
         CommandKind::Lock { .. } => "lock",
         CommandKind::Check { .. } => "check",
+        CommandKind::Declare { .. } => "declare",
         CommandKind::Build { .. } => "build",
         CommandKind::Verify { .. } => "verify",
         CommandKind::Fmt { .. } => "fmt",
@@ -688,6 +706,51 @@ pub fn run(
                         result.source_id.to_hex(),
                         result.semantic_id.to_hex()
                     );
+                    Ok(())
+                }
+                CommandKind::Declare {
+                    library,
+                    all,
+                    inputs,
+                } => {
+                    // The same pipeline as `check`, taking no lock and writing
+                    // nothing; the declarations are written from the snapshot
+                    // with no Lean (§18.10), so this runs on WASI too.
+                    let library = match &library {
+                        Some(file) => {
+                            let path = if file.is_relative() {
+                                working_directory.join(file)
+                            } else {
+                                file.clone()
+                            };
+                            Some(std::fs::read_to_string(path.as_std_path()).map_err(|io_error| {
+                                usage_error(format!("library export {file}: {io_error}"))
+                            })?)
+                        }
+                        None => None,
+                    };
+                    let snapshot = engine.snapshot(CheckRequest {
+                        selection: selection_from(all, inputs)?,
+                    })?;
+                    outcome.modules = snapshot
+                        .modules()
+                        .iter()
+                        .map(|module| module.name().to_owned())
+                        .collect();
+                    outcome.ids.source_id = Some(snapshot.source_id());
+                    outcome.ids.semantic_id = Some(snapshot.semantic_id());
+                    let value = serde_json::to_value(&snapshot).map_err(|error| {
+                        LexLeanError::from_diagnostic(crate::diagnostic::Diagnostic::new(
+                            crate::code!("LLV7103"),
+                            format!("the snapshot does not serialize: {error}"),
+                        ))
+                    })?;
+                    let modules = crate::backend::kernel::modules_from_snapshot(&value)
+                        .map_err(LexLeanError::from_diagnostic)?;
+                    let document =
+                        crate::backend::kernel::declarations_document(&modules, library.as_deref())
+                            .map_err(LexLeanError::from_diagnostic)?;
+                    outcome.document = Some(document.to_file_bytes());
                     Ok(())
                 }
                 CommandKind::Build { all, inputs } => {

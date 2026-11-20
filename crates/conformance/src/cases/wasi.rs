@@ -1,4 +1,5 @@
-//! The `cli-api` suite, `check` on WASI: CL-25 (SPEC.md §8.3).
+//! The `cli-api` suite, `check` on WASI: CL-25 (SPEC.md §8.3), and `declare`
+//! natively and on WASI: CL-29 (§23.4).
 //!
 //! The executable is built for `wasm32-wasip1` from this tree and run by
 //! Node's `node:wasi`, a WASI host over the real file system, so a project
@@ -379,4 +380,224 @@ pub(crate) fn cli() {
             assert_eq!(on_wasi, on_native, "CL-25: nesting {nesting} on WASI");
         }
     }
+}
+
+/// The example projects that check: every directory of `examples/` with a
+/// `lexlean.toml` whose native `check --all` exits 0.
+fn checking_examples() -> Vec<Utf8PathBuf> {
+    let root = support::repo_root();
+    let mut examples: Vec<Utf8PathBuf> = std::fs::read_dir(root.join("examples").as_std_path())
+        .expect("examples")
+        .flatten()
+        .filter(|entry| entry.path().join("lexlean.toml").is_file())
+        .filter_map(|entry| Utf8PathBuf::from_path_buf(entry.path()).ok())
+        .collect();
+    examples.sort();
+    examples
+        .into_iter()
+        .filter(|source| native(&copy(source).root, &["check", "--all"]).0 == 0)
+        .collect()
+}
+
+/// The document `lexlean declare` must print for `project`: the bytes of
+/// `kernel::declarations_document` over its `--all` snapshot.
+fn expected_document(project: &P, library: Option<&str>) -> Vec<u8> {
+    let snapshot = project
+        .engine()
+        .snapshot(lexlean::api::CheckRequest {
+            selection: lexlean::api::Selection::All,
+        })
+        .expect("the snapshot of a project that checks");
+    let value = serde_json::to_value(&snapshot).expect("the snapshot serializes");
+    let modules = lexlean::backend::kernel::modules_from_snapshot(&value)
+        .expect("the snapshot's modules");
+    lexlean::backend::kernel::declarations_document(&modules, library)
+        .expect("the declarations of a project that checks")
+        .to_file_bytes()
+}
+
+/// A field of a JSON command result or document.
+fn result_field(stdout: &str, field: &str) -> serde_json::Value {
+    let value: serde_json::Value = serde_json::from_str(stdout).expect("JSON");
+    value[field].clone()
+}
+
+/// CL-29.
+pub(crate) fn declare() {
+    let examples = checking_examples();
+    assert!(
+        examples.len() >= 3,
+        "CL-29: {} example projects check",
+        examples.len()
+    );
+    // A lean4export 3.1.0 export of one name: the declarations continue its numbering.
+    let library = P::empty();
+    let export = library.root.join("library.ndjson");
+    let export_text = "{\"in\":1,\"str\":{\"pre\":0,\"str\":\"Nat\"}}\n";
+    std::fs::write(export.as_std_path(), export_text).expect("the export is written");
+    let mut native_bytes = Vec::new();
+    for source in &examples {
+        let project = copy(source);
+        let before = support::file_set(&project.root);
+        // Human mode, self-contained: stdout is exactly the document's canonical bytes.
+        let (exit, stdout, stderr) = native(&project.root, &["declare", "--all"]);
+        assert_eq!(exit, 0, "CL-29: {source}: declare exits 0: {stderr}");
+        assert!(stderr.is_empty(), "CL-29: {source}: nothing on stderr: {stderr}");
+        assert_eq!(
+            stdout.as_bytes(),
+            expected_document(&project, None).as_slice(),
+            "CL-29: {source}: stdout is the document's canonical bytes"
+        );
+        assert_eq!(
+            result_field(&stdout, "spec"),
+            "lexlean/kernel-declarations/2",
+            "CL-29: {source}: the document's spec"
+        );
+        assert_eq!(
+            result_field(&stdout, "library"),
+            false,
+            "CL-29: {source}: self-contained without a library"
+        );
+        // The suffix is the lines `kernel::declare` writes, read independently of the document builder.
+        let snapshot = project
+            .engine()
+            .snapshot(lexlean::api::CheckRequest {
+                selection: lexlean::api::Selection::All,
+            })
+            .expect("the snapshot of a project that checks");
+        let modules = lexlean::backend::kernel::modules_from_snapshot(
+            &serde_json::to_value(&snapshot).expect("the snapshot serializes"),
+        )
+        .expect("the snapshot's modules");
+        let declared = lexlean::backend::kernel::declare(&modules, None).expect("the declarations");
+        assert_eq!(
+            result_field(&stdout, "suffix"),
+            serde_json::Value::String(declared.production.suffix.clone()),
+            "CL-29: {source}: the suffix is the lean4export lines kernel::declare writes"
+        );
+        assert_eq!(
+            result_field(&stdout, "theorems").as_array().map_or(0, Vec::len),
+            declared.production.rows.len(),
+            "CL-29: {source}: one theorem row per theorem production saw"
+        );
+        // Over a library export: the same, continuing its numbering.
+        let (exit, with_library, stderr) =
+            native(&project.root, &["declare", "--all", "--library", export.as_str()]);
+        assert_eq!(exit, 0, "CL-29: {source}: declare over a library exits 0: {stderr}");
+        assert_eq!(
+            with_library.as_bytes(),
+            expected_document(&project, Some(export_text)).as_slice(),
+            "CL-29: {source}: stdout over a library is the document's canonical bytes"
+        );
+        assert_eq!(
+            result_field(&with_library, "library"),
+            true,
+            "CL-29: {source}: the document says it continues a library"
+        );
+        // JSON mode: one command result named declare, with check's identities.
+        let (exit, json, _) =
+            native(&project.root, &["--diagnostic-format", "json", "declare", "--all"]);
+        let (_, checked, _) =
+            native(&project.root, &["--diagnostic-format", "json", "check", "--all"]);
+        assert_eq!(exit, 0, "CL-29: {source}: declare in json mode exits 0");
+        assert_eq!(
+            result_field(&json, "command"),
+            "declare",
+            "CL-29: {source}: the result names declare"
+        );
+        for id in ["source_id", "semantic_id"] {
+            assert_eq!(
+                result_field(&json, id),
+                result_field(&checked, id),
+                "CL-29: {source}: the {id} check reports"
+            );
+        }
+        assert_eq!(
+            support::file_set(&project.root),
+            before,
+            "CL-29: {source}: declare writes nothing"
+        );
+        native_bytes.push((source.clone(), stdout));
+    }
+    // A project check refuses: the same exit code and diagnostics, and no document.
+    let refused = copy(&examples[0]);
+    let module = walk_modules(&refused.root.join("src"))
+        .into_iter()
+        .next()
+        .expect("a module");
+    std::fs::write(module.as_std_path(), "not a LexLean module\n").expect("the module is broken");
+    let (check_exit, check_json, _) =
+        native(&refused.root, &["--diagnostic-format", "json", "check", "--all"]);
+    let (declare_exit, declare_json, _) =
+        native(&refused.root, &["--diagnostic-format", "json", "declare", "--all"]);
+    assert_ne!(check_exit, 0, "CL-29: the broken project is refused by check");
+    assert_eq!(declare_exit, check_exit, "CL-29: declare exits as check does");
+    assert_eq!(
+        result_field(&declare_json, "diagnostics"),
+        result_field(&check_json, "diagnostics"),
+        "CL-29: declare reports check's diagnostics"
+    );
+    let (_, human, _) = native(&refused.root, &["declare", "--all"]);
+    assert!(human.is_empty(), "CL-29: no document for a refused project: {human}");
+    // A file that is not lean4export 3.1.0 is LLV7103; one that cannot be read is CLI misuse.
+    let project = copy(&examples[0]);
+    let not_export = library.root.join("not-an-export.ndjson");
+    std::fs::write(not_export.as_std_path(), "this is not an export\n").expect("written");
+    let (exit, json, _) = native(
+        &project.root,
+        &["--diagnostic-format", "json", "declare", "--all", "--library", not_export.as_str()],
+    );
+    assert_ne!(exit, 0, "CL-29: a file that is not an export is refused");
+    assert!(json.contains("LLV7103"), "CL-29: it is LLV7103: {json}");
+    let absent = library.root.join("absent.ndjson");
+    let (exit, _, _) = native(&project.root, &["declare", "--all", "--library", absent.as_str()]);
+    assert_eq!(exit, 2, "CL-29: a library that cannot be read is CLI misuse");
+    // The executable built for wasm32-wasip1 prints the same bytes on every example that checks.
+    if !wasi_backed("CL-29") {
+        return;
+    }
+    let module = build();
+    let scratch = P::empty();
+    let host = scratch.root.join("host.mjs");
+    std::fs::write(host.as_std_path(), HOST).expect("the WASI host is written");
+    let mut differ = Vec::new();
+    for (source, native_stdout) in &native_bytes {
+        let project = copy(source);
+        let (exit, stdout, stderr) = wasi(&module, &host, &project.root, &["declare", "--all"]);
+        if exit != 0 || &stdout != native_stdout {
+            let stderr: String = stderr.chars().take(200).collect();
+            differ.push(format!(
+                "{source}: exit {exit}, {} bytes against {}: {stderr}",
+                stdout.len(),
+                native_stdout.len()
+            ));
+        }
+    }
+    assert!(
+        differ.is_empty(),
+        "CL-29: {} of {} examples differ on WASI:\n{}",
+        differ.len(),
+        native_bytes.len(),
+        differ.join("\n")
+    );
+}
+
+/// Every `.lex.tex` file under `dir`, sorted.
+fn walk_modules(dir: &Utf8Path) -> Vec<Utf8PathBuf> {
+    let mut found = Vec::new();
+    let mut stack = vec![dir.to_owned()];
+    while let Some(next) = stack.pop() {
+        for entry in std::fs::read_dir(next.as_std_path()).into_iter().flatten().flatten() {
+            let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
+                continue;
+            };
+            if path.is_dir() {
+                stack.push(path);
+            } else if path.as_str().ends_with(".lex.tex") {
+                found.push(path);
+            }
+        }
+    }
+    found.sort();
+    found
 }
