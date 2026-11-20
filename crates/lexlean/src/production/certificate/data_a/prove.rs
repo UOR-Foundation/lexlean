@@ -1621,6 +1621,36 @@ fn inert(term: &SemanticTerm) -> bool {
         SemanticTerm::Cons { head, tail } => inert(head) && inert(tail),
         SemanticTerm::Constructor { arguments, .. } => arguments.iter().all(inert),
         SemanticTerm::Record { fields, .. } => fields.iter().all(|field| inert(&field.value)),
-        _ => false,
+        SemanticTerm::Primitive { .. }
+        | SemanticTerm::InstanceValue { .. }
+        | SemanticTerm::Project { .. }
+        | SemanticTerm::Call { .. }
+        | SemanticTerm::If { .. }
+        | SemanticTerm::Match { .. }
+        | SemanticTerm::Eq { .. }
+        | SemanticTerm::Le { .. }
+        | SemanticTerm::Lt { .. }
+        | SemanticTerm::Add { .. }
+        | SemanticTerm::Beq { .. }
+        | SemanticTerm::Ble { .. }
+        | SemanticTerm::Blt { .. }
+        | SemanticTerm::And { .. }
+        | SemanticTerm::PropAnd { .. }
+        | SemanticTerm::Or { .. }
+        | SemanticTerm::Not { .. }
+        | SemanticTerm::Implies { .. }
+        | SemanticTerm::Iff { .. }
+        | SemanticTerm::Forall { .. }
+        | SemanticTerm::Let { .. }
+        | SemanticTerm::Pair { .. }
+        | SemanticTerm::First { .. }
+        | SemanticTerm::Second { .. }
+        | SemanticTerm::Lambda { .. }
+        | SemanticTerm::Apply { .. }
+        | SemanticTerm::FunctionRef { .. }
+        | SemanticTerm::MapLiteral { .. }
+        | SemanticTerm::SetLiteral { .. }
+        | SemanticTerm::GraphLiteral { .. }
+        | SemanticTerm::CheckedApply { .. } => false,
     }
 }
