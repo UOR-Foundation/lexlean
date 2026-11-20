@@ -117,6 +117,9 @@
     "bootstrap/parse_audit_output": {
       "debug": 6291456
     },
+    "bootstrap/parse_entry": {
+      "debug": 196608
+    },
     "bootstrap/print_at": {
       "debug": 1572864
     },

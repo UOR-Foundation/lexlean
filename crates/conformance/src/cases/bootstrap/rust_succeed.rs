@@ -29,7 +29,7 @@ const CERTIFICATE_BUDGET: u64 = 3_145_728;
 const EVALUATOR_NODES: usize = 300;
 const VECTORS: usize = 78;
 const VECTORS_WITHIN: usize = 77;
-const EVALUATOR_MUTANTS: usize = 172;
+const EVALUATOR_MUTANTS: usize = 174;
 
 /// The lowering up to the moves, as the roots compose it.
 struct Roots {

@@ -65,9 +65,9 @@ const ROOTS: [&str; 2] = ["functionShells", "assembleItems"];
 
 /// The programs the evaluator is given: those of at most this many nodes.
 const EVALUATOR_NODES: usize = 300;
-const VECTORS: usize = 417;
+const VECTORS: usize = 420;
 const VECTORS_WITHIN: usize = 309;
-const EVALUATOR_MUTANTS: usize = 589;
+const EVALUATOR_MUTANTS: usize = 599;
 
 /// What a host that did more than thread the counter would get wrong: the
 /// case runs the composition with each of these and requires the comparison
