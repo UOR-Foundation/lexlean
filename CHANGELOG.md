@@ -17,6 +17,24 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- The bootstrap project configures `max_file_bytes = 25165824` (SPEC.md
+  §17.23, the maintainer's decision): with `BS-73` a part of its certificate is
+  12,928,150 bytes, beyond the 6,291,456 it configured. A semantic input, so its
+  lock and every package move.
+
+- The bootstrap project configures `child_timeout_ms = 900000` (SPEC.md
+  §17.23, the maintainer's decision): verifying `BS-73`, the certificate of a
+  production root (`LexLeanPreserve.Cf85a168f307e9378e5b0df3a87d82042.R62`,
+  the root's own name is being identified) took `lean` past the 300,000 ms
+  default, observed at 300,004 ms (run 43531029081, r14). `compiler` and
+  `stdlib` keep the default. A semantic input, so its lock and every package
+  move.
+
+- Decoding a semantic module from its canonical JSON as language-1.2 source, ninth slice
+  of the typed IR (SPEC.md §17.23, §17.12, `BS-73`, #269; no new diagnostic code, no change
+  to the language-1.2 identity). `decodeSemanticModule` of `SemanticDecode` returns what
+  `SemanticModule::parse` decodes, or the decoding rejection it reports, for every committed
+  semantic module and for mutated ones. The register is 505 IDs.
 - A lexicon entry is source (SPEC.md §13.1 to §13.6): `BS-55`, the module `LexiconEntry`, held
   to `lexicon::entry::parse_entry` on the compiler's own committed lexicon packages, returning
   every diagnostic the oracle raises rather than only the first. By the maintainer's decision
