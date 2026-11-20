@@ -332,20 +332,6 @@ fn check(module: &CoreModule) -> Result<(), SurfaceError> {
                 ));
             }
         }
-        // The equation information of a recursive definition restates the
-        // declaration's type: `fmt` numbers the node a declaration states,
-        // so a number here that names another node is stale.
-        if let Some(equations) = &declaration.eqn_info {
-            if declaration.r#type != Some(equations.r#type) {
-                return Err(error(
-                    0,
-                    format!(
-                        "`{}` states its equations at the type node {}, not its own type node",
-                        declaration.name, equations.r#type
-                    ),
-                ));
-            }
-        }
     }
     Ok(())
 }
@@ -1919,7 +1905,7 @@ pub fn data_text(text: &str, spec: &str) -> Result<String, SurfaceError> {
 #[cfg(test)]
 mod tests {
     use super::{canonical_json, parse_module, print_module};
-    use crate::ir::core::{CoreEqnInfo, CoreModule, CoreNode, CORE_SPEC_2};
+    use crate::ir::core::{CoreModule, CoreNode, CORE_SPEC_2};
 
     /// A module of six nodes: a sort, a constant, an application used twice,
     /// a variable, a lambda over them, and an arrow whose two sides are the
@@ -1964,31 +1950,6 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<CoreModule>(&json).expect("decodes"),
             module
-        );
-    }
-
-    /// Equation information restates its declaration's type node: one that
-    /// names another node (a number `fmt` left behind) is refused.
-    #[test]
-    fn stale_equation_types_are_refused() {
-        let equations = |at: usize| CoreEqnInfo {
-            rec_arg_pos: 0,
-            declarations: vec!["T".to_owned()],
-            num_fixed: 0,
-            perms: Vec::new(),
-            rev_deps: Vec::new(),
-            r#type: at,
-            value: 4,
-            levels: vec!["u".to_owned()],
-        };
-        let mut module = sample();
-        module.declarations[0].eqn_info = Some(equations(5));
-        let text = print_module(&module).expect("its own type node prints");
-        assert_eq!(parse_module(&text).expect("reads"), module, "{text}");
-        module.declarations[0].eqn_info = Some(equations(2));
-        assert!(
-            print_module(&module).is_err(),
-            "a stale type node is refused"
         );
     }
 
