@@ -44,8 +44,8 @@ const ROOTS: [(&str, &[&str]); 3] = [
 
 /// The most a part of a certificate of a root may be, as the row states:
 /// `semanticSpans`'s certificate B measured 5,208,013 bytes, past the
-/// default (`parseAt` 5,160,254, `parseSemanticModule` 5,178,538); raised
-/// to 83.35% of `max_file_bytes`, rounded up to a 64 KiB multiple.
+/// default (`parseAt` 5,160,254, `parseSemanticModule` 5,178,538); the row's bound
+/// is that size rounded up to a 64 KiB multiple.
 const CERTIFICATE_BUDGET: u64 = 5_242_880;
 /// Committed modules whose notation is at most this many bytes are read and
 /// spanned whole under the evaluator, and under rustc those at most the second.
