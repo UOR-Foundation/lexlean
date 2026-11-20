@@ -1,0 +1,32 @@
+module
+import LexLeanBoot.TomlRead
+#print axioms LexLeanBoot.TomlRead.Es
+#print axioms LexLeanBoot.TomlRead.Ps
+#print axioms LexLeanBoot.TomlRead.Pst
+#print axioms LexLeanBoot.TomlRead.RawClose
+#print axioms LexLeanBoot.TomlRead.Section
+#print axioms LexLeanBoot.TomlRead.Value
+#print axioms LexLeanBoot.TomlRead.anyMatch
+#print axioms LexLeanBoot.TomlRead.appendNew
+#print axioms LexLeanBoot.TomlRead.appendRowToSection
+#print axioms LexLeanBoot.TomlRead.cat
+#print axioms LexLeanBoot.TomlRead.classifyAndStep
+#print axioms LexLeanBoot.TomlRead.closeRow
+#print axioms LexLeanBoot.TomlRead.docSection
+#print axioms LexLeanBoot.TomlRead.esStep
+#print axioms LexLeanBoot.TomlRead.groupStep
+#print axioms LexLeanBoot.TomlRead.isBlankOrComment
+#print axioms LexLeanBoot.TomlRead.lit
+#print axioms LexLeanBoot.TomlRead.mergeInto
+#print axioms LexLeanBoot.TomlRead.parseHeader
+#print axioms LexLeanBoot.TomlRead.parseString
+#print axioms LexLeanBoot.TomlRead.parseStringArray
+#print axioms LexLeanBoot.TomlRead.pathEq
+#print axioms LexLeanBoot.TomlRead.psStep
+#print axioms LexLeanBoot.TomlRead.rowGet
+#print axioms LexLeanBoot.TomlRead.rowHasKey
+#print axioms LexLeanBoot.TomlRead.rowKeys
+#print axioms LexLeanBoot.TomlRead.sectionMatches
+#print axioms LexLeanBoot.TomlRead.skipWs
+#print axioms LexLeanBoot.TomlRead.tomlLineStep
+#print axioms LexLeanBoot.TomlRead.tomlParse

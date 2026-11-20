@@ -856,183 +856,138 @@ pub fn format_int(p0: i64) -> Str {
 }
 
 #[derive(Clone)]
-pub enum Adt0 {
-    C0(bool, Option<u64>, bool, bool, List<u64>, bool),
-}
-
-#[derive(Clone)]
 pub enum Fn0 {
-    F8(u64),
+    F4(Bytes),
 }
 
 impl Fn0 {
-    pub fn apply(&self, p0: (u64, u64), p1: u64) -> R<(u64, u64)> {
+    pub fn apply(&self, p0: (u64, Option<u64>), p1: Bytes) -> R<(u64, Option<u64>)> {
         match self {
-            Fn0::F8(k0) => f8(*k0, p0, p1),
+            Fn0::F4(k0) => f4(k0.clone(), p0, p1),
         }
     }
 }
 
-pub fn f0(v0: u64, v1: u64, v2: u64) -> R<Adt0> {
-    Ok(Adt0::C0({
-        let a1 = v1;
-        let a2 = f1(v0, v2)?;
-        nat_eq(a1, a2)
-    }, f2(v1), {
-        let a3 = v0;
-        let a4 = 2u64;
-        nat_lt(a3, a4)
-    }, {
-        let a5 = 2u64;
-        let a6 = v0;
-        nat_lt(a5, a6)
-    }, f3(v0)?, {
-        let a7 = v0;
-        let a8 = 3u64;
-        if nat_eq(a7, a8) {
-            true
-        } else {
-            let a9 = v0;
-            let a10 = 4u64;
-            nat_eq(a9, a10)
-        }
-    }))
+pub fn f0(v0: u64, v1: Bytes) -> R<Option<u64>> {
+    f1(f2(v0), v1)
 }
 
-pub fn f1(v0: u64, v1: u64) -> R<u64> {
-    let a11 = v0;
-    let a12 = 16u64;
-    if nat_eq(a11, a12) {
-        let a13 = v1;
-        let a14 = 0u64;
-        if nat_eq(a13, a14) {
-            Ok(0u64)
-        } else {
-            Ok(1u64)
-        }
-    } else {
-        f4(f5(), v0)
-    }
+pub fn f1(v0: List<Bytes>, v1: Bytes) -> R<Option<u64>> {
+    let (_, h1) = f3(Fn0::F4(v1), (0u64, None::<u64>), v0)?;
+    Ok(h1)
 }
 
-pub fn f2(v0: u64) -> Option<u64> {
-    let a15 = v0;
-    let a16 = 1u64;
-    if nat_eq(a15, a16) {
-        None::<u64>
+pub fn f2(v0: u64) -> List<Bytes> {
+    let a2 = v0;
+    let a3 = 0u64;
+    if nat_eq(a2, a3) {
+        f5()
     } else {
-        let a17 = v0;
-        let a18 = 0u64;
-        if nat_eq(a17, a18) {
-            Some(0u64)
+        let a4 = v0;
+        let a5 = 1u64;
+        if nat_eq(a4, a5) {
+            f6()
         } else {
-            let a19 = v0;
-            let a20 = 4u64;
-            if if nat_eq(a19, a20) {
-                true
+            let a6 = v0;
+            let a7 = 2u64;
+            if nat_eq(a6, a7) {
+                f7()
             } else {
-                let a21 = v0;
-                let a22 = 6u64;
-                if nat_eq(a21, a22) {
-                    true
+                let a8 = v0;
+                let a9 = 3u64;
+                if nat_eq(a8, a9) {
+                    f8()
                 } else {
-                    let a23 = v0;
-                    let a24 = 9u64;
-                    nat_eq(a23, a24)
+                    f9()
                 }
-            } {
-                Some(2u64)
-            } else {
-                Some(1u64)
             }
         }
     }
 }
 
-pub fn f3(v0: u64) -> R<List<u64>> {
-    let v1: u64 = f4(f6(), v0)?;
-    let a25 = v1;
-    let a26 = 1u64;
-    if nat_eq(a25, a26) {
-        Ok(List::cons(0u64, List::<u64>::nil()))
-    } else {
-        let a27 = v1;
-        let a28 = 2u64;
-        if nat_eq(a27, a28) {
-            Ok(List::cons(1u64, List::<u64>::nil()))
-        } else {
-            Ok(List::<u64>::nil())
-        }
-    }
-}
-
-pub fn f4(v0: List<u64>, v1: u64) -> R<u64> {
-    let (_, h29) = f7(Fn0::F8(v1), (0u64, 0u64), v0)?;
-    Ok(h29)
-}
-
-pub fn f5() -> List<u64> {
-    List::cons(0u64, List::cons(0u64, List::cons(0u64, List::cons(0u64, List::cons(0u64, List::cons(1u64, List::cons(2u64, List::cons(3u64, List::cons(4u64, List::cons(5u64, List::cons(6u64, List::cons(0u64, List::cons(7u64, List::cons(8u64, List::cons(9u64, List::cons(4u64, List::cons(0u64, List::<u64>::nil())))))))))))))))))
-}
-
-pub fn f6() -> List<u64> {
-    List::cons(0u64, List::cons(0u64, List::cons(1u64, List::cons(0u64, List::cons(0u64, List::cons(2u64, List::cons(2u64, List::cons(2u64, List::cons(2u64, List::cons(1u64, List::cons(1u64, List::cons(2u64, List::cons(1u64, List::cons(1u64, List::cons(1u64, List::cons(2u64, List::cons(2u64, List::<u64>::nil())))))))))))))))))
-}
-
-pub fn f7(v0: Fn0, p33: (u64, u64), p34: List<u64>) -> R<(u64, u64)> {
-    let m32 = (p33, p34);
+pub fn f3(v0: Fn0, p13: (u64, Option<u64>), p14: List<Bytes>) -> R<(u64, Option<u64>)> {
+    let m12 = (p13, p14);
     {
-        let mut m32 = m32;
+        let mut m12 = m12;
         loop {
             let step = {
-                let (v1, v2) = m32;
-                let m30 = v2;
-                match m30.uncons() {
+                let (v1, v2) = m12;
+                let m10 = v2;
+                match m10.uncons() {
                     None => {
-                        Err::<((u64, u64), List<u64>), R<(u64, u64)>>(Ok(v1))
+                        Err::<((u64, Option<u64>), List<Bytes>), R<(u64, Option<u64>)>>(Ok(v1))
                     }
                     Some((v3, v4)) => {
-                        Ok::<((u64, u64), List<u64>), R<(u64, u64)>>(({
-                            let c31: Fn0 = v0.clone();
-                            c31.apply(v1, v3)?
+                        Ok::<((u64, Option<u64>), List<Bytes>), R<(u64, Option<u64>)>>(({
+                            let c11: Fn0 = v0.clone();
+                            c11.apply(v1, v3)?
                         }, v4))
                     }
                 }
             };
             match step {
-                Ok(next) => { m32 = next; }
+                Ok(next) => { m12 = next; }
                 Err(done) => break done,
             }
         }
     }
 }
 
-pub fn f8(v0: u64, v1: (u64, u64), v2: u64) -> R<(u64, u64)> {
-    let a36 = {
-        let (h35, _) = v1;
-        h35
+pub fn f4(v0: Bytes, v1: (u64, Option<u64>), v2: Bytes) -> R<(u64, Option<u64>)> {
+    let m16 = {
+        let (_, h15) = v1;
+        h15
     };
-    let a37 = v0;
-    if nat_eq(a36, a37) {
-        Ok(({
-            let a39 = {
-                let (h38, _) = v1;
-                h38
-            };
-            let a40 = 1u64;
-            nat_add(a39, a40)?
-        }, v2))
-    } else {
-        Ok(({
-            let a42 = {
-                let (h41, _) = v1;
-                h41
-            };
-            let a43 = 1u64;
-            nat_add(a42, a43)?
-        }, {
-            let (_, h44) = v1;
-            h44
-        }))
+    match m16 {
+        None => {
+            let a17 = v2;
+            let a18 = v0;
+            if equal(a17, a18) {
+                Ok(({
+                    let (h19, _) = v1;
+                    h19
+                }, Some({
+                    let (h20, _) = v1;
+                    h20
+                })))
+            } else {
+                Ok(({
+                    let a22 = {
+                        let (h21, _) = v1;
+                        h21
+                    };
+                    let a23 = 1u64;
+                    nat_add(a22, a23)?
+                }, None::<u64>))
+            }
+        }
+        Some(_) => {
+            Ok(v1)
+        }
     }
+}
+
+pub fn f5() -> List<Bytes> {
+    List::cons(f10(Str::lit("structural")), List::cons(f10(Str::lit("grammar")), List::cons(f10(Str::lit("label-word")), List::cons(f10(Str::lit("type-noun")), List::cons(f10(Str::lit("term-constant")), List::cons(f10(Str::lit("function")), List::cons(f10(Str::lit("prefix-function")), List::cons(f10(Str::lit("postfix-function")), List::cons(f10(Str::lit("infix-function")), List::cons(f10(Str::lit("noun-function")), List::cons(f10(Str::lit("binary-noun-function")), List::cons(f10(Str::lit("predicate-constant")), List::cons(f10(Str::lit("adjective-predicate")), List::cons(f10(Str::lit("intransitive-predicate")), List::cons(f10(Str::lit("transitive-predicate")), List::cons(f10(Str::lit("infix-predicate")), List::cons(f10(Str::lit("proof-constant")), List::<Bytes>::nil())))))))))))))))))
+}
+
+pub fn f6() -> List<Bytes> {
+    List::cons(f10(Str::lit("atom")), List::cons(f10(Str::lit("call")), List::cons(f10(Str::lit("prefix")), List::cons(f10(Str::lit("postfix")), List::cons(f10(Str::lit("infix")), List::cons(f10(Str::lit("noun-of")), List::cons(f10(Str::lit("binary-noun-of")), List::cons(f10(Str::lit("adjective")), List::cons(f10(Str::lit("intransitive")), List::cons(f10(Str::lit("transitive")), List::<Bytes>::nil()))))))))))
+}
+
+pub fn f7() -> List<Bytes> {
+    List::cons(f10(Str::lit("text")), List::cons(f10(Str::lit("math")), List::cons(f10(Str::lit("both")), List::<Bytes>::nil())))
+}
+
+pub fn f8() -> List<Bytes> {
+    List::cons(f10(Str::lit("left")), List::cons(f10(Str::lit("right")), List::cons(f10(Str::lit("none")), List::<Bytes>::nil())))
+}
+
+pub fn f9() -> List<Bytes> {
+    List::cons(f10(Str::lit("singular")), List::cons(f10(Str::lit("plural")), List::cons(f10(Str::lit("sentence-case")), List::cons(f10(Str::lit("lower-case")), List::cons(f10(Str::lit("article-a")), List::cons(f10(Str::lit("article-an")), List::<Bytes>::nil()))))))
+}
+
+pub fn f10(v0: Str) -> Bytes {
+    let a24 = v0;
+    utf8_encode(a24)
 }

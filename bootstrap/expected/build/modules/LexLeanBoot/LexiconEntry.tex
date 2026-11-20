@@ -1,0 +1,733 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{Form}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{id}: \texttt{ByteArray}.\par
+\noindent Field \texttt{channel}: \texttt{Nat}.\par
+\noindent Field \texttt{surface}: \texttt{ByteArray}.\par
+\noindent Field \texttt{atoms}: \texttt{List (LexLeanBoot.PrimitiveScan.Atom)}.\par
+\noindent Field \texttt{canonicalSource}: \texttt{Bool}.\par
+\noindent Field \texttt{features}: \texttt{List (ByteArray)}.\par
+\subsection*{\texttt{Denotation}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{DCore}: \texttt{(ByteArray)}.\par
+\noindent Constructor \texttt{DLean}: \texttt{(ByteArray, ByteArray)}.\par
+\noindent Constructor \texttt{DDocument}: \texttt{(ByteArray, ByteArray)}.\par
+\noindent Constructor \texttt{DDefined}: \texttt{(LexLeanBoot.LexiconLse.Lse, ByteArray)}.\par
+\subsection*{\texttt{EliminatorConstructor}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{package}: \texttt{ByteArray}.\par
+\noindent Field \texttt{entry}: \texttt{ByteArray}.\par
+\noindent Field \texttt{leanName}: \texttt{ByteArray}.\par
+\noindent Field \texttt{fields}: \texttt{List (ByteArray)}.\par
+\noindent Field \texttt{inductionHypotheses}: \texttt{List (ByteArray)}.\par
+\subsection*{\texttt{Eliminator}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{casesLeanName}: \texttt{ByteArray}.\par
+\noindent Field \texttt{inductionLeanName}: \texttt{ByteArray}.\par
+\noindent Field \texttt{constructors}: \texttt{List (EliminatorConstructor)}.\par
+\subsection*{\texttt{Entry}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{id}: \texttt{ByteArray}.\par
+\noindent Field \texttt{category}: \texttt{Nat}.\par
+\noindent Field \texttt{frame}: \texttt{Nat}.\par
+\noindent Field \texttt{surfaceArity}: \texttt{Nat}.\par
+\noindent Field \texttt{signature}: \texttt{Option (LexLeanBoot.LexiconLse.Lse)}.\par
+\noindent Field \texttt{signatureCanonical}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{signatureHash}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{universes}: \texttt{List (ByteArray)}.\par
+\noindent Field \texttt{precedence}: \texttt{Option (Nat)}.\par
+\noindent Field \texttt{associativity}: \texttt{Option (Nat)}.\par
+\noindent Field \texttt{denotation}: \texttt{Denotation}.\par
+\noindent Field \texttt{forms}: \texttt{List (Form)}.\par
+\noindent Field \texttt{renderMath}: \texttt{Option (LexLeanBoot.LexiconLre.Render)}.\par
+\noindent Field \texttt{renderText}: \texttt{Option (LexLeanBoot.LexiconLre.Render)}.\par
+\noindent Field \texttt{calculation}: \texttt{Bool}.\par
+\noindent Field \texttt{eliminator}: \texttt{Option (Eliminator)}.\par
+\subsection*{\texttt{RawDenotationFields}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{kind}: \texttt{ByteArray}.\par
+\noindent Field \texttt{constructor}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{module}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{name}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{component}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{value}: \texttt{Option (ByteArray)}.\par
+\subsection*{\texttt{RawForm}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{id}: \texttt{ByteArray}.\par
+\noindent Field \texttt{channel}: \texttt{ByteArray}.\par
+\noindent Field \texttt{surface}: \texttt{ByteArray}.\par
+\noindent Field \texttt{canonicalSource}: \texttt{Bool}.\par
+\noindent Field \texttt{features}: \texttt{List (ByteArray)}.\par
+\subsection*{\texttt{RawConstructor}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{entry}: \texttt{ByteArray}.\par
+\noindent Field \texttt{leanName}: \texttt{ByteArray}.\par
+\noindent Field \texttt{fields}: \texttt{List (ByteArray)}.\par
+\noindent Field \texttt{inductionHypotheses}: \texttt{List (ByteArray)}.\par
+\subsection*{\texttt{RawEliminator}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{casesLeanName}: \texttt{ByteArray}.\par
+\noindent Field \texttt{inductionLeanName}: \texttt{ByteArray}.\par
+\noindent Field \texttt{constructors}: \texttt{List (RawConstructor)}.\par
+\subsection*{\texttt{RawEntry}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{spec}: \texttt{ByteArray}.\par
+\noindent Field \texttt{id}: \texttt{ByteArray}.\par
+\noindent Field \texttt{category}: \texttt{ByteArray}.\par
+\noindent Field \texttt{signature}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{universes}: \texttt{Option (List (ByteArray))}.\par
+\noindent Field \texttt{surfaceArity}: \texttt{Nat}.\par
+\noindent Field \texttt{frame}: \texttt{ByteArray}.\par
+\noindent Field \texttt{precedence}: \texttt{Option (Nat)}.\par
+\noindent Field \texttt{associativity}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{dKind}: \texttt{ByteArray}.\par
+\noindent Field \texttt{dConstructor}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{dModule}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{dName}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{dComponent}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{dValue}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{forms}: \texttt{List (RawForm)}.\par
+\noindent Field \texttt{hasRender}: \texttt{Bool}.\par
+\noindent Field \texttt{renderMath}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{renderText}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{hasCalculation}: \texttt{Bool}.\par
+\noindent Field \texttt{calcKind}: \texttt{ByteArray}.\par
+\noindent Field \texttt{eliminator}: \texttt{Option (RawEliminator)}.\par
+\subsection*{\texttt{lit}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(literal : String)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(LexLeanRuntime.utf8Encode (literal) : ByteArray)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{cat}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(left : ByteArray) (right : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(LexLeanRuntime.append (left) (right) : ByteArray)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{cat3}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(a : ByteArray) (b : ByteArray) (c : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{cat (cat (a) (b)) (c)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{quoted}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(text : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{cat3 (lit ("`")) (text) (lit ("`"))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{errD}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(message : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (ByteArray) (ByteArray))}.\par
+\noindent Definition: \texttt{(lit ("LLR3004"), message)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{formUnsafeD}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(message : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (ByteArray) (ByteArray))}.\par
+\noindent Definition: \texttt{(lit ("LLR3006"), message)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{limitD}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(message : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (ByteArray) (ByteArray))}.\par
+\noindent Definition: \texttt{(lit ("LLS8002"), message)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{appendRev}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(revAcc : List ((Prod (ByteArray) (ByteArray)))) (item : Option ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Definition: \texttt{(match item with | Option.some d => (d :: revAcc) | Option.none => revAcc)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{getStr}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))) (key : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (ByteArray)}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.TomlRead.rowGet (row) (key) with | Option.some v => (match v with | LexLeanBoot.TomlRead.Value.VStr s => Option.some (s) | LexLeanBoot.TomlRead.Value.VBool \_ => Option.none | LexLeanBoot.TomlRead.Value.VNat \_ => Option.none | LexLeanBoot.TomlRead.Value.VArr \_ => Option.none) | Option.none => Option.none)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{getOptStr}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))) (key : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Option (ByteArray))}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.TomlRead.rowGet (row) (key) with | Option.none => Option.some (Option.none) | Option.some v => (match v with | LexLeanBoot.TomlRead.Value.VStr s => Option.some (Option.some (s)) | LexLeanBoot.TomlRead.Value.VBool \_ => Option.none | LexLeanBoot.TomlRead.Value.VNat \_ => Option.none | LexLeanBoot.TomlRead.Value.VArr \_ => Option.none))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{getNat}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))) (key : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Nat)}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.TomlRead.rowGet (row) (key) with | Option.some v => (match v with | LexLeanBoot.TomlRead.Value.VStr \_ => Option.none | LexLeanBoot.TomlRead.Value.VBool \_ => Option.none | LexLeanBoot.TomlRead.Value.VNat n => Option.some (n) | LexLeanBoot.TomlRead.Value.VArr \_ => Option.none) | Option.none => Option.none)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{getOptNat}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))) (key : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Option (Nat))}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.TomlRead.rowGet (row) (key) with | Option.none => Option.some (Option.none) | Option.some v => (match v with | LexLeanBoot.TomlRead.Value.VStr \_ => Option.none | LexLeanBoot.TomlRead.Value.VBool \_ => Option.none | LexLeanBoot.TomlRead.Value.VNat n => Option.some (Option.some (n)) | LexLeanBoot.TomlRead.Value.VArr \_ => Option.none))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{getBool}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))) (key : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Bool)}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.TomlRead.rowGet (row) (key) with | Option.some v => (match v with | LexLeanBoot.TomlRead.Value.VStr \_ => Option.none | LexLeanBoot.TomlRead.Value.VBool b => Option.some (b) | LexLeanBoot.TomlRead.Value.VNat \_ => Option.none | LexLeanBoot.TomlRead.Value.VArr \_ => Option.none) | Option.none => Option.none)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{getArr}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))) (key : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (List (ByteArray))}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.TomlRead.rowGet (row) (key) with | Option.some v => (match v with | LexLeanBoot.TomlRead.Value.VStr \_ => Option.none | LexLeanBoot.TomlRead.Value.VBool \_ => Option.none | LexLeanBoot.TomlRead.Value.VNat \_ => Option.none | LexLeanBoot.TomlRead.Value.VArr a => Option.some (a)) | Option.none => Option.none)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{getOptArr}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))) (key : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Option (List (ByteArray)))}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.TomlRead.rowGet (row) (key) with | Option.none => Option.some (Option.none) | Option.some v => (match v with | LexLeanBoot.TomlRead.Value.VStr \_ => Option.none | LexLeanBoot.TomlRead.Value.VBool \_ => Option.none | LexLeanBoot.TomlRead.Value.VNat \_ => Option.none | LexLeanBoot.TomlRead.Value.VArr a => Option.some (Option.some (a))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{firstRow}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(sec : LexLeanBoot.TomlRead.Section)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))}.\par
+\noindent Definition: \texttt{(match (sec).rows with | List.cons row \_ => row | List.nil => ([] : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{topRow}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(doc : List (LexLeanBoot.TomlRead.Section))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.TomlRead.docSection (doc) (([] : List (ByteArray))) (false) with | Option.some sec => firstRow (sec) | Option.none => ([] : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{emptyArrOrNone}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))) (key : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (List (List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))))}.\par
+\noindent Definition: \texttt{(match getArr (row) (key) with | Option.none => Option.none | Option.some arr => (match arr with | List.cons \_ \_ => Option.none | List.nil => Option.some (([] : List (List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value))))))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{formRowsOrEmpty}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(doc : List (LexLeanBoot.TomlRead.Section)) (top : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (List (List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))))}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.TomlRead.docSection (doc) ((lit ("form") :: ([] : List (ByteArray)))) (true) with | Option.some fsec => Option.some ((fsec).rows) | Option.none => emptyArrOrNone (top) (lit ("form")))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{constructorRowsOrEmpty}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(doc : List (LexLeanBoot.TomlRead.Section)) (elimRow : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (List (List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))))}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.TomlRead.docSection (doc) ((lit ("eliminator") :: (lit ("constructor") :: ([] : List (ByteArray))))) (true) with | Option.some csec => Option.some ((csec).rows) | Option.none => emptyArrOrNone (elimRow) (lit ("constructor")))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{hasOnlyKeys}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))) (allowed : List (ByteArray))}.\par
+\noindent Closure 1: binds \texttt{(ok, key)}, captures \texttt{(allowed)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (ok : Bool) (key : ByteArray) => (if ok then LexLeanBoot.LexiconSchema.isIn (allowed) (key) else false))) (true) (LexLeanBoot.TomlRead.rowKeys (row)) : Bool)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{rootAllowedKeys}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (ByteArray)}.\par
+\noindent Definition: \texttt{(lit ("spec") :: (lit ("id") :: (lit ("category") :: (lit ("signature") :: (lit ("universes") :: (lit ("surface\_arity") :: (lit ("frame") :: (lit ("precedence") :: (lit ("associativity") :: (lit ("form") :: ([] : List (ByteArray))))))))))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{denotationAllowedKeys}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (ByteArray)}.\par
+\noindent Definition: \texttt{(lit ("kind") :: (lit ("constructor") :: (lit ("module") :: (lit ("name") :: (lit ("component") :: (lit ("value") :: ([] : List (ByteArray))))))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{formAllowedKeys}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (ByteArray)}.\par
+\noindent Definition: \texttt{(lit ("id") :: (lit ("channel") :: (lit ("surface") :: (lit ("canonical\_source") :: (lit ("features") :: ([] : List (ByteArray)))))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{renderAllowedKeys}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (ByteArray)}.\par
+\noindent Definition: \texttt{(lit ("math") :: (lit ("text") :: ([] : List (ByteArray))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{calculationAllowedKeys}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (ByteArray)}.\par
+\noindent Definition: \texttt{(lit ("kind") :: ([] : List (ByteArray)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{eliminatorAllowedKeys}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (ByteArray)}.\par
+\noindent Definition: \texttt{(lit ("cases\_lean\_name") :: (lit ("induction\_lean\_name") :: (lit ("constructor") :: ([] : List (ByteArray)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{eliminatorConstructorAllowedKeys}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (ByteArray)}.\par
+\noindent Definition: \texttt{(lit ("entry") :: (lit ("lean\_name") :: (lit ("fields") :: (lit ("induction\_hypotheses") :: ([] : List (ByteArray))))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{extractDenotationRow}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(drow : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (RawDenotationFields)}.\par
+\noindent Definition: \texttt{(if hasOnlyKeys (drow) (denotationAllowedKeys) then (match getStr (drow) (lit ("kind")) with | Option.none => Option.none | Option.some dKind => (match getOptStr (drow) (lit ("constructor")) with | Option.none => Option.none | Option.some dConstructor => (match getOptStr (drow) (lit ("module")) with | Option.none => Option.none | Option.some dModule => (match getOptStr (drow) (lit ("name")) with | Option.none => Option.none | Option.some dName => (match getOptStr (drow) (lit ("component")) with | Option.none => Option.none | Option.some dComponent => (match getOptStr (drow) (lit ("value")) with | Option.none => Option.none | Option.some dValue => Option.some ((\{ kind := dKind, constructor := dConstructor, module := dModule, name := dName, component := dComponent, value := dValue \} : RawDenotationFields)))))))) else Option.none)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{extractForm}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (RawForm)}.\par
+\noindent Definition: \texttt{(if hasOnlyKeys (row) (formAllowedKeys) then (match getStr (row) (lit ("id")) with | Option.none => Option.none | Option.some formId => (match getStr (row) (lit ("channel")) with | Option.none => Option.none | Option.some channel => (match getStr (row) (lit ("surface")) with | Option.none => Option.none | Option.some surface => (match getBool (row) (lit ("canonical\_source")) with | Option.none => Option.none | Option.some cs => (match getArr (row) (lit ("features")) with | Option.none => Option.none | Option.some features => Option.some ((\{ id := formId, channel := channel, surface := surface, canonicalSource := cs, features := features \} : RawForm))))))) else Option.none)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{extractForms}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(rows : List (List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))))}.\par
+\noindent Closure 1: binds \texttt{(acc, row)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (List (RawForm))}.\par
+\noindent Definition: \texttt{(match (LexLeanCollections.listFold ((fun (acc : Option (List (RawForm))) (row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))) => (match acc with | Option.none => Option.none | Option.some soFar => (match extractForm (row) with | Option.none => Option.none | Option.some rf => Option.some ((rf :: soFar)))))) (Option.some (([] : List (RawForm)))) (rows) : Option (List (RawForm))) with | Option.some revList => Option.some (LexLeanStd.Order.reverseList (RawForm) (revList)) | Option.none => Option.none)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{extractConstructor}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (RawConstructor)}.\par
+\noindent Definition: \texttt{(if hasOnlyKeys (row) (eliminatorConstructorAllowedKeys) then (match getStr (row) (lit ("entry")) with | Option.none => Option.none | Option.some entryId => (match getStr (row) (lit ("lean\_name")) with | Option.none => Option.none | Option.some leanName => (match getArr (row) (lit ("fields")) with | Option.none => Option.none | Option.some fields => (match getArr (row) (lit ("induction\_hypotheses")) with | Option.none => Option.none | Option.some ihs => Option.some ((\{ entry := entryId, leanName := leanName, fields := fields, inductionHypotheses := ihs \} : RawConstructor)))))) else Option.none)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{extractConstructors}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(rows : List (List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))))}.\par
+\noindent Closure 1: binds \texttt{(acc, row)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (List (RawConstructor))}.\par
+\noindent Definition: \texttt{(match (LexLeanCollections.listFold ((fun (acc : Option (List (RawConstructor))) (row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value)))) => (match acc with | Option.none => Option.none | Option.some soFar => (match extractConstructor (row) with | Option.none => Option.none | Option.some rc => Option.some ((rc :: soFar)))))) (Option.some (([] : List (RawConstructor)))) (rows) : Option (List (RawConstructor))) with | Option.some revList => Option.some (LexLeanStd.Order.reverseList (RawConstructor) (revList)) | Option.none => Option.none)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{extractEliminator}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(doc : List (LexLeanBoot.TomlRead.Section))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Option (RawEliminator))}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.TomlRead.docSection (doc) ((lit ("eliminator") :: ([] : List (ByteArray)))) (false) with | Option.none => Option.some (Option.none) | Option.some sec => (let row : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value))) := firstRow (sec); (if hasOnlyKeys (row) (eliminatorAllowedKeys) then (match getStr (row) (lit ("cases\_lean\_name")) with | Option.none => Option.none | Option.some cln => (match getStr (row) (lit ("induction\_lean\_name")) with | Option.none => Option.none | Option.some iln => (match constructorRowsOrEmpty (doc) (row) with | Option.none => Option.none | Option.some constructorRows => (match extractConstructors (constructorRows) with | Option.none => Option.none | Option.some constructors => Option.some (Option.some ((\{ casesLeanName := cln, inductionLeanName := iln, constructors := constructors \} : RawEliminator))))))) else Option.none)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{extractRaw}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(doc : List (LexLeanBoot.TomlRead.Section))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (RawEntry)}.\par
+\noindent Definition: \texttt{(let top : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value))) := topRow (doc); (if hasOnlyKeys (top) (rootAllowedKeys) then (match getStr (top) (lit ("spec")) with | Option.none => Option.none | Option.some spec => (match getStr (top) (lit ("id")) with | Option.none => Option.none | Option.some entryId => (match getStr (top) (lit ("category")) with | Option.none => Option.none | Option.some category => (match getOptStr (top) (lit ("signature")) with | Option.none => Option.none | Option.some signature => (match getOptArr (top) (lit ("universes")) with | Option.none => Option.none | Option.some universes => (match getNat (top) (lit ("surface\_arity")) with | Option.none => Option.none | Option.some surfaceArity => (match getStr (top) (lit ("frame")) with | Option.none => Option.none | Option.some frame => (match getOptNat (top) (lit ("precedence")) with | Option.none => Option.none | Option.some precedence => (match getOptStr (top) (lit ("associativity")) with | Option.none => Option.none | Option.some associativity => (match LexLeanBoot.TomlRead.docSection (doc) ((lit ("denotation") :: ([] : List (ByteArray)))) (false) with | Option.none => Option.none | Option.some dsec => (let drow : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value))) := firstRow (dsec); (match extractDenotationRow (drow) with | Option.none => Option.none | Option.some dfields => (let dKind : ByteArray := (dfields).kind; (let dConstructor : Option (ByteArray) := (dfields).constructor; (let dModule : Option (ByteArray) := (dfields).module; (let dName : Option (ByteArray) := (dfields).name; (let dComponent : Option (ByteArray) := (dfields).component; (let dValue : Option (ByteArray) := (dfields).value; (match formRowsOrEmpty (doc) (top) with | Option.none => Option.none | Option.some formRows => (match extractForms (formRows) with | Option.none => Option.none | Option.some forms => (let hasRender : Bool := (match LexLeanBoot.TomlRead.docSection (doc) ((lit ("render") :: ([] : List (ByteArray)))) (false) with | Option.some \_ => true | Option.none => false); (let rrow : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value))) := (match LexLeanBoot.TomlRead.docSection (doc) ((lit ("render") :: ([] : List (ByteArray)))) (false) with | Option.some s => firstRow (s) | Option.none => ([] : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value))))); (match getOptStr (rrow) (lit ("math")) with | Option.none => Option.none | Option.some renderMath => (match getOptStr (rrow) (lit ("text")) with | Option.none => Option.none | Option.some renderText => (let hasCalculation : Bool := (match LexLeanBoot.TomlRead.docSection (doc) ((lit ("calculation") :: ([] : List (ByteArray)))) (false) with | Option.some \_ => true | Option.none => false); (let crow : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value))) := (match LexLeanBoot.TomlRead.docSection (doc) ((lit ("calculation") :: ([] : List (ByteArray)))) (false) with | Option.some s => firstRow (s) | Option.none => ([] : List ((Prod (ByteArray) (LexLeanBoot.TomlRead.Value))))); (match (if hasCalculation then getStr (crow) (lit ("kind")) else Option.some (ByteArray.mk \#[])) with | Option.none => Option.none | Option.some calcKind => (match extractEliminator (doc) with | Option.none => Option.none | Option.some eliminator => Option.some ((\{ spec := spec, id := entryId, category := category, signature := signature, universes := universes, surfaceArity := surfaceArity, frame := frame, precedence := precedence, associativity := associativity, dKind := dKind, dConstructor := dConstructor, dModule := dModule, dName := dName, dComponent := dComponent, dValue := dValue, forms := forms, hasRender := hasRender, renderMath := renderMath, renderText := renderText, hasCalculation := hasCalculation, calcKind := calcKind, eliminator := eliminator \} : RawEntry)))))))))))))))))))))))))))))) else Option.none))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{HeaderOut}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{diagsRev}: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Field \texttt{precedence}: \texttt{Option (Nat)}.\par
+\noindent Field \texttt{associativity}: \texttt{Option (Nat)}.\par
+\subsection*{\texttt{validateHeader}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(entryId : ByteArray) (categoryIdx : Nat) (frameIdx : Nat) (categoryText : ByteArray) (frameText : ByteArray) (surfaceArity : Nat) (rawPrecedence : Option (Nat)) (rawAssociativity : Option (ByteArray)) (isCore : Bool)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{HeaderOut}.\par
+\noindent Definition: \texttt{(let shape : LexLeanBoot.LexiconSchema.Shape := LexLeanBoot.LexiconSchema.shapeFacts (categoryIdx) (frameIdx) (surfaceArity); (let d1 : List ((Prod (ByteArray) (ByteArray))) := appendRev (([] : List ((Prod (ByteArray) (ByteArray))))) ((if LexLeanBoot.LexiconLse.isEntryId (entryId) then Option.none else Option.some (errD (cat (quoted (entryId)) (lit (" is not a valid entry ID")))))); (let d2 : List ((Prod (ByteArray) (ByteArray))) := appendRev (d1) ((if ((shape).coreOnly \&\& (if isCore then false else true)) then Option.some (errD (cat3 (lit ("a non-core entry cannot use category `")) (categoryText) (lit ("`")))) else Option.none)); (let d3 : List ((Prod (ByteArray) (ByteArray))) := appendRev (d2) ((if (shape).permitted then Option.none else Option.some (errD (cat (cat (cat (cat (lit ("category `")) (categoryText)) (lit ("` does not permit frame `"))) (frameText)) (lit ("`")))))); (let d4 : List ((Prod (ByteArray) (ByteArray))) := appendRev (d3) ((match (shape).fixedArity with | Option.some fixed => (if (Nat.beq (surfaceArity) (fixed)) then Option.none else Option.some (errD (cat (cat (cat (cat (lit ("frame `")) (frameText)) (lit ("` fixes surface\_arity "))) (LexLeanStd.Numeral.decimal (fixed))) (cat (lit (", found ")) (LexLeanStd.Numeral.decimal (surfaceArity)))))) | Option.none => (if (Nat.beq (surfaceArity) (0)) then Option.some (errD (lit ("a call frame needs surface\_arity >= 1"))) else Option.none))); (let needsPrecedence : Bool := (if (Nat.beq (frameIdx) (2)) then true else (if (Nat.beq (frameIdx) (3)) then true else (Nat.beq (frameIdx) (4)))); (let precPair : (Prod (List ((Prod (ByteArray) (ByteArray)))) (Option (Nat))) := (match rawPrecedence with | Option.some value => (if needsPrecedence then (if (Nat.ble (value) (255)) then (d4, Option.some (value)) else (appendRev (d4) (Option.some (errD (lit ("precedence is 0..255")))), Option.none)) else (appendRev (d4) (Option.some (errD (lit ("precedence does not apply to this frame")))), Option.none)) | Option.none => (if needsPrecedence then (appendRev (d4) (Option.some (errD (lit ("this frame requires a precedence")))), Option.none) else (d4, Option.none))); (let d5 : List ((Prod (ByteArray) (ByteArray))) := (precPair).1; (let precedence : Option (Nat) := (precPair).2; (let isInfix : Bool := (Nat.beq (frameIdx) (4)); (let assocPair : (Prod (List ((Prod (ByteArray) (ByteArray)))) (Option (Nat))) := (match rawAssociativity with | Option.some text => (if isInfix then (if (LexLeanRuntime.equal (text) (lit ("left")) : Bool) then (d5, Option.some (0)) else (if (LexLeanRuntime.equal (text) (lit ("right")) : Bool) then (d5, Option.some (1)) else (if (LexLeanRuntime.equal (text) (lit ("none")) : Bool) then (d5, Option.some (2)) else (appendRev (d5) (Option.some (errD (lit ("associativity is left, right, or none")))), Option.none)))) else (appendRev (d5) (Option.some (errD (lit ("associativity applies only to infix frames")))), Option.none)) | Option.none => (if isInfix then (appendRev (d5) (Option.some (errD (lit ("an infix frame requires an associativity")))), Option.none) else (d5, Option.none))); (\{ diagsRev := (assocPair).1, precedence := precedence, associativity := (assocPair).2 \} : HeaderOut))))))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{sortedUniqueStep}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : (Prod (Option (ByteArray)) (Bool))) (item : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Option (ByteArray)) (Bool))}.\par
+\noindent Definition: \texttt{(match (state).1 with | Option.none => (Option.some (item), (state).2) | Option.some prev => (Option.some (item), (if (state).2 then LexLeanStd.Order.lessBytes (prev) (item) else false)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{isSortedUniqueStrict}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (ByteArray))}.\par
+\noindent Closure 1: binds \texttt{(state, item)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((LexLeanCollections.listFold ((fun (state : (Prod (Option (ByteArray)) (Bool))) (item : ByteArray) => sortedUniqueStep (state) (item))) ((Option.none, true)) (items) : (Prod (Option (ByteArray)) (Bool)))).2}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{anyNotLseIdentifier}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(names : List (ByteArray))}.\par
+\noindent Closure 1: binds \texttt{(found, name)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (ByteArray)}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (found : Option (ByteArray)) (name : ByteArray) => (match found with | Option.some \_ => found | Option.none => (if LexLeanBoot.LexiconLse.isLseIdentifier (name) then Option.none else Option.some (name))))) (Option.none) (names) : Option (ByteArray))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{wrapLseFailure}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(what : ByteArray) (failure : LexLeanBoot.LexiconLse.Failure)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (ByteArray) (ByteArray))}.\par
+\noindent Definition: \texttt{(if (Nat.beq ((failure).kind) (1)) then limitD (cat (cat (what) (lit (": "))) ((failure).message)) else errD (cat (cat (cat (lit ("invalid ")) (what)) (lit (" LSE: "))) ((failure).message)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{SigOut}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{diagsRev}: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Field \texttt{universes}: \texttt{List (ByteArray)}.\par
+\noindent Field \texttt{signature}: \texttt{Option (LexLeanBoot.LexiconLse.Lse)}.\par
+\noindent Field \texttt{signatureCanonical}: \texttt{Option (ByteArray)}.\par
+\noindent Field \texttt{signatureHash}: \texttt{Option (ByteArray)}.\par
+\subsection*{\texttt{validateSignature}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(entryId : ByteArray) (categoryText : ByteArray) (rawUniverses : Option (List (ByteArray))) (rawSignature : Option (ByteArray)) (hasSignature : Bool) (surfaceArity : Nat) (maxScopeDepth : Nat) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{SigOut}.\par
+\noindent Definition: \texttt{(let universes : List (ByteArray) := (match rawUniverses with | Option.some us => us | Option.none => ([] : List (ByteArray))); (let d1 : List ((Prod (ByteArray) (ByteArray))) := appendRev (diagsIn) ((if isSortedUniqueStrict (universes) then Option.none else Option.some (errD (lit ("universes must be sorted and unique"))))); (let d2 : List ((Prod (ByteArray) (ByteArray))) := (match anyNotLseIdentifier (universes) with | Option.none => d1 | Option.some bad => appendRev (d1) (Option.some (errD (cat (quoted (bad)) (lit (" is not a universe name")))))); (match rawSignature with | Option.some text => (if hasSignature then (match LexLeanBoot.LexiconLse.parseLse (text) (maxScopeDepth) with | Except.ok parsed => (let bound : Nat := (LexLeanRuntime.length (text) : Nat); (let d3 : List ((Prod (ByteArray) (ByteArray))) := (match LexLeanBoot.LseScopes.checkScopes (parsed) (universes) (bound) with | Option.none => d2 | Option.some scopeErr => appendRev (d2) (Option.some (errD (cat (lit ("invalid signature: ")) (scopeErr))))); (let shape2 : (Prod (Nat) (Bool)) := LexLeanBoot.LseScopes.outerShape (parsed) (bound); (let explicit : Nat := (shape2).1; (let d4 : List ((Prod (ByteArray) (ByteArray))) := (if (Nat.beq (surfaceArity) (explicit)) then d3 else appendRev (d3) (Option.some (errD (cat3 (cat3 (quoted (entryId)) (lit (": surface\_arity ")) (LexLeanStd.Numeral.decimal (surfaceArity))) (lit (" does not match the ")) (cat (LexLeanStd.Numeral.decimal (explicit)) ((if (Nat.beq (explicit) (1)) then lit (" explicit binder of the signature's outer pi") else lit (" explicit binders of the signature's outer pi")))))))); (let canonical : ByteArray := LexLeanBoot.LexiconLse.printLse (parsed) (true); (let hash : ByteArray := LexLeanStd.Blake3.blake3Label (canonical); (\{ diagsRev := d4, universes := universes, signature := Option.some (parsed), signatureCanonical := Option.some (canonical), signatureHash := Option.some (hash) \} : SigOut)))))))) | Except.error failure => (\{ diagsRev := appendRev (d2) (Option.some (wrapLseFailure (lit ("signature")) (failure))), universes := universes, signature := Option.none, signatureCanonical := Option.none, signatureHash := Option.none \} : SigOut)) else (\{ diagsRev := appendRev (d2) (Option.some (errD (cat3 (lit ("category `")) (categoryText) (lit ("` does not carry a signature"))))), universes := universes, signature := Option.none, signatureCanonical := Option.none, signatureHash := Option.none \} : SigOut)) | Option.none => (if hasSignature then (\{ diagsRev := appendRev (d2) (Option.some (errD (lit ("every semantic entry has a complete LSE signature")))), universes := universes, signature := Option.none, signatureCanonical := Option.none, signatureHash := Option.none \} : SigOut) else (\{ diagsRev := appendRev (d2) ((match rawUniverses with | Option.some \_ => Option.some (errD (lit ("universes apply only with a signature"))) | Option.none => Option.none)), universes := universes, signature := Option.none, signatureCanonical := Option.none, signatureHash := Option.none \} : SigOut))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{isSomeBytes}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(o : Option (ByteArray))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match o with | Option.some \_ => 1 | Option.none => 0)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{optCount}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(a : Option (ByteArray)) (b : Option (ByteArray)) (c : Option (ByteArray)) (d : Option (ByteArray)) (e : Option (ByteArray))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{((((isSomeBytes (a) + isSomeBytes (b)) + isSomeBytes (c)) + isSomeBytes (d)) + isSomeBytes (e))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{validateCoreDenotation}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(isCore : Bool) (dConstructor : Option (ByteArray)) (fc : Nat) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (List ((Prod (ByteArray) (ByteArray)))) (Denotation))}.\par
+\noindent Definition: \texttt{(let d1 : List ((Prod (ByteArray) (ByteArray))) := appendRev (diagsIn) ((if isCore then Option.none else Option.some (errD (lit ("only lexlean.core may use a core denotation"))))); (let shapeOk : Bool := (match dConstructor with | Option.some c => ((Nat.beq (fc) (1)) \&\& LexLeanBoot.LexiconLse.isEntryId (c)) | Option.none => false); (if shapeOk then (d1, Denotation.DCore ((match dConstructor with | Option.some c => c | Option.none => ByteArray.mk \#[]))) else (appendRev (d1) (Option.some (errD (lit ("a core denotation has exactly `constructor`")))), Denotation.DCore (ByteArray.mk \#[])))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{validateLeanDenotation}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(dModule : Option (ByteArray)) (dName : Option (ByteArray)) (fc : Nat) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (List ((Prod (ByteArray) (ByteArray)))) (Denotation))}.\par
+\noindent Definition: \texttt{(let shapeOk : Bool := (match dModule with | Option.some m => (match dName with | Option.some n => ((Nat.beq (fc) (2)) \&\& (LexLeanBoot.LexiconSchema.isLeanName (m) \&\& LexLeanBoot.LexiconSchema.isLeanName (n))) | Option.none => false) | Option.none => false); (if shapeOk then (diagsIn, Denotation.DLean ((match dModule with | Option.some m => m | Option.none => ByteArray.mk \#[])) ((match dName with | Option.some n => n | Option.none => ByteArray.mk \#[]))) else (appendRev (diagsIn) (Option.some (errD (lit ("a lean denotation has exactly `module` and `name` in the conservative ASCII Lean-name grammar")))), Denotation.DLean (ByteArray.mk \#[]) (ByteArray.mk \#[]))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{validateDocumentDenotation}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(dModule : Option (ByteArray)) (dComponent : Option (ByteArray)) (fc : Nat) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (List ((Prod (ByteArray) (ByteArray)))) (Denotation))}.\par
+\noindent Definition: \texttt{(let shapeOk : Bool := (match dModule with | Option.some \_ => (match dComponent with | Option.some \_ => (Nat.beq (fc) (2)) | Option.none => false) | Option.none => false); (if shapeOk then (diagsIn, Denotation.DDocument ((match dModule with | Option.some m => m | Option.none => ByteArray.mk \#[])) ((match dComponent with | Option.some c => c | Option.none => ByteArray.mk \#[]))) else (appendRev (diagsIn) (Option.some (errD (lit ("a document denotation has exactly `module` and `component`")))), Denotation.DDocument (ByteArray.mk \#[]) (ByteArray.mk \#[]))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{validateDefinedDenotation}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(dValue : Option (ByteArray)) (fc : Nat) (maxScopeDepth : Nat) (universes : List (ByteArray)) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (List ((Prod (ByteArray) (ByteArray)))) (Denotation))}.\par
+\noindent Definition: \texttt{(match dValue with | Option.none => (appendRev (diagsIn) (Option.some (errD (lit ("a defined denotation has exactly `value`")))), Denotation.DDefined (LexLeanBoot.LexiconLse.Lse.LSortProp) (ByteArray.mk \#[])) | Option.some valueText => (if (Nat.beq (fc) (1)) then (match LexLeanBoot.LexiconLse.parseLse (valueText) (maxScopeDepth) with | Except.ok value => (let bound : Nat := (LexLeanRuntime.length (valueText) : Nat); (let d2 : List ((Prod (ByteArray) (ByteArray))) := (match LexLeanBoot.LseScopes.checkScopes (value) (universes) (bound) with | Option.none => diagsIn | Option.some scopeErr => appendRev (diagsIn) (Option.some (errD (cat (lit ("invalid defined value: ")) (scopeErr))))); (d2, Denotation.DDefined (value) (LexLeanBoot.LexiconLse.printLse (value) (true))))) | Except.error failure => (appendRev (diagsIn) (Option.some (wrapLseFailure (lit ("defined value")) (failure))), Denotation.DDefined (LexLeanBoot.LexiconLse.Lse.LSortProp) (ByteArray.mk \#[]))) else (appendRev (diagsIn) (Option.some (errD (lit ("a defined denotation has exactly `value`")))), Denotation.DDefined (LexLeanBoot.LexiconLse.Lse.LSortProp) (ByteArray.mk \#[]))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{validateDenotation}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(isCore : Bool) (dKind : ByteArray) (dConstructor : Option (ByteArray)) (dModule : Option (ByteArray)) (dName : Option (ByteArray)) (dComponent : Option (ByteArray)) (dValue : Option (ByteArray)) (maxScopeDepth : Nat) (universes : List (ByteArray)) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (List ((Prod (ByteArray) (ByteArray)))) (Denotation))}.\par
+\noindent Definition: \texttt{(let fc : Nat := optCount (dConstructor) (dModule) (dName) (dComponent) (dValue); (if (LexLeanRuntime.equal (dKind) (lit ("core")) : Bool) then validateCoreDenotation (isCore) (dConstructor) (fc) (diagsIn) else (if (LexLeanRuntime.equal (dKind) (lit ("lean")) : Bool) then validateLeanDenotation (dModule) (dName) (fc) (diagsIn) else (if (LexLeanRuntime.equal (dKind) (lit ("document")) : Bool) then validateDocumentDenotation (dModule) (dComponent) (fc) (diagsIn) else (if (LexLeanRuntime.equal (dKind) (lit ("defined")) : Bool) then validateDefinedDenotation (dValue) (fc) (maxScopeDepth) (universes) (diagsIn) else (appendRev (diagsIn) (Option.some (errD (cat (quoted (dKind)) (lit (" is not a denotation kind"))))), Denotation.DCore (ByteArray.mk \#[])))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{isControlAtom}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(atom : LexLeanBoot.PrimitiveScan.Atom)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match (atom).kind with | LexLeanBoot.PrimitiveScan.AtomClass.Control => true | LexLeanBoot.PrimitiveScan.AtomClass.Word => false | LexLeanBoot.PrimitiveScan.AtomClass.Numeral => false | LexLeanBoot.PrimitiveScan.AtomClass.Delimiter => false | LexLeanBoot.PrimitiveScan.AtomClass.AsciiSymbol => false | LexLeanBoot.PrimitiveScan.AtomClass.UnicodeSymbol => false | LexLeanBoot.PrimitiveScan.AtomClass.Whitespace => false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{anyControlAtom}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(atoms : List (LexLeanBoot.PrimitiveScan.Atom))}.\par
+\noindent Closure 1: binds \texttt{(found, atom)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (found : Bool) (atom : LexLeanBoot.PrimitiveScan.Atom) => (if found then true else isControlAtom (atom)))) (false) (atoms) : Bool)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{listHasBytes}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (ByteArray)) (target : ByteArray)}.\par
+\noindent Closure 1: binds \texttt{(found, item)}, captures \texttt{(target)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (found : Bool) (item : ByteArray) => (if found then true else (LexLeanRuntime.equal (item) (target) : Bool)))) (false) (items) : Bool)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{forbiddenAtomDiags}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(forbiddenControls : List (ByteArray)) (formId : ByteArray) (atoms : List (LexLeanBoot.PrimitiveScan.Atom)) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Closure 1: binds \texttt{(acc, atom)}, captures \texttt{(forbiddenControls, formId)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (acc : List ((Prod (ByteArray) (ByteArray)))) (atom : LexLeanBoot.PrimitiveScan.Atom) => (if isControlAtom (atom) then (if listHasBytes (forbiddenControls) ((atom).text) then (errD (cat (cat (cat (lit ("form `")) (formId)) (lit ("` declares the always-forbidden control `"))) (cat ((atom).text) (lit ("` (<U+00A7>12.4)")))) :: acc) else acc) else acc))) (diagsIn) (atoms) : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{featureDiags}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(formId : ByteArray) (features : List (ByteArray)) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Closure 1: binds \texttt{(acc, feature)}, captures \texttt{(formId)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Definition: \texttt{(let d1 : List ((Prod (ByteArray) (ByteArray))) := (if isSortedUniqueStrict (features) then diagsIn else (errD (cat (cat (lit ("form `")) (formId)) (lit ("`: features must be sorted and unique"))) :: diagsIn)); (LexLeanCollections.listFold ((fun (acc : List ((Prod (ByteArray) (ByteArray)))) (feature : ByteArray) => (if LexLeanBoot.LexiconSchema.isIn (LexLeanBoot.LexiconSchema.features) (feature) then acc else (errD (cat (cat (cat (cat (lit ("form `")) (formId)) (lit ("`: `"))) (feature)) (lit ("` is not a feature"))) :: acc)))) (d1) (features) : List ((Prod (ByteArray) (ByteArray)))))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{surfaceWhitespaceBad}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(surface : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(if (Nat.beq ((LexLeanRuntime.length (surface) : Nat)) (0)) then true else (if LexLeanStd.Text.startsWith (surface) (lit (" ")) then true else (if LexLeanStd.Text.endsWith (surface) (lit (" ")) then true else (if (match LexLeanStd.Text.find (surface) (cat (lit (" ")) (lit (" "))) with | Option.some \_ => true | Option.none => false) then true else (match LexLeanStd.Text.find (surface) (ByteArray.mk \#[10]) with | Option.some \_ => true | Option.none => false)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{FormGate}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{diagsRev}: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Field \texttt{channelIdx}: \texttt{Option (Nat)}.\par
+\noindent Field \texttt{atoms}: \texttt{List (LexLeanBoot.PrimitiveScan.Atom)}.\par
+\subsection*{\texttt{formGate}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(formId : ByteArray) (channelText : ByteArray) (surface : ByteArray) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{FormGate}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.LexiconSchema.tokenIndex (2) (channelText) with | Option.none => (\{ diagsRev := appendRev (diagsIn) (Option.some (errD (lit ("a form channel is text, math, or both")))), channelIdx := Option.none, atoms := ([] : List (LexLeanBoot.PrimitiveScan.Atom)) \} : FormGate) | Option.some channelIdx => (if surfaceWhitespaceBad (surface) then (\{ diagsRev := appendRev (diagsIn) (Option.some (errD (cat (cat (lit ("form `")) (formId)) (lit ("`: leading, trailing, or repeated whitespace in the surface is forbidden"))))), channelIdx := Option.none, atoms := ([] : List (LexLeanBoot.PrimitiveScan.Atom)) \} : FormGate) else (match LexLeanBoot.PrimitiveScan.scanSource (lit ("<form>")) (surface) ((LexLeanRuntime.length (surface) : Nat)) with | Except.error rejection => (\{ diagsRev := appendRev (diagsIn) (Option.some (errD (cat (cat (cat (lit ("form `")) (formId)) (lit ("`: surface does not scan: "))) ((rejection).message)))), channelIdx := Option.none, atoms := ([] : List (LexLeanBoot.PrimitiveScan.Atom)) \} : FormGate) | Except.ok atoms => (\{ diagsRev := diagsIn, channelIdx := Option.some (channelIdx), atoms := atoms \} : FormGate))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{validateOneForm}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(raw : RawForm) (isDuplicate : Bool) (isCore : Bool) (forbiddenControls : List (ByteArray)) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (List ((Prod (ByteArray) (ByteArray)))) (Option (Form)))}.\par
+\noindent Definition: \texttt{(let formId : ByteArray := (raw).id; (let d1 : List ((Prod (ByteArray) (ByteArray))) := appendRev (diagsIn) ((if LexLeanBoot.LexiconLre.isFormId (formId) then Option.none else Option.some (errD (cat (quoted (formId)) (lit (" is not a form ID ([a-z][a-z0-9-]*)")))))); (let d2 : List ((Prod (ByteArray) (ByteArray))) := appendRev (d1) ((if isDuplicate then Option.some (errD (cat (lit ("duplicate form ID ")) (quoted (formId)))) else Option.none)); (let gate : FormGate := formGate (formId) ((raw).channel) ((raw).surface) (d2); (match (gate).channelIdx with | Option.none => ((gate).diagsRev, Option.none) | Option.some channelIdx => (let atoms : List (LexLeanBoot.PrimitiveScan.Atom) := (gate).atoms; (let d3 : List ((Prod (ByteArray) (ByteArray))) := forbiddenAtomDiags (forbiddenControls) (formId) (atoms) ((gate).diagsRev); (let isControlForm : Bool := anyControlAtom (atoms); (let d4 : List ((Prod (ByteArray) (ByteArray))) := appendRev (d3) ((if ((isControlForm \&\& (raw).canonicalSource) \&\& (if isCore then false else true)) then Option.some (errD (cat (cat (lit ("form `")) (formId)) (lit ("`: control-sequence forms are aliases only for non-core entries")))) else Option.none)); (let singleControlAlias : Bool := (((if (raw).canonicalSource then false else true) \&\& (Nat.beq ((LexLeanRuntime.length (atoms) : Nat)) (1))) \&\& anyControlAtom (atoms)); (let d5 : List ((Prod (ByteArray) (ByteArray))) := (if ((if isCore then false else true) \&\& (if singleControlAlias then false else true)) then (match LexLeanBoot.LexiconSchema.surfaceSafety (atoms) (channelIdx) with | Option.some reason => appendRev (d4) (Option.some (formUnsafeD (cat (cat (cat (cat (cat (lit ("form `")) (formId)) (lit ("`: the "))) ((if (raw).canonicalSource then lit ("canonical") else lit ("alias")))) (cat (lit (" surface `")) ((raw).surface))) (cat (lit ("` is not renderer-safe: ")) (reason))))) | Option.none => d4) else d4); (let d6 : List ((Prod (ByteArray) (ByteArray))) := featureDiags (formId) ((raw).features) (d5); (d6, Option.some ((\{ id := formId, channel := channelIdx, surface := (raw).surface, atoms := atoms, canonicalSource := (raw).canonicalSource, features := (raw).features \} : Form)))))))))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{FormFoldState}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{diagsRev}: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Field \texttt{formsRev}: \texttt{List (Form)}.\par
+\noindent Field \texttt{seenIds}: \texttt{List (ByteArray)}.\par
+\subsection*{\texttt{formFoldStep}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(isCore : Bool) (forbiddenControls : List (ByteArray)) (state : FormFoldState) (raw : RawForm)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{FormFoldState}.\par
+\noindent Definition: \texttt{(let isDup : Bool := listHasBytes ((state).seenIds) ((raw).id); (let stepOut : (Prod (List ((Prod (ByteArray) (ByteArray)))) (Option (Form))) := validateOneForm (raw) (isDup) (isCore) (forbiddenControls) ((state).diagsRev); (\{ diagsRev := (stepOut).1, formsRev := (match (stepOut).2 with | Option.some f => (f :: (state).formsRev) | Option.none => (state).formsRev), seenIds := ((raw).id :: (state).seenIds) \} : FormFoldState)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{FormsOut}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{diagsRev}: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Field \texttt{forms}: \texttt{List (Form)}.\par
+\subsection*{\texttt{validateForms}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(raws : List (RawForm)) (isCore : Bool) (forbiddenControls : List (ByteArray)) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Closure 1: binds \texttt{(state, raw)}, captures \texttt{(forbiddenControls, isCore)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{FormsOut}.\par
+\noindent Definition: \texttt{(let diags0 : List ((Prod (ByteArray) (ByteArray))) := appendRev (diagsIn) ((match raws with | List.nil => Option.some (errD (lit ("an entry declares at least one form"))) | List.cons \_ \_ => Option.none)); (let final : FormFoldState := (LexLeanCollections.listFold ((fun (state : FormFoldState) (raw : RawForm) => formFoldStep (isCore) (forbiddenControls) (state) (raw))) ((\{ diagsRev := diags0, formsRev := ([] : List (Form)), seenIds := ([] : List (ByteArray)) \} : FormFoldState)) (raws) : FormFoldState); (\{ diagsRev := (final).diagsRev, forms := LexLeanStd.Order.reverseList (Form) ((final).formsRev) \} : FormsOut)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{coversChannel}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(formChannel : Nat) (target : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(if (Nat.beq (formChannel) (2)) then true else (Nat.beq (formChannel) (target)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{anyCanonical}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(forms : List (Form))}.\par
+\noindent Closure 1: binds \texttt{(found, form)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (found : Bool) (form : Form) => (if found then true else (form).canonicalSource))) (false) (forms) : Bool)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{countCanonical}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(forms : List (Form)) (target : Nat)}.\par
+\noindent Closure 1: binds \texttt{(count, form)}, captures \texttt{(target)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (count : Nat) (form : Form) => (if ((form).canonicalSource \&\& coversChannel ((form).channel) (target)) then (count + 1) else count))) (0) (forms) : Nat)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{listHasNat}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (Nat)) (target : Nat)}.\par
+\noindent Closure 1: binds \texttt{(found, item)}, captures \texttt{(target)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (found : Bool) (item : Nat) => (if found then true else (Nat.beq (item) (target))))) (false) (items) : Bool)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{validateCanonicalFormsForChannel}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(categoryText : ByteArray) (requiredChannels : List (Nat)) (forms : List (Form)) (target : Nat) (channelName : ByteArray) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Definition: \texttt{(let count : Nat := countCanonical (forms) (target); (let d1 : List ((Prod (ByteArray) (ByteArray))) := appendRev (diagsIn) ((if (Nat.blt (1) (count)) then Option.some (errD (cat (lit ("more than one canonical source form for the ")) (cat (channelName) (lit (" channel"))))) else Option.none)); appendRev (d1) ((if (listHasNat (requiredChannels) (target) \&\& (Nat.beq (count) (0))) then Option.some (errD (cat (cat (lit ("category `")) (categoryText)) (cat (lit ("` requires a canonical source form in the ")) (cat (channelName) (lit (" channel")))))) else Option.none))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{validateCanonicalForms}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(categoryText : ByteArray) (needsSome : Bool) (requiredChannels : List (Nat)) (forms : List (Form)) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Definition: \texttt{(let d1 : List ((Prod (ByteArray) (ByteArray))) := appendRev (diagsIn) ((if (needsSome \&\& (if anyCanonical (forms) then false else true)) then Option.some (errD (cat (cat (lit ("category `")) (categoryText)) (lit ("` requires a canonical source form in the text or the math channel")))) else Option.none)); (let d2 : List ((Prod (ByteArray) (ByteArray))) := validateCanonicalFormsForChannel (categoryText) (requiredChannels) (forms) (0) (lit ("text")) (d1); validateCanonicalFormsForChannel (categoryText) (requiredChannels) (forms) (1) (lit ("math")) (d2)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{wrapLreFailure}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(what : ByteArray) (failure : LexLeanBoot.LexiconLse.Failure)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (ByteArray) (ByteArray))}.\par
+\noindent Definition: \texttt{(if (Nat.beq ((failure).kind) (1)) then limitD (cat (cat (what) (lit (" render: "))) ((failure).message)) else errD (cat (cat (cat (lit ("invalid ")) (what)) (lit (" LRE: "))) ((failure).message)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{insertNatSorted}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (Nat)) (key : Nat)}.\par
+\noindent Closure 1: binds \texttt{(state, item)}, captures \texttt{(key)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Nat)}.\par
+\noindent Definition: \texttt{(let done : (Prod (Bool) (List (Nat))) := (LexLeanCollections.listFold ((fun (state : (Prod (Bool) (List (Nat)))) (item : Nat) => (if (state).1 then (true, (item :: (state).2)) else (if (Nat.ble (key) (item)) then (true, (item :: (key :: (state).2))) else (false, (item :: (state).2)))))) ((false, ([] : List (Nat)))) (items) : (Prod (Bool) (List (Nat)))); (match (done).1 with | Bool.true => LexLeanStd.Order.reverseList (Nat) ((done).2) | Bool.false => LexLeanStd.Order.reverseList (Nat) ((key :: (done).2))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{sortNats}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (Nat))}.\par
+\noindent Closure 1: binds \texttt{(acc, item)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Nat)}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (acc : List (Nat)) (item : Nat) => insertNatSorted (acc) (item))) (([] : List (Nat))) (items) : List (Nat))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{rangeUpTo}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(n : Nat)}.\par
+\noindent Closure 1: binds \texttt{(st)}, captures \texttt{(n)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (Nat)}.\par
+\noindent Definition: \texttt{LexLeanStd.Order.reverseList (Nat) ((((LexLeanCollections.iterateUntil ((fun (st : (Prod (Nat) (List (Nat)))) => (if (Nat.blt ((st).1) (n)) then Option.some ((((st).1 + 1), ((st).1 :: (st).2))) else Option.none))) ((n + 1)) ((0, ([] : List (Nat)))) : (Prod ((Prod (Nat) (List (Nat)))) (Bool)))).1).2)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{natListText}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (Nat))}.\par
+\noindent Closure 1: binds \texttt{(acc, item)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (acc : ByteArray) (item : Nat) => cat (cat (acc) (lit (","))) (LexLeanStd.Numeral.decimal (item)))) (ByteArray.mk \#[]) (items) : ByteArray)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{findFormById}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(forms : List (Form)) (target : ByteArray)}.\par
+\noindent Closure 1: binds \texttt{(found, form)}, captures \texttt{(target)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Form)}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (found : Option (Form)) (form : Form) => (match found with | Option.some \_ => found | Option.none => (if (LexLeanRuntime.equal ((form).id) (target) : Bool) then Option.some (form) else Option.none)))) (Option.none) (forms) : Option (Form))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{validateOneSelfFormRef}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(forms : List (Form)) (targetChannel : Nat) (channelName : ByteArray) (selfForm : ByteArray) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Definition: \texttt{(match findFormById (forms) (selfForm) with | Option.none => (errD (cat (cat (cat (channelName) (lit (" render references unknown self form "))) (quoted (selfForm))) (ByteArray.mk \#[])) :: diagsIn) | Option.some form => (let d1 : List ((Prod (ByteArray) (ByteArray))) := appendRev (diagsIn) ((if coversChannel ((form).channel) (targetChannel) then Option.none else Option.some (errD (cat (cat (cat (channelName) (lit (" render references self form "))) (quoted (selfForm))) (cat (lit (", which is not a ")) (cat (channelName) (lit (" form")))))))); (match LexLeanBoot.LexiconSchema.surfaceSafety ((form).atoms) ((form).channel) with | Option.none => d1 | Option.some reason => appendRev (d1) (Option.some (formUnsafeD (cat (cat (cat (cat (cat (channelName) (lit (" render references self form "))) (quoted (selfForm))) (lit (" whose surface `"))) ((form).surface)) (cat (lit ("` is not renderer-safe: ")) (reason))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{validateSelfFormRefs}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(selfForms : List (ByteArray)) (forms : List (Form)) (targetChannel : Nat) (channelName : ByteArray) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Closure 1: binds \texttt{(acc, selfForm)}, captures \texttt{(channelName, forms, targetChannel)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (acc : List ((Prod (ByteArray) (ByteArray)))) (selfForm : ByteArray) => validateOneSelfFormRef (forms) (targetChannel) (channelName) (selfForm) (acc))) (diagsIn) (selfForms) : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{RenderStepOut}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{diagsRev}: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Field \texttt{render}: \texttt{Option (LexLeanBoot.LexiconLre.Render)}.\par
+\subsection*{\texttt{validateOneRender}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(channelName : ByteArray) (targetChannel : Nat) (renderSourceOpt : Option (ByteArray)) (forms : List (Form)) (maxScopeDepth : Nat) (surfaceArity : Nat) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{RenderStepOut}.\par
+\noindent Definition: \texttt{(match renderSourceOpt with | Option.none => (\{ diagsRev := diagsIn, render := Option.none \} : RenderStepOut) | Option.some src => (match LexLeanBoot.LexiconLre.parseLre (src) (maxScopeDepth) with | Except.error failure => (\{ diagsRev := appendRev (diagsIn) (Option.some (wrapLreFailure (channelName) (failure))), render := Option.none \} : RenderStepOut) | Except.ok render => (let nodes : Nat := ((LexLeanRuntime.length (src) : Nat) + 2); (let facts : LexLeanBoot.LexiconLre.Facts := LexLeanBoot.LexiconLre.renderFacts (render) (nodes); (let d1 : List ((Prod (ByteArray) (ByteArray))) := appendRev (diagsIn) ((if (LexLeanRuntime.equal (natListText (sortNats ((facts).slots))) (natListText (rangeUpTo (surfaceArity))) : Bool) then Option.none else Option.some (errD (cat (cat (channelName) (lit (" render must use every slot 0.."))) (cat (LexLeanStd.Numeral.decimal (surfaceArity)) (lit (" exactly once"))))))); (let d2 : List ((Prod (ByteArray) (ByteArray))) := (match (facts).scriptError with | Option.none => d1 | Option.some problem => appendRev (d1) (Option.some (errD (cat (cat (channelName) (lit (" render: "))) (problem))))); (let d3 : List ((Prod (ByteArray) (ByteArray))) := (if (Nat.beq (targetChannel) (0)) then (match (facts).mathOnly with | Option.none => d2 | Option.some construct => appendRev (d2) (Option.some (errD (cat (cat (lit ("text render uses `")) (construct)) (lit ("`, a mathematical construct with no text rendering")))))) else d2); (let d4 : List ((Prod (ByteArray) (ByteArray))) := validateSelfFormRefs ((facts).selfForms) (forms) (targetChannel) (channelName) (d3); (\{ diagsRev := d4, render := Option.some (render) \} : RenderStepOut)))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{RenderBlockOut}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{diagsRev}: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Field \texttt{renderMath}: \texttt{Option (LexLeanBoot.LexiconLre.Render)}.\par
+\noindent Field \texttt{renderText}: \texttt{Option (LexLeanBoot.LexiconLre.Render)}.\par
+\subsection*{\texttt{isSomeBytesOpt}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(o : Option (ByteArray))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match o with | Option.some \_ => true | Option.none => false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{validateRenderBlock}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(hasRender : Bool) (categoryIdx : Nat) (categoryText : ByteArray) (needsSome : Bool) (requiredChannels : List (Nat)) (renderMathText : Option (ByteArray)) (renderTextText : Option (ByteArray)) (forms : List (Form)) (maxScopeDepth : Nat) (surfaceArity : Nat) (frameIdx : Nat) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{RenderBlockOut}.\par
+\noindent Definition: \texttt{(let d1 : List ((Prod (ByteArray) (ByteArray))) := (if hasRender then appendRev (diagsIn) ((if (if (Nat.beq (categoryIdx) (0)) then true else (Nat.beq (categoryIdx) (1))) then Option.some (errD (lit ("structural and grammar entries do not carry render templates"))) else Option.none)) else diagsIn); (let hasTextCanonical : Bool := (needsSome \&\& (Nat.blt (0) (countCanonical (forms) (0)))); (let d2 : List ((Prod (ByteArray) (ByteArray))) := (if hasRender then appendRev (d1) ((if (isSomeBytesOpt (renderTextText) \&\& ((if listHasNat (requiredChannels) (0) then false else true) \&\& (if hasTextCanonical then false else true))) then Option.some (errD (cat (cat (lit ("category `")) (categoryText)) (lit ("` has no text canonical form, so a text render does not apply")))) else Option.none)) else d1); (let mathStep : RenderStepOut := validateOneRender (lit ("math")) (1) (renderMathText) (forms) (maxScopeDepth) (surfaceArity) (d2); (let textStep : RenderStepOut := validateOneRender (lit ("text")) (0) (renderTextText) (forms) (maxScopeDepth) (surfaceArity) ((mathStep).diagsRev); (let needsMathRender : Bool := (if (Nat.beq (frameIdx) (1)) then true else (if (Nat.beq (frameIdx) (2)) then true else (if (Nat.beq (frameIdx) (3)) then true else (Nat.beq (frameIdx) (4))))); (let d3 : List ((Prod (ByteArray) (ByteArray))) := appendRev ((textStep).diagsRev) ((if (needsMathRender \&\& (match (mathStep).render with | Option.some \_ => false | Option.none => true)) then Option.some (errD (lit ("a math frame with surface arguments requires a canonical math render"))) else Option.none)); (\{ diagsRev := d3, renderMath := (mathStep).render, renderText := (textStep).render \} : RenderBlockOut))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{validateCalculation}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(hasCalculation : Bool) (calcKind : ByteArray) (categoryIdx : Nat) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (List ((Prod (ByteArray) (ByteArray)))) (Bool))}.\par
+\noindent Definition: \texttt{(if (if hasCalculation then false else true) then (diagsIn, false) else (let d1 : List ((Prod (ByteArray) (ByteArray))) := appendRev (diagsIn) ((if (LexLeanRuntime.equal (calcKind) (lit ("equality")) : Bool) then Option.none else Option.some (errD (lit ("language 1.0 ships exactly the equality calculation descriptor"))))); (let d2 : List ((Prod (ByteArray) (ByteArray))) := appendRev (d1) ((if (Nat.beq (categoryIdx) (15)) then Option.none else Option.some (errD (lit ("a calculation descriptor belongs to an infix relation"))))); (d2, true))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{eliminatorBinderStep}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : (Prod (List ((Prod (ByteArray) (ByteArray)))) (List (ByteArray)))) (name : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (List ((Prod (ByteArray) (ByteArray)))) (List (ByteArray)))}.\par
+\noindent Definition: \texttt{(let isDup : Bool := listHasBytes ((state).2) (name); (let bad : Bool := (if LexLeanBoot.LexiconLse.isLseIdentifier (name) then isDup else true); (appendRev ((state).1) ((if bad then Option.some (errD (cat (cat (lit ("invalid or duplicate eliminator binder ")) (quoted (name))) (ByteArray.mk \#[]))) else Option.none)), (name :: (state).2))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{validateEliminatorBinders}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(names : List (ByteArray)) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Closure 1: binds \texttt{(state, name)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Definition: \texttt{((LexLeanCollections.listFold ((fun (state : (Prod (List ((Prod (ByteArray) (ByteArray)))) (List (ByteArray)))) (name : ByteArray) => eliminatorBinderStep (state) (name))) ((diagsIn, ([] : List (ByteArray)))) (names) : (Prod (List ((Prod (ByteArray) (ByteArray)))) (List (ByteArray))))).1}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{qualifiedText}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(package : ByteArray) (entryName : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{cat (cat (package) (lit ("::"))) (entryName)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{ConstructorFoldState}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{diagsRev}: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Field \texttt{constructorsRev}: \texttt{List (EliminatorConstructor)}.\par
+\noindent Field \texttt{seenQualified}: \texttt{List (ByteArray)}.\par
+\subsection*{\texttt{constructorFoldStep}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : ConstructorFoldState) (raw : RawConstructor)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ConstructorFoldState}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.LexiconLse.qualifiedId ((raw).entry) with | Except.error failure => (\{ diagsRev := appendRev ((state).diagsRev) (Option.some (errD ((failure).message))), constructorsRev := (state).constructorsRev, seenQualified := (state).seenQualified \} : ConstructorFoldState) | Except.ok parts => (let package : ByteArray := (parts).1; (let entryName : ByteArray := (parts).2; (let qt : ByteArray := qualifiedText (package) (entryName); (let isDup : Bool := listHasBytes ((state).seenQualified) (qt); (let d1 : List ((Prod (ByteArray) (ByteArray))) := appendRev ((state).diagsRev) ((if isDup then Option.some (errD (cat (lit ("duplicate eliminator constructor ")) (quoted (qt)))) else Option.none)); (let d2 : List ((Prod (ByteArray) (ByteArray))) := appendRev (d1) ((if LexLeanBoot.LexiconSchema.isLeanName ((raw).leanName) then Option.none else Option.some (errD (cat (quoted ((raw).leanName)) (lit (" is not a Lean name")))))); (let d3 : List ((Prod (ByteArray) (ByteArray))) := validateEliminatorBinders ((raw).fields) (d2); (let d4 : List ((Prod (ByteArray) (ByteArray))) := validateEliminatorBinders ((raw).inductionHypotheses) (d3); (\{ diagsRev := d4, constructorsRev := ((\{ package := package, entry := entryName, leanName := (raw).leanName, fields := (raw).fields, inductionHypotheses := (raw).inductionHypotheses \} : EliminatorConstructor) :: (state).constructorsRev), seenQualified := (qt :: (state).seenQualified) \} : ConstructorFoldState))))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{EliminatorOut}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{diagsRev}: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
+\noindent Field \texttt{eliminator}: \texttt{Option (Eliminator)}.\par
+\subsection*{\texttt{validateEliminator}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(rawElim : Option (RawEliminator)) (signatureSortValued : Bool) (entryId : ByteArray) (diagsIn : List ((Prod (ByteArray) (ByteArray))))}.\par
+\noindent Closure 1: binds \texttt{(state, raw)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{EliminatorOut}.\par
+\noindent Definition: \texttt{(match rawElim with | Option.none => (\{ diagsRev := diagsIn, eliminator := Option.none \} : EliminatorOut) | Option.some re => (let d1 : List ((Prod (ByteArray) (ByteArray))) := appendRev (diagsIn) ((if signatureSortValued then Option.none else Option.some (errD (cat (cat (quoted (entryId)) (lit (": an eliminator descriptor belongs to a type entry, whose signature results in a sort"))) (ByteArray.mk \#[]))))); (let d2 : List ((Prod (ByteArray) (ByteArray))) := appendRev (d1) ((if LexLeanBoot.LexiconSchema.isLeanName ((re).casesLeanName) then Option.none else Option.some (errD (cat (cat (lit ("eliminator cases\_lean\_name ")) (quoted ((re).casesLeanName))) (lit (" is not a Lean name")))))); (let d3 : List ((Prod (ByteArray) (ByteArray))) := appendRev (d2) ((if LexLeanBoot.LexiconSchema.isLeanName ((re).inductionLeanName) then Option.none else Option.some (errD (cat (cat (lit ("eliminator induction\_lean\_name ")) (quoted ((re).inductionLeanName))) (lit (" is not a Lean name")))))); (let folded : ConstructorFoldState := (LexLeanCollections.listFold ((fun (state : ConstructorFoldState) (raw : RawConstructor) => constructorFoldStep (state) (raw))) ((\{ diagsRev := d3, constructorsRev := ([] : List (EliminatorConstructor)), seenQualified := ([] : List (ByteArray)) \} : ConstructorFoldState)) ((re).constructors) : ConstructorFoldState); (let constructors : List (EliminatorConstructor) := LexLeanStd.Order.reverseList (EliminatorConstructor) ((folded).constructorsRev); (let d4 : List ((Prod (ByteArray) (ByteArray))) := appendRev ((folded).diagsRev) ((if (Nat.beq ((LexLeanRuntime.length (constructors) : Nat)) (0)) then Option.some (errD (lit ("an eliminator needs at least one constructor"))) else Option.none)); (\{ diagsRev := d4, eliminator := Option.some ((\{ casesLeanName := (re).casesLeanName, inductionLeanName := (re).inductionLeanName, constructors := constructors \} : Eliminator)) \} : EliminatorOut))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{parseEntry}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(text : ByteArray) (isCore : Bool) (forbiddenControls : List (ByteArray)) (maxScopeDepth : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow, recursion}.\par
+\noindent Type: \texttt{Except (List ((Prod (ByteArray) (ByteArray)))) (Entry)}.\par
+\noindent Definition: \texttt{(match LexLeanBoot.TomlRead.tomlParse (text) with | Option.none => Except.error ((errD (lit ("invalid entry file")) :: ([] : List ((Prod (ByteArray) (ByteArray)))))) | Option.some doc => (match extractRaw (doc) with | Option.none => Except.error ((errD (lit ("invalid entry file")) :: ([] : List ((Prod (ByteArray) (ByteArray)))))) | Option.some raw => (if (if (LexLeanRuntime.equal ((raw).spec) (lit ("lexlean/entry/1")) : Bool) then false else true) then Except.error (((lit ("LLC0103"), cat (cat (lit ("unsupported entry schema ")) (quoted ((raw).spec))) (ByteArray.mk \#[])) :: ([] : List ((Prod (ByteArray) (ByteArray)))))) else (match LexLeanBoot.LexiconSchema.tokenIndex (0) ((raw).category) with | Option.none => Except.error ((errD (cat (quoted ((raw).category)) (lit (" is not a category"))) :: ([] : List ((Prod (ByteArray) (ByteArray)))))) | Option.some categoryIdx => (match LexLeanBoot.LexiconSchema.tokenIndex (1) ((raw).frame) with | Option.none => Except.error ((errD (cat (quoted ((raw).frame)) (lit (" is not a frame"))) :: ([] : List ((Prod (ByteArray) (ByteArray)))))) | Option.some frameIdx => (let shape : LexLeanBoot.LexiconSchema.Shape := LexLeanBoot.LexiconSchema.shapeFacts (categoryIdx) (frameIdx) ((raw).surfaceArity); (let headerOut : HeaderOut := validateHeader ((raw).id) (categoryIdx) (frameIdx) ((raw).category) ((raw).frame) ((raw).surfaceArity) ((raw).precedence) ((raw).associativity) (isCore); (let sigOut : SigOut := validateSignature ((raw).id) ((raw).category) ((raw).universes) ((raw).signature) ((shape).hasSignature) ((raw).surfaceArity) (maxScopeDepth) ((headerOut).diagsRev); (let denOut : (Prod (List ((Prod (ByteArray) (ByteArray)))) (Denotation)) := validateDenotation (isCore) ((raw).dKind) ((raw).dConstructor) ((raw).dModule) ((raw).dName) ((raw).dComponent) ((raw).dValue) (maxScopeDepth) ((sigOut).universes) ((sigOut).diagsRev); (let formsOut : FormsOut := validateForms ((raw).forms) (isCore) (forbiddenControls) ((denOut).1); (let canonOut : List ((Prod (ByteArray) (ByteArray))) := validateCanonicalForms ((raw).category) ((shape).needsSome) ((shape).requiredChannels) ((formsOut).forms) ((formsOut).diagsRev); (let renderOut : RenderBlockOut := validateRenderBlock ((raw).hasRender) (categoryIdx) ((raw).category) ((shape).needsSome) ((shape).requiredChannels) ((raw).renderMath) ((raw).renderText) ((formsOut).forms) (maxScopeDepth) ((raw).surfaceArity) (frameIdx) (canonOut); (let calcOut : (Prod (List ((Prod (ByteArray) (ByteArray)))) (Bool)) := validateCalculation ((raw).hasCalculation) ((raw).calcKind) (categoryIdx) ((renderOut).diagsRev); (let signatureSortValued : Bool := (match (sigOut).signature with | Option.none => false | Option.some sig => (LexLeanBoot.LseScopes.outerShape (sig) ((LexLeanRuntime.length (text) : Nat))).2); (let elimOut : EliminatorOut := validateEliminator ((raw).eliminator) (signatureSortValued) ((raw).id) ((calcOut).1); (match (elimOut).diagsRev with | List.cons \_ \_ => Except.error (LexLeanStd.Order.reverseList ((Prod (ByteArray) (ByteArray))) ((elimOut).diagsRev)) | List.nil => Except.ok ((\{ id := (raw).id, category := categoryIdx, frame := frameIdx, surfaceArity := (raw).surfaceArity, signature := (sigOut).signature, signatureCanonical := (sigOut).signatureCanonical, signatureHash := (sigOut).signatureHash, universes := (sigOut).universes, precedence := (headerOut).precedence, associativity := (headerOut).associativity, denotation := (denOut).2, forms := (formsOut).forms, renderMath := (renderOut).renderMath, renderText := (renderOut).renderText, calculation := (calcOut).2, eliminator := (elimOut).eliminator \} : Entry))))))))))))))))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\end{document}

@@ -637,6 +637,107 @@
 'LexLeanBoot.GrammarProof.tokenOr' does not depend on any axioms
 'LexLeanBoot.GrammarProof.tokenStep' does not depend on any axioms
 'LexLeanBoot.GrammarProof.wordIs' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.ConstructorFoldState' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.Denotation' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.Eliminator' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.EliminatorConstructor' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.EliminatorOut' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.Entry' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.Form' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.FormFoldState' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.FormGate' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.FormsOut' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.HeaderOut' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.RawConstructor' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.RawDenotationFields' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.RawEliminator' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.RawEntry' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.RawForm' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.RenderBlockOut' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.RenderStepOut' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.SigOut' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.anyCanonical' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.anyControlAtom' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.anyNotLseIdentifier' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.appendRev' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.calculationAllowedKeys' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.cat' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.cat3' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.constructorFoldStep' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.constructorRowsOrEmpty' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.countCanonical' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.coversChannel' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.denotationAllowedKeys' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.eliminatorAllowedKeys' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.eliminatorBinderStep' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.eliminatorConstructorAllowedKeys' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.emptyArrOrNone' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.errD' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.extractConstructor' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.extractConstructors' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.extractDenotationRow' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.extractEliminator' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.extractForm' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.extractForms' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.extractRaw' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.featureDiags' depends on axioms: [propext]
+'LexLeanBoot.LexiconEntry.findFormById' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.firstRow' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.forbiddenAtomDiags' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.formAllowedKeys' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.formFoldStep' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.formGate' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.formRowsOrEmpty' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.formUnsafeD' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.getArr' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.getBool' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.getNat' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.getOptArr' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.getOptNat' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.getOptStr' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.getStr' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.hasOnlyKeys' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.insertNatSorted' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.isControlAtom' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.isSomeBytes' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.isSomeBytesOpt' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.isSortedUniqueStrict' depends on axioms: [propext]
+'LexLeanBoot.LexiconEntry.limitD' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.listHasBytes' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.listHasNat' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.lit' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.natListText' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.optCount' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.parseEntry' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.qualifiedText' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.quoted' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.rangeUpTo' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.renderAllowedKeys' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.rootAllowedKeys' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.sortNats' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.sortedUniqueStep' depends on axioms: [propext]
+'LexLeanBoot.LexiconEntry.surfaceWhitespaceBad' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.topRow' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.validateCalculation' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.validateCanonicalForms' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.validateCanonicalFormsForChannel' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.validateCoreDenotation' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.validateDefinedDenotation' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.validateDenotation' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.validateDocumentDenotation' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.validateEliminator' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.validateEliminatorBinders' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.validateForms' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.validateHeader' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.validateLeanDenotation' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.validateOneForm' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.validateOneRender' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.validateOneSelfFormRef' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.validateRenderBlock' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.validateSelfFormRefs' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.validateSignature' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.LexiconEntry.wrapLreFailure' does not depend on any axioms
+'LexLeanBoot.LexiconEntry.wrapLseFailure' does not depend on any axioms
 'LexLeanBoot.LexiconLre.Facts' does not depend on any axioms
 'LexLeanBoot.LexiconLre.RWork' does not depend on any axioms
 'LexLeanBoot.LexiconLre.Render' does not depend on any axioms
@@ -961,6 +1062,22 @@
 'LexLeanBoot.ManifestText.rowsJson' depends on axioms: [propext]
 'LexLeanBoot.ManifestText.rowsSorted' depends on axioms: [propext]
 'LexLeanBoot.ManifestText.textArray' does not depend on any axioms
+'LexLeanBoot.PackageRef.PackageRef' does not depend on any axioms
+'LexLeanBoot.PackageRef.allBuildSegments' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.PackageRef.allCanonicalDecimal' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.PackageRef.allPrereleaseSegments' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.PackageRef.alnumHyphenEnd' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.PackageRef.cat' does not depend on any axioms
+'LexLeanBoot.PackageRef.isAllDigits' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.PackageRef.isAlnumHyphen' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.PackageRef.isAsciiAlpha' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.PackageRef.isBuildSegment' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.PackageRef.isExactVersion' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.PackageRef.isPrereleaseSegment' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.PackageRef.isSemverCore' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.PackageRef.lit' does not depend on any axioms
+'LexLeanBoot.PackageRef.parsePackageRef' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.PackageRef.segCount' does not depend on any axioms
 'LexLeanBoot.PrimitiveScan.Atom' does not depend on any axioms
 'LexLeanBoot.PrimitiveScan.AtomClass' does not depend on any axioms
 'LexLeanBoot.PrimitiveScan.CheckState' does not depend on any axioms
@@ -2493,6 +2610,36 @@
 'LexLeanBoot.TokenAudit.stepLexIdent' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.TokenAudit.stepLexToken' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.TokenAudit.subScriptWidth' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.TomlRead.Es' does not depend on any axioms
+'LexLeanBoot.TomlRead.Ps' does not depend on any axioms
+'LexLeanBoot.TomlRead.Pst' does not depend on any axioms
+'LexLeanBoot.TomlRead.RawClose' does not depend on any axioms
+'LexLeanBoot.TomlRead.Section' does not depend on any axioms
+'LexLeanBoot.TomlRead.Value' does not depend on any axioms
+'LexLeanBoot.TomlRead.anyMatch' does not depend on any axioms
+'LexLeanBoot.TomlRead.appendNew' does not depend on any axioms
+'LexLeanBoot.TomlRead.appendRowToSection' does not depend on any axioms
+'LexLeanBoot.TomlRead.cat' does not depend on any axioms
+'LexLeanBoot.TomlRead.classifyAndStep' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.TomlRead.closeRow' does not depend on any axioms
+'LexLeanBoot.TomlRead.docSection' does not depend on any axioms
+'LexLeanBoot.TomlRead.esStep' does not depend on any axioms
+'LexLeanBoot.TomlRead.groupStep' does not depend on any axioms
+'LexLeanBoot.TomlRead.isBlankOrComment' does not depend on any axioms
+'LexLeanBoot.TomlRead.lit' does not depend on any axioms
+'LexLeanBoot.TomlRead.mergeInto' does not depend on any axioms
+'LexLeanBoot.TomlRead.parseHeader' does not depend on any axioms
+'LexLeanBoot.TomlRead.parseString' does not depend on any axioms
+'LexLeanBoot.TomlRead.parseStringArray' does not depend on any axioms
+'LexLeanBoot.TomlRead.pathEq' does not depend on any axioms
+'LexLeanBoot.TomlRead.psStep' does not depend on any axioms
+'LexLeanBoot.TomlRead.rowGet' does not depend on any axioms
+'LexLeanBoot.TomlRead.rowHasKey' does not depend on any axioms
+'LexLeanBoot.TomlRead.rowKeys' does not depend on any axioms
+'LexLeanBoot.TomlRead.sectionMatches' does not depend on any axioms
+'LexLeanBoot.TomlRead.skipWs' does not depend on any axioms
+'LexLeanBoot.TomlRead.tomlLineStep' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.TomlRead.tomlParse' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ToolingAst.Atom' does not depend on any axioms
 'LexLeanBoot.ToolingAst.BinderKind' does not depend on any axioms
 'LexLeanBoot.ToolingAst.Constructor' does not depend on any axioms
