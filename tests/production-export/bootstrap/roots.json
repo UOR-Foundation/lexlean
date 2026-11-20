@@ -65,8 +65,8 @@
       "version": "1.0.0"
     },
     {
-      "name": "config_sha256",
-      "root": "LexLeanBoot.ProjectText.configSha256",
+      "name": "config_kappa",
+      "root": "LexLeanBoot.ProjectText.configKappa",
       "targets": [
         "rust-std"
       ],

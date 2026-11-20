@@ -107,6 +107,90 @@ workspace carried at those versions without a tag.
   literal types or the first error, with what the lookup answers given as a
   table. Both admit `recursion`, structural over a bound on nesting the host
   passes.
+- Every identity LexLean computes, names, or pins is a UOR κ-label on the BLAKE3 σ-axis,
+  `blake3:<64 lowercase hex>` (§21.1): the κ-label uor-addr writes on its `blake3` axis and the
+  address Hologram's store re-derives for the same bytes. The standard library's new certified
+  `LexLeanStd.Blake3` module (production root `blake3Label`) computes it; the crate compiles a
+  committed copy of its export, held byte for byte to the export (`SL-06`), in place of the `sha2`
+  crate, and no hash crate ships. Recipes keep the §21.1 framing on `-v2` domains, and an identity
+  framed into another is framed as its label. Every language's compiler-semantics ID moves, and
+  every format whose accepted bytes change raises its spec (`project/2`, `lock/3` and `/4`,
+  `semantic-snapshot/3` and `/4`, `attestation/3` and `/4`, `build-manifest/2`, and the rest),
+  with `*sha256*` fields renamed `*kappa*`. SHA-256 remains only where a format LexLean does not
+  own requires it, which the new `audit-hashes` (`AR-15`) enforces; `tests/kappa/vectors.json`
+  (`AR-16`) states cross-implementation vectors that an independent generator, the `blake3`
+  crate, and uor-addr reproduce. In WASM the identity hashes about six times faster than the
+  `sha2` crate it replaces.
+- `lexlean lean-modules` prints each module's axiom policies (SPEC.md §22.6,
+  §23.4, `CL-28`). Verification's policy stage now evaluates one table,
+  `lexlean::verify::policy::table`, and the command prints that same table
+  under `axiom_policies`, so a host that elaborates the modules itself holds
+  them to exactly the rules `verify` applies. Each row gives the declaration,
+  its policy kind and axioms, and its rule: `document`, `core`, `semantic`,
+  `model` with the generated declarations it governs, or `runtime`. Stage 11
+  keeps its diagnostics and attestation rows byte for byte. No language
+  identity moves; the register is 502.
+- `lexlean lean-modules [--all | INPUT...]` prints the Lean modules a build
+  of a selection elaborates (SPEC.md §23.4, `CL-27`). It renders the build as
+  `build` does and publishes nothing, so it takes no lock and writes nothing,
+  and the executable built for `wasm32-wasip1`, where `build` is refused,
+  prints the native bytes. Human mode writes one canonical
+  `lexlean/lean-modules/1` document: the manifest's compiler, language, Lean
+  toolchain, and source, semantic, and build IDs, then every module in the
+  order verification elaborates it, the shipped text-laws and runtime modules
+  the project imports first, each with its Lean module name, exact text, and
+  κ-label. A project module's text is the file `build` writes under that build
+  ID, byte for byte. JSON mode writes `check`'s command result named
+  `lean-modules` with the build ID. A host with Lean and no file lock, such as
+  a browser worker, can now elaborate exactly what native LexLean generates.
+  On `wasm32-wasip1` the printer of a native core module now runs on the
+  instance's one stack instead of a thread WASI cannot start, which refused
+  `examples/uor-atlas` with `LLS8002`; no native output changes. No language
+  identity moves; the register is 501.
+- `lexlean snapshot [--all | INPUT...]` writes the semantic snapshot of a
+  selection (SPEC.md §23.4, `CL-26`). In human mode its stdout is exactly the
+  snapshot's canonical file bytes, the bytes `Engine::snapshot` serializes, so
+  their κ-label is the snapshot ID; in JSON mode it writes the command result
+  `check` writes, named `snapshot`. A project `check` refuses exits and
+  reports as `check` does and prints no snapshot, and the command writes
+  nothing. Since a snapshot holds no path or host data, the executable built
+  for `wasm32-wasip1` prints the native bytes, so a WASI host with no other
+  host, such as a browser worker, can take a model's snapshot. No language
+  identity moves; the register is 500.
+- A release tag publishes what a browser prover loads (SPEC.md §7, §30.3,
+  `RP-20`). `lexlean-<version>-lean-wasm.tar.gz` holds the `.olean`,
+  `.olean.server`, `.olean.private`, `.ir`, and `.ilean` files of every runtime
+  module, built by the pinned Lean from the Lake package that the new
+  `cargo xtask runtime-package` writes. It also holds the WASM prover's driver,
+  now committed under `lean/wasm-prover/driver/` from foundry `43b66b26d38b`
+  byte for byte. `lexlean-<version>.wasm.gz` is the `wasm32-wasip1` executable
+  without `production-data`. Each is built twice and refused unless the two
+  builds agree. `lean-wasm.json` labels every file by the BLAKE3 κ of its raw
+  bytes, with the commit and the Lean version. CI builds the driver and the
+  runtime package in `RP-20`. No language identity moves; the register is 503.
+- An Atlas shard of the gate drops the part it uploaded in an earlier attempt
+  of its run before it runs (SPEC.md §9.4, `RP-14`). "Re-run all jobs"
+  downloaded that part with the rest, and the shard refused the non-empty
+  directory (`LLI9001`), so a gate could be recovered only by a new dispatch.
+- Arrays of fixed-width integers (SPEC.md §17.12, *Arrays*, `SM-39`; no new
+  diagnostic code; changes the language-1.2 identity). Language 1.2 gains the
+  type `array{element: T}` over one fixed-width integer type, lowered to the
+  pinned Lean's `Array`; `length` and `index` apply to it, and the primitives
+  `array_from_list`, `array_to_list`, and `array_set` convert it to and from
+  the list of its elements and replace one element, an offset at or past the
+  length leaving the array as it is. The runtime gains a native module,
+  `LexLeanRuntime.Arrays`: the two instances, the three primitives, and nine
+  laws that relate an array to its list, every row within `propext`
+  (`tests/runtime-library/ARRAYS.md`). A `law` proof now imports the module
+  that states its law, so a module that applies an array law does not import
+  `LexLeanRuntime.Laws`. `examples/arrays` proves, for all arrays, that an
+  int8 dot product computed by index equals its definition on lists, and that
+  a rectification written in place keeps the length. The array type and its
+  primitives are formal-only for production (§17.13): a root that reaches one
+  is `LLT4005`. That the pinned Lean writes a singly referenced array in place
+  is cited (`LEAN-ARRAY-4-32-2`), not established here. The design and the
+  decisions left to the owners are in `docs/proposals/verified-arrays.md`.
+  The register is 499 IDs.
 - Each push to a release line is merged forward by `forward.yml` (SPEC.md §9.4, `RP-14`):
   the push is merged into the next line on `forward/vXY-to-vX(Y+1)-<head8>`, a conflict in a
   generated projection or a lock takes the next line's side for `regenerate.yml` to rewrite,
@@ -292,7 +376,6 @@ workspace carried at those versions without a tag.
   feature disables a normative capability. A default build is unchanged.
   A landing that moves the language-1.2 ID now also updates the constant;
   `RP-10` names the new value when it is stale.
-
 - `RB-24`, the driver of a command root (#271). A `rust-std` root of the type of a
   command's step gets `src/main.rs` beside `src/lib.rs`: a loop, printed from the
   new language-1.2 module `RuntimeHost`, that calls the step and carries out each

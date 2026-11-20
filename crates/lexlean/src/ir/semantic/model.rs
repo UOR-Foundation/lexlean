@@ -407,7 +407,7 @@ pub(super) fn source_node_count(declaration: &SemanticDeclaration) -> u64 {
 }
 
 /// The bytes of every artifact the project locks, by lowercase hexadecimal
-/// SHA-256 (§10.1), and what elaborating artifact declarations may still
+/// κ-label (§10.1), and what elaborating artifact declarations may still
 /// allocate (§17.12 rule 2). Linking reads an artifact only through its
 /// digest.
 ///
@@ -442,15 +442,15 @@ impl ArtifactStore {
         }
     }
 
-    /// Hold the bytes whose digest is `sha256`.
-    pub fn insert(&mut self, sha256: String, bytes: Vec<u8>) {
-        self.bytes.insert(sha256, bytes);
+    /// Hold the bytes whose digest is `kappa`.
+    pub fn insert(&mut self, kappa: String, bytes: Vec<u8>) {
+        self.bytes.insert(kappa, bytes);
     }
 
-    /// The bytes whose digest is `sha256`.
+    /// The bytes whose digest is `kappa`.
     #[must_use]
-    pub fn get(&self, sha256: &str) -> Option<&Vec<u8>> {
-        self.bytes.get(sha256)
+    pub fn get(&self, kappa: &str) -> Option<&Vec<u8>> {
+        self.bytes.get(kappa)
     }
 
     /// Every held artifact's bytes.
@@ -2551,7 +2551,7 @@ fn check_artifact(
     let SemanticDeclaration::Artifact {
         name,
         role,
-        sha256,
+        kappa,
         length,
         schema,
         r#type,
@@ -2561,27 +2561,23 @@ fn check_artifact(
         return Ok(Lowering::default());
     };
     check_axioms(name, axioms)?;
-    if sha256.len() != 64
-        || !sha256
-            .bytes()
-            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-    {
+    if crate::artifact::content_id::Kappa::parse(kappa).is_err() {
         return Err(format!(
-            "artifact `{name}` SHA-256 `{sha256}` is not 64 lowercase hexadecimal digits"
+            "artifact `{name}` κ-label `{kappa}` is not `blake3:` and 64 lowercase hexadecimal digits"
         )
         .into());
     }
-    let Some(bytes) = artifacts.get(sha256) else {
+    let Some(bytes) = artifacts.get(kappa) else {
         return Err(fail(
             code!("LLR3007"),
-            format!("artifact `{name}` has no project artifact source with SHA-256 {sha256}"),
+            format!("artifact `{name}` has no project artifact source with κ-label {kappa}"),
         ));
     };
-    let observed = crate::artifact::content_id::Sha256Digest::of(bytes).to_hex();
-    if &observed != sha256 {
+    let observed = crate::artifact::content_id::Kappa::of(bytes).label();
+    if &observed != kappa {
         return Err(fail(
             code!("LLR3007"),
-            format!("artifact `{name}` bytes have SHA-256 {observed}, not the declared {sha256}"),
+            format!("artifact `{name}` bytes have κ-label {observed}, not the declared {kappa}"),
         ));
     }
     if u64::try_from(bytes.len()).ok() != Some(*length) {

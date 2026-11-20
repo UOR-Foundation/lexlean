@@ -1,4 +1,4 @@
-spec = "lexlean/project/1"
+spec = "lexlean/project/2"
 name = "nat-add-zero"
 language = "1.0"
 module_prefix = "LexLeanExample"

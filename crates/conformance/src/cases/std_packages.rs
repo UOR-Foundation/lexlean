@@ -237,7 +237,7 @@ fn package(spec: &Package) {
             project
                 .root
                 .join(".lexlean/verified")
-                .join(verified.attestation_id.to_hex())
+                .join(verified.attestation_id.hex())
                 .join("attestation.json")
                 .as_std_path(),
         )

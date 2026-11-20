@@ -121,11 +121,11 @@ mod tests {
     use super::{declaration_spans, parse_module, print_module};
     use crate::artifact::canonical_json::Json;
 
-    const SPEC: &str = "lexlean/tooling-module/1";
+    const SPEC: &str = "lexlean/tooling-module/2";
 
     fn module() -> Json {
         Json::parse(
-            br#"{"authority":{"id":"A","lean_githash":"g","lean_version":"4.32.2"},"declarations":[{"constructors":[{"fields":[],"name":"false"}],"kind":"type","name":"Bool","parameters":[]},{"kind":"call","name":"f"}],"imports":[],"spec":"lexlean/tooling-module/1"}"#,
+            br#"{"authority":{"id":"A","lean_githash":"g","lean_version":"4.32.2"},"declarations":[{"constructors":[{"fields":[],"name":"false"}],"kind":"type","name":"Bool","parameters":[]},{"kind":"call","name":"f"}],"imports":[],"spec":"lexlean/tooling-module/2"}"#,
         )
         .expect("a module")
     }

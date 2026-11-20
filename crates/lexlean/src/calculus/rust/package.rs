@@ -2,7 +2,7 @@
 //! with exported functions, a Cargo manifest, and provenance binding the
 //! bytes to the program, the runtime, and LexLean's compiler semantics.
 //!
-//! A package is described by a closed manifest (`lexlean/rust-package/1`).
+//! A package is described by a closed manifest (`lexlean/rust-package/2`).
 //! Every exported name, parameter passing mode, and declared failure mode is
 //! checked against the program before anything is rendered, so a package
 //! whose interface misstates the program it realizes is refused, never
@@ -17,13 +17,13 @@ use super::ast::{self, Block, Callee, Expr, Ident, ItemDef, Lit, Origin, Pat, Ty
 use super::lower::{index, Lowering};
 use super::runtime::{self, Item};
 use super::{elements, validate, Profile};
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 
 /// The schema tag of a package manifest.
-pub const MANIFEST_SPEC: &str = "lexlean/rust-package/1";
+pub const MANIFEST_SPEC: &str = "lexlean/rust-package/2";
 
 /// The schema tag of a package's provenance.
-pub const PROVENANCE_SPEC: &str = "lexlean/rust-provenance/1";
+pub const PROVENANCE_SPEC: &str = "lexlean/rust-provenance/2";
 
 /// How an exported function takes one parameter.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -77,7 +77,7 @@ pub struct Manifest {
     /// The exported functions.
     pub exports: Vec<Export>,
     /// The semantic IDs (§21.4) of the LexLean builds whose linked IR states
-    /// the program, as lowercase SHA-256 hex, strictly ascending; empty for
+    /// the program, as κ-labels, strictly ascending; empty for
     /// a program no LexLean build states. The renderer checks their form
     /// and records them; that they name the build stating the program is
     /// checked against the verified build (§17.16).
@@ -523,8 +523,8 @@ fn exports(manifest: &Manifest, lowering: &mut Lowering<'_>) -> Result<Vec<ItemD
     Ok(out)
 }
 
-fn sha256(bytes: &[u8]) -> String {
-    Sha256Digest::of(bytes).to_hex()
+fn kappa(bytes: &[u8]) -> String {
+    Kappa::of(bytes).label()
 }
 
 /// The Cargo manifest of a package, printed over the scaffold record
@@ -615,13 +615,12 @@ pub fn lower(manifest: &Manifest) -> Result<(ast::Crate, Program, Profile), Stri
     }
     let profile = Profile::named(&manifest.profile)
         .ok_or_else(|| format!("`{}` is not a Rust profile", manifest.profile))?;
-    if manifest.sources.iter().any(|source| {
-        source.len() != 64
-            || !source
-                .chars()
-                .all(|character| character.is_ascii_digit() || ('a'..='f').contains(&character))
-    }) {
-        return fail("every source is a lowercase SHA-256 hex identity");
+    if manifest
+        .sources
+        .iter()
+        .any(|source| crate::artifact::content_id::Kappa::parse(source).is_err())
+    {
+        return fail("every source is a κ-label");
     }
     if manifest.sources.windows(2).any(|pair| pair[0] >= pair[1]) {
         return fail("sources are strictly ascending");
@@ -690,12 +689,12 @@ pub fn package(manifest: &Manifest) -> Result<Package, String> {
     };
     let mut files = BTreeMap::new();
     let mut hashes = serde_json::Map::new();
-    hashes.insert("Cargo.toml".to_owned(), sha256(&cargo).into());
-    hashes.insert(library_path.to_owned(), sha256(&library).into());
+    hashes.insert("Cargo.toml".to_owned(), kappa(&cargo).into());
+    hashes.insert(library_path.to_owned(), kappa(&library).into());
     if let Some(entry) = &manifest.entry {
         let command = super::host::recognize(&program, &manifest.exports, entry)?;
         let main = super::host::main_rs(&command, &manifest.name, &manifest.effects)?.into_bytes();
-        hashes.insert("src/main.rs".to_owned(), sha256(&main).into());
+        hashes.insert("src/main.rs".to_owned(), kappa(&main).into());
         files.insert("src/main.rs".to_owned(), main);
     }
     let mut provenance = serde_json::json!({
@@ -703,9 +702,9 @@ pub fn package(manifest: &Manifest) -> Result<Package, String> {
         "name": manifest.name,
         "version": manifest.version,
         "profile": profile.target(),
-        "program": program.id()?.to_hex(),
-        "compiler_semantics": crate::compiler_semantics_id_for(crate::LANGUAGE_1_2).to_hex(),
-        "runtime": sha256(runtime.as_bytes()),
+        "program": program.id()?.label(),
+        "compiler_semantics": crate::compiler_semantics_id_for(crate::LANGUAGE_1_2).label(),
+        "runtime": kappa(runtime.as_bytes()),
         "sources": manifest.sources,
         "effects": manifest.effects,
         "exports": manifest.exports.iter().map(|export| serde_json::json!({

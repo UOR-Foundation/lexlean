@@ -31,7 +31,7 @@ pub const CRITERIA: &[(&str, &str)] = &[
     ),
     (
         "semantics-id",
-        "release/compiler-semantics-id.txt is one 64-hex-digit line",
+        "release/compiler-semantics-id.txt is one κ-label line, `blake3:` and 64 hex digits",
     ),
     (
         "version-output",
@@ -415,10 +415,13 @@ pub fn check(root: &Path, hidden_tests: &BTreeSet<String>) -> Result<(), Vec<Str
     let semantics = read("release/compiler-semantics-id.txt")
         .map(|text| text.trim().to_owned())
         .unwrap_or_default();
-    if !is_hex(&semantics, 64) {
+    if !semantics
+        .strip_prefix("blake3:")
+        .is_some_and(|digits| is_hex(digits, 64))
+    {
         fail(
             "semantics-id",
-            "release/compiler-semantics-id.txt is not one 64-hex-digit line".to_owned(),
+            "release/compiler-semantics-id.txt is not one κ-label line".to_owned(),
         );
     }
     match read("release/version-output.txt") {

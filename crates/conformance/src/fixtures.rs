@@ -31,7 +31,7 @@ use std::path::Path;
 
 use camino::{Utf8Path, Utf8PathBuf};
 use lexlean::artifact::canonical_json::Json;
-use lexlean::artifact::content_id::Sha256Digest;
+use lexlean::artifact::content_id::Kappa;
 
 use crate::support;
 
@@ -559,7 +559,7 @@ pub fn observe(case: &Case) -> Result<Observed, String> {
             if raw_dir.contains("/verified/") && process_bound(&relative) {
                 process_bound_files.push(shown);
             } else {
-                platform_independent.insert(shown, Sha256Digest::of(&bytes).to_hex());
+                platform_independent.insert(shown, Kappa::of(&bytes).label());
             }
         }
     }

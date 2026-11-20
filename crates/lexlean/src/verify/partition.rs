@@ -266,7 +266,7 @@ pub fn import(
 /// The first part, in the order given, whose addresses differ from `own`,
 /// naming the part, the tool, and both addresses; then the first record, in
 /// the order elaborations, replays, audit members, and by name within each,
-/// whose `executable_sha256` is not the reader's digest of the tool that
+/// whose `executable_kappa` is not the reader's digest of the tool that
 /// produced it, naming the record and both digests.
 pub fn check_toolchain(imported: &Imported, own: &Addresses) -> Result<(), Diagnostic> {
     for (part, addresses) in &imported.toolchains {
@@ -275,8 +275,8 @@ pub fn check_toolchain(imported: &Imported, own: &Addresses) -> Result<(), Diagn
                 &format!("the part `{part}`"),
                 format!(
                     "it ran `{tool}` {}, but this run's `{tool}` is {}; every part of a run must run one toolchain",
-                    theirs.to_hex(),
-                    mine.to_hex()
+                    theirs.label(),
+                    mine.label()
                 ),
             ));
         }
@@ -292,13 +292,13 @@ pub fn check_toolchain(imported: &Imported, own: &Addresses) -> Result<(), Diagn
         ("audit", "lean", own.lean, &imported.audit),
     ] {
         for (name, record) in records {
-            if record.executable_sha256 != expected {
+            if record.executable_kappa != expected {
                 return Err(malformed(
                     &format!("the imported {what} record of `{name}`"),
                     format!(
-                        "its executable_sha256 is {}, but the `{tool}` of this run's toolchain is {}; every part of a run must run the join's pinned toolchain",
-                        record.executable_sha256.to_hex(),
-                        expected.to_hex()
+                        "its executable_kappa is {}, but the `{tool}` of this run's toolchain is {}; every part of a run must run the join's pinned toolchain",
+                        record.executable_kappa.label(),
+                        expected.label()
                     ),
                 ));
             }
@@ -574,7 +574,7 @@ mod tests {
             exit_code: 0,
             stdout: "\n".to_owned(),
             stderr: String::new(),
-            executable_sha256: crate::artifact::content_id::Sha256Digest::of(b"lean"),
+            executable_kappa: crate::artifact::content_id::Kappa::of(b"lean"),
         };
         let audit_record = ChildRecord {
             module: Some("LexLeanAudit.X.M".to_owned()),
@@ -596,7 +596,7 @@ mod tests {
         let out = tempfile::tempdir().expect("tempdir");
         let output = Utf8PathBuf::from_path_buf(out.path().join("part")).expect("utf8");
         let own: BTreeSet<String> = ["X.M".to_owned()].into_iter().collect();
-        let digest = crate::artifact::content_id::Sha256Digest::of;
+        let digest = crate::artifact::content_id::Kappa::of;
         let addresses = Addresses {
             lean: digest(b"lean"),
             lake: digest(b"lake"),
@@ -660,7 +660,7 @@ mod tests {
             assert!(
                 message.contains("LLI9001")
                     && message.contains(&format!("ran `{tool}`"))
-                    && message.contains(&other.to_hex()),
+                    && message.contains(&other.label()),
                 "{message}"
             );
         }
@@ -681,8 +681,8 @@ mod tests {
         assert!(
             message.contains("LLI9001")
                 && message.contains("elaboration record of `X.M`")
-                && message.contains(&lean.to_hex())
-                && message.contains(&other.to_hex()),
+                && message.contains(&lean.label())
+                && message.contains(&other.label()),
             "{message}"
         );
         // The same part imported twice is a process that ran twice.

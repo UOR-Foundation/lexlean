@@ -10,7 +10,7 @@ use std::sync::OnceLock;
 
 use camino::{Utf8Path, Utf8PathBuf};
 use lexlean::api::production::{ProductionOutput, ReplayReport};
-use lexlean::Sha256Digest;
+use lexlean::Kappa;
 
 use crate::production_consumer::{self, AppEvidence, Application};
 use crate::support::{self, P};
@@ -75,7 +75,7 @@ pub struct Gnaf {
     /// The certificate's bytes.
     pub certificate: Vec<u8>,
     /// The certificate's identity.
-    pub certificate_id: Sha256Digest,
+    pub certificate_id: Kappa,
     /// The verdict the checker gives it.
     pub verdict: serde_json::Value,
 }
@@ -148,7 +148,10 @@ pub fn gnaf_evidence(project: &P) -> Gnaf {
         {"function": summing.clone(), "prepares": []},
         {"function": summing, "prepares": []},
     ]);
-    request["universe"] = serde_json::json!("0".repeat(64));
+    // The template is a generated fixture, which a regeneration may still be
+    // rewriting; the request form is the compiler's, not the template's.
+    request["spec"] = serde_json::json!(lexlean::gnaf::REQUEST_SPEC);
+    request["universe"] = serde_json::json!(format!("blake3:{}", "0".repeat(64)));
     let mut parsed: lexlean::gnaf::Request =
         serde_json::from_value(request).expect("a request value");
     parsed.universe = lexlean::gnaf::universe_id(&parsed).expect("universe");
@@ -163,7 +166,7 @@ pub fn gnaf_evidence(project: &P) -> Gnaf {
         other => panic!("a grammar carrier: {other:?}"),
     };
     let certificate = Certificate {
-        spec: "lexlean/gnaf-certificate/1".to_owned(),
+        spec: "lexlean/gnaf-certificate/2".to_owned(),
         verifier: "lexlean/gnaf-certification/1".to_owned(),
         universe: loaded.universe,
         objective: loaded.objective,
@@ -231,7 +234,7 @@ impl Exported {
             .and_then(Utf8Path::parent)
             .expect("a production bundle is below its build root's production area")
             .join("verified")
-            .join(self.output.result.verification.attestation_id.to_hex())
+            .join(self.output.result.verification.attestation_id.hex())
     }
 }
 

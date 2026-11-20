@@ -1316,7 +1316,7 @@ pub(crate) fn run(id: &str) {
             let model = repo_model::Model::load(&root.join("model").into_std_path_buf())
                 .expect("the model loads");
             let table = spec_table();
-            assert_eq!(table.len(), 509, "§31 has 509 rows");
+            assert_eq!(table.len(), 517, "§31 has 517 rows");
             assert_eq!(model.ids.id.len(), table.len(), "register row count");
             for ((spec_id, spec_suite, spec_statement), row) in
                 table.iter().zip(model.ids.id.iter())
@@ -1460,9 +1460,9 @@ pub(crate) fn run(id: &str) {
             // stale one: that build locks and checks with it consistently.
             assert_eq!(
                 lexlean::LANGUAGE_1_2_SEMANTICS_ID,
-                twelve.to_hex(),
+                twelve.label(),
                 "RP-10: lexlean::LANGUAGE_1_2_SEMANTICS_ID is stale; the tree's language-1.2 ID is {}",
-                twelve.to_hex()
+                twelve.label()
             );
             assert_eq!(
                 eleven,
@@ -2441,6 +2441,12 @@ pub(crate) fn run(id: &str) {
                     !body.contains("run-id") && !body.contains("github-token"),
                     "§9.4: `{key}` reads the artifacts of this run only"
                 );
+                assert!(
+                    body.contains(
+                        "            shard:*) rm -rf \"ci-parts/${LEXLEAN_EXAMPLES_PART##*:}\" ;;\n"
+                    ),
+                    "§9.4: `{key}` drops its own part from an earlier attempt before it runs"
+                );
             }
             for (shard, job_key) in &runs {
                 if shard == crate::shards::JOIN {
@@ -2956,6 +2962,9 @@ pub(crate) fn run(id: &str) {
         // §8.4: a build without the production data checks and locks as the
         // default build does, and refuses the work that needs that data.
         "RP-19" => rp_19(),
+        // §30.3: the browser prover's assets: the runtime as a Lake package
+        // that builds to the same bytes twice, and the driver that builds.
+        "RP-20" => rp_20(),
         other => panic!("no repository case is wired for {other}"),
     }
 }
@@ -3186,7 +3195,7 @@ fn rp_19() {
     };
     let project = support::P::copy_example("production");
     refused(&project, &["--diagnostic-format", "json", "verify"]);
-    let digests: std::collections::BTreeMap<String, lexlean::Sha256Digest> = production::targets()
+    let digests: std::collections::BTreeMap<String, lexlean::Kappa> = production::targets()
         .expect("targets")
         .into_iter()
         .map(|descriptor| (descriptor.id, descriptor.digest))
@@ -3882,7 +3891,7 @@ fn rp_18() {
     let release_plants: Vec<(&str, String)> = vec![
         (
             "a tag that does not wait for the crate job",
-            replaced(&release, "needs: [identity, crate, gate, binaries, manifest]", "needs: [identity, gate, binaries, manifest]"),
+            replaced(&release, "needs: [identity, crate, gate, binaries, manifest, lean-wasm]", "needs: [identity, gate, binaries, manifest, lean-wasm]"),
         ),
         (
             "a release that does not call the crate workflow",
@@ -4302,9 +4311,9 @@ fn bootstrap_custody_decisions() {
     use crate::export_custody::{check, Custody, Identity, SPEC};
     use std::collections::BTreeMap;
     let pins: BTreeMap<String, String> = [
-        ("Cargo.lock", "a".repeat(64)),
-        ("lean-toolchain", "b".repeat(64)),
-        ("rust-toolchain.toml", "c".repeat(64)),
+        ("Cargo.lock", format!("blake3:{}", "a".repeat(64))),
+        ("lean-toolchain", format!("blake3:{}", "b".repeat(64))),
+        ("rust-toolchain.toml", format!("blake3:{}", "c".repeat(64))),
     ]
     .into_iter()
     .map(|(name, digest)| (name.to_owned(), digest))
@@ -4345,7 +4354,7 @@ fn bootstrap_custody_decisions() {
         toolchains,
         executables,
         bundle_path: ".lexlean/production/bundle".to_owned(),
-        bundle_sha256: bundle.0.clone(),
+        bundle_kappa: bundle.0.clone(),
         bundle_files: bundle.1,
     };
     check(&record, &here, &bundle).expect("§9.4: the run's own export, from an earlier attempt");
@@ -4400,7 +4409,7 @@ fn bootstrap_custody_decisions() {
         ),
         (
             "bundle",
-            Box::new(|record| record.bundle_sha256 = "f".repeat(64)),
+            Box::new(|record| record.bundle_kappa = "f".repeat(64)),
         ),
         ("bundle", Box::new(|record| record.bundle_files += 1)),
         (
@@ -5023,4 +5032,216 @@ fn release_gate_decisions() {
             assert!(evidence.is_empty(), "{defect} host writes no evidence");
         }
     }
+}
+
+/// The files of a Lean build that a browser prover loads for one module:
+/// what Lean itself writes, never Lake's traces, which record the directory.
+const LEAN_OUTPUTS: [&str; 5] = ["olean", "olean.server", "olean.private", "ir", "ilean"];
+
+/// The driver of the WASM prover, as the release publishes it (§30.3).
+const DRIVER_FILES: [&str; 4] = [
+    "Elab.lean",
+    "SymList.lean",
+    "lakefile.toml",
+    "lean-toolchain",
+];
+
+/// `cargo xtask runtime-package --output <dir>`, run from the repository.
+fn runtime_package(output: &std::path::Path) {
+    let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned());
+    let run = std::process::Command::new(cargo)
+        .args(["xtask", "runtime-package", "--output"])
+        .arg(output)
+        .current_dir(support::repo_root().as_std_path())
+        .output()
+        .expect("cargo runs");
+    assert!(
+        run.status.success(),
+        "RP-20: runtime-package fails: {}",
+        String::from_utf8_lossy(&run.stderr)
+    );
+}
+
+/// `lake <args>` in `dir` with the pinned toolchain the directory names.
+fn lake(dir: &std::path::Path, args: &[&str]) {
+    let run = std::process::Command::new("lake")
+        .args(args)
+        .current_dir(dir)
+        .output()
+        .expect("lake runs");
+    assert!(
+        run.status.success(),
+        "RP-20: `lake {}` fails in {}:\n{}{}",
+        args.join(" "),
+        dir.display(),
+        String::from_utf8_lossy(&run.stdout),
+        String::from_utf8_lossy(&run.stderr)
+    );
+}
+
+/// RP-20.
+fn rp_20() {
+    let root = support::repo_root();
+    let pinned = root_file("lean-toolchain");
+
+    // The runtime package: the compiler's own runtime Lean, byte for byte,
+    // under one Lake library, with the pinned toolchain.
+    let scratch = tempfile::Builder::new()
+        .prefix("lexlean-rp-20-")
+        .tempdir()
+        .expect("tempdir");
+    let first = scratch.path().join("a");
+    runtime_package(&first);
+    let modules = lexlean::backend::runtime::modules().expect("the runtime");
+    assert!(
+        modules.len() >= 6,
+        "RP-20: {} runtime modules",
+        modules.len()
+    );
+    for module in modules {
+        let path = first.join(format!("{}.lean", module.name.replace('.', "/")));
+        assert_eq!(
+            std::fs::read_to_string(&path).expect("a runtime source"),
+            module.text,
+            "RP-20: {} is the compiler's runtime text",
+            module.name
+        );
+    }
+    assert_eq!(
+        std::fs::read_to_string(first.join("lean-toolchain")).expect("lean-toolchain"),
+        pinned,
+        "RP-20: the package pins the repository's Lean"
+    );
+    let listed = std::fs::read_to_string(first.join("modules.txt")).expect("modules.txt");
+    let names: Vec<&str> = modules.iter().map(|module| module.name.as_str()).collect();
+    assert_eq!(
+        listed.lines().collect::<Vec<_>>(),
+        names,
+        "RP-20: modules.txt"
+    );
+    let lakefile = std::fs::read_to_string(first.join("lakefile.toml")).expect("lakefile");
+    assert!(
+        lakefile.contains("globs = [\"LexLeanRuntime.+\"]"),
+        "RP-20: the library builds every runtime module: {lakefile}"
+    );
+    // A second package into a directory that is not empty is refused.
+    let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned());
+    let refused = std::process::Command::new(cargo)
+        .args(["xtask", "runtime-package", "--output"])
+        .arg(&first)
+        .current_dir(root.as_std_path())
+        .output()
+        .expect("cargo runs");
+    assert!(
+        !refused.status.success(),
+        "RP-20: a non-empty output is refused"
+    );
+
+    // The driver: the four files the release publishes, on the pinned Lean,
+    // with the two executables the release builds.
+    let driver = root.join("lean/wasm-prover/driver");
+    for file in DRIVER_FILES {
+        assert!(
+            driver.join(file).is_file(),
+            "RP-20: lean/wasm-prover/driver/{file}"
+        );
+    }
+    assert_eq!(
+        std::fs::read_to_string(driver.join("lean-toolchain").as_std_path()).expect("toolchain"),
+        pinned,
+        "RP-20: the driver pins the repository's Lean"
+    );
+    let driver_lakefile =
+        std::fs::read_to_string(driver.join("lakefile.toml").as_std_path()).expect("lakefile");
+    for executable in ["name = \"elab\"", "name = \"symlist\""] {
+        assert!(
+            driver_lakefile.contains(executable),
+            "RP-20: the driver's {executable}"
+        );
+    }
+
+    // The release builds, labels, and attaches them.
+    let release = root_file(".github/workflows/release.yml");
+    let job = workflow_job(&release, "lean-wasm").expect("release.yml job `lean-wasm`");
+    for needle in [
+        "needs: identity",
+        "rustup target add wasm32-wasip1",
+        "elan\" toolchain install \"$(cat lean-toolchain)\"",
+        "b3sum",
+        ".github/lean-wasm.sh \"$VERSION\" staged/lean-wasm",
+        "name: lean-wasm",
+    ] {
+        position_of(&job, needle, "release.yml job `lean-wasm`").expect("the job");
+    }
+    let publish = workflow_job(&release, "publish").expect("release.yml job `publish`");
+    for needle in [
+        "needs: [identity, crate, gate, binaries, manifest, lean-wasm]",
+        "cp downloaded/lean-wasm/* release/",
+        "\"release/lexlean-${VERSION}-lean-wasm.tar.gz\"",
+        "\"release/lexlean-${VERSION}.wasm.gz\"",
+        "release/lean-wasm.json",
+    ] {
+        position_of(&publish, needle, "release.yml job `publish`").expect("publish");
+    }
+    let script = root_file(".github/lean-wasm.sh");
+    for needle in [
+        "cargo xtask runtime-package",
+        "cmp \"$a\" \"$b\"",
+        "lake build elab symlist",
+        "--no-default-features",
+        "gzip -9 -n",
+        "\"blake3:\"",
+        "lexlean/lean-wasm-assets/1",
+    ] {
+        position_of(&script, needle, ".github/lean-wasm.sh").expect("the script");
+    }
+
+    // With Lean: two packages in two directories build to the same bytes,
+    // and the driver builds.
+    if !support::lean_backed("RP-20") {
+        return;
+    }
+    let second = scratch.path().join("b");
+    runtime_package(&second);
+    lake(&first, &["build"]);
+    lake(&second, &["build"]);
+    let mut compared = 0usize;
+    for module in modules {
+        let relative = module.name.replace('.', "/");
+        for extension in LEAN_OUTPUTS {
+            let built = format!(".lake/build/lib/lean/{relative}.{extension}");
+            let a = first.join(&built);
+            if !a.is_file() {
+                assert!(
+                    !matches!(extension, "olean" | "ilean"),
+                    "RP-20: {built} was built"
+                );
+                continue;
+            }
+            assert!(
+                std::fs::read(&a).expect("first")
+                    == std::fs::read(second.join(&built)).expect("second"),
+                "RP-20: {built} is the same bytes from two directories"
+            );
+            compared += 1;
+        }
+    }
+    let driver_copy = scratch.path().join("driver");
+    std::fs::create_dir_all(&driver_copy).expect("driver copy");
+    for file in DRIVER_FILES {
+        std::fs::copy(driver.join(file).as_std_path(), driver_copy.join(file)).expect("copy");
+    }
+    lake(&driver_copy, &["build", "elab", "symlist"]);
+    for executable in ["elab", "symlist"] {
+        assert!(
+            driver_copy
+                .join(".lake/build/bin")
+                .join(executable)
+                .is_file(),
+            "RP-20: the driver's {executable} is built"
+        );
+    }
+    eprintln!(
+        "RP-20: {compared} runtime build files agree between two directories, and the driver builds"
+    );
 }

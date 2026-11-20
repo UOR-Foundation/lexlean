@@ -11,7 +11,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use camino::{Utf8Path, Utf8PathBuf};
 use serde::Deserialize;
 
-use crate::artifact::content_id::{tree_digest, Sha256Digest};
+use crate::artifact::content_id::{tree_kappa, Kappa};
 use crate::code;
 use crate::config::{
     is_module_segment, is_project_relative, parse_project, LexiconSource, Limits, ProjectConfig,
@@ -155,9 +155,9 @@ pub struct ResolvedSourcePackage {
     /// Its parsed manifest.
     pub config: ProjectConfig,
     /// The tree digest over its manifest and source files.
-    pub tree_sha256: Sha256Digest,
+    pub tree_kappa: Kappa,
     /// The digest of its manifest bytes.
-    pub manifest_sha256: Sha256Digest,
+    pub manifest_kappa: Kappa,
     /// The identifiers of the packages its manifest declares, sorted.
     pub dependencies: Vec<String>,
     /// Every file the tree digest covers beneath the member, by
@@ -204,8 +204,8 @@ impl SourcePackages {
                 kind: "path".to_owned(),
                 source: package.member.clone(),
                 module_prefix: package.prefix.clone(),
-                tree_sha256: package.tree_sha256,
-                manifest_sha256: package.manifest_sha256,
+                tree_kappa: package.tree_kappa,
+                manifest_kappa: package.manifest_kappa,
                 imports: package
                     .dependencies
                     .iter()
@@ -453,21 +453,21 @@ fn load_member(
         .collect();
     let mut sorted = rows;
     sorted.sort_by(|a, b| a.0.as_bytes().cmp(b.0.as_bytes()));
-    let tree_sha256 = tree_digest(&sorted);
+    let tree_kappa = tree_kappa(&sorted);
     let modules = package_modules(id, &config, &files)?;
     Ok(ResolvedSourcePackage {
         id: id.to_owned(),
         version: version.to_owned(),
         member: member.to_owned(),
         prefix: config.module_prefix.clone(),
-        manifest_sha256: Sha256Digest::of(&manifest_bytes),
+        manifest_kappa: Kappa::of(&manifest_bytes),
         dependencies: config
             .source_packages
             .iter()
             .map(|package| package.package.clone())
             .collect(),
         config,
-        tree_sha256,
+        tree_kappa,
         files,
         modules,
     })
@@ -671,18 +671,18 @@ pub fn check_pins(
                         row.module_prefix, current.module_prefix
                     ));
                 }
-                if row.tree_sha256 != current.tree_sha256 {
+                if row.tree_kappa != current.tree_kappa {
                     differences.push(format!(
-                        "tree_sha256: locked {}, found {}",
-                        row.tree_sha256.to_hex(),
-                        current.tree_sha256.to_hex()
+                        "tree_kappa: locked {}, found {}",
+                        row.tree_kappa.label(),
+                        current.tree_kappa.label()
                     ));
                 }
-                if row.manifest_sha256 != current.manifest_sha256 {
+                if row.manifest_kappa != current.manifest_kappa {
                     differences.push(format!(
-                        "manifest_sha256: locked {}, found {}",
-                        row.manifest_sha256.to_hex(),
-                        current.manifest_sha256.to_hex()
+                        "manifest_kappa: locked {}, found {}",
+                        row.manifest_kappa.label(),
+                        current.manifest_kappa.label()
                     ));
                 }
                 if row.imports != current.imports {

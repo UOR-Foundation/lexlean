@@ -951,7 +951,7 @@ impl Fn6 {
 }
 
 pub fn f0(v0: Bytes, v1: Bytes, v2: Bytes, v3: Bytes, v4: List<Bytes>, v5: List<Bytes>, v6: List<Bytes>) -> R<Result<bool, Bytes>> {
-    if f1(v0.clone(), f2(Str::lit("lexlean/rust-package/1"))) {
+    if f1(v0.clone(), f2(Str::lit("lexlean/rust-package/2"))) {
         let v7: bool = if f3(v1.clone())? {
             if f4(f5(0u64)?, v1.clone())? {
                 false
@@ -990,7 +990,7 @@ pub fn f0(v0: Bytes, v1: Bytes, v2: Bytes, v3: Bytes, v4: List<Bytes>, v5: List<
             Ok(f11(f12(f2(Str::lit("identifier collision: ")), f12(f13(v1), f2(Str::lit(" is not an available crate name"))))))
         }
     } else {
-        Ok(f11(f12(f2(Str::lit("package manifest has spec ")), f12(f13(v0), f2(Str::lit(", expected `lexlean/rust-package/1`"))))))
+        Ok(f11(f12(f2(Str::lit("package manifest has spec ")), f12(f13(v0), f2(Str::lit(", expected `lexlean/rust-package/2`"))))))
     }
 }
 
