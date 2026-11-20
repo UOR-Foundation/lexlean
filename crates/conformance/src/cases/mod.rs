@@ -23,6 +23,7 @@ pub use extraction::{compare_with_oracle, counter_independence, ne_04_lean_half,
 mod gnaf;
 mod grammar;
 mod helpdesk;
+mod kernel_terms;
 mod language_models;
 mod latex_pdf;
 mod lean_backend;

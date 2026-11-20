@@ -618,3 +618,10 @@ class = "language"
 exit = 1
 title = "Production artifact replay rejected"
 statement = "A production bundle does not replay: its result identity, a file digest, a binding between the result, the attestation, the preservation record, and its packages, a re-rendered package, a target descriptor, the producing compiler's semantics, or a recomputed certificate verdict disagrees with what the bundle states, or the bundle holds a file it does not state."
+
+[[error]]
+code = "LLV7103"
+class = "language"
+exit = 1
+title = "Kernel-term production input rejected"
+statement = "Kernel-term production was given a library export that is not lean4export 3.1.0 NDJSON or a semantic snapshot this compiler does not write."
