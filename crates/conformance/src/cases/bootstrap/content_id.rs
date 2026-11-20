@@ -15,7 +15,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use lexlean::artifact::content_id::{
-    attestation_id, build_id, pdf_recipe_id, semantic_id_for, source_id, tree_kappa,
+    attestation_id, build_id, pdf_recipe_id, semantic_id_for, source_id, tree_kappa, KAPPA_PREFIX,
 };
 use lexlean::calculus::Value;
 use lexlean::Kappa;
@@ -222,8 +222,17 @@ fn committed_builds() -> Vec<(Kappa, Kappa, Kappa)> {
 
 // ------------------------------------------------------------------ vectors
 
+/// The κ-label whose digest is `digest`: a recipe frames an identity as its
+/// 71 label bytes (§21.1), so that is what a root is given, never the bare
+/// 32 bytes.
+fn label(digest: &[u8]) -> Vec<u8> {
+    assert_eq!(digest.len(), 32, "a digest is 32 bytes");
+    format!("{KAPPA_PREFIX}{}", super::hex(digest)).into_bytes()
+}
+
 fn d(byte: u8) -> Vec<u8> {
-    (0..32u8).map(|index| byte.wrapping_add(index)).collect()
+    let digest: Vec<u8> = (0..32u8).map(|index| byte.wrapping_add(index)).collect();
+    label(&digest)
 }
 
 fn row(path: &str, content: &[u8]) -> (Vec<u8>, Vec<u8>) {
@@ -295,7 +304,11 @@ fn named() -> Vec<Vector> {
         semantic_run(&d(0x11), "1.2", "{\"modules\":[]}", "[]"),
     );
     add("an empty IR", 2, semantic_run(&d(0x22), "1.1", "", ""));
-    add("a build of zero digests", 3, build_run(&[0; 32], &[0; 32]));
+    add(
+        "a build of zero digests",
+        3,
+        build_run(&label(&[0; 32]), &label(&[0; 32])),
+    );
     add("two distinct digests", 3, build_run(&d(0x01), &d(0x80)));
     add("an empty body", 4, attestation_run(""));
     add("a body of 300 bytes", 4, attestation_run(&"b".repeat(300)));
@@ -330,9 +343,10 @@ fn drawn_text(seeded: &mut Seeded, most: usize) -> String {
 }
 
 fn drawn_digest(seeded: &mut Seeded) -> Vec<u8> {
-    (0..32)
+    let digest: Vec<u8> = (0..32)
         .map(|_| u8::try_from(seeded.below(256)).expect("a byte"))
-        .collect()
+        .collect();
+    label(&digest)
 }
 
 fn drawn_rows(seeded: &mut Seeded) -> Rows {
@@ -420,31 +434,10 @@ const PLANTS: &[Plant] = &[
         vector: "a path of 300 bytes",
     },
     Plant {
-        label: "the high byte of a word is dropped",
-        root: 0,
-        site: "(byteText (prim to_nat (LexLeanStd.Sha256::shiftRight word (24 : UInt32)) : Nat))",
-        replacement: "(byteText 0)",
-        vector: "one empty file",
-    },
-    Plant {
-        label: "the low byte of a word is its third",
-        root: 0,
-        site: "(prim bit_and word (255 : UInt32) : UInt32)",
-        replacement: "(prim bit_and (LexLeanStd.Sha256::shiftRight word (8 : UInt32)) (255 : UInt32) : UInt32)",
-        vector: "two files",
-    },
-    Plant {
-        label: "the digest ends a word early",
-        root: 3,
-        site: "(wordBytes (project digest h7))",
-        replacement: "0x",
-        vector: "a build of zero digests",
-    },
-    Plant {
         label: "the tree is hashed in the source domain",
         root: 0,
-        site: "(lit \"lexlean-tree-v1\")",
-        replacement: "(lit \"lexlean-source-v1\")",
+        site: "(lit \"lexlean-tree-v2\")",
+        replacement: "(lit \"lexlean-source-v2\")",
         vector: "a file with an empty path",
     },
     Plant {

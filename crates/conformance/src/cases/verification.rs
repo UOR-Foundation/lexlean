@@ -1046,9 +1046,11 @@ pub(crate) fn run(id: &str) {
                 panic!("the ID is a string")
             };
             assert_eq!(recomputed.label(), recorded_hex, "§22.9 recomputation");
+            // A directory name cannot hold the label's colon, so the
+            // directory is the label's hex digits.
             assert_eq!(
                 fixture.outcome.root.file_name(),
-                Some(recorded_hex.as_str()),
+                Some(recomputed.hex()),
                 "the directory is the attestation ID"
             );
             assert!(!body.contains("timestamp"), "no timestamp is hashed");

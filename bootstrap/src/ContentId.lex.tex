@@ -1,7 +1,6 @@
 \begin{lexlean}{ContentId}
 \useglossary{lexlean.std.nat@1.2.0}
 \importmodule{LexLeanStd.Numeral}
-\importmodule{LexLeanStd.Sha256}
 \importmodule{LexLeanStd.Blake3}
 \title{Natural number addition}
 \begin{semanticmodule}
@@ -34,24 +33,6 @@ definition{
   parameters: [value : Nat, width : Nat],
   result: Bytes,
   body: (second (prim iterate (fun (state : (Nat * Bytes)) => ((prim quotient (first state) 256 0 : Nat), (cat (byteText (prim remainder (first state) 256 0 : Nat)) (second state)))) width (value, 0x) : (Nat * Bytes))),
-  executable: true
-}
-
-definition{
-  name: wordBytes,
-  parameters: [word : UInt32],
-  result: Bytes,
-  body: (cat (cat (cat (byteText (prim to_nat (LexLeanStd.Sha256::shiftRight word (24 : UInt32)) : Nat)) (byteText (prim to_nat (prim bit_and (LexLeanStd.Sha256::shiftRight word (16 : UInt32)) (255 : UInt32) : UInt32) : Nat))) (byteText (prim to_nat (prim bit_and (LexLeanStd.Sha256::shiftRight word (8 : UInt32)) (255 : UInt32) : UInt32) : Nat))) (byteText (prim to_nat (prim bit_and word (255 : UInt32) : UInt32) : Nat))),
-  axioms: [Quot.sound, propext],
-  executable: true
-}
-
-definition{
-  name: digestBytes,
-  parameters: [digest : LexLeanStd.Sha256::Digest],
-  result: Bytes,
-  body: (cat (cat (cat (cat (cat (cat (cat (wordBytes (project digest h0)) (wordBytes (project digest h1))) (wordBytes (project digest h2))) (wordBytes (project digest h3))) (wordBytes (project digest h4))) (wordBytes (project digest h5))) (wordBytes (project digest h6))) (wordBytes (project digest h7))),
-  axioms: [Quot.sound, propext],
   executable: true
 }
 

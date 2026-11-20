@@ -32,20 +32,6 @@
 \noindent Type: \texttt{ByteArray}.\par
 \noindent Definition: \texttt{((LexLeanCollections.iterate ((fun (state : (Prod (Nat) (ByteArray))) => ((LexLeanRuntime.quotient ((state).1) (256) (0) : Nat), cat (byteText ((LexLeanRuntime.remainder ((state).1) (256) (0) : Nat))) ((state).2)))) (width) ((value, ByteArray.mk \#[])) : (Prod (Nat) (ByteArray)))).2}.\par
 \noindent Axiom policy: \texttt{none}.\par
-\subsection*{\texttt{wordBytes}}
-\noindent Kind: \texttt{definition}.\par
-\noindent Parameters: \texttt{(word : UInt32)}.\par
-\noindent Execution: executable, non-escaping closures only.\par
-\noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{cat (cat (cat (byteText ((toNat (LexLeanStd.Sha256.shiftRight (word) ((24 : UInt32))) : Nat))) (byteText ((toNat ((LexLeanRuntime.bitAnd (LexLeanStd.Sha256.shiftRight (word) ((16 : UInt32))) ((255 : UInt32)) : UInt32)) : Nat)))) (byteText ((toNat ((LexLeanRuntime.bitAnd (LexLeanStd.Sha256.shiftRight (word) ((8 : UInt32))) ((255 : UInt32)) : UInt32)) : Nat)))) (byteText ((toNat ((LexLeanRuntime.bitAnd (word) ((255 : UInt32)) : UInt32)) : Nat)))}.\par
-\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
-\subsection*{\texttt{digestBytes}}
-\noindent Kind: \texttt{definition}.\par
-\noindent Parameters: \texttt{(digest : LexLeanStd.Sha256.Digest)}.\par
-\noindent Execution: executable, non-escaping closures only.\par
-\noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{cat (cat (cat (cat (cat (cat (cat (wordBytes ((digest).h0)) (wordBytes ((digest).h1))) (wordBytes ((digest).h2))) (wordBytes ((digest).h3))) (wordBytes ((digest).h4))) (wordBytes ((digest).h5))) (wordBytes ((digest).h6))) (wordBytes ((digest).h7))}.\par
-\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{frame}}
 \noindent Kind: \texttt{definition}.\par
 \noindent Parameters: \texttt{(label : ByteArray) (payload : ByteArray)}.\par
