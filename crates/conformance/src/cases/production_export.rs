@@ -836,7 +836,7 @@ pub fn run(id: &str) {
                         .expect("canonical")
                         .to_canonical_string();
                 let mut hasher = lexlean::artifact::content_id::FramedHasher::new(
-                    "lexlean-target-descriptor-v1",
+                    "lexlean-target-descriptor-v2",
                 );
                 hasher.frame("descriptor", canonical.as_bytes());
                 hasher.finish()

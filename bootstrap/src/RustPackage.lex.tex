@@ -201,7 +201,7 @@ definition{
   name: identity,
   parameters: [source : Bytes],
   result: Bool,
-  body: (if ((prim length source : Nat) =? 64) then (allIn source 1) else false),
+  body: (if ((prim length source : Nat) =? 71) then (if (LexLeanStd.Text::startsWith source (text "blake3:")) then (allIn (LexLeanStd.Text::sliceOr source 7 64) 1) else false) else false),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -286,7 +286,7 @@ definition{
     registered : (List Bytes)
   ],
   result: (Result Bool Bytes),
-  body: (if (same spec (text "lexlean/rust-package/2")) then (let available : Bool := (if (snake name) then (if (member (keywords 0) name) then false else (not (member (reservedCrates 0) name))) else false); (if available then (if (versionOk version) then (let std : Bool := (same profile (text "rust-std")); (let core : Bool := (same profile (text "rust-core")); (if (std || core) then (if (identities sources) then (if (ascending sources) then (checkEffects core effects registered) else (refuse (text "sources are strictly ascending"))) else (refuse (text "every source is a lowercase SHA-256 hex identity"))) else (refuse (cat (ticked profile) (text " is not a Rust profile")))))) else (refuse (cat (ticked version) (text " is not a version of three canonical decimals each at most 18446744073709551615")))) else (refuse (cat (text "identifier collision: ") (cat (ticked name) (text " is not an available crate name")))))) else (refuse (cat (text "package manifest has spec ") (cat (ticked spec) (text ", expected `lexlean/rust-package/2`"))))),
+  body: (if (same spec (text "lexlean/rust-package/2")) then (let available : Bool := (if (snake name) then (if (member (keywords 0) name) then false else (not (member (reservedCrates 0) name))) else false); (if available then (if (versionOk version) then (let std : Bool := (same profile (text "rust-std")); (let core : Bool := (same profile (text "rust-core")); (if (std || core) then (if (identities sources) then (if (ascending sources) then (checkEffects core effects registered) else (refuse (text "sources are strictly ascending"))) else (refuse (text "every source is a κ-label"))) else (refuse (cat (ticked profile) (text " is not a Rust profile")))))) else (refuse (cat (ticked version) (text " is not a version of three canonical decimals each at most 18446744073709551615")))) else (refuse (cat (text "identifier collision: ") (cat (ticked name) (text " is not an available crate name")))))) else (refuse (cat (text "package manifest has spec ") (cat (ticked spec) (text ", expected `lexlean/rust-package/2`"))))),
   axioms: [Quot.sound, propext],
   executable: true,
   production: {effects: [allocation, overflow], targets: [rust-std]}

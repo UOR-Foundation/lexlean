@@ -919,9 +919,9 @@ pub(crate) fn run(id: &str) {
                 )
                 .expect("parses");
                 assert!(
-                    record["executable_kappa"]
-                        .as_str()
-                        .is_some_and(|hex| hex.len() == 64),
+                    record["executable_kappa"].as_str().is_some_and(|label| {
+                        lexlean::artifact::content_id::Kappa::parse(label).is_ok()
+                    }),
                     "{name}: the executed binary's hash is recorded"
                 );
             }
