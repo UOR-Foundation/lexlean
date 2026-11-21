@@ -252,6 +252,7 @@ pub(super) fn enc_item(item: Item) -> Value {
         Item::FormatFixed(kind) => family(47, Some(kind)),
         Item::ParseInt => family(48, None),
         Item::ParseFixed(kind) => family(49, Some(kind)),
+        Item::UpdateBytes => family(50, None),
     }
 }
 
@@ -3047,25 +3048,25 @@ const RULES_EACH: usize = 3;
 // The counts the specification states, over the committed tree: SPEC.md
 // §17.23, the register statement of BS-05, its scenario, and VERIFICATION.md
 // restate them, and the case fails when the tree no longer gives them.
-const COMMITTED_MANIFESTS: usize = 330;
-const COMMITTED_FIXTURES: usize = 122;
-const COMMITTED_PROGRAMS: usize = 247;
-const COMMITTED_CRATES: usize = 306;
+const COMMITTED_MANIFESTS: usize = 332;
+const COMMITTED_FIXTURES: usize = 123;
+const COMMITTED_PROGRAMS: usize = 249;
+const COMMITTED_CRATES: usize = 308;
 const RULE_VALIDATE_RUNS: usize = 129;
 const RULE_CORRESPOND_RUNS: usize = 12;
 const BRANCH_CRATES: usize = 17;
 const LOOP_CRATES: usize = 37;
 const LIST_MATCH_CRATES: usize = 1;
-const MACHINE_CRATES: usize = 44 + 3 + 1 + 2 + 2 + 3;
-const VECTORS_VALIDATE: usize = 545;
-const REFUSED_VALIDATE: usize = 214;
-const VECTORS_CORRESPOND: usize = 410;
-const REFUSED_CORRESPOND: usize = 103;
-const EVALUATOR_CRATES: usize = 221;
-const EVALUATOR_VALIDATE: usize = 460;
-const EVALUATOR_CORRESPOND: usize = 325;
-const SEEDED_REFUSED_VALIDATE: usize = 275;
-const SEEDED_REFUSED_CORRESPOND: usize = 253;
+const MACHINE_CRATES: usize = 45 + 3 + 1 + 2 + 2 + 3;
+const VECTORS_VALIDATE: usize = 548;
+const REFUSED_VALIDATE: usize = 215;
+const VECTORS_CORRESPOND: usize = 413;
+const REFUSED_CORRESPOND: usize = 104;
+const EVALUATOR_CRATES: usize = 223;
+const EVALUATOR_VALIDATE: usize = 463;
+const EVALUATOR_CORRESPOND: usize = 328;
+const SEEDED_REFUSED_VALIDATE: usize = 296;
+const SEEDED_REFUSED_CORRESPOND: usize = 258;
 
 pub(super) fn case() {
     let started = std::time::Instant::now();

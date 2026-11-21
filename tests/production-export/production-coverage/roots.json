@@ -263,6 +263,14 @@
       "version": "1.0.0"
     },
     {
+      "name": "updates",
+      "root": "Coverage.Prims.updates",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
       "name": "widenings",
       "root": "Coverage.Prims.widenings",
       "targets": [

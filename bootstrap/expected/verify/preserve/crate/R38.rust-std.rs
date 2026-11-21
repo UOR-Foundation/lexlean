@@ -666,6 +666,7 @@ pub struct Bytes(Rc<[u8]>);
 impl Bytes {
     pub fn lit(octets: &[u8]) -> Bytes { Bytes(Rc::from(octets)) }
     pub fn octets(&self) -> &[u8] { &self.0 }
+    pub fn update(mut a: Bytes, i: u64, byte: u8) -> Option<Bytes> { let at = match usize::try_from(i) { Ok(at) => at, Err(_) => return None, }; if at >= a.0.len() { return None; }; tick(1); match Rc::get_mut(&mut a.0) { Some(cells) => { let slot: &mut [u8] = cells; slot[at] = byte; Some(a) }, None => { tick(a.0.len() as u64); let mut out = Vec::with_capacity(a.0.len()); out.extend_from_slice(&a.0); out[at] = byte; Some(Bytes(Rc::from(out))) }, } }
     pub fn append(a: Bytes, b: Bytes) -> Bytes { tick((a.0.len() + b.0.len()) as u64); let mut out = Vec::with_capacity(a.0.len() + b.0.len()); out.extend_from_slice(&a.0); out.extend_from_slice(&b.0); Bytes(Rc::from(out)) }
     pub fn length(&self) -> u64 { self.0.len() as u64 }
     pub fn index(&self, i: u64) -> Option<u8> { match usize::try_from(i) { Ok(at) => self.0.get(at).copied(), Err(_) => None, } }
@@ -855,6 +856,10 @@ pub fn format_int(p0: i64) -> Str {
     Str::format_i64(p0)
 }
 
+pub fn update_bytes(p0: Bytes, p1: u64, p2: u8) -> Option<Bytes> {
+    Bytes::update(p0, p1, p2)
+}
+
 #[derive(Clone)]
 pub enum Adt0 {
     C0,
@@ -1007,6 +1012,7 @@ pub enum Adt6 {
     C39,
     C40(Adt1),
     C41(std::rc::Rc<Adt0>),
+    C42,
 }
 
 #[derive(Clone)]
@@ -2360,6 +2366,9 @@ pub fn f29(v0: Adt6) -> bool {
             let a160 = f38(v2);
             let a161 = 3u64;
             nat_eq(a160, a161)
+        }
+        Adt6::C42 => {
+            false
         }
     }
 }
