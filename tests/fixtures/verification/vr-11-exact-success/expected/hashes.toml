@@ -3,20 +3,20 @@
 # compiler executable (presence only). SPEC.md §28.2, §28.4.
 
 [platform_independent]
-".lexlean/verified/$ATTESTATION/audit/LexLeanAudit.A4cb4e1d480437ac95fbf07af3dd973fe.LexLeanExample.Main.lean" = "blake3:b80ff0205a94c853ebb6c4c074ccbb32a5066729ba669f8fb8c95f14cfda4eab"
+".lexlean/verified/$ATTESTATION/audit/LexLeanAudit.Aabd8303382d27517a3fb1e62e83f9726.LexLeanExample.Main.lean" = "blake3:b80ff0205a94c853ebb6c4c074ccbb32a5066729ba669f8fb8c95f14cfda4eab"
 ".lexlean/verified/$ATTESTATION/audit/output.txt" = "blake3:c62ec571ca253c8e5f5eebcd6304720665235b3fe85c286021580cbfe0d8cb3e"
-".lexlean/verified/$ATTESTATION/build-manifest.json" = "blake3:3645f9d2c77fb9e7c661b82f7515da5019d08a50fe7d8fc67e0c8a58d11a8587"
+".lexlean/verified/$ATTESTATION/build-manifest.json" = "blake3:2bec676ff2b17f8a886f96383db9c6cc849f99f8f7b35ea53525d440218aade8"
 ".lexlean/verified/$ATTESTATION/coverage/LexLeanExample/Main.coverage.json" = "blake3:9260934f91366dd8019a918e14e06d7746f2b49aa79469e706a0f2828d003117"
 ".lexlean/verified/$ATTESTATION/lexicons/Main.closure.json" = "blake3:432d888fc70d4349a4309dd29c6096b089a135ceaa000bf1dfc80f9c4eefbef7"
-".lexlean/verified/$ATTESTATION/maps/LexLeanExample/Main.map.json" = "blake3:e5ccc9b890dc144ce4d2553673759477bc4599ade572ee984bc1d3cc13160717"
+".lexlean/verified/$ATTESTATION/maps/LexLeanExample/Main.map.json" = "blake3:ab067938c87d895526aead16fc72a24049b1dff22db1362098c0da6a027bc577"
 ".lexlean/verified/$ATTESTATION/modules/LexLeanExample/Main.lean" = "blake3:f86310629110e4baf6721665ff53eab70bad342ffd37faddf301b9fc12518f10"
 ".lexlean/verified/$ATTESTATION/modules/LexLeanExample/Main.tex" = "blake3:989267c9266f544434487eacf893ec857c24ffde78f3cb3d5a4ffc5b2a42969c"
-".lexlean/verified/$ATTESTATION/probe/LexLeanProbe.P4cb4e1d480437ac95fbf07af3dd973fe.lean" = "blake3:4e1236d99f221e8496382fe1bddea93afb80c303f2857aa049b19e3b839595b4"
+".lexlean/verified/$ATTESTATION/probe/LexLeanProbe.Pabd8303382d27517a3fb1e62e83f9726.lean" = "blake3:4e1236d99f221e8496382fe1bddea93afb80c303f2857aa049b19e3b839595b4"
 
 [process_bound]
 files = [
     ".lexlean/verified/$ATTESTATION/attestation.json",
-    ".lexlean/verified/$ATTESTATION/audit/LexLeanAudit.A4cb4e1d480437ac95fbf07af3dd973fe.LexLeanExample.Main.process.json",
+    ".lexlean/verified/$ATTESTATION/audit/LexLeanAudit.Aabd8303382d27517a3fb1e62e83f9726.LexLeanExample.Main.process.json",
     ".lexlean/verified/$ATTESTATION/oleans/LexLeanExample/Main.olean",
     ".lexlean/verified/$ATTESTATION/probe/process.json",
     ".lexlean/verified/$ATTESTATION/process/lean/LexLeanExample.Main.json",

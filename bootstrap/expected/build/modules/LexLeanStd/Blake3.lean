@@ -116,4 +116,24 @@ public structure Merge where
 
 @[expose] public def blake3Label (message : ByteArray) : ByteArray := (LexLeanRuntime.append ((LexLeanRuntime.utf8Encode ("blake3:") : ByteArray)) (blake3Hex (message)) : ByteArray)
 
+@[expose] public def chunkAt (message : ByteArray) (size : Nat) (index : Nat) (counter : Nat) (root : Bool) : Cv := (let start : Nat := (LexLeanRuntime.multiply (1024) (index) : Nat); (let rest : Nat := available (size) (start); (let count : Nat := blocks (rest); (let last : Nat := (LexLeanRuntime.subtract (count) (1) : Nat); compress («prefix» (message) (start) (counter) (last)) (load (message) ((start + (LexLeanRuntime.multiply (64) (last) : Nat)))) (counter) (LexLeanStd.Sha256.wordOfNat ((LexLeanRuntime.subtract (rest) ((LexLeanRuntime.multiply (64) (last) : Nat)) : Nat))) ((LexLeanRuntime.bitOr ((if (Nat.beq (last) (0)) then (3 : UInt32) else (2 : UInt32))) ((if root then (8 : UInt32) else (0 : UInt32))) : UInt32))))))
+
+@[expose] public def fullChunksAt (message : ByteArray) (size : Nat) (count : Nat) (offset : Nat) : (Prod (Nat) (List (Cv))) := (LexLeanCollections.iterate ((fun (state : (Prod (Nat) (List (Cv)))) => push (state) (chunkAt (message) (size) ((state).1) ((offset + (state).1)) (false)))) (count) ((0, ([] : List (Cv)))) : (Prod (Nat) (List (Cv))))
+
+@[expose] public def foldRooted (state : (Prod (List (Cv)) (Cv))) (root : Bool) : (Prod (List (Cv)) (Cv)) := (match (state).1 with | List.nil => state | List.cons top rest => (rest, parent (top) ((state).2) ((match rest with | List.nil => root | List.cons _ _ => false))))
+
+@[expose] public def subtree (message : ByteArray) (offset : Nat) (root : Bool) : Cv := (let size : Nat := (LexLeanRuntime.length (message) : Nat); (let count : Nat := (if (Nat.beq (size) (0)) then 1 else (LexLeanRuntime.quotient ((size + 1023)) (1024) (0) : Nat)); (let last : Nat := (LexLeanRuntime.subtract (count) (1) : Nat); (match (fullChunksAt (message) (size) (last) (offset)).2 with | List.nil => chunkAt (message) (size) (last) ((offset + last)) (root) | List.cons top rest => ((LexLeanCollections.iterate ((fun (state : (Prod (List (Cv)) (Cv))) => foldRooted (state) (root))) (64) (((top :: rest), chunkAt (message) (size) (last) ((offset + last)) (false))) : (Prod (List (Cv)) (Cv)))).2))))
+
+@[expose] public def blake3 (message : ByteArray) : Cv := treeRoot (message)
+
+@[expose] public def pieceChain (piece : ByteArray) (index : Nat) (total : Nat) : Cv := subtree (piece) ((LexLeanRuntime.multiply (index) (1024) : Nat)) ((Nat.beq (total) (1)))
+
+@[expose] public def pieceRoot (chains : List (Cv)) : Cv := (let folded : (Prod ((Prod (Nat) (List (Cv)))) (Option (Cv))) := (LexLeanCollections.listFold ((fun (state : (Prod ((Prod (Nat) (List (Cv)))) (Option (Cv)))) (chain : Cv) => (match (state).2 with | Option.none => ((state).1, Option.some (chain)) | Option.some pending => (push ((state).1) (pending), Option.some (chain))))) (((0, ([] : List (Cv))), Option.none)) (chains) : (Prod ((Prod (Nat) (List (Cv)))) (Option (Cv)))); (match (folded).2 with | Option.none => treeRoot (_root_.ByteArray.mk #[]) | Option.some last => (match ((folded).1).2 with | List.nil => last | List.cons top rest => ((LexLeanCollections.iterate ((fun (state : (Prod (List (Cv)) (Cv))) => foldStep (state))) (64) (((top :: rest), last)) : (Prod (List (Cv)) (Cv)))).2)))
+
+public theorem official_0 : (blake3 (_root_.ByteArray.mk #[]) = ({ c0 := (3108574127 : UInt32), c1 := (2795633141 : UInt32), c2 := (3930931360 : UInt32), c3 := (1237965878 : UInt32), c4 := (3374697371 : UInt32), c5 := (3071459757 : UInt32), c6 := (3398671052 : UInt32), c7 := (1647452132 : UInt32) } : Cv)) := by
+  rfl
+
+public theorem official_1 : (blake3 (_root_.ByteArray.mk #[(_root_.UInt8.ofNat (nat_lit 0))]) = ({ c0 := (3755883053 : UInt32), c1 := (4049673201 : UInt32), c2 := (896436300 : UInt32), c3 := (1932959919 : UInt32), c4 := (2810695021 : UInt32), c5 := (3249874765 : UInt32), c6 := (3492086353 : UInt32), c7 := (333615861 : UInt32) } : Cv)) := by
+  rfl
+
 end LexLeanStd.Blake3
