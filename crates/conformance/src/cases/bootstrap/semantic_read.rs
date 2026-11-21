@@ -34,8 +34,9 @@ const MODULE: &str = "LexLeanBoot.SemanticRead";
 const SOURCE: &str = "src/SemanticRead.lex.tex";
 const JSON_SOURCE: &str = "stdlib/src/Json.lex.tex";
 const SCHEMA: &str = "schemas/semantic-module-v2.schema.json";
-/// The schema tag a module read here is made under.
-const SPEC: &str = "lexlean/semantic-module/2";
+/// The schema tag a module read here is made under: language 1.2's since
+/// #581 raised it.
+const SPEC: &str = "lexlean/semantic-module/3";
 const ROOTS: [(&str, &[&str]); 3] = [
     ("parseAt", &["allocation", "overflow"]),
     ("parseSemanticModule", &["allocation", "overflow"]),
