@@ -39,6 +39,9 @@ workspace carried at those versions without a tag.
   over a record's list field whose update sits under an `if` was refused
   with LLV7002 and now verifies. The generated Lean of every module with
   this proof form changes, so the goldens move.
+
+## 0.4.4
+
 - Every identity LexLean computes, names, or pins is a UOR κ-label on the BLAKE3 σ-axis,
   `blake3:<64 lowercase hex>` (§21.1): the κ-label uor-addr writes on its `blake3` axis and the
   address Hologram's store re-derives for the same bytes. The standard library's new certified
