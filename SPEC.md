@@ -7155,12 +7155,12 @@ LexLean refuses as production roots (`production-polymorphic-root`,
 `production-named-type-boundary`, and `production-universe-boundary`), with the
 production marking removed so that LexLean still compiles them to Lean. LexLean's
 verdict on a rejection project is the diagnostic its fixture records.
-The corpus has 104 roots; the oracle generates Rust for 32 of them and
-refuses 72; 25 of the crates it generates for eligible roots compile and are
+The corpus has 105 roots; the oracle generates Rust for 32 of them and
+refuses 73; 25 of the crates it generates for eligible roots compile and are
 run on 1446 inputs, and each of the other seven is a recorded difference (six
 crates that rustc rejects, and the crate of the rejected root with the
-literal beyond 64 bits). Of the 72 refusals, 66 are of roots LexLean takes
-(33 `unresolved-external-call`, 22 `escaping-local-function`, 4
+literal beyond 64 bits). Of the 73 refusals, 67 are of roots LexLean takes
+(34 `unresolved-external-call`, 22 `escaping-local-function`, 4
 `opaque-lowering`, 3 `codegen-PolymorphicType`, 2 `codegen-UnboundedInt`, 2
 `codegen-UnresolvedCall`) and 6 of roots LexLean rejects (4 `opaque-lowering`,
 1 `export-refused`, 1 `codegen-OpaqueType`; the seventh rejected root is the
