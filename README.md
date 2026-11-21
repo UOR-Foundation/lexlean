@@ -1,5 +1,7 @@
 <div align="center">
-  <img src="assets/lexlean-logo.png" alt="LexLean" width="1200">
+  <img src="assets/readme-banner-PLACEHOLDER.png" alt="LexLean provisional artwork: formal reasoning, placeholder not approved" width="100%">
+
+  <p><em>Illustrative placeholder artwork, pending UOR Foundation brand approval.</em></p>
 
   <p><strong>One carefully defined source for readable documentation and code that can be checked.</strong></p>
 </div>
