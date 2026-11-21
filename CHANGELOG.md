@@ -122,6 +122,9 @@ workspace carried at those versions without a tag.
   literal types or the first error, with what the lookup answers given as a
   table. Both admit `recursion`, structural over a bound on nesting the host
   passes.
+
+## 0.4.4
+
 - Every identity LexLean computes, names, or pins is a UOR κ-label on the BLAKE3 σ-axis,
   `blake3:<64 lowercase hex>` (§21.1): the κ-label uor-addr writes on its `blake3` axis and the
   address Hologram's store re-derives for the same bytes. The standard library's new certified
