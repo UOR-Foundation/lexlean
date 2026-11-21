@@ -1,6 +1,6 @@
 spec = "lexlean/lock/4"
 language = "1.2"
-compiler_semantics = "blake3:dea5f1964f7f0eb5c9d5bd6c4a194f0da0efa6bfef7fc596f82622d243d3908e"
+compiler_semantics = "blake3:5248555c24cb0990b4ed7b20b0780d94e5a83812fc9bad8b1de307649d998fd8"
 project_config_kappa = "blake3:73fd9732a169c97d83403d7a75da6c96e1f5311a65c6f3c052e77be85e84b859"
 lean_toolchain = "leanprover/lean4:v4.32.2"
 
@@ -62,7 +62,7 @@ version = "1.0.0"
 kind = "path"
 source = "stdlib"
 module_prefix = "LexLeanStd"
-tree_kappa = "blake3:54188050f78b8af244e9b7868aa71c0fdab65ac72cd85edd9154d18f26e2f73d"
+tree_kappa = "blake3:537e28e9c58782a932b5ef8654f38efbba6aeb35944a1fb908b46459d5434c85"
 manifest_kappa = "blake3:de3b5448eda5498b6840c2001b4872faa39d80c957691a68e6f0f0125415436d"
 imports = []
 
