@@ -17,6 +17,16 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- `lexlean declare` writes a selection's kernel declarations with no Lean
+  (SPEC.md §23.4, §18.10, `CL-29`): the same pipeline as `check`, then
+  `kernel::declare` over the semantic snapshot, printed as one canonical
+  `lexlean/kernel-declarations/2` document with the lean4export suffix inline,
+  over the library export `--library` names or self-contained without one. It
+  takes no lock and writes nothing, so it runs on `wasm32-wasip1` and a browser
+  worker can hand Lean's kernel everything it judges. The document is built by
+  `kernel::declarations_document`, which `cargo xtask kernel-terms declare` now
+  uses too; its `declarations.json` omits an absent member instead of writing
+  `null`, as §21.7 requires. The register is 511.
 - Diagnostics carry machine-applicable repairs (SPEC.md §20.7, `PF-25`,
   `PF-26`, `VR-24`, `VR-25`; no new diagnostic code; every language identity
   moves, because the diagnostic schema is in each digest). A repair is a
