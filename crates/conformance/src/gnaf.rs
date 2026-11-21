@@ -20,7 +20,7 @@ use lexlean::gnaf::{
     Machine, Objective, OperandSize, Plan, Prepared, Request, Scope, FIXTURE_SPEC, HOST_CAPACITY,
     MANIFEST_SPEC, MODEL, REQUEST_SPEC,
 };
-use lexlean::Sha256Digest;
+use lexlean::Kappa;
 use serde_json::{json, Value as Json};
 
 /// The axioms Lean's `#print axioms` reports for a definition that runs the
@@ -301,8 +301,8 @@ fn accounted(kind: ActionKind, charge: Charge) -> Action {
 }
 
 /// A prepared artifact's identity: the SHA-256 of the bytes it names.
-fn artifact(bytes: &str) -> Sha256Digest {
-    Sha256Digest::of(bytes.as_bytes())
+fn artifact(bytes: &str) -> Kappa {
+    Kappa::of(bytes.as_bytes())
 }
 
 /// The machine every valid request starts from: the host's capacity,
@@ -397,7 +397,7 @@ fn request(
         machine: machine(),
         carrier,
         completeness: Completeness::GrammarEquality,
-        universe: Sha256Digest([0; 32]),
+        universe: Kappa::ZERO,
         objective,
         claim,
         scope: Scope::GrammarUniverse,
@@ -1122,19 +1122,25 @@ pub const AUTHORITY: (&str, &str, &str, &str) = (
 /// The vendored copy of the authority, relative to the repository root.
 pub const AUTHORITY_PATH: &str = "model/authorities/UOR-GNAF-v1-draft.2.md";
 
+/// The κ-label of the vendored copy (SPEC.md §21.1): LexLean's pin of it. The
+/// last member of [`AUTHORITY`] is the SHA-256 the issuer's repository pins,
+/// the external digest bound to it.
+pub const AUTHORITY_KAPPA: &str =
+    "blake3:71918658ef59d3a62babc34da1b84b96f455e41767533ad7009e8a91e6efbe43";
+
 /// UOR-GNAF §20's dependency manifest: the draft's exact revision, every
 /// profile this instantiation depends on with its role, every restriction
 /// of the admitted universe, and the strongest honest claim classes.
 #[must_use]
 pub fn manifest() -> Json {
-    let (authority, identifier, revision, sha256) = AUTHORITY;
+    let (authority, identifier, revision, _) = AUTHORITY;
     json!({
         "spec": MANIFEST_SPEC,
         "authority": {
             "id": authority,
             "identifier": identifier,
             "revision": revision,
-            "sha256": sha256,
+            "kappa": AUTHORITY_KAPPA,
             "vendored": AUTHORITY_PATH,
         },
         "profiles": [
@@ -1167,10 +1173,10 @@ pub fn manifest() -> Json {
              "statement": "lexlean::gnaf::certification loads a certificate, refuses what exceeds its capacity before reading a premise, and gives the verdict the model gives it; its verdicts are evidence through the kernel's agreement on the committed certificates."},
             {"name": "interchange", "role": "realization-only",
              "source": "schemas/gnaf-request.schema.json",
-             "statement": "lexlean/gnaf-request/1 is LexLean's own request form; no UOR-GNAF interchange profile is claimed."},
+             "statement": "lexlean/gnaf-request/2 is LexLean's own request form; no UOR-GNAF interchange profile is claimed."},
             {"name": "address", "role": "realization-only",
              "source": "crates/lexlean/src/gnaf.rs",
-             "statement": "The SystemUniverseId is the framed SHA-256 lexlean-gnaf-universe-v1 of the problem, machine, and carrier; no UOR-GNAF address profile is claimed."},
+             "statement": "The SystemUniverseId is the framed κ-label lexlean-gnaf-universe-v2 of the problem, machine, and carrier; no UOR-GNAF address profile is claimed."},
         ],
         "measured": [],
         "restrictions": [
@@ -1272,7 +1278,7 @@ pub(crate) fn gnaf_definitions() -> serde_json::Map<String, Json> {
         ),
         (
             "digest",
-            json!({"pattern": "^[0-9a-f]{64}$", "type": "string"}),
+            json!({"pattern": "^blake3:[0-9a-f]{64}$", "type": "string"}),
         ),
         (
             "capacity",

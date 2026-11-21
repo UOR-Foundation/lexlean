@@ -222,7 +222,7 @@ fn verify_language(language: &str) {
     let spec = if language == "1.1" {
         "lexlean/semantic-module/1"
     } else {
-        "lexlean/semantic-module/2"
+        "lexlean/semantic-module/3"
     };
     let module = json!({"spec":spec, "declarations":declarations});
     project.write("src/Main.lex.tex", &format!(
@@ -359,7 +359,7 @@ fn evaluate(project: &P, lean: &str, values: &[Vec<u8>]) {
             tool: "lean",
             module: Some("ByteRuntime".to_owned()),
             program: &toolchain.lean.path,
-            executable_sha256: toolchain.lean.sha256,
+            executable_kappa: toolchain.lean.kappa,
             argv: vec![path.to_string()],
             cwd: scratch,
             extra_env: vec![(

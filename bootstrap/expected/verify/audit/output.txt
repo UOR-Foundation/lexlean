@@ -199,7 +199,6 @@
 'LexLeanBoot.ContentId.buildId' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.byteText' does not depend on any axioms
 'LexLeanBoot.ContentId.cat' does not depend on any axioms
-'LexLeanBoot.ContentId.digestBytes' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.frame' does not depend on any axioms
 'LexLeanBoot.ContentId.framedHash' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.lit' does not depend on any axioms
@@ -207,7 +206,6 @@
 'LexLeanBoot.ContentId.semanticId' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.sourceId' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.treeDigest' depends on axioms: [propext, Quot.sound]
-'LexLeanBoot.ContentId.wordBytes' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.Diagnostics.Diagnostic' does not depend on any axioms
 'LexLeanBoot.Diagnostics.Label' does not depend on any axioms
 'LexLeanBoot.Diagnostics.Note' does not depend on any axioms
@@ -522,16 +520,16 @@
 'LexLeanBoot.ManifestText.buildManifest' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ManifestText.cat' does not depend on any axioms
 'LexLeanBoot.ManifestText.escapedKey' does not depend on any axioms
-'LexLeanBoot.ManifestText.jsonDigest' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.ManifestText.jsonDigest' does not depend on any axioms
 'LexLeanBoot.ManifestText.jsonText' does not depend on any axioms
 'LexLeanBoot.ManifestText.lit' does not depend on any axioms
-'LexLeanBoot.ManifestText.manifestJson' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.ManifestText.manifestJson' depends on axioms: [propext]
 'LexLeanBoot.ManifestText.member' does not depend on any axioms
 'LexLeanBoot.ManifestText.moduleJson' does not depend on any axioms
 'LexLeanBoot.ManifestText.modulesJson' does not depend on any axioms
-'LexLeanBoot.ManifestText.rowJson' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.ManifestText.rowJson' does not depend on any axioms
 'LexLeanBoot.ManifestText.rowKey' does not depend on any axioms
-'LexLeanBoot.ManifestText.rowsJson' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.ManifestText.rowsJson' depends on axioms: [propext]
 'LexLeanBoot.ManifestText.rowsSorted' depends on axioms: [propext]
 'LexLeanBoot.ManifestText.textArray' does not depend on any axioms
 'LexLeanBoot.PrimitiveScan.Atom' does not depend on any axioms
@@ -594,7 +592,7 @@
 'LexLeanBoot.ProjectText.artifactText' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ProjectText.canonicalProject' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ProjectText.cat' does not depend on any axioms
-'LexLeanBoot.ProjectText.configSha256' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.ProjectText.configKappa' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ProjectText.digestLine' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ProjectText.header' does not depend on any axioms
 'LexLeanBoot.ProjectText.limitsText' does not depend on any axioms
@@ -2125,6 +2123,36 @@
 'LexLeanRuntime.subtract' does not depend on any axioms
 'LexLeanRuntime.utf8Decode' depends on axioms: [propext, Classical.choice, Quot.sound]
 'LexLeanRuntime.utf8Encode' does not depend on any axioms
+'LexLeanStd.Blake3.Block' does not depend on any axioms
+'LexLeanStd.Blake3.Cv' does not depend on any axioms
+'LexLeanStd.Blake3.Merge' does not depend on any axioms
+'LexLeanStd.Blake3.Quad' does not depend on any axioms
+'LexLeanStd.Blake3.State' does not depend on any axioms
+'LexLeanStd.Blake3.available' does not depend on any axioms
+'LexLeanStd.Blake3.blake3Hex' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.blake3Label' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.blocks' does not depend on any axioms
+'LexLeanStd.Blake3.byteAt' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.chunk' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.columns' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.compress' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.diagonals' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.foldStep' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.fullChunks' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.g' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.hexLittle' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.initial' does not depend on any axioms
+'LexLeanStd.Blake3.load' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.mergeStep' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.nibble' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.parent' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.parentBlock' does not depend on any axioms
+'LexLeanStd.Blake3.permute' does not depend on any axioms
+'LexLeanStd.Blake3.prefix' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.push' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.roundStep' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.treeRoot' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.wordAt' depends on axioms: [propext, Quot.sound]
 'LexLeanStd.Buffer.Buffer' does not depend on any axioms
 'LexLeanStd.Buffer.byteStep' depends on axioms: [propext, Quot.sound]
 'LexLeanStd.Buffer.decimal' does not depend on any axioms

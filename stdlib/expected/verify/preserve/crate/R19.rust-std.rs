@@ -857,104 +857,79 @@ pub fn format_int(p0: i64) -> Str {
 
 #[derive(Clone)]
 pub enum Fn0 {
-    F2,
-    F8,
+    F5(u64, Bytes),
 }
 
 impl Fn0 {
-    pub fn apply(&self, p0: List<Bytes>, p1: Bytes) -> List<Bytes> {
+    pub fn apply(&self, p0: (u64, Bytes)) -> Option<(u64, Bytes)> {
         match self {
-            Fn0::F2 => f2(p0, p1),
-            Fn0::F8 => f8(p0, p1),
+            Fn0::F5(k0, k1) => f5(*k0, k1.clone(), p0),
         }
     }
 }
 
-#[derive(Clone)]
-pub enum Fn1 {
-    F5(Bytes),
+pub fn f0(v0: u64) -> Bytes {
+    f1(f2(), 10u64, v0)
 }
 
-impl Fn1 {
-    pub fn apply(&self, p0: (bool, List<Bytes>), p1: Bytes) -> (bool, List<Bytes>) {
-        match self {
-            Fn1::F5(k0) => f5(k0.clone(), p0, p1),
-        }
-    }
-}
-
-pub fn f0(v0: List<Bytes>, v1: List<Bytes>) -> List<Bytes> {
-    f1(Fn0::F2, v0, v1)
-}
-
-pub fn f1(v0: Fn0, p4: List<Bytes>, p5: List<Bytes>) -> List<Bytes> {
-    let m3 = (p4, p5);
-    {
-        let mut m3 = m3;
-        loop {
-            let step = {
-                let (v1, v2) = m3;
-                let m1 = v2;
-                match m1.uncons() {
-                    None => {
-                        Err::<(List<Bytes>, List<Bytes>), List<Bytes>>(v1)
-                    }
-                    Some((v3, v4)) => {
-                        Ok::<(List<Bytes>, List<Bytes>), List<Bytes>>(({
-                            let c2: Fn0 = v0.clone();
-                            c2.apply(v1, v3)
-                        }, v4))
-                    }
-                }
-            };
-            match step {
-                Ok(next) => { m3 = next; }
-                Err(done) => break done,
-            }
-        }
-    }
-}
-
-pub fn f2(v0: List<Bytes>, v1: Bytes) -> List<Bytes> {
-    f3(v0, v1)
-}
-
-pub fn f3(v0: List<Bytes>, v1: Bytes) -> List<Bytes> {
-    let v2: (bool, List<Bytes>) = f4(Fn1::F5(v1.clone()), (false, List::<Bytes>::nil()), v0);
-    let m7 = {
-        let (h6, _) = v2;
-        h6
-    };
-    if m7 {
-        f6({
-            let (_, h8) = v2;
-            h8
-        })
+pub fn f1(v0: Bytes, v1: u64, v2: u64) -> Bytes {
+    let a1 = v2;
+    let a2 = 0u64;
+    if nat_eq(a1, a2) {
+        f3(v0, 0u64)
     } else {
-        f6(List::cons(v1, {
-            let (_, h9) = v2;
-            h9
-        }))
+        let (_, h3) = {
+            let (h4, _) = f4(Fn0::F5(v1, v0), v2, (v2, Bytes::lit(&[])));
+            h4
+        };
+        h3
     }
 }
 
-pub fn f4(v0: Fn1, p13: (bool, List<Bytes>), p14: List<Bytes>) -> (bool, List<Bytes>) {
+pub fn f2() -> Bytes {
+    Bytes::lit(&[0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39])
+}
+
+pub fn f3(v0: Bytes, v1: u64) -> Bytes {
+    let m8 = {
+        let a5 = v0;
+        let a6 = v1;
+        let a7 = 1u64;
+        slice_bytes(a5, a6, a7)
+    };
+    match m8 {
+        None => {
+            Bytes::lit(&[])
+        }
+        Some(v2) => {
+            v2
+        }
+    }
+}
+
+pub fn f4(v0: Fn0, p13: u64, p14: (u64, Bytes)) -> ((u64, Bytes), bool) {
     let m12 = (p13, p14);
     {
         let mut m12 = m12;
         loop {
             let step = {
                 let (v1, v2) = m12;
-                let m10 = v2;
-                match m10.uncons() {
-                    None => {
-                        Err::<((bool, List<Bytes>), List<Bytes>), (bool, List<Bytes>)>(v1)
-                    }
-                    Some((v3, v4)) => {
-                        Ok::<((bool, List<Bytes>), List<Bytes>), (bool, List<Bytes>)>(({
-                            let c11: Fn1 = v0.clone();
-                            c11.apply(v1, v3)
-                        }, v4))
+                let m9 = v1;
+                if m9 == 0 {
+                    Err::<(u64, (u64, Bytes)), ((u64, Bytes), bool)>((v2, false))
+                } else {
+                    let v3 = m9 - 1;
+                    let m11 = {
+                        let c10: Fn0 = v0.clone();
+                        c10.apply(v2.clone())
+                    };
+                    match m11 {
+                        None => {
+                            Err::<(u64, (u64, Bytes)), ((u64, Bytes), bool)>((v2, true))
+                        }
+                        Some(v4) => {
+                            Ok::<(u64, (u64, Bytes)), ((u64, Bytes), bool)>((v3, v4))
+                        }
                     }
                 }
             };
@@ -966,62 +941,37 @@ pub fn f4(v0: Fn1, p13: (bool, List<Bytes>), p14: List<Bytes>) -> (bool, List<By
     }
 }
 
-pub fn f5(v0: Bytes, v1: (bool, List<Bytes>), v2: Bytes) -> (bool, List<Bytes>) {
-    f7(v0, v1, v2)
+pub fn f5(v0: u64, v1: Bytes, v2: (u64, Bytes)) -> Option<(u64, Bytes)> {
+    f6(v1, v0, v2)
 }
 
-pub fn f6(v0: List<Bytes>) -> List<Bytes> {
-    f1(Fn0::F8, List::<Bytes>::nil(), v0)
-}
-
-pub fn f7(v0: Bytes, v1: (bool, List<Bytes>), v2: Bytes) -> (bool, List<Bytes>) {
-    let m16 = {
-        let (h15, _) = v1;
+pub fn f6(v0: Bytes, v1: u64, v2: (u64, Bytes)) -> Option<(u64, Bytes)> {
+    let v3: u64 = {
+        let (h15, _) = v2;
         h15
     };
-    if m16 {
-        (true, List::cons(v2, {
-            let (_, h17) = v1;
-            h17
-        }))
+    let a16 = v3;
+    let a17 = 0u64;
+    if nat_eq(a16, a17) {
+        None::<(u64, Bytes)>
     } else {
-        let a18 = v0.clone();
-        let a19 = v2.clone();
-        if equal(a18, a19) {
-            (true, List::cons(v2, {
-                let (_, h20) = v1;
-                h20
-            }))
-        } else {
-            if f9(v0.clone(), v2.clone()) {
-                (true, List::cons(v2, List::cons(v0, {
-                    let (_, h21) = v1;
-                    h21
-                })))
-            } else {
-                (false, List::cons(v2, {
-                    let (_, h22) = v1;
-                    h22
-                }))
-            }
-        }
+        Some(({
+            let a18 = v3;
+            let a19 = v1;
+            let a20 = 0u64;
+            nat_quot(a18, a19, a20)
+        }, {
+            let a25 = f3(v0, {
+                let a21 = v3;
+                let a22 = v1;
+                let a23 = 0u64;
+                nat_rem(a21, a22, a23)
+            });
+            let a26 = {
+                let (_, h24) = v2;
+                h24
+            };
+            append_bytes(a25, a26)
+        }))
     }
-}
-
-pub fn f8(v0: List<Bytes>, v1: Bytes) -> List<Bytes> {
-    List::cons(v1, v0)
-}
-
-pub fn f9(v0: Bytes, v1: Bytes) -> bool {
-    let a27 = {
-        let a23 = v0;
-        let a24 = v1;
-        compare_bytes(a23, a24)
-    };
-    let a28 = {
-        let a25 = Bytes::lit(&[]);
-        let a26 = Bytes::lit(&[0x01]);
-        compare_bytes(a25, a26)
-    };
-    equal(a27, a28)
 }

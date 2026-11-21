@@ -2081,7 +2081,7 @@ mod tests {
     #[test]
     fn a_module_and_its_declaration_spans() {
         let module = json(
-            r#"{spec: "lexlean/semantic-module/2", declarations: [
+            r#"{spec: "lexlean/semantic-module/3", declarations: [
                 theorem{name: a, parameters: [], statement: bool{value: true}, proof: decide{}},
                 theorem{name: b, parameters: [], statement: bool{value: true}, proof: decide{}}
             ]}"#,
@@ -2089,7 +2089,7 @@ mod tests {
         let text = print_module(&module).expect("prints");
         assert!(text.contains("}\n\ntheorem{"), "{text}");
         assert_eq!(
-            parse_module(&text, "lexlean/semantic-module/2").expect("parses"),
+            parse_module(&text, "lexlean/semantic-module/3").expect("parses"),
             module
         );
         let spans = declaration_spans(&text).expect("spans");

@@ -5,7 +5,7 @@
 //!
 //! The oracles are the compiler's own readings: `canonical_digits` and
 //! `canonical_hex` of `surface::semantic`, a natural number as the `u64` of
-//! the `rust-std` target, and the lowercase digits of `Sha256Digest::to_hex`.
+//! the `rust-std` target, and the lowercase digits of `Kappa::to_hex`.
 //! An overflow is an outcome like any other: a canonical decimal past the
 //! target width is `{"kind":"overflow"}` from the member and from `u64`
 //! parsing alike.

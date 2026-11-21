@@ -3,7 +3,7 @@ Feature: reasoning
   Language-1.2 reasoning machines: logics, inference rules, verifiers, reasoners, bounded search, termination evidence, traces, and their production realization (§17.12).
 
   @RS-01 @build
-  Scenario: Language 1.2 logic, inference_rule, verifier, and reasoner declarations, the forward, search, and generate_and_verify strategies, the initial_invariant, terminates, observation_invariant, and answer_correct claims, and the reasoning_failure type belong to the closed lexlean/semantic-module/2 schema and its snapshot schema, are rejected under language 1.1 before either backend runs, and admit no member, strategy, or claim outside the closed schema, such as an opaque oracle, a prompt, an unregistered strategy, or an unregistered claim, which fail with LLT4001.
+  Scenario: Language 1.2 logic, inference_rule, verifier, and reasoner declarations, the forward, search, and generate_and_verify strategies, the initial_invariant, terminates, observation_invariant, and answer_correct claims, and the reasoning_failure type belong to the closed lexlean/semantic-module/3 schema and its snapshot schema, are rejected under language 1.1 before either backend runs, and admit no member, strategy, or claim outside the closed schema, such as an opaque oracle, a prompt, an unregistered strategy, or an unregistered claim, which fail with LLT4001.
     Given a language-1.2 module with every reasoning construct
     When it is linked under language 1.2 and again under language 1.1, and with an opaque member, an unregistered strategy, or an unregistered claim added
     Then language 1.2 links it and its snapshot validates against the closed schemas

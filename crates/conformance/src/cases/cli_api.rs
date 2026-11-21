@@ -503,12 +503,11 @@ pub(crate) fn run(id: &str) {
                     "{arguments:?}: sorted with import closure"
                 );
                 assert!(
-                    value["source_id"]
-                        .as_str()
-                        .is_some_and(|hex| hex.len() == 64)
-                        && value["semantic_id"]
-                            .as_str()
-                            .is_some_and(|hex| hex.len() == 64),
+                    value["source_id"].as_str().is_some_and(|label| {
+                        lexlean::artifact::content_id::Kappa::parse(label).is_ok()
+                    }) && value["semantic_id"].as_str().is_some_and(|label| {
+                        lexlean::artifact::content_id::Kappa::parse(label).is_ok()
+                    }),
                     "check reports its source and semantic IDs"
                 );
                 assert!(value.get("build_id").is_none(), "absent IDs are omitted");
@@ -738,7 +737,7 @@ pub(crate) fn run(id: &str) {
                 "LexLeanError",
                 "ErrorClass",
                 "Diagnostic",
-                "Sha256Digest",
+                "Kappa",
             ] {
                 assert!(
                     lib.contains(&format!("{name},"))
@@ -862,7 +861,7 @@ pub(crate) fn run(id: &str) {
             // Nasty configuration and lock bytes never panic either.
             for bytes in [
                 b"\xFF\xFE".to_vec(),
-                b"spec = \"lexlean/project/1\"\n[[lexicon_source]]\n[[lexicon_source]]\n".to_vec(),
+                b"spec = \"lexlean/project/2\"\n[[lexicon_source]]\n[[lexicon_source]]\n".to_vec(),
                 vec![b'['; 10_000],
                 b"limits = 5\n".to_vec(),
             ] {
@@ -927,7 +926,7 @@ pub(crate) fn run(id: &str) {
                     assert!(
                         stdout.starts_with(&format!(
                             "built 1 module at .lexlean/build/{}",
-                            baseline.to_hex()
+                            baseline.hex()
                         )),
                         "{stdout}"
                     );
@@ -1025,7 +1024,7 @@ pub(crate) fn run(id: &str) {
                 "lexlean {}\nlanguage {}\ncompiler-semantics {}\nlean-toolchain {}\n",
                 lexlean::COMPILER_VERSION,
                 lexlean::LANGUAGE_VERSION,
-                lexlean::compiler_semantics_id().to_hex(),
+                lexlean::compiler_semantics_id().label(),
                 lexlean::LEAN_TOOLCHAIN
             );
             assert_eq!(stdout, expected, "§30.3: the exact four-line report");
@@ -1047,7 +1046,7 @@ pub(crate) fn run(id: &str) {
                 .expect("snapshot repeats");
             assert_eq!(first.canonical_bytes(), second.canonical_bytes());
             assert_eq!(first.snapshot_id(), second.snapshot_id());
-            assert_eq!(first.spec(), "lexlean/semantic-snapshot/1");
+            assert_eq!(first.spec(), "lexlean/semantic-snapshot/3");
             assert_eq!(first.language(), lexlean::LANGUAGE_VERSION);
             assert!(first.modules().iter().all(|module| {
                 !module.source().path().starts_with('/')
@@ -1236,6 +1235,9 @@ pub(crate) fn run(id: &str) {
         "CL-23" => super::production_export::cli(),
         "CL-24" => super::migration::cli(),
         "CL-25" => super::wasi::cli(),
+        "CL-26" => super::wasi::snapshot(),
+        "CL-27" => super::wasi::lean_modules(),
+        "CL-28" => super::wasi::lean_module_policies(),
         other => panic!("no cli-api case is wired for {other}"),
     }
 }

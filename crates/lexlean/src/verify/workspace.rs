@@ -2,7 +2,7 @@
 //! files must match the lock and every manifest dependency must be locally
 //! available. LexLean never runs `lake update` or fetches dependencies.
 
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::code;
 use crate::diagnostic::Diagnostic;
 use crate::lock::Lock;
@@ -61,11 +61,11 @@ pub fn preflight(project: &Project, lock: &Lock) -> Result<(), Diagnostic> {
         })?;
         let bytes = std::fs::read(absolute.as_std_path())
             .map_err(|io_error| mismatch(format!("{path}: {io_error}")))?;
-        let observed = Sha256Digest::of(&bytes);
+        let observed = Kappa::of(&bytes);
         if observed != *recorded {
             return Err(mismatch(format!(
                 "{path} changed since locking: recorded {}, observed {observed}",
-                recorded.to_hex()
+                recorded.label()
             )));
         }
     }

@@ -90,7 +90,7 @@ public structure Typing where
 
 public structure Pin where
   file : ByteArray
-  sha256 : ByteArray
+  kappa : ByteArray
 
 public inductive Decl where
   | DType (_ : ByteArray) (_ : List (TypeParam)) (_ : List (Constructor)) (_ : Bool) (_ : Option (Ty)) (_ : Pin)

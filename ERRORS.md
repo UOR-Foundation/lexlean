@@ -42,13 +42,13 @@ Class: `language`. Exit code: 1.
 
 ## `LLB6006` --- GNAF request malformed
 
-A GNAF request is not a closed `lexlean/gnaf-request/1` document, its reference program or a system its universe realizes is not a valid target program, its reference returns no value on a domain argument, its grammar repeats a threshold or misdeclares a plan's preparation, or its stated universe identity is not the one its components determine.
+A GNAF request is not a closed `lexlean/gnaf-request/2` document, its reference program or a system its universe realizes is not a valid target program, its reference returns no value on a domain argument, its grammar repeats a threshold or misdeclares a plan's preparation, or its stated universe identity is not the one its components determine.
 
 Class: `language`. Exit code: 1.
 
 ## `LLB6007` --- GNAF certificate malformed
 
-A GNAF certificate is not a closed `lexlean/gnaf-certificate/1` document, or a certificate fixture states an identity other than its certificate's.
+A GNAF certificate is not a closed `lexlean/gnaf-certificate/2` document, or a certificate fixture states an identity other than its certificate's.
 
 Class: `language`. Exit code: 1.
 
@@ -114,7 +114,7 @@ Class: `cli-configuration`. Exit code: 2.
 
 ## `LLC0201` --- Production request malformed
 
-A production request is not a closed `lexlean/production-request/1` document: an unknown or missing field, another spec, roots, targets, or evidence that are empty, unsorted, or repeated, a root, package, or path that is not of its form, or a package name used twice for one target.
+A production request is not a closed `lexlean/production-request/2` document: an unknown or missing field, another spec, roots, targets, or evidence that are empty, unsorted, or repeated, a root, package, or path that is not of its form, or a package name used twice for one target.
 
 Class: `cli-configuration`. Exit code: 2.
 
@@ -392,7 +392,7 @@ Class: `language`. Exit code: 1.
 
 ## `LLT4013` --- Tooling module malformed or out of context
 
-A tooling module is not canonical JSON of the closed schema lexlean/tooling-module/1, has a member the schema does not close, nests deeper than the decoder allows, or is not in a language-1.2 project the compiler embeds.
+A tooling module is not canonical JSON of the closed schema lexlean/tooling-module/2, has a member the schema does not close, nests deeper than the decoder allows, or is not in a language-1.2 project the compiler embeds.
 
 Class: `language`. Exit code: 1.
 

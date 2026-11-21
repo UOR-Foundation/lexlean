@@ -67,7 +67,8 @@ pub fn bound_to_source(committed: &Committed) -> Result<(), String> {
         ));
     }
     let audit = root.join("compiler/expected/verify/audit");
-    let reserved = format!("LexLeanAudit.A{}.", &semantic[..32]);
+    let kappa = lexlean::artifact::content_id::Kappa::parse(&semantic)?;
+    let reserved = format!("LexLeanAudit.A{}.", &kappa.hex()[..32]);
     let verified = std::fs::read_dir(audit.as_std_path())
         .map_err(|error| format!("{audit}: {error}"))?
         .flatten()
@@ -93,10 +94,10 @@ pub fn bound_to_source(committed: &Committed) -> Result<(), String> {
             .as_std_path(),
     )
     .map_err(|error| format!("the {module} source: {error}"))?;
-    let digest = lexlean::artifact::content_id::Sha256Digest::of(&source).to_hex();
+    let digest = lexlean::artifact::content_id::Kappa::of(&source).label();
     if map["semantic_id"] != semantic.as_str()
         || map["sources"][0]["path"] != format!("src/{module}.lex.tex").as_str()
-        || map["sources"][0]["sha256"] != digest.as_str()
+        || map["sources"][0]["kappa"] != digest.as_str()
     {
         return Err(format!(
             "the build {semantic} does not bind the committed {module} source {digest}"
@@ -465,7 +466,7 @@ pub fn negatives() -> BTreeMap<String, (Vec<u8>, String)> {
             "sources-unordered",
             {
                 let mut out = base();
-                out.sources = vec!["b".repeat(64), "a".repeat(64)];
+                out.sources = vec![format!("blake3:{}", "b".repeat(64)), format!("blake3:{}", "a".repeat(64))];
                 out
             },
             "sources are strictly ascending",

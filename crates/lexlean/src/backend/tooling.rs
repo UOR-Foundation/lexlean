@@ -683,7 +683,7 @@ pub fn latex_text(module: &ToolingModule) -> Result<LatexText, Diagnostic> {
                 opaque,
                 source,
             } => {
-                let mut lines = vec![format!("Source: {} ({})", source.file, source.sha256)];
+                let mut lines = vec![format!("Source: {} ({})", source.file, source.kappa)];
                 if *opaque {
                     lines.push("Constructors are not pinned (opaque)".to_owned());
                 }
@@ -722,7 +722,7 @@ pub fn latex_text(module: &ToolingModule) -> Result<LatexText, Diagnostic> {
                 vec![
                     format!("Signature: {}", lean.sig(signature)),
                     format!("Role: {role}"),
-                    format!("Source: {} ({})", source.file, source.sha256),
+                    format!("Source: {} ({})", source.file, source.kappa),
                 ],
             ),
             ToolDeclaration::Plumbing { names } => (

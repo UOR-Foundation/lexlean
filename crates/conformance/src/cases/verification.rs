@@ -156,9 +156,9 @@ pub(crate) fn run(id: &str) {
             for tool in ["lean", "lake", "leanchecker"] {
                 let record = &attestation["toolchain"][tool];
                 assert!(
-                    record["executable_sha256"]
-                        .as_str()
-                        .is_some_and(|hex| hex.len() == 64),
+                    record["executable_kappa"].as_str().is_some_and(|label| {
+                        lexlean::artifact::content_id::Kappa::parse(label).is_ok()
+                    }),
                     "{tool}: executable hash recorded: {attestation}"
                 );
             }
@@ -1052,10 +1052,12 @@ pub(crate) fn run(id: &str) {
             let lexlean::artifact::canonical_json::Json::Str(recorded_hex) = recorded else {
                 panic!("the ID is a string")
             };
-            assert_eq!(recomputed.to_hex(), recorded_hex, "§22.9 recomputation");
+            assert_eq!(recomputed.label(), recorded_hex, "§22.9 recomputation");
+            // A directory name cannot hold the label's colon, so the
+            // directory is the label's hex digits.
             assert_eq!(
                 fixture.outcome.root.file_name(),
-                Some(recorded_hex.as_str()),
+                Some(recomputed.hex()),
                 "the directory is the attestation ID"
             );
             assert!(!body.contains("timestamp"), "no timestamp is hashed");
@@ -1386,7 +1388,7 @@ fn run_platform_independent(id: &str) {
         }
         "VR-04" => {
             let (probe, audit) = lexlean::verify::reserved_module_names(
-                lexlean::artifact::content_id::Sha256Digest::of(b"x"),
+                lexlean::artifact::content_id::Kappa::of(b"x"),
             );
             assert!(probe.starts_with("LexLeanProbe.P") && audit.starts_with("LexLeanAudit.A"));
             assert_ne!(probe, audit);

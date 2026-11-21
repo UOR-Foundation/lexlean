@@ -5,7 +5,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::artifact::content_id::{self, Sha256Digest};
+use crate::artifact::content_id::{self, Kappa};
 use crate::code;
 use crate::diagnostic::Diagnostic;
 use crate::elaborate::definitions::elab_definition;
@@ -188,14 +188,14 @@ pub struct CheckedProject {
     /// the probe module, §18.8).
     pub external_used: BTreeMap<String, ExternalConstRef>,
     /// The source ID (§21.3).
-    pub source_id: Sha256Digest,
+    pub source_id: Kappa,
     /// The semantic ID (§21.4).
-    pub semantic_id: Sha256Digest,
+    pub semantic_id: Kappa,
     /// The canonical lock bytes hashed into the source ID.
     pub canonical_lock: Vec<u8>,
     /// Language 1.2: every configured model artifact read for linking, as
-    /// `(project-relative path, byte length, SHA-256)` (§10.1, §21.6).
-    pub artifacts: Vec<(String, usize, Sha256Digest)>,
+    /// `(project-relative path, byte length, κ-label)` (§10.1, §21.6).
+    pub artifacts: Vec<(String, usize, Kappa)>,
 }
 
 impl CheckedProject {
@@ -403,7 +403,7 @@ pub fn check_project(
 }
 
 /// Read every configured model artifact (§10.1): a confined regular file of
-/// at most `max_file_bytes` whose SHA-256 is its configured digest. A missing
+/// at most `max_file_bytes` whose κ-label is its configured digest. A missing
 /// file or a digest mismatch is `LLR3007`.
 fn load_artifacts(
     project: &Project,
@@ -418,9 +418,9 @@ fn load_artifacts(
             Diagnostic::new(
                 code!("LLR3007"),
                 format!(
-                    "model artifact `{}` with SHA-256 {} is missing",
+                    "model artifact `{}` with κ-label {} is missing",
                     source.path,
-                    source.sha256.to_hex()
+                    source.kappa.label()
                 ),
             )
         })?;
@@ -441,19 +441,19 @@ fn load_artifacts(
                 ),
             ));
         }
-        let observed = Sha256Digest::of(&bytes);
-        if observed != source.sha256 {
+        let observed = Kappa::of(&bytes);
+        if observed != source.kappa {
             return Err(Diagnostic::new(
                 code!("LLR3007"),
                 format!(
-                    "model artifact `{}` has SHA-256 {}, not its configured {}",
+                    "model artifact `{}` has κ-label {}, not its configured {}",
                     source.path,
-                    observed.to_hex(),
-                    source.sha256.to_hex()
+                    observed.label(),
+                    source.kappa.label()
                 ),
             ));
         }
-        store.insert(source.sha256.to_hex(), bytes);
+        store.insert(source.kappa.label(), bytes);
     }
     Ok(store)
 }
@@ -1197,7 +1197,7 @@ fn check_project_inline(
             name: module_name.clone(),
             lean_module,
             source_path: load.path.clone(),
-            source_sha256: Sha256Digest::of(load.normalized.as_bytes()),
+            source_kappa: Kappa::of(load.normalized.as_bytes()),
             origin: load.package.clone(),
             glossary,
             import_lean,
@@ -1292,8 +1292,8 @@ fn check_project_inline(
             .map(|source| {
                 (
                     source.path.clone(),
-                    artifacts.get(&source.sha256.to_hex()).map_or(0, Vec::len),
-                    source.sha256,
+                    artifacts.get(&source.kappa.label()).map_or(0, Vec::len),
+                    source.kappa,
                 )
             })
             .collect(),

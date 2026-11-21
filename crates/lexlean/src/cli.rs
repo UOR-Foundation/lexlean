@@ -96,6 +96,22 @@ enum CommandKind {
         /// Explicit input modules.
         inputs: Vec<Utf8PathBuf>,
     },
+    /// Write the semantic snapshot of a selection to stdout.
+    Snapshot {
+        /// Every module beneath every source root.
+        #[arg(long)]
+        all: bool,
+        /// Explicit input modules.
+        inputs: Vec<Utf8PathBuf>,
+    },
+    /// Write the Lean modules a build of a selection elaborates to stdout.
+    LeanModules {
+        /// Every module beneath every source root.
+        #[arg(long)]
+        all: bool,
+        /// Explicit input modules.
+        inputs: Vec<Utf8PathBuf>,
+    },
     /// Build a selection to the fixed content-addressed layout.
     Build {
         /// Every module beneath every source root.
@@ -153,7 +169,7 @@ enum ProductionAction {
     Targets,
     /// Verify the project and publish the bundle a request names.
     Build {
-        /// The `lexlean/production-request/1` file.
+        /// The `lexlean/production-request/2` file.
         #[arg(long)]
         request: Utf8PathBuf,
     },
@@ -165,10 +181,12 @@ enum ProductionAction {
 }
 
 /// The command names, in the order of §23.4.
-const COMMAND_NAMES: [&str; 10] = [
+const COMMAND_NAMES: [&str; 12] = [
     "init",
     "lock",
     "check",
+    "snapshot",
+    "lean-modules",
     "build",
     "verify",
     "fmt",
@@ -363,7 +381,7 @@ fn version_text() -> String {
         "lexlean {}\nlanguage {}\ncompiler-semantics {}\nlean-toolchain {}\n",
         crate::COMPILER_VERSION,
         crate::LANGUAGE_VERSION,
-        crate::compiler_semantics_id().to_hex(),
+        crate::compiler_semantics_id().label(),
         crate::LEAN_TOOLCHAIN
     );
     // A build without the production data shares the compiler-semantics IDs
@@ -458,6 +476,10 @@ struct Outcome {
     ids: CommandIds,
     summary: String,
     explanation: Option<String>,
+    /// The bytes human mode writes in place of a summary: the semantic
+    /// snapshot's canonical file bytes for `snapshot`, the
+    /// `lexlean/lean-modules/1` document for `lean-modules` (§23.4).
+    document: Option<Vec<u8>>,
 }
 
 /// Emit a finished command's result in the selected mode and return the
@@ -492,6 +514,8 @@ fn emit(
         if exit_code == 0 {
             if let Some(explanation) = &outcome.explanation {
                 let _ = write!(stdout, "{explanation}");
+            } else if let Some(document) = &outcome.document {
+                let _ = stdout.write_all(document);
             } else if !outcome.summary.is_empty() {
                 let _ = write!(stdout, "{}", outcome.summary);
             }
@@ -598,6 +622,8 @@ pub fn run(
         CommandKind::Init { .. } => "init",
         CommandKind::Lock { .. } => "lock",
         CommandKind::Check { .. } => "check",
+        CommandKind::Snapshot { .. } => "snapshot",
+        CommandKind::LeanModules { .. } => "lean-modules",
         CommandKind::Build { .. } => "build",
         CommandKind::Verify { .. } => "verify",
         CommandKind::Fmt { .. } => "fmt",
@@ -630,7 +656,7 @@ pub fn run(
             let report = crate::api::production::verify_artifact(&path)?;
             outcome.summary = format!(
                 "replayed result {}: {} outputs, bindings verified; not re-run: {}\n",
-                report.result_id.to_hex(),
+                report.result_id.label(),
                 report.outputs,
                 report.not_rechecked.join(", ")
             );
@@ -685,9 +711,38 @@ pub fn run(
                     outcome.summary = format!(
                         "checked {} (source {}, semantic {})\n",
                         modules(result.units.len()),
-                        result.source_id.to_hex(),
-                        result.semantic_id.to_hex()
+                        result.source_id.label(),
+                        result.semantic_id.label()
                     );
+                    Ok(())
+                }
+                CommandKind::Snapshot { all, inputs } => {
+                    // The same pipeline as `check`, taking no lock; the
+                    // snapshot is the stable read-only DTO of §24.1.
+                    let snapshot = engine.snapshot(CheckRequest {
+                        selection: selection_from(all, inputs)?,
+                    })?;
+                    outcome.modules = snapshot
+                        .modules()
+                        .iter()
+                        .map(|module| module.name().to_owned())
+                        .collect();
+                    outcome.ids.source_id = Some(snapshot.source_id());
+                    outcome.ids.semantic_id = Some(snapshot.semantic_id());
+                    outcome.document = Some(snapshot.canonical_bytes());
+                    Ok(())
+                }
+                CommandKind::LeanModules { all, inputs } => {
+                    // `build`'s rendering without its publication, so it
+                    // takes no lock and writes nothing (§8.3, §23.4).
+                    let rendered = engine.lean_modules(&BuildRequest {
+                        selection: selection_from(all, inputs)?,
+                    })?;
+                    outcome.modules = rendered.project_modules();
+                    outcome.ids.source_id = Some(rendered.source_id());
+                    outcome.ids.semantic_id = Some(rendered.semantic_id());
+                    outcome.ids.build_id = Some(rendered.build_id());
+                    outcome.document = Some(rendered.canonical_bytes());
                     Ok(())
                 }
                 CommandKind::Build { all, inputs } => {
@@ -699,11 +754,8 @@ pub fn run(
                     outcome.ids.semantic_id = Some(result.semantic_id);
                     outcome.ids.build_id = result.build_id;
                     if let Some(id) = result.build_id {
-                        let artifact = format!(
-                            "{}/build/{}",
-                            engine.project().config.build_root,
-                            id.to_hex()
-                        );
+                        let artifact =
+                            format!("{}/build/{}", engine.project().config.build_root, id.hex());
                         outcome.summary =
                             format!("built {} at {artifact}\n", modules(result.units.len()));
                         outcome.artifacts.push(artifact);
@@ -722,12 +774,12 @@ pub fn run(
                     outcome.artifacts.push(format!(
                         "{}/verified/{}",
                         engine.project().config.build_root,
-                        result.attestation_id.to_hex()
+                        result.attestation_id.hex()
                     ));
                     outcome.summary = format!(
                         "verified {}; attestation {}\n",
                         modules(result.units.len()),
-                        result.attestation_id.to_hex()
+                        result.attestation_id.label()
                     );
                     Ok(())
                 }
@@ -811,7 +863,7 @@ pub fn run(
                     outcome.summary = format!(
                         "exported {packages} packages at {}; result {}{host}\n",
                         output.bundle,
-                        result.result_id.to_hex()
+                        result.result_id.label()
                     );
                     Ok(())
                 }

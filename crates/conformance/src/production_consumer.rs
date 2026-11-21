@@ -15,7 +15,7 @@ use lexlean::api::production::{
     self, Evidence, EvidenceKind, Expectation, PackageName, ProductionOutput, ProductionRequest,
     ReplayReport, RootRequest, TargetRef, REQUEST_SPEC,
 };
-use lexlean::{CheckRequest, Engine, LexLeanError, LockRequest, Selection, Sha256Digest};
+use lexlean::{CheckRequest, Engine, Kappa, LexLeanError, LockRequest, Selection};
 use serde::Deserialize;
 
 /// The application's roots (`roots.json` beside its expected packages).
@@ -50,7 +50,7 @@ pub struct AppEvidence {
     /// The project-relative certificate path.
     pub certificate: String,
     /// The certificate identity the application means.
-    pub certificate_id: Sha256Digest,
+    pub certificate_id: Kappa,
 }
 
 /// What setup pins: the project's identities and the target digests.
@@ -59,7 +59,7 @@ pub struct Pins {
     /// The pinned identities.
     pub expect: Expectation,
     /// Target ID to descriptor digest.
-    pub targets: BTreeMap<String, Sha256Digest>,
+    pub targets: BTreeMap<String, Kappa>,
 }
 
 /// Setup: the one step allowed to touch more than the project. Here the lock
@@ -87,7 +87,7 @@ pub fn setup(project_file: &Utf8Path) -> Result<(Engine, Pins), LexLeanError> {
             expect: Expectation {
                 source_id: Some(checked.source_id),
                 semantic_id: Some(checked.semantic_id),
-                lock_sha256: Some(Sha256Digest::of(&lock.bytes)),
+                lock_kappa: Some(Kappa::of(&lock.bytes)),
             },
             targets,
         },
@@ -115,11 +115,7 @@ pub fn request(
                 .iter()
                 .map(|id| TargetRef {
                     id: id.clone(),
-                    digest: pins
-                        .targets
-                        .get(id)
-                        .copied()
-                        .unwrap_or(Sha256Digest([0; 32])),
+                    digest: pins.targets.get(id).copied().unwrap_or(Kappa::ZERO),
                 })
                 .collect(),
         })

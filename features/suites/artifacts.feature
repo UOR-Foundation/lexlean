@@ -105,3 +105,17 @@ Feature: artifacts
     When the verified root and the content-addressed build directory are each listed
     Then the verified set contains a `.olean` file, `attestation.json`, and a `process/lean/` record
     And the build set contains no `.olean`, no `process/` entry, no `attestation.json`, and no `.pdf`
+
+  @AR-15 @build
+  Scenario: Every identity LexLean computes, names, or pins is a BLAKE3 κ-label: `cargo xtask validate-model` runs `audit-hashes`, which reads the shipped crate, the repository's tooling, the language data, every schema, and the model files, and refuses a line that names the SHA-256 digest in any spelling, or a schema pattern that admits a bare 64-digit digest, unless a row of its allow-list names the file and the outside format that requires it (the release checksums crates.io and `sha256sum` read, the digest an upstream publisher states for its release, and the authorities of the standard library's `Sha256` function); a `Sha256` digest planted in a copy of the compiler's content identity, a `sha256` field planted in a copy of a lock schema, a bare 64-digit pattern planted in a copy of a snapshot schema, and the SHA-256 crate used in a copy of the release tooling outside its sanctioned lines are each refused, and a scan that reads no source of the shipped crate is refused.
+    Given the shipped crate, the repository's tooling, the language data, every schema, and the model files
+    When `audit-hashes` reads them, and reads copies with a SHA-256 identity, field, pattern, or crate use planted in each
+    Then the repository passes with every sanctioned use named by its outside format
+    And every planted SHA-256 is refused, and a scan that reads no source of the shipped crate is refused
+
+  @AR-16 @build
+  Scenario: The κ-labels are canonical and reproducible by another implementation: `tests/kappa/vectors.json` states, for a raw-bytes leaf, a tree, a source ID, a semantic ID, a declaration ID, and a lexicon entry signature, the inputs, the exact carrier bytes, and the κ-label; the compiler's recipes give every carrier and label, the reference `blake3` crate and uor-addr's `blake3` σ-axis give every label from its carrier, and the label of raw bytes is the address Hologram's store re-derives; and a recipe that leaves out a field it must cover, two different modules whose frames would coincide if written without their length prefixes, and a lexicon entry whose signature changes while its κ-label does not are each refused.
+    Given the committed cross-implementation vectors, the reference `blake3` crate, and uor-addr's `blake3` σ-axis
+    When each vector's carrier and label are recomputed by the compiler's recipes and its label by both oracles from the carrier
+    Then every carrier and label is the committed one
+    And a recipe that omits a field, two modules framed without length prefixes, and an entry whose signature changes under an unchanged label are each refused

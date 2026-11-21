@@ -157,6 +157,9 @@ impl<'a> World<'a> {
 pub fn absolute(ty: &SemanticType, module: &str) -> SemanticType {
     let a = |inner: &SemanticType| Box::new(absolute(inner, module));
     match ty {
+        SemanticType::Array { element } => SemanticType::Array {
+            element: a(element),
+        },
         SemanticType::Named { member, arguments } => SemanticType::Named {
             member: MemberRef {
                 module: Some(member.module.clone().unwrap_or_else(|| module.to_owned())),
@@ -214,6 +217,9 @@ pub fn absolute(ty: &SemanticType, module: &str) -> SemanticType {
 pub(super) fn substitute(ty: &SemanticType, by: &HashMap<String, SemanticType>) -> SemanticType {
     let s = |inner: &SemanticType| Box::new(substitute(inner, by));
     match ty {
+        SemanticType::Array { element } => SemanticType::Array {
+            element: s(element),
+        },
         SemanticType::Parameter { name } => by.get(name).cloned().unwrap_or_else(|| ty.clone()),
         SemanticType::Named { member, arguments } => SemanticType::Named {
             member: member.clone(),
@@ -298,6 +304,7 @@ fn kind_of_term(term: &SemanticTerm) -> String {
 /// The Lean name of an integer type, and whether it is signed.
 fn integer_type(ty: &SemanticType) -> Option<(&'static str, bool)> {
     Some(match ty {
+        SemanticType::Array { .. } => return None,
         SemanticType::Int => ("Int", true),
         SemanticType::Int8 => ("Int8", true),
         SemanticType::Int16 => ("Int16", true),
@@ -428,6 +435,7 @@ impl World<'_> {
     /// A type as a kernel term.
     pub fn ty(&self, ctx: &Ctx, ty: &SemanticType) -> R<Expr> {
         Ok(match ty {
+            SemanticType::Array { element } => app(cu("Array", &[0]), [self.ty(ctx, element)?]),
             SemanticType::Type => sort(1),
             SemanticType::Prop => sort(0),
             SemanticType::Parameter { name } => ctx
@@ -535,6 +543,7 @@ impl World<'_> {
             }
         };
         Ok(match ty {
+            SemanticType::Array { .. } => return Err("case analysis on type `array`".to_owned()),
             SemanticType::Nat => builtin(
                 "Nat",
                 vec![],
@@ -1199,6 +1208,7 @@ impl World<'_> {
                 let ty = self.constructor_type(ctx, constructor, type_arguments)?;
                 let mut out = Vec::new();
                 let levels: &[u32] = match &ty {
+                    SemanticType::Array { .. } => return Err("a constructor of `array`".to_owned()),
                     SemanticType::Nat | SemanticType::Bool => &[],
                     SemanticType::List { element } | SemanticType::Option { value: element } => {
                         out.push(self.ty(ctx, element)?);
@@ -1617,6 +1627,9 @@ impl World<'_> {
         arguments: &[SemanticTerm],
     ) -> R<Expr> {
         let function = match crate::backend::semantic::spelling(operation) {
+            crate::backend::semantic::Spelling::Array(name) => {
+                return Err(format!("array function `{name}`"))
+            }
             crate::backend::semantic::Spelling::Runtime { name, int64: _ } => {
                 format!("LexLeanRuntime.{name}")
             }
@@ -1813,6 +1826,9 @@ impl World<'_> {
             | SemanticPrimitive::ParseDecimal
             | SemanticPrimitive::FormatDecimal
             | SemanticPrimitive::ToInt
+            | SemanticPrimitive::ArrayFromList
+            | SemanticPrimitive::ArrayToList
+            | SemanticPrimitive::ArraySet
             | SemanticPrimitive::ToNat) => return Err(format!("primitive `{other:?}`")),
         };
         let mut out = Vec::new();
@@ -1847,6 +1863,7 @@ impl World<'_> {
     /// A `DecidableEq` instance of a type.
     fn decidable_eq(&self, ctx: &Ctx, ty: &SemanticType) -> R<Expr> {
         Ok(match ty {
+            SemanticType::Array { .. } => return Err("decidable equality of `array`".to_owned()),
             SemanticType::Nat => c("instDecidableEqNat"),
             other if integer_type(other).is_some() => c(&number_instance("DecidableEq", other)?),
             SemanticType::Option { value } => app(

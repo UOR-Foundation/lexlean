@@ -3,7 +3,7 @@
 //! it, the official BLAKE3 test vectors (`tests/stdlib/blake3/`) and the
 //! `blake3` crate on a seeded corpus, under the calculus evaluator and under
 //! the pinned rustc; and its piece members against the `blake3` crate's own
-//! subtree API (`hazmat`), so that the chaining values of the 1 MiB pieces of
+//! chunk and parent functions (`guts`), so that the chaining values of the 1 MiB pieces of
 //! an input, merged by `pieceRoot`, are the input's BLAKE3 hash.
 //!
 //! An oracle is evidence, not authority: a disagreement fails the case and
@@ -12,7 +12,6 @@
 
 use std::collections::BTreeMap;
 
-use blake3::hazmat::HasherExt;
 use lexlean::calculus::rust::package::Passing;
 use lexlean::calculus::rust::{self, Profile};
 use lexlean::calculus::{self as target, interp, Value};
@@ -135,10 +134,26 @@ fn piece_oracle(piece: &[u8], index: usize, total: usize) -> [u8; 32] {
     if total == 1 {
         return *blake3::hash(piece).as_bytes();
     }
-    blake3::Hasher::new()
-        .set_input_offset(u64::try_from(index * PIECE).expect("an offset"))
-        .update(piece)
-        .finalize_non_root()
+    let first = u64::try_from(index * (PIECE / 1024)).expect("a chunk counter");
+    let chunks: Vec<(u64, &[u8])> = piece
+        .chunks(1024)
+        .enumerate()
+        .map(|(at, chunk)| (first + u64::try_from(at).expect("a chunk counter"), chunk))
+        .collect();
+    *subtree(&chunks).as_bytes()
+}
+
+/// The non-root chaining value of consecutive chunks, merged as the BLAKE3
+/// reference merges them: the left subtree holds the largest power of two of
+/// chunks that is less than their count.
+fn subtree(chunks: &[(u64, &[u8])]) -> blake3::Hash {
+    if let [(counter, chunk)] = chunks {
+        return blake3::guts::ChunkState::new(*counter)
+            .update(chunk)
+            .finalize(false);
+    }
+    let left = 1usize << (usize::BITS - 1 - (chunks.len() - 1).leading_zeros());
+    blake3::guts::parent_cv(&subtree(&chunks[..left]), &subtree(&chunks[left..]), false)
 }
 
 /// The official vectors: the input is the repeating sequence 0, 1, ..., 250
