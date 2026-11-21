@@ -1,0 +1,121 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{PackageRef}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{package}: \texttt{ByteArray}.\par
+\noindent Field \texttt{version}: \texttt{ByteArray}.\par
+\subsection*{\texttt{lit}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(literal : String)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(LexLeanRuntime.utf8Encode (literal) : ByteArray)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{cat}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(left : ByteArray) (right : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(LexLeanRuntime.append (left) (right) : ByteArray)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isAsciiAlpha}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(byte : UInt8)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(let value : Nat := (toNat (byte) : Nat); (((Nat.ble (65) (value)) \&\& (Nat.ble (value) (90))) || ((Nat.ble (97) (value)) \&\& (Nat.ble (value) (122)))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{isAlnumHyphen}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(byte : UInt8)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(if LexLeanStd.Numeral.isDecimal (byte) then true else (if isAsciiAlpha (byte) then true else (LexLeanRuntime.equal (byte) ((45 : UInt8)) : Bool)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{alnumHyphenEnd}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(subject : ByteArray)}.\par
+\noindent Closure 1: binds \texttt{(position)}, captures \texttt{(subject)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{((LexLeanCollections.iterateUntil ((fun (position : Nat) => (match LexLeanStd.Text.byteAt (subject) (position) with | Option.some b => (if isAlnumHyphen (b) then Option.some ((position + 1)) else Option.none) | Option.none => Option.none))) ((LexLeanRuntime.length (subject) : Nat)) (0) : (Prod (Nat) (Bool)))).1}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{isAllDigits}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(subject : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(Nat.beq (LexLeanStd.Numeral.decimalEnd (subject)) ((LexLeanRuntime.length (subject) : Nat)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{isPrereleaseSegment}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(segment : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(let n : Nat := (LexLeanRuntime.length (segment) : Nat); (if (Nat.beq (n) (0)) then false else (if (Nat.beq (alnumHyphenEnd (segment)) (n)) then (if isAllDigits (segment) then LexLeanStd.Numeral.canonicalDecimal (segment) else true) else false)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{isBuildSegment}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(segment : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(let n : Nat := (LexLeanRuntime.length (segment) : Nat); (if (Nat.beq (n) (0)) then false else (Nat.beq (alnumHyphenEnd (segment)) (n))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{segCount}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(segments : List (ByteArray))}.\par
+\noindent Closure 1: binds \texttt{(count, segment)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (count : Nat) (\_segment : ByteArray) => (count + 1))) (0) (segments) : Nat)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{allCanonicalDecimal}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(segments : List (ByteArray))}.\par
+\noindent Closure 1: binds \texttt{(ok, segment)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (ok : Bool) (segment : ByteArray) => (if ok then LexLeanStd.Numeral.canonicalDecimal (segment) else false))) (true) (segments) : Bool)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{allPrereleaseSegments}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(segments : List (ByteArray))}.\par
+\noindent Closure 1: binds \texttt{(ok, segment)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (ok : Bool) (segment : ByteArray) => (if ok then isPrereleaseSegment (segment) else false))) (true) (segments) : Bool)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{allBuildSegments}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(segments : List (ByteArray))}.\par
+\noindent Closure 1: binds \texttt{(ok, segment)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (ok : Bool) (segment : ByteArray) => (if ok then isBuildSegment (segment) else false))) (true) (segments) : Bool)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{isSemverCore}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(core : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(let parts : List (ByteArray) := LexLeanStd.Text.splitOn (core) ((46 : UInt8)); (if (Nat.beq (segCount (parts)) (3)) then allCanonicalDecimal (parts) else false))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{isExactVersion}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(version : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match LexLeanStd.Text.find (version) (lit ("+")) with | Option.some plusAt => (let mainPart : ByteArray := LexLeanStd.Text.sliceOr (version) (0) (plusAt); (let buildPart : ByteArray := LexLeanStd.Text.sliceOr (version) ((plusAt + 1)) ((LexLeanRuntime.subtract ((LexLeanRuntime.length (version) : Nat)) ((plusAt + 1)) : Nat)); (if allBuildSegments (LexLeanStd.Text.splitOn (buildPart) ((46 : UInt8))) then (match LexLeanStd.Text.find (mainPart) (lit ("-")) with | Option.some dashAt => (isSemverCore (LexLeanStd.Text.sliceOr (mainPart) (0) (dashAt)) \&\& allPrereleaseSegments (LexLeanStd.Text.splitOn (LexLeanStd.Text.sliceOr (mainPart) ((dashAt + 1)) ((LexLeanRuntime.subtract ((LexLeanRuntime.length (mainPart) : Nat)) ((dashAt + 1)) : Nat))) ((46 : UInt8)))) | Option.none => isSemverCore (mainPart)) else false))) | Option.none => (match LexLeanStd.Text.find (version) (lit ("-")) with | Option.some dashAt => (isSemverCore (LexLeanStd.Text.sliceOr (version) (0) (dashAt)) \&\& allPrereleaseSegments (LexLeanStd.Text.splitOn (LexLeanStd.Text.sliceOr (version) ((dashAt + 1)) ((LexLeanRuntime.subtract ((LexLeanRuntime.length (version) : Nat)) ((dashAt + 1)) : Nat))) ((46 : UInt8)))) | Option.none => isSemverCore (version)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{parsePackageRef}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(text : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
+\noindent Type: \texttt{Option (PackageRef)}.\par
+\noindent Definition: \texttt{(match LexLeanStd.Text.find (text) (lit ("@")) with | Option.some <U+00AB>at<U+00BB> => (let package : ByteArray := LexLeanStd.Text.sliceOr (text) (0) (<U+00AB>at<U+00BB>); (let version : ByteArray := LexLeanStd.Text.sliceOr (text) ((<U+00AB>at<U+00BB> + 1)) ((LexLeanRuntime.subtract ((LexLeanRuntime.length (text) : Nat)) ((<U+00AB>at<U+00BB> + 1)) : Nat)); (if LexLeanBoot.LexiconLse.isPackageId (package) then (if isExactVersion (version) then Option.some ((\{ package := package, version := version \} : PackageRef)) else Option.none) else Option.none))) | Option.none => Option.none)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\end{document}
