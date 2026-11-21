@@ -42,7 +42,7 @@ const CERTIFICATE_BUDGET: u64 = 3_145_728;
 const EVALUATOR_NODES: usize = 300;
 const VECTORS: usize = 179;
 const VECTORS_WITHIN: usize = 73;
-const EVALUATOR_MUTANTS: usize = 146;
+const EVALUATOR_MUTANTS: usize = 153;
 
 fn prim(operation: Prim, operands: Vec<Expr>) -> Expr {
     Expr::Prim {

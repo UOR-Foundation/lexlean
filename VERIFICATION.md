@@ -12673,6 +12673,376 @@ by a tag the calculus does not write. The case then stops at the stack-bound
 step, `bootstrap/keyword_entry is no package of the committed exports`, as each
 bootstrap member did before its regeneration. The branch is stacked on `BS-35`.
 
+### the term IR is source (BS-65)
+
+The first regeneration with this module (run 43210252444) stopped the production
+export of the bootstrap project at `LLS8002`: the Lean extraction wrote more than
+the 33,554,432 bytes of output the project let one child write. The project now
+configures `max_child_output_bytes = 268435456` (the maintainer's decision,
+2026-11-12; a semantic input, so the lock and every package move at the landing),
+which leaves room for the further components of the typed IR.
+
+`BS-65` holds the five production roots of `LexLeanBoot.IrTerm`
+(`bootstrap/src/IrTerm.lex.tex`) to `lexlean::ir::term`: `termText` to
+`Term::to_json` under the hashing renumbering written canonically,
+`canonicalKey` to `Term::canonical_key`, `eqKey` to `Term::eq_key`, `nodeCount`
+to `Term::node_count`, and `termDepth` to `Term::depth`. The module declares the
+core references, the four kinds of global reference, and the closed term IR of
+SPEC.md §17.3 as inductives, and reuses the universes and binder modes of
+`LexiconLse` (`BS-25`), as the oracle reuses `lexicon::lse`. A list of terms or
+of binders is a chain of cells of `Term` itself and a `let` carries the fields
+of its binder, so that each root is one structural recursion over one inductive;
+the renumbering is an association table threaded through that recursion, which
+binds each binder after its type and a `let` binder after its value, numbers a
+free local on first use under hashing, and keeps it verbatim under comparison.
+The JSON is written with the standard library's `writeJson`, which orders the
+keys; the key strips every `s` member, as the oracle does. Numbers beyond `i64`
+saturate as the oracle's do. Every root admits exactly `allocation`, `overflow`,
+and `recursion`. The oracle is the existing public code of `term.rs`; no Rust
+outside the case changes.
+
+The case holds each root to the oracle on hand-built terms that reach every
+constructor, every kind of global and every core constructor, rebound ids, free
+locals before bound ones, a binder in its own type, a `let` over free locals,
+binder modes, omitted implicit binders, universes with `max` and `imax`, numbers
+beyond `i64`, and escapes in a spelling; on every distinct term of the linked IR
+of the committed projects that declare document environments
+(`examples/list-induction`, `nat-add-zero`, `peano-arithmetic`,
+`propositional-logic`, and the fixture projects of `tests/fixtures` that check),
+each declaration's parameters also bound over its statement as one term; and on
+seeded terms. Each planted defect names the root and the vector that catch it,
+and the case asserts that the site of each plant occurs once. The row's
+statement carries no counts.
+
+Measured with the compiler binary of this tree's compiler sources: `lexlean
+check` of the `bootstrap/` project passes, with each of the five roots eligible
+for `rust-std` with exactly its declared effects, and `lexlean fmt --check`
+passes.
+
+### the proof and declaration IR are source (BS-66)
+
+`BS-66` holds the three production roots of `LexLeanBoot.IrProof`
+(`bootstrap/src/IrProof.lex.tex`) to `lexlean::ir::proof` and
+`lexlean::ir::declaration`: `proofText` to `Proof::to_json` under the hashing
+renumbering written canonically, `declarationText` to `Declaration::to_json`
+likewise, and `permits` to `AxiomPolicy::permits`. The module declares the closed
+proof IR of SPEC.md §17.4, the declaration kinds, bodies, and axiom policies of
+§17.5 and §15.9, and the declaration, over the term IR and the renumbering of
+`IrTerm` (`BS-65`). Proof steps, rewrite rules, case branches, and calculation
+steps are chains of cells of `Proof` itself, so that `proofText` is one
+structural recursion that threads the renumbering: an introduction binds its
+locals in order, a `have` binds its local after its proposition, a case binds
+its locals before its proof, a rewrite target is resolved as an occurrence, and a
+declaration binds its parameters before its body. `permits` sorts the observed
+axioms with the standard library's stable merge sort, drops repeats, and
+compares the list with the policy's under `exact`. The two JSON roots admit
+exactly `allocation`, `overflow`, and `recursion`, and `permits` exactly
+`allocation` and `overflow`. The oracle is the existing public code of
+`proof.rs` and `declaration.rs`; no Rust outside the case changes.
+
+The case holds each root to the oracle on hand-built proofs that reach every
+proof constructor, introduction order with a rebound local, a `have` over a free
+local, rewrites at a free and at a bound hypothesis, `cases` and `induction` with
+bound fields, and a calculation; on hand-built declarations of a lemma with
+parameters, a definition, and a corollary under an `allow` policy; on hand-built
+policies with no axiom, a subset, a refusal after an acceptance, duplicates, a
+missing and an extra axiom, and a policy out of order; on every distinct
+declaration and nested proof of the linked IR of the committed projects that
+declare document environments, with each declaration's policy against its own
+axioms and against none; and on seeded inputs. Each planted defect names the
+vector that catches it, and the case asserts that the site of each plant occurs
+once. The row's statement carries no counts.
+
+Measured with the compiler binary of this tree's compiler sources: `lexlean
+check` of the `bootstrap/` project passes, with each of the three roots eligible
+for `rust-std` with exactly its declared effects, and `lexlean fmt --check`
+passes.
+
+### the document IR and the semantic ID are source (BS-67)
+
+`BS-67` holds the three production roots of `LexLeanBoot.IrDocument`
+(`bootstrap/src/IrDocument.lex.tex`) to `lexlean::ir::document` and the
+linker: `moduleText` to `DocumentModule::to_json` written canonically,
+`linkedText` to `LinkedProject::to_json`, and `projectSemanticId` to the
+semantic ID `link::check_project` records. The module declares the phrase
+items, the blocks, and the linked module of SPEC.md §17.5 over the term IR of
+`IrTerm` (`BS-65`) and the declarations of `IrProof` (`BS-66`). A module's title
+and blocks share one hashing renumbering; blocks are a chain of cells of `Block`
+itself, so that the module JSON is one structural recursion; a section writes
+its heading, binds its parameters, and then writes its blocks. An import's Lean
+module is written only when it is not the one the module's prefix gives, that
+prefix being the module's Lean name without its own name when it ends with it.
+An embedded closed-core module enters as its serialized text and a semantic or
+tooling module as its JSON value, as the oracle embeds them. `linkedText` sorts
+the named modules with the standard library's stable merge sort, and
+`projectSemanticId` hashes the linked text with the recipe of `ContentId`
+(`BS-32`). Every root admits exactly `allocation`, `overflow`, and `recursion`.
+The oracle is the existing public code of `document.rs`, `link.rs`, and
+`content_id.rs`; no Rust outside the case changes.
+
+The case holds each root to the oracle on hand-built modules that reach every
+phrase item, a title and declarations sharing one renumbering, a section with a
+parameter, an origin, default and foreign imports, a module whose Lean name does
+not end with its own, and the smallest committed module embedding each kind of
+module; on hand-built projects listed out of order and in order, and on a
+hand-built identity; and on every module, every linked project, and the
+recorded semantic ID of every committed project outside the negative fixtures
+and UOR Atlas that links under its committed lock, or under a lock computed from its manifest when it commits none, for each of which the case
+first asserts that the recorded ID is the recipe over the oracle's linked text.
+The evaluator takes the projects whose linked text is at most 262,144 bytes, the
+rendered packages those of at most 4,194,304 bytes: a larger one's runs were beyond
+a runner's memory twice, and its semantic ID is still asserted to be the recipe. Each planted defect names the vector that
+catches it, and the case asserts that the site of each plant occurs once. The
+row's statement carries no counts.
+
+Measured with the compiler binary of this tree's compiler sources: `lexlean
+check` of the `bootstrap/` project passes, with each of the three roots eligible
+for `rust-std` with exactly its declared effects, and `lexlean fmt --check`
+passes.
+
+### the semantic types are source (BS-68)
+
+`BS-68` holds the four production roots of `LexLeanBoot.SemanticTypes`
+(`bootstrap/src/SemanticTypes.lex.tex`) to `lexlean::ir::semantic`:
+`primitiveFacts` to the serialized name, `language_1_2`, `widening`, and
+`function_argument` of `SemanticPrimitive`; `integerName` to the serialized
+name of `SemanticInteger`; `typeText` to the canonical JSON of the serde form of
+`SemanticType`, as `DocumentModule::to_json` embeds a semantic module; and
+`typeSpelling` to `Display for SemanticType`. The module declares the closed
+types of SPEC.md §17.11 and §17.12, the 56 primitives, and the nine integer
+families as inductives. The type arguments of a named type and the parameters
+of a function type are a chain of cells of the type itself, so that `typeText`
+is one structural recursion and `typeSpelling` a mutual recursion of a type and
+the spellings of a chain. `primitiveFacts` and `integerName` admit exactly
+`allocation`, `typeText` exactly `allocation`, `overflow`, and `recursion`,
+and `typeSpelling` exactly `allocation` and `recursion`. The oracle is the existing public code of `semantic.rs` and its
+serde derivations; no Rust outside the case changes.
+
+The case holds each root to the oracle on hand-built types that reach every
+constructor and every unit type; on every primitive and every integer family the
+module names, each read back through the oracle's serialized name, so that a
+name the oracle does not have fails the case; on every distinct type of every
+committed semantic module that links, found as each JSON object of the module
+that reads back as a type; and on seeded types. Each planted defect names the
+root and the vector that catch it, and the case asserts that the site of each
+plant occurs once. The row's statement carries no counts.
+
+Measured with the compiler binary of this tree's compiler sources: `lexlean
+check` of the `bootstrap/` project passes, with each of the four roots eligible
+for `rust-std` with exactly its declared effects, and `lexlean fmt --check`
+passes.
+
+### the semantic terms and proofs are source (BS-69)
+
+`BS-69` holds the two production roots of `LexLeanBoot.SemanticTerms`
+(`bootstrap/src/SemanticTerms.lex.tex`) to `lexlean::ir::semantic`: `semanticTermText`
+to the canonical JSON of the serde form of `SemanticTerm` and `semanticProofText` to
+that of `SemanticProof`, as `DocumentModule::to_json` embeds a semantic module.
+The module declares the 42 term forms and the 13 proof forms of SPEC.md §17.11
+and §17.12 as inductives over the types of `SemanticTypes` (`BS-68`). Arguments,
+assignments, match branches, map entries, and graph edges are chains of cells of
+the term itself, and proof branches and nested members chains of cells of the
+proof, so that each root is one structural recursion. A list of type arguments,
+definitions, generalized names, or premises is left out when it is empty exactly
+where the oracle's serde attributes skip it. Both roots admit exactly
+`allocation`, `overflow`, and `recursion`. The oracle is the existing public code
+of `semantic.rs` and its serde derivations; no Rust outside the case changes.
+
+The case holds each root to the oracle on hand-built terms and proofs that reach
+every constructor, every connective, every literal, binders with captures, and
+every optional list both empty and not; on every distinct term and proof of
+every committed semantic module that links, found as each JSON object of the
+module that reads back as a term or a proof; and on seeded terms and proofs.
+Each planted defect names the root and the vector that catch it, and the case
+asserts that the site of each plant occurs once. The row's statement carries no
+counts.
+
+Measured with the compiler binary of this tree's compiler sources: `lexlean
+check` of the `bootstrap/` project passes, with each of the two roots eligible
+for `rust-std` with exactly its declared effects, and `lexlean fmt --check`
+passes.
+
+### the semantic declarations and modules are source (BS-70)
+
+`BS-70` holds the two production roots of `LexLeanBoot.SemanticDecls`
+(`bootstrap/src/SemanticDecls.lex.tex`) to `lexlean::ir::semantic`:
+`semanticDeclarationText` to the canonical JSON of the serde form of
+`SemanticDeclaration` for structures, classes, instances, inductives,
+definitions, and theorems, and `semanticModuleText` to that of `SemanticModule`, as
+`DocumentModule::to_json` embeds a semantic module. The module declares the six
+ordinary declaration kinds of SPEC.md §17.11 and §17.12 as one inductive over
+the terms and proofs of `SemanticTerms` (`BS-69`) and the types of
+`SemanticTypes` (`BS-68`). A definition's or a theorem's type parameters,
+recursive argument, axioms, executable flag, mutual group, termination, and
+production, and an inductive's mutual group, are left out exactly where the
+oracle's serde attributes skip them. Every module of the `bootstrap/` project and
+of the standard library declares only these kinds, so `semanticModuleText` writes the
+semantic modules of LexLean's own sources. Both roots admit exactly
+`allocation`, `overflow`, and `recursion`. The oracle is the existing public code
+of `semantic.rs` and its serde derivations; no Rust outside the case changes.
+
+The case holds each root to the oracle on hand-built declarations of every kind,
+with every optional member both present and absent, and a hand-built module; on
+every distinct ordinary declaration of every committed semantic module that
+links, and on every such module whose declarations are all ordinary, the
+evaluator taking the modules whose JSON is at most 262,144 bytes and the rendered
+packages all of them; and on seeded declarations. Each planted defect names the
+root and the vector that catch it, and the case asserts that the site of each
+plant occurs once. The row's statement carries no counts.
+
+Measured with the compiler binary of this tree's compiler sources: `lexlean
+check` and `lexlean build` of the `bootstrap/` project pass, with each of the two
+roots eligible for `rust-std` with exactly its declared effects, and `lexlean fmt
+--check` passes.
+
+### the model declarations are source (BS-71)
+
+`BS-71` holds the production root `modelDeclarationText` of
+`LexLeanBoot.SemanticModels` (`bootstrap/src/SemanticModels.lex.tex`) to the
+canonical JSON of the serde form of the artifact, contract, realization,
+evidence, and model variants of `lexlean::ir::semantic::SemanticDeclaration`, as
+`DocumentModule::to_json` embeds a semantic module. The module declares the
+twenty types those declarations hold (artifact roles and schemas, tensor
+elements, binders, states, predicates, validators, uses, rules, the statistical
+scheme and neural architecture, layers, decoders, junctions, composite forms,
+realization descriptors, and evidence claims) and the declarations themselves,
+each as one inductive with one writer, over the terms of `SemanticTerms`
+(`BS-69`) and the types of `SemanticTypes` (`BS-68`). No such type refers to
+itself, so a list of them is a list. An object is written from its entries, an
+optional member entering exactly where the oracle's serde attributes keep it.
+The module, the case's encoders, and the case's example builders are generated
+from one description of the oracle's types, so that a type the description and
+the oracle disagree on fails to encode or to compare. The root admits exactly
+`allocation`, `overflow`, and `recursion`. The oracle is the existing public code
+of `semantic.rs` and its serde derivations; no Rust outside the case changes.
+
+The case holds the root to the oracle on 150 examples whose step's digits choose
+every variant at every depth, each optional member present and absent and each
+list empty and not; on every distinct such declaration of every committed
+semantic module that links; and on seeded examples. Each planted defect
+misspells one serialized kind or closed name, and the first example that holds
+it detects it; the case asserts that the site of each plant occurs once. The
+row's statement carries no counts.
+
+Measured with the compiler binary of this tree's compiler sources: `lexlean
+check` of the `bootstrap/` project passes, with the root eligible for `rust-std`
+with exactly its declared effects, and `lexlean fmt --check` passes.
+
+### the reasoning declarations and whole semantic modules are source (BS-72)
+
+`BS-72` holds the two production roots of `LexLeanBoot.SemanticReasoning`
+(`bootstrap/src/SemanticReasoning.lex.tex`) to `lexlean::ir::semantic`:
+`reasoningDeclarationText` to the canonical JSON of the serde form of the
+logic, inference rule, verifier, reasoner, tokenizer, context window, text
+generator, and text classifier variants of `SemanticDeclaration`, and
+`wholeSemanticModuleText` to that of `SemanticModule`, as `DocumentModule::to_json`
+embeds a semantic module. The module declares the eleven types those
+declarations hold and the declarations themselves, each as one inductive with
+one writer, over the uses, binders, and states of `SemanticModels` (`BS-71`), the
+terms of `SemanticTerms` (`BS-69`), and the types of `SemanticTypes` (`BS-68`), and
+a declaration of any kind, written through `SemanticDecls` (`BS-70`),
+`SemanticModels`, or this module. With it every semantic module the linked IR
+embeds is written by source. The module, the case's encoders, and the case's
+example builders are generated from one description of the oracle's types, as
+`BS-71`'s are. Both roots admit exactly `allocation`, `overflow`, and
+`recursion`. The oracle is the existing public code of `semantic.rs` and its
+serde derivations; no Rust outside the case changes.
+
+The case holds `reasoningDeclarationText` to the oracle on 150 examples whose
+step's digits choose every variant at every depth, each optional member present
+and absent and each list empty and not, on every distinct such declaration of
+every committed semantic module that links, and on seeded examples; and
+`wholeSemanticModuleText` on every distinct semantic module of every committed
+project that links, the evaluator taking those whose JSON is at most 262,144
+bytes and the rendered package all of them. Each planted defect misspells one
+serialized kind or closed name, and the first example that holds it detects it;
+the case asserts that the site of each plant occurs once. The row's statement
+carries no counts.
+
+Measured with the compiler binary of this tree's compiler sources: `lexlean
+check` of the `bootstrap/` project passes, with each root eligible for `rust-std`
+with exactly its declared effects, and `lexlean fmt --check` passes.
+
+### decoding a semantic module from JSON is source (BS-73)
+
+The regeneration of the typed-IR stack at this slice's tip (run 43481945154,
+r9) stopped bootstrap's production export at `LLS8002`: a part of its
+certificate is 12,928,150 bytes, beyond the 6,291,456 bytes the project let
+one file hold. The project now configures `max_file_bytes = 25165824` (the
+maintainer's decision, 2026-11-13; a semantic input, so the lock and every
+package move at the landing), which leaves room for the further slices of the
+typed IR. Which root the oversized part belongs to, and whether it has a
+structural fix as `RB-24`'s validator twin did, is open; the raise unblocks
+the batch and is not the end of the matter.
+
+With the fourteen axioms restored (below), the next regeneration (run
+43531029081, r14) stopped at a second `LLS8002`: `lean` exceeded
+`child_timeout_ms` checking the certificate of a production root,
+`LexLeanPreserve.Cf85a168f307e9378e5b0df3a87d82042.R62` (the root's own name
+is being identified), 300,004 ms observed against the 300,000 ms default.
+The project now configures `child_timeout_ms = 900000` for `bootstrap` alone
+(the maintainer's decision, 2026-11-13); `compiler` and `stdlib` keep the
+default. Whether the slow certificate has a structural fix, in the style of
+`RB-24`'s table-to-`inList` restructuring, is open and tracked separately
+from the raise that unblocks the batch.
+
+Once that export ran, the gate caught `LLV7005` on three of the module's
+hand-written helpers (`oneByte`, `trailing`, `utf8Of`, the loose JSON
+reader): each declared the axioms its own proof never uses (run 43498736513,
+r10, `observed []`). They were copied from the standard library's reader
+this one is modelled on, and `LLV7005` catches an unused axiom only when a
+root's own proof is examined, so a reader built from an existing one
+inherits axioms it never needs until its own root is checked. The first fix
+swept all seventeen of the module's loose-JSON-reader helpers to no axioms,
+past the three the gate had actually named; the next regeneration (run
+43509954359, r13) caught the opposite violation on the other fourteen
+(`byteAt`, `digitAt`, `digitsUntil`, `hexAt`, `looseAdvance`, `looseEscape`,
+`looseInteger`, `looseKeyAt`, `looseStep`, `looseString`, `looseStringStep`,
+`looseValueAt`, `readLoose`, `unicodeEscape`): their own proofs do use
+`[Quot.sound, propext]`, so the sweep had removed axioms fourteen of the
+seventeen genuinely need. Only `oneByte`, `trailing`, and `utf8Of` declare
+none; every other helper but the root, `decodeSemanticModule`, declares
+`[Quot.sound, propext]`.
+
+`BS-73` holds the production root `decodeSemanticModule` of
+`LexLeanBoot.SemanticDecode` (`bootstrap/src/SemanticDecode.lex.tex`) to the
+decoding half of `lexlean::ir::semantic::SemanticModule::parse`: serde's typed
+decoding of the module and everything it holds, the comparison with the
+canonical form, and the closed-schema walk that names the first member serde
+ignored. The standard library's reader takes canonical text only, so the
+module reads JSON text as serde does: whitespace between tokens, members in any
+order and repeated, every escape including surrogate pairs, and integers
+without fractions or exponents. The root returns the module's specification and declarations, in the
+representation `SemanticReasoning` (`BS-72`) writes, or the rejection the parser
+reports first. The decoders are generated from the description of the oracle's
+types that writes `BS-71` and `BS-72`; each recurses on a count of the
+document's values, and serde's nesting limit is checked as the document's
+depth. The root admits exactly `allocation`, `overflow`, and `recursion`. The
+oracle is the existing public code of `semantic.rs`; no Rust outside the case
+changes.
+
+The case's domain is the texts that the canonical JSON parser accepts or that
+serde rejects first, since a text serde decodes and the canonical parser then
+rejects fails for a reason outside decoding. A text the parser decodes and then
+fails to validate decodes; validation is outside the claim. The runs are every
+distinct semantic module of every committed project that links, modules of the
+`BS-71` and `BS-72` examples, a module nested 127 levels and one nested 128, and
+mutations of ten example modules and twenty short committed modules: a member
+removed, a member repeated, an unknown member with the value `0`, `false`, or `[]`, an omitted
+default written out, a kind renamed, a string or count of another type, a
+negative count, an array replaced by an object, and texts out of canonical
+form (whitespace, members out of order, an escaped key). The case asserts that every outcome occurs among them. The evaluator takes
+the committed modules whose JSON is at most 16,384 bytes and the rendered package
+all of them. Each planted defect weakens one decoding rule (the nesting limit,
+the canonical comparison, the unit-variant rule, either omitted default, the
+unknown-member and duplicate-member rules, negative counts, one kind, and the
+path's index syntax, whitespace, and `\u` escapes), and the runs detect it; the case asserts that the site of
+each plant occurs once. The row's statement carries no counts.
+
+Measured with the compiler binary of this tree's compiler sources: `lexlean
+check` of the `bootstrap/` project passes, with the root eligible for `rust-std`
+with exactly its declared effects, and `lexlean fmt --check` passes.
+
 ## The `bdd` recipe as the parts of one run (Issue #131)
 
 With UOR Atlas verified as the parts of one run, the `rest` leg became the
@@ -12758,6 +13128,10 @@ certificates of its roots came to 135,273,215 bytes, beyond the 134,217,728 the
 project configured. The project now configures 536,870,912 (the maintainer's
 decision; a semantic input, so the lock and every package move at the landing),
 which leaves room for the further components of the driver.
+
+The certificate budget of the three roots is 4,194,304 bytes: the largest part of
+`projectSemanticId`'s certificate measured 3,599,711 bytes on the regenerated
+tree, beyond the 3,145,728 most slices state, as `BS-11` states 5,505,024.
 
 ### the bdd partition can fail
 

@@ -36,6 +36,9 @@
     "bootstrap/build_manifest": {
       "debug": 589824
     },
+    "bootstrap/canonical_key": {
+      "debug": 1835008
+    },
     "bootstrap/check_arguments": {
       "debug": 4915200
     },
@@ -51,11 +54,23 @@
     "bootstrap/core_json": {
       "debug": 1835008
     },
+    "bootstrap/check_signature": {
+      "debug": 2031616
+    },
+    "bootstrap/check_value": {
+      "debug": 2228224
+    },
     "bootstrap/correspond_crate": {
       "debug": 4915200
     },
     "bootstrap/dead_functions": {
       "debug": 5701632
+    },
+    "bootstrap/declaration_text": {
+      "debug": 4521984
+    },
+    "bootstrap/eq_key": {
+      "debug": 1835008
     },
     "bootstrap/evaluator": {
       "debug": 21037056
@@ -68,6 +83,9 @@
     },
     "bootstrap/function_shells": {
       "debug": 3080192
+    },
+    "bootstrap/linked_text": {
+      "debug": 4128768
     },
     "bootstrap/loop_function": {
       "debug": 2818048
@@ -83,6 +101,18 @@
     },
     "bootstrap/lower_value_at": {
       "debug": 4390912
+    },
+    "bootstrap/module_text": {
+      "debug": 4128768
+    },
+    "bootstrap/model_declaration_text": {
+      "debug": 5505024
+    },
+    "bootstrap/module_text": {
+      "debug": 4128768
+    },
+    "bootstrap/node_count": {
+      "debug": 1835008
     },
     "bootstrap/parse_audit_output": {
       "debug": 6291456
@@ -114,14 +144,65 @@
     "bootstrap/print_tooling_module": {
       "debug": 1179648
     },
+    "bootstrap/project_semantic_id": {
+      "debug": 4128768
+    },
+    "bootstrap/proof_text": {
+      "debug": 2097152
+    },
+    "bootstrap/project_semantic_id": {
+      "debug": 4128768
+    },
+    "bootstrap/proof_text": {
+      "debug": 2097152
+    },
+    "bootstrap/reasoning_declaration_text": {
+      "debug": 6094848
+    },
     "bootstrap/render_tooling_latex": {
       "debug": 3342336
+    },
+    "bootstrap/semantic_proof_text": {
+      "debug": 2162688
+    },
+    "bootstrap/semantic_term_text": {
+      "debug": 6553600
+    },
+    "bootstrap/semantic_declaration_text": {
+      "debug": 6553600
+    },
+    "bootstrap/semantic_module_text": {
+      "debug": 16515072
+    },
+    "bootstrap/semantic_proof_text": {
+      "debug": 2162688
+    },
+    "bootstrap/semantic_term_text": {
+      "debug": 6553600
     },
     "bootstrap/site_trees": {
       "debug": 6029312
     },
     "bootstrap/succeed_bodies": {
       "debug": 1507328
+    },
+    "bootstrap/term_depth": {
+      "debug": 1835008
+    },
+    "bootstrap/term_text": {
+      "debug": 1835008
+    },
+    "bootstrap/type_spelling": {
+      "debug": 1507328
+    },
+    "bootstrap/type_text": {
+      "debug": 1507328
+    },
+    "bootstrap/type_spelling": {
+      "debug": 1310720
+    },
+    "bootstrap/type_text": {
+      "debug": 1310720
     },
     "bootstrap/use_trees": {
       "debug": 1572864
@@ -131,6 +212,9 @@
     },
     "bootstrap/validate_runtime": {
       "debug": 4259840
+    },
+    "bootstrap/whole_semantic_module_text": {
+      "debug": 16580608
     },
     "stdlib/write_json": {
       "debug": 1245184

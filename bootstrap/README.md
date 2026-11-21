@@ -95,3 +95,30 @@ of SPEC.md §13.1 and §12.2.
 `src/LexiconEntry.lex.tex` (SPEC.md §17.23, `BS-55`) imports `TomlRead` (`BS-53`), `LexiconLse`
 (`BS-25`), `LexiconLre` (`BS-26`), `LexiconSchema` (`BS-50`), `LseScopes` (`BS-51`), and
 `PrimitiveScan` (`BS-03`): a lexicon entry of SPEC.md §13.1 to §13.6.
+`src/IrTerm.lex.tex` (SPEC.md §17.23, `BS-65`) imports `LexiconLse` (`BS-25`), whose universes
+and binder modes it uses, and the standard library's `Json`, `Numeral`, and `Order`, and writes
+the canonical JSON of a linked term of SPEC.md §17.9.
+`src/IrProof.lex.tex` (SPEC.md §17.23, `BS-66`) imports `IrTerm` (`BS-65`), whose term JSON and
+renumbering it uses, `LexiconLse`, and the standard library's `Json` and `Order`, and writes the
+canonical JSON of a linked proof and declaration and checks an axiom policy.
+`src/IrDocument.lex.tex` (SPEC.md §17.23, `BS-67`) imports `IrTerm`, `IrProof`, and `ContentId`, and
+the standard library's `Json`, `Order`, and `Text`, and writes the canonical JSON of a linked module
+and of a linked project, and the project's semantic ID.
+`src/SemanticTypes.lex.tex` (SPEC.md §17.23, `BS-68`) imports the standard library's `Json`, `Order`,
+and `Text`, and writes the closed types of the semantic module language as the linked IR embeds
+them and as diagnostics spell them, and the facts of its primitives and integer families.
+`src/SemanticTerms.lex.tex` (SPEC.md §17.23, `BS-69`) imports `SemanticTypes` (`BS-68`) and the standard
+library's `Json` and `Order`, and writes the closed terms and proofs of the semantic module language as
+the linked IR embeds them.
+`src/SemanticDecls.lex.tex` (SPEC.md §17.23, `BS-70`) imports `SemanticTerms` (`BS-69`), `SemanticTypes`
+(`BS-68`), and the standard library's `Json` and `Order`, and writes the ordinary declarations of the
+semantic module language and its modules as the linked IR embeds them.
+`src/SemanticModels.lex.tex` (SPEC.md §17.23, `BS-71`) imports `SemanticTerms`, `SemanticTypes`, and the
+standard library's `Json` and `Order`, and writes the declarations of artifacts, contracts,
+realizations, evidence, and models as the linked IR embeds them.
+`src/SemanticReasoning.lex.tex` (SPEC.md §17.23, `BS-72`) imports `SemanticDecls`, `SemanticModels`,
+`SemanticTerms`, `SemanticTypes`, and the standard library's `Json` and `Order`, and writes the
+declarations of reasoning and text components and semantic modules of every kind.
+`src/SemanticDecode.lex.tex` (SPEC.md §17.23, `BS-73`) imports `SemanticDecls`, `SemanticModels`,
+`SemanticReasoning`, `SemanticTerms`, `SemanticTypes`, and the standard library's `Json`, `JsonRead`,
+`Numeral`, and `Order`, and decodes a semantic module from its canonical JSON.
