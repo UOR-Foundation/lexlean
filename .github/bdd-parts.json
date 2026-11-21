@@ -321,6 +321,9 @@
     "bootstrap-lexicon-entry": [
       "BS-55"
     ],
+    "bootstrap-lexicon-graph": [
+      "BS-56"
+    ],
     "stdlib": [
       "EX-09",
       "SL-01",

@@ -64,6 +64,171 @@ fn surface_key(atoms: &[Atom]) -> Vec<(AtomClass, String)> {
     key
 }
 
+/// The package graph of a lexicon closure (§13.6, §13.11): the topological
+/// order of `packages` (indices into it, each package after every package it
+/// imports, roots taken in the order given) and each package's import closure
+/// (itself and its transitive imports), or the first stage's refusals: a
+/// duplicate ID (`LLR3002`); an import absent or at another version
+/// (`LLR3001`); an import cycle (`LLR3003`, with the cycle and its importers);
+/// an import chain at or past `max_import_depth` (`LLS8002`). `Closure::build`
+/// runs it first; `BS-56` holds the bootstrap's `packageGraph` to it.
+///
+/// # Errors
+///
+/// The refusals above, in the order this finds them.
+pub fn package_graph(
+    packages: &[LexiconPackage],
+    max_import_depth: u64,
+) -> Result<PackageGraph, Vec<Diagnostic>> {
+    let mut diagnostics: Vec<Diagnostic> = Vec::new();
+
+    // Unique package IDs (LLR3002).
+    let mut by_id: BTreeMap<String, usize> = BTreeMap::new();
+    for (index, package) in packages.iter().enumerate() {
+        if by_id.insert(package.id.clone(), index).is_some() {
+            diagnostics.push(Diagnostic::new(
+                code!("LLR3002"),
+                format!("duplicate package `{}`", package.id),
+            ));
+        }
+    }
+    if !diagnostics.is_empty() {
+        return Err(diagnostics);
+    }
+
+    // Imports exist with the exact version (LLR3001), the graph is
+    // acyclic (LLR3003), and depth stays within the explicit limit
+    // (LLS8002).
+    for package in packages {
+        for import in &package.imports {
+            match by_id.get(&import.package) {
+                Some(&target) if packages[target].version == import.version => {}
+                Some(_) => diagnostics.push(Diagnostic::new(
+                    code!("LLR3001"),
+                    format!(
+                        "{}: import `{import}` does not match the loaded version",
+                        package.id
+                    ),
+                )),
+                None => diagnostics.push(Diagnostic::new(
+                    code!("LLR3001"),
+                    format!("{}: import `{import}` is not available", package.id),
+                )),
+            }
+        }
+    }
+    if !diagnostics.is_empty() {
+        return Err(diagnostics);
+    }
+
+    // Topological order with cycle detection and longest-chain depth,
+    // iterative over an explicit stack (the graph depth is user input).
+    let mut order: Vec<usize> = Vec::new();
+    let mut state: Vec<u8> = vec![0; packages.len()]; // 0 new, 1 open, 2 done
+    let mut depth: Vec<u64> = vec![0; packages.len()];
+    for root in 0..packages.len() {
+        if state[root] == 2 {
+            continue;
+        }
+        // (node, next import index)
+        let mut stack: Vec<(usize, usize)> = vec![(root, 0)];
+        state[root] = 1;
+        while let Some(&mut (node, ref mut next)) = stack.last_mut() {
+            if let Some(import) = packages[node].imports.get(*next) {
+                *next += 1;
+                let target = by_id[&import.package];
+                match state[target] {
+                    1 => {
+                        let mut cycle: Vec<String> = stack
+                            .iter()
+                            .skip_while(|(index, _)| *index != target)
+                            .map(|(index, _)| packages[*index].id.clone())
+                            .collect();
+                        cycle.push(packages[target].id.clone());
+                        let members: Vec<_> = stack
+                            .iter()
+                            .skip_while(|(index, _)| *index != target)
+                            .map(|(index, _)| super::package::PackageRef {
+                                package: packages[*index].id.clone(),
+                                version: packages[*index].version.clone(),
+                            })
+                            .collect();
+                        let importers = super::import_reachability::importers(packages, &members);
+                        diagnostics.push(
+                            Diagnostic::new(
+                                code!("LLR3003"),
+                                format!("package import cycle through `{}`", packages[target].id),
+                            )
+                            .with_detail(
+                                DiagnosticDetail::PackageImportCycle {
+                                    packages: cycle,
+                                    importers,
+                                },
+                            ),
+                        );
+                        return Err(diagnostics);
+                    }
+                    2 => {}
+                    _ => {
+                        state[target] = 1;
+                        stack.push((target, 0));
+                    }
+                }
+            } else {
+                let deepest = packages[node]
+                    .imports
+                    .iter()
+                    .map(|import| depth[by_id[&import.package]].saturating_add(1))
+                    .max()
+                    .unwrap_or(0);
+                depth[node] = deepest;
+                state[node] = 2;
+                order.push(node);
+                stack.pop();
+                if deepest >= max_import_depth {
+                    diagnostics.push(Diagnostic::new(
+                            code!("LLS8002"),
+                            format!(
+                                "max_import_depth exceeded in phase lexicon closure: configured {max_import_depth}, observed import depth {} at package `{}`",
+                                deepest.saturating_add(1),
+                                packages[node].id
+                            ),
+                        ));
+                }
+            }
+        }
+    }
+    if !diagnostics.is_empty() {
+        return Err(diagnostics);
+    }
+    let mut import_closure: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for &index in &order {
+        let package = &packages[index];
+        let mut visible: BTreeSet<String> = BTreeSet::new();
+        visible.insert(package.id.clone());
+        for import in &package.imports {
+            visible.insert(import.package.clone());
+            if let Some(transitive) = import_closure.get(&import.package) {
+                visible.extend(transitive.iter().cloned());
+            }
+        }
+        import_closure.insert(package.id.clone(), visible);
+    }
+    Ok(PackageGraph {
+        order,
+        import_closure,
+    })
+}
+
+/// What [`package_graph`] finds of an acceptable package set.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PackageGraph {
+    /// Indices into the packages, each after every package it imports.
+    pub order: Vec<usize>,
+    /// Each package's ID to the IDs it sees: itself and its transitive imports.
+    pub import_closure: BTreeMap<String, BTreeSet<String>>,
+}
+
 impl Closure {
     /// Build and cross-validate the closure (§13.11). `packages` arrive in
     /// any order; the closure orders them by dependency with core first.
@@ -74,135 +239,13 @@ impl Closure {
         bootstrap: Bootstrap,
         max_import_depth: u64,
     ) -> Result<Self, Vec<Diagnostic>> {
+        let graph = package_graph(&packages, max_import_depth)?;
         let mut diagnostics: Vec<Diagnostic> = Vec::new();
-
-        // Unique package IDs (LLR3002).
-        let mut by_id: BTreeMap<String, usize> = BTreeMap::new();
-        for (index, package) in packages.iter().enumerate() {
-            if by_id.insert(package.id.clone(), index).is_some() {
-                diagnostics.push(Diagnostic::new(
-                    code!("LLR3002"),
-                    format!("duplicate package `{}`", package.id),
-                ));
-            }
-        }
-        if !diagnostics.is_empty() {
-            return Err(diagnostics);
-        }
-
-        // Imports exist with the exact version (LLR3001), the graph is
-        // acyclic (LLR3003), and depth stays within the explicit limit
-        // (LLS8002).
-        for package in &packages {
-            for import in &package.imports {
-                match by_id.get(&import.package) {
-                    Some(&target) if packages[target].version == import.version => {}
-                    Some(_) => diagnostics.push(Diagnostic::new(
-                        code!("LLR3001"),
-                        format!(
-                            "{}: import `{import}` does not match the loaded version",
-                            package.id
-                        ),
-                    )),
-                    None => diagnostics.push(Diagnostic::new(
-                        code!("LLR3001"),
-                        format!("{}: import `{import}` is not available", package.id),
-                    )),
-                }
-            }
-        }
-        if !diagnostics.is_empty() {
-            return Err(diagnostics);
-        }
-
-        // Topological order with cycle detection and longest-chain depth,
-        // iterative over an explicit stack (the graph depth is user input).
-        let mut order: Vec<usize> = Vec::new();
-        let mut state: Vec<u8> = vec![0; packages.len()]; // 0 new, 1 open, 2 done
-        let mut depth: Vec<u64> = vec![0; packages.len()];
-        for root in 0..packages.len() {
-            if state[root] == 2 {
-                continue;
-            }
-            // (node, next import index)
-            let mut stack: Vec<(usize, usize)> = vec![(root, 0)];
-            state[root] = 1;
-            while let Some(&mut (node, ref mut next)) = stack.last_mut() {
-                if let Some(import) = packages[node].imports.get(*next) {
-                    *next += 1;
-                    let target = by_id[&import.package];
-                    match state[target] {
-                        1 => {
-                            let mut cycle: Vec<String> = stack
-                                .iter()
-                                .skip_while(|(index, _)| *index != target)
-                                .map(|(index, _)| packages[*index].id.clone())
-                                .collect();
-                            cycle.push(packages[target].id.clone());
-                            let members: Vec<_> = stack
-                                .iter()
-                                .skip_while(|(index, _)| *index != target)
-                                .map(|(index, _)| super::package::PackageRef {
-                                    package: packages[*index].id.clone(),
-                                    version: packages[*index].version.clone(),
-                                })
-                                .collect();
-                            let importers =
-                                super::import_reachability::importers(&packages, &members);
-                            diagnostics.push(
-                                Diagnostic::new(
-                                    code!("LLR3003"),
-                                    format!(
-                                        "package import cycle through `{}`",
-                                        packages[target].id
-                                    ),
-                                )
-                                .with_detail(
-                                    DiagnosticDetail::PackageImportCycle {
-                                        packages: cycle,
-                                        importers,
-                                    },
-                                ),
-                            );
-                            return Err(diagnostics);
-                        }
-                        2 => {}
-                        _ => {
-                            state[target] = 1;
-                            stack.push((target, 0));
-                        }
-                    }
-                } else {
-                    let deepest = packages[node]
-                        .imports
-                        .iter()
-                        .map(|import| depth[by_id[&import.package]].saturating_add(1))
-                        .max()
-                        .unwrap_or(0);
-                    depth[node] = deepest;
-                    state[node] = 2;
-                    order.push(node);
-                    stack.pop();
-                    if deepest >= max_import_depth {
-                        diagnostics.push(Diagnostic::new(
-                            code!("LLS8002"),
-                            format!(
-                                "max_import_depth exceeded in phase lexicon closure: configured {max_import_depth}, observed import depth {} at package `{}`",
-                                deepest.saturating_add(1),
-                                packages[node].id
-                            ),
-                        ));
-                    }
-                }
-            }
-        }
-        if !diagnostics.is_empty() {
-            return Err(diagnostics);
-        }
         // Reorder by topological position, core first.
         let ordered: Vec<LexiconPackage> = {
             let mut slots: Vec<Option<LexiconPackage>> = packages.into_iter().map(Some).collect();
-            order
+            graph
+                .order
                 .iter()
                 .filter_map(|&index| slots[index].take())
                 .collect()
@@ -213,21 +256,7 @@ impl Closure {
             .map(|(index, package)| (package.id.clone(), index))
             .collect();
 
-        // Per-package import closure (§13.6, §13.11): a package sees itself
-        // and its transitive imports, nothing else — core included only when
-        // imported.
-        let mut import_closure: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-        for package in &ordered {
-            let mut visible: BTreeSet<String> = BTreeSet::new();
-            visible.insert(package.id.clone());
-            for import in &package.imports {
-                visible.insert(import.package.clone());
-                if let Some(transitive) = import_closure.get(&import.package) {
-                    visible.extend(transitive.iter().cloned());
-                }
-            }
-            import_closure.insert(package.id.clone(), visible);
-        }
+        let import_closure = graph.import_closure;
 
         {
             let lookup_any = |id: &QualifiedId| -> Option<&Entry> {

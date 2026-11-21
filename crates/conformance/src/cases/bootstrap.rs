@@ -31,6 +31,7 @@ mod gnaf_validate;
 mod grammar_math;
 mod grammar_proof;
 mod lexicon_entry;
+mod lexicon_graph;
 mod lexicon_lre;
 mod lexicon_lse;
 mod lexicon_schema;
@@ -2602,6 +2603,7 @@ fn case(id: &str) {
         "BS-53" => toml_read::case(),
         "BS-54" => package_ref::case(),
         "BS-55" => lexicon_entry::case(),
+        "BS-56" => lexicon_graph::case(),
         other => panic!("no bootstrap case is wired for {other}"),
     }
 }

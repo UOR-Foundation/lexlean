@@ -12127,6 +12127,31 @@ The root's signature identity follows #581: the oracle computes
 `LexLeanStd.Sha256::sha256Hex`, and the case encodes the oracle's identity by
 `label()`.
 
+### the package graph of a lexicon closure is source (BS-56)
+
+`BS-56` holds the production roots `LexLeanBoot.LexiconGraph.packageGraph` and
+`packageImporters` (`bootstrap/src/LexiconGraph.lex.tex`) to
+`lexicon::resolve::package_graph` and `lexicon::import_reachability::importers`.
+`package_graph` is the first stage of `Closure::build`, moved into its own
+function so the slice has an oracle of exactly its scope; `build` calls it first
+and the compiler's 29 lexicon unit tests pass unchanged. The stage reads only
+each package's ID, version, and imports, so the case's oracle packages carry no
+entries.
+
+The module walks the graph as the oracle does: depth first from each package in
+the order given, over an explicit stack, under `iterate_until` with fuel twice
+the packages plus the imports plus two, so the order, the first cycle, and the
+depth refusals found before it are the oracle's. The importers are the fixed
+point of the reverse edges, not the oracle's worklist; both are the same set,
+and the oracle returns it sorted. Neither root admits `recursion`.
+
+The corpus is 26 named vectors, which reach all four refusals; each committed
+`lexicon.toml` with the committed manifests its imports reach at their exact
+versions, and all of them together (where `lexlean.core` occurs at several
+versions, so the set is refused); and 300 and 2,000 seeded package sets under
+the evaluator and rustc. Twelve planted defects each name the vector that
+catches them.
+
 ### the lexer of the authoring notation is source (BS-22)
 
 `BS-22` holds the two production roots of `LexLeanBoot.SurfaceLex`

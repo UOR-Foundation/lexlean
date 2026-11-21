@@ -8,7 +8,7 @@ use crate::diagnostic::{Diagnostic, DiagnosticDetail};
 /// Exact-version reverse reachability. A package-local cycle may fail before
 /// the closure exists; only successfully loaded, uniquely identified nodes
 /// may extend its independently established member identities.
-pub(crate) fn importers(packages: &[LexiconPackage], members: &[PackageRef]) -> Vec<String> {
+pub fn importers(packages: &[LexiconPackage], members: &[PackageRef]) -> Vec<String> {
     let mut counts = BTreeMap::<&str, usize>::new();
     for package in packages {
         *counts.entry(&package.id).or_default() += 1;
