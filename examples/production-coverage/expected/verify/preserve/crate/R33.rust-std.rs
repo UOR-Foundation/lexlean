@@ -666,6 +666,7 @@ pub struct Bytes(Rc<[u8]>);
 impl Bytes {
     pub fn lit(octets: &[u8]) -> Bytes { Bytes(Rc::from(octets)) }
     pub fn octets(&self) -> &[u8] { &self.0 }
+    pub fn update(mut a: Bytes, i: u64, byte: u8) -> Option<Bytes> { let at = match usize::try_from(i) { Ok(at) => at, Err(_) => return None, }; if at >= a.0.len() { return None; }; tick(1); match Rc::get_mut(&mut a.0) { Some(cells) => { let slot: &mut [u8] = cells; slot[at] = byte; Some(a) }, None => { tick(a.0.len() as u64); let mut out = Vec::with_capacity(a.0.len()); out.extend_from_slice(&a.0); out[at] = byte; Some(Bytes(Rc::from(out))) }, } }
     pub fn append(a: Bytes, b: Bytes) -> Bytes { tick((a.0.len() + b.0.len()) as u64); let mut out = Vec::with_capacity(a.0.len() + b.0.len()); out.extend_from_slice(&a.0); out.extend_from_slice(&b.0); Bytes(Rc::from(out)) }
     pub fn length(&self) -> u64 { self.0.len() as u64 }
     pub fn index(&self, i: u64) -> Option<u8> { match usize::try_from(i) { Ok(at) => self.0.get(at).copied(), Err(_) => None, } }
@@ -855,78 +856,40 @@ pub fn format_int(p0: i64) -> Str {
     Str::format_i64(p0)
 }
 
+pub fn update_bytes(p0: Bytes, p1: u64, p2: u8) -> Option<Bytes> {
+    Bytes::update(p0, p1, p2)
+}
+
 #[derive(Clone)]
 pub enum Adt0 {
-    C0(u64),
-    C1(std::rc::Rc<Adt0>, std::rc::Rc<Adt0>),
-    C2(List<Adt1>, std::rc::Rc<Adt0>),
+    C0(u64, List<Adt0>),
 }
 
-#[derive(Clone)]
-pub enum Adt1 {
-    C0(Str, std::rc::Rc<Adt0>),
-    C1(std::rc::Rc<Adt1>, std::rc::Rc<Adt1>),
-}
-
-pub fn f0(v0: Adt0) -> R<u64> {
-    f1(v0)
+pub fn f0(v0: u64) -> R<u64> {
+    f1(Adt0::C0(v0, List::cons(Adt0::C0(1u64, List::<Adt0>::nil()), List::<Adt0>::nil())))
 }
 
 pub fn f1(v0: Adt0) -> R<u64> {
     let m1 = v0;
     match m1 {
-        Adt0::C0(_) => {
-            Ok(1u64)
-        }
-        Adt0::C1(r8, r9) => {
-            let v2 = (*r8).clone();
-            let v3 = (*r9).clone();
-            let a4 = {
-                let a2 = f1(v2)?;
-                let a3 = f1(v3)?;
-                nat_add(a2, a3)?
-            };
-            let a5 = 1u64;
-            nat_add(a4, a5)
-        }
-        Adt0::C2(v4, r10) => {
-            let v5 = (*r10).clone();
-            let a6 = f2(v4)?;
-            let a7 = f1(v5)?;
-            nat_add(a6, a7)
+        Adt0::C0(_, v2) => {
+            let a2 = 1u64;
+            let a3 = f2(v2)?;
+            nat_add(a2, a3)
         }
     }
 }
 
-pub fn f2(v0: List<Adt1>) -> R<u64> {
-    let m11 = v0;
-    match m11.uncons() {
+pub fn f2(v0: List<Adt0>) -> R<u64> {
+    let m4 = v0;
+    match m4.uncons() {
         None => {
             Ok(0u64)
         }
         Some((v1, v2)) => {
-            let a12 = f3(v1)?;
-            let a13 = f2(v2)?;
-            nat_add(a12, a13)
-        }
-    }
-}
-
-pub fn f3(v0: Adt1) -> R<u64> {
-    let m14 = v0;
-    match m14 {
-        Adt1::C0(_, r19) => {
-            let v2 = (*r19).clone();
-            let a15 = f1(v2)?;
-            let a16 = 1u64;
-            nat_add(a15, a16)
-        }
-        Adt1::C1(r20, r21) => {
-            let v3 = (*r20).clone();
-            let v4 = (*r21).clone();
-            let a17 = f3(v3)?;
-            let a18 = f3(v4)?;
-            nat_add(a17, a18)
+            let a5 = f1(v1)?;
+            let a6 = f2(v2)?;
+            nat_add(a5, a6)
         }
     }
 }

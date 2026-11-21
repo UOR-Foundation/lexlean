@@ -1176,6 +1176,22 @@ fn core_cases() -> Vec<Case> {
         Vec::new(),
         200,
     ));
+    out.push(case(
+        "byte-updates",
+        constant(
+            list_t(opt_t(Ty::Bytes)),
+            list_of(
+                &opt_t(Ty::Bytes),
+                vec![
+                    p(Prim::Update, vec![bytes("00112233"), nat(1), fx(U8, 255)]),
+                    p(Prim::Update, vec![bytes("00112233"), nat(4), fx(U8, 0)]),
+                ],
+            ),
+        ),
+        0,
+        Vec::new(),
+        200,
+    ));
 
     out.push(case(
         "split-and-join",
