@@ -12,6 +12,11 @@
 
 **Write one precise description. Generate documentation and proof-checkable code from it.**
 
+[Why LexLean exists](#why-lexlean-exists) · [Install](#install) · [Concrete example](#the-literal-example) · [Checked examples](#examples-that-verify-under-the-pinned-toolchain) · [Evidence boundary](#evidence-not-belief) · [Known deviations](#documented-deviations)
+
+[![CI](https://github.com/UOR-Foundation/lexlean/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/UOR-Foundation/lexlean/actions/workflows/ci.yml) [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-718096)](LICENSE-MIT)
+
+
 ## Why LexLean exists
 
 Software and research projects often explain an idea in one document and
