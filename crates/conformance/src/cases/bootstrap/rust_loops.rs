@@ -40,8 +40,8 @@ const CERTIFICATE_BUDGET: u64 = 3_145_728;
 
 /// The programs the evaluator is given: those of at most this many nodes.
 const EVALUATOR_NODES: usize = 300;
-const VECTORS: usize = 157;
-const VECTORS_WITHIN: usize = 70;
+const VECTORS: usize = 158;
+const VECTORS_WITHIN: usize = 71;
 const EVALUATOR_MUTANTS: usize = 133;
 
 fn prim(operation: Prim, operands: Vec<Expr>) -> Expr {
@@ -83,6 +83,12 @@ fn predecessor() -> Expr {
 /// tail self call and one that is not in tail position, whether it is a
 /// binding, a condition, or the scrutinee of a match, and a function with a
 /// parameter nothing reads, which stays a call.
+///
+/// The lowering binds a self call that is an operand to a `let` first, so the
+/// condition and the scrutinee of the second and third rules reach the guard
+/// on bindings, not the guard on a condition. The last rule is of a function
+/// whose value is `bool`: there the self call is the condition itself, as in
+/// the bootstrap's own programs.
 pub(super) fn rules() -> Vec<Program> {
     let beside = |other: Function| program_of(Vec::new(), vec![countdown(), other]);
     vec![
@@ -130,7 +136,23 @@ pub(super) fn rules() -> Vec<Program> {
                 else_branch: Box::new(call(1, vec![predecessor(), natural("0")])),
             },
         )),
+        beside(function(
+            vec![(0, Ty::Nat)],
+            Ty::Bool,
+            Expr::Cond {
+                condition: Box::new(call(1, vec![predecessor()])),
+                then_branch: Box::new(boolean_value(true)),
+                else_branch: Box::new(call(1, vec![predecessor()])),
+            },
+        )),
     ]
+}
+
+fn boolean_value(value: bool) -> Expr {
+    Expr::Value {
+        ty: Ty::Bool,
+        value: Value::Bool { value },
+    }
 }
 
 pub(super) struct Roots {
@@ -360,7 +382,7 @@ struct Plant {
     replacement: &'static str,
 }
 
-const PLANTS: [Plant; 12] = [
+const PLANTS: [Plant; 13] = [
     Plant {
         label: "a call to the function itself is not found by name",
         site: "(if (called =? me) then true else (occurs args me))",
@@ -370,6 +392,11 @@ const PLANTS: [Plant; 12] = [
         label: "a binding that calls the function does not stop the loop",
         site: "((not (occurs lets me)) && (project last ok))",
         replacement: "(project last ok)",
+    },
+    Plant {
+        label: "a condition that calls the function does not stop the loop",
+        site: "((not (occurs c me)) && ((project one ok) && (project two ok)))",
+        replacement: "((project one ok) && (project two ok))",
     },
     Plant {
         label: "a parameter passed on as a clone is a change",

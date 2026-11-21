@@ -65,8 +65,8 @@ const ROOTS: [&str; 2] = ["functionShells", "assembleItems"];
 
 /// The programs the evaluator is given: those of at most this many nodes.
 const EVALUATOR_NODES: usize = 300;
-const VECTORS: usize = 392;
-const VECTORS_WITHIN: usize = 303;
+const VECTORS: usize = 393;
+const VECTORS_WITHIN: usize = 304;
 const EVALUATOR_MUTANTS: usize = 601;
 
 /// What a host that did more than thread the counter would get wrong: the
