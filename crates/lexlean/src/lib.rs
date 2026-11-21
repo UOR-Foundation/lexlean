@@ -286,7 +286,7 @@ fn embedded_digest(keep: impl Fn(&str) -> bool) -> Sha256Digest {
 /// consistently with itself, so agreement on verdicts could not reveal it.
 /// The 1.0 and 1.1 IDs need no constant: no file they cover is left out.
 pub const LANGUAGE_1_2_SEMANTICS_ID: &str =
-    "c0978bf388cc14813433d2265dcfbf771eec1eb05a5b3a03fdf3e75a5e7d11d5";
+    "6e8ea767f9414b8a76695f53aff4596317e127fc633f7b55d0b46ef7e03f6c0b";
 
 /// The compiler-semantics ID for one selected language. Language 1.0 excludes
 /// all files introduced solely for 1.1 and 1.2, and Language 1.1 excludes
