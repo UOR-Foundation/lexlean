@@ -33,9 +33,9 @@
 \subsection*{\texttt{PdfProvider}}
 \noindent Kind: \texttt{structure}.\par
 \noindent Field \texttt{program}: \texttt{ByteArray}.\par
-\noindent Field \texttt{programSha256}: \texttt{ByteArray}.\par
+\noindent Field \texttt{programKappa}: \texttt{ByteArray}.\par
 \noindent Field \texttt{versionArgv}: \texttt{List (ByteArray)}.\par
-\noindent Field \texttt{versionStdoutSha256}: \texttt{ByteArray}.\par
+\noindent Field \texttt{versionStdoutKappa}: \texttt{ByteArray}.\par
 \noindent Field \texttt{compileArgv}: \texttt{List (ByteArray)}.\par
 \noindent Field \texttt{output}: \texttt{ByteArray}.\par
 \noindent Field \texttt{resources}: \texttt{List (ByteArray)}.\par
@@ -139,7 +139,7 @@
 \noindent Parameters: \texttt{(artifact : ArtifactSource)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{cat (cat (header ("[[artifact\_source]]")) (digestLine ("sha256") ((artifact).digest))) (stringLine ("path") ((artifact).location))}.\par
+\noindent Definition: \texttt{cat (cat (header ("[[artifact\_source]]")) (digestLine ("kappa") ((artifact).digest))) (stringLine ("path") ((artifact).location))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{packageText}}
 \noindent Kind: \texttt{definition}.\par
@@ -160,7 +160,7 @@
 \noindent Parameters: \texttt{(provider : PdfProvider)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{cat (cat (cat (cat (cat (cat (cat (cat (header ("[pdf]")) (stringLine ("mode") (lit ("external")))) (stringLine ("program") ((provider).program))) (digestLine ("program\_sha256") ((provider).programSha256))) (arrayLine ("version\_argv") ((provider).versionArgv))) (digestLine ("version\_stdout\_sha256") ((provider).versionStdoutSha256))) (arrayLine ("compile\_argv") ((provider).compileArgv))) (stringLine ("output") ((provider).output))) (arrayLine ("resources") ((provider).resources))}.\par
+\noindent Definition: \texttt{cat (cat (cat (cat (cat (cat (cat (cat (header ("[pdf]")) (stringLine ("mode") (lit ("external")))) (stringLine ("program") ((provider).program))) (digestLine ("program\_kappa") ((provider).programKappa))) (arrayLine ("version\_argv") ((provider).versionArgv))) (digestLine ("version\_stdout\_kappa") ((provider).versionStdoutKappa))) (arrayLine ("compile\_argv") ((provider).compileArgv))) (stringLine ("output") ((provider).output))) (arrayLine ("resources") ((provider).resources))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{canonicalProject}}
 \noindent Kind: \texttt{definition}.\par
@@ -170,14 +170,14 @@
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{(let head : ByteArray := cat (cat (cat (cat (cat (cat (cat (cat (cat (stringLine ("spec") (lit ("lexlean/project/1"))) (stringLine ("name") ((config).projectName))) (stringLine ("language") ((config).language))) (stringLine ("module\_prefix") ((config).modulePrefix))) (arrayLine ("source\_roots") ((config).sourceRoots))) (arrayLine ("entrypoints") ((config).entrypoints))) (stringLine ("build\_root") ((config).buildRoot))) (stringLine ("lockfile") ((config).lockfile))) (stringLine ("lean\_workspace") ((config).leanWorkspace))) (stringLine ("lean\_toolchain") (LexLeanBoot.LockText.leanToolchain)); (let artifacts : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : ArtifactSource) => cat (acc) (artifactText (row)))) (ByteArray.mk \#[]) ((config).artifactSources) : ByteArray); (let packages : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : SourcePackage) => cat (acc) (packageText (row)))) (ByteArray.mk \#[]) ((config).sourcePackages) : ByteArray); (let tail : ByteArray := (match (config).pdf with | Option.some provider => pdfText (provider) | Option.none => ByteArray.mk \#[]); cat (cat (cat (cat (cat (head) (sourcesText ((config).lexiconSources))) (artifacts)) (packages)) (limitsText ((config).limits))) (tail)))))}.\par
+\noindent Definition: \texttt{(let head : ByteArray := cat (cat (cat (cat (cat (cat (cat (cat (cat (stringLine ("spec") (lit ("lexlean/project/2"))) (stringLine ("name") ((config).projectName))) (stringLine ("language") ((config).language))) (stringLine ("module\_prefix") ((config).modulePrefix))) (arrayLine ("source\_roots") ((config).sourceRoots))) (arrayLine ("entrypoints") ((config).entrypoints))) (stringLine ("build\_root") ((config).buildRoot))) (stringLine ("lockfile") ((config).lockfile))) (stringLine ("lean\_workspace") ((config).leanWorkspace))) (stringLine ("lean\_toolchain") (LexLeanBoot.LockText.leanToolchain)); (let artifacts : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : ArtifactSource) => cat (acc) (artifactText (row)))) (ByteArray.mk \#[]) ((config).artifactSources) : ByteArray); (let packages : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : SourcePackage) => cat (acc) (packageText (row)))) (ByteArray.mk \#[]) ((config).sourcePackages) : ByteArray); (let tail : ByteArray := (match (config).pdf with | Option.some provider => pdfText (provider) | Option.none => ByteArray.mk \#[]); cat (cat (cat (cat (cat (head) (sourcesText ((config).lexiconSources))) (artifacts)) (packages)) (limitsText ((config).limits))) (tail)))))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
-\subsection*{\texttt{configSha256}}
+\subsection*{\texttt{configKappa}}
 \noindent Kind: \texttt{definition}.\par
 \noindent Parameters: \texttt{(config : ProjectConfig)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{LexLeanStd.Sha256.sha256Hex (canonicalProject (config))}.\par
+\noindent Definition: \texttt{LexLeanStd.Blake3.blake3Label (canonicalProject (config))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \end{document}

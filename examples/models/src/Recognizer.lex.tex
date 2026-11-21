@@ -7,56 +7,56 @@
 artifact{
   name: hiddenWeights,
   type: (List (List Int)),
+  kappa: "blake3:6d745aa801dfdc8e478e6d24313cbea50f425782338dfdb19fe60554939673c8",
   length: 84,
   role: parameters,
-  schema: int_tensor{element: int8, shape: [12, 7]},
-  sha256: "670b5066543781ad41947e253f1e5dd45157070e78116a588dc2b6bcea2e7bd8"
+  schema: int_tensor{element: int8, shape: [12, 7]}
 }
 
 artifact{
   name: hiddenBias,
   type: (List Int),
+  kappa: "blake3:ab72e28732cefae65ea3a159b18fd5b89d644f50f8d8cf2438aac4038d50ba5a",
   length: 48,
   role: parameters,
-  schema: int_tensor{element: int32, shape: [12]},
-  sha256: "102bf7ceb176bc23dd4abb56dada713135d79093a79c20c7c79471f751f9a778"
+  schema: int_tensor{element: int32, shape: [12]}
 }
 
 artifact{
   name: outputWeights,
   type: (List (List Int)),
+  kappa: "blake3:9e4770bc4f129b921caa2c73e414fb957cb6f31ffc9d853094efd69d221e3cab",
   length: 120,
   role: parameters,
-  schema: int_tensor{element: int8, shape: [10, 12]},
-  sha256: "6a536cff5b44d31e45ff9b128794e29c3fe9c09bad111f0dbe9df3fc29941de7"
+  schema: int_tensor{element: int8, shape: [10, 12]}
 }
 
 artifact{
   name: outputBias,
   type: (List Int),
+  kappa: "blake3:ae8b631d12b4d52954bd25082e0735ce5612a6de5530d068f60bbc2deb05a5d4",
   length: 40,
   role: parameters,
-  schema: int_tensor{element: int32, shape: [10]},
-  sha256: ba0505206b75f60de72e117e01155033a68c40972a7f6687a2b05ca0004c5ab4
+  schema: int_tensor{element: int32, shape: [10]}
 }
 
 artifact{
   name: digitNames,
   type: (List String),
   axioms: [Classical.choice, Quot.sound, propext],
+  kappa: "blake3:cbab770bc2e356dab94a462427d630dec702ac9b4d9a05603a60e82b043645ac",
   length: 50,
   role: vocabulary,
-  schema: utf8_lines{},
-  sha256: "476e03af7ff499e63fe93fffa0567a69128761f538ec7dd1f3e2c197a0c90981"
+  schema: utf8_lines{}
 }
 
 artifact{
   name: banner,
   type: Bytes,
+  kappa: "blake3:5f39ffd7ec1a5f11af6315f207684339db711b2218cf66804465a101f8306d3b",
   length: 5,
   role: binary,
-  schema: bytes{},
-  sha256: "3369421cb6a657bcbdbec197a0c3b2a8e208dd7746853513f9d77331d0fa1397"
+  schema: bytes{}
 }
 
 definition{

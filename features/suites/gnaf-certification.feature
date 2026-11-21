@@ -3,7 +3,7 @@ Feature: gnaf-certification
   GNAF certification over requests: proof-producing routes from premises to an optimum, a frontier, or an honest weaker status, and never an optimum from normality alone (§17.18).
 
   @GC-01 @build
-  Scenario: Every committed GNAF certificate and certificate fixture is canonical, validates against the certificate schemas, states the framed SHA-256 identity of its certificate and the universe identity of the request it names, and is read back with its committed verdict; a malformed certificate or a certificate fixture stating another identity fails closed with LLB6007, and a certificate beyond the host's capacity fails closed with LLS8002.
+  Scenario: Every committed GNAF certificate and certificate fixture is canonical, validates against the certificate schemas, states the framed κ-label identity of its certificate and the universe identity of the request it names, and is read back with its committed verdict; a malformed certificate or a certificate fixture stating another identity fails closed with LLB6007, and a certificate beyond the host's capacity fails closed with LLS8002.
     Given every committed certificate under `compiler/certificates/` and a set of malformed, misidentified, and over-capacity certificates
     When each is reread, schema-validated, and loaded
     Then every committed fixture is canonical, schema-valid, states its own identity and its request's universe identity, and loads with its committed verdict

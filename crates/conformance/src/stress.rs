@@ -92,7 +92,7 @@ fn project_limited(declarations: &[Value], lifted: bool) -> P {
                 .replace("max_ir_nodes = 2000000", "max_ir_nodes = 2000000000"),
         );
     }
-    let data = json!({"declarations": declarations, "spec": "lexlean/semantic-module/2"});
+    let data = json!({"declarations": declarations, "spec": "lexlean/semantic-module/3"});
     // Written in the notation, which is what language 1.2 reads (§17.21.1),
     // printed from the value itself: a chain nested past the depth the JSON
     // reader allows is still a module the notation can carry, and what refuses

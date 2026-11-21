@@ -3,14 +3,14 @@ Feature: models
   Language-1.2 models: content-addressed artifacts, contracts, realizations, evidence, model bindings, composition, and the runtime boundary (§17.12).
 
   @MD-01 @build
-  Scenario: Language 1.2 artifact, contract, realization, evidence, and model declarations, the checked_apply term, the contract_violation type, and the less_than primitive belong to the closed lexlean/semantic-module/2 schema and its snapshot schema, are rejected under language 1.1 before either backend runs, and admit no member outside the closed schema, such as prompt text, a free-form description, or raw model configuration.
+  Scenario: Language 1.2 artifact, contract, realization, evidence, and model declarations, the checked_apply term, the contract_violation type, and the less_than primitive belong to the closed lexlean/semantic-module/3 schema and its snapshot schema, are rejected under language 1.1 before either backend runs, and admit no member outside the closed schema, such as prompt text, a free-form description, or raw model configuration.
     Given a language-1.2 semantic module with every model construct
     When it is linked under language 1.2 and again under language 1.1, and with a prompt member added
     Then language 1.2 links it and its snapshot validates against the closed schemas
     And language 1.1 rejects every model construct and the closed schema rejects the extra member with LLT4001
 
   @MD-02 @build
-  Scenario: A model artifact is admitted only from a configured, content-addressed, confined project file whose SHA-256 and byte length equal its declaration and whose bytes decode under its declared closed schema to its declared type and role; a missing artifact or a digest or length mismatch fails with LLR3007, a schema, type, or role violation fails with LLR3008, and the generated Lean embeds the exact bytes with a kernel-checked theorem that the typed value is their decoding.
+  Scenario: A model artifact is admitted only from a configured, content-addressed, confined project file whose κ-label and byte length equal its declaration and whose bytes decode under its declared closed schema to its declared type and role; a missing artifact or a digest or length mismatch fails with LLR3007, a schema, type, or role violation fails with LLR3008, and the generated Lean embeds the exact bytes with a kernel-checked theorem that the typed value is their decoding.
     Given the models example's configured artifacts
     When each is read, digested, decoded, and embedded
     Then the generated Lean states that each typed value is the decoding of the exact embedded bytes and Lean's kernel checks it

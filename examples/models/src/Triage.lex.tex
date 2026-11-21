@@ -138,19 +138,19 @@ definition{
 artifact{
   name: triageWeights,
   type: (List (List Int)),
+  kappa: "blake3:df06bf17c5f5d8e359ddbd9758d8a9f256ed6263898998c9397e7d661e78f286",
   length: 18,
   role: parameters,
-  schema: int_tensor{element: int16, shape: [3, 3]},
-  sha256: "7a1039fea753fdbab50d96e9b180fb5f987c6ba688d847da0e209608c5c0f58e"
+  schema: int_tensor{element: int16, shape: [3, 3]}
 }
 
 artifact{
   name: triageBias,
   type: (List Int),
+  kappa: "blake3:9e26f69b34f5f0f99f51f5c6b827c5c1ac8070c55ded10accee4d296340fbe8c",
   length: 6,
   role: parameters,
-  schema: int_tensor{element: int16, shape: [3]},
-  sha256: "34b5d0d734084832dea276360f994018f4e6eb7921334265e58217b360a2a79d"
+  schema: int_tensor{element: int16, shape: [3]}
 }
 
 contract{

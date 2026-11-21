@@ -22,7 +22,6 @@ clap = { workspace = true }
 semver = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-sha2 = { workspace = true }
 tempfile = { workspace = true }
 toml = { workspace = true }
 unicode-normalization = { workspace = true }
@@ -47,11 +46,6 @@ same-file = { workspace = true }
 
 [target.'cfg(target_os = "wasi")'.dependencies]
 rustix = { workspace = true, features = ["fs"] }
-
-# The build script records the address of the `rustc` that compiles this crate
-# (SPEC.md §22.11): the SHA-256 of its executable and driver library.
-[build-dependencies]
-sha2 = { workspace = true }
 
 # `production-data` embeds the native preservation library
 # (`language/preservation-1.2/library/`, 32.2 of the 36.4 MB of language data),

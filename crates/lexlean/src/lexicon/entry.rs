@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 
 use serde::Deserialize;
 
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::code;
 use crate::diagnostic::Diagnostic;
 use crate::lexicon::lre::{self, Render};
@@ -392,8 +392,8 @@ pub struct Entry {
     pub signature: Option<Lse>,
     /// Canonical alpha-renamed signature text.
     pub signature_canonical: Option<String>,
-    /// SHA-256 of the canonical signature (§13.7).
-    pub signature_hash: Option<Sha256Digest>,
+    /// κ-label of the canonical signature (§13.7).
+    pub signature_hash: Option<Kappa>,
     /// Declared universe variables, sorted.
     pub universes: Vec<String>,
     /// Pratt precedence for prefix, postfix, and infix frames.
@@ -797,7 +797,7 @@ pub fn parse_entry(
                     ));
                 }
                 let canonical = parsed.print(true);
-                signature_hash = Some(Sha256Digest::of(canonical.as_bytes()));
+                signature_hash = Some(Kappa::of(canonical.as_bytes()));
                 signature_canonical = Some(canonical);
                 signature = Some(parsed);
             }

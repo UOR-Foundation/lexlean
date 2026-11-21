@@ -1,0 +1,292 @@
+# tests/kappa/inventory.toml --- every hash LexLean computes, names, pins, or
+# compares, its role, and what it is since the identity epoch (SPEC.md §21.1).
+#
+# role: identity (names a meaning), cache-key (keys reuse), integrity-pin
+# (pins the bytes of an input or an external file), record (states the bytes
+# of an output), external (a format LexLean does not own fixes the digest).
+# before is what release/v0.5 computed; after is what this tree computes.
+# A κ-label is `blake3:` and the 64 lowercase hex digits of the BLAKE3 hash of
+# its carrier, computed by the standard library's certified `Blake3` package.
+# `audit-hashes` (AR-15) refuses a SHA-256 outside the external rows below.
+
+spec = "lexlean/kappa-inventory/1"
+
+[[hash]]
+name = "compiler_semantics (lock), compiler.semantics_id (manifest), compiler_semantics_id (snapshot), lexlean.compiler_semantics (attestation)"
+role = "identity"
+before = "sha256 tree digest, lexlean-tree-v1"
+after = "κ-label, lexlean-tree-v2 over the same partition"
+read_by = "lock check, RP-10, production replay, release-check, Prism (snapshot)"
+spec_section = "21.2"
+
+[[hash]]
+name = "LANGUAGE_1_2_SEMANTICS_ID"
+role = "identity"
+before = "sha256 hex constant"
+after = "κ-label constant, held to the recomputed tree by RP-10"
+read_by = "a build without production-data (WASM)"
+spec_section = "8.4, 21.2"
+
+[[hash]]
+name = "source_id"
+role = "identity"
+before = "sha256, lexlean-source-v1"
+after = "κ-label, lexlean-source-v2: project, lock, then path and source per module"
+read_by = "build manifest, snapshot, source map, attestation, production request and result, Prism"
+spec_section = "21.3"
+
+[[hash]]
+name = "semantic_id"
+role = "identity"
+before = "sha256, lexlean-semantic-v1, compiler semantics framed as 32 digest bytes"
+after = "κ-label, lexlean-semantic-v2, compiler semantics framed as its 71 label bytes, then language, toolchain, linked IR, lexicon closure"
+read_by = "build manifest, snapshot, source map, attestation, production result, rust-package sources, Prism seals and admits a holo by it"
+spec_section = "21.4"
+
+[[hash]]
+name = "LexLeanProbe.P<h>, LexLeanAudit.A<h>, LexLeanExtract.X<h>, LexLeanPreserve.C<h>"
+role = "identity"
+before = "first 32 hex digits of the sha256 semantic ID"
+after = "first 32 hex digits of the semantic κ-label's digest (a Lean module name holds no colon)"
+read_by = "verification"
+spec_section = "18.8, 18.9, 17.17"
+
+[[hash]]
+name = "build_id and .lexlean/build/<build-id>/"
+role = "identity"
+before = "sha256, lexlean-build-v1"
+after = "κ-label, lexlean-build-v2 over the source and semantic labels; the directory is the 64-digit digest"
+read_by = "build manifest, attestation, production result"
+spec_section = "21.5"
+
+[[hash]]
+name = "attestation_id and .lexlean/verified/<attestation-id>/"
+role = "identity"
+before = "sha256, lexlean-attestation-v1"
+after = "κ-label, lexlean-attestation-v2; the directory is the 64-digit digest"
+read_by = "production replay"
+spec_section = "22.9"
+
+[[hash]]
+name = "declaration id, group digest, statement_id"
+role = "identity"
+before = "sha256, lexlean-declaration-group-v1, lexlean-declaration-v1, lexlean-statement-v1"
+after = "κ-label, the same recipes on -v2 domains, referenced IDs framed as labels"
+read_by = "declarations/<module>.json, Prism keys reused proofs by declaration address"
+spec_section = "21.9"
+
+[[hash]]
+name = "alpha_id, elaboration.alpha_ids"
+role = "identity"
+before = "sha256 of the alpha-renamed canonical JSON"
+after = "κ-label of the same bytes"
+read_by = "semantic snapshot (language 1.2)"
+spec_section = "17.12"
+
+[[hash]]
+name = "snapshot ID (SemanticSnapshot::snapshot_id)"
+role = "identity"
+before = "sha256 of the canonical snapshot"
+after = "κ-label of the canonical snapshot (lexlean/semantic-snapshot/4 for 1.2, /3 for 1.0 and 1.1)"
+read_by = "API callers"
+spec_section = "24.1"
+
+[[hash]]
+name = "lexicon package tree_sha256, manifest_sha256"
+role = "integrity-pin"
+before = "sha256 tree digest, sha256 of lexicon.toml"
+after = "tree_kappa (lexlean-tree-v2), manifest_kappa (κ-label of lexicon.toml); the Git cache directory is the tree's 64-digit digest"
+read_by = "lock check, Git cache revalidation, lexicon closure"
+spec_section = "11.1, 11.5"
+
+[[hash]]
+name = "lexicon entry signature_sha256"
+role = "identity"
+before = "sha256 of the canonical signature"
+after = "signature_kappa, the κ-label of the canonical signature"
+read_by = "lexicon closure (lexlean/lexicon-closure/2), linked IR, so the semantic ID"
+spec_section = "13.7"
+
+[[hash]]
+name = "source package tree_sha256, manifest_sha256"
+role = "integrity-pin"
+before = "sha256"
+after = "tree_kappa, manifest_kappa"
+read_by = "lock check_pins"
+spec_section = "10.5, 11.1"
+
+[[hash]]
+name = "project_config_sha256"
+role = "integrity-pin"
+before = "sha256 of the canonical project TOML"
+after = "project_config_kappa"
+read_by = "lock check"
+spec_section = "10.1, 11.1"
+
+[[hash]]
+name = "workspace_file sha256, model artifact sha256, pdf program/version/resource sha256"
+role = "integrity-pin"
+before = "sha256 of file bytes"
+after = "kappa, the κ-label of the bytes (project/2, lock/3 and /4, semantic-module/3)"
+read_by = "verify workspace check, link (LLR3007), PDF backend"
+spec_section = "10.1, 10.3, 10.4, 19.7"
+
+[[hash]]
+name = "PDF recipe_id, pdf_sha256"
+role = "identity, record"
+before = "sha256, lexlean-pdf-recipe-v1"
+after = "κ-label, lexlean-pdf-recipe-v2; pdf_kappa"
+read_by = "attestation"
+spec_section = "19.8"
+
+[[hash]]
+name = "build manifest inputs[] and outputs[] sha256"
+role = "record"
+before = "sha256"
+after = "kappa (lexlean/build-manifest/2)"
+read_by = "freshness, Prism"
+spec_section = "21.6"
+
+[[hash]]
+name = "attestation build_manifest, oleans, processes, toolchain, lexlean executable, compiler_input, preservation digests"
+role = "record"
+before = "sha256"
+after = "κ-labels (lexlean/attestation/3 and /4)"
+read_by = "production replay, partition, verify records"
+spec_section = "22.7, 22.9, 22.10, 22.11"
+
+[[hash]]
+name = "RUSTC address (build.rs)"
+role = "record"
+before = "sha256 of the sysroot listing"
+after = "κ-label"
+read_by = "verify addresses"
+spec_section = "22.11"
+
+[[hash]]
+name = "process store keys, module identities, context, restored file digests"
+role = "cache-key"
+before = "sha256 under lexlean/verify-store/1"
+after = "κ-label under lexlean/verify-store/2; a store written before misses once"
+read_by = "verify/store.rs"
+spec_section = "22.12"
+
+[[hash]]
+name = "library.registry_sha256 and preservation root, program, rendering, crate digests"
+role = "identity, record"
+before = "sha256, lexlean-preservation-library-v1"
+after = "κ-label, lexlean-preservation-library-v2 (lexlean/preservation/2)"
+read_by = "production replay, AU-06"
+spec_section = "17.17"
+
+[[hash]]
+name = "target program identity (Program::id)"
+role = "identity"
+before = "sha256 of the canonical program"
+after = "κ-label"
+read_by = "rust provenance, GNAF reference"
+spec_section = "17.14"
+
+[[hash]]
+name = "GNAF SystemUniverseId, certificate_id, prepared artifact"
+role = "identity"
+before = "sha256, lexlean-gnaf-universe-v1, lexlean-gnaf-certificate-v1"
+after = "κ-label on -v2 domains (lexlean/gnaf-request/2, gnaf-certificate/2)"
+read_by = "GNAF validate and certification, production replay"
+spec_section = "17.15, 17.18"
+
+[[hash]]
+name = "target descriptor digest, production result_id, lock_sha256, bundle file digests"
+role = "identity, record"
+before = "sha256, lexlean-target-descriptor-v1, lexlean-production-result-v1"
+after = "κ-labels on -v2 domains; lock_kappa (production-request/2, production-result/3)"
+read_by = "production build and replay"
+spec_section = "24.7"
+
+[[hash]]
+name = "rust_runtime_core, rust_runtime_std, rust_renderer (language/semantics-1.2.toml)"
+role = "identity"
+before = "sha256, lexlean-rust-renderer-v1"
+after = "κ-labels, lexlean-rust-renderer-v2"
+read_by = "the compiler-semantics ID, descriptors, provenance"
+spec_section = "17.16"
+
+[[hash]]
+name = "rust provenance files"
+role = "record"
+before = "sha256"
+after = "κ-labels (lexlean/rust-provenance/2)"
+read_by = "production replay"
+spec_section = "17.16"
+
+[[hash]]
+name = "api/schemas/versions.toml"
+role = "integrity-pin"
+before = "sha256 of each released schema"
+after = "κ-label of the same released bytes, plus a row per raised spec"
+read_by = "PX-12"
+spec_section = "24.7"
+
+[[hash]]
+name = "tooling sourcePin (language/lcnf-1.2/tooling)"
+role = "integrity-pin"
+before = "sha256 of each pinned Lean source file"
+after = "κ-label of the same file, checked against the SHA-256 it had before re-pinning"
+read_by = "tooling check, TL-03"
+spec_section = "17.20"
+
+[[hash]]
+name = "vendored authority checksum (model/authorities.toml)"
+role = "integrity-pin"
+before = "sha256:<hex>"
+after = "blake3:<hex>"
+read_by = "validate-model (R6)"
+spec_section = "27.4"
+
+[[hash]]
+name = "fixture hashes.toml, runtime transcript header, CI verified-digest, bootstrap export custody, certification cache keys"
+role = "record, cache-key"
+before = "sha256"
+after = "κ-labels, written by the regenerate workflow"
+read_by = "check-fixtures, RB-20, CI"
+spec_section = "9.4, 17.16, 28.2"
+
+[[hash]]
+name = "release checksums.txt, MANIFEST.sha256, crate_sha256, manifest_sha256"
+role = "external"
+before = "sha256"
+after = "sha256: the sha256sum format and the digest crates.io checks"
+read_by = "crates.io, sha256sum, RP-18"
+spec_section = "30.3"
+
+[[hash]]
+name = "acquired_sha256 of authority rows"
+role = "external"
+before = "sha256"
+after = "sha256: the digest the upstream publisher states for its release (Lean, rustc), bound to the vendored copy's κ-label"
+read_by = "validate-model"
+spec_section = "27.4"
+
+[[hash]]
+name = "LexLeanStd.Sha256, NIST vectors, the kappa package's sha256 axis"
+role = "external"
+before = "sha256"
+after = "sha256: a function LexLean offers and uor-addr's sha256 σ-axis, never an identity LexLean computes"
+read_by = "SL-02, KA-02 to KA-08"
+spec_section = "17.22"
+
+[[hash]]
+name = "oracle pin tree_sha256, oracle table rows_sha256 (oracle/)"
+role = "external"
+before = "sha256"
+after = "sha256: the differential oracle's pin of an external checkout, evidence about the oracle and never an input to an identity; recomputing it needs the oracle checkout"
+read_by = "OR-01, conformance"
+spec_section = "17.19"
+
+[[hash]]
+name = "git commit and tree SHA-1 (Lean githash, Git package revisions, GitHub Actions pins)"
+role = "external"
+before = "sha1"
+after = "sha1: git's object names"
+read_by = "compiler input, lock, CI"
+spec_section = "8.2, 11.1"

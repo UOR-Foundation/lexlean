@@ -187,7 +187,7 @@ public structure Ctx where
 
 @[expose] public def plainLine (out : LexLeanStd.Buffer.Buffer) (built : LexLeanStd.Buffer.Buffer) : LexLeanStd.Buffer.Buffer := emitLine (out) (built) (false) (false)
 
-@[expose] public def sourceLine (out : LexLeanStd.Buffer.Buffer) (pin : LexLeanBoot.ToolingAst.Pin) : LexLeanStd.Buffer.Buffer := plainLine (out) (putS (putB (putS (putB (putS (lineBuffer (out)) ("Source: ")) ((pin).file)) (" (")) ((pin).sha256)) (")"))
+@[expose] public def sourceLine (out : LexLeanStd.Buffer.Buffer) (pin : LexLeanBoot.ToolingAst.Pin) : LexLeanStd.Buffer.Buffer := plainLine (out) (putS (putB (putS (putB (putS (lineBuffer (out)) ("Source: ")) ((pin).file)) (" (")) ((pin).kappa)) (")"))
 
 @[expose] public def putKind (out : LexLeanStd.Buffer.Buffer) (item : LexLeanBoot.ToolingAst.TypeParam) : LexLeanStd.Buffer.Buffer := (match (item).kind with | LexLeanBoot.ToolingAst.ParamKind.KdType => putS (putB (out) ((item).name)) (" : Type") | LexLeanBoot.ToolingAst.ParamKind.KdConstructor => putS (putB (out) ((item).name)) (" : Type -> Type") | LexLeanBoot.ToolingAst.ParamKind.KdIndex owner => putB (putS (putB (out) ((item).name)) (" : ")) (owner))
 

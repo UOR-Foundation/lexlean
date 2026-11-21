@@ -24,6 +24,11 @@ version = 2
 # allowance made for them in advance.
 allow = ["Apache-2.0", "MIT", "Unicode-3.0"]
 confidence-threshold = 0.93
+# `arrayref` reaches the graph only through the reference `blake3` crate, an
+# oracle of SL-06 that the unpublished `conformance` and `model` crates use and
+# no shipped crate does. Its BSD-2-Clause is allowed for that crate alone, so a
+# shipped dependency under the same licence still fails this gate.
+exceptions = [{ crate = "arrayref", allow = ["BSD-2-Clause"] }]
 
 [bans]
 multiple-versions = "warn"

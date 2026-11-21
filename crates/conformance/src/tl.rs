@@ -1,4 +1,4 @@
-//! Builders for compiler-tooling modules (`lexlean/tooling-module/1`,
+//! Builders for compiler-tooling modules (`lexlean/tooling-module/2`,
 //! SPEC.md §17.20), shared by the generators of tooling projects.
 //!
 //! Each builder returns exactly the object the schema names, with no optional
@@ -240,7 +240,7 @@ pub fn evaluate(function: &str, arguments: Vec<Json>) -> Json {
 /// The module around its declarations, citing the compiler's pinned Lean.
 pub fn module(authority: &str, imports: Vec<String>, declarations: Vec<Json>) -> Json {
     json!({
-        "spec": "lexlean/tooling-module/1",
+        "spec": "lexlean/tooling-module/2",
         "authority": {
             "id": authority,
             "lean_version": lexlean::LEAN_VERSION,

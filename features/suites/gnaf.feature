@@ -45,14 +45,14 @@ Feature: gnaf
     And the sum of the per-domain optima is lower than any system's cost, an inadmissible plan is excluded, and a diverging plan makes the answer incomplete
 
   @GN-07 @build
-  Scenario: The authority's GNAF-VEC-01, GNAF-VEC-02, GNAF-VEC-04, GNAF-VEC-17, GNAF-REJ-14, and GNAF-REJ-29 vectors are kernel-checked theorems over the argmin and frontier the answers are computed by, stated with the authority's numbers, and the authority is vendored with a recomputed SHA-256, cited by revision, and claimed some-true.
+  Scenario: The authority's GNAF-VEC-01, GNAF-VEC-02, GNAF-VEC-04, GNAF-VEC-17, GNAF-REJ-14, and GNAF-REJ-29 vectors are kernel-checked theorems over the argmin and frontier the answers are computed by, stated with the authority's numbers, and the authority is vendored with a recomputed κ-label, cited by revision, and claimed some-true.
     Given the `Gnaf` model, the vendored authority, `model/authorities.toml`, and `model/ledger.toml`
     When the vector theorems' statements are decoded, the authority's bytes are hashed, and a copy stating a wrong frontier for GNAF-VEC-02 is verified
     Then every vector is stated with the authority's numbers over the argmin and frontier `evaluate` uses, the vendored bytes hash to the row's SHA-256, and the claim is some-true
     And the copy fails with LLV7002
 
   @GN-08 @build
-  Scenario: The GNAF dependency manifest names the authority's revision and SHA-256, every kind, operation, machine, cost, proof, interchange, and address profile with its role, every restriction of the admitted universe, and exactly the claim classes the model answers, and equals its generator.
+  Scenario: The GNAF dependency manifest names the authority's revision and κ-label, every kind, operation, machine, cost, proof, interchange, and address profile with its role, every restriction of the admitted universe, and exactly the claim classes the model answers, and equals its generator.
     Given the committed `compiler/gnaf.manifest.json` and the authority row
     When the manifest is reread with unknown fields refused and compared with the model
     Then it equals its generator and names the authority's revision, SHA-256, and vendored copy, and every required profile with its role

@@ -31,7 +31,7 @@ use std::path::Path;
 
 use camino::{Utf8Path, Utf8PathBuf};
 use lexlean::artifact::canonical_json::Json;
-use lexlean::artifact::content_id::Sha256Digest;
+use lexlean::artifact::content_id::Kappa;
 
 use crate::support;
 
@@ -387,9 +387,10 @@ fn process_bound(relative_in_artifact: &str) -> bool {
 }
 
 /// Replace `.lexlean/verified/<hex>` by `.lexlean/verified/$ATTESTATION`
-/// and the command result's `"attestation_id":"<hex>"` field by
+/// and the command result's `"attestation_id":"blake3:<hex>"` field by
 /// `$ATTESTATION`: the attestation ID is platform-bound (§22.9) and never
-/// part of a platform-independent expectation.
+/// part of a platform-independent expectation. The field is the κ-label;
+/// the directory, which cannot hold its colon, is the label's hex.
 fn normalize_attestation(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
     let mut rest = text;
@@ -401,10 +402,16 @@ fn normalize_attestation(text: &str) -> String {
         let after = position + marker.len();
         out.push_str(&rest[..after]);
         let candidate = &rest[after..];
-        let hex_len = candidate.bytes().take_while(u8::is_ascii_hexdigit).count();
-        if hex_len == 64 {
+        let prefix = if marker == "/verified/" {
+            ""
+        } else {
+            lexlean::artifact::content_id::KAPPA_PREFIX
+        };
+        let digits = candidate.strip_prefix(prefix).unwrap_or("");
+        let hex_len = digits.bytes().take_while(u8::is_ascii_hexdigit).count();
+        if candidate.starts_with(prefix) && hex_len == 64 {
             out.push_str("$ATTESTATION");
-            rest = &candidate[64..];
+            rest = &digits[64..];
         } else {
             rest = candidate;
         }
@@ -559,7 +566,7 @@ pub fn observe(case: &Case) -> Result<Observed, String> {
             if raw_dir.contains("/verified/") && process_bound(&relative) {
                 process_bound_files.push(shown);
             } else {
-                platform_independent.insert(shown, Sha256Digest::of(&bytes).to_hex());
+                platform_independent.insert(shown, Kappa::of(&bytes).label());
             }
         }
     }
@@ -767,6 +774,18 @@ mod tests {
         assert_eq!(
             normalize_attestation(&text),
             ".lexlean/verified/$ATTESTATION/attestation.json and /verified/abc/x"
+        );
+        let label = format!("{{\"attestation_id\":\"blake3:{hex}\",\"x\":\"{hex}\"}}");
+        assert_eq!(
+            normalize_attestation(&label),
+            format!("{{\"attestation_id\":\"$ATTESTATION\",\"x\":\"{hex}\"}}"),
+            "the command result's field is the κ-label",
+        );
+        let bare = format!("{{\"attestation_id\":\"{hex}\"}}");
+        assert_eq!(
+            normalize_attestation(&bare),
+            bare,
+            "a bare digest is no κ-label"
         );
     }
 

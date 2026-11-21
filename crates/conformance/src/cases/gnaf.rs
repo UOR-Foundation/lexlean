@@ -10,7 +10,7 @@ use lexlean::gnaf::{
     self, Action, ActionKind, Answer, Boundary, Carrier, Charge, ClaimClass, Completeness, Fixture,
     Objective, OperandSize, Prepared, Rejection, Request, Scope, Selector, Status, HOST_CAPACITY,
 };
-use lexlean::Sha256Digest;
+use lexlean::Kappa;
 use serde::Deserialize;
 use serde_json::{json, Value as Json};
 
@@ -97,7 +97,7 @@ fn refuses(bytes: &[u8], code: &str, message: &str) {
 
 /// The universe identity of `request`, which every committed request
 /// states.
-fn universe_id(request: &Request) -> Sha256Digest {
+fn universe_id(request: &Request) -> Kappa {
     gnaf::universe_id(request).expect("a canonical request")
 }
 
@@ -111,7 +111,7 @@ fn identified(mut request: Request) -> Request {
 fn reidentified(json: &Json) -> Vec<u8> {
     let request: Request = serde_json::from_value(json.clone()).expect("a request");
     let mut json = json.clone();
-    json["universe"] = json!(universe_id(&request).to_hex());
+    json["universe"] = json!(universe_id(&request).label());
     bytes(&json)
 }
 
@@ -482,7 +482,7 @@ struct ManifestAuthority {
     id: String,
     identifier: String,
     revision: String,
-    sha256: String,
+    kappa: String,
     vendored: String,
 }
 
@@ -578,7 +578,7 @@ fn gn_01() {
     refuses(
         &bytes(&spec),
         "LLB6006",
-        "expected `lexlean/gnaf-request/1`",
+        "expected `lexlean/gnaf-request/2`",
     );
     let mut reference = base.clone();
     reference["reference"]["functions"][0]["result"] = json!({"kind": "bool"});
@@ -621,7 +621,7 @@ fn gn_01() {
     // The universe identity is only an equality check: a request stating
     // any other identity is refused.
     let mut identity = base.clone();
-    identity["universe"] = json!(Sha256Digest::of(b"another universe").to_hex());
+    identity["universe"] = json!(Kappa::of(b"another universe").label());
     refuses(&bytes(&identity), "LLB6006", "universe identity");
     let mut edited = base.clone();
     edited["carrier"]["thresholds"] = json!([4]);
@@ -1142,7 +1142,7 @@ fn gn_04() {
     let mut stray = request("preparation-common-state");
     stray.machine.prepared.push(Prepared {
         kind: K::Preprocessing,
-        artifact: Sha256Digest::of(b"an unaccounted artifact"),
+        artifact: Kappa::of(b"an unaccounted artifact"),
     });
     assert_eq!(
         gnaf::validate(&stray),
@@ -1621,8 +1621,8 @@ fn gn_07() {
         assert!(evaluate.contains(order), "evaluate answers by `{order}`");
     }
 
-    // The authority: vendored, its bytes' SHA-256 recomputed, pinned by
-    // revision, and some-true.
+    // The authority: vendored, its bytes' κ-label recomputed, pinned by
+    // revision, and some-true; the issuer's digest is the acquired one.
     let model = repo_model::Model::load_from_repo_root().expect("model");
     let (identity, identifier, revision, sha256) = fixtures::AUTHORITY;
     let authority = model
@@ -1639,14 +1639,18 @@ fn gn_07() {
         .contains(revision));
     assert!(authority.citation.contains(revision));
     assert_eq!(authority.acquired_sha256.as_deref(), Some(sha256));
-    assert_eq!(authority.checksum, format!("sha256:{sha256}"));
+    assert_eq!(authority.checksum, fixtures::AUTHORITY_KAPPA);
     assert_eq!(
         authority.vendored.as_deref(),
         Some(fixtures::AUTHORITY_PATH)
     );
     let vendored = std::fs::read(repo_root().join(fixtures::AUTHORITY_PATH).as_std_path())
         .expect("the vendored authority");
-    assert_eq!(Sha256Digest::of(&vendored).to_hex(), sha256);
+    assert_eq!(Kappa::of(&vendored).label(), fixtures::AUTHORITY_KAPPA);
+    assert_eq!(
+        crate::support::oracle_kappa(&vendored).label(),
+        fixtures::AUTHORITY_KAPPA
+    );
     assert_eq!(authority.canonical_identifier.as_deref(), Some(identifier));
     assert_eq!(authority.source_role.as_deref(), Some("normative"));
     assert_eq!(authority.license.as_deref(), Some("Apache-2.0 OR MIT"));
@@ -1716,10 +1720,11 @@ fn gn_08() {
         Some(manifest.authority.revision.as_str()),
         row.revision.as_deref()
     );
-    assert_eq!(manifest.authority.sha256, sha256);
+    assert_eq!(manifest.authority.kappa, fixtures::AUTHORITY_KAPPA);
+    assert_eq!(row.acquired_sha256.as_deref(), Some(sha256));
     assert_eq!(
-        Some(manifest.authority.sha256.as_str()),
-        row.acquired_sha256.as_deref()
+        Some(manifest.authority.kappa.as_str()),
+        Some(row.checksum.as_str())
     );
     assert_eq!(manifest.authority.vendored, fixtures::AUTHORITY_PATH);
     // §20: every kind, operation, machine, cost, proof, interchange, and

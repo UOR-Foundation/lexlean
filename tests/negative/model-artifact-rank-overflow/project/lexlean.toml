@@ -1,4 +1,4 @@
-spec = "lexlean/project/1"
+spec = "lexlean/project/2"
 name = "model-negative"
 language = "1.2"
 module_prefix = "Mini"
@@ -14,7 +14,7 @@ package = "lexlean.std.nat"
 kind = "builtin"
 
 [[artifact_source]]
-sha256 = "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+kappa = "blake3:48fc721fbbc172e0925fa27af1671de225ba927134802998b10a1568a188652b"
 path = "artifacts/weights.bin"
 
 [limits]
