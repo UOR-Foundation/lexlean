@@ -169,8 +169,8 @@ key = "primitive.update"
 kind = "oracle-refuses"
 probe = "Coverage.Prims.updates"
 refusal = "unresolved-external-call"
-scope = "construct"
-reason = "The in-place byte update elaborates to the runtime definition `LexLeanRuntime.update` (§17.12), a call the oracle's exporter does not follow, so it refuses the probe as an unresolved external call; LexLean lowers `update` directly from the Semantic IR to one `Prim.update` instruction (§17.14)."
+scope = "closure"
+reason = "The in-place byte update elaborates to the runtime definition `LexLeanRuntime.update` (§17.12), a call the oracle's exporter does not follow, so it refuses the closures that hold it as unresolved external calls; the probe is the coverage root of examples/coverage whose closure holds it; LexLean lowers `update` directly from the Semantic IR to one `Prim.update` instruction (§17.14)."
 
 [[construct]]
 key = "primitive.map_insert"
