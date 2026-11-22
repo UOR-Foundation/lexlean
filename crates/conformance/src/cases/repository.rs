@@ -391,7 +391,7 @@ fn plan_decisions() {
             "the independent lane cannot contain a bootstrap-consuming BDD part"
         );
         assert!(
-            export.iter().all(&requires_export),
+            export.iter().all(requires_export),
             "the exporter lane contains only bootstrap-consuming BDD parts"
         );
         let mut dispatched = fast;
