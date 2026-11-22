@@ -36,10 +36,11 @@
 # from broken code.
 #
 # Which runs are the gate (§9.4): the `plan` job decides from the event alone.
-# A pull request that is a draft runs honesty then the `rest` leg, because
-# a head pushed again before it is final should cost two jobs and not the whole
-# gate; it is a development signal and the pull request is not mergeable on it.
-# So does a ready pull request whose base is neither `main` nor `release/*`: a
+# A draft pull request defers all expensive jobs before checkout: the cheap
+# required `plan` check refuses it as DRAFT_DEFERRED_NOT_QUALIFIED. A
+# `ready_for_review` event, even on the same SHA, restores normal acceptance.
+# A ready pull request whose base is neither `main` nor `release/*` runs
+# honesty then the `rest` leg as a development signal: a
 # stacked pull request cannot land on a line, and the pull request that carries
 # the stack into one runs the whole gate. Marking a draft ready, which the
 # `pull_request` types below include, a push to a ready pull request into
@@ -76,7 +77,7 @@ name: ci
 on:
   push: { branches: [main, "release/**"] }
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   workflow_dispatch:
 
 # Read-only: nothing in this workflow writes to the repository or publishes a
@@ -98,8 +99,9 @@ env:
 
 jobs:
   # What this run is (SPEC.md §9.4), decided from the event before any job that
-  # costs a runner starts: a draft pull request, or a ready one whose base is
-  # neither `main` nor `release/*`, runs the `rest` leg and nothing else; a ready
+  # costs an expensive runner starts. Drafts are refused before checkout;
+  # a ready pull request whose base is neither `main` nor `release/*` runs
+  # the `rest` leg and honesty as a development signal; a ready
   # pull request into one of those, a request (planned as the pull request whose
   # head it names, when there is one), and a push to `main` run the whole
   # gate, except a push that merges a head whose tree it equals and whose whole
@@ -116,6 +118,7 @@ jobs:
     permissions:
       contents: read
       actions: read
+      pull-requests: read
     outputs:
       full: ${{ steps.plan.outputs.full }}
       rows: ${{ steps.plan.outputs.rows }}
@@ -123,6 +126,35 @@ jobs:
       fanout: ${{ steps.plan.outputs.fanout }}
       intel: ${{ steps.plan.outputs.intel }}
     steps:
+      # Required 'plan' must never report a draft-deferred success. It fails
+      # quickly, before checkout/toolchain setup. 'ready_for_review' gives the
+      # exact same SHA a fresh, real candidate result.
+      - name: Hold draft PR before checkout (not qualified)
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft }}
+        run: |
+          echo "::error::DRAFT_DEFERRED_NOT_QUALIFIED: mark the PR ready to qualify this HEAD"
+          exit 1
+      # Regeneration dispatches this workflow on PR heads. A dispatch cannot
+      # trust its event to tell us whether the head is still a draft.
+      - name: Hold dispatch on an open draft before checkout
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          drafts=$(gh api -X GET "repos/$REPO/pulls" \
+            -f state=open -f head="${REPO%%/*}:$BRANCH" -f per_page=100 \
+            --jq '[.[] | select(.draft == true)] | length') || {
+            echo "::error::Draft status unavailable; dispatch cannot claim qualification"
+            exit 1
+          }
+          if [ "$drafts" -gt 0 ]; then
+            echo "::error::DRAFT_DEFERRED_NOT_QUALIFIED: dispatch targets an open draft PR"
+            exit 1
+          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 2
@@ -144,7 +176,7 @@ jobs:
   honesty:
     name: ${{ matrix.part }}
     needs: [plan]
-    if: ${{ needs.plan.outputs.honesty != '[]' }}
+    if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}
     strategy:
       matrix:
         include: ${{ fromJSON(needs.plan.outputs.honesty) }}
@@ -286,7 +318,7 @@ jobs:
   vv:
     name: just vv (${{ matrix.part }})
     needs: [plan, honesty]
-    if: ${{ needs.plan.outputs.fanout != '[]' }}
+    if: ${{ needs.plan.result == 'success' && needs.plan.outputs.fanout != '[]' }}
     # A failing leg does not cancel the others: each leg's evidence is complete.
     # The legs are the rows of `.github/vv-rows.json`, or only its `rest` row
     # while the pull request is a draft.
