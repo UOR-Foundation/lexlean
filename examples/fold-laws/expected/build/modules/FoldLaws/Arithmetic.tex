@@ -1,0 +1,280 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{succ\_pos}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(n : Nat)}.\par
+\noindent Statement: \texttt{(0 < (n + 1))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{le\_succ}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat)}.\par
+\noindent Statement: \texttt{(a <= (a + 1))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{le\_add\_two}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat)}.\par
+\noindent Statement: \texttt{(a <= (a + 2))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{lt\_succ}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat)}.\par
+\noindent Statement: \texttt{(a < (a + 1))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{three\_pos}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(0 < 3)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{four\_pos}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(0 < 4)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{eight\_pos}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(0 < 8)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{two\_le\_three}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(2 <= 3)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{four\_le\_five}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(4 <= 5)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{two\_lt\_three}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(2 < 3)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{four\_two\_le\_four\_three}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (4) (2) : Nat) <= (LexLeanRuntime.multiply (4) (3) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{mul\_comm\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (a) (b) : Nat) = (LexLeanRuntime.multiply (b) (a) : Nat))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{mul\_comm\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat) (c : Nat)}.\par
+\noindent Statement: \texttt{(((LexLeanRuntime.multiply (a) (b) : Nat) + c) = ((LexLeanRuntime.multiply (b) (a) : Nat) + c))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{mul\_assoc\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat) (c : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply ((LexLeanRuntime.multiply (a) (b) : Nat)) (c) : Nat) = (LexLeanRuntime.multiply (a) ((LexLeanRuntime.multiply (b) (c) : Nat)) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{mul\_assoc\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat) (c : Nat)}.\par
+\noindent Statement: \texttt{(((LexLeanRuntime.multiply ((LexLeanRuntime.multiply (a) (b) : Nat)) (c) : Nat) + 1) = ((LexLeanRuntime.multiply (a) ((LexLeanRuntime.multiply (b) (c) : Nat)) : Nat) + 1))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{mul\_left\_comm\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat) (c : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (a) ((LexLeanRuntime.multiply (b) (c) : Nat)) : Nat) = (LexLeanRuntime.multiply (b) ((LexLeanRuntime.multiply (a) (c) : Nat)) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{mul\_left\_comm\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(m : Nat) (p : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (m) ((LexLeanRuntime.multiply (2) (p) : Nat)) : Nat) = (LexLeanRuntime.multiply (2) ((LexLeanRuntime.multiply (m) (p) : Nat)) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{left\_distrib\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat) (c : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (a) ((b + c)) : Nat) = ((LexLeanRuntime.multiply (a) (b) : Nat) + (LexLeanRuntime.multiply (a) (c) : Nat)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{left\_distrib\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (a) ((b + b)) : Nat) = ((LexLeanRuntime.multiply (a) (b) : Nat) + (LexLeanRuntime.multiply (a) (b) : Nat)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{right\_distrib\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat) (c : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply ((a + b)) (c) : Nat) = ((LexLeanRuntime.multiply (a) (c) : Nat) + (LexLeanRuntime.multiply (b) (c) : Nat)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{right\_distrib\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (c : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply ((a + a)) (c) : Nat) = ((LexLeanRuntime.multiply (a) (c) : Nat) + (LexLeanRuntime.multiply (a) (c) : Nat)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{mul\_sub\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat) (c : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (a) ((LexLeanRuntime.subtract (b) (c) : Nat)) : Nat) = (LexLeanRuntime.subtract ((LexLeanRuntime.multiply (a) (b) : Nat)) ((LexLeanRuntime.multiply (a) (c) : Nat)) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{mul\_sub\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat) (c : Nat)}.\par
+\noindent Statement: \texttt{(((LexLeanRuntime.multiply (a) ((LexLeanRuntime.subtract (b) (c) : Nat)) : Nat) + 1) = ((LexLeanRuntime.subtract ((LexLeanRuntime.multiply (a) (b) : Nat)) ((LexLeanRuntime.multiply (a) (c) : Nat)) : Nat) + 1))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{mul\_one\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (a) (1) : Nat) = a)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{one\_mul\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (1) (a) : Nat) = a)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{units\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply ((LexLeanRuntime.multiply (a) (1) : Nat)) (1) : Nat) = (LexLeanRuntime.multiply (1) (a) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{mul\_zero\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (a) (0) : Nat) = 0)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{zero\_mul\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (0) (a) : Nat) = 0)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{zeros\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat)}.\par
+\noindent Statement: \texttt{(((LexLeanRuntime.multiply (a) (0) : Nat) + (LexLeanRuntime.multiply (0) (b) : Nat)) = (LexLeanRuntime.multiply (0) ((a + b)) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{mul\_succ\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (a) ((b + 1)) : Nat) = ((LexLeanRuntime.multiply (a) (b) : Nat) + a))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{mul\_succ\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat)}.\par
+\noindent Statement: \texttt{(((LexLeanRuntime.multiply (a) ((b + 1)) : Nat) + 1) = (((LexLeanRuntime.multiply (a) (b) : Nat) + a) + 1))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{mul\_le\_mul\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (2) (4) : Nat) <= (LexLeanRuntime.multiply (3) (5) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{mul\_le\_mul\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (c : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (a) (c) : Nat) <= (LexLeanRuntime.multiply ((a + 1)) ((c + 2)) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{mul\_lt\_mul\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (2) (4) : Nat) < (LexLeanRuntime.multiply (3) (4) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{mul\_lt\_mul\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (c : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (a) ((c + 1)) : Nat) < (LexLeanRuntime.multiply ((a + 1)) ((c + 1)) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{cancel\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(2 <= 3)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{cancel\_iff\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(((LexLeanRuntime.multiply (4) (2) : Nat) <= (LexLeanRuntime.multiply (4) (3) : Nat)) <-> (2 <= 3))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{cancel\_iff\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(x : Nat) (y : Nat)}.\par
+\noindent Statement: \texttt{(((LexLeanRuntime.multiply (3) (x) : Nat) <= (LexLeanRuntime.multiply (3) (y) : Nat)) = (x <= y))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{div\_cancel\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (z : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.quotient ((LexLeanRuntime.multiply (8) (a) : Nat)) (8) (z) : Nat) = a)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{div\_cancel\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (n : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.quotient ((LexLeanRuntime.multiply ((n + 1)) (a) : Nat)) ((n + 1)) (0) : Nat) = a)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{div\_div\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (z : Nat) (w : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.quotient ((LexLeanRuntime.quotient (a) (8) (z) : Nat)) (4) (w) : Nat) = (LexLeanRuntime.quotient (a) ((LexLeanRuntime.multiply (8) (4) : Nat)) (w) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{div\_div\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (m : Nat) (n : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.quotient ((LexLeanRuntime.quotient (a) ((m + 1)) (0) : Nat)) ((n + 1)) (0) : Nat) = (LexLeanRuntime.quotient (a) ((LexLeanRuntime.multiply ((m + 1)) ((n + 1)) : Nat)) (0) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{div\_mul\_div\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat) (z : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.quotient ((LexLeanRuntime.multiply (8) (a) : Nat)) ((LexLeanRuntime.multiply (8) (b) : Nat)) (z) : Nat) = (LexLeanRuntime.quotient (a) (b) (z) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{div\_mul\_div\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat) (n : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.quotient ((LexLeanRuntime.multiply ((n + 1)) (a) : Nat)) ((LexLeanRuntime.multiply ((n + 1)) (b) : Nat)) (0) : Nat) = (LexLeanRuntime.quotient (a) (b) (0) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{div\_add\_mod\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (z : Nat) (w : Nat)}.\par
+\noindent Statement: \texttt{(((LexLeanRuntime.multiply (8) ((LexLeanRuntime.quotient (a) (8) (z) : Nat)) : Nat) + (LexLeanRuntime.remainder (a) (8) (w) : Nat)) = a)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{div\_add\_mod\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (n : Nat)}.\par
+\noindent Statement: \texttt{(((LexLeanRuntime.multiply ((n + 1)) ((LexLeanRuntime.quotient (a) ((n + 1)) (0) : Nat)) : Nat) + (LexLeanRuntime.remainder (a) ((n + 1)) (0) : Nat)) = a)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{mul\_mod\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (z : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.remainder ((LexLeanRuntime.multiply (8) (a) : Nat)) (8) (z) : Nat) = 0)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{mul\_mod\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (n : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.remainder ((LexLeanRuntime.multiply ((n + 1)) (a) : Nat)) ((n + 1)) (0) : Nat) = 0)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{bits\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (z : Nat) (w : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.quotient ((LexLeanRuntime.remainder (a) ((LexLeanRuntime.multiply (8) (4) : Nat)) (z) : Nat)) (8) (w) : Nat) = (LexLeanRuntime.remainder ((LexLeanRuntime.quotient (a) (8) (w) : Nat)) (4) (z) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{bits\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (m : Nat) (n : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.quotient ((LexLeanRuntime.remainder (a) ((LexLeanRuntime.multiply ((m + 1)) ((n + 1)) : Nat)) (0) : Nat)) ((m + 1)) (0) : Nat) = (LexLeanRuntime.remainder ((LexLeanRuntime.quotient (a) ((m + 1)) (0) : Nat)) ((n + 1)) (0) : Nat))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{add\_mul\_div\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (c : Nat) (z : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.quotient ((a + (LexLeanRuntime.multiply (8) (c) : Nat))) (8) (z) : Nat) = ((LexLeanRuntime.quotient (a) (8) (z) : Nat) + c))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{add\_mul\_div\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (c : Nat) (n : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.quotient ((a + (LexLeanRuntime.multiply ((n + 1)) (c) : Nat))) ((n + 1)) (0) : Nat) = ((LexLeanRuntime.quotient (a) ((n + 1)) (0) : Nat) + c))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{mod\_lt\_law}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (z : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.remainder (a) (8) (z) : Nat) < 8)}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{mod\_lt\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat) (n : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.remainder (a) ((n + 1)) (0) : Nat) < (n + 1))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{ble\_refl\_simp}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(a : Nat)}.\par
+\noindent Statement: \texttt{((Nat.ble (a) (a)) = true)}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{shift\_step}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(m : Nat) (p : Nat)}.\par
+\noindent Statement: \texttt{(((LexLeanRuntime.multiply (m) ((LexLeanRuntime.multiply (2) (p) : Nat)) : Nat) = (LexLeanRuntime.multiply (2) ((LexLeanRuntime.multiply (m) (p) : Nat)) : Nat)) -> ((LexLeanRuntime.multiply (m) ((LexLeanRuntime.multiply (2) (p) : Nat)) : Nat) = ((LexLeanRuntime.multiply (m) (p) : Nat) + (LexLeanRuntime.multiply (m) (p) : Nat))))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\subsection*{\texttt{shift\_injected}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Parameters: \texttt{(m : Nat) (p : Nat)}.\par
+\noindent Statement: \texttt{((LexLeanRuntime.multiply (m) ((LexLeanRuntime.multiply (2) (p) : Nat)) : Nat) = ((LexLeanRuntime.multiply (m) (p) : Nat) + (LexLeanRuntime.multiply (m) (p) : Nat)))}.\par
+\noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
+\end{document}
