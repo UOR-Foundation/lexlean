@@ -2484,7 +2484,7 @@ pub(crate) fn run(id: &str) {
             // A ready_for_review transition starts a fresh exact-HEAD run.
             let plan_draft = job("plan");
             assert!(
-                plan_draft.contains("    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}\\n")
+                plan_draft.contains("    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}\n")
                     && !plan_draft.contains("Hold draft PR before checkout"),
                 "draft acceptance planner is skipped at job dispatch, not after checkout"
             );
@@ -2507,9 +2507,9 @@ pub(crate) fn run(id: &str) {
             let repro = root_file(".github/workflows/reproducibility.yml");
             assert!(
                 repro.contains("types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]")
-                    && repro.contains("    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}\\n")
+                    && repro.contains("    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}\n")
                     && !repro.contains("Hold draft PR before checkout")
-                    && repro.contains("      - run: just repro\\n"),
+                    && repro.contains("      - run: just repro\n"),
                 "draft reproducibility is skipped without allocating a runner; ready head retains the real gate"
             );
             assert!(
