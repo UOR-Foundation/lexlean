@@ -2589,12 +2589,11 @@ pub(crate) fn run(id: &str) {
             ] {
                 assert!(!ci.contains(forbidden), "ci.yml has no `{forbidden}`");
             }
-            // A condition appears in three forms and nowhere else: a step's
-            // `if: ${{ !cancelled() }}` on the summary and evidence steps, so
-            // that a failed run still reports; a job's `full` condition on the
-            // Atlas jobs and the host matrix, which run only when the plan says
-            // the run is the whole gate; and the legs' condition on `vv`, which
-            // runs when the plan names a leg. Never on the gate step, and never
+            // Conditions name the plan's complete obligations, except the
+            // explicit bootstrap-producer dependency for vv. An unsuccessful
+            // producer refuses full-gate legs; stacked development runs have
+            // no producer and continue with local exports. Never on the gate
+            // step, and never
             // a condition on the event or the pull request itself: what a run
             // is, is decided once, by the plan (a gate skipped by a condition
             // written elsewhere is the weaker PR-only gate).
@@ -2616,7 +2615,7 @@ pub(crate) fn run(id: &str) {
                     match line {
                         "        if: ${{ !cancelled() }}" => step_conditions += 1,
                         "    if: ${{ needs.plan.outputs.full == 'true' }}" => full_conditions += 1,
-                        "    if: ${{ needs.plan.outputs.fanout != '[]' }}" => rows_conditions += 1,
+                        "    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.honesty.result == 'success' && needs.plan.outputs.fanout != '[]' && (needs.plan.outputs.full != 'true' || needs.bootstrap-export.result == 'success') }}" => rows_conditions += 1,
                         "    if: ${{ needs.plan.outputs.honesty != '[]' }}" => honesty_conditions += 1,
                         other => panic!(
                             "ci.yml:{}: a condition other than a step's `!cancelled()` or a job's condition on the plan: {other}",
@@ -2846,7 +2845,12 @@ pub(crate) fn run(id: &str) {
                     .find("\n  #")
                     .map_or(ci.len(), |next| pos + original.len() + next);
                 let mut planted = ci.clone();
-                let body = ci[pos..end].replace("needs: [plan, honesty]", "needs: [plan]");
+                let before = if root == "vv" {
+                    "needs: [plan, honesty, bootstrap-export]"
+                } else {
+                    "needs: [plan, honesty]"
+                };
+                let body = ci[pos..end].replace(before, "needs: [plan]");
                 planted.replace_range(pos..end, &body);
                 assert!(
                     honesty_dependencies(&planted).is_err(),
@@ -4688,7 +4692,12 @@ fn honesty_dependencies(ci: &str) -> Result<(), String> {
         "macos-part",
     ] {
         let body = workflow_job(ci, root)?;
-        if !body.contains("needs: [plan, honesty]\n")
+        let dependencies = if root == "vv" {
+            "needs: [plan, honesty, bootstrap-export]\n"
+        } else {
+            "needs: [plan, honesty]\n"
+        };
+        if !body.contains(dependencies)
             || body
                 .lines()
                 .any(|line| line.starts_with("    if:") && line.contains("always()"))
