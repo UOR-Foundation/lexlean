@@ -2860,9 +2860,10 @@ pub(crate) fn run(id: &str) {
                 "§8.3: the hosts are checked when the plan says the run is the whole gate"
             );
             assert!(
-                vv.contains("    needs: [plan, honesty]\n")
+                vv.contains("    needs: [plan, honesty, bootstrap-export]\n")
+                    && vv.contains("    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.honesty.result == 'success' && needs.plan.outputs.fanout != '[]' && (needs.plan.outputs.full != 'true' || needs.bootstrap-export.result == 'success') }}\n")
                     && vv.contains("        include: ${{ fromJSON(needs.plan.outputs.fanout) }}\n"),
-                "§9.4: the legs of vv are the rows the plan names"
+                "§9.4: full-gate vv legs wait for the successful export before runner allocation; stacked legs run without an export"
             );
             // The plan: one job, no recipe, ten minutes, reading the event and
             // the repository and nothing else, through the one script whose
@@ -4299,6 +4300,18 @@ fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
         ),
     ] {
         require(&job, text, rule)?;
+    }
+    for (text, rule) in [
+        (
+            "    needs: [plan, honesty, bootstrap-export]\n",
+            "full-gate legs cannot start billed runners before the shared export",
+        ),
+        (
+            "    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.honesty.result == 'success' && needs.plan.outputs.fanout != '[]' && (needs.plan.outputs.full != 'true' || needs.bootstrap-export.result == 'success') }}\n",
+            "the successful export is required only for a complete gate; stacked development legs still run",
+        ),
+    ] {
+        require(&legs, text, rule)?;
     }
     for (text, rule) in [
         ("      actions: read\n", "a leg lists the run's artifacts"),
