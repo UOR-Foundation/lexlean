@@ -334,6 +334,7 @@ fn plan_decisions() {
             .env("HEAD", head)
             .env("REPO", "owner/repo")
             .env("LEXLEAN_CI_ROWS", rows_file.as_std_path())
+            .env("LEXLEAN_CI_BDD_PARTS", root.join(".github/bdd-parts.json").as_std_path())
             .env("GITHUB_OUTPUT", &out)
             .env("GITHUB_STEP_SUMMARY", dir.join("summary"))
             .env("STUB_RUNS", runs)
@@ -364,6 +365,19 @@ fn plan_decisions() {
             serde_json::from_str(&value("fanout")).expect("fanout is JSON");
         assert!(honesty.iter().all(|row| row["part"] == "honesty"));
         assert!(fanout.iter().all(|row| row["part"] != "honesty"));
+        let fast: Vec<serde_json::Value> =
+            serde_json::from_str(&value("fanout_fast")).expect("fast rows");
+        let export: Vec<serde_json::Value> =
+            serde_json::from_str(&value("fanout_export")).expect("export rows");
+        let mut dispatched = fast;
+        dispatched.extend(export);
+        let mut expected = fanout.clone();
+        dispatched.sort_by_key(|row| row["part"].as_str().unwrap_or_default().to_owned());
+        expected.sort_by_key(|row| row["part"].as_str().unwrap_or_default().to_owned());
+        assert_eq!(
+            dispatched, expected,
+            "independent and export-dependent jobs exhaust all planned verification rows"
+        );
         let mut combined = honesty;
         combined.extend(fanout);
         assert_eq!(
@@ -2027,6 +2041,7 @@ pub(crate) fn run(id: &str) {
             // from the row. An Atlas job names the examples profile itself,
             // once, the same on every shard.
             let vv = job("vv");
+            let vv_fast = job("vv-fast");
             for (variable, line) in [
                 ("LEXLEAN_VERIFY_WIDTH", "      LEXLEAN_VERIFY_WIDTH: ${{ matrix.width }}\n"),
                 (
@@ -2046,8 +2061,10 @@ pub(crate) fn run(id: &str) {
                     "      LEXLEAN_BDD_PART: ${{ matrix.bdd_part }}\n",
                 ),
             ] {
-                assert_eq!(vv.matches(variable).count(), 1, "§9.4: `{variable}` is set once on the gate job");
-                assert!(vv.contains(line), "§9.4: `{variable}` is read from the matrix row");
+                for lane in [vv, vv_fast] {
+                    assert_eq!(lane.matches(variable).count(), 1, "§9.4: each lane sets its profile once");
+                    assert!(lane.contains(line), "§9.4: each lane uses the matrix resource profile");
+                }
             }
             for (key, body) in &atlas_jobs {
                 for line in [
@@ -2266,8 +2283,8 @@ pub(crate) fn run(id: &str) {
                     "just --timestamp --timestamp-format '%s%.3f' ${{ matrix.recipes }} 2>&1 | tee ci-evidence/vv.txt"
                 )
                 .count(),
-                2,
-                "every leg runs its recipes through the one gate command"
+                3,
+                "honesty and both matrix lanes run the same normative command"
             );
             assert!(
                 ci.contains(&format!(
@@ -2280,9 +2297,9 @@ pub(crate) fn run(id: &str) {
             // log happens to hold, and it refuses a leg that verified Atlas,
             // which the join verifies.
             assert!(
-                vv.contains("case \" ${{ matrix.recipes }} \" in")
-                    && vv.contains("*\" examples \"*)")
-                    && vv.contains(
+                vv_fast.contains("case \" ${{ matrix.recipes }} \" in")
+                    && vv_fast.contains("*\" examples \"*)")
+                    && vv_fast.contains(
                         "if grep -F \"verify-examples: uor-atlas\" ci-evidence/vv.txt; then"
                     ),
                 "the leg that runs examples asserts that it verified the examples and not Atlas"
@@ -2521,7 +2538,8 @@ pub(crate) fn run(id: &str) {
             );
             assert!(
                 ci.contains("if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}")
-                    && ci.contains("if: ${{ needs.plan.result == 'success' && needs.plan.outputs.fanout != '[]' }}"),
+                    && ci.contains(VV_EXPORT_GUARD)
+                    && ci.contains(VV_FAST_GUARD),
                 "skipped draft planner cannot expand expensive matrices"
             );
             // §9.4: a release line is held to the same gate as `main`, so the
@@ -2614,7 +2632,7 @@ pub(crate) fn run(id: &str) {
                     match line {
                         "        if: ${{ !cancelled() }}" => step_conditions += 1,
                         "    if: ${{ needs.plan.outputs.full == 'true' }}" => full_conditions += 1,
-                        VV_EXPORT_GUARD => rows_conditions += 1,
+                        VV_EXPORT_GUARD | VV_FAST_GUARD => rows_conditions += 1,
                         "    if: ${{ needs.plan.outputs.honesty != '[]' }}" => honesty_conditions += 1,
                         other => panic!(
                             "ci.yml:{}: a condition other than a step's `!cancelled()` or a job's condition on the plan: {other}",
@@ -2625,7 +2643,7 @@ pub(crate) fn run(id: &str) {
             }
             assert_eq!(
                 step_conditions,
-                6 + 2 * atlas_jobs.len(),
+                8 + 2 * atlas_jobs.len(),
                 "the summary step and the evidence upload of every gate job carry it"
             );
             assert_eq!(
@@ -2633,7 +2651,7 @@ pub(crate) fn run(id: &str) {
                 atlas_jobs.len() + 2,
                 "every Atlas job, the bootstrap export, and the host matrix, and no other job, wait for the plan to name the whole gate"
             );
-            assert_eq!(rows_conditions, 1, "the legs run when the plan names a leg");
+            assert_eq!(rows_conditions, 2, "each matrix lane runs only its plan-selected rows");
             assert_eq!(honesty_conditions, 1, "honesty runs when the plan names it");
             intel_host_workflow(&ci).expect("§8.3: the host inventory and Intel custody graph");
             for host in &LANE_HOSTS {
@@ -2749,13 +2767,26 @@ pub(crate) fn run(id: &str) {
                     "needs: [plan, honesty]",
                 ),
                 ("needs.bootstrap-export.result == 'success'", "true"),
-                ("needs.plan.outputs.full != 'true'", "true"),
+                ("needs.plan.outputs.full == 'true'", "true"),
             ] {
                 assert!(vv_job.contains(from), "the plant must change vv: {from}");
                 let planted = ci.replacen(&vv_job, &vv_job.replacen(from, to, 1), 1);
                 assert!(
                     bootstrap_export_workflow(&planted, &take).is_err(),
                     "a vv leg cannot bypass export readiness or invent a non-full signal: {from}"
+                );
+            }
+            let fast_job = workflow_job(&ci, "vv-fast").expect("independent lane");
+            for (from, to) in [
+                ("needs: [plan, honesty]", "needs: [plan, honesty, bootstrap-export]"),
+                ("needs.plan.outputs.fanout_fast != '[]'", "true"),
+                ("fromJSON(needs.plan.outputs.fanout_fast)", "fromJSON(needs.plan.outputs.fanout_export)"),
+            ] {
+                assert!(fast_job.contains(from), "the fast lane has {from}");
+                let planted = ci.replacen(&fast_job, &fast_job.replacen(from, to, 1), 1);
+                assert!(
+                    bootstrap_export_workflow(&planted, &take).is_err(),
+                    "the independent lane must never depend on the shared export or use export rows"
                 );
             }
             let export_job = workflow_job(&ci, "bootstrap-export").expect("the export job");
@@ -2848,6 +2879,7 @@ pub(crate) fn run(id: &str) {
             for root in [
                 "bootstrap-export",
                 "vv",
+                "vv-fast",
                 "atlas-prefix",
                 "host-matrix",
                 "intel-construction",
@@ -2881,8 +2913,11 @@ pub(crate) fn run(id: &str) {
             assert!(
                 vv.contains("    needs: [plan, honesty, bootstrap-export]\n")
                     && vv.contains(VV_EXPORT_GUARD)
-                    && vv.contains("        include: ${{ fromJSON(needs.plan.outputs.fanout) }}\n"),
-                "§9.4: full-gate vv legs wait for the successful export before runner allocation; stacked legs run without an export"
+                    && vv.contains("        include: ${{ fromJSON(needs.plan.outputs.fanout_export) }}\n")
+                    && vv_fast.contains("    needs: [plan, honesty]\n")
+                    && vv_fast.contains(VV_FAST_GUARD)
+                    && vv_fast.contains("        include: ${{ fromJSON(needs.plan.outputs.fanout_fast) }}\n"),
+                "§9.4: only export consumers wait for the shared producer"
             );
             // The plan: one job, no recipe, ten minutes, reading the event and
             // the repository and nothing else, through the one script whose
@@ -2896,6 +2931,8 @@ pub(crate) fn run(id: &str) {
                     && plan_job.contains("          BASE: ${{ github.event.pull_request.base.ref }}\n")
                     && plan_job.contains("          HEAD: ${{ github.event.pull_request.head.ref }}\n")
                     && plan_job.contains("      intel: ${{ steps.plan.outputs.intel }}\n")
+                    && plan_job.contains("      fanout_fast: ${{ steps.plan.outputs.fanout_fast }}\n")
+                    && plan_job.contains("      fanout_export: ${{ steps.plan.outputs.fanout_export }}\n")
                     && plan_job.contains("          EVENT: ${{ github.event_name }}\n")
                     && plan_job.contains("          REF: ${{ github.ref_name }}\n"),
                 "§9.4: the plan runs the script on the event and the base branch, and may read the runs of the repository"
@@ -4259,11 +4296,10 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
 
 /// The fetcher a leg runs beside its gate command to take the run's
 /// bootstrap export (§9.4).
-const VV_EXPORT_GUARD: &str = concat!(
-    "    if: ${{ !cancelled() && needs.plan.result == 'success' ",
-    "&& needs.honesty.result == 'success' && needs.plan.outputs.fanout != '[]' ",
-    "&& (needs.plan.outputs.full != 'true' || needs.bootstrap-export.result == 'success') }}"
-);
+const VV_EXPORT_GUARD: &str =
+    "    if: ${{ needs.plan.outputs.full == 'true' && needs.bootstrap-export.result == 'success' && needs.plan.outputs.fanout_export != '[]' }}";
+const VV_FAST_GUARD: &str =
+    "    if: ${{ needs.plan.result == 'success' && needs.honesty.result == 'success' && needs.plan.outputs.fanout_fast != '[]' }}";
 const TAKE_EXPORT: &str = ".github/scripts/take-bootstrap-export.sh";
 
 /// §9.4: one bootstrap export per run, carried to the legs of the same run.
@@ -4278,6 +4314,7 @@ const TAKE_EXPORT: &str = ".github/scripts/take-bootstrap-export.sh";
 fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
     let job = workflow_job(ci, "bootstrap-export")?;
     let legs = workflow_job(ci, "vv")?;
+    let independent = workflow_job(ci, "vv-fast")?;
     let require = |body: &str, text: &str, rule: &str| -> Result<(), String> {
         if body.contains(text) {
             Ok(())
@@ -4332,10 +4369,20 @@ fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
         ),
         (
             VV_EXPORT_GUARD,
-            "the successful export is required only for a complete gate; stacked development legs still run",
+            "only export-dependent rows require the successful full-gate export",
         ),
     ] {
         require(&legs, text, rule)?;
+    }
+    for (text, rule) in [
+        ("    needs: [plan, honesty]", "the independent lane starts after honesty"),
+        (VV_FAST_GUARD, "the independent lane follows the trusted plan"),
+        ("fromJSON(needs.plan.outputs.fanout_fast)", "the independent matrix uses fast rows"),
+    ] {
+        require(&independent, text, rule)?;
+    }
+    if independent.contains("take-bootstrap-export.sh") {
+        return Err("RP-14: independent rows must never wait for the export".to_owned());
     }
     for (text, rule) in [
         ("      actions: read\n", "a leg lists the run's artifacts"),
@@ -4354,7 +4401,7 @@ fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
     ] {
         require(&legs, text, rule)?;
     }
-    for body in [&job, &legs] {
+    for body in [&job, &legs, &independent] {
         for forbidden in [
             "run-id:",
             "github-token:",
@@ -4705,6 +4752,7 @@ fn honesty_dependencies(ci: &str) -> Result<(), String> {
     for root in [
         "bootstrap-export",
         "vv",
+        "vv-fast",
         "atlas-prefix",
         "host-matrix",
         "intel-construction",
