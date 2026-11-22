@@ -1,20 +1,20 @@
-spec = "lexlean/lock/1"
+spec = "lexlean/lock/3"
 language = "1.1"
-compiler_semantics = "b4644f70f6af6e2e7aa64ab7e1c9678b3920b49ae5ff4ea779739bf9222ef18f"
-project_config_sha256 = "4f8af505639aebd0064c7686cff20149bc7488d99b88f7b8afe2cd9d71a3528e"
+compiler_semantics = "blake3:f6229fa50be0e796cb025f26fdbe0bed9f61a55addc36985cbc9ec069fa4cae1"
+project_config_kappa = "blake3:9dd64c9975f4894ba0c543a98d17f565052a3d3fc7d5b84e556d41cf7eed0c55"
 lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[workspace_file]]
 path = "lake-manifest.json"
-sha256 = "77edc2b3290606a790843a7f11062fea18bb80845c2f803588994bbb48d767b6"
+kappa = "blake3:54c6e12480c698514a350ed51a4844ed31f914c5aef5d8b6461f8b7322ecfd97"
 
 [[workspace_file]]
 path = "lakefile.toml"
-sha256 = "313c59225ac77c1176d697892548d733d9db8795b653f8bc6675e6e87ddc0b1b"
+kappa = "blake3:ff2b0416e2da9ff17b0e304a93d578ff61cfaba49523bacf60148b32582904c3"
 
 [[workspace_file]]
 path = "lean-toolchain"
-sha256 = "2bdc48adfa58d0017e538a0ad117c5d73d35deec879978f909406a80c8037273"
+kappa = "blake3:a97821a267801086f27c546268ed08ab29cf5a2d15de1258094c5f95ace394aa"
 
 [[package]]
 id = "lexlean.core"
@@ -22,8 +22,8 @@ version = "1.1.0"
 kind = "builtin"
 source = "embedded"
 revision = "compiler-semantics"
-tree_sha256 = "c2a6e1ec065a2ce4e78db6bcb9ec3d511b5b4f4dc4c6db29f8c914da6d64d012"
-manifest_sha256 = "b40fae762f71fbe14c8f5012adde6ab3033bf17cdb6462ddfee26041e878d567"
+tree_kappa = "blake3:7ea1dd0a9c5a36e01d2f2962312376aa15066ce01faf174da892093defa6e857"
+manifest_kappa = "blake3:c78184d5a453da1a8e1388d46c327bd727176eaca86dc68615988754070432bc"
 imports = []
 
 [[package]]
@@ -32,8 +32,8 @@ version = "1.1.0"
 kind = "builtin"
 source = "embedded"
 revision = "compiler-semantics"
-tree_sha256 = "9f84dae675e88c2ecda76681e29d32133891f463313632334fbeeb68e0da68f9"
-manifest_sha256 = "6dacc8e2cadf580017d572d9a487c3815f3ca816108b183e5b55aace617aeb15"
+tree_kappa = "blake3:f4c602fdd50e7a31bdf64a50416d0ec6dd4cd474ef3bde12b6c2be01839a0b8b"
+manifest_kappa = "blake3:ba21227edd58de4ce104e5169dad6d42e0bca2b089ee88b2ad6041aa000accbd"
 imports = ["lexlean.core@1.1.0"]
 
 [[package]]
@@ -42,6 +42,6 @@ version = "1.1.0"
 kind = "builtin"
 source = "embedded"
 revision = "compiler-semantics"
-tree_sha256 = "427e771881ebc347f3614e37b9cde96bd56800c7492c78e1a3621b9f2cf05df5"
-manifest_sha256 = "be2cb414091d5b8697f924de516cff5ccaa6cc9265ff1f3af8b15edb2b98bda7"
+tree_kappa = "blake3:b07d3269fda7e12133f6425123b622abb3642c1fd7a996c56affdeb5db2020d6"
+manifest_kappa = "blake3:51cd6b0c4e4d35429c90400c38f0c1b72013192b8dcd4dd81403029f37bfa284"
 imports = ["lexlean.core@1.1.0", "lexlean.std.bool@1.1.0"]

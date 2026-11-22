@@ -1088,7 +1088,7 @@ pub fn run(id: &str) {
             let manifest_schema = schema("rust-package.schema.json");
             let provenance_schema = schema("rust-provenance.schema.json");
             let program_schema = schema("target-program.schema.json");
-            let semantics = lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_2).to_hex();
+            let semantics = lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_2).label();
             let runtimes = runtime_digests();
             // The renderer's sources are the ones LexLean's semantics records.
             let renderer: Vec<(&str, Vec<u8>)> = rust::RENDERER_FILES
@@ -1111,7 +1111,7 @@ pub fn run(id: &str) {
                 .map(|(name, bytes)| (*name, bytes.as_slice()))
                 .collect();
             assert_eq!(
-                Some(rust::renderer_digest(&framed).to_hex().as_str()),
+                Some(rust::renderer_digest(&framed).label().as_str()),
                 semantics_table()["rust_renderer"].as_str(),
                 "the renderer changed without its record `rust_renderer` in language/semantics-1.2.toml"
             );
@@ -1167,14 +1167,13 @@ pub fn run(id: &str) {
                 for path in ["Cargo.toml", "src/lib.rs"] {
                     assert_eq!(
                         provenance["files"][path],
-                        lexlean::artifact::content_id::Sha256Digest::of(&first.files[path])
-                            .to_hex(),
+                        lexlean::artifact::content_id::Kappa::of(&first.files[path]).label(),
                         "{shown}/{path}"
                     );
                 }
                 assert_eq!(
                     provenance["program"],
-                    manifest.program.id().expect("valid").to_hex(),
+                    manifest.program.id().expect("valid").label(),
                     "{shown}"
                 );
                 assert_eq!(provenance["compiler_semantics"], semantics.as_str());

@@ -1,7 +1,7 @@
 \begin{lexlean}{ContentId}
 \useglossary{lexlean.std.nat@1.2.0}
 \importmodule{LexLeanStd.Numeral}
-\importmodule{LexLeanStd.Sha256}
+\importmodule{LexLeanStd.Blake3}
 \title{Natural number addition}
 \begin{semanticmodule}
 definition{
@@ -37,24 +37,6 @@ definition{
 }
 
 definition{
-  name: wordBytes,
-  parameters: [word : UInt32],
-  result: Bytes,
-  body: (cat (cat (cat (byteText (prim to_nat (LexLeanStd.Sha256::shiftRight word (24 : UInt32)) : Nat)) (byteText (prim to_nat (prim bit_and (LexLeanStd.Sha256::shiftRight word (16 : UInt32)) (255 : UInt32) : UInt32) : Nat))) (byteText (prim to_nat (prim bit_and (LexLeanStd.Sha256::shiftRight word (8 : UInt32)) (255 : UInt32) : UInt32) : Nat))) (byteText (prim to_nat (prim bit_and word (255 : UInt32) : UInt32) : Nat))),
-  axioms: [Quot.sound, propext],
-  executable: true
-}
-
-definition{
-  name: digestBytes,
-  parameters: [digest : LexLeanStd.Sha256::Digest],
-  result: Bytes,
-  body: (cat (cat (cat (cat (cat (cat (cat (wordBytes (project digest h0)) (wordBytes (project digest h1))) (wordBytes (project digest h2))) (wordBytes (project digest h3))) (wordBytes (project digest h4))) (wordBytes (project digest h5))) (wordBytes (project digest h6))) (wordBytes (project digest h7))),
-  axioms: [Quot.sound, propext],
-  executable: true
-}
-
-definition{
   name: frame,
   parameters: [label : Bytes, payload : Bytes],
   result: Bytes,
@@ -66,7 +48,7 @@ definition{
   name: framedHash,
   parameters: [domain : Bytes, frames : Bytes],
   result: Bytes,
-  body: (digestBytes (LexLeanStd.Sha256::sha256 (cat (cat domain 0x00) frames))),
+  body: (LexLeanStd.Blake3::blake3Label (cat (cat domain 0x00) frames)),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -75,7 +57,7 @@ definition{
   name: treeDigest,
   parameters: [files : (List (Bytes * Bytes))],
   result: Bytes,
-  body: (framedHash (lit "lexlean-tree-v1") (prim list_fold (fun (acc : Bytes) (row : (Bytes * Bytes)) => (cat acc (frame (first row) (second row)))) 0x files : Bytes)),
+  body: (framedHash (lit "lexlean-tree-v2") (prim list_fold (fun (acc : Bytes) (row : (Bytes * Bytes)) => (cat acc (frame (first row) (second row)))) 0x files : Bytes)),
   axioms: [Quot.sound, propext],
   executable: true,
   production: {effects: [allocation, overflow], targets: [rust-std]}
@@ -85,7 +67,7 @@ definition{
   name: sourceId,
   parameters: [projectToml : Bytes, lockText : Bytes, sources : (List (Bytes * Bytes))],
   result: Bytes,
-  body: (framedHash (lit "lexlean-source-v1") (cat (cat (frame (lit "project") projectToml) (frame (lit "lock") lockText)) (prim list_fold (fun (acc : Bytes) (row : (Bytes * Bytes)) => (cat acc (cat (frame (lit "path") (first row)) (frame (lit "source") (second row))))) 0x sources : Bytes))),
+  body: (framedHash (lit "lexlean-source-v2") (cat (cat (frame (lit "project") projectToml) (frame (lit "lock") lockText)) (prim list_fold (fun (acc : Bytes) (row : (Bytes * Bytes)) => (cat acc (cat (frame (lit "path") (first row)) (frame (lit "source") (second row))))) 0x sources : Bytes))),
   axioms: [Quot.sound, propext],
   executable: true,
   production: {effects: [allocation, overflow], targets: [rust-std]}
@@ -100,7 +82,7 @@ definition{
     lexiconClosure : Bytes
   ],
   result: Bytes,
-  body: (framedHash (lit "lexlean-semantic-v1") (cat (cat (cat (cat (frame (lit "compiler-semantics") compilerSemantics) (frame (lit "language") language)) (frame (lit "toolchain") (lit "leanprover/lean4:v4.32.2"))) (frame (lit "linked-ir") linkedIr)) (frame (lit "lexicon-closure") lexiconClosure))),
+  body: (framedHash (lit "lexlean-semantic-v2") (cat (cat (cat (cat (frame (lit "compiler-semantics") compilerSemantics) (frame (lit "language") language)) (frame (lit "toolchain") (lit "leanprover/lean4:v4.32.2"))) (frame (lit "linked-ir") linkedIr)) (frame (lit "lexicon-closure") lexiconClosure))),
   axioms: [Quot.sound, propext],
   executable: true,
   production: {effects: [allocation, overflow], targets: [rust-std]}
@@ -110,7 +92,7 @@ definition{
   name: buildId,
   parameters: [sourceDigest : Bytes, semanticDigest : Bytes],
   result: Bytes,
-  body: (framedHash (lit "lexlean-build-v1") (cat (frame (lit "source-id") sourceDigest) (frame (lit "semantic-id") semanticDigest))),
+  body: (framedHash (lit "lexlean-build-v2") (cat (frame (lit "source-id") sourceDigest) (frame (lit "semantic-id") semanticDigest))),
   axioms: [Quot.sound, propext],
   executable: true,
   production: {effects: [allocation, overflow], targets: [rust-std]}
@@ -120,7 +102,7 @@ definition{
   name: attestationId,
   parameters: [attestationBody : Bytes],
   result: Bytes,
-  body: (framedHash (lit "lexlean-attestation-v1") (frame (lit "attestation-body") attestationBody)),
+  body: (framedHash (lit "lexlean-attestation-v2") (frame (lit "attestation-body") attestationBody)),
   axioms: [Quot.sound, propext],
   executable: true,
   production: {effects: [allocation, overflow], targets: [rust-std]}
@@ -136,7 +118,7 @@ definition{
     resources : Bytes
   ],
   result: Bytes,
-  body: (framedHash (lit "lexlean-pdf-recipe-v1") (cat (cat (cat (cat (frame (lit "tex") texDigest) (frame (lit "program") programDigest)) (frame (lit "version-output") versionDigest)) (frame (lit "argv") compileArgv)) (frame (lit "resources") resources))),
+  body: (framedHash (lit "lexlean-pdf-recipe-v2") (cat (cat (cat (cat (frame (lit "tex") texDigest) (frame (lit "program") programDigest)) (frame (lit "version-output") versionDigest)) (frame (lit "argv") compileArgv)) (frame (lit "resources") resources))),
   axioms: [Quot.sound, propext],
   executable: true,
   production: {effects: [allocation, overflow], targets: [rust-std]}

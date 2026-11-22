@@ -26,7 +26,7 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::code;
 use crate::diagnostic::Diagnostic;
 use crate::error::LexLeanError;
@@ -62,8 +62,8 @@ pub fn render(program: &Program, profile: rust::Profile) -> Result<String, LexLe
 
 /// Render a package of a target program: the Rust library crate of its
 /// profile with the exported functions its manifest
-/// (`lexlean/rust-package/1`) declares, the Cargo manifest, and the
-/// provenance (`lexlean/rust-provenance/1`), by relative path.
+/// (`lexlean/rust-package/2`) declares, the Cargo manifest, and the
+/// provenance (`lexlean/rust-provenance/2`), by relative path.
 ///
 /// # Errors
 ///
@@ -540,8 +540,8 @@ impl Program {
     /// # Errors
     ///
     /// Returns the first violated static rule.
-    pub fn id(&self) -> Result<Sha256Digest, String> {
-        Ok(Sha256Digest::of(&self.canonical()?.to_file_bytes()))
+    pub fn id(&self) -> Result<Kappa, String> {
+        Ok(Kappa::of(&self.canonical()?.to_file_bytes()))
     }
 }
 

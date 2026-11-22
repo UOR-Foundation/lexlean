@@ -368,6 +368,7 @@ fn fvars(binders: &[Binder]) -> Vec<Expr> {
 /// `Type`.
 fn level_of(ty: &SemanticType) -> u32 {
     match ty {
+        SemanticType::Array { .. } => 1,
         SemanticType::Prop => 0,
         SemanticType::Type => 2,
         SemanticType::Parameter { .. }
@@ -404,6 +405,7 @@ fn level_of(ty: &SemanticType) -> u32 {
 fn mentions(ty: &SemanticType, module: &str, name: &str) -> bool {
     let m = |inner: &SemanticType| mentions(inner, module, name);
     match ty {
+        SemanticType::Array { element } => m(element),
         SemanticType::Named { member, arguments } => {
             (member.name == name && member.module.as_deref() == Some(module))
                 || arguments.iter().any(m)
@@ -1808,6 +1810,9 @@ impl Writer<'_, '_> {
         };
         use crate::ir::semantic::SemanticInteger as I;
         Ok(match ty {
+            SemanticType::Array { .. } => {
+                return Err("a result type with no value to start from".to_owned())
+            }
             SemanticType::Nat => self.world.term(
                 ctx,
                 &SemanticTerm::Nat {

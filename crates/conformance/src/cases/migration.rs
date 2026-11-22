@@ -158,7 +158,7 @@ pub(crate) fn cli() {
     assert!(config.contains("language = \"1.2\"\n"), "{config}");
     let lock = project.read_raw("lexlean.lock");
     assert!(
-        lock.starts_with("spec = \"lexlean/lock/2\"\nlanguage = \"1.2\"\n"),
+        lock.starts_with("spec = \"lexlean/lock/4\"\nlanguage = \"1.2\"\n"),
         "{lock}"
     );
     let manifest = project.read_raw("lexicons/migrated/lexicon.toml");
@@ -179,7 +179,7 @@ pub(crate) fn cli() {
         // The same declarations, names, statements, and axiom policies: the
         // notation reads to the language-1.1 module under the 1.2 tag.
         let mut expected = old[relative].clone();
-        expected["spec"] = serde_json::json!("lexlean/semantic-module/2");
+        expected["spec"] = serde_json::json!("lexlean/semantic-module/3");
         assert_eq!(
             lexlean::sdk::read_module(&text).expect("the notation reads"),
             expected,
@@ -229,7 +229,7 @@ pub(crate) fn cli() {
     let tooling = P::semantic_example();
     tooling.write_raw(
         "src/Support.lex.tex",
-        "\\begin{lexlean}{Support}\n\\begin{toolingmodule}\n\\toolingdata{{\"declarations\":[],\"spec\":\"lexlean/tooling-module/1\"}}\n\\end{toolingmodule}\n\\end{lexlean}\n",
+        "\\begin{lexlean}{Support}\n\\begin{toolingmodule}\n\\toolingdata{{\"declarations\":[],\"spec\":\"lexlean/tooling-module/2\"}}\n\\end{toolingmodule}\n\\end{lexlean}\n",
     );
     assert_refused(
         &tooling,

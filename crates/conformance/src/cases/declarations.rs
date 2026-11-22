@@ -458,7 +458,7 @@ pub(crate) fn run(id: &str) {
             let verified = support::verify_ok_backed("DF-11", &project);
             if let Some(attestation) = verified {
                 assert!(attestation.root.as_std_path().is_dir());
-                assert_ne!(attestation.attestation_id, lexlean::Sha256Digest([0; 32]));
+                assert_ne!(attestation.attestation_id, lexlean::Kappa::ZERO);
             }
 
             let mutations = [
@@ -817,7 +817,7 @@ pub(crate) fn run(id: &str) {
                         }),
                     };
                     let copy = P::negative("declaration-lean-name");
-                    let data = serde_json::json!({"declarations": [declaration], "spec": "lexlean/semantic-module/2"});
+                    let data = serde_json::json!({"declarations": [declaration], "spec": "lexlean/semantic-module/3"});
                     copy.write(
                         "src/Main.lex.tex",
                         &format!(
@@ -903,7 +903,7 @@ pub(crate) fn run(id: &str) {
             // such name and the numbered ones of nested and mutual types.
             let member_project = |declaration: serde_json::Value, root: &str| {
                 let copy = P::negative("declaration-lean-name");
-                let data = serde_json::json!({"declarations": [declaration], "spec": "lexlean/semantic-module/2"});
+                let data = serde_json::json!({"declarations": [declaration], "spec": "lexlean/semantic-module/3"});
                 let _ = root;
                 copy.write(
                     "src/Main.lex.tex",
@@ -1055,7 +1055,7 @@ pub(crate) fn run(id: &str) {
             // project still verifies with no unexpected output.
             let phantom = P::copy_example("higher-order");
             let source = phantom.read("src/Combinators.lex.tex");
-            let end = r#"],"spec":"lexlean/semantic-module/2"}"#;
+            let end = r#"],"spec":"lexlean/semantic-module/3"}"#;
             phantom.write(
                 "src/Combinators.lex.tex",
                 &source.replacen(
@@ -1282,7 +1282,7 @@ pub(crate) fn run(id: &str) {
             ] {
                 let copy = P::copy_example("higher-order");
                 let source = copy.read(file);
-                let end = r#"],"spec":"lexlean/semantic-module/2"}"#;
+                let end = r#"],"spec":"lexlean/semantic-module/3"}"#;
                 assert!(source.contains(end), "{file} ends its declarations");
                 copy.write(file, &source.replacen(end, &format!(",{declarations}{end}"), 1));
                 // A function written with no parameter is not a function of the
@@ -1679,7 +1679,7 @@ const POSITIVE_PATTERN_BINDERS: &str = r#"\begin{lexlean}{Main}
 \useglossary{lexlean.std.nat@1.2.0}
 \title{Natural number addition}
 \begin{semanticmodule}
-\semanticdata{{"declarations":[{"body":{"branches":[{"binders":[],"body":{"kind":"nat","value":"0"},"constructor":{"name":"Nat.zero"}},{"binders":["zero"],"body":{"kind":"var","name":"zero"},"constructor":{"name":"Nat.succ"}}],"kind":"match","scrutinee":{"kind":"var","name":"n"}},"executable":true,"kind":"definition","name":"pred","parameters":[{"name":"n","type":{"kind":"nat"}}],"recursive_argument":"n","result":{"kind":"nat"}},{"body":{"branches":[{"binders":[],"body":{"kind":"nat","value":"0"},"constructor":{"name":"List.nil"}},{"binders":["nil","cons"],"body":{"kind":"var","name":"nil"},"constructor":{"name":"List.cons"}}],"kind":"match","scrutinee":{"kind":"var","name":"values"}},"executable":true,"kind":"definition","name":"first","parameters":[{"name":"values","type":{"element":{"kind":"nat"},"kind":"list"}}],"result":{"kind":"nat"}},{"body":{"kind":"var","name":"none"},"executable":true,"kind":"definition","name":"keep","parameters":[{"name":"none","type":{"kind":"nat"}}],"result":{"kind":"nat"}}],"spec":"lexlean/semantic-module/2"}}
+\semanticdata{{"declarations":[{"body":{"branches":[{"binders":[],"body":{"kind":"nat","value":"0"},"constructor":{"name":"Nat.zero"}},{"binders":["zero"],"body":{"kind":"var","name":"zero"},"constructor":{"name":"Nat.succ"}}],"kind":"match","scrutinee":{"kind":"var","name":"n"}},"executable":true,"kind":"definition","name":"pred","parameters":[{"name":"n","type":{"kind":"nat"}}],"recursive_argument":"n","result":{"kind":"nat"}},{"body":{"branches":[{"binders":[],"body":{"kind":"nat","value":"0"},"constructor":{"name":"List.nil"}},{"binders":["nil","cons"],"body":{"kind":"var","name":"nil"},"constructor":{"name":"List.cons"}}],"kind":"match","scrutinee":{"kind":"var","name":"values"}},"executable":true,"kind":"definition","name":"first","parameters":[{"name":"values","type":{"element":{"kind":"nat"},"kind":"list"}}],"result":{"kind":"nat"}},{"body":{"kind":"var","name":"none"},"executable":true,"kind":"definition","name":"keep","parameters":[{"name":"none","type":{"kind":"nat"}}],"result":{"kind":"nat"}}],"spec":"lexlean/semantic-module/3"}}
 \end{semanticmodule}
 \end{lexlean}
 "#;

@@ -59,7 +59,7 @@ fn stage(project: &Path, out: &Path) -> Result<(), Fail> {
     let build = directory
         .join(".lexlean")
         .join("build")
-        .join(build_id.to_hex());
+        .join(build_id.hex());
     let source = out.join("src");
     std::fs::create_dir_all(&source)?;
     let mut texts: Vec<(String, String)> = Vec::new();

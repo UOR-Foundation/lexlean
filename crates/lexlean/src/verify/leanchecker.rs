@@ -28,7 +28,7 @@ pub fn run_leanchecker(
             tool: "leanchecker",
             module: Some(module.to_owned()),
             program: &toolchain.lake.path,
-            executable_sha256: toolchain.leanchecker.sha256,
+            executable_kappa: toolchain.leanchecker.kappa,
             // The preflighted, digest-checked executable by absolute path,
             // inside the Lake environment (§22.2): `lake env` supplies
             // `LEAN_PATH`, never the executable.

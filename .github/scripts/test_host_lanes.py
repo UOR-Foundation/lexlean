@@ -1,8 +1,10 @@
 """Behavioral tests of the host lanes' join (SPEC §8.3), run in honesty."""
 
 import copy
+import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -82,6 +84,23 @@ class Join(unittest.TestCase):
         value["producer"]["whole"] = sorted(["meta", "unit", "conformance_aa_02", "conformance_aa_03"])
         value["a"]["executed"] = []
         self.refuse(value)
+
+
+class Hosts(unittest.TestCase):
+    """Windows and Apple silicon macOS join only their own host's receipts."""
+
+    ROOT = Path(__file__).resolve().parents[2]
+
+    def test_receipt_of_another_host(self):
+        for mine, other in (("aarch64-apple-darwin", "x86_64-pc-windows-msvc"),
+                            ("x86_64-pc-windows-msvc", "aarch64-apple-darwin")):
+            with tempfile.TemporaryDirectory() as artifacts:
+                lane = Path(artifacts) / f"host-{other}-producer"
+                lane.mkdir()
+                receipt = {**receipts()["producer"], "target": other}
+                (lane / "receipt.json").write_text(json.dumps(receipt))
+                with self.assertRaisesRegex(host_lanes.Invalid, "another host"):
+                    host_lanes.join(self.ROOT, mine, artifacts)
 
 
 if __name__ == "__main__":

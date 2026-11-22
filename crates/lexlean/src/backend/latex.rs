@@ -2398,7 +2398,7 @@ fn collect_spellings_document(document: &DocumentModule, out: &mut BTreeMap<Loca
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::artifact::content_id::Sha256Digest;
+    use crate::artifact::content_id::Kappa;
     use crate::ir::term::{DocumentDeclRef, ExternalConstRef, Universe};
     use crate::lexicon::lse::BinderMode;
     use crate::lexicon::package::LoadContext;
@@ -2428,7 +2428,7 @@ mod tests {
                 entry: format!("lexlean.std.nat::{entry}"),
                 lean_module: "Init".to_owned(),
                 lean_name: lean_name.to_owned(),
-                signature_hash: Sha256Digest::of(entry.as_bytes()),
+                signature_hash: Kappa::of(entry.as_bytes()),
             }),
             Vec::new(),
         )

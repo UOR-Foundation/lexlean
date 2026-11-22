@@ -963,7 +963,7 @@ pub(crate) fn run(id: &str) {
         "RP-01" => {
             let workspace = root_file("Cargo.toml");
             for required in [
-                "version = \"0.4.3\"",
+                "version = \"0.4.4\"",
                 "edition = \"2021\"",
                 "rust-version = \"1.97\"",
                 "license = \"MIT OR Apache-2.0\"",
@@ -996,7 +996,7 @@ pub(crate) fn run(id: &str) {
             let (exit, stdout, _) = support::cli_in(&root, &["--version"]);
             assert_eq!(exit, 0);
             assert!(
-                stdout.starts_with("lexlean 0.4.3\n"),
+                stdout.starts_with("lexlean 0.4.4\n"),
                 "§30.3: the binary reports the lexlean identity, got {stdout:?}"
             );
         }
@@ -1316,7 +1316,7 @@ pub(crate) fn run(id: &str) {
             let model = repo_model::Model::load(&root.join("model").into_std_path_buf())
                 .expect("the model loads");
             let table = spec_table();
-            assert_eq!(table.len(), 510, "§31 has 510 rows");
+            assert_eq!(table.len(), 519, "§31 has 519 rows");
             assert_eq!(model.ids.id.len(), table.len(), "register row count");
             for ((spec_id, spec_suite, spec_statement), row) in
                 table.iter().zip(model.ids.id.iter())
@@ -1460,9 +1460,9 @@ pub(crate) fn run(id: &str) {
             // stale one: that build locks and checks with it consistently.
             assert_eq!(
                 lexlean::LANGUAGE_1_2_SEMANTICS_ID,
-                twelve.to_hex(),
+                twelve.label(),
                 "RP-10: lexlean::LANGUAGE_1_2_SEMANTICS_ID is stale; the tree's language-1.2 ID is {}",
-                twelve.to_hex()
+                twelve.label()
             );
             assert_eq!(
                 eleven,
@@ -1598,7 +1598,7 @@ pub(crate) fn run(id: &str) {
                 "no workspace test is ignored or cfg-hidden: {hidden_tests:?}"
             );
             let unmet = repo_model::release::check(root.as_std_path(), &hidden_tests)
-                .expect_err("a 0.4.3 tree must refuse release (§2.3, §30.4)");
+                .expect_err("a 0.4.4 tree must refuse release (§2.3, §30.4)");
             // The criterion reads the attribute-block scan, so a hidden test
             // is unmet whatever attribute form hides it (§30.4).
             let planted: BTreeSet<String> = ["conformance_rp_12".to_owned()].into_iter().collect();
@@ -1979,7 +1979,11 @@ pub(crate) fn run(id: &str) {
             for (key, body) in &jobs {
                 if matches!(
                     key.as_str(),
-                    "host-matrix" | "intel-construction" | "intel-part" | "windows-part"
+                    "host-matrix"
+                        | "intel-construction"
+                        | "intel-part"
+                        | "windows-part"
+                        | "macos-part"
                 ) {
                     continue;
                 }
@@ -1989,7 +1993,7 @@ pub(crate) fn run(id: &str) {
                 );
                 // The plan decides what the run is and runs no recipe: it has
                 // ten minutes, not the six hours of the proof jobs.
-                if key == "intel-join" || key == "windows-join" {
+                if key == "intel-join" || key == "windows-join" || key == "macos-join" {
                     let limit = body
                         .lines()
                         .find_map(|line| line.trim().strip_prefix("timeout-minutes: "))
@@ -2437,6 +2441,12 @@ pub(crate) fn run(id: &str) {
                     !body.contains("run-id") && !body.contains("github-token"),
                     "§9.4: `{key}` reads the artifacts of this run only"
                 );
+                assert!(
+                    body.contains(
+                        "            shard:*) rm -rf \"ci-parts/${LEXLEAN_EXAMPLES_PART##*:}\" ;;\n"
+                    ),
+                    "§9.4: `{key}` drops its own part from an earlier attempt before it runs"
+                );
             }
             for (shard, job_key) in &runs {
                 if shard == crate::shards::JOIN {
@@ -2477,6 +2487,51 @@ pub(crate) fn run(id: &str) {
                     "§9.4: {workflow} runs on a push to `main` and to a release line"
                 );
             }
+            // §9.4: the forward merge runs on every push to a release line,
+            // superseded by a newer one, and hands its merge to the
+            // regeneration on the forward branch, whose `deliver` commits there.
+            let forward = root_file(".github/workflows/forward.yml");
+            for needed in [
+                "  push:\n    branches: [\"release/**\"]\n",
+                "      group: forward-${{ inputs.line || github.ref_name }}\n      cancel-in-progress: true\n",
+                "  workflow_call:\n",
+                "run: .github/scripts/forward-merge.sh",
+                "uses: ./.github/workflows/regenerate.yml",
+                "ref: ${{ needs.merge.outputs.commit }}",
+                "branch: ${{ needs.merge.outputs.branch }}",
+            ] {
+                assert!(forward.contains(needed), "§9.4: forward.yml has `{needed}`");
+            }
+            let merge = root_file(".github/scripts/forward-merge.sh");
+            // An authored writer input is never taken from one side unread.
+            for forbidden in [
+                "tests/production-export/* ",
+                "tests/production-export/*)",
+                "tests/stack-bounds.json)",
+            ] {
+                assert!(
+                    !merge.contains(forbidden),
+                    "§9.4: forward-merge.sh takes no side of an authored input: `{forbidden}`"
+                );
+            }
+            for needed in [
+                "git merge --quiet --no-ff --no-commit",
+                "cargo xtask spec port",
+                "--register",
+                "--draft",
+                "compare/$next...$branch",
+                "tests/production-export/*/packages/*)",
+                "Regenerate the written outputs of",
+                "superseded=()",
+                // The delete of a superseded branch is leased to the head
+                // inspected, and its pull request closes only after it.
+                "--force-with-lease=\"refs/heads/$ref:$sha\" origin \":refs/heads/$ref\"",
+            ] {
+                assert!(
+                    merge.contains(needed),
+                    "§9.4: forward-merge.sh has `{needed}`"
+                );
+            }
             for forbidden in [
                 "actions/cache",
                 "paths:",
@@ -2502,7 +2557,11 @@ pub(crate) fn run(id: &str) {
             let mut honesty_conditions = 0;
             for (index, line) in jobs
                 .iter()
-                .filter(|(key, _)| !key.starts_with("intel-") && !key.starts_with("windows-"))
+                .filter(|(key, _)| {
+                    !key.starts_with("intel-")
+                        && !key.starts_with("windows-")
+                        && !key.starts_with("macos-")
+                })
                 .flat_map(|(_, body)| body.lines())
                 .enumerate()
             {
@@ -2532,30 +2591,63 @@ pub(crate) fn run(id: &str) {
             assert_eq!(rows_conditions, 1, "the legs run when the plan names a leg");
             assert_eq!(honesty_conditions, 1, "honesty runs when the plan names it");
             intel_host_workflow(&ci).expect("§8.3: the host inventory and Intel custody graph");
-            windows_host_workflow(&ci).expect("§8.3: the Windows lanes and their join");
-            for (from, to) in [
-                ("lane: [producer, lower, print, validate, moves]", "lane: [producer, lower, print, validate]"),
-                ("    needs: [plan, windows-part]", "    needs: [plan]"),
-                (
-                    "    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-x86_64",
-                    "    if: ${{ needs.plan.outputs.full == 'true' }}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-x86_64",
-                ),
-                ("host_lanes.py join --target", "host_lanes.py execute --target"),
-                (
-                    "windows-part.result }}\n        run: |\n          set -euo pipefail\n          test \"$PART_RESULT\" = success",
-                    "windows-part.result }}\n        run: |\n          set -euo pipefail\n          test \"$PART_RESULT\" != cancelled",
-                ),
-                ("    runs-on: windows-2022\n", "    runs-on: windows-2025\n"),
-                (
-                    "python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'",
-                    "echo lane checks",
-                ),
-            ] {
-                assert!(ci.contains(from), "the plant must change the workflow: {from}");
-                assert!(
-                    windows_host_workflow(&ci.replacen(from, to, 1)).is_err(),
-                    "the Windows lanes must refuse `{from}` replaced by `{to}`"
+            for host in &LANE_HOSTS {
+                lane_host_workflow(&ci, host).unwrap_or_else(|error| {
+                    panic!("§8.3: the {} lanes and their join: {error}", host.label)
+                });
+                let target = host.target;
+                let part = host.part;
+                let pattern = format!(
+                    "    if: ${{{{ !cancelled() && needs.plan.outputs.full == 'true' }}}}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-{target}-*"
                 );
+                let result = format!(
+                    "{part}.result }}}}\n        run: |\n          set -euo pipefail\n          test \"$PART_RESULT\" = success"
+                );
+                for (from, to) in [
+                    (
+                        format!(
+                            "lane: [producer, lower, print, validate, moves]\n    runs-on: {}\n",
+                            host.runner
+                        ),
+                        format!(
+                            "lane: [producer, lower, print, validate]\n    runs-on: {}\n",
+                            host.runner
+                        ),
+                    ),
+                    (
+                        format!("    needs: [plan, {part}]"),
+                        "    needs: [plan]".to_owned(),
+                    ),
+                    (pattern.clone(), pattern.replace("!cancelled() && ", "")),
+                    (
+                        format!("host_lanes.py join --target {target}"),
+                        format!("host_lanes.py execute --target {target}"),
+                    ),
+                    (result.clone(), result.replace("= success", "!= cancelled")),
+                    (
+                        format!("    runs-on: {}\n", host.runner),
+                        "    runs-on: ubuntu-24.04\n".to_owned(),
+                    ),
+                    (
+                        format!("    name: build and non-Lean tests ({target})\n"),
+                        format!("    name: {} tests (join)\n", host.label),
+                    ),
+                    (
+                        "python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'"
+                            .to_owned(),
+                        "echo lane checks".to_owned(),
+                    ),
+                ] {
+                    assert!(
+                        ci.contains(&from),
+                        "the plant must change the workflow: {from}"
+                    );
+                    assert!(
+                        lane_host_workflow(&ci.replacen(&from, &to, 1), host).is_err(),
+                        "the {} lanes must refuse `{from}` replaced by `{to}`",
+                        host.label
+                    );
+                }
             }
             for (from, to) in [
                 (
@@ -2699,6 +2791,7 @@ pub(crate) fn run(id: &str) {
                 "host-matrix",
                 "intel-construction",
                 "windows-part",
+                "macos-part",
             ] {
                 let original = format!("  {root}:\n");
                 let pos = ci.find(&original).expect("the root");
@@ -2869,6 +2962,9 @@ pub(crate) fn run(id: &str) {
         // §8.4: a build without the production data checks and locks as the
         // default build does, and refuses the work that needs that data.
         "RP-19" => rp_19(),
+        // §30.3: the browser prover's assets: the runtime as a Lake package
+        // that builds to the same bytes twice, and the driver that builds.
+        "RP-20" => rp_20(),
         other => panic!("no repository case is wired for {other}"),
     }
 }
@@ -3099,7 +3195,7 @@ fn rp_19() {
     };
     let project = support::P::copy_example("production");
     refused(&project, &["--diagnostic-format", "json", "verify"]);
-    let digests: std::collections::BTreeMap<String, lexlean::Sha256Digest> = production::targets()
+    let digests: std::collections::BTreeMap<String, lexlean::Kappa> = production::targets()
         .expect("targets")
         .into_iter()
         .map(|descriptor| (descriptor.id, descriptor.digest))
@@ -3795,7 +3891,7 @@ fn rp_18() {
     let release_plants: Vec<(&str, String)> = vec![
         (
             "a tag that does not wait for the crate job",
-            replaced(&release, "needs: [identity, crate, gate, binaries, manifest]", "needs: [identity, gate, binaries, manifest]"),
+            replaced(&release, "needs: [identity, crate, gate, binaries, manifest, lean-wasm]", "needs: [identity, gate, binaries, manifest, lean-wasm]"),
         ),
         (
             "a release that does not call the crate workflow",
@@ -3944,14 +4040,15 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
         .find_map(|line| line.strip_prefix("    name: "))
         .ok_or("RP-14: the Intel aggregate has no context")?;
     contexts.push(aggregate_name.to_owned());
-    let windows = workflow_job(ci, "windows-join")?;
-    contexts.push(
-        windows
-            .lines()
-            .find_map(|line| line.strip_prefix("    name: "))
-            .ok_or("RP-14: the Windows aggregate has no context")?
-            .to_owned(),
-    );
+    for host in &LANE_HOSTS {
+        contexts.push(
+            workflow_job(ci, host.join)?
+                .lines()
+                .find_map(|line| line.strip_prefix("    name: "))
+                .ok_or_else(|| format!("RP-14: the {} aggregate has no context", host.label))?
+                .to_owned(),
+        );
+    }
     contexts.sort();
     let mut expected = supported_host_contexts();
     expected.sort();
@@ -4214,9 +4311,9 @@ fn bootstrap_custody_decisions() {
     use crate::export_custody::{check, Custody, Identity, SPEC};
     use std::collections::BTreeMap;
     let pins: BTreeMap<String, String> = [
-        ("Cargo.lock", "a".repeat(64)),
-        ("lean-toolchain", "b".repeat(64)),
-        ("rust-toolchain.toml", "c".repeat(64)),
+        ("Cargo.lock", format!("blake3:{}", "a".repeat(64))),
+        ("lean-toolchain", format!("blake3:{}", "b".repeat(64))),
+        ("rust-toolchain.toml", format!("blake3:{}", "c".repeat(64))),
     ]
     .into_iter()
     .map(|(name, digest)| (name.to_owned(), digest))
@@ -4257,7 +4354,7 @@ fn bootstrap_custody_decisions() {
         toolchains,
         executables,
         bundle_path: ".lexlean/production/bundle".to_owned(),
-        bundle_sha256: bundle.0.clone(),
+        bundle_kappa: bundle.0.clone(),
         bundle_files: bundle.1,
     };
     check(&record, &here, &bundle).expect("§9.4: the run's own export, from an earlier attempt");
@@ -4312,7 +4409,7 @@ fn bootstrap_custody_decisions() {
         ),
         (
             "bundle",
-            Box::new(|record| record.bundle_sha256 = "f".repeat(64)),
+            Box::new(|record| record.bundle_kappa = "f".repeat(64)),
         ),
         ("bundle", Box::new(|record| record.bundle_files += 1)),
         (
@@ -4336,13 +4433,54 @@ fn bootstrap_custody_decisions() {
     }
 }
 
-/// §8.3: Windows runs as the lanes of one run, the conformance lanes of the
-/// Intel partition and the producer, after honesty and only in a run that is
-/// the whole gate; its aggregate keeps the host's context, runs after any
-/// lane's failure, joins every lane's receipt, and fails on a missing one.
-fn windows_host_workflow(ci: &str) -> Result<(), String> {
-    let part = workflow_job(ci, "windows-part")?;
-    let join = workflow_job(ci, "windows-join")?;
+/// A §8.3 host that runs its complete workspace tests as lanes of one run.
+struct LaneHost {
+    /// The lanes' job and the aggregate's job in `ci.yml`.
+    part: &'static str,
+    join: &'static str,
+    /// How the host's messages name it.
+    label: &'static str,
+    runner: &'static str,
+    target: &'static str,
+    /// The interpreter the runner image provides under this name.
+    python: &'static str,
+}
+
+const LANE_HOSTS: [LaneHost; 2] = [
+    LaneHost {
+        part: "windows-part",
+        join: "windows-join",
+        label: "Windows",
+        runner: "windows-2022",
+        target: "x86_64-pc-windows-msvc",
+        python: "python",
+    },
+    LaneHost {
+        part: "macos-part",
+        join: "macos-join",
+        label: "macOS arm64",
+        runner: "macos-15",
+        target: "aarch64-apple-darwin",
+        python: "python3",
+    },
+];
+
+/// §8.3: Windows and Apple silicon macOS each run as the lanes of one run,
+/// the conformance lanes of the Intel partition and the producer, after
+/// honesty and only in a run that is the whole gate; each aggregate keeps the
+/// host's context, runs after any lane's failure, joins every lane's receipt,
+/// and fails on a missing one.
+fn lane_host_workflow(ci: &str, host: &LaneHost) -> Result<(), String> {
+    let &LaneHost {
+        part: part_key,
+        join: join_key,
+        label,
+        runner,
+        target,
+        python,
+    } = host;
+    let part = workflow_job(ci, part_key)?;
+    let join = workflow_job(ci, join_key)?;
     let honesty = workflow_job(ci, "honesty")?;
     let require = |body: &str, text: &str, rule: &str| -> Result<(), String> {
         if body.contains(text) {
@@ -4366,79 +4504,79 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
         .lines()
         .find_map(|line| line.strip_prefix("        lane: ["))
         .and_then(|rest| rest.strip_suffix(']'))
-        .ok_or("RP-14: the Windows matrix names its lanes")?
+        .ok_or_else(|| format!("RP-14: the {label} matrix names its lanes"))?
         .split(',')
         .map(|lane| lane.trim().to_owned())
         .collect();
     matrix.sort();
     if matrix != lanes {
         return Err(format!(
-            "RP-14: the Windows matrix runs {matrix:?}, the producer and the lanes of the partition are {lanes:?}"
+            "RP-14: the {label} matrix runs {matrix:?}, the producer and the lanes of the partition are {lanes:?}"
         ));
     }
     for (body, text, rule) in [
-        (&part, "    needs: [plan, honesty]\n", "the lanes follow honesty"),
+        (&part, "    needs: [plan, honesty]\n".to_owned(), "the lanes follow honesty"),
         (
             &part,
-            "    if: ${{ needs.plan.outputs.full == 'true' }}\n",
+            "    if: ${{ needs.plan.outputs.full == 'true' }}\n".to_owned(),
             "the lanes run in a run that is the whole gate",
         ),
-        (&part, "      fail-fast: false\n", "a failing lane stops no other"),
-        (&part, "    runs-on: windows-2022\n", "the lanes run on the host"),
-        (&part, "        run: rustup toolchain install\n", "the Rust pin"),
+        (&part, "      fail-fast: false\n".to_owned(), "a failing lane stops no other"),
+        (&part, format!("    runs-on: {runner}\n"), "the lanes run on the host"),
+        (&part, "        run: rustup toolchain install\n".to_owned(), "the Rust pin"),
         (
             &part,
-            "if [ \"$host\" != x86_64-pc-windows-msvc ]; then",
+            format!("if [ \"$host\" != {target} ]; then"),
             "a lane checks its host triple",
         ),
         (
             &part,
-            "python .github/scripts/host_lanes.py execute --target x86_64-pc-windows-msvc --lane ${{ matrix.lane }} --output \"$RUNNER_TEMP/host-lane\"",
+            format!("{python} .github/scripts/host_lanes.py execute --target {target} --lane ${{{{ matrix.lane }}}} --output \"$RUNNER_TEMP/host-lane\""),
             "a lane executes and records its part",
         ),
         (
             &part,
-            "          name: host-x86_64-pc-windows-msvc-${{ matrix.lane }}\n",
+            format!("          name: host-{target}-${{{{ matrix.lane }}}}\n"),
             "a lane uploads its receipt",
         ),
         (
             &join,
-            "    name: build and non-Lean tests (x86_64-pc-windows-msvc)\n",
+            format!("    name: build and non-Lean tests ({target})\n"),
             "the aggregate keeps the host's context",
         ),
-        (&join, "    needs: [plan, windows-part]\n", "the aggregate follows the lanes"),
+        (&join, format!("    needs: [plan, {part_key}]\n"), "the aggregate follows the lanes"),
         (
             &join,
-            "    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}\n",
+            "    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}\n".to_owned(),
             "the aggregate runs after a failed or cancelled lane, not after the run is cancelled",
         ),
         (
             &join,
-            "          pattern: host-x86_64-pc-windows-msvc-*\n",
+            format!("          pattern: host-{target}-*\n"),
             "the aggregate reads every lane's receipt",
         ),
         (
             &join,
-            "python3 .github/scripts/host_lanes.py join --target x86_64-pc-windows-msvc --artifacts \"$RUNNER_TEMP/host-lanes\"",
+            format!("python3 .github/scripts/host_lanes.py join --target {target} --artifacts \"$RUNNER_TEMP/host-lanes\""),
             "the aggregate joins the receipts",
         ),
         (
             &join,
-            "PART_RESULT: ${{ needs.windows-part.result }}",
+            format!("PART_RESULT: ${{{{ needs.{part_key}.result }}}}"),
             "the aggregate reads the lanes' result",
         ),
         (
             &honesty,
-            "python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'",
+            "python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'".to_owned(),
             "the join's behavioral tests run before expensive roots",
         ),
     ] {
-        require(body, text, rule)?;
+        require(body, &text, rule)?;
     }
     let result_step = join
         .split("\n      - ")
         .find(|step| step.contains("test \"$PART_RESULT\" = success"))
-        .ok_or("RP-14: the Windows aggregate does not check its lanes' result")?;
+        .ok_or_else(|| format!("RP-14: the {label} aggregate does not check its lanes' result"))?;
     require(
         result_step,
         "if: ${{ always() }}",
@@ -4448,9 +4586,11 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
         .lines()
         .find_map(|line| line.trim().strip_prefix("timeout-minutes: "))
         .and_then(|value| value.parse::<u32>().ok())
-        .ok_or("RP-14: a Windows lane has no timeout")?;
+        .ok_or_else(|| format!("RP-14: a {label} lane has no timeout"))?;
     if timeout == 0 || timeout > 240 {
-        return Err("RP-14: a Windows lane cannot raise the 240-minute bound".to_owned());
+        return Err(format!(
+            "RP-14: a {label} lane cannot raise the 240-minute bound"
+        ));
     }
     for body in [&part, &join] {
         for forbidden in [
@@ -4460,7 +4600,7 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
             "actions/cache",
         ] {
             if body.contains(forbidden) {
-                return Err(format!("RP-14: the Windows lanes admit `{forbidden}`"));
+                return Err(format!("RP-14: the {label} lanes admit `{forbidden}`"));
             }
         }
     }
@@ -4485,6 +4625,7 @@ fn honesty_dependencies(ci: &str) -> Result<(), String> {
         "host-matrix",
         "intel-construction",
         "windows-part",
+        "macos-part",
     ] {
         let body = workflow_job(ci, root)?;
         if !body.contains("needs: [plan, honesty]\n")
@@ -4891,4 +5032,216 @@ fn release_gate_decisions() {
             assert!(evidence.is_empty(), "{defect} host writes no evidence");
         }
     }
+}
+
+/// The files of a Lean build that a browser prover loads for one module:
+/// what Lean itself writes, never Lake's traces, which record the directory.
+const LEAN_OUTPUTS: [&str; 5] = ["olean", "olean.server", "olean.private", "ir", "ilean"];
+
+/// The driver of the WASM prover, as the release publishes it (§30.3).
+const DRIVER_FILES: [&str; 4] = [
+    "Elab.lean",
+    "SymList.lean",
+    "lakefile.toml",
+    "lean-toolchain",
+];
+
+/// `cargo xtask runtime-package --output <dir>`, run from the repository.
+fn runtime_package(output: &std::path::Path) {
+    let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned());
+    let run = std::process::Command::new(cargo)
+        .args(["xtask", "runtime-package", "--output"])
+        .arg(output)
+        .current_dir(support::repo_root().as_std_path())
+        .output()
+        .expect("cargo runs");
+    assert!(
+        run.status.success(),
+        "RP-20: runtime-package fails: {}",
+        String::from_utf8_lossy(&run.stderr)
+    );
+}
+
+/// `lake <args>` in `dir` with the pinned toolchain the directory names.
+fn lake(dir: &std::path::Path, args: &[&str]) {
+    let run = std::process::Command::new("lake")
+        .args(args)
+        .current_dir(dir)
+        .output()
+        .expect("lake runs");
+    assert!(
+        run.status.success(),
+        "RP-20: `lake {}` fails in {}:\n{}{}",
+        args.join(" "),
+        dir.display(),
+        String::from_utf8_lossy(&run.stdout),
+        String::from_utf8_lossy(&run.stderr)
+    );
+}
+
+/// RP-20.
+fn rp_20() {
+    let root = support::repo_root();
+    let pinned = root_file("lean-toolchain");
+
+    // The runtime package: the compiler's own runtime Lean, byte for byte,
+    // under one Lake library, with the pinned toolchain.
+    let scratch = tempfile::Builder::new()
+        .prefix("lexlean-rp-20-")
+        .tempdir()
+        .expect("tempdir");
+    let first = scratch.path().join("a");
+    runtime_package(&first);
+    let modules = lexlean::backend::runtime::modules().expect("the runtime");
+    assert!(
+        modules.len() >= 6,
+        "RP-20: {} runtime modules",
+        modules.len()
+    );
+    for module in modules {
+        let path = first.join(format!("{}.lean", module.name.replace('.', "/")));
+        assert_eq!(
+            std::fs::read_to_string(&path).expect("a runtime source"),
+            module.text,
+            "RP-20: {} is the compiler's runtime text",
+            module.name
+        );
+    }
+    assert_eq!(
+        std::fs::read_to_string(first.join("lean-toolchain")).expect("lean-toolchain"),
+        pinned,
+        "RP-20: the package pins the repository's Lean"
+    );
+    let listed = std::fs::read_to_string(first.join("modules.txt")).expect("modules.txt");
+    let names: Vec<&str> = modules.iter().map(|module| module.name.as_str()).collect();
+    assert_eq!(
+        listed.lines().collect::<Vec<_>>(),
+        names,
+        "RP-20: modules.txt"
+    );
+    let lakefile = std::fs::read_to_string(first.join("lakefile.toml")).expect("lakefile");
+    assert!(
+        lakefile.contains("globs = [\"LexLeanRuntime.+\"]"),
+        "RP-20: the library builds every runtime module: {lakefile}"
+    );
+    // A second package into a directory that is not empty is refused.
+    let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned());
+    let refused = std::process::Command::new(cargo)
+        .args(["xtask", "runtime-package", "--output"])
+        .arg(&first)
+        .current_dir(root.as_std_path())
+        .output()
+        .expect("cargo runs");
+    assert!(
+        !refused.status.success(),
+        "RP-20: a non-empty output is refused"
+    );
+
+    // The driver: the four files the release publishes, on the pinned Lean,
+    // with the two executables the release builds.
+    let driver = root.join("lean/wasm-prover/driver");
+    for file in DRIVER_FILES {
+        assert!(
+            driver.join(file).is_file(),
+            "RP-20: lean/wasm-prover/driver/{file}"
+        );
+    }
+    assert_eq!(
+        std::fs::read_to_string(driver.join("lean-toolchain").as_std_path()).expect("toolchain"),
+        pinned,
+        "RP-20: the driver pins the repository's Lean"
+    );
+    let driver_lakefile =
+        std::fs::read_to_string(driver.join("lakefile.toml").as_std_path()).expect("lakefile");
+    for executable in ["name = \"elab\"", "name = \"symlist\""] {
+        assert!(
+            driver_lakefile.contains(executable),
+            "RP-20: the driver's {executable}"
+        );
+    }
+
+    // The release builds, labels, and attaches them.
+    let release = root_file(".github/workflows/release.yml");
+    let job = workflow_job(&release, "lean-wasm").expect("release.yml job `lean-wasm`");
+    for needle in [
+        "needs: identity",
+        "rustup target add wasm32-wasip1",
+        "elan\" toolchain install \"$(cat lean-toolchain)\"",
+        "b3sum",
+        ".github/lean-wasm.sh \"$VERSION\" staged/lean-wasm",
+        "name: lean-wasm",
+    ] {
+        position_of(&job, needle, "release.yml job `lean-wasm`").expect("the job");
+    }
+    let publish = workflow_job(&release, "publish").expect("release.yml job `publish`");
+    for needle in [
+        "needs: [identity, crate, gate, binaries, manifest, lean-wasm]",
+        "cp downloaded/lean-wasm/* release/",
+        "\"release/lexlean-${VERSION}-lean-wasm.tar.gz\"",
+        "\"release/lexlean-${VERSION}.wasm.gz\"",
+        "release/lean-wasm.json",
+    ] {
+        position_of(&publish, needle, "release.yml job `publish`").expect("publish");
+    }
+    let script = root_file(".github/lean-wasm.sh");
+    for needle in [
+        "cargo xtask runtime-package",
+        "cmp \"$a\" \"$b\"",
+        "lake build elab symlist",
+        "--no-default-features",
+        "gzip -9 -n",
+        "\"blake3:\"",
+        "lexlean/lean-wasm-assets/1",
+    ] {
+        position_of(&script, needle, ".github/lean-wasm.sh").expect("the script");
+    }
+
+    // With Lean: two packages in two directories build to the same bytes,
+    // and the driver builds.
+    if !support::lean_backed("RP-20") {
+        return;
+    }
+    let second = scratch.path().join("b");
+    runtime_package(&second);
+    lake(&first, &["build"]);
+    lake(&second, &["build"]);
+    let mut compared = 0usize;
+    for module in modules {
+        let relative = module.name.replace('.', "/");
+        for extension in LEAN_OUTPUTS {
+            let built = format!(".lake/build/lib/lean/{relative}.{extension}");
+            let a = first.join(&built);
+            if !a.is_file() {
+                assert!(
+                    !matches!(extension, "olean" | "ilean"),
+                    "RP-20: {built} was built"
+                );
+                continue;
+            }
+            assert!(
+                std::fs::read(&a).expect("first")
+                    == std::fs::read(second.join(&built)).expect("second"),
+                "RP-20: {built} is the same bytes from two directories"
+            );
+            compared += 1;
+        }
+    }
+    let driver_copy = scratch.path().join("driver");
+    std::fs::create_dir_all(&driver_copy).expect("driver copy");
+    for file in DRIVER_FILES {
+        std::fs::copy(driver.join(file).as_std_path(), driver_copy.join(file)).expect("copy");
+    }
+    lake(&driver_copy, &["build", "elab", "symlist"]);
+    for executable in ["elab", "symlist"] {
+        assert!(
+            driver_copy
+                .join(".lake/build/bin")
+                .join(executable)
+                .is_file(),
+            "RP-20: the driver's {executable} is built"
+        );
+    }
+    eprintln!(
+        "RP-20: {compared} runtime build files agree between two directories, and the driver builds"
+    );
 }

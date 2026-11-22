@@ -15,7 +15,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use lexlean::artifact::manifest::{BuildManifest, FileRow, ModuleRow};
 use lexlean::calculus::Value;
-use lexlean::Sha256Digest;
+use lexlean::Kappa;
 use serde_json::Value as Json2;
 
 use super::rust_validate::{eligibility_of, rustc_differential};
@@ -52,7 +52,7 @@ fn enc_row(row: &FileRow) -> Value {
         text(&row.kind),
         text(&row.path),
         nat(row.byte_length),
-        bytes(&row.sha256.0),
+        bytes(row.kappa.as_bytes()),
     ])
 }
 
@@ -69,11 +69,11 @@ fn enc(manifest: &BuildManifest) -> Value {
     adt(vec![
         text(&manifest.language),
         text(&manifest.compiler_version),
-        bytes(&manifest.semantics_id.0),
+        bytes(manifest.semantics_id.as_bytes()),
         text(&manifest.project),
-        bytes(&manifest.source_id.0),
-        bytes(&manifest.semantic_id.0),
-        bytes(&manifest.build_id.0),
+        bytes(manifest.source_id.as_bytes()),
+        bytes(manifest.semantic_id.as_bytes()),
+        bytes(manifest.build_id.as_bytes()),
         texts(&manifest.selection),
         list(manifest.modules.iter().map(enc_module).collect()),
         list(manifest.inputs.iter().map(enc_row).collect()),
@@ -90,8 +90,8 @@ fn manifest_run(manifest: &BuildManifest) -> Run {
 
 // ------------------------------------------------------------------ corpora
 
-fn digest(json: &Json2) -> Sha256Digest {
-    Sha256Digest::from_hex(json.as_str().expect("a digest")).expect("a digest")
+fn digest(json: &Json2) -> Kappa {
+    Kappa::parse(json.as_str().expect("a digest")).expect("a digest")
 }
 
 fn string(json: &Json2) -> String {
@@ -107,7 +107,7 @@ fn rows_of(json: &Json2) -> Vec<FileRow> {
             path: string(&row["path"]),
             byte_length: usize::try_from(row["byte_length"].as_u64().expect("a length"))
                 .expect("usize"),
-            sha256: digest(&row["sha256"]),
+            kappa: digest(&row["kappa"]),
         })
         .collect()
 }
@@ -189,12 +189,12 @@ fn committed() -> Vec<BuildManifest> {
 
 // ------------------------------------------------------------------ vectors
 
-fn sha(byte: u8) -> Sha256Digest {
+fn sha(byte: u8) -> Kappa {
     let mut out = [0u8; 32];
     for (index, slot) in out.iter_mut().enumerate() {
         *slot = byte.wrapping_add(u8::try_from(index).expect("a byte"));
     }
-    Sha256Digest(out)
+    crate::support::kappa_of_digest(&out)
 }
 
 fn row(kind: &str, path: &str, byte_length: usize, digest_byte: u8) -> FileRow {
@@ -202,7 +202,7 @@ fn row(kind: &str, path: &str, byte_length: usize, digest_byte: u8) -> FileRow {
         kind: kind.to_owned(),
         path: path.to_owned(),
         byte_length,
-        sha256: sha(digest_byte),
+        kappa: sha(digest_byte),
     }
 }
 
@@ -326,12 +326,12 @@ fn drawn_text(seeded: &mut Seeded) -> String {
     (0..count).map(|_| *seeded.pick(PIECES)).collect()
 }
 
-fn drawn_sha(seeded: &mut Seeded) -> Sha256Digest {
+fn drawn_sha(seeded: &mut Seeded) -> Kappa {
     let mut out = [0u8; 32];
     for slot in &mut out {
         *slot = u8::try_from(seeded.below(256)).expect("a byte");
     }
-    Sha256Digest(out)
+    crate::support::kappa_of_digest(&out)
 }
 
 fn drawn_rows(seeded: &mut Seeded) -> Vec<FileRow> {
@@ -340,7 +340,7 @@ fn drawn_rows(seeded: &mut Seeded) -> Vec<FileRow> {
             kind: (*seeded.pick(KINDS)).to_owned(),
             path: drawn_text(seeded),
             byte_length: *seeded.pick(&[0, 1, 255, 256, 65_536, 4_194_304]),
-            sha256: drawn_sha(seeded),
+            kappa: drawn_sha(seeded),
         })
         .collect()
 }

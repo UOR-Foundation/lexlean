@@ -123,6 +123,8 @@ decision: `cut.yml` regenerates the cut, waits for its gate, merges its pull
 request at the verified head, tags and publishes it (`tag.yml`,
 `release.yml`). Merge the pull request by hand only when `cut.yml` stopped
 short and says why.
+Each push to a release line opens its forward merge into the next line
+(`forward.yml`); a draft one names the conflicts left to finish by hand.
 A pull request that is final is marked ready with auto-merge on
 (`gh pr merge --auto --merge`), so it lands when its gate passes and its
 branch is deleted on merge.

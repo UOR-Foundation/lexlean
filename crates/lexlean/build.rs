@@ -18,6 +18,22 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+// The standard library's certified BLAKE3 κ-label package (SPEC.md §17.22,
+// §21.1), the same committed copy the crate compiles, so the address of the
+// compiler is the κ-label every other identity is.
+// The bytes are the export's, so the formatter leaves them as they are.
+#[rustfmt::skip]
+#[path = "blake3_package.rs"]
+#[allow(warnings, clippy::all, clippy::pedantic, clippy::nursery)]
+mod blake3_package;
+
+/// The κ-label of `bytes`, as the certified package writes it.
+fn kappa(bytes: &[u8]) -> String {
+    let label = blake3_package::run(blake3_package::Bytes::lit(bytes))
+        .expect("a message whose length fits 64 bits is inside the domain of BLAKE3");
+    String::from_utf8(label.octets().to_vec()).expect("a κ-label is ASCII")
+}
+
 /// The crate-relative directories whose regular files participate in the
 /// compiler-semantics digest (SPEC.md §21.2), with their repository-relative
 /// names.
@@ -110,13 +126,12 @@ fn main() {
 }
 
 /// The address of the compiler that builds this crate (SPEC.md §22.11): the
-/// SHA-256 of one line `<sha256 of the file>  <sysroot-relative path>` per
+/// κ-label of one line `<κ-label of the file>  <sysroot-relative path>` per
 /// file of the `rustc` executable and its driver library, in path order, and
 /// what `rustc -vV` reports. The `rustc` executable is a thin launcher; the
 /// compiler is the driver library it loads, so both are addressed. A compiler
 /// whose sysroot cannot be read is a build failure, never an empty address.
 fn rustc_identity(out_dir: &Path) {
-    use sha2::{Digest, Sha256};
     use std::process::Command;
 
     println!("cargo:rerun-if-env-changed=RUSTC");
@@ -162,26 +177,22 @@ fn rustc_identity(out_dir: &Path) {
         println!("cargo:rerun-if-changed={}", path.display());
         let bytes =
             fs::read(path).unwrap_or_else(|error| panic!("reading {}: {error}", path.display()));
-        listing.push_str(&hex(&Sha256::digest(&bytes)));
+        listing.push_str(&kappa(&bytes));
         listing.push_str("  ");
         listing.push_str(relative);
         listing.push('\n');
     }
-    let address = hex(&Sha256::digest(listing.as_bytes()));
+    let address = kappa(listing.as_bytes());
     fs::write(
         out_dir.join("rustc_identity.rs"),
         format!(
             "/// What `rustc -vV` reported for the compiler that built this crate.\n\
              pub const RUSTC_VERSION: &str = {version:?};\n\
              /// The address of that compiler's executable and driver library.\n\
-             pub const RUSTC_SHA256: &str = {address:?};\n"
+             pub const RUSTC_KAPPA: &str = {address:?};\n"
         ),
     )
     .expect("write rustc_identity.rs");
-}
-
-fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
 /// Resolve a crate-relative normative path: a directory or file as such; a
