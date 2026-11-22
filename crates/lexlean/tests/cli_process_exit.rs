@@ -81,6 +81,29 @@ fn lean_rejection_has_a_failing_process_exit() {
         String::from_utf8_lossy(&check.stderr)
     );
 
+    // This is the originally reported process invocation: the default human
+    // diagnostic path must fail closed even when Lean rejects after checking.
+    let human = Command::new(binary)
+        .current_dir(project)
+        .args(["verify", "src/Main.lex.tex"])
+        .output()
+        .expect("run the default CLI verify executable");
+    assert_eq!(
+        human.status.code(),
+        Some(1),
+        "default CLI must exit 1 on Lean rejection; stdout: {}; stderr: {}",
+        String::from_utf8_lossy(&human.stdout),
+        String::from_utf8_lossy(&human.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&human.stderr).contains("LLV7002"),
+        "default CLI must report the registered Lean rejection diagnostic"
+    );
+    assert!(
+        !String::from_utf8_lossy(&human.stdout).contains("verified "),
+        "default CLI cannot print a success verdict for a rejected proof"
+    );
+
     let verify = Command::new(binary)
         .current_dir(project)
         .args(["--diagnostic-format", "json", "verify", "src/Main.lex.tex"])
