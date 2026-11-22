@@ -93,10 +93,7 @@ fn lean_rejection_has_a_failing_process_exit() {
         String::from_utf8_lossy(&verify.stdout),
         String::from_utf8_lossy(&verify.stderr)
     );
-    assert!(
-        verify.stderr.is_empty(),
-        "JSON diagnostics belong on stdout, not stderr"
-    );
+    assert!(verify.stderr.is_empty(), "JSON diagnostics belong on stdout, not stderr");
     let result: serde_json::Value =
         serde_json::from_slice(&verify.stdout).expect("one command-result JSON document");
     assert_eq!(result["command"], "verify");
@@ -107,10 +104,7 @@ fn lean_rejection_has_a_failing_process_exit() {
         .expect("diagnostics array")
         .iter()
         .any(|diagnostic| diagnostic["code"] == "LLV7002");
-    assert!(
-        has_rejection,
-        "the failure must be the registered Lean rejection: {result}"
-    );
+    assert!(has_rejection, "the failure must be the registered Lean rejection: {result}");
     assert!(
         result.get("attestation_id").is_none(),
         "a rejected proof cannot report a successful attestation"
