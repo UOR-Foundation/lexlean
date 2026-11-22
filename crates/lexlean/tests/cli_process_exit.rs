@@ -83,12 +83,7 @@ fn lean_rejection_has_a_failing_process_exit() {
 
     let verify = Command::new(binary)
         .current_dir(project)
-        .args([
-            "--diagnostic-format",
-            "json",
-            "verify",
-            "src/Main.lex.tex",
-        ])
+        .args(["--diagnostic-format", "json", "verify", "src/Main.lex.tex"])
         .output()
         .expect("run the real verify executable");
     assert_eq!(
@@ -107,12 +102,13 @@ fn lean_rejection_has_a_failing_process_exit() {
     assert_eq!(result["command"], "verify");
     assert_eq!(result["exit_code"], 1);
     assert_eq!(result["success"], false);
+    let has_rejection = result["diagnostics"]
+        .as_array()
+        .expect("diagnostics array")
+        .iter()
+        .any(|diagnostic| diagnostic["code"] == "LLV7002");
     assert!(
-        result["diagnostics"]
-            .as_array()
-            .is_some_and(|diagnostics| diagnostics.iter().any(|diagnostic| {
-                diagnostic["code"] == "LLV7002"
-            })),
+        has_rejection,
         "the failure must be the registered Lean rejection: {result}"
     );
     assert!(
