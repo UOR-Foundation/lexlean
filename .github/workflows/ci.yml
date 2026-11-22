@@ -36,9 +36,9 @@
 # from broken code.
 #
 # Which runs are the gate (§9.4): the `plan` job decides from the event alone.
-# A draft pull request defers all expensive jobs before checkout: the cheap
-# required `plan` check refuses it as DRAFT_DEFERRED_NOT_QUALIFIED. A
-# `ready_for_review` event, even on the same SHA, restores normal acceptance.
+# A draft pull request skips every expensive job before runner allocation,
+# including `plan`. `ready_for_review`, even on the same SHA, restores full
+# candidate qualification; skipped draft jobs are not proof of acceptance.
 # A ready pull request whose base is neither `main` nor `release/*` runs
 # honesty then the `rest` leg as a development signal: a
 # stacked pull request cannot land on a line, and the pull request that carries
@@ -99,7 +99,7 @@ env:
 
 jobs:
   # What this run is (SPEC.md §9.4), decided from the event before any job that
-  # costs an expensive runner starts. Drafts are refused before checkout;
+  # costs an expensive runner starts. Draft jobs skip before runner allocation;
   # a ready pull request whose base is neither `main` nor `release/*` runs
   # the `rest` leg and honesty as a development signal; a ready
   # pull request into one of those, a request (planned as the pull request whose
@@ -113,6 +113,8 @@ jobs:
   # events.
   plan:
     name: plan
+    # Draft PRs allocate no runner; ready_for_review triggers a fresh plan.
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -126,14 +128,6 @@ jobs:
       fanout: ${{ steps.plan.outputs.fanout }}
       intel: ${{ steps.plan.outputs.intel }}
     steps:
-      # Required 'plan' must never report a draft-deferred success. It fails
-      # quickly, before checkout/toolchain setup. 'ready_for_review' gives the
-      # exact same SHA a fresh, real candidate result.
-      - name: Hold draft PR before checkout (not qualified)
-        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft }}
-        run: |
-          echo "::error::DRAFT_DEFERRED_NOT_QUALIFIED: mark the PR ready to qualify this HEAD"
-          exit 1
       # Regeneration dispatches this workflow on PR heads. A dispatch cannot
       # trust its event to tell us whether the head is still a draft.
       - name: Hold dispatch on an open draft before checkout
