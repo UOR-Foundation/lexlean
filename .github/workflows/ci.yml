@@ -225,8 +225,9 @@ jobs:
   # takes it through `.github/scripts/take-bootstrap-export.sh` when one of
   # its cases first needs it, and the harness checks the record against the
   # leg's own run and checkout and replays the bundle before the case reads
-  # it. The legs start when honesty passes, as before, and wait only at that
-  # point; the artifact is read by this run alone. The export verifies the
+  # it. In a full gate, the legs now wait before acquiring runners for this
+  # producer; a stacked development signal still starts after honesty and
+  # performs a local export if required. The artifact stays same-run only. The export verifies the
   # bootstrap project through the same `verify` the `examples` recipe runs,
   # so this job is also that project's part of the recipe: it formats, locks,
   # checks, and builds a clean copy first, and holds the export's verified
@@ -311,8 +312,10 @@ jobs:
 
   vv:
     name: just vv (${{ matrix.part }})
-    needs: [plan, honesty]
-    if: ${{ needs.plan.result == 'success' && needs.plan.outputs.fanout != '[]' }}
+    # A full-gate leg must not pay runner minutes waiting for bootstrap export.
+    # A stacked PR has no producer and preserves the original local fallback.
+    needs: [plan, honesty, bootstrap-export]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.honesty.result == 'success' && needs.plan.outputs.fanout != '[]' && (needs.plan.outputs.full != 'true' || needs.bootstrap-export.result == 'success') }}
     # A failing leg does not cancel the others: each leg's evidence is complete.
     # The legs are the rows of `.github/vv-rows.json`, or only its `rest` row
     # while a ready PR is stacked on a non-release feature branch.
