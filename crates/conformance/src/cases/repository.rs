@@ -403,13 +403,15 @@ fn plan_decisions() {
          jobs: &[String],
          fail: bool| { decide_with(event, draft, base, commit, runs, jobs, fail, "", "") };
     let whole = ("true".to_owned(), parts.clone());
-    let draft = (
+    let stacked = (
         "false".to_owned(),
         vec!["honesty".to_owned(), "rest".to_owned()],
     );
     let nothing = ("false".to_owned(), Vec::<String>::new());
-    // A draft pull request runs honesty then `rest`, as does a ready one stacked on
-    // a feature branch, which cannot land on a line; a ready one into `main`
+    let draft = nothing.clone();
+    // A draft pull request plans no work; a ready one stacked on another
+    // feature branch runs honesty and `rest`, without qualifying the landing.
+    // A ready pull request into `main`
     // or a release line, a request, and a push are the whole gate when no run
     // is known. A base the event does not name is not known to be stacked.
     for (what, draft_flag, base, expected) in [
@@ -423,7 +425,7 @@ fn plan_decisions() {
             "a ready pull request into a feature branch",
             "false",
             "claude/issue-91-h6",
-            &draft,
+            &stacked,
         ),
         (
             "a ready pull request into a release line",
@@ -442,7 +444,7 @@ fn plan_decisions() {
             "a ready pull request into a branch that only starts like main",
             "false",
             "main-2",
-            &draft,
+            &stacked,
         ),
     ] {
         assert_eq!(
@@ -469,7 +471,7 @@ fn plan_decisions() {
     // no pull request, several, or an unreadable list is the whole gate.
     for (what, pulls, fail, expected) in [
         ("a draft's head", "true\trelease/v0.4", false, &draft),
-        ("a stacked head", "false\tclaude/issue-91-h6", false, &draft),
+        ("a stacked head", "false\tclaude/issue-91-h6", false, &stacked),
         (
             "a ready head into a line",
             "false\trelease/v0.4",
@@ -2477,46 +2479,43 @@ pub(crate) fn run(id: &str) {
                 ci.contains("  pull_request:\n    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]\n"),
                 "§9.4: a pull request marked ready runs the jobs the draft did not"
             );
-            // CI Guard v1.5.1: an open draft is explicitly unqualified, not a
-            // successful partial gate. Its required signals fail before checkout;
-            // ready_for_review refreshes those same contexts even if SHA is unchanged.
+            // CI Guard v1.5.1: draft PRs consume NO runner and no
+            // acceptance obligation. Skipped work is not merge evidence.
+            // A ready_for_review transition starts a fresh exact-HEAD run.
             let plan_draft = job("plan");
-            let draft_guard = plan_draft
-                .find("      - name: Hold draft PR before checkout (not qualified)")
-                .expect("a draft PR preflight is present");
+            assert!(
+                plan_draft.contains("    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}\\n")
+                    && !plan_draft.contains("Hold draft PR before checkout"),
+                "draft acceptance planner is skipped at job dispatch, not after checkout"
+            );
+            // Regeneration may dispatch CI manually; draft PRs are blocked
+            // before checkout on this separate path, including API failure.
             let dispatch_guard = plan_draft
                 .find("      - name: Hold dispatch on an open draft before checkout")
-                .expect("manual/regen dispatch also checks draft status");
+                .expect("manual/regen dispatch checks draft status");
             let plan_checkout = plan_draft
                 .find("      - uses: actions/checkout@")
-                .expect("a real checkout follows the draft guards");
+                .expect("a real checkout follows the dispatch guard");
             assert!(
-                draft_guard < dispatch_guard
-                    && dispatch_guard < plan_checkout
-                    && plan_draft[draft_guard..plan_checkout].contains("DRAFT_DEFERRED_NOT_QUALIFIED")
-                    && plan_draft[draft_guard..plan_checkout].matches("exit 1").count() >= 2
-                    && plan_draft[draft_guard..plan_checkout].contains("gh api -X GET")
-                    && plan_draft[draft_guard..plan_checkout].contains("Draft status unavailable"),
-                "draft and regenerated draft dispatch both fail closed before checkout"
+                dispatch_guard < plan_checkout
+                    && plan_draft[dispatch_guard..plan_checkout].contains("DRAFT_DEFERRED_NOT_QUALIFIED")
+                    && plan_draft[dispatch_guard..plan_checkout].contains("exit 1")
+                    && plan_draft[dispatch_guard..plan_checkout].contains("gh api -X GET")
+                    && plan_draft[dispatch_guard..plan_checkout].contains("Draft status unavailable"),
+                "draft regeneration dispatch refuses qualification before checkout"
             );
             let repro = root_file(".github/workflows/reproducibility.yml");
-            let repro_draft = repro
-                .find("      - name: Hold draft PR before checkout (not qualified)")
-                .expect("reproducibility checks draft state before checkout");
-            let repro_checkout = repro
-                .find("      - uses: actions/checkout@")
-                .expect("reproducibility has a real checkout");
             assert!(
                 repro.contains("types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]")
-                    && repro_draft < repro_checkout
-                    && repro[repro_draft..repro_checkout].contains("DRAFT_DEFERRED_NOT_QUALIFIED")
-                    && repro[repro_draft..repro_checkout].contains("exit 1"),
-                "the required repro status is never a green draft deferral"
+                    && repro.contains("    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}\\n")
+                    && !repro.contains("Hold draft PR before checkout")
+                    && repro.contains("      - run: just repro\\n"),
+                "draft reproducibility is skipped without allocating a runner; ready head retains the real gate"
             );
             assert!(
                 ci.contains("if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}")
                     && ci.contains("if: ${{ needs.plan.result == 'success' && needs.plan.outputs.fanout != '[]' }}"),
-                "an unsuccessful draft plan cannot expand a costly matrix"
+                "skipped draft planner cannot expand expensive matrices"
             );
             // §9.4: a release line is held to the same gate as `main`, so the
             // push trigger of every workflow names both; a workflow that named
