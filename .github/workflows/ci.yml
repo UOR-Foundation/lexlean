@@ -327,9 +327,11 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.plan.outputs.fanout_fast) }}
     runs-on: ubuntu-24.04
-    # Independent rows never fetch the shared bootstrap artifact.
+    # Independent rows do not fetch the shared bootstrap artifact.
+    # Retain the existing access permissions to avoid unrelated changes.
     permissions:
       contents: read
+      actions: read
     # Complete proof coverage is intentionally the long pole. GitHub-hosted
     # jobs permit six hours; a shorter local-style timeout would turn complete
     # proof coverage into a CI failure mode.
@@ -381,6 +383,9 @@ jobs:
           swapon --show
       - name: Run the normative acceptance gate
         shell: bash
+        env:
+          FULL_GATE: ${{ needs.plan.outputs.full }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           mkdir -p ci-evidence

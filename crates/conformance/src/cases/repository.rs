@@ -2062,8 +2062,15 @@ pub(crate) fn run(id: &str) {
                 ),
             ] {
                 for lane in [vv, vv_fast] {
-                    assert_eq!(lane.matches(variable).count(), 1, "§9.4: each lane sets its profile once");
-                    assert!(lane.contains(line), "§9.4: each lane uses the matrix resource profile");
+                    assert_eq!(
+                        lane.matches(variable).count(),
+                        1,
+                        "§9.4: each lane sets its profile once"
+                    );
+                    assert!(
+                        lane.contains(line),
+                        "§9.4: each lane uses the matrix resource profile"
+                    );
                 }
             }
             for (key, body) in &atlas_jobs {
@@ -2780,7 +2787,10 @@ pub(crate) fn run(id: &str) {
             for (from, to) in [
                 ("needs: [plan, honesty]", "needs: [plan, honesty, bootstrap-export]"),
                 ("needs.plan.outputs.fanout_fast != '[]'", "true"),
-                ("fromJSON(needs.plan.outputs.fanout_fast)", "fromJSON(needs.plan.outputs.fanout_export)"),
+                (
+                    "fromJSON(needs.plan.outputs.fanout_fast)",
+                    "fromJSON(needs.plan.outputs.fanout_export)",
+                ),
             ] {
                 assert!(fast_job.contains(from), "the fast lane has {from}");
                 let planted = ci.replacen(&fast_job, &fast_job.replacen(from, to, 1), 1);
@@ -2913,10 +2923,14 @@ pub(crate) fn run(id: &str) {
             assert!(
                 vv.contains("    needs: [plan, honesty, bootstrap-export]\n")
                     && vv.contains(VV_EXPORT_GUARD)
-                    && vv.contains("        include: ${{ fromJSON(needs.plan.outputs.fanout_export) }}\n")
+                    && vv.contains(
+                        "        include: ${{ fromJSON(needs.plan.outputs.fanout_export) }}\n"
+                    )
                     && vv_fast.contains("    needs: [plan, honesty]\n")
                     && vv_fast.contains(VV_FAST_GUARD)
-                    && vv_fast.contains("        include: ${{ fromJSON(needs.plan.outputs.fanout_fast) }}\n"),
+                    && vv_fast.contains(
+                        "        include: ${{ fromJSON(needs.plan.outputs.fanout_fast) }}\n"
+                    ),
                 "§9.4: only export consumers wait for the shared producer"
             );
             // The plan: one job, no recipe, ten minutes, reading the event and
@@ -2931,8 +2945,12 @@ pub(crate) fn run(id: &str) {
                     && plan_job.contains("          BASE: ${{ github.event.pull_request.base.ref }}\n")
                     && plan_job.contains("          HEAD: ${{ github.event.pull_request.head.ref }}\n")
                     && plan_job.contains("      intel: ${{ steps.plan.outputs.intel }}\n")
-                    && plan_job.contains("      fanout_fast: ${{ steps.plan.outputs.fanout_fast }}\n")
-                    && plan_job.contains("      fanout_export: ${{ steps.plan.outputs.fanout_export }}\n")
+                    && plan_job.contains(
+                        "      fanout_fast: ${{ steps.plan.outputs.fanout_fast }}\n"
+                    )
+                    && plan_job.contains(
+                        "      fanout_export: ${{ steps.plan.outputs.fanout_export }}\n"
+                    )
                     && plan_job.contains("          EVENT: ${{ github.event_name }}\n")
                     && plan_job.contains("          REF: ${{ github.ref_name }}\n"),
                 "§9.4: the plan runs the script on the event and the base branch, and may read the runs of the repository"
@@ -4296,10 +4314,15 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
 
 /// The fetcher a leg runs beside its gate command to take the run's
 /// bootstrap export (§9.4).
-const VV_EXPORT_GUARD: &str =
-    "    if: ${{ needs.plan.outputs.full == 'true' && needs.bootstrap-export.result == 'success' && needs.plan.outputs.fanout_export != '[]' }}";
-const VV_FAST_GUARD: &str =
-    "    if: ${{ needs.plan.result == 'success' && needs.honesty.result == 'success' && needs.plan.outputs.fanout_fast != '[]' }}";
+const VV_EXPORT_GUARD: &str = concat!(
+    "    if: ${{ needs.plan.outputs.full == 'true' ",
+    "&& needs.bootstrap-export.result == 'success' ",
+    "&& needs.plan.outputs.fanout_export != '[]' }}"
+);
+const VV_FAST_GUARD: &str = concat!(
+    "    if: ${{ needs.plan.result == 'success' && needs.honesty.result == 'success' ",
+    "&& needs.plan.outputs.fanout_fast != '[]' }}"
+);
 const TAKE_EXPORT: &str = ".github/scripts/take-bootstrap-export.sh";
 
 /// §9.4: one bootstrap export per run, carried to the legs of the same run.
