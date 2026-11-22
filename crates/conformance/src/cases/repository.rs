@@ -334,7 +334,10 @@ fn plan_decisions() {
             .env("HEAD", head)
             .env("REPO", "owner/repo")
             .env("LEXLEAN_CI_ROWS", rows_file.as_std_path())
-            .env("LEXLEAN_CI_BDD_PARTS", root.join(".github/bdd-parts.json").as_std_path())
+            .env(
+                "LEXLEAN_CI_BDD_PARTS",
+                root.join(".github/bdd-parts.json").as_std_path(),
+            )
             .env("GITHUB_OUTPUT", &out)
             .env("GITHUB_STEP_SUMMARY", dir.join("summary"))
             .env("STUB_RUNS", runs)
@@ -2685,7 +2688,10 @@ pub(crate) fn run(id: &str) {
                 atlas_jobs.len() + 2,
                 "every Atlas job, the bootstrap export, and the host matrix, and no other job, wait for the plan to name the whole gate"
             );
-            assert_eq!(rows_conditions, 2, "each matrix lane runs only its plan-selected rows");
+            assert_eq!(
+                rows_conditions, 2,
+                "each matrix lane runs only its plan-selected rows"
+            );
             assert_eq!(honesty_conditions, 1, "honesty runs when the plan names it");
             assert_eq!(draft_conditions, 1, "drafts skip all runner-backed CI");
             assert_eq!(
@@ -2817,9 +2823,15 @@ pub(crate) fn run(id: &str) {
             }
             let fast_job = workflow_job(&ci, "vv-fast").expect("independent lane");
             for (from, to) in [
-                ("needs: [plan, honesty]", "needs: [plan, honesty, bootstrap-export]"),
+                (
+                    "needs: [plan, honesty]",
+                    "needs: [plan, honesty, bootstrap-export]",
+                ),
                 ("needs.plan.outputs.fanout_fast != '[]'", "true"),
-                ("LEXLEAN_CI_INDEPENDENT_LANE: \"1\"", "LEXLEAN_CI_INDEPENDENT_LANE: \"0\""),
+                (
+                    "LEXLEAN_CI_INDEPENDENT_LANE: \"1\"",
+                    "LEXLEAN_CI_INDEPENDENT_LANE: \"0\"",
+                ),
                 (
                     "fromJSON(needs.plan.outputs.fanout_fast)",
                     "fromJSON(needs.plan.outputs.fanout_export)",
@@ -2914,7 +2926,9 @@ pub(crate) fn run(id: &str) {
             }
             let production_export = root_file("crates/conformance/src/production_export.rs");
             assert_eq!(
-                production_export.matches("LEXLEAN_CI_INDEPENDENT_LANE").count(),
+                production_export
+                    .matches("LEXLEAN_CI_INDEPENDENT_LANE")
+                    .count(),
                 2,
                 "§9.4: both direct and cached bootstrap export paths reject independent CI lanes"
             );
@@ -4437,9 +4451,18 @@ fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
         require(&legs, text, rule)?;
     }
     for (text, rule) in [
-        ("    needs: [plan, honesty]", "the independent lane starts after honesty"),
-        (VV_FAST_GUARD, "the independent lane follows the trusted plan"),
-        ("fromJSON(needs.plan.outputs.fanout_fast)", "the independent matrix uses fast rows"),
+        (
+            "    needs: [plan, honesty]",
+            "the independent lane starts after honesty",
+        ),
+        (
+            VV_FAST_GUARD,
+            "the independent lane follows the trusted plan",
+        ),
+        (
+            "fromJSON(needs.plan.outputs.fanout_fast)",
+            "the independent matrix uses fast rows",
+        ),
         (
             "      LEXLEAN_CI_INDEPENDENT_LANE: \"1\"",
             "independent cases refuse unexpected export calls",
@@ -4809,7 +4832,9 @@ fn honesty_dependencies(ci: &str) -> Result<(), String> {
     let initial = workflow_job(ci, "honesty")?;
     if !initial.contains("name: ${{ matrix.part }}\n")
         || !initial.contains("needs: [plan]\n")
-        || !initial.contains("if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}")
+        || !initial.contains(
+            "if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}",
+        )
     {
         return Err(
             "RP-14: honesty must expose its matrix-resolved context and follow the plan".to_owned(),
