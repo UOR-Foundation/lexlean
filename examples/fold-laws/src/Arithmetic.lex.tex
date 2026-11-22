@@ -1,0 +1,478 @@
+\begin{lexlean}{Arithmetic}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{folds.titles@1.0.0}
+\title{Arithmetic laws}
+\begin{semanticmodule}
+theorem{
+  name: succ_pos,
+  parameters: [n : Nat],
+  statement: (0 < (n + 1)),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: le_succ,
+  parameters: [a : Nat],
+  statement: (a <= (a + 1)),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: le_add_two,
+  parameters: [a : Nat],
+  statement: (a <= (a + 2)),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: lt_succ,
+  parameters: [a : Nat],
+  statement: (a < (a + 1)),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: three_pos,
+  parameters: [],
+  statement: (0 < 3),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: four_pos,
+  parameters: [],
+  statement: (0 < 4),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: eight_pos,
+  parameters: [],
+  statement: (0 < 8),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: two_le_three,
+  parameters: [],
+  statement: (2 <= 3),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: four_le_five,
+  parameters: [],
+  statement: (4 <= 5),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: two_lt_three,
+  parameters: [],
+  statement: (2 < 3),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: four_two_le_four_three,
+  parameters: [],
+  statement: ((prim multiply 4 2 : Nat) <= (prim multiply 4 3 : Nat)),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mul_comm_law,
+  parameters: [a : Nat, b : Nat],
+  statement: ((prim multiply a b : Nat) = (prim multiply b a : Nat)),
+  proof: law{name: nat_mul_comm, arguments: [a, b]},
+  axioms: []
+}
+
+theorem{
+  name: mul_comm_simp,
+  parameters: [a : Nat, b : Nat, c : Nat],
+  statement: (((prim multiply a b : Nat) + c) = ((prim multiply b a : Nat) + c)),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_comm]},
+  axioms: [propext]
+}
+
+theorem{
+  name: mul_assoc_law,
+  parameters: [a : Nat, b : Nat, c : Nat],
+  statement: ((prim multiply (prim multiply a b : Nat) c : Nat) = (prim multiply a (prim multiply b c : Nat) : Nat)),
+  proof: law{name: nat_mul_assoc, arguments: [a, b, c]},
+  axioms: [propext]
+}
+
+theorem{
+  name: mul_assoc_simp,
+  parameters: [a : Nat, b : Nat, c : Nat],
+  statement: (((prim multiply (prim multiply a b : Nat) c : Nat) + 1) = ((prim multiply a (prim multiply b c : Nat) : Nat) + 1)),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_assoc]},
+  axioms: [propext]
+}
+
+theorem{
+  name: mul_left_comm_law,
+  parameters: [a : Nat, b : Nat, c : Nat],
+  statement: ((prim multiply a (prim multiply b c : Nat) : Nat) = (prim multiply b (prim multiply a c : Nat) : Nat)),
+  proof: law{name: nat_mul_left_comm, arguments: [a, b, c]},
+  axioms: [propext]
+}
+
+theorem{
+  name: mul_left_comm_simp,
+  parameters: [m : Nat, p : Nat],
+  statement: ((prim multiply m (prim multiply 2 p : Nat) : Nat) = (prim multiply 2 (prim multiply m p : Nat) : Nat)),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_left_comm]},
+  axioms: [propext]
+}
+
+theorem{
+  name: left_distrib_law,
+  parameters: [a : Nat, b : Nat, c : Nat],
+  statement: ((prim multiply a (b + c) : Nat) = ((prim multiply a b : Nat) + (prim multiply a c : Nat))),
+  proof: law{name: nat_left_distrib, arguments: [a, b, c]},
+  axioms: []
+}
+
+theorem{
+  name: left_distrib_simp,
+  parameters: [a : Nat, b : Nat],
+  statement: ((prim multiply a (b + b) : Nat) = ((prim multiply a b : Nat) + (prim multiply a b : Nat))),
+  proof: simplify{definitions: [LexLeanLaws.nat_left_distrib]},
+  axioms: [propext]
+}
+
+theorem{
+  name: right_distrib_law,
+  parameters: [a : Nat, b : Nat, c : Nat],
+  statement: ((prim multiply (a + b) c : Nat) = ((prim multiply a c : Nat) + (prim multiply b c : Nat))),
+  proof: law{name: nat_right_distrib, arguments: [a, b, c]},
+  axioms: [propext]
+}
+
+theorem{
+  name: right_distrib_simp,
+  parameters: [a : Nat, c : Nat],
+  statement: ((prim multiply (a + a) c : Nat) = ((prim multiply a c : Nat) + (prim multiply a c : Nat))),
+  proof: simplify{definitions: [LexLeanLaws.nat_right_distrib]},
+  axioms: [propext]
+}
+
+theorem{
+  name: mul_sub_law,
+  parameters: [a : Nat, b : Nat, c : Nat],
+  statement: ((prim multiply a (prim subtract b c : Nat) : Nat) = (prim subtract (prim multiply a b : Nat) (prim multiply a c : Nat) : Nat)),
+  proof: law{name: nat_mul_sub, arguments: [a, b, c]},
+  axioms: [propext]
+}
+
+theorem{
+  name: mul_sub_simp,
+  parameters: [a : Nat, b : Nat, c : Nat],
+  statement: (((prim multiply a (prim subtract b c : Nat) : Nat) + 1) = ((prim subtract (prim multiply a b : Nat) (prim multiply a c : Nat) : Nat) + 1)),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_sub]},
+  axioms: [propext]
+}
+
+theorem{
+  name: mul_one_law,
+  parameters: [a : Nat],
+  statement: ((prim multiply a 1 : Nat) = a),
+  proof: law{name: nat_mul_one, arguments: [a]},
+  axioms: []
+}
+
+theorem{
+  name: one_mul_law,
+  parameters: [a : Nat],
+  statement: ((prim multiply 1 a : Nat) = a),
+  proof: law{name: nat_one_mul, arguments: [a]},
+  axioms: []
+}
+
+theorem{
+  name: units_simp,
+  parameters: [a : Nat],
+  statement: ((prim multiply (prim multiply a 1 : Nat) 1 : Nat) = (prim multiply 1 a : Nat)),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_one, LexLeanLaws.nat_one_mul]},
+  axioms: [propext]
+}
+
+theorem{
+  name: mul_zero_law,
+  parameters: [a : Nat],
+  statement: ((prim multiply a 0 : Nat) = 0),
+  proof: law{name: nat_mul_zero, arguments: [a]},
+  axioms: []
+}
+
+theorem{
+  name: zero_mul_law,
+  parameters: [a : Nat],
+  statement: ((prim multiply 0 a : Nat) = 0),
+  proof: law{name: nat_zero_mul, arguments: [a]},
+  axioms: []
+}
+
+theorem{
+  name: zeros_simp,
+  parameters: [a : Nat, b : Nat],
+  statement: (((prim multiply a 0 : Nat) + (prim multiply 0 b : Nat)) = (prim multiply 0 (a + b) : Nat)),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_zero, LexLeanLaws.nat_zero_mul]},
+  axioms: [propext]
+}
+
+theorem{
+  name: mul_succ_law,
+  parameters: [a : Nat, b : Nat],
+  statement: ((prim multiply a (b + 1) : Nat) = ((prim multiply a b : Nat) + a)),
+  proof: law{name: nat_mul_succ, arguments: [a, b]},
+  axioms: []
+}
+
+theorem{
+  name: mul_succ_simp,
+  parameters: [a : Nat, b : Nat],
+  statement: (((prim multiply a (b + 1) : Nat) + 1) = (((prim multiply a b : Nat) + a) + 1)),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_succ]},
+  axioms: [propext]
+}
+
+theorem{
+  name: mul_le_mul_law,
+  parameters: [],
+  statement: ((prim multiply 2 4 : Nat) <= (prim multiply 3 5 : Nat)),
+  proof: law{name: nat_mul_le_mul, arguments: [2, 3, 4, 5], premises: [two_le_three, four_le_five]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mul_le_mul_simp,
+  parameters: [a : Nat, c : Nat],
+  statement: ((prim multiply a c : Nat) <= (prim multiply (a + 1) (c + 2) : Nat)),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_le_mul, le_add_two, le_succ]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mul_lt_mul_law,
+  parameters: [],
+  statement: ((prim multiply 2 4 : Nat) < (prim multiply 3 4 : Nat)),
+  proof: law{
+    name: nat_mul_lt_mul_of_pos_right,
+    arguments: [2, 3, 4],
+    premises: [two_lt_three, four_pos]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mul_lt_mul_simp,
+  parameters: [a : Nat, c : Nat],
+  statement: ((prim multiply a (c + 1) : Nat) < (prim multiply (a + 1) (c + 1) : Nat)),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_lt_mul_of_pos_right, lt_succ, succ_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: cancel_law,
+  parameters: [],
+  statement: (2 <= 3),
+  proof: law{
+    name: nat_le_of_mul_le_mul_left,
+    arguments: [2, 3, 4],
+    premises: [four_two_le_four_three, four_pos]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: cancel_iff_law,
+  parameters: [],
+  statement: (((prim multiply 4 2 : Nat) <= (prim multiply 4 3 : Nat)) <-> (2 <= 3)),
+  proof: law{name: nat_mul_le_mul_left_iff, arguments: [2, 3, 4], premises: [four_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: cancel_iff_simp,
+  parameters: [x : Nat, y : Nat],
+  statement: (((prim multiply 3 x : Nat) <= (prim multiply 3 y : Nat)) = (x <= y)),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_le_mul_left_iff, three_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: div_cancel_law,
+  parameters: [a : Nat, z : Nat],
+  statement: ((prim quotient (prim multiply 8 a : Nat) 8 z : Nat) = a),
+  proof: law{name: nat_mul_div_cancel_left, arguments: [a, 8, z], premises: [eight_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: div_cancel_simp,
+  parameters: [a : Nat, n : Nat],
+  statement: ((prim quotient (prim multiply (n + 1) a : Nat) (n + 1) 0 : Nat) = a),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_div_cancel_left, succ_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: div_div_law,
+  parameters: [a : Nat, z : Nat, w : Nat],
+  statement: ((prim quotient (prim quotient a 8 z : Nat) 4 w : Nat) = (prim quotient a (prim multiply 8 4 : Nat) w : Nat)),
+  proof: law{
+    name: nat_div_div_eq_div_mul,
+    arguments: [a, 8, 4, z, w],
+    premises: [eight_pos, four_pos]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: div_div_simp,
+  parameters: [a : Nat, m : Nat, n : Nat],
+  statement: ((prim quotient (prim quotient a (m + 1) 0 : Nat) (n + 1) 0 : Nat) = (prim quotient a (prim multiply (m + 1) (n + 1) : Nat) 0 : Nat)),
+  proof: simplify{definitions: [LexLeanLaws.nat_div_div_eq_div_mul, succ_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: div_mul_div_law,
+  parameters: [a : Nat, b : Nat, z : Nat],
+  statement: ((prim quotient (prim multiply 8 a : Nat) (prim multiply 8 b : Nat) z : Nat) = (prim quotient a b z : Nat)),
+  proof: law{name: nat_mul_div_mul_left, arguments: [a, b, 8, z], premises: [eight_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: div_mul_div_simp,
+  parameters: [a : Nat, b : Nat, n : Nat],
+  statement: ((prim quotient (prim multiply (n + 1) a : Nat) (prim multiply (n + 1) b : Nat) 0 : Nat) = (prim quotient a b 0 : Nat)),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_div_mul_left, succ_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: div_add_mod_law,
+  parameters: [a : Nat, z : Nat, w : Nat],
+  statement: (((prim multiply 8 (prim quotient a 8 z : Nat) : Nat) + (prim remainder a 8 w : Nat)) = a),
+  proof: law{name: nat_div_add_mod, arguments: [a, 8, z, w], premises: [eight_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: div_add_mod_simp,
+  parameters: [a : Nat, n : Nat],
+  statement: (((prim multiply (n + 1) (prim quotient a (n + 1) 0 : Nat) : Nat) + (prim remainder a (n + 1) 0 : Nat)) = a),
+  proof: simplify{definitions: [LexLeanLaws.nat_div_add_mod, succ_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mul_mod_law,
+  parameters: [a : Nat, z : Nat],
+  statement: ((prim remainder (prim multiply 8 a : Nat) 8 z : Nat) = 0),
+  proof: law{name: nat_mul_mod_left, arguments: [a, 8, z], premises: [eight_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mul_mod_simp,
+  parameters: [a : Nat, n : Nat],
+  statement: ((prim remainder (prim multiply (n + 1) a : Nat) (n + 1) 0 : Nat) = 0),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_mod_left, succ_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: bits_law,
+  parameters: [a : Nat, z : Nat, w : Nat],
+  statement: ((prim quotient (prim remainder a (prim multiply 8 4 : Nat) z : Nat) 8 w : Nat) = (prim remainder (prim quotient a 8 w : Nat) 4 z : Nat)),
+  proof: law{
+    name: nat_mod_mul_left_div_self,
+    arguments: [a, 8, 4, z, w],
+    premises: [eight_pos, four_pos]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: bits_simp,
+  parameters: [a : Nat, m : Nat, n : Nat],
+  statement: ((prim quotient (prim remainder a (prim multiply (m + 1) (n + 1) : Nat) 0 : Nat) (m + 1) 0 : Nat) = (prim remainder (prim quotient a (m + 1) 0 : Nat) (n + 1) 0 : Nat)),
+  proof: simplify{definitions: [LexLeanLaws.nat_mod_mul_left_div_self, succ_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: add_mul_div_law,
+  parameters: [a : Nat, c : Nat, z : Nat],
+  statement: ((prim quotient (a + (prim multiply 8 c : Nat)) 8 z : Nat) = ((prim quotient a 8 z : Nat) + c)),
+  proof: law{name: nat_add_mul_div_left, arguments: [a, 8, c, z], premises: [eight_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: add_mul_div_simp,
+  parameters: [a : Nat, c : Nat, n : Nat],
+  statement: ((prim quotient (a + (prim multiply (n + 1) c : Nat)) (n + 1) 0 : Nat) = ((prim quotient a (n + 1) 0 : Nat) + c)),
+  proof: simplify{definitions: [LexLeanLaws.nat_add_mul_div_left, succ_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mod_lt_law,
+  parameters: [a : Nat, z : Nat],
+  statement: ((prim remainder a 8 z : Nat) < 8),
+  proof: law{name: nat_mod_lt, arguments: [a, 8, z], premises: [eight_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mod_lt_simp,
+  parameters: [a : Nat, n : Nat],
+  statement: ((prim remainder a (n + 1) 0 : Nat) < (n + 1)),
+  proof: simplify{definitions: [LexLeanLaws.nat_mod_lt, succ_pos]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: ble_refl_simp,
+  parameters: [a : Nat],
+  statement: ((a <=? a) = true),
+  proof: simplify{definitions: [Nat.ble_eq, Nat.le_refl]},
+  axioms: [propext]
+}
+
+theorem{
+  name: shift_step,
+  parameters: [m : Nat, p : Nat],
+  statement: (((prim multiply m (prim multiply 2 p : Nat) : Nat) = (prim multiply 2 (prim multiply m p : Nat) : Nat)) -> ((prim multiply m (prim multiply 2 p : Nat) : Nat) = ((prim multiply m p : Nat) + (prim multiply m p : Nat)))),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: shift_injected,
+  parameters: [m : Nat, p : Nat],
+  statement: ((prim multiply m (prim multiply 2 p : Nat) : Nat) = ((prim multiply m p : Nat) + (prim multiply m p : Nat))),
+  proof: simplify{definitions: [LexLeanLaws.nat_mul_left_comm, shift_step]},
+  axioms: [Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}

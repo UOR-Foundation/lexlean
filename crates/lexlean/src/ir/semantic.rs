@@ -8898,11 +8898,23 @@ fn check_proof(
                         definition.name.as_str(),
                         "Bool.and_eq_true" | "Nat.beq_eq" | "Nat.blt_eq"
                     );
+                // Language 1.2 adds the `<=` bridge and its reflexivity, and
+                // every registered law, named by its Lean name, as a rewrite
+                // the law module states (§17.12, *Fold laws*).
+                let bridge_1_2 = definition.module.is_none()
+                    && matches!(definition.name.as_str(), "Nat.ble_eq" | "Nat.le_refl");
+                let registered_law =
+                    definition.module.is_none() && laws::law_by_lean(&definition.name).is_some();
+                if bridge_1_2 || registered_law {
+                    require_language_1_2(env, &format!("simplify with {}", definition.name))?;
+                }
                 let local_hypothesis = definition.module.is_none()
                     && locals.get(&definition.name) == Some(&SemanticType::Prop);
                 if function_info(definition, env).is_none()
                     && !env.proof_rules.contains_key(&member_key(definition))
                     && !builtin_bridge
+                    && !bridge_1_2
+                    && !registered_law
                     && !local_hypothesis
                 {
                     return Err(format!(

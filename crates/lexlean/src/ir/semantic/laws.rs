@@ -123,3 +123,11 @@ pub fn law(name: &str) -> Result<&'static Law, String> {
         .find(|law| law.name == name)
         .ok_or_else(|| format!("`{name}` is not a registered law"))
 }
+
+/// The registered law whose Lean theorem is `lean`, which `simplify` names
+/// to rewrite with it; `None` when the registry cannot be read or no law has
+/// that theorem.
+#[must_use]
+pub fn law_by_lean(lean: &str) -> Option<&'static Law> {
+    registry().ok()?.laws.iter().find(|law| law.lean == lean)
+}
