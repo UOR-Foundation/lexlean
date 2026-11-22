@@ -4415,7 +4415,10 @@ fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
         ("    needs: [plan, honesty]", "the independent lane starts after honesty"),
         (VV_FAST_GUARD, "the independent lane follows the trusted plan"),
         ("fromJSON(needs.plan.outputs.fanout_fast)", "the independent matrix uses fast rows"),
-        ("      LEXLEAN_CI_INDEPENDENT_LANE: \"1\"", "independent cases refuse unexpected export calls"),
+        (
+            "      LEXLEAN_CI_INDEPENDENT_LANE: \"1\"",
+            "independent cases refuse unexpected export calls",
+        ),
     ] {
         require(&independent, text, rule)?;
     }
