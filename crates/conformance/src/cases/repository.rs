@@ -2897,9 +2897,13 @@ pub(crate) fn run(id: &str) {
                     "              if false; then\n",
                 ),
             ] {
-                assert!(ci.contains(from), "the plant must change the workflow: {from}");
                 assert!(
-                    bootstrap_export_workflow(&ci.replacen(from, to, 1), &take).is_err(),
+                    vv_job.contains(from),
+                    "the plant must change the export-dependent vv job: {from}"
+                );
+                let planted = ci.replacen(&vv_job, &vv_job.replacen(from, to, 1), 1);
+                assert!(
+                    bootstrap_export_workflow(&planted, &take).is_err(),
                     "the bootstrap export's custody must refuse `{from}` replaced by `{to}`"
                 );
             }
