@@ -2,7 +2,7 @@
 # What a run of ci.yml is (SPEC.md §9.4), decided from the event and the
 # repository alone, before any job that costs a runner starts.
 #
-#   pull request, draft       honesty then the `rest` leg only: a development signal
+#   pull request, draft       no CI work: draft jobs are skipped by ci.yml
 #   pull request, ready, base honesty then the `rest` leg only, the same signal: only a pull
 #   not main or release/*     request into a line can land on it
 #   pull request, ready, base the whole gate, without the Intel macOS jobs
@@ -200,12 +200,13 @@ verified_parent_run() {
   verified_tree_run "$parent" 1 "${1:-whole}"
 }
 
-# A pull request's run: honesty then `rest` for a draft or a stacked base,
-# the whole gate for a ready pull request into a line.
+# A pull request's plan: no rows for a draft (the workflow itself skips
+# before runner allocation), honesty and `rest` for a ready stacked base,
+# and the whole gate for a ready pull request into a release line.
 pull_request_plan() {
   if [ "$draft" = true ]; then
-    emit false "$(jq -c '[.[] | select(.part == "honesty" or .part == "rest")]' "$rows_file")"
-    printf '%s\n' 'Draft pull request: honesty then the `rest` leg only. This run is not the gate; marking the pull request ready runs the whole gate.' >> "$summary"
+    emit false '[]'
+    printf '%s\n' 'Draft pull request: DRAFT_DEFERRED_NOT_QUALIFIED; no recipes run. Marking the pull request ready starts fresh qualification.' >> "$summary"
   else
     case "$base" in
       # An unknown base is not known to be stacked: the whole gate.
