@@ -9,6 +9,7 @@ name: reproducibility
 on:
   push: { branches: [main, "release/**"] }
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   workflow_dispatch:
 
 permissions:
@@ -26,6 +27,13 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
+      # This named required status must never be green without a real repro.
+      # Fail before checkout on a draft; ready_for_review reruns on the SHA.
+      - name: Hold draft PR before checkout (not qualified)
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft }}
+        run: |
+          echo "::error::DRAFT_DEFERRED_NOT_QUALIFIED: reproducibility not run on draft"
+          exit 1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install the pinned Rust toolchain
         run: rustup toolchain install
