@@ -471,7 +471,12 @@ fn plan_decisions() {
     // no pull request, several, or an unreadable list is the whole gate.
     for (what, pulls, fail, expected) in [
         ("a draft's head", "true\trelease/v0.4", false, &draft),
-        ("a stacked head", "false\tclaude/issue-91-h6", false, &stacked),
+        (
+            "a stacked head",
+            "false\tclaude/issue-91-h6",
+            false,
+            &stacked,
+        ),
         (
             "a ready head into a line",
             "false\trelease/v0.4",
@@ -2498,10 +2503,12 @@ pub(crate) fn run(id: &str) {
                 .expect("a real checkout follows the dispatch guard");
             assert!(
                 dispatch_guard < plan_checkout
-                    && plan_draft[dispatch_guard..plan_checkout].contains("DRAFT_DEFERRED_NOT_QUALIFIED")
+                    && plan_draft[dispatch_guard..plan_checkout]
+                        .contains("DRAFT_DEFERRED_NOT_QUALIFIED")
                     && plan_draft[dispatch_guard..plan_checkout].contains("exit 1")
                     && plan_draft[dispatch_guard..plan_checkout].contains("gh api -X GET")
-                    && plan_draft[dispatch_guard..plan_checkout].contains("Draft status unavailable"),
+                    && plan_draft[dispatch_guard..plan_checkout]
+                        .contains("Draft status unavailable"),
                 "draft regeneration dispatch refuses qualification before checkout"
             );
             let repro = root_file(".github/workflows/reproducibility.yml");
