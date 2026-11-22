@@ -2474,8 +2474,49 @@ pub(crate) fn run(id: &str) {
                 "the join asserts that Atlas verified"
             );
             assert!(
-                ci.contains("  pull_request:\n    types: [opened, synchronize, reopened, ready_for_review]\n"),
+                ci.contains("  pull_request:\n    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]\n"),
                 "§9.4: a pull request marked ready runs the jobs the draft did not"
+            );
+            // CI Guard v1.5.1: an open draft is explicitly unqualified, not a
+            // successful partial gate. Its required signals fail before checkout;
+            // ready_for_review refreshes those same contexts even if SHA is unchanged.
+            let plan_draft = job("plan");
+            let draft_guard = plan_draft
+                .find("      - name: Hold draft PR before checkout (not qualified)")
+                .expect("a draft PR preflight is present");
+            let dispatch_guard = plan_draft
+                .find("      - name: Hold dispatch on an open draft before checkout")
+                .expect("manual/regen dispatch also checks draft status");
+            let plan_checkout = plan_draft
+                .find("      - uses: actions/checkout@")
+                .expect("a real checkout follows the draft guards");
+            assert!(
+                draft_guard < dispatch_guard
+                    && dispatch_guard < plan_checkout
+                    && plan_draft[draft_guard..plan_checkout].contains("DRAFT_DEFERRED_NOT_QUALIFIED")
+                    && plan_draft[draft_guard..plan_checkout].matches("exit 1").count() >= 2
+                    && plan_draft[draft_guard..plan_checkout].contains("gh api -X GET")
+                    && plan_draft[draft_guard..plan_checkout].contains("Draft status unavailable"),
+                "draft and regenerated draft dispatch both fail closed before checkout"
+            );
+            let repro = root_file(".github/workflows/reproducibility.yml");
+            let repro_draft = repro
+                .find("      - name: Hold draft PR before checkout (not qualified)")
+                .expect("reproducibility checks draft state before checkout");
+            let repro_checkout = repro
+                .find("      - uses: actions/checkout@")
+                .expect("reproducibility has a real checkout");
+            assert!(
+                repro.contains("types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]")
+                    && repro_draft < repro_checkout
+                    && repro[repro_draft..repro_checkout].contains("DRAFT_DEFERRED_NOT_QUALIFIED")
+                    && repro[repro_draft..repro_checkout].contains("exit 1"),
+                "the required repro status is never a green draft deferral"
+            );
+            assert!(
+                ci.contains("if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}")
+                    && ci.contains("if: ${{ needs.plan.result == 'success' && needs.plan.outputs.fanout != '[]' }}"),
+                "an unsuccessful draft plan cannot expand a costly matrix"
             );
             // §9.4: a release line is held to the same gate as `main`, so the
             // push trigger of every workflow names both; a workflow that named
