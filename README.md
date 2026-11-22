@@ -215,6 +215,9 @@ Releases live on release lines (SPEC.md §9.4): `release/vX.Y` is the branch of 
 ## Capabilities
 
 Every row is validated by `just vv`; the IDs link the claim to its register row, scenario, and conformance test.
+The registered capability rows below have honesty level `build`: each claim is
+supported only within its documented checks and evidence, not by an assertion
+of complete production or release acceptance.
 
 | Capability | IDs | Level |
 | --- | --- | --- |
