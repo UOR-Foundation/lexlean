@@ -337,6 +337,8 @@ jobs:
     # proof coverage into a CI failure mode.
     timeout-minutes: 360
     env:
+      # CI-only contract: fail rather than silently export bootstrap locally.
+      LEXLEAN_CI_INDEPENDENT_LANE: "1"
       # Operational only (SPEC.md §22.12): no artifact records it, and the
       # telemetry directory is CI evidence, uploaded below.
       LEXLEAN_CI_TELEMETRY: ${{ github.workspace }}/ci-evidence

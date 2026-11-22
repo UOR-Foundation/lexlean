@@ -2794,6 +2794,7 @@ pub(crate) fn run(id: &str) {
             for (from, to) in [
                 ("needs: [plan, honesty]", "needs: [plan, honesty, bootstrap-export]"),
                 ("needs.plan.outputs.fanout_fast != '[]'", "true"),
+                ("LEXLEAN_CI_INDEPENDENT_LANE: \"1\"", "LEXLEAN_CI_INDEPENDENT_LANE: \"0\""),
                 (
                     "fromJSON(needs.plan.outputs.fanout_fast)",
                     "fromJSON(needs.plan.outputs.fanout_export)",
@@ -2886,6 +2887,12 @@ pub(crate) fn run(id: &str) {
                     "the fetcher's custody must refuse `{from}` replaced by `{to}`"
                 );
             }
+            let production_export = root_file("crates/conformance/src/production_export.rs");
+            assert_eq!(
+                production_export.matches("LEXLEAN_CI_INDEPENDENT_LANE").count(),
+                2,
+                "§9.4: both direct and cached bootstrap export paths reject independent CI lanes"
+            );
             bootstrap_custody_decisions();
             honesty_dependencies(&ci).expect("expensive roots require successful same-run honesty");
             assert!(
@@ -4408,6 +4415,7 @@ fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
         ("    needs: [plan, honesty]", "the independent lane starts after honesty"),
         (VV_FAST_GUARD, "the independent lane follows the trusted plan"),
         ("fromJSON(needs.plan.outputs.fanout_fast)", "the independent matrix uses fast rows"),
+        ("      LEXLEAN_CI_INDEPENDENT_LANE: \"1\"", "independent cases refuse unexpected export calls"),
     ] {
         require(&independent, text, rule)?;
     }
