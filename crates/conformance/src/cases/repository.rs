@@ -2592,9 +2592,8 @@ pub(crate) fn run(id: &str) {
             // Conditions name the plan's complete obligations, except the
             // explicit bootstrap-producer dependency for vv. An unsuccessful
             // producer refuses full-gate legs; stacked development runs have
-            // no producer and continue with local exports. Never on the gate
-            // step, and never
-            // a condition on the event or the pull request itself: what a run
+            // no producer and continue with local exports. No condition is
+            // placed on the gate step, event, or pull request itself: what a run
             // is, is decided once, by the plan (a gate skipped by a condition
             // written elsewhere is the weaker PR-only gate).
             let mut step_conditions = 0;
@@ -2615,7 +2614,7 @@ pub(crate) fn run(id: &str) {
                     match line {
                         "        if: ${{ !cancelled() }}" => step_conditions += 1,
                         "    if: ${{ needs.plan.outputs.full == 'true' }}" => full_conditions += 1,
-                        "    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.honesty.result == 'success' && needs.plan.outputs.fanout != '[]' && (needs.plan.outputs.full != 'true' || needs.bootstrap-export.result == 'success') }}" => rows_conditions += 1,
+                        VV_EXPORT_GUARD => rows_conditions += 1,
                         "    if: ${{ needs.plan.outputs.honesty != '[]' }}" => honesty_conditions += 1,
                         other => panic!(
                             "ci.yml:{}: a condition other than a step's `!cancelled()` or a job's condition on the plan: {other}",
@@ -2881,7 +2880,7 @@ pub(crate) fn run(id: &str) {
             );
             assert!(
                 vv.contains("    needs: [plan, honesty, bootstrap-export]\n")
-                    && vv.contains("    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.honesty.result == 'success' && needs.plan.outputs.fanout != '[]' && (needs.plan.outputs.full != 'true' || needs.bootstrap-export.result == 'success') }}\n")
+                    && vv.contains(VV_EXPORT_GUARD)
                     && vv.contains("        include: ${{ fromJSON(needs.plan.outputs.fanout) }}\n"),
                 "§9.4: full-gate vv legs wait for the successful export before runner allocation; stacked legs run without an export"
             );
@@ -4260,6 +4259,11 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
 
 /// The fetcher a leg runs beside its gate command to take the run's
 /// bootstrap export (§9.4).
+const VV_EXPORT_GUARD: &str = concat!(
+    "    if: ${{ !cancelled() && needs.plan.result == 'success' ",
+    "&& needs.honesty.result == 'success' && needs.plan.outputs.fanout != '[]' ",
+    "&& (needs.plan.outputs.full != 'true' || needs.bootstrap-export.result == 'success') }}"
+);
 const TAKE_EXPORT: &str = ".github/scripts/take-bootstrap-export.sh";
 
 /// §9.4: one bootstrap export per run, carried to the legs of the same run.
@@ -4327,7 +4331,7 @@ fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
             "full-gate legs cannot start billed runners before the shared export",
         ),
         (
-            "    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.honesty.result == 'success' && needs.plan.outputs.fanout != '[]' && (needs.plan.outputs.full != 'true' || needs.bootstrap-export.result == 'success') }}\n",
+            VV_EXPORT_GUARD,
             "the successful export is required only for a complete gate; stacked development legs still run",
         ),
     ] {
