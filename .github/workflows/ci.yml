@@ -321,7 +321,7 @@ jobs:
     if: ${{ needs.plan.result == 'success' && needs.plan.outputs.fanout != '[]' }}
     # A failing leg does not cancel the others: each leg's evidence is complete.
     # The legs are the rows of `.github/vv-rows.json`, or only its `rest` row
-    # while the pull request is a draft.
+    # while a ready PR is stacked on a non-release feature branch.
     strategy:
       fail-fast: false
       matrix:
