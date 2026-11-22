@@ -8,7 +8,7 @@ use std::process::Command;
 fn lean_rejection_has_a_failing_process_exit() {
     // The supported-host jobs run non-Lean tests without the Lean toolchain.
     // The normative rest leg has it; missing Lean there must never pass silently.
-    let normative_rest = std::env::var("LEXLEAN_BDD_PART").as_deref() == Ok("rest");
+    let normative_rest = std::env::var("LEXLEAN_BDD_PART").is_ok_and(|part| part == "rest");
     let pinned_lean = Command::new("lean")
         .arg("--version")
         .output()
@@ -109,4 +109,14 @@ fn lean_rejection_has_a_failing_process_exit() {
         result.get("attestation_id").is_none(),
         "a rejected proof cannot report a successful attestation"
     );
+    let verified = project.join(".lexlean/verified");
+    if verified.exists() {
+        assert!(
+            std::fs::read_dir(verified)
+                .expect("verified directory")
+                .next()
+                .is_none(),
+            "a rejected proof cannot publish a verified artifact"
+        );
+    }
 }
