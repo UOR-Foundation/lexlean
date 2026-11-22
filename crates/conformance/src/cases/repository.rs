@@ -2743,6 +2743,22 @@ pub(crate) fn run(id: &str) {
             let take = root_file(TAKE_EXPORT);
             bootstrap_export_workflow(&ci, &take)
                 .expect("§9.4: the run's one bootstrap export and its same-run custody");
+            let vv_job = workflow_job(&ci, "vv").expect("the gate legs");
+            for (from, to) in [
+                (
+                    "needs: [plan, honesty, bootstrap-export]",
+                    "needs: [plan, honesty]",
+                ),
+                ("needs.bootstrap-export.result == 'success'", "true"),
+                ("needs.plan.outputs.full != 'true'", "true"),
+            ] {
+                assert!(vv_job.contains(from), "the plant must change vv: {from}");
+                let planted = ci.replacen(&vv_job, &vv_job.replacen(from, to, 1), 1);
+                assert!(
+                    bootstrap_export_workflow(&planted, &take).is_err(),
+                    "a vv leg cannot bypass export readiness or invent a non-full signal: {from}"
+                );
+            }
             let export_job = workflow_job(&ci, "bootstrap-export").expect("the export job");
             for (from, to) in [
                 ("    needs: [plan, honesty]", "    needs: [plan]"),
