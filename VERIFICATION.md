@@ -988,6 +988,40 @@ same depth was measured directly: on WASI, nesting 512 checked and nesting 1,024
 trapped when the project allowed it, while natively both checked. This is the
 trap the depth vector exists to catch.
 
+### declare can print a document that is not the declarations (CL-29)
+
+`CL-29` holds `lexlean declare` (§23.4). `conformance_cl_29` runs it with
+`lexlean::cli::run` on every example that checks: human stdout must be exactly
+`kernel::declarations_document`'s canonical bytes, self-contained and over a
+one-name lean4export library; the document's `suffix` must be the lines
+`kernel::declare` writes, read without the document builder, with one theorem
+row per theorem production saw; json mode must name `declare` and report the
+source and semantic IDs `check` reports; and the project's files must be
+unchanged. A project `check` refuses gives `check`'s exit code and diagnostics
+and no document, a file that is not an export is `LLV7103`, and a library that
+cannot be read exits 2. Last, the executable built for `wasm32-wasip1` must
+print the same bytes under Node's `node:wasi` on every example that checks.
+
+Planted defect: `declarations_document` without its `suffix` member, so the
+document still parses and names its theorems but carries none of the lines a
+kernel judges. `cargo test -p repo-conformance --all-features --release --test
+conformance conformance_cl_29` failed on the first example in 28.6 s:
+
+```text
+assertion `left == right` failed: CL-29: .../examples/collections: the suffix is the lean4export lines kernel::declare writes
+  left: Null
+ right: String("{\"in\":1,\"str\":{\"pre\":0,\"str\":\"List\"}}
+...
+```
+
+With the member restored, the native half passes on every example. On a
+Windows x86-64 host Node's `node:wasi` does not list a directory (`fd_readdir`
+is `ENOSYS`), so the WASI half cannot run there; with a WASI host that holds
+the project in memory and lists it (prism-code's), the executable built from
+this tree printed the native bytes on 18 of 19 examples, the nineteenth being
+a workspace member run without its workspace (`LLC0108`), in 0.2 to 1.1 s each
+and 64 s for `uor-atlas`.
+
 Node 22 collects garbage inside its fast call of WASI `path_filestat_get`
 and dies with SIGSEGV on a language-1.2 project. The backtrace runs from
 `uvwasi_path_filestat_get` through `MallocImpl` to `Heap::CollectGarbage`. The

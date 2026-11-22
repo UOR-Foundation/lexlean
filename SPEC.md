@@ -571,7 +571,7 @@ On Windows x86-64 that same complete workspace test workload runs as lanes of on
 
 Non-UTF-8 project paths are outside language 1.0 and produce a registered environment diagnostic.
 
-The `lexlean` executable MUST also build for `wasm32-wasip1` with the pinned toolchain, so that `check` runs where a WASI host is the only host, such as a browser worker over a file system held in memory. Run by a WASI host, `check` MUST give the native executable's exit code and JSON output on the same project. WASI has no threads, no file lock, and no processes, and three things follow on that target alone. The check pipeline runs on the instance's one stack rather than on a thread, and the executable is linked with the stack `Limits::compile_stack_plan` plans on there, `lexlean::config::WASI_STACK_BYTES` (80 MiB, which hosts a depth of 1,024), so nesting beyond the configured or the hosted depth is `LLS8002` as on every host (§25.5). The host supplies the rest of the instance's call stack; Node 22's default is sufficient at the hosted depth, and a host whose call stack ends sooner stops the instance with a trap, which is never a verdict. An embedder that links the library into a module of its own links it with at least that stack. A command that changes the project is refused with `LLV7010` before it touches the project, since the exclusive lock of §21.8 cannot be taken; `check` takes no lock. `verify` starts no toolchain process. A file's identity (§25.1) is the device and inode WASI reports for it, so a host that gives one file two names is refused with `LLC0104` there as well. `CL-25` builds the executable for the target from the tree under test and runs it under Node's `node:wasi`, over the real file system, beside the native executable on every single-step `check` fixture of §28.2 that sets no toolchain, overlay, or environment, and on every example.
+The `lexlean` executable MUST also build for `wasm32-wasip1` with the pinned toolchain, so that `check` runs where a WASI host is the only host, such as a browser worker over a file system held in memory. Run by a WASI host, `check` MUST give the native executable's exit code and JSON output on the same project. `declare` (§23.4) MUST print the same bytes there as natively. WASI has no threads, no file lock, and no processes, and three things follow on that target alone. The check pipeline runs on the instance's one stack rather than on a thread, and the executable is linked with the stack `Limits::compile_stack_plan` plans on there, `lexlean::config::WASI_STACK_BYTES` (80 MiB, which hosts a depth of 1,024), so nesting beyond the configured or the hosted depth is `LLS8002` as on every host (§25.5). The host supplies the rest of the instance's call stack; Node 22's default is sufficient at the hosted depth, and a host whose call stack ends sooner stops the instance with a trap, which is never a verdict. An embedder that links the library into a module of its own links it with at least that stack. A command that changes the project is refused with `LLV7010` before it touches the project, since the exclusive lock of §21.8 cannot be taken; `check` takes no lock. `verify` starts no toolchain process. A file's identity (§25.1) is the device and inode WASI reports for it, so a host that gives one file two names is refused with `LLC0104` there as well. `CL-25` builds the executable for the target from the tree under test and runs it under Node's `node:wasi`, over the real file system, beside the native executable on every single-step `check` fixture of §28.2 that sets no toolchain, overlay, or environment, and on every example.
 
 ### 8.4 Cargo dependency rules
 
@@ -9449,6 +9449,11 @@ theorem Lean elaborated, since none exists. A declaration of a kind this does
 not write (a type with value parameters, a class, or an instance) is refused
 with its reason, and so is every declaration that names it.
 
+`lexlean declare` (§23.4) prints these declarations and the theorems produced
+over them as one `lexlean/kernel-declarations/2` document, so a host with no
+Lean (a browser worker running LexLean on `wasm32-wasip1`) can hand a kernel
+everything it judges.
+
 The producers' decisions are those of the bootstrap module `KernelTerms` (§17.23), which
 proves binding, totality, and refusal of the producers it states (`BS-36` to `BS-38`); the
 stage-0 producer decides through the same three checks, which `BS-35` holds to their rendered
@@ -10599,6 +10604,37 @@ lexlean check [--all | INPUT...]
 ```
 
 Runs through linked IR and emits no build artifacts.
+
+#### `declare`
+
+```text
+lexlean declare [--library <EXPORT>] [--all | INPUT...]
+```
+
+Writes the selection's kernel declarations (§18.10) with no Lean: the same
+pipeline as `check`, then `kernel::declare` over the semantic snapshot. With
+`--library`, the lines continue that lean4export 3.1.0 export (a relative
+path is read from the working directory; an export that cannot be read is CLI
+misuse, one that is not lean4export 3.1.0 is `LLV7103`); without it they are
+self-contained. In human mode stdout is exactly the canonical file bytes
+(§21.7) of one `lexlean/kernel-declarations/2` document:
+
+- `spec`: `lexlean/kernel-declarations/2`;
+- `library`: whether the lines continue a library export;
+- `theorems`: for each theorem, in production order, `theorem` (its Lean
+  name), `form` (the kind of its whole proof), `axioms` (its exact declared
+  axioms), `statement` (the declared `LexStmt` constant, when its statement
+  was written), `proof` (its semantic proof), and either `produced` (the
+  constant its proof was written as) or `refused` (why none was);
+- `refused`: each declaration not written, as `{ name, reason }`;
+- `suffix`: the lean4export lines, the declarations' first, then the
+  produced theorems'.
+
+An absent member is omitted. In json mode it prints the command result, named
+`declare`, with the selection's source and semantic IDs. It takes no lock and
+writes nothing, so it runs on `wasm32-wasip1` as `check` does (§8.3). A
+project `check` refuses gives the same exit code and diagnostics and no
+document.
 
 #### `build`
 
@@ -12139,6 +12175,7 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `CL-23` | `cli-api` | lexlean production targets prints the canonical target-descriptor document in either output mode, production build --request publishes the bundle its request names and reports the bundle and the project's source, semantic, build, and attestation IDs in its command result, production verify-artifact replays a bundle with no project, and each maps a malformed request, a refused request, and a rejected replay to the exact exit code of its registered class. | §24.7 |
 | `CL-24` | `cli-api` | lexlean migrate --to 1.2 migrates a language-1.1 data-form project to language 1.2 in one command: it rewrites every module to the authoring notation through lexlean::sdk::to_notation with the same declarations, names, statements, and axiom policies, moves the builtin glossary references of every source and the imports of every path lexicon package to 1.2.0, rewrites the language row, and regenerates the lock as lexlean/lock/2, so the result checks, has a current lock, and is canonical; --check proves the migration and writes nothing; and a project that is not language 1.1 is refused with LLC0103 and a module that is not a language-1.1 data-form semantic module, a data form that is not canonical JSON included, with LLP2003, each leaving every file of the project unchanged. | §17.12, §23.4 |
 | `CL-25` | `cli-api` | The lexlean executable builds for wasm32-wasip1 with the pinned toolchain and, run by a WASI host, gives the native executable's exit code and JSON output for check on every single-step check fixture and every example; there a module with two names of one file is refused with LLC0104, nesting beyond the depth its linked stack hosts is refused with LLS8002, and a command that changes the project is refused with LLV7010 and leaves the project unchanged. | §8.3, §21.8, §25.1 |
+| `CL-29` | `cli-api` | lexlean declare writes the kernel declarations of a selection (SPEC.md §18.10): in human mode its stdout is exactly the canonical file bytes of the lexlean/kernel-declarations/2 document kernel::declarations_document builds from the selection's semantic snapshot, over the lean4export library --library names or self-contained without one; in json mode it prints one command result as check does, named declare, with the source and semantic IDs check reports; a project check refuses gives the same exit code and diagnostics and no document; a library that is not lean4export 3.1.0 is LLV7103; it takes no lock and writes nothing; and the executable built for wasm32-wasip1 and run by a WASI host prints the same bytes on every example that checks. | §23.4, §18.10, §8.3 |
 | `SE-01` | `security` | Source, package, workspace, resource, and output paths are confined and symlinks are rejected. | §25.1 |
 | `SE-02` | `security` | Special files, duplicate filesystem identities, and case-fold collisions are rejected before processing. | §25.1 |
 | `SE-03` | `security` | All child processes use direct executable and argv invocation with no shell. | §25.2 |
@@ -12393,7 +12430,7 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `LM-09` | `language-models` | No prompt is code: no member of the closed language maps `string` or `bytes` to a function, a term, or source — every operation of the primitive registry that takes a `string` or `bytes` operand is classified by the audit with a data result, the registry's schema enumeration and the production registry's primitive rows equal one another and equal that classified set, and the text declarations of `lexlean/semantic-module/2` state no `string`-typed member, so a prompt reaches a model only as the tokens `encodeText` makes of it; a planted operation or text member of that shape is caught by the audit with its name. | §17.12 |
 | `LM-13` | `language-models` | The text laws a tokenizer elaborates through are LexLean source and not authored text: the module that states them is one language-1.2 native core module of the embedded `language/text-1.2` project, the project holds no file of Lean source, no independently authored Lean file anywhere in the release tree declares the `LexLeanText` namespace or lies under its module root, and the one-time migration input is absent; the registry lists only that module, the declarations and their exact axiom policies are read from its native data, which the compiler embeds and hashes into the language-1.2 semantics, and a module that declares a text component imports the generated module rather than splicing any Lean text. | §17.10, §17.12 |
 
-**Total required capability IDs:** 510.
+**Total required capability IDs:** 511.
 
 No row may be downgraded to `some-true` or `open`. Upstream Lean facts are ledger/authority rows, not substitutions for these build behaviors.
 

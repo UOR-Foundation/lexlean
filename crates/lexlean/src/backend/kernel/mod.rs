@@ -445,6 +445,79 @@ pub fn declare(
     })
 }
 
+/// The project's kernel declarations as one `lexlean/kernel-declarations/2`
+/// document (§18.10, `lexlean declare` in §23.4): `library` says whether the
+/// lines continue a library export; `theorems` holds, for each theorem in
+/// production order, its name, the kind of its whole proof, its exact
+/// declared axioms, its declared statement and semantic proof when it has
+/// them, and `produced` (the constant its proof was written as) or `refused`
+/// (why none was); `refused` holds each declaration not written, with its
+/// reason; `suffix` is the lean4export lines, the declarations' first, then
+/// the produced theorems'. An absent member is omitted, never `null` (§21.7).
+///
+/// Writing a byte literal recurses through each of its cells, so the work
+/// runs on the compile stack (§8.3).
+///
+/// # Errors
+///
+/// As [`declare`]: `LLV7103` when `library` is not lean4export 3.1.0 NDJSON.
+pub fn declarations_document(
+    modules: &[KernelModule],
+    library: Option<&str>,
+) -> Result<crate::artifact::canonical_json::Json, Diagnostic> {
+    use crate::artifact::canonical_json::Json;
+    crate::on_stack(crate::config::MAX_COMPILE_STACK_BYTES, || {
+        let declared = declare(modules, library)?;
+        let mut proofs = BTreeMap::new();
+        for module in modules {
+            for declaration in &module.semantic.declarations {
+                if let SemanticDeclaration::Theorem { name, proof, .. } = declaration {
+                    proofs.insert(format!("{}.{name}", module.lean_module), proof);
+                }
+            }
+        }
+        let mut theorems = Vec::new();
+        for row in &declared.production.rows {
+            let mut fields = vec![
+                ("theorem", Json::Str(row.theorem.clone())),
+                ("form", Json::Str(row.form.clone())),
+                ("axioms", Json::Arr(row.axioms.iter().cloned().map(Json::Str).collect())),
+            ];
+            if let Some(statement) = declared.statements.get(&row.theorem) {
+                fields.push(("statement", Json::Str(statement.clone())));
+            }
+            if let Some(proof) = proofs.get(&row.theorem) {
+                let value = serde_json::to_value(proof).map_err(|error| proof_refusal(&row.theorem, &error.to_string()))?;
+                let proof = Json::from_serde(&value).map_err(|error| proof_refusal(&row.theorem, &error))?;
+                fields.push(("proof", proof));
+            }
+            match &row.outcome {
+                Outcome::Produced { constant, .. } => fields.push(("produced", Json::Str(constant.clone()))),
+                Outcome::Refused { reason } => fields.push(("refused", Json::Str(reason.clone()))),
+            }
+            theorems.push(Json::object(fields));
+        }
+        let refused = declared
+            .refused
+            .iter()
+            .map(|r| Json::object(vec![("name", Json::Str(r.name.clone())), ("reason", Json::Str(r.reason.clone()))]))
+            .collect();
+        Ok(Json::object(vec![
+            ("spec", Json::Str("lexlean/kernel-declarations/2".to_owned())),
+            ("library", Json::Bool(library.is_some())),
+            ("theorems", Json::Arr(theorems)),
+            ("refused", Json::Arr(refused)),
+            ("suffix", Json::Str(declared.production.suffix)),
+        ]))
+    })
+}
+
+/// A theorem's semantic proof that does not serialize to canonical JSON: a
+/// linked-IR invariant broken, reported rather than panicking (R5).
+fn proof_refusal(theorem: &str, reason: &str) -> Diagnostic {
+    refusal(format!("the proof of {theorem} is not canonical JSON: {reason}"))
+}
+
 /// Production over `tables`. With `checked`, a produced term may name only
 /// constants the tables declare; with `bind`, each produced theorem is bound
 /// to Lean's when the tables hold it, or always when they are not `checked`.

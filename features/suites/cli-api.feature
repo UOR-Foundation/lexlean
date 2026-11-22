@@ -188,3 +188,12 @@ Feature: cli-api
     And the hard-linked module is refused with LLC0104 on both hosts
     And fmt is refused with LLV7010 and leaves every file of the project as it was
     And nesting within the hosted depth checks as it does natively, and nesting beyond it is LLS8002 on WASI
+
+  @CL-29 @build
+  Scenario: lexlean declare writes the kernel declarations of a selection (SPEC.md §18.10): in human mode its stdout is exactly the canonical file bytes of the lexlean/kernel-declarations/2 document kernel::declarations_document builds from the selection's semantic snapshot, over the lean4export library --library names or self-contained without one; in json mode it prints one command result as check does, named declare, with the source and semantic IDs check reports; a project check refuses gives the same exit code and diagnostics and no document; a library that is not lean4export 3.1.0 is LLV7103; it takes no lock and writes nothing; and the executable built for wasm32-wasip1 and run by a WASI host prints the same bytes on every example that checks.
+    Given every example project that checks, a project check refuses, and a file that is not lean4export 3.1.0
+    When declare runs natively in human and json mode, with and without a library, and under the WASI host
+    Then human stdout is exactly the canonical bytes of the document kernel::declarations_document builds, and the project's files are unchanged
+    And json mode prints one command result named declare with the source and semantic IDs check reports
+    And the refused project gives check's exit code and diagnostics and no document, and the file that is not an export is LLV7103
+    And the executable built for wasm32-wasip1 prints the same bytes on every example that checks
