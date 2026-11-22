@@ -2614,17 +2614,17 @@ pub(crate) fn run(id: &str) {
             ] {
                 assert!(!ci.contains(forbidden), "ci.yml has no `{forbidden}`");
             }
-            // Conditions name the plan's complete obligations, except the
-            // explicit bootstrap-producer dependency for vv. An unsuccessful
-            // producer refuses full-gate legs; stacked development runs have
-            // no producer and continue with local exports. No condition is
-            // placed on the gate step, event, or pull request itself: what a run
-            // is, is decided once, by the plan (a gate skipped by a condition
-            // written elsewhere is the weaker PR-only gate).
+            // The only event-level conditions are the pre-runner draft guard
+            // and the dispatch-status probe. Honesty and both verification
+            // lanes may start only on the plan's selected paths. An export
+            // failure blocks its dependent matrix without blocking unrelated
+            // test feedback. No acceptance recipe has its own skip condition.
             let mut step_conditions = 0;
             let mut full_conditions = 0;
             let mut rows_conditions = 0;
             let mut honesty_conditions = 0;
+            let mut draft_conditions = 0;
+            let mut dispatch_conditions = 0;
             for (index, line) in jobs
                 .iter()
                 .filter(|(key, _)| {
@@ -2640,7 +2640,9 @@ pub(crate) fn run(id: &str) {
                         "        if: ${{ !cancelled() }}" => step_conditions += 1,
                         "    if: ${{ needs.plan.outputs.full == 'true' }}" => full_conditions += 1,
                         VV_EXPORT_GUARD | VV_FAST_GUARD => rows_conditions += 1,
-                        "    if: ${{ needs.plan.outputs.honesty != '[]' }}" => honesty_conditions += 1,
+                        "    if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}" => honesty_conditions += 1,
+                        "    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}" => draft_conditions += 1,
+                        "        if: ${{ github.event_name == 'workflow_dispatch' }}" => dispatch_conditions += 1,
                         other => panic!(
                             "ci.yml:{}: a condition other than a step's `!cancelled()` or a job's condition on the plan: {other}",
                             index + 1
@@ -2660,6 +2662,11 @@ pub(crate) fn run(id: &str) {
             );
             assert_eq!(rows_conditions, 2, "each matrix lane runs only its plan-selected rows");
             assert_eq!(honesty_conditions, 1, "honesty runs when the plan names it");
+            assert_eq!(draft_conditions, 1, "drafts skip all runner-backed CI");
+            assert_eq!(
+                dispatch_conditions, 1,
+                "the dispatch guard checks open draft PR status before checkout"
+            );
             intel_host_workflow(&ci).expect("§8.3: the host inventory and Intel custody graph");
             for host in &LANE_HOSTS {
                 lane_host_workflow(&ci, host).unwrap_or_else(|error| {
@@ -4766,7 +4773,7 @@ fn honesty_dependencies(ci: &str) -> Result<(), String> {
     let initial = workflow_job(ci, "honesty")?;
     if !initial.contains("name: ${{ matrix.part }}\n")
         || !initial.contains("needs: [plan]\n")
-        || !initial.contains("if: ${{ needs.plan.outputs.honesty != '[]' }}")
+        || !initial.contains("if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}")
     {
         return Err(
             "RP-14: honesty must expose its matrix-resolved context and follow the plan".to_owned(),
