@@ -1,16 +1,58 @@
 <div align="center">
-  <img src="assets/lexlean-logo.png" alt="LexLean" width="1200">
+  <img src="assets/readme-banner-PLACEHOLDER.png" alt="LexLean provisional artwork: formal reasoning, placeholder not approved" width="100%">
 
-  <p><strong>One controlled language in. A canonical paper, a kernel checked Lean 4 program, and a certified Rust package out.</strong></p>
+  <p><em>Illustrative placeholder artwork, pending UOR Foundation brand approval.</em></p>
+
+  <p><strong>One carefully defined source for readable documentation and code that can be checked.</strong></p>
 </div>
 
 # LexLean
 
 [Spec](SPEC.md) · [Conformance](CONFORMANCE.md) · [Diagnostics](ERRORS.md) · [Evidence](VERIFICATION.md) · [Changelog](CHANGELOG.md) · [MNIST model](https://github.com/UOR-Foundation/MNIST)
 
-A closed-lexicon LaTeX-to-Lean 4 compiler whose canonical document and prose-free Lean program are generated from one semantic representation.
+**Write one precise description. Generate documentation and proof-checkable code from it.**
 
-The complete normative contract is [SPEC.md](SPEC.md) (`LEXLEAN-SPEC-1`). Every capability below is a claim in [`model/ids.toml`](model/ids.toml), carried at honesty level `build`: constructed here and validated against its oracle by the test named `conformance_<id>`. The generated register is [CONFORMANCE.md](CONFORMANCE.md); the closed diagnostic registry is [ERRORS.md](ERRORS.md); the falsifiability evidence is in [VERIFICATION.md](VERIFICATION.md).
+[Why LexLean exists](#why-lexlean-exists) · [Install](#install) · [Concrete example](#the-literal-example) · [Checked examples](#examples-that-verify-under-the-pinned-toolchain) · [Evidence boundary](#evidence-not-belief) · [Known deviations](#documented-deviations)
+
+[![CI](https://github.com/UOR-Foundation/lexlean/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/UOR-Foundation/lexlean/actions/workflows/ci.yml) [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-718096)](LICENSE-MIT)
+
+
+## Why LexLean exists
+
+Software and research projects often explain an idea in one document and
+implement it in a separate program. Over time, those two versions can
+disagree. Readers may not know whether a written claim is backed by a
+machine-checked result or is simply an assumption.
+
+**LexLean narrows that gap.** Authors write in a controlled language whose
+words and rules are declared in advance. From the same source, LexLean
+generates a readable document and code for the Lean proof checker.
+The goal is to make the connection between an explanation and its
+formal checks easier to inspect.
+
+LexLean is **not** a tool that automatically makes every statement true.
+A check only establishes what the accepted model and the proof tools
+actually verify. Unsupported input or missing evidence must remain visible.
+
+## Start here
+
+- [What it does](#what-it-does): understand the compiler and its verification path
+- [Install](#install): get a supported toolchain and run the commands
+- [The literal example](#the-literal-example): read an actual source document
+- [Examples that verify](#examples-that-verify-under-the-pinned-toolchain): inspect tested inputs
+- [Evidence, not belief](#evidence-not-belief): see exactly which claims are supported
+- [Capabilities](#capabilities) and [documented deviations](#documented-deviations): understand scope and gaps
+
+## Technical description
+
+A closed-lexicon LaTeX-to-Lean 4 compiler whose canonical document and
+prose-free Lean program are generated from one semantic representation.
+
+The complete normative contract is [SPEC.md](SPEC.md) (`LEXLEAN-SPEC-1`).
+Every capability below is registered in [`model/ids.toml`](model/ids.toml)
+and must be backed by the checks recorded in [CONFORMANCE.md](CONFORMANCE.md).
+The diagnostic registry is [ERRORS.md](ERRORS.md), and the falsifiability
+evidence is in [VERIFICATION.md](VERIFICATION.md).
 
 ## What it does
 
@@ -174,6 +216,9 @@ Releases live on release lines (SPEC.md §9.4): `release/vX.Y` is the branch of 
 ## Capabilities
 
 Every row is validated by `just vv`; the IDs link the claim to its register row, scenario, and conformance test.
+The registered capability rows below have honesty level `build`: each claim is
+supported only within its documented checks and evidence, not by an assertion
+of complete production or release acceptance.
 
 | Capability | IDs | Level |
 | --- | --- | --- |
