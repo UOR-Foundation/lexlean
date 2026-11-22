@@ -369,6 +369,31 @@ fn plan_decisions() {
             serde_json::from_str(&value("fanout_fast")).expect("fast rows");
         let export: Vec<serde_json::Value> =
             serde_json::from_str(&value("fanout_export")).expect("export rows");
+        // A complete partition is not enough: the planner must also put
+        // every bootstrap-consuming case behind its producer and leave
+        // unrelated verification on the independent lane.
+        let bdd_manifest: serde_json::Value =
+            serde_json::from_str(&root_file(".github/bdd-parts.json"))
+                .expect("the committed BDD partition manifest");
+        let requires_export = |row: &serde_json::Value| {
+            if row["part"] == "examples" || row["part"] == "rest" {
+                return false;
+            }
+            let part = row["bdd_part"].as_str().expect("a BDD part");
+            let ids = bdd_manifest["parts"][part]
+                .as_array()
+                .expect("a registered BDD part");
+            ids.iter()
+                .any(|id| id.as_str().is_some_and(|id| id.starts_with("BS-")))
+        };
+        assert!(
+            fast.iter().all(|row| !requires_export(row)),
+            "the independent lane cannot contain a bootstrap-consuming BDD part"
+        );
+        assert!(
+            export.iter().all(&requires_export),
+            "the exporter lane contains only bootstrap-consuming BDD parts"
+        );
         let mut dispatched = fast;
         dispatched.extend(export);
         let mut expected = fanout.clone();
