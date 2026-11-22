@@ -227,8 +227,9 @@ jobs:
   # leg's own run and checkout and replays the bundle before the case reads
   # it. In a full gate, the legs now wait before acquiring runners for this
   # producer; a stacked development signal still starts after honesty and
-  # performs a local export if required. The artifact stays same-run only. The export verifies the
-  # bootstrap project through the same `verify` the `examples` recipe runs,
+  # performs a local export if required. The artifact stays same-run only.
+  # The export verifies the bootstrap project through the same `verify`
+  # that the `examples` recipe runs,
   # so this job is also that project's part of the recipe: it formats, locks,
   # checks, and builds a clean copy first, and holds the export's verified
   # directory to the recipe's checks after, and the `examples` leg does not
