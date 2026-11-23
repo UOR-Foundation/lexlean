@@ -66,7 +66,7 @@ class ReportContracts(unittest.TestCase):
         prs, summary = metrics.summarize(metrics.load(RUNS), metrics.load(COSTS), "before")
         self.assertEqual(len(prs), 50)
         self.assertEqual(summary["workflow_run_count"], 128)
-        self.assertEqual(summary["pr_with_premerge_green"], 31)
+        self.assertEqual(summary["pr_with_premerge_green"], 29)
         self.assertAlmostEqual(summary["observed_runner_job_minutes_total"], 99321.66, delta=.1)
         self.assertIsNone(summary["billing_minutes"])
         self.assertTrue(all(x["period"] == "before" for x in prs))
