@@ -2,7 +2,7 @@
 
 **Owner issue:** [#603](https://github.com/UOR-Foundation/lexlean/issues/603).
 **Implementation:** [draft PR #606](https://github.com/UOR-Foundation/lexlean/pull/606).
-**Previous hosted report:** [successful run #45103348902](https://github.com/UOR-Foundation/lexlean/actions/runs/45103348902) and [prior five-file artifact](https://github.com/UOR-Foundation/lexlean/actions/runs/45103348902/artifacts/14785564491) are the original runner-minutes and time-to-green presentation, **before** the new private-cost graph. The revised six-file report is generated from the same pinned evidence snapshots; its hosted verification must be separately confirmed.
+**Current hosted report:** [successful run #45104134139](https://github.com/UOR-Foundation/lexlean/actions/runs/45104134139), exact source HEAD `3547cb158e82191c131f8d02566e8cb32ae18214`, [six-file evidence artifact](https://github.com/UOR-Foundation/lexlean/actions/runs/45104134139/artifacts/14786995941) (expires 2026-12-07). **All 88 Python tests and graph generation passed**, using the pinned historical snapshots. The artifact contains the new estimated private-cost chart, observed runner-minutes chart, premerge time-to-green chart, CSV, report summary and Markdown README. This is hosted verification of the report, not a measured postcutover change in mandatory CI.
 
 ## Evidence ledger
 
