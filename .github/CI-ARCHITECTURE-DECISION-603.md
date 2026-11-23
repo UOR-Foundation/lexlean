@@ -39,7 +39,7 @@ for r in d["runs"]:
           round(r["job_execution_envelope_seconds"]/60,3))
 PY
 ```
-A3 is implemented against **different source** and has not yet passed exact-head hosted Ready. No hypothetical job-minute number is elevated to a measured outcome.
+A3 is implemented against **different source**; its acceptance requires a passing exact-head hosted Ready qualification. No hypothetical job-minute number is elevated to a measured outcome.
 
 ## Governed event and failure scenario matrix
 
