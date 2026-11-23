@@ -28,3 +28,19 @@ The original 77 successes represent **1129.950 historical unweighted runner-job 
 The complete paginated job snapshot is stored in [`.github/metrics/ci-native-targeted-retry-20261123.json`](metrics/ci-native-targeted-retry-20261123.json). At snapshot, the run is **IN_PROGRESS** with ARM in_progress; no exact-run success is claimed. The old 77 successful job execution times were preserved. The final result must be checked separately before any release status claim.
 
 Do **not** replace an interrupted host with `continue-on-error`, a zero-test pass, a different architecture, a skipped matrix row, an unapproved required-check exemption or a historical green job from another commit.
+
+## Read-only retry-verification implementation and qualification (2026-11-23)
+
+Run `python3 .github/scripts/ci_retry_receipts.py --ledger
+.github/metrics/ci-native-targeted-retry-20261123.json` on the frozen
+attempt snapshot. This utility checks run and exact SHA, 78 unique
+required job names, attempt identity, prior successful execution timestamps,
+single new ARM execution and false-green verdicts. It never calls GitHub,
+retries jobs or authorizes release. The captured attempt is still marked
+PENDING, regardless of a later live result until refreshed from GitHub.
+
+Hosted [nonqualifying run #45195912523](https://github.com/UOR-Foundation/lexlean/actions/runs/45195912523)
+passed 225 Python tests, including all 14 new adversarial cases and the
+real in-repository attempt snapshot integration. Temporary opt-in marker
+removed. Do not treat developer-feedback green as a replacement for an
+uninterrupted native host conformance verdict or release-gate.sh.

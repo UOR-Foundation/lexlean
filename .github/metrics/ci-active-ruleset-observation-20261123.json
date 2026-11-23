@@ -1,0 +1,76 @@
+{
+  "schema": "lexlean/required-status-ruleset-observation/1",
+  "source_repo": "UOR-Foundation/lexlean",
+  "observed_utc_date": "2026-11-23",
+  "default_branch": "main",
+  "public_repo": true,
+  "source": "https://api.github.com/repos/UOR-Foundation/lexlean/rulesets?includes_parents=true&per_page=100",
+  "active_rulesets": [
+    {
+      "id": 27250410,
+      "name": "governance-6.2-t1",
+      "target": "branch",
+      "enforcement": "active",
+      "conditions": {
+        "ref_name": {
+          "exclude": [],
+          "include": [
+            "~DEFAULT_BRANCH"
+          ]
+        }
+      },
+      "rules": [
+        {
+          "type": "pull_request",
+          "parameters": null
+        },
+        {
+          "type": "non_fast_forward",
+          "parameters": null
+        }
+      ]
+    },
+    {
+      "id": 24654881,
+      "name": "main",
+      "target": "branch",
+      "enforcement": "active",
+      "conditions": {
+        "ref_name": {
+          "exclude": [],
+          "include": [
+            "~DEFAULT_BRANCH"
+          ]
+        }
+      },
+      "rules": [
+        {
+          "type": "deletion",
+          "parameters": null
+        },
+        {
+          "type": "non_fast_forward",
+          "parameters": null
+        },
+        {
+          "type": "pull_request",
+          "parameters": null
+        },
+        {
+          "type": "required_status_checks",
+          "parameters": {
+            "strict_required_status_checks_policy": true,
+            "do_not_enforce_on_create": false,
+            "required_status_checks": []
+          }
+        }
+      ]
+    }
+  ],
+  "listed_active_ruleset_count": 2,
+  "active_published_required_status_contexts": [],
+  "classic_branch_protection_effective_settings_verified": false,
+  "release_line_required_statuses_verified": false,
+  "normative_repository_spec_overridden": false,
+  "review_note": "An empty required_status_checks list in an accessible active ruleset cannot establish that legacy branch protections or the SPEC have no required checks."
+}

@@ -590,3 +590,21 @@ CI. Production AFTER remains N/A.
 [Release CI #45170496660](https://github.com/UOR-Foundation/lexlean/actions/runs/45170496660) at `f57650e6cf1fd04df0858d7bb97b1071a1c83220` had 77/78 successful jobs and Linux ARM failed on an external runner shutdown during conformance. The run had approximately **1,176 unweighted runner-job minutes**, of which ARM occupied **46.05 minutes** before interruption. A single GitHub-supported rerun of the failed job was requested. Attempt 2 contains 77 successful job receipts carrying **byte-identical original started/completed timestamps**, and one newly running Linux ARM job (`137750931489`). GitHub reassigns job IDs and `run_attempt=2` to the entire displayed job set, so ID changes must NOT be counted as new executions.
 
 The 77 untouched successful jobs represent **1129.950 observed unweighted minutes of work** not repeated by this targeted attempt. **Actual billed delta and retry final outcome remain unknown**. This recovery is source-/run-bound, not a production CI architecture cutover. See [native recovery runbook](../CI-NATIVE-RECOVERY.md) and [paginated attempt ledger](ci-native-targeted-retry-20261123.json). No normative workflow, automatic retry, required context, host identity, proof or publication authority was altered.
+
+## Required-status authority snapshot and hosted retry-verifier qualification (2026-11-23 UTC)
+
+An exact-head **one-job nonqualifying preview** [#45195912523](https://github.com/UOR-Foundation/lexlean/actions/runs/45195912523)
+passed **225 Python tests**, including all 14 new partial-retry receipt mutation
+tests and the real 78-job historical-ledger integration, plus the existing
+Intel audit and artifact upload (artifact ID **14827761197**). This qualifies
+the read-only audit script at tested HEAD `05faddefd8433f400ab85bac2ec5508accd58081`
+as developer feedback, not as the production native/release gate.
+
+Live GitHub ruleset inspection returned two active default-branch-scoped
+rulesets, one of which publishes `required_status_checks: []` and the
+other includes no required-status-check rule. Repo default is `main`.
+This is **NOT** evidence that classic branch protections lack required
+contexts, nor that the release branch is unprotected or the normative
+SPEC obligations can be removed. See the associated ruleset JSON snapshot.
+Effective required contexts and classic branch protection remain an open
+authority-boundary item for #603 DOD-1. No branch policies were changed.
