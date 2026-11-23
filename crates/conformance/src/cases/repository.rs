@@ -775,7 +775,8 @@ fn plan_decisions() {
         if !in_jobs {
             continue;
         }
-        if let Some(name) = line.strip_prefix("  ").and_then(|s| s.strip_suffix(':')) {
+        if line.starts_with("  ") && !line.starts_with("   ") && line.ends_with(':') {
+            let name = &line[2..line.len() - 1];
             if name.starts_with('#') {
                 continue;
             }
