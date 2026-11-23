@@ -89,8 +89,8 @@ better on comparable actual runs.
 
 The optional preview's **one job** passed hosted tests and genuine
 change-conditional Python/whitespace execution; targeted Rust package
-selection is implemented and tested synthetically but not yet exercised by a
-hosted Rust-source change. None of this replaces `SPEC.md §9.4`, RP-13/14,
+selection passed a nonqualifying hosted `xtask` source change in [run #45105140427](https://github.com/UOR-Foundation/lexlean/actions/runs/45105140427),
+while downstream transitive proof and merge qualification remain unverified. None of this replaces `SPEC.md §9.4`, RP-13/14,
 Atlas, supported-host, release or reproducibility obligations.
 
 **#603 is OPEN** until the actual ready-PR production CI is repaired and
@@ -106,3 +106,56 @@ ledger is to prevent the team from confusing a green pilot with that outcome.
 - **Magnitude (frozen historical sample):** join `ci-before-pr50-runs.json` to `ci-before-pr50-job-costs.json` on run ID. Of **99,321.656** observed job-minutes, `ci` contributes **97,835.487**, standalone `reproducibility` **275.668**, and regenerate/release/tag collectively **1,210.501**. Even zeroing *all* standalone repro runner minutes would be an illustrative upper bound of **0.278%** of this sample, not a permissible cut or earned saving. The much larger `ci` matrix and its actual test internals remain the primary optimization priority.
 
 **Engineering gate still HOLD:** source-bound complete normative detector and proof-obligation closure; real downstream-change hosted validation; alternative strategy/failure simulations; required-status governance; exact-head production cutover; matched post-cutover savings. Nothing here changes the acceptance workflow or establishes AFTER ROI.
+
+## Per-job evidence gap and next cost study (2026-11-23 UTC)
+
+Frozen history: 128 complete final-HEAD workflow runs across 50 merged PRs contain
+99,321.656 observed unweighted runner-job minutes. Main `ci` accounts for
+97,835.487 of those minutes, across 68 runs and 4,296 reported jobs;
+standalone `reproducibility` accounts for 275.668 minutes. However, the
+snapshot preserves **per-run** platform durations, not individual job names
+and timing. It cannot identify which BDD, Atlas, checkout, or native host
+jobs dominate. Do not impute a job ranking from aggregated run totals.
+
+Seven of the 50 PRs each exceeded 3,000 observed job-minutes; together
+they account for 27,891.885 minutes (28.08% of the sample). This is
+concentration, not a proven explanation of waste or merge delay.
+
+New optional `ci_metrics_collect.py --include-job-breakdown` writes
+`<period>-jobs.json` from **existing** paginated GET responses, without
+any additional network calls or workflow executions. It retains exact
+PR HEAD, run and attempt, unique job ID/name, status, runner labels, and
+observed timestamps. The original snapshot schemas remain compatible.
+
+The offline `ci_job_hotspots.py` validates the job ledger against **both**
+the run inventory and run cost snapshot before producing a group ranking,
+observed execution envelope, and source-attributed CSV/JSON. Skipped jobs
+have N/A elapsed time rather than fabricated zero. It refuses missing,
+duplicated, partial, cross-HEAD or cross-attempt evidence. Historical
+aggregate-only source is explicitly insufficient.
+
+On an explicitly authorized future read-only capture, use:
+
+```sh
+python3 .github/scripts/ci_metrics_collect.py \
+  --period before --cutover-utc "$CUTOVER_UTC" \
+  --limit 50 --max-api-calls 800 --include-job-breakdown \
+  --output-dir ci-evidence/jobs
+python3 .github/scripts/ci_job_hotspots.py \
+  --jobs ci-evidence/jobs/before-jobs.json \
+  --runs ci-evidence/jobs/before-runs.json \
+  --costs ci-evidence/jobs/before-costs.json \
+  --output-dir ci-evidence/hotspots
+```
+
+Requires read-only `GITHUB_TOKEN`; there is no scheduled collection,
+postcutover outcome or provider-billed-dollar measurement. Do **not**
+spend API or Actions budgets merely to generate an attractive forecast.
+
+**Decision gate:** First establish job-level hotspots. Compare preserving
+the mandatory full gate with (a) required-check-preserving early stages
+and (b) same-run build reuse validated against clean-build/proof receipts.
+Early staging can delay clean PRs; reuse may weaken independent assurance.
+Source-selective *merge* qualification stays HOLD until all generated,
+native, proof and release edges and required-status governance are proven.
+Simulated or predicted production ROI remains **UNKNOWN**, not zero.
