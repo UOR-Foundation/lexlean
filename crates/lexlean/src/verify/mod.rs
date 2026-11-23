@@ -885,7 +885,7 @@ pub fn run_part(
         use crate::production::rust_cert;
         for (index, root) in roots(checked).map_err(fail)?.iter().enumerate() {
             let (lowered, program) = lowered_roots[index].clone();
-            // SPEC §17: certificates are named by the project's semantic ID.
+            // SPEC §17.17: certificates are named by the project's semantic ID.
             // The operational process store (§22.13) must not rename proof
             // modules or change the committed verification identity.
             let module = format!("LexLeanPreserve.C{semantic_hex32}.R{index}");
