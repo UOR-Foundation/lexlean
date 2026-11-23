@@ -106,6 +106,23 @@ class TagGateProof(unittest.TestCase):
         self.assertIn("no run of ci.yml verified", proc.stdout)
         self.assertEqual(count, 1)
 
+    def test_provider_cancelled_is_rejected(self):
+        proc, count = self.run_wait("refuse", state="completed cancelled https://example.invalid/run")
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("did not pass", proc.stdout)
+        self.assertEqual(count, 1)
+
+    def test_unavailable_provider_response_fails_closed(self):
+        # Exercise the actual poll shell, replacing only its wait horizon
+        # to keep the no-API-response failure control bounded offline.
+        self.assertEqual(self.script.count("seq 1 340"), 1)
+        self.assertEqual(self.script.count("sleep 60"), 1)
+        bounded = self.script.replace("seq 1 340", "seq 1 2").replace("sleep 60", ":")
+        proc, count = self.run_wait("refuse", state="", script=bounded)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("did not finish in time", proc.stdout)
+        self.assertEqual(count, 1)
+
     def test_regression_does_not_accept_success_without_gate_recheck(self):
         self.assertLess(self.source.index(WAIT), self.source.index(TAG))
         self.assertEqual(self.script.count(".github/release-gate.sh"), 2)
