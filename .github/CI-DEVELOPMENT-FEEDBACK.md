@@ -14,13 +14,15 @@ The stdlib-only `.github/scripts/ci_impact_preview.py` chooses real actions with
 - Changed tracked files: `git diff --check` for whitespace mistakes.
 - Any changed, renamed or deleted Rust source (`.rs`): pinned-toolchain `cargo fmt --all -- --check`.
 - Any changed CI Python script/test under `.github/scripts/`: actual `unittest discover` for the existing CI Python contract tests.
+- Any changed Rust source within one of the four known Cargo packages: read the **current workspace + all four crate manifests**, validate the declared Cargo members and internal path dependencies, derive the reverse **transitive downstream package closure**, and run exactly one `cargo check --all-targets --all-features` call with only those `-p` packages. For example, `xtask/src/*` changes select only `xtask`; compiler changes select `lexlean`, `repo-conformance` and `xtask`. This compiles selected targets but **does not execute the test or proof suites**.
+- A new crate, malformed/missing manifest, unknown inherited or local path dependency, or changed workspace membership/exclusion **fails the preview** instead of blessing a partial dependency graph. Unknown `.rs` files outside the four known package trees are reported as unresolved and never treated as safely skipped.
 - Other paths (including model or generated inputs, README, SPEC, policies, lockfiles, toolchains, unknowns): **not proven unaffected** and not classified as harmless. The preview still performs available cheap checks but explicitly leaves the full normative obligations unverified.
 
 This **is not yet a transitive dependency-to-verifier graph**. Its small, conservative classification demonstrates selected execution, actual commands and explicit unknowns without changing the protected full workflow. Once the project-specific impact closure and threat/detector map have passed negative controls, Phase B can compare deeper graph selection against stage placement and conventional work-reuse alternatives.
 
 ## Use and verification
 
-The workflow is manually dispatched using **Actions → CI development feedback (NONQUALIFYING) → Run workflow**, selecting the source branch and specifying `base_ref`. GitHub Actions generally requires a `workflow_dispatch` workflow to exist on the default branch before manual runs are available; this PR alone does not establish that it is dispatchable.
+The workflow is manually dispatched using **Actions → CI development feedback (NONQUALIFYING) → Run workflow**, selecting the source branch and specifying `base_ref`. It needs **Python 3.11+** for standard-library TOML parsing (`tomllib`), provided on Ubuntu 24.04. GitHub Actions generally requires a `workflow_dispatch` workflow to exist on the default branch before manual runs are available; this PR alone does not establish that it is dispatchable.
 
 To validate without any hosted runner:
 
@@ -28,7 +30,7 @@ To validate without any hosted runner:
 python3 -m unittest discover -s .github/scripts -p 'test_ci_impact_preview.py' -v
 ```
 
-The local tests plant Rust deletion, cross-language rename, CI Python, model/README/lockfile changes, bad statuses, truncated NUL diffs, invalid paths, stale/malformed revision IDs, false green workflow triggers and missing required boundary. An isolated green test suite is not live provider execution or economic outcome proof.
+The local tests plant Rust deletion, cross-language rename, CI Python, model/README/lockfile changes, type-changed/nonregular files, bad statuses, truncated NUL diffs, invalid paths, stale/malformed revision IDs, false green workflow triggers, Cargo downstream dependency closure, workspace member/alias/path drift, and missing required boundary. An isolated green test suite is not live provider execution or economic outcome proof.
 
 ## Next gated phase
 
