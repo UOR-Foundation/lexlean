@@ -2069,6 +2069,78 @@
           "head_sha": "835005153c8bca4b27af1389c42c4559ea187f12"
         }
       ]
+    },
+    {
+      "number": 405,
+      "merged_at": "2026-11-14T20:56:31Z",
+      "created_at": "2026-11-03T10:25:37Z",
+      "base_branch": "release/v0.5",
+      "head_sha": "716bc85ec29048d07db0fa8ed4991d0de449a391",
+      "head_branch": "integration/v04-to-v05-backlog-404",
+      "run_total_reported": 2,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 43582153525,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T09:46:47Z",
+          "run_started_at": "2026-11-14T20:21:16Z",
+          "updated_at": "2026-11-14T20:55:42Z",
+          "run_attempt": 2,
+          "head_sha": "716bc85ec29048d07db0fa8ed4991d0de449a391"
+        },
+        {
+          "id": 43582153527,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T09:46:47Z",
+          "run_started_at": "2026-11-14T09:46:47Z",
+          "updated_at": "2026-11-14T10:09:14Z",
+          "run_attempt": 1,
+          "head_sha": "716bc85ec29048d07db0fa8ed4991d0de449a391"
+        }
+      ]
+    },
+    {
+      "number": 431,
+      "merged_at": "2026-11-14T15:58:52Z",
+      "created_at": "2026-11-03T15:19:37Z",
+      "base_branch": "release/v0.4",
+      "head_sha": "d444c2305253c01fe57a78ba2f5c582c5ad52b74",
+      "head_branch": "codex/snapshot-canonical-depth",
+      "run_total_reported": 2,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 43592465105,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "cancelled",
+          "status": "completed",
+          "created_at": "2026-11-14T11:57:47Z",
+          "run_started_at": "2026-11-14T11:57:47Z",
+          "updated_at": "2026-11-14T20:03:42Z",
+          "run_attempt": 1,
+          "head_sha": "d444c2305253c01fe57a78ba2f5c582c5ad52b74"
+        },
+        {
+          "id": 43592465020,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T11:57:46Z",
+          "run_started_at": "2026-11-14T11:57:46Z",
+          "updated_at": "2026-11-14T12:11:49Z",
+          "run_attempt": 1,
+          "head_sha": "d444c2305253c01fe57a78ba2f5c582c5ad52b74"
+        }
+      ]
     }
   ]
 }
