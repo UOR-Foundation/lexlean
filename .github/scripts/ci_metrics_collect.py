@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REPO_PATTERN = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
+JOB_SCHEMA = "lexlean/ci-job-detail/1"
 
 
 def require(ok, message):
@@ -38,6 +39,8 @@ class Reader:
         self.token = token
         self.limit = limit
         self.requests = 0
+        # Populated only on explicit request, using already-fetched job data.
+        self.job_details = None
 
     def get(self, endpoint, **params):
         require(self.requests < self.limit, "API call budget exceeded, fail closed")
@@ -118,7 +121,9 @@ class Reader:
             page += 1
             require(page <= 100, "merged PR search incomplete under page budget")
 
-    def capture(self, mode, boundary, limit):
+    def capture(self, mode, boundary, limit, include_jobs=False):
+        require(type(include_jobs) is bool, "include_jobs must be bool")
+        self.job_details = None
         prs = self.pr_candidates(mode, boundary, limit)
         if mode == "before":
             require(len(prs) == limit, "not enough prior merged PRs for baseline")
@@ -127,6 +132,7 @@ class Reader:
         require(prs, "no merged PRs in requested window; no after data")
         rows = []
         all_costs = []
+        job_rows, seen_job_ids = [], set()
         for pr in prs:
             head = pr["head"]["sha"]
             require(re.fullmatch(r"[0-9a-f]{40}", head), "missing exact HEAD")
