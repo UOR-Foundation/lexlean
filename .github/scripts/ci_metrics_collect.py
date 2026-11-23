@@ -250,20 +250,27 @@ def main(argv=None):
     parser.add_argument("--limit", type=int, default=50)
     parser.add_argument("--max-api-calls", type=int, default=800)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--include-job-breakdown", action="store_true",
+                        help="Capture per-job timing from existing API pages, no additional reads")
     args = parser.parse_args(argv)
     require(1 <= args.limit <= 50, "PR cohort must be within 1..50")
     boundary = clock(args.cutover_utc)
     reader = Reader(args.repo, os.environ.get("GITHUB_TOKEN", ""), args.max_api_calls)
-    runs, costs = reader.capture(args.period, boundary, args.limit)
+    runs, costs = reader.capture(args.period, boundary, args.limit,
+                                 include_jobs=args.include_job_breakdown)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     # Do not write partial snapshots if a GitHub query or bound failed.
     (args.output_dir/(args.period+"-runs.json")).write_text(
         json.dumps(runs, indent=2, sort_keys=True)+"\n", encoding="utf-8")
     (args.output_dir/(args.period+"-costs.json")).write_text(
         json.dumps(costs, indent=2, sort_keys=True)+"\n", encoding="utf-8")
+    if args.include_job_breakdown:
+        (args.output_dir/(args.period+"-jobs.json")).write_text(
+            json.dumps(reader.job_details, indent=2, sort_keys=True)+"\n", encoding="utf-8")
     print(json.dumps({
         "period": args.period, "pr_count": len(runs["rows"]),
         "workflow_runs": len(costs["run_costs"]), "read_api_calls": reader.requests,
+        "detailed_jobs": len(reader.job_details["jobs"]) if reader.job_details else None,
         "actual_billed_minutes": None,
         "provider_cost": "NOT_MEASURED", "scope": runs["scope"]}, sort_keys=True))
     return 0
