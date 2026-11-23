@@ -76,6 +76,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
+          # Preserve full ancestry for merge-base, fetch historical blobs lazily.
+          # Nonqualifying pilot only: matched A/B #45116345568 and #45116629117.
+          filter: blob:none
           persist-credentials: false
       - name: Pin trusted-base comparison and decide real feedback commands
         id: plan
