@@ -30,6 +30,7 @@ def prove(text):
                      'test "$(git rev-parse --is-shallow-repository)" = false',
                      'git merge-base --is-ancestor "$EXPECTED_BASE" "$EXPECTED_HEAD"'):
         assert required in restore
+    assert 'test "$(git rev-parse --verify HEAD)" = "$EXPECTED_HEAD"' in restore
     assert 'continue-on-error:' not in restore
     assert text.count('git merge-base --is-ancestor') == 2
     assert text.count('timeout-minutes: 20') == 1
