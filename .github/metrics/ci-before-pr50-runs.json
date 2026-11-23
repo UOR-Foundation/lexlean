@@ -377,6 +377,342 @@
           "head_sha": "3a995b688a5630e7b7187fa465b546c987e27a2b"
         }
       ]
+    },
+    {
+      "number": 591,
+      "merged_at": "2026-11-20T17:41:06Z",
+      "created_at": "2026-11-20T16:21:57Z",
+      "base_branch": "main",
+      "head_sha": "18dcf615f98738e2768526fe66dc90a327686426",
+      "head_branch": "feat/kernel-declarations",
+      "run_total_reported": 2,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 44784760542,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-20T17:35:34Z",
+          "run_started_at": "2026-11-20T17:35:34Z",
+          "updated_at": "2026-11-20T17:40:59Z",
+          "run_attempt": 1,
+          "head_sha": "18dcf615f98738e2768526fe66dc90a327686426"
+        },
+        {
+          "id": 44784760723,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-20T17:35:34Z",
+          "run_started_at": "2026-11-20T17:35:34Z",
+          "updated_at": "2026-11-20T19:26:26Z",
+          "run_attempt": 1,
+          "head_sha": "18dcf615f98738e2768526fe66dc90a327686426"
+        }
+      ]
+    },
+    {
+      "number": 561,
+      "merged_at": "2026-11-20T00:07:01Z",
+      "created_at": "2026-11-17T03:39:24Z",
+      "base_branch": "main",
+      "head_sha": "adb620d43989047034f85e4b5bc306370b5fd21e",
+      "head_branch": "claude/term-emitter-phase0-c376e4",
+      "run_total_reported": 3,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 44571214471,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-19T16:53:49Z",
+          "run_started_at": "2026-11-19T16:53:49Z",
+          "updated_at": "2026-11-19T17:02:15Z",
+          "run_attempt": 1,
+          "head_sha": "adb620d43989047034f85e4b5bc306370b5fd21e"
+        },
+        {
+          "id": 44571214735,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-19T16:53:49Z",
+          "run_started_at": "2026-11-19T16:53:49Z",
+          "updated_at": "2026-11-20T00:04:56Z",
+          "run_attempt": 1,
+          "head_sha": "adb620d43989047034f85e4b5bc306370b5fd21e"
+        },
+        {
+          "id": 44571193122,
+          "name": "regenerate",
+          "event": "push",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-19T16:53:42Z",
+          "run_started_at": "2026-11-19T16:53:42Z",
+          "updated_at": "2026-11-19T18:55:07Z",
+          "run_attempt": 1,
+          "head_sha": "adb620d43989047034f85e4b5bc306370b5fd21e"
+        }
+      ]
+    },
+    {
+      "number": 580,
+      "merged_at": "2026-11-19T16:40:41Z",
+      "created_at": "2026-11-18T17:59:48Z",
+      "base_branch": "release/v0.4",
+      "head_sha": "37a1db1c756914cb5ad22311f1693a171c9b6549",
+      "head_branch": "claude/lean-wasm-release",
+      "run_total_reported": 2,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 44485997416,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "failure",
+          "status": "completed",
+          "created_at": "2026-11-19T08:14:56Z",
+          "run_started_at": "2026-11-19T08:14:56Z",
+          "updated_at": "2026-11-19T11:20:45Z",
+          "run_attempt": 1,
+          "head_sha": "37a1db1c756914cb5ad22311f1693a171c9b6549"
+        },
+        {
+          "id": 44485997428,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-19T08:14:56Z",
+          "run_started_at": "2026-11-19T08:14:56Z",
+          "updated_at": "2026-11-19T08:25:31Z",
+          "run_attempt": 1,
+          "head_sha": "37a1db1c756914cb5ad22311f1693a171c9b6549"
+        }
+      ]
+    },
+    {
+      "number": 578,
+      "merged_at": "2026-11-19T16:40:41Z",
+      "created_at": "2026-11-18T16:54:30Z",
+      "base_branch": "release/v0.4",
+      "head_sha": "fa25e879c7f76d9112fe327cf8ee6e5b3bce5a3c",
+      "head_branch": "claude/render-lean",
+      "run_total_reported": 2,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 44485766248,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "failure",
+          "status": "completed",
+          "created_at": "2026-11-19T08:13:15Z",
+          "run_started_at": "2026-11-19T08:13:15Z",
+          "updated_at": "2026-11-19T10:36:08Z",
+          "run_attempt": 1,
+          "head_sha": "fa25e879c7f76d9112fe327cf8ee6e5b3bce5a3c"
+        },
+        {
+          "id": 44485766243,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-19T08:13:15Z",
+          "run_started_at": "2026-11-19T08:13:15Z",
+          "updated_at": "2026-11-19T08:18:51Z",
+          "run_attempt": 1,
+          "head_sha": "fa25e879c7f76d9112fe327cf8ee6e5b3bce5a3c"
+        }
+      ]
+    },
+    {
+      "number": 581,
+      "merged_at": "2026-11-19T16:40:39Z",
+      "created_at": "2026-11-18T21:27:22Z",
+      "base_branch": "release/v0.4",
+      "head_sha": "c2e0875e6d9adf723ad953c6d5150371cae758c4",
+      "head_branch": "claude/blake3-kappa-v0.4",
+      "run_total_reported": 3,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 44568778719,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "failure",
+          "status": "completed",
+          "created_at": "2026-11-19T16:40:38Z",
+          "run_started_at": "2026-11-19T16:40:38Z",
+          "updated_at": "2026-11-19T18:42:50Z",
+          "run_attempt": 1,
+          "head_sha": "c2e0875e6d9adf723ad953c6d5150371cae758c4"
+        },
+        {
+          "id": 44562291757,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-19T16:06:17Z",
+          "run_started_at": "2026-11-19T16:06:17Z",
+          "updated_at": "2026-11-19T16:12:00Z",
+          "run_attempt": 1,
+          "head_sha": "c2e0875e6d9adf723ad953c6d5150371cae758c4"
+        },
+        {
+          "id": 44562292370,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-19T16:06:17Z",
+          "run_started_at": "2026-11-19T16:06:17Z",
+          "updated_at": "2026-11-19T16:39:15Z",
+          "run_attempt": 1,
+          "head_sha": "c2e0875e6d9adf723ad953c6d5150371cae758c4"
+        }
+      ]
+    },
+    {
+      "number": 587,
+      "merged_at": "2026-11-19T14:31:46Z",
+      "created_at": "2026-11-19T13:16:50Z",
+      "base_branch": "main",
+      "head_sha": "aa8a52154690905700feb98d7e39b178be886830",
+      "head_branch": "library/reflect",
+      "run_total_reported": 3,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 44544723678,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-19T14:31:46Z",
+          "run_started_at": "2026-11-19T14:31:46Z",
+          "updated_at": "2026-11-19T20:01:19Z",
+          "run_attempt": 1,
+          "head_sha": "aa8a52154690905700feb98d7e39b178be886830"
+        },
+        {
+          "id": 44531903730,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-19T13:16:55Z",
+          "run_started_at": "2026-11-19T13:16:55Z",
+          "updated_at": "2026-11-19T13:23:00Z",
+          "run_attempt": 1,
+          "head_sha": "aa8a52154690905700feb98d7e39b178be886830"
+        },
+        {
+          "id": 44531903761,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-19T13:16:55Z",
+          "run_started_at": "2026-11-19T13:16:55Z",
+          "updated_at": "2026-11-19T14:21:29Z",
+          "run_attempt": 1,
+          "head_sha": "aa8a52154690905700feb98d7e39b178be886830"
+        }
+      ]
+    },
+    {
+      "number": 584,
+      "merged_at": "2026-11-19T13:33:35Z",
+      "created_at": "2026-11-19T11:22:51Z",
+      "base_branch": "main",
+      "head_sha": "58c5e2db1ed17531334d1e1593d652f89700a87e",
+      "head_branch": "proposal/kernel-term-emission",
+      "run_total_reported": 3,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 44534653426,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "failure",
+          "status": "completed",
+          "created_at": "2026-11-19T13:33:37Z",
+          "run_started_at": "2026-11-19T13:33:37Z",
+          "updated_at": "2026-11-19T16:03:09Z",
+          "run_attempt": 1,
+          "head_sha": "58c5e2db1ed17531334d1e1593d652f89700a87e"
+        },
+        {
+          "id": 44524310594,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-19T12:29:13Z",
+          "run_started_at": "2026-11-19T12:29:13Z",
+          "updated_at": "2026-11-19T13:11:58Z",
+          "run_attempt": 1,
+          "head_sha": "58c5e2db1ed17531334d1e1593d652f89700a87e"
+        },
+        {
+          "id": 44524310664,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-19T12:29:13Z",
+          "run_started_at": "2026-11-19T12:29:13Z",
+          "updated_at": "2026-11-19T12:34:38Z",
+          "run_attempt": 1,
+          "head_sha": "58c5e2db1ed17531334d1e1593d652f89700a87e"
+        }
+      ]
+    },
+    {
+      "number": 579,
+      "merged_at": "2026-11-19T08:13:09Z",
+      "created_at": "2026-11-18T17:38:44Z",
+      "base_branch": "claude/render-lean",
+      "head_sha": "bd65c55fc1ba7987f72d986019630c7e3e45c7b5",
+      "head_branch": "claude/lean-modules-policies",
+      "run_total_reported": 2,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 44409839036,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-18T22:15:41Z",
+          "run_started_at": "2026-11-18T22:15:41Z",
+          "updated_at": "2026-11-18T22:27:35Z",
+          "run_attempt": 1,
+          "head_sha": "bd65c55fc1ba7987f72d986019630c7e3e45c7b5"
+        },
+        {
+          "id": 44409839256,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-18T22:15:41Z",
+          "run_started_at": "2026-11-18T22:15:41Z",
+          "updated_at": "2026-11-18T23:02:22Z",
+          "run_attempt": 1,
+          "head_sha": "bd65c55fc1ba7987f72d986019630c7e3e45c7b5"
+        }
+      ]
     }
   ]
 }
