@@ -17,6 +17,8 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+## 0.4.5
+
 - Natural-number arithmetic laws (`PF-28`, SPEC.md §17.12, *Fold laws*, rule 7).
   `omega` reads a product of two variables as an opaque atom, so a stage size
   such as `mantissa * powTwo scale` could not be related to a shifted kernel.
