@@ -36,6 +36,25 @@ class TailAuditTest(unittest.TestCase):
         self.assertEqual(result["total_unique_passed"], 507)
         self.assertEqual(result["lanes"]["moves"]["slow_warning_count"], 31)
 
+    def test_fixed_runtime_three_way_counterexample(self):
+        data = copy.deepcopy(self.data)
+        data["lanes"]["moves"]["cases"][0]["finished_at"] = "2026-11-23T00:29:00Z"
+        result = audit.evaluate(data)
+        self.assertGreater(result["moves_longest_case_lower_bound_seconds"],
+                           result["moves_equal_three_test_step_seconds"])
+        self.assertFalse(result["unchanged_case_duration_equal_split_feasible"])
+
+    def test_historical_ledger_in_repository(self):
+        from pathlib import Path
+        path = Path(__file__).resolve().parent.parent / "metrics" / "ci-intel-case-tail-20261123.json"
+        self.assertTrue(path.is_file(), "historical receipt ledger missing")
+        import json
+        result = audit.evaluate(json.loads(path.read_text()))
+        self.assertEqual(result["total_unique_passed"], 507)
+        self.assertEqual(result["moves_longest_case_lower_bound_seconds"], 1450.727)
+        self.assertFalse(result["unchanged_case_duration_equal_split_feasible"])
+        self.assertEqual(result["lanes"]["moves"]["queue_seconds"], 757)
+
     def test_missing_case(self):
         self.reject(lambda x: x["lanes"]["moves"]["cases"].pop())
 
