@@ -725,11 +725,17 @@ fn plan_decisions() {
     // Workflow-level draft suppression: the planner still supports explicitly
     // dispatched draft feedback, but automatic draft pull_request events must
     // never allocate a runner. These guards are both required.
-    let draft_guard = "if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}";
-    let plan_guard = "if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}";
+    let draft_guard =
+        "if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}";
+    let plan_guard =
+        "if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}";
     for (workflow_path, job, guard) in [
         (".github/workflows/ci.yml", "plan", draft_guard),
-        (".github/workflows/reproducibility.yml", "repro", draft_guard),
+        (
+            ".github/workflows/reproducibility.yml",
+            "repro",
+            draft_guard,
+        ),
         (".github/workflows/ci.yml", "honesty", plan_guard),
     ] {
         let workflow = root_file(workflow_path);
@@ -754,7 +760,9 @@ fn plan_decisions() {
         ".github/workflows/reproducibility.yml",
     ] {
         assert!(
-            root_file(path).contains("  pull_request:\n    types: [opened, synchronize, reopened, ready_for_review]"),
+            root_file(path).contains(
+                "  pull_request:\n    types: [opened, synchronize, reopened, ready_for_review]"
+            ),
             "§9.4: {path} must run when a draft PR becomes ready"
         );
     }
@@ -1822,11 +1830,13 @@ pub(crate) fn run(id: &str) {
                     .and_then(|rest| rest.strip_suffix(']'))
                     .expect("§9.4: CI dependencies must be an explicit list");
                 assert!(
-                    dependencies.split(',').map(str::trim).any(|value| value == "plan"),
+                    dependencies
+                        .split(',')
+                        .map(str::trim)
+                        .any(|value| value == "plan"),
                     "§9.4: CI job {key} can bypass Draft plan"
                 );
-                if let Some(condition) =
-                    body.lines().find_map(|line| line.strip_prefix("    if: "))
+                if let Some(condition) = body.lines().find_map(|line| line.strip_prefix("    if: "))
                 {
                     assert!(
                         !condition.contains("always()")
