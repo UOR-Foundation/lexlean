@@ -21,7 +21,7 @@ def require(test, message):
 
 def timestamp(value):
     require(isinstance(value, str) and value.endswith("Z"), "bad timestamp")
-    return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
 def evaluate(ledger):
@@ -39,7 +39,7 @@ def evaluate(ledger):
         created, started, ended = [timestamp(job[k]) for k in
                                    ("created_at", "started_at", "completed_at")]
         require(created <= started < ended, "invalid queue/job time ordering")
-        require(0 <= started-created < 86400, "invalid queue delay")
+        require(0 <= (started-created).total_seconds() < 86400, "invalid queue delay")
         case_names = []
         slow = []
         for entry in job["cases"]:
@@ -52,14 +52,18 @@ def evaluate(ledger):
             if entry["warning_at"] is not None:
                 warning = timestamp(entry["warning_at"])
                 require(started <= warning < finished, "invalid warning order")
-                floor = 60 + finished - warning
-                require(floor <= ended-started+1, "test lower bound exceeds job")
-                slow.append({"name": name, "minimum_seconds": round(floor, 3)})
+                # Libtest logs retain microseconds. A conservative minimum
+                # must be truncated, never rounded upward at 1ms precision.
+                delta = finished - warning
+                floor_ms = 60000 + delta.days * 86400000 + delta.seconds * 1000 + delta.microseconds // 1000
+                floor = floor_ms / 1000
+                require(floor <= (ended-started).total_seconds()+1, "test lower bound exceeds job")
+                slow.append({"name": name, "minimum_seconds": floor})
         require(len(case_names) == len(set(case_names)), "duplicate case within lane")
         cases.extend(case_names)
         results[lane] = {"case_count": len(case_names), "slow_warning_count": len(slow),
-                         "queue_seconds": round(started-created, 3),
-                         "job_seconds": round(ended-started, 3),
+                         "queue_seconds": round((started-created).total_seconds(), 3),
+                         "job_seconds": round((ended-started).total_seconds(), 3),
                          "top_slow_cases": sorted(slow, key=lambda x: -x["minimum_seconds"])[:10],
                          "sum_slow_lower_bounds_seconds_nonadditive": round(sum(x["minimum_seconds"] for x in slow), 3)}
     require(len(cases) == 507 and len(set(cases)) == 507, "507-case inventory not complete/unique")

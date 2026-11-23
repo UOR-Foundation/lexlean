@@ -55,6 +55,13 @@ class TailAuditTest(unittest.TestCase):
         self.assertFalse(result["unchanged_case_duration_equal_split_feasible"])
         self.assertEqual(result["lanes"]["moves"]["queue_seconds"], 757)
 
+    def test_microsecond_lower_bound_never_rounds_up(self):
+        data = copy.deepcopy(self.data)
+        data['lanes']['moves']['cases'][0]['warning_at'] = '2026-11-23T00:03:00.000001Z'
+        data['lanes']['moves']['cases'][0]['finished_at'] = '2026-11-23T00:23:00.999999Z'
+        result = audit.evaluate(data)
+        self.assertEqual(result['moves_longest_case_lower_bound_seconds'], 1260.999)
+
     def test_missing_case(self):
         self.reject(lambda x: x["lanes"]["moves"]["cases"].pop())
 

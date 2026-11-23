@@ -496,3 +496,18 @@ Six local source-wiring mutation tests and both existing 15-test Intel suites pa
 in the offline environment. The exact new PR head is not yet provider-qualified.
 The normative ci.yml and reproducibility.yml are unchanged; this remains an
 observability/feedback refinement rather than realized full-gate savings.
+
+### Hosted preview qualification failure and precision correction (2026-11-23 UTC)
+
+The first opt-in hosted preview run #45182363019 correctly refused a stale base
+before checkout. After syncing the disjoint release/v0.4 changes to draft #606,
+run #45182928295 passed preflight, checkout, trusted-head/base comparison and
+whitespace, but stopped on a single Python assertion of 210 tests:
+BS-08 lower-bound 1450.728s (microsecond timestamp rounded upward) was
+compared to the earlier millisecond-truncated 1450.727s.
+
+The audit now computes warning-to-finish bounds with exact datetime timedeltas
+and floors to milliseconds, preserving its conservative lower-bound contract.
+A seeded microsecond-case regression test explicitly refuses upward rounding.
+No actual case-time improvement is claimed. Both incomplete previews remain
+nonqualifying; the corrected exact-head positive path still requires a rerun.
