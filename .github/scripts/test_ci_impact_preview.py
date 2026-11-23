@@ -48,7 +48,7 @@ class PreviewContract(unittest.TestCase):
         self.assertIn('rust-format', plan['selected_feedback'])
 
     def test_bad_diff_status_and_truncation_refused(self):
-        for payload in (b'U\0x\0', b'R100\0only\0', b'M\0x', b'M\0\0'):
+        for payload in (b'U\0x\0', b'T\0mode.rs\0', b'R100\0only\0', b'M\0x', b'M\0\0'):
             with self.subTest(payload=payload):
                 with self.assertRaises(ValueError):
                     impact.preview(BASE, HEAD, payload)
