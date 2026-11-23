@@ -39,7 +39,7 @@ def host_fixture():
     rows = [{"part": "honesty"}, {"part": "examples"}, {"part": "rest"},
             {"part": "bdd-compiler"}, {"part": "bdd-preservation"}]
     lanes = {"producer": ["honesty"],
-             "lanes": {"lower": ["rest", "bdd-compiler"], "print": ["bdd-preservation"]}}
+             "lanes": {"lower": ["rest", "compiler"], "print": ["preservation"]}}
     jobs = {
         "plan": "",
         "host-matrix": "    runs-on: ubuntu-24.04-arm\n    target: aarch64-unknown-linux-gnu\n",
