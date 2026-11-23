@@ -1,3 +1,4 @@
+// CI #603 filtered-checkout Rust-source selector experiment; revert after hosted receipt.
 //! Repository gates (SPEC.md §9.2, §27).
 //!
 //! `cargo xtask <task>`; `just vv` runs the whole normative acceptance gate.
