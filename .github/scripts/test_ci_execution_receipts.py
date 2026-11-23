@@ -126,6 +126,39 @@ class ExecutionReceiptsTest(unittest.TestCase):
         self.assertEqual(len(chosen), 1)
         self.assertEqual(info["reissued_carried_records"], 1)
 
+    def test_skipped_negative_provider_timestamps_do_not_create_cost(self):
+        from ci_execution_receipts import runtime_window
+        before = job("skipped-arm", 101, 1, "2026-11-23T01:10:00Z",
+                     "2026-11-23T01:09:59Z", verdict="skipped")
+        after = job("skipped-arm", 102, 2, "2026-11-23T02:10:00Z",
+                    "2026-11-23T01:09:59Z", verdict="skipped",
+                    created="2026-11-23T02:00:00Z")
+        self.assertIsNone(runtime_window(before))
+        chosen, evidence = canonical_executions([before, after], 2)
+        self.assertEqual((len(chosen), evidence["reissued_carried_records"]), (1, 1))
+
+    def test_unallocated_cancelled_work_has_no_runner_window(self):
+        from ci_execution_receipts import runtime_window
+        row = job("unallocated", 103, 1, "2026-11-23T01:01:00Z",
+                  "2026-11-23T01:27:31Z", verdict="cancelled")
+        row.update(runner_id=None, runner_name="", steps=[])
+        self.assertIsNone(runtime_window(row))
+
+    def test_worker_cancelled_after_start_remains_real_execution(self):
+        from ci_execution_receipts import runtime_window
+        row = job("assigned", 104, 1, "2026-11-23T01:01:00Z",
+                  "2026-11-23T01:07:00Z", verdict="cancelled")
+        row.update(runner_id=42, runner_name="Hosted", steps=[{"name": "work"}])
+        self.assertEqual(runtime_window(row), (row["started_at"], row["completed_at"]))
+
+    def test_assigned_worker_negative_time_is_not_free(self):
+        from ci_execution_receipts import runtime_window
+        row = job("assigned", 105, 1, "2026-11-23T01:01:00Z",
+                  "2026-11-23T01:00:59Z", verdict="cancelled")
+        row.update(runner_id=42, steps=[{"name": "work"}])
+        with self.assertRaisesRegex(ValueError, "negative execution duration"):
+            runtime_window(row)
+
     def test_empty_single_attempt_is_valid(self):
         chosen, facts = canonical_executions([], 1, (1,))
         self.assertEqual(chosen, [])

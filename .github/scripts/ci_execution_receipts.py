@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Count real GitHub Actions executions, not reissued retry metadata records."""
 from datetime import datetime
-import math
 
 
 def require(ok, message):
@@ -15,6 +14,29 @@ def utc(value):
         return datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as exc:
         raise ValueError("invalid UTC timestamp") from exc
+
+
+def runtime_window(row):
+    """Return a real runner execution interval, not provider scheduling metadata."""
+    conclusion = row.get("conclusion")
+    start, end = row.get("started_at"), row.get("completed_at")
+    # Skipped jobs never received an execution opportunity. GitHub may
+    # synthesize contradictory start/end timestamps for them.
+    allocated = (row.get("runner_id") is not None or
+                 bool(row.get("runner_name")) or bool(row.get("steps")))
+    if conclusion == "skipped" or (conclusion == "cancelled" and not allocated):
+        for value in (start, end):
+            if value is not None:
+                utc(value)  # metadata validity, not runtime arithmetic
+        return None
+    require(bool(start) == bool(end), "partial job timestamps (partial execution)")
+    if start is None:
+        require(conclusion == "cancelled", "executed job without timing")
+        # Allocated cancelled job with no timing is unknown, not free.
+        raise ValueError("assigned cancelled job lacks execution timestamps")
+    require((utc(end) - utc(start)).total_seconds() >= 0,
+            "negative execution duration")
+    return start, end
 
 
 def canonical_executions(records, latest_attempt, proven_empty_attempts=()):
@@ -53,14 +75,7 @@ def canonical_executions(records, latest_attempt, proven_empty_attempts=()):
         require(conclusion in ("success", "failure", "cancelled", "timed_out",
                                "skipped", "neutral", "action_required"),
                 "invalid completed job conclusion")
-        start, finish = row.get("started_at"), row.get("completed_at")
-        require(bool(start) == bool(finish), "partial job timestamps (partial execution)")
-        if start:
-            require((utc(finish) - utc(start)).total_seconds() >= 0,
-                    "negative execution duration")
-        else:
-            require(conclusion in ("skipped", "cancelled"),
-                    "executed job without timing")
+        runtime_window(row)
         labels = row.get("labels") or []
         require(isinstance(labels, list) and
                 all(isinstance(v, str) and len(v) <= 128 for v in labels),
@@ -72,24 +87,31 @@ def canonical_executions(records, latest_attempt, proven_empty_attempts=()):
     for attempt in sorted(indexed):
         for name, row in sorted(indexed[attempt].items()):
             prior = by_name.setdefault(name, [])
-            old = next((other for other in prior
-                        if (other.get("started_at"), other.get("completed_at")) ==
-                           (row.get("started_at"), row.get("completed_at"))), None)
+            # No-run skipped/cancelled provider rows can have different bogus
+            # metadata timestamps on every attempt without any runner work.
+            window = runtime_window(row)
+            identity = ("NON_EXECUTED", row["conclusion"]) if window is None else window
+            old = next((
+                other for other in prior
+                if ((("NON_EXECUTED", other["conclusion"])
+                     if runtime_window(other) is None else runtime_window(other)) == identity)
+            ), None)
             if old is not None:
                 require(old.get("conclusion") == row.get("conclusion") and
                         (old.get("labels") or []) == (row.get("labels") or []),
                         "same execution has conflicting result or host")
                 created = row.get("created_at")
                 end = old.get("completed_at")
-                if created is not None and end is not None:
+                if created is not None and end is not None and window is not None:
                     require(utc(created) >= utc(end),
                             "reissued job predates original execution")
                 carried += 1
                 continue
-            if row.get("started_at"):
+            if window is not None:
                 for other in prior:
-                    if other.get("completed_at"):
-                        require(utc(row["started_at"]) > utc(other["completed_at"]),
+                    previous = runtime_window(other)
+                    if previous is not None:
+                        require(utc(window[0]) > utc(previous[1]),
                                 "overlapping execution across attempts")
             prior.append(row)
             executions.append(row)

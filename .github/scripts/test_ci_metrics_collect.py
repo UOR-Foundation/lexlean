@@ -160,6 +160,45 @@ class CollectorContracts(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "runner labels"):
             reader.capture("after", B, 1, include_jobs=True)
 
+    def test_skipped_negative_timestamps_are_not_job_cost(self):
+        reader = FakeReader()
+        reader.data[("actions/runs/202/jobs", None)].append({
+            "id": 20213, "name": "unallocated skip", "conclusion": "skipped",
+            "started_at": "2026-11-23T04:08:00Z",
+            "completed_at": "2026-11-23T04:07:59Z",
+            "labels": ["ubuntu-24.04"], "runner_id": None, "steps": []})
+        _, costs = reader.capture("after", B, 1, include_jobs=True)
+        self.assertEqual(costs["run_costs"][0]["job_minutes"], 2)
+        self.assertEqual(costs["run_costs"][0]["not_executed_skipped_jobs"], 1)
+        record = reader.job_details["jobs"][-1]
+        self.assertIsNone(record["elapsed_minutes"])
+        self.assertIsNone(record["started_at"])
+
+    def test_cancelled_without_runner_or_steps_never_spends_runner_time(self):
+        reader = FakeReader()
+        reader.data[("actions/runs/202/jobs", None)].append({
+            "id": 20214, "name": "queued cancellation", "conclusion": "cancelled",
+            "started_at": "2026-11-23T04:02:00Z",
+            "completed_at": "2026-11-23T04:28:31Z",
+            "labels": ["ubuntu-24.04"], "runner_id": None,
+            "runner_name": "", "steps": []})
+        _, costs = reader.capture("after", B, 1, include_jobs=True)
+        self.assertEqual(costs["run_costs"][0]["job_minutes"], 2)
+        self.assertEqual(costs["run_costs"][0]["not_executed_cancelled_jobs"], 1)
+        self.assertIsNone(reader.job_details["jobs"][-1]["elapsed_minutes"])
+
+    def test_cancelled_with_actual_worker_is_counted(self):
+        reader = FakeReader()
+        reader.data[("actions/runs/202/jobs", None)].append({
+            "id": 20215, "name": "assigned cancellation", "conclusion": "cancelled",
+            "started_at": "2026-11-23T04:02:00Z",
+            "completed_at": "2026-11-23T04:07:00Z",
+            "labels": ["ubuntu-24.04"], "runner_id": 101,
+            "runner_name": "runner-101", "steps": [{"name": "cargo"}]})
+        _, costs = reader.capture("after", B, 1)
+        self.assertEqual(costs["run_costs"][0]["job_minutes"], 7)
+        self.assertEqual(costs["run_costs"][0]["not_executed_cancelled_jobs"], 0)
+
     def test_before_requires_full_cohort(self):
         reader = FakeReader()
         with self.assertRaisesRegex(ValueError, "not enough prior"):

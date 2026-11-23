@@ -17,7 +17,7 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-from ci_execution_receipts import canonical_executions
+from ci_execution_receipts import canonical_executions, runtime_window
 
 REPO_PATTERN = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 JOB_SCHEMA = "lexlean/ci-job-detail/1"
@@ -177,16 +177,13 @@ class Reader:
                         require(isinstance(name, str) and 0 < len(name) <= 300,
                                 "missing or invalid provider job name")
                         seen_job_ids.add(jid)
-                        started, completed = item.get("started_at"), item.get("completed_at")
-                        require(bool(started) == bool(completed), "partial job timestamps")
-                        duration = None
-                        if started:
-                            duration = (clock(completed) - clock(started)).total_seconds()/60
-                            require(math.isfinite(duration) and duration >= 0,
-                                    "invalid detailed job duration")
-                        else:
-                            require(item.get("conclusion") in ("skipped", "cancelled", None),
-                                    "executed job has no timing evidence")
+                        actual = runtime_window(item)
+                        started, completed = actual if actual is not None else (None, None)
+                        duration = ((clock(completed) - clock(started)).total_seconds()/60
+                                    if actual is not None else None)
+                        require(duration is None or
+                                (math.isfinite(duration) and duration >= 0),
+                                "invalid detailed job duration")
                         labels = item.get("labels") or []
                         require(isinstance(labels, list) and
                                 all(isinstance(x, str) and len(x) <= 128 for x in labels),
@@ -204,15 +201,16 @@ class Reader:
                             "platform": platform, "labels": labels,
                             "conclusion": item.get("conclusion"), "started_at": started,
                             "completed_at": completed,
+                            "nonexecution_provider_started_at": item.get("started_at") if actual is None else None,
+                            "nonexecution_provider_completed_at": item.get("completed_at") if actual is None else None,
                             "elapsed_minutes": round(duration, 3) if duration is not None else None,
                         })
                 buckets, elapsed, first_start, last_completed = {}, 0.0, None, None
                 for job in jobs:
-                    start, finish = job.get("started_at"), job.get("completed_at")
-                    if not start or not finish:
-                        require(job.get("conclusion") in ("skipped", "cancelled", None),
-                                "missing executed job timestamps")
+                    actual = runtime_window(job)
+                    if actual is None:
                         continue
+                    start, finish = actual
                     minutes = (clock(finish) - clock(start)).total_seconds()/60
                     require(math.isfinite(minutes) and minutes >= 0,
                             "invalid job duration")
@@ -234,6 +232,8 @@ class Reader:
                     "carried_reissued_records": execution_receipts["reissued_carried_records"],
                     "verified_zero_job_attempts": execution_receipts["verified_empty_attempts"],
                     "run_attempts": attempt,
+                    "not_executed_skipped_jobs": sum(j["conclusion"] == "skipped" for j in jobs),
+                    "not_executed_cancelled_jobs": sum(j["conclusion"] == "cancelled" and runtime_window(j) is None for j in jobs),
                     "job_minutes": round(elapsed, 3),
                     "by_platform_minutes": {k: round(v, 3) for k,v in buckets.items()},
                     "first_job_started": first_start, "last_job_completed": last_completed,
