@@ -736,11 +736,11 @@ fn plan_decisions() {
             .split_once(&heading)
             .expect("required workflow job")
             .1
-            .split("\n  ")
-            .next()
-            .expect("job body");
+            .lines()
+            .take_while(|line| !(line.starts_with("  ") && !line.starts_with("    ")))
+            .collect::<Vec<_>>();
         assert!(
-            block.lines().any(|line| line.trim() == guard),
+            block.iter().any(|line| line.trim() == guard),
             "§9.4: {workflow_path} {job} must skip automatic draft PRs"
         );
     }
