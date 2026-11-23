@@ -17,6 +17,12 @@ from xml.sax.saxutils import escape
 RUN_SCHEMA = "lexlean/ci-pr-baseline/1"
 COST_SCHEMA = "lexlean/ci-pr-job-snapshot/1"
 OS = ("linux", "windows", "macos", "unknown")
+# 2026 GitHub standard private-repository hosted runner rates. Historical
+# Linux x64 and Linux ARM job-minutes are pooled; the x64 rate is a proxy.
+# Actual GitHub billing rounds EACH job to a whole minute; not in this
+# existing aggregate capture. This is explicitly an illustrative estimate.
+PRIVATE_RATE_PROXY = {"linux": 0.006, "windows": 0.010, "macos": 0.062}
+RATE_REFERENCE = "https://docs.github.com/en/billing/reference/actions-runner-pricing"
 
 
 def require(condition, reason):
@@ -130,6 +136,9 @@ def summarize(runs_data, costs_data, label):
             "head_sha": sha, "merged_at": merged.isoformat(),
             "workflow_runs": len(run_list),
             "observed_job_minutes": round(minutes, 3),
+            "estimated_private_equivalent_usd": round(sum(
+                by_platform.get(os_name, 0.0) * rate
+                for os_name, rate in PRIVATE_RATE_PROXY.items()), 3),
             "by_platform_minutes": {k: round(v, 3) for k, v in by_platform.items()},
             "verified_premerge_green": green is not None,
             "final_head_time_to_green_minutes": wait,
@@ -139,6 +148,7 @@ def summarize(runs_data, costs_data, label):
     require(seen_run == set(by_id), "cost rows are not a bijection of source runs")
     result.sort(key=lambda x: (x["merged_at"], x["pr"]))
     usage = [p["observed_job_minutes"] for p in result]
+    shadow_usd = [p["estimated_private_equivalent_usd"] for p in result]
     waits = [p["final_head_time_to_green_minutes"] for p in result
              if p["final_head_time_to_green_minutes"] is not None]
     return result, {
@@ -148,6 +158,11 @@ def summarize(runs_data, costs_data, label):
         "observed_runner_job_minutes_total": round(sum(usage), 2),
         "observed_runner_job_minutes_median": pct(usage, .5),
         "observed_runner_job_minutes_p90": pct(usage, .9),
+        "estimated_private_equivalent_usd_total": round(sum(shadow_usd), 2),
+        "estimated_private_equivalent_usd_median": pct(shadow_usd, .5),
+        "estimated_private_equivalent_usd_p90": pct(shadow_usd, .9),
+        "private_equivalent_model": "ILLUSTRATIVE_LINUX_X64_PROXY_UNROUNDED_BEFORE_ALLOWANCE_STORAGE_EXCLUDED",
+        "private_equivalent_rate_reference": RATE_REFERENCE,
         "final_head_time_to_green_minutes_median": pct(waits, .5),
         "final_head_time_to_green_minutes_p90": pct(waits, .9),
         "platform_runner_minutes": {
@@ -177,7 +192,7 @@ def svg_report(before, after, field, output, title, units):
         '.small{font-size:12px;fill:#666}.unit{font-size:14px;fill:#555}</style>',
         '<text x="65" y="43" class="head">' + escape(title) + '</text>',
         '<text x="65" y="69" class="unit">' + escape(units) +
-        ' • Source: GitHub Actions completed job timestamps • Billing not inferred</text>',
+        ' • GitHub job timestamps • Private equivalent is estimated, not actual billed spend</text>',
     ]
     for label, rows, start in panels:
         lines.append(f'<text x="{start}" y="101" class="label">{label}: {len(rows)} PRs</text>')
@@ -229,7 +244,8 @@ def write_report(before, before_info, after, after_info, out):
     for rows, label in ((before, "before"), (after, "after")):
         pass
     fields = ("period", "pr", "base", "head_sha", "merged_at", "workflow_runs",
-              "observed_job_minutes", "linux_job_minutes", "windows_job_minutes",
+              "observed_job_minutes", "estimated_private_equivalent_usd",
+              "linux_job_minutes", "windows_job_minutes",
               "macos_job_minutes", "unknown_job_minutes", "verified_premerge_green",
               "final_head_time_to_green_minutes", "merge_after_green_minutes")
     with (out/"ci-before-after-prs.csv").open("w", encoding="utf-8", newline="") as fh:
@@ -242,6 +258,10 @@ def write_report(before, before_info, after, after_info, out):
             writer.writerow(data)
     svg_report(before, after, "observed_job_minutes", out/"runner-minutes-per-pr.svg",
                "LexLean Actions: observed job consumption per merged PR", "Unweighted runner-job minutes")
+    svg_report(before, after, "estimated_private_equivalent_usd",
+               out/"private-equivalent-cost-per-pr.svg",
+               "LexLean Actions: estimated private-repository compute cost per PR",
+               "USD, 2026 standard runner rate proxy; not actual billing")
     svg_report(before, after, "final_head_time_to_green_minutes",
                out/"final-head-time-to-green.svg",
                "LexLean CI: final-HEAD time to pre-merge green",
@@ -253,7 +273,9 @@ def write_report(before, before_info, after, after_info, out):
         "OBSERVATIONAL_ONLY; controlled cohort matching required",
         "notes": [
             "Not GitHub-billed Actions minutes: timing API may return zero for public projects.",
-            "Observed elapsed runner-job minutes do not apply OS/billing multipliers.",
+            "Observed job-minutes are unweighted; private equivalence applies 2026 OS rates but is not provider billing.",
+            "Linux ARM/x64 combined and per-job minute rounding unavailable: private equivalent is illustrative, not an invoice.",
+            "Private compute equivalent excludes included monthly usage and storage.",
             "Latest exact PR HEAD only; earlier revisions and postmerge workflow runs are omitted.",
             "Time-to-green is a correlation from workflow timestamps, not proven required-check blocking.",
             "Missing premerge green is N/A, not zero minutes.",
@@ -276,6 +298,8 @@ def write_report(before, before_info, after, after_info, out):
         ("observed_runner_job_minutes_total", "Observed total runner-job minutes"),
         ("observed_runner_job_minutes_median", "Median runner-job minutes/PR"),
         ("observed_runner_job_minutes_p90", "p90 runner-job minutes/PR"),
+        ("estimated_private_equivalent_usd_total", "Estimated private-repo compute equivalent total (USD)"),
+        ("estimated_private_equivalent_usd_median", "Median estimated private-repo cost per PR (USD)"),
         ("pr_with_premerge_green", "PRs with both CI and reproducibility green before merge"),
         ("final_head_time_to_green_minutes_median", "Median time-to-green (only qualifying samples)"),
         ("final_head_time_to_green_minutes_p90", "p90 time-to-green (only qualifying samples)"),
@@ -285,11 +309,17 @@ def write_report(before, before_info, after, after_info, out):
         lines.append(f"| {display} | {a} | {b} |")
     lines += [
         "", "![Per-PR runner workload](runner-minutes-per-pr.svg)", "",
+        "![Private-repository compute equivalent](private-equivalent-cost-per-pr.svg)", "",
         "![Final HEAD time to green](final-head-time-to-green.svg)", "",
         "## Measurement boundaries", "",
         "- All values are from GitHub job/run timestamps at exact final PR HEAD.",
         "- **Not provider billed minutes**: billing data is unavailable in these snapshots;",
         "  zero billable minutes is not zero runner consumption.",
+        "- Estimated private compute equivalent applies Linux $0.006, Windows $0.010, macOS",
+        "  $0.062 per elapsed runner-job minute, before allowances, with Linux ARM pooled with x64.",
+        "  Actual private charges would round each job to a whole minute; this historical capture",
+        "  cannot reconstruct that rounding. No private invoice or measured savings are claimed.",
+        "- Pricing source: " + RATE_REFERENCE,
         "- The baseline is the most recent 50 merged PRs in the captured pre-cutover window.",
         "- The post-cutover cohort is **unpopulated** until real merged PRs exist.",
         "- Completion before merge is not proof branch protection actually required the checks.",
