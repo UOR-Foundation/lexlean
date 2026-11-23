@@ -1757,6 +1757,318 @@
           "head_sha": "670310ad46f08be933ad25781c7a1822df4f8fa7"
         }
       ]
+    },
+    {
+      "number": 540,
+      "merged_at": "2026-11-15T12:17:03Z",
+      "created_at": "2026-11-14T21:26:00Z",
+      "base_branch": "release/v0.5",
+      "head_sha": "bfbf1c0c777b82cb0368adb0d95e7839d6189441",
+      "head_branch": "claude/181-sp17-scan",
+      "run_total_reported": 3,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 43654666900,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T23:43:38Z",
+          "run_started_at": "2026-11-14T23:43:38Z",
+          "updated_at": "2026-11-15T11:34:53Z",
+          "run_attempt": 1,
+          "head_sha": "bfbf1c0c777b82cb0368adb0d95e7839d6189441"
+        },
+        {
+          "id": 43646786058,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T22:11:38Z",
+          "run_started_at": "2026-11-14T22:11:38Z",
+          "updated_at": "2026-11-14T22:23:45Z",
+          "run_attempt": 1,
+          "head_sha": "bfbf1c0c777b82cb0368adb0d95e7839d6189441"
+        },
+        {
+          "id": 43646786089,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T22:11:38Z",
+          "run_started_at": "2026-11-14T22:11:38Z",
+          "updated_at": "2026-11-14T23:43:10Z",
+          "run_attempt": 1,
+          "head_sha": "bfbf1c0c777b82cb0368adb0d95e7839d6189441"
+        }
+      ]
+    },
+    {
+      "number": 529,
+      "merged_at": "2026-11-15T09:52:44Z",
+      "created_at": "2026-11-14T02:21:15Z",
+      "base_branch": "release/v0.4",
+      "head_sha": "bca7a7cba2c6b535ab568511163446e70eabf3b6",
+      "head_branch": "fix/snapshot-depth",
+      "run_total_reported": 2,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 43686923596,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-15T06:45:58Z",
+          "run_started_at": "2026-11-15T06:45:58Z",
+          "updated_at": "2026-11-15T09:52:12Z",
+          "run_attempt": 1,
+          "head_sha": "bca7a7cba2c6b535ab568511163446e70eabf3b6"
+        },
+        {
+          "id": 43686923618,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-15T06:45:58Z",
+          "run_started_at": "2026-11-15T06:45:58Z",
+          "updated_at": "2026-11-15T06:51:29Z",
+          "run_attempt": 1,
+          "head_sha": "bca7a7cba2c6b535ab568511163446e70eabf3b6"
+        }
+      ]
+    },
+    {
+      "number": 526,
+      "merged_at": "2026-11-15T09:32:12Z",
+      "created_at": "2026-11-13T21:58:51Z",
+      "base_branch": "release/v0.4",
+      "head_sha": "81249b2f916342452980a499a6468ecdb2eb17a1",
+      "head_branch": "claude/project-thread-tolt0k",
+      "run_total_reported": 2,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 43675919328,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-15T04:15:01Z",
+          "run_started_at": "2026-11-15T04:15:01Z",
+          "updated_at": "2026-11-15T09:31:19Z",
+          "run_attempt": 1,
+          "head_sha": "81249b2f916342452980a499a6468ecdb2eb17a1"
+        },
+        {
+          "id": 43675919336,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-15T04:15:01Z",
+          "run_started_at": "2026-11-15T04:15:01Z",
+          "updated_at": "2026-11-15T05:11:24Z",
+          "run_attempt": 1,
+          "head_sha": "81249b2f916342452980a499a6468ecdb2eb17a1"
+        }
+      ]
+    },
+    {
+      "number": 503,
+      "merged_at": "2026-11-15T06:41:39Z",
+      "created_at": "2026-11-12T21:58:09Z",
+      "base_branch": "release/v0.4",
+      "head_sha": "0fd089b7986bf5771ae5767fd95dc1cd33b23bfa",
+      "head_branch": "claude/wasi-check-494",
+      "run_total_reported": 2,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 43670404556,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-15T03:01:04Z",
+          "run_started_at": "2026-11-15T03:01:04Z",
+          "updated_at": "2026-11-15T03:15:31Z",
+          "run_attempt": 1,
+          "head_sha": "0fd089b7986bf5771ae5767fd95dc1cd33b23bfa"
+        },
+        {
+          "id": 43670404538,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-15T03:01:04Z",
+          "run_started_at": "2026-11-15T03:01:04Z",
+          "updated_at": "2026-11-15T06:41:13Z",
+          "run_attempt": 1,
+          "head_sha": "0fd089b7986bf5771ae5767fd95dc1cd33b23bfa"
+        }
+      ]
+    },
+    {
+      "number": 536,
+      "merged_at": "2026-11-15T04:00:37Z",
+      "created_at": "2026-11-14T18:15:41Z",
+      "base_branch": "release/v0.4",
+      "head_sha": "43546c605fa339f7c78dbb343db9bb0a594420f3",
+      "head_branch": "fix/v04-au01-corpus-memory",
+      "run_total_reported": 2,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 43649543266,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T22:43:05Z",
+          "run_started_at": "2026-11-14T22:43:05Z",
+          "updated_at": "2026-11-14T22:52:32Z",
+          "run_attempt": 1,
+          "head_sha": "43546c605fa339f7c78dbb343db9bb0a594420f3"
+        },
+        {
+          "id": 43649543322,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T22:43:05Z",
+          "run_started_at": "2026-11-14T22:43:05Z",
+          "updated_at": "2026-11-15T04:00:13Z",
+          "run_attempt": 1,
+          "head_sha": "43546c605fa339f7c78dbb343db9bb0a594420f3"
+        }
+      ]
+    },
+    {
+      "number": 518,
+      "merged_at": "2026-11-15T02:59:16Z",
+      "created_at": "2026-11-13T18:46:13Z",
+      "base_branch": "release/v0.4",
+      "head_sha": "25d5742a73fad6537373b1de8e5d497af61ebab6",
+      "head_branch": "dot/lean-4.32.2-security-patch",
+      "run_total_reported": 2,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 43649392342,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T22:41:20Z",
+          "run_started_at": "2026-11-14T22:41:20Z",
+          "updated_at": "2026-11-14T22:48:01Z",
+          "run_attempt": 1,
+          "head_sha": "25d5742a73fad6537373b1de8e5d497af61ebab6"
+        },
+        {
+          "id": 43649392428,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T22:41:20Z",
+          "run_started_at": "2026-11-14T22:41:20Z",
+          "updated_at": "2026-11-15T02:58:52Z",
+          "run_attempt": 1,
+          "head_sha": "25d5742a73fad6537373b1de8e5d497af61ebab6"
+        }
+      ]
+    },
+    {
+      "number": 519,
+      "merged_at": "2026-11-15T00:20:14Z",
+      "created_at": "2026-11-13T19:43:27Z",
+      "base_branch": "release/v0.4",
+      "head_sha": "b1cb0a82921541d8018b2db02ab41f7e17424df9",
+      "head_branch": "claude/project-thread-4uua0b",
+      "run_total_reported": 2,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 43593987920,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T12:16:24Z",
+          "run_started_at": "2026-11-14T12:16:24Z",
+          "updated_at": "2026-11-15T00:19:19Z",
+          "run_attempt": 1,
+          "head_sha": "b1cb0a82921541d8018b2db02ab41f7e17424df9"
+        },
+        {
+          "id": 43593987917,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T12:16:24Z",
+          "run_started_at": "2026-11-14T12:16:24Z",
+          "updated_at": "2026-11-14T12:23:44Z",
+          "run_attempt": 1,
+          "head_sha": "b1cb0a82921541d8018b2db02ab41f7e17424df9"
+        }
+      ]
+    },
+    {
+      "number": 535,
+      "merged_at": "2026-11-14T22:40:06Z",
+      "created_at": "2026-11-14T18:08:08Z",
+      "base_branch": "release/v0.4",
+      "head_sha": "835005153c8bca4b27af1389c42c4559ea187f12",
+      "head_branch": "ci/intel-line",
+      "run_total_reported": 3,
+      "run_list_complete": true,
+      "runs": [
+        {
+          "id": 43635042065,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T19:59:29Z",
+          "run_started_at": "2026-11-14T19:59:29Z",
+          "updated_at": "2026-11-14T22:39:15Z",
+          "run_attempt": 1,
+          "head_sha": "835005153c8bca4b27af1389c42c4559ea187f12"
+        },
+        {
+          "id": 43624887487,
+          "name": "reproducibility",
+          "event": "pull_request",
+          "conclusion": "success",
+          "status": "completed",
+          "created_at": "2026-11-14T18:08:12Z",
+          "run_started_at": "2026-11-14T18:08:12Z",
+          "updated_at": "2026-11-14T18:15:34Z",
+          "run_attempt": 1,
+          "head_sha": "835005153c8bca4b27af1389c42c4559ea187f12"
+        },
+        {
+          "id": 43624887562,
+          "name": "ci",
+          "event": "pull_request",
+          "conclusion": "cancelled",
+          "status": "completed",
+          "created_at": "2026-11-14T18:08:12Z",
+          "run_started_at": "2026-11-14T18:08:12Z",
+          "updated_at": "2026-11-14T19:59:30Z",
+          "run_attempt": 1,
+          "head_sha": "835005153c8bca4b27af1389c42c4559ea187f12"
+        }
+      ]
     }
   ]
 }
