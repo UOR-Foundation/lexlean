@@ -84,6 +84,27 @@ class PreviewContract(unittest.TestCase):
             self.assertIn('NONQUALIFYING', (d / 'summary').read_text())
             self.assertEqual(json.loads(ret.stdout)['head'], HEAD)
 
+    def test_workflow_has_no_automatic_trigger_or_privileged_authority(self):
+        text = (Path(__file__).parents[1] / 'workflows' / 'development-feedback.yml').read_text()
+        header = text.split('\njobs:\n', 1)[0]
+        self.assertIn('\n  workflow_dispatch:\n', header)
+        self.assertNotIn('\n  pull_request:', header)
+        self.assertNotIn('\n  push:', header)
+        self.assertNotIn('\n  schedule:', header)
+        self.assertIn('\npermissions:\n  contents: read\n', header)
+        self.assertIn('persist-credentials: false', text)
+        self.assertNotIn('pull_request_target:', text)
+        self.assertIn('if: ${{ steps.plan.outputs.rust_format == ', text)
+        self.assertIn('if: ${{ steps.plan.outputs.python_contracts == ', text)
+        self.assertIn('NONQUALIFYING', text)
+        self.assertIn('ci_impact_preview.py', text)
+
+    def test_non_utf8_and_merge_conflict_do_not_get_cheap_clearance(self):
+        with self.assertRaises(ValueError):
+            impact.preview(BASE, HEAD, b'M\0bad-\xff.rs\0')
+        with self.assertRaises(ValueError):
+            impact.preview(BASE, HEAD, b'U\0both-sides.rs\0')
+
     def test_no_network_or_shell_execution_in_selector(self):
         source = SCRIPT.read_text()
         self.assertNotIn('shell=True', source)
