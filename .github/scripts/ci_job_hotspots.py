@@ -89,13 +89,14 @@ def analyze(details, costs):
                     "job duration does not match provider timestamps")
         buckets[(workflow, name, platform)].append(job)
         within[rid].append(job)
-    require(set(by_run) == set(within), "unmatched source runs")
+    require(set(within) == {rid for rid, row in by_run.items() if row["job_count"] > 0},
+            "unmatched executed and zero-job source runs")
     per_run = []
     for rid, run in by_run.items():
-        rows = within[rid]
+        rows = within.get(rid, [])
         require(len(rows) == run["job_count"], "job detail count does not match source")
-        billed = sum(j["elapsed_minutes"] or 0 for j in rows)
-        require(abs(billed - run["job_minutes"]) <= 0.001 * (len(rows) + 1),
+        observed = sum(j["elapsed_minutes"] or 0 for j in rows)
+        require(abs(observed - run["job_minutes"]) <= 0.001 * (len(rows) + 1),
                 "job minutes do not reconcile with observed run total")
         for platform in OS:
             duration = sum(j["elapsed_minutes"] or 0 for j in rows if j["platform"] == platform)
@@ -109,9 +110,9 @@ def analyze(details, costs):
         require(envelope is None or envelope >= 0, "invalid job envelope")
         per_run.append({
             "run_id": rid, "pr": run["pr"], "executed_jobs": len(executed),
-            "all_jobs": len(rows), "job_minutes": round(billed, 3),
+            "all_jobs": len(rows), "job_minutes": round(observed, 3),
             "executed_job_envelope_minutes": round(envelope, 3) if envelope is not None else None,
-            "overlap_ratio": round(billed/envelope, 3) if envelope and envelope > 0 else None,
+            "overlap_ratio": round(observed/envelope, 3) if envelope and envelope > 0 else None,
         })
     hottest = []
     for (workflow, name, platform), rows in buckets.items():
