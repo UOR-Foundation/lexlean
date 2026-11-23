@@ -17,6 +17,13 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- A recursive definition with more than ten parameters states its recursive
+  argument (`SP-34`, SPEC.md §17.12). Lean's structural search tries no
+  candidate once more than ten are possible (`maxCombinationSize`) and
+  compiled such a definition by well-founded recursion, so a `reflexivity`
+  proof through it failed although both sides evaluate to the same value.
+  The backend now writes `termination_by structural` for it, executable or
+  not; a definition with at most ten parameters keeps its bytes.
 - A lexicon entry is source (SPEC.md §13.1 to §13.6): `BS-55`, the module `LexiconEntry`, held
   to `lexicon::entry::parse_entry` on the compiler's own committed lexicon packages, returning
   every diagnostic the oracle raises rather than only the first. By the maintainer's decision

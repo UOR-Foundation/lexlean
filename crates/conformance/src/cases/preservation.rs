@@ -4833,6 +4833,8 @@ pub fn run(id: &str) {
         "SP-32" => super::recursive_argument::run(id),
         // §17.16, §17.17: an arm that returns a boxed field.
         "SP-33" => super::binder_arm::run(id),
+        // §17.12, §17.17: a definition Lean's search would not recurse structurally.
+        "SP-34" => super::wide_recursion::run(id),
         "SP-23" => {
             let syntax = support::module_json(
                 &std::fs::read_to_string(
