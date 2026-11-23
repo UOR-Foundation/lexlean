@@ -79,6 +79,8 @@ def preview(base, head, diff, repo_root=None):
         "cargo_unresolved_rust_paths": [], "cargo_manifest_sha256": None,
         "cargo_feedback_only": True,
     }
+    if cargo["cargo_unresolved_rust_paths"]:
+        risk = sorted(set(risk) | set(cargo["cargo_unresolved_rust_paths"]))
     if cargo["cargo_check_packages"]:
         selected.append("cargo-check")
     return {
