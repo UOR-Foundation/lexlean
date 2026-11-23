@@ -630,6 +630,9 @@ const REFUSALS: &[&str] = &[
     "unterminated string",
 ];
 
+/// The refusal of a module nested past the notation's bound of 256.
+const DEPTH: &str = "nested more deeply than the notation reads";
+
 /// The committed semantic modules written in the notation: their bodies.
 fn committed() -> Vec<(String, String)> {
     let mut out = Vec::new();
@@ -1056,7 +1059,21 @@ pub(super) fn case() {
     let mut bases: Vec<String> = Vec::new();
     let mut declarations = 0usize;
     for (path, body) in &modules {
-        let module = parse_module(body, SPEC).unwrap_or_else(|error| panic!("{path}: {error:?}"));
+        // SM-12's depth fixtures read only under a project's raised
+        // max_scope_depth; at the notation's own bound of 256 the reader
+        // this case compares refuses them, and the refusal must be the
+        // depth one alone, so no other unreadable module hides here.
+        let module = match parse_module(body, SPEC) {
+            Ok(module) => module,
+            Err(error) if error.message == DEPTH => {
+                assert!(
+                    path.starts_with("tests/semantic-json-depth/"),
+                    "{path}: nested past the notation's bound outside SM-12's depth fixtures"
+                );
+                continue;
+            }
+            Err(error) => panic!("{path}: {error:?}"),
+        };
         if body.len() <= EVALUATOR_MODULE {
             evaluator[1].push(module_run(body).0);
             evaluator[2].push(spans_run(body).0);
