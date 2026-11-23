@@ -49,13 +49,24 @@ def load_graph(root):
         raise ValueError("workspace Cargo manifest malformed") from error
     # LexLean uses ["crates/*", "xtask"]. Any other member or exclusion
     # changes the accepted graph's boundary and needs fresh policy review.
-    if workspace.get("workspace", {}).get("members") != ["crates/*", "xtask"]:
+    if (workspace.get("workspace", {}).get("members") != ["crates/*", "xtask"]
+            or workspace.get("workspace", {}).get("exclude")):
         raise ValueError("workspace membership changed: graph requires review")
     if set((root / "crates").glob("*/Cargo.toml")) != {
             root / d / "Cargo.toml" for d in PACKAGES.values() if d.startswith("crates/")
     }:
         raise ValueError("unmodeled Cargo workspace crate: graph requires review")
     data.extend(b"Cargo.toml\0" + raw)
+    inherited = workspace.get("workspace", {}).get("dependencies", {})
+    if not isinstance(inherited, dict):
+        raise ValueError("workspace dependencies malformed")
+    # Any path-based local workspace dependency must land on our declared
+    # source roots, not on an invented alias or previously unknown crate.
+    for key, definition in inherited.items():
+        if isinstance(definition, dict) and definition.get("path"):
+            target = definition.get("package", key)
+            if target not in PACKAGES or definition["path"] != PACKAGES[target]:
+                raise ValueError("unmodeled workspace path dependency")
     # dependency -> all direct dependents, including dev/build/target sections
     reverse = {name: set() for name in PACKAGES}
     for owner, config in configs.items():
@@ -68,7 +79,16 @@ def load_graph(root):
             if not isinstance(group, dict):
                 raise ValueError("malformed dependency section")
             for key, definition in group.items():
-                actual = definition.get("package", key) if isinstance(definition, dict) else key
+                spec = definition if isinstance(definition, dict) else {}
+                upstream = inherited.get(key, {}) if spec.get("workspace") is True else {}
+                if spec.get("workspace") is True and key not in inherited:
+                    raise ValueError("unknown inherited dependency")
+                if not isinstance(upstream, dict):
+                    upstream = {}
+                actual = spec.get("package", upstream.get("package", key))
+                path = spec.get("path", upstream.get("path"))
+                if path and (actual not in PACKAGES or path != PACKAGES[actual]):
+                    raise ValueError("unmodeled local path dependency")
                 if actual in PACKAGES:
                     reverse[actual].add(owner)
     return reverse, hashlib.sha256(data).hexdigest()
