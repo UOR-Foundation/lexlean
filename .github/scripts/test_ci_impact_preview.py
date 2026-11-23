@@ -84,20 +84,28 @@ class PreviewContract(unittest.TestCase):
             self.assertIn('NONQUALIFYING', (d / 'summary').read_text())
             self.assertEqual(json.loads(ret.stdout)['head'], HEAD)
 
-    def test_workflow_has_no_automatic_trigger_or_privileged_authority(self):
-        text = (Path(__file__).parents[1] / 'workflows' / 'development-feedback.yml').read_text()
-        header = text.split('\njobs:\n', 1)[0]
+    def test_workflow_is_opt_in_and_read_only_not_an_auto_qualification(self):
+        workflow = (Path(__file__).parents[1] / 'workflows' / 'development-feedback.yml').read_text()
+        header = workflow.split('\njobs:\n', 1)[0]
         self.assertIn('\n  workflow_dispatch:\n', header)
-        self.assertNotIn('\n  pull_request:', header)
+        self.assertIn('\n  pull_request:\n    types: [edited]\n', header)
         self.assertNotIn('\n  push:', header)
         self.assertNotIn('\n  schedule:', header)
+        self.assertNotIn('synchronize', header.split('\non:\n', 1)[1])
         self.assertIn('\npermissions:\n  contents: read\n', header)
-        self.assertIn('persist-credentials: false', text)
-        self.assertNotIn('pull_request_target:', text)
-        self.assertIn('if: ${{ steps.plan.outputs.rust_format == ', text)
-        self.assertIn('if: ${{ steps.plan.outputs.python_contracts == ', text)
-        self.assertIn('NONQUALIFYING', text)
-        self.assertIn('ci_impact_preview.py', text)
+        self.assertIn('persist-credentials: false', workflow)
+        self.assertNotIn('pull_request_target:', workflow)
+        self.assertIn('github.event.pull_request.draft', workflow)
+        self.assertIn('head.repo.full_name == github.repository', workflow)
+        self.assertIn('startsWith(github.event.pull_request.body,', workflow)
+        self.assertIn('<!-- ci-preview-once -->', workflow)
+        self.assertIn('github.event.pull_request.head.sha || github.sha', workflow)
+        self.assertIn('EXPECTED_BASE:', workflow)
+        self.assertIn('if: ${{ steps.plan.outputs.rust_format == ', workflow)
+        self.assertIn('if: ${{ steps.plan.outputs.python_contracts == ', workflow)
+        self.assertIn('cargo check --all-targets --all-features', workflow)
+        self.assertIn('NONQUALIFYING', workflow)
+        self.assertIn('ci_impact_preview.py', workflow)
 
     def test_non_utf8_and_merge_conflict_do_not_get_cheap_clearance(self):
         with self.assertRaises(ValueError):
