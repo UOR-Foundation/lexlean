@@ -1,0 +1,165 @@
+{
+  "schema": "lexlean/ci-pr-job-snapshot/1",
+  "linked_run_inventory": ".github/metrics/ci-before-pr50-runs.json",
+  "expected_runs": 128,
+  "run_costs": [
+    {
+      "id": 45091696180,
+      "pr": 604,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 4.983,
+      "by_platform_minutes": {
+        "linux": 4.983
+      },
+      "first_job_started": "2026-11-23T00:56:37Z",
+      "last_job_completed": "2026-11-23T01:01:36Z"
+    },
+    {
+      "id": 45091696149,
+      "pr": 604,
+      "job_count": 75,
+      "returned": 75,
+      "complete": true,
+      "job_minutes": 951.9,
+      "by_platform_minutes": {
+        "linux": 717.3,
+        "windows": 120.35,
+        "macos": 114.25
+      },
+      "first_job_started": "2026-11-23T00:56:37Z",
+      "last_job_completed": "2026-11-23T02:11:27Z"
+    },
+    {
+      "id": 45079132954,
+      "pr": 602,
+      "job_count": 75,
+      "returned": 75,
+      "complete": true,
+      "job_minutes": 1046.067,
+      "by_platform_minutes": {
+        "linux": 811.667,
+        "windows": 123.65,
+        "macos": 110.75
+      },
+      "first_job_started": "2026-11-22T22:42:12Z",
+      "last_job_completed": "2026-11-23T00:07:48Z"
+    },
+    {
+      "id": 45079132899,
+      "pr": 602,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 5.783,
+      "by_platform_minutes": {
+        "linux": 5.783
+      },
+      "first_job_started": "2026-11-22T22:41:58Z",
+      "last_job_completed": "2026-11-22T22:47:45Z"
+    },
+    {
+      "id": 45079086481,
+      "pr": 602,
+      "job_count": 21,
+      "returned": 21,
+      "complete": true,
+      "job_minutes": 0,
+      "by_platform_minutes": {
+        "linux": 0,
+        "macos": 0,
+        "unknown": 0
+      },
+      "first_job_started": "2026-11-22T22:41:07Z",
+      "last_job_completed": "2026-11-22T22:41:07Z"
+    },
+    {
+      "id": 45079086454,
+      "pr": 602,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 0,
+      "by_platform_minutes": {
+        "linux": 0
+      },
+      "first_job_started": "2026-11-22T22:41:05Z",
+      "last_job_completed": "2026-11-22T22:41:05Z"
+    },
+    {
+      "id": 45022002091,
+      "pr": 597,
+      "job_count": 0,
+      "returned": 0,
+      "complete": true,
+      "job_minutes": 0,
+      "by_platform_minutes": {},
+      "first_job_started": null,
+      "last_job_completed": null
+    },
+    {
+      "id": 45022002096,
+      "pr": 597,
+      "job_count": 0,
+      "returned": 0,
+      "complete": true,
+      "job_minutes": 0,
+      "by_platform_minutes": {},
+      "first_job_started": null,
+      "last_job_completed": null
+    },
+    {
+      "id": 45021985503,
+      "pr": 597,
+      "job_count": 78,
+      "returned": 78,
+      "complete": true,
+      "job_minutes": 1957.267,
+      "by_platform_minutes": {
+        "linux": 1531.3,
+        "windows": 137.417,
+        "macos": 288.55
+      },
+      "first_job_started": "2026-11-22T12:23:03Z",
+      "last_job_completed": "2026-11-22T14:00:10Z"
+    },
+    {
+      "id": 45004184372,
+      "pr": 601,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 7.183,
+      "by_platform_minutes": {
+        "linux": 7.183
+      },
+      "first_job_started": "2026-11-22T08:49:16Z",
+      "last_job_completed": "2026-11-22T08:56:27Z"
+    },
+    {
+      "id": 45004184407,
+      "pr": 601,
+      "job_count": 20,
+      "returned": 20,
+      "complete": true,
+      "job_minutes": 5.633,
+      "by_platform_minutes": {
+        "linux": 5.633
+      },
+      "first_job_started": "2026-11-22T08:44:46Z",
+      "last_job_completed": "2026-11-22T08:58:12Z"
+    },
+    {
+      "id": 45004130767,
+      "pr": 601,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 0,
+      "by_platform_minutes": {},
+      "first_job_started": null,
+      "last_job_completed": null
+    }
+  ]
+}
