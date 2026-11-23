@@ -776,15 +776,19 @@ fn plan_decisions() {
             continue;
         }
         if let Some(name) = line.strip_prefix("  ").and_then(|s| s.strip_suffix(':')) {
-            if !name.is_empty()
-                && name
-                    .bytes()
-                    .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
-            {
-                assert!(job_names.insert(name.to_owned()), "duplicate ci.yml job");
-                current_job = Some(name.to_owned());
+            if name.starts_with('#') {
                 continue;
             }
+            assert!(
+                !name.is_empty()
+                    && name
+                        .bytes()
+                        .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-'),
+                "§9.4: unsupported CI job key requires explicit review"
+            );
+            assert!(job_names.insert(name.to_owned()), "duplicate ci.yml job");
+            current_job = Some(name.to_owned());
+            continue;
         }
         if let Some(job) = current_job.as_deref() {
             if let Some(needs) = line.strip_prefix("    needs: ") {
