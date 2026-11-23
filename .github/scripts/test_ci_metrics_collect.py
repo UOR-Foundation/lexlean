@@ -245,7 +245,7 @@ class CollectorContracts(unittest.TestCase):
         reader.data[("actions/runs/202/jobs", None)] = [only_retry]
         _, costs = reader.capture("after", B, 1)
         self.assertEqual(costs["run_costs"][0]["verified_zero_job_attempts"], [1])
-        self.assertIn(("actions/runs/202/attempts/1/jobs", None), reader.data)
+        self.assertNotIn(("actions/runs/202/attempts/1/jobs", None), reader.data)
         self.assertTrue(any("/attempts/1/jobs" in name for name, _ in reader.calls))
 
     def test_missing_prior_nonempty_attempt_fails_closed(self):

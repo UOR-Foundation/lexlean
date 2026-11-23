@@ -37,7 +37,7 @@ def canonical_executions(records, latest_attempt, proven_empty_attempts=()):
         require(isinstance(row, dict), "invalid provider job record")
         jid, name = row.get("id"), row.get("name")
         require(type(jid) is int and jid > 0 and jid not in ids,
-                "duplicate/invalid provider job ID")
+                "duplicate/invalid provider job id")
         require(isinstance(name, str) and 0 < len(name) <= 300,
                 "missing provider job name")
         ids.add(jid)
@@ -54,7 +54,7 @@ def canonical_executions(records, latest_attempt, proven_empty_attempts=()):
                                "skipped", "neutral", "action_required"),
                 "invalid completed job conclusion")
         start, finish = row.get("started_at"), row.get("completed_at")
-        require(bool(start) == bool(finish), "partial execution timestamp")
+        require(bool(start) == bool(finish), "partial job timestamps (partial execution)")
         if start:
             require((utc(finish) - utc(start)).total_seconds() >= 0,
                     "negative execution duration")
