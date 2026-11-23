@@ -69,6 +69,7 @@ class ReportContracts(unittest.TestCase):
         self.assertEqual(summary["pr_with_premerge_green"], 29)
         self.assertAlmostEqual(summary["observed_runner_job_minutes_total"], 99321.66, delta=.1)
         self.assertIsNone(summary["billing_minutes"])
+        self.assertAlmostEqual(summary["estimated_private_equivalent_usd_total"], 1408.78, delta=0.15)
         self.assertTrue(all(x["period"] == "before" for x in prs))
 
     def test_premerge_qualification_is_not_merge_time(self):
@@ -82,9 +83,12 @@ class ReportContracts(unittest.TestCase):
 
     def test_total_is_per_run_job_minutes_not_workflow_wall(self):
         runs, costs = fixture()
-        _, summary = metrics.summarize(runs, costs, "before")
+        prs, summary = metrics.summarize(runs, costs, "before")
         self.assertEqual(summary["observed_runner_job_minutes_total"], 195)
         self.assertEqual(summary["platform_runner_minutes"]["macos"], 120)
+        self.assertAlmostEqual(summary["estimated_private_equivalent_usd_total"], 7.91)
+        self.assertAlmostEqual(prs[0]["estimated_private_equivalent_usd"], .42)
+        self.assertAlmostEqual(prs[1]["estimated_private_equivalent_usd"], 7.49)
 
     def test_missing_job_cost_refused_not_interpreted_as_zero(self):
         runs, costs = fixture()
@@ -142,6 +146,10 @@ class ReportContracts(unittest.TestCase):
             self.assertIn("AWAITING VERIFIED POST-CUTOVER PRS", svg)
             self.assertIn("No zero-minute runs or estimated savings", svg)
             ET.fromstring(Path(temp, "final-head-time-to-green.svg").read_text())
+            cost_svg = Path(temp, "private-equivalent-cost-per-pr.svg").read_text()
+            ET.fromstring(cost_svg)
+            self.assertIn("AWAITING VERIFIED POST-CUTOVER PRS", cost_svg)
+            self.assertIn("Estimated private-repo compute equivalent", Path(temp, "README.md").read_text())
             self.assertIn("NOT YET OBSERVED", Path(temp, "README.md").read_text())
 
     def test_after_merges_cannot_pretend_to_predate_cutover(self):
