@@ -2,7 +2,7 @@
 
 **Owner issue:** [#603](https://github.com/UOR-Foundation/lexlean/issues/603).
 **Implementation:** [draft PR #606](https://github.com/UOR-Foundation/lexlean/pull/606).
-**Hosted report:** [successful run #45103348902](https://github.com/UOR-Foundation/lexlean/actions/runs/45103348902), exact HEAD `daafa654fa5ed07463650b50e49429703ad61e20` at the result; [five-file graph/CSV artifact](https://github.com/UOR-Foundation/lexlean/actions/runs/45103348902/artifacts/14785564491), expires 2026-12-07. Reports regenerate from pinned, in-repository snapshots.
+**Previous hosted report:** [successful run #45103348902](https://github.com/UOR-Foundation/lexlean/actions/runs/45103348902) and [prior five-file artifact](https://github.com/UOR-Foundation/lexlean/actions/runs/45103348902/artifacts/14785564491) are the original runner-minutes and time-to-green presentation, **before** the new private-cost graph. The revised six-file report is generated from the same pinned evidence snapshots; its hosted verification must be separately confirmed.
 
 ## Evidence ledger
 
@@ -16,6 +16,8 @@
 | Linux job-minutes | **77,326.62** | N/A |
 | Windows job-minutes | **8,055.18** | N/A |
 | macOS job-minutes | **13,939.85** | N/A |
+| **Estimated private-repository standard-runner compute equivalent** | **$1,408.78** | **NOT YET AVAILABLE** |
+| Actual public-repo standard-hosted compute charge | **$0** | N/A |
 | PRs with both PR-triggered CI and repro green before merge | **29 / 50** | N/A |
 | Median final-HEAD CI time-to-green (the 29 qualifying PRs) | **186.23 min** | N/A |
 | p90 final-HEAD CI time-to-green (the 29 qualifying PRs) | **450.96 min** | N/A |
@@ -27,6 +29,8 @@
 HEADs, run IDs, run conclusions, timestamps, all-attempt paginated job counts,
 platform labels and elapsed durations. All 128 run job inventories are
 complete. A handful of older runs had more than 100 jobs and required pagination.
+
+**Shadow-cost methodology:** The **$1,408.78** is a rate-weighted estimate, not a bill or cost savings: 77,326.62 pooled Linux elapsed job-minutes × $0.006/min + 8,055.18 Windows minutes × $0.010/min + 13,939.85 macOS minutes × $0.062/min (published 2026 standard private-repository rates). Historical Linux ARM minutes are pooled with x64, so the x64 rate is a proxy; per-job whole-minute billing rounding cannot be reconstructed from the aggregate source, and storage, larger runners and monthly included compute allowances are excluded. Depending on platform mix and rounding, an actual private-repo charge would differ. [GitHub Actions runner pricing](https://docs.github.com/en/billing/reference/actions-runner-pricing) and [billing rules](https://docs.github.com/en/billing/concepts/product-billing/github-actions) are the authoritative rate sources. **Public standard runners are free, but the workload still consumed substantial compute.**
 
 **Scopes and caveats:** This is **not** organization-wide GitHub Actions spend,
 or a complete PR-lifetime total. The baseline only attributes workflow runs
@@ -50,8 +54,8 @@ merging. We also do not mistake PR creation-to-merge time for CI waiting.
 
 ## Graphs and reproducibility
 
-The hosted artifact contains two **separate, same-scale before/after SVGs**:
-`runner-minutes-per-pr.svg` and `final-head-time-to-green.svg`, plus
+The updated report generates three **separate, same-scale before/after SVGs**:
+`runner-minutes-per-pr.svg`, `private-equivalent-cost-per-pr.svg`, and `final-head-time-to-green.svg`, plus
 `ci-before-after-prs.csv`, machine-readable summary JSON and a README.
 The after panels are intentionally blank, not a zero or guessed forecast.
 
