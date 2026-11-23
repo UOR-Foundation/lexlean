@@ -105,6 +105,32 @@ class PreviewContract(unittest.TestCase):
         with self.assertRaises(ValueError):
             impact.preview(BASE, HEAD, b'U\0both-sides.rs\0')
 
+    def test_real_git_rename_diff_selects_both_impacted_languages(self):
+        with tempfile.TemporaryDirectory() as dirname:
+            root = Path(dirname)
+            def git(*arguments):
+                return subprocess.check_output(
+                    ['git', '-C', str(root), *arguments])
+            git('init', '-q')
+            git('config', 'user.email', 'fixture@example.invalid')
+            git('config', 'user.name', 'Fixture')
+            old = root / 'crates/example/src/lib.rs'
+            old.parent.mkdir(parents=True)
+            old.write_text('# generated fixture\n')
+            git('add', '.')
+            git('commit', '-qm', 'baseline')
+            base = git('rev-parse', 'HEAD').decode().strip()
+            (root / '.github/scripts').mkdir(parents=True)
+            git('mv', 'crates/example/src/lib.rs', '.github/scripts/renamed.py')
+            git('commit', '-qm', 'rename')
+            head = git('rev-parse', 'HEAD').decode().strip()
+            actual_diff = git('diff', '--name-status', '-z', '-M',
+                              '--no-ext-diff', base, head)
+            report = impact.preview(base, head, actual_diff)
+            self.assertEqual(report['selected_feedback'], [
+                'diff-whitespace', 'rust-format', 'ci-python-contracts'])
+            self.assertEqual(report['qualification'], 'NONQUALIFYING')
+
     def test_no_network_or_shell_execution_in_selector(self):
         source = SCRIPT.read_text()
         self.assertNotIn('shell=True', source)
