@@ -33,8 +33,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      # A stale base used to cost an entire fetch-depth:0 checkout just to HOLD.
-      # Query the branch ref before checkout; the later exact-tree check remains.
+      # Source-bound, fail-closed and cheap before fetching the large checkout.
       - name: Reject stale preview base before checkout
         shell: bash
         env:
@@ -54,116 +53,12 @@ jobs:
             echo "::error::Invalid event base commit identity"
             exit 1
           fi
-          # No action checkout or injected shell expression; exact remote branch.
-          remote="https://github.com/${GITHUB_REPOSITORY}.git"
+          remote="https://github.com/$GITHUB_REPOSITORY.git"
           live="$(git ls-remote --exit-code --heads "$remote" "refs/heads/$BASE_REF")" || {
             echo "::error::Could not read current baseline ref"
             exit 1
           }
-          if [[ "$live" == *
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Pin trusted-base comparison and decide real feedback commands
-        id: plan
-        shell: bash
-        env:
-          BASE_REF: ${{ github.event.pull_request.base.ref || inputs.base_ref }}
-          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-          EXPECTED_BASE: ${{ github.event.pull_request.base.sha || '' }}
-        run: |
-          set -euo pipefail
-          # User input is data, not a shell command or a revision expression.
-          if [[ ! "$BASE_REF" =~ ^(main|release/v[0-9]+\.[0-9]+)$ ]]; then
-            echo "::error::Only main or release/vX.Y baselines are supported"
-            exit 1
-          fi
-          head_sha="$(git rev-parse --verify HEAD)"
-          if [[ "$head_sha" != "$EXPECTED_HEAD" ]]; then
-            echo "::error::Checkout SHA differs from dispatch SHA"
-            exit 1
-          fi
-          git fetch --no-tags origin "$BASE_REF:refs/remotes/origin/$BASE_REF"
-          base_sha="$(git rev-parse --verify "refs/remotes/origin/$BASE_REF^{commit}")"
-          if [[ -n "$EXPECTED_BASE" && "$base_sha" != "$EXPECTED_BASE" ]]; then
-            echo "::error::Base branch moved since the opted-in event"
-            exit 1
-          fi
-          # Do not silently compare a stale or unrelated branch.
-          git merge-base --is-ancestor "$base_sha" "$head_sha" || {
-            echo "::error::Base is not an ancestor: update branch before preview"
-            exit 1
-          }
-          git diff --name-status -z -M --no-ext-diff "$base_sha" "$head_sha" > "$RUNNER_TEMP/ci-preview-changes.z"
-          echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
-          python3 .github/scripts/ci_impact_preview.py \
-            --base "$base_sha" --head "$head_sha" \
-            --diff-nul "$RUNNER_TEMP/ci-preview-changes.z" --repo-root . \
-            --github-output "$GITHUB_OUTPUT" --summary "$GITHUB_STEP_SUMMARY"
-      - name: Check changed-line whitespace
-        if: ${{ steps.plan.outputs.whitespace == 'true' }}
-        shell: bash
-        env:
-          BASE_SHA: ${{ steps.plan.outputs.base_sha }}
-          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
-          git diff --check --no-ext-diff "$BASE_SHA" HEAD
-      - name: Run impacted CI Python contracts
-        if: ${{ steps.plan.outputs.python_contracts == 'true' }}
-        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py' -v
-      - name: Generate the observed before-after CI report
-        if: ${{ steps.plan.outputs.python_contracts == 'true' }}
-        run: |
-          python3 .github/scripts/ci_metrics_report.py \
-            --before-runs .github/metrics/ci-before-pr50-runs.json \
-            --before-costs .github/metrics/ci-before-pr50-job-costs.json \
-            --output-dir ci-evidence/ci-before-after
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: ${{ steps.plan.outputs.python_contracts == 'true' && success() }}
-        with:
-          name: ci-before-after-evidence
-          path: ci-evidence/ci-before-after
-          if-no-files-found: error
-          retention-days: 14
-      - name: Install pinned Rust for selected checks
-        if: ${{ steps.plan.outputs.rust_format == 'true' || steps.plan.outputs.cargo_check == 'true' }}
-        run: rustup toolchain install
-      - name: Check impacted Rust formatting
-        if: ${{ steps.plan.outputs.rust_format == 'true' }}
-        run: cargo fmt --all -- --check
-      - name: Check actual affected Cargo package targets
-        if: ${{ steps.plan.outputs.cargo_check == 'true' }}
-        shell: bash
-        env:
-          MODEL: ${{ steps.plan.outputs.cargo_repo_model }}
-          LEXLEAN: ${{ steps.plan.outputs.cargo_lexlean }}
-          CONFORMANCE: ${{ steps.plan.outputs.cargo_repo_conformance }}
-          XTASK: ${{ steps.plan.outputs.cargo_xtask }}
-        run: |
-          set -euo pipefail
-          packages=()
-          [[ "$MODEL" == "true" ]] && packages+=(-p repo-model)
-          [[ "$LEXLEAN" == "true" ]] && packages+=(-p lexlean)
-          [[ "$CONFORMANCE" == "true" ]] && packages+=(-p repo-conformance)
-          [[ "$XTASK" == "true" ]] && packages+=(-p xtask)
-          if [[ "${#packages[@]}" -eq 0 ]]; then
-            echo "::error::Requested Cargo check without a package"
-            exit 1
-          fi
-          cargo check --all-targets --all-features "${packages[@]}"
-      - name: State the assurance boundary even on failure
-        if: ${{ always() }}
-        shell: bash
-        run: |
-          {
-            printf '\n**NONQUALIFYING:** only the selected development-feedback commands ran. '
-            printf 'A green preview does not replace SPEC.md §9.4, native/proof checks, '
-            printf 'reproducibility, or the exact-head release gate.\n'
-          } | tee -a "$GITHUB_STEP_SUMMARY"
-\n'* ]]; then
+          if [[ $(wc -l <<< "$live") -ne 1 ]]; then
             echo "::error::Ambiguous baseline ref response"
             exit 1
           fi
