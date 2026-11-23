@@ -131,6 +131,24 @@ class PreviewContract(unittest.TestCase):
                 'diff-whitespace', 'rust-format', 'ci-python-contracts'])
             self.assertEqual(report['qualification'], 'NONQUALIFYING')
 
+    def test_cargo_graph_requires_explicit_source_and_remains_nonqualifying(self):
+        from test_ci_cargo_scope import fixture
+        with tempfile.TemporaryDirectory() as dirname:
+            root = Path(dirname)
+            fixture(root)
+            result = impact.preview(BASE, HEAD, diff(('M', 'crates/lexlean/src/lib.rs')),
+                                    repo_root=root)
+            self.assertIn('cargo-check', result['selected_feedback'])
+            self.assertEqual(result['cargo_check_packages'], [
+                'lexlean', 'repo-conformance', 'xtask'])
+            self.assertEqual(result['qualification'], 'NONQUALIFYING')
+
+    def test_cargo_graph_failure_holds_instead_of_cheap_clearance(self):
+        with tempfile.TemporaryDirectory() as dirname:
+            with self.assertRaises(ValueError):
+                impact.preview(BASE, HEAD, diff(('M', 'crates/model/src/lib.rs')),
+                               repo_root=Path(dirname))
+
     def test_no_network_or_shell_execution_in_selector(self):
         source = SCRIPT.read_text()
         self.assertNotIn('shell=True', source)
