@@ -36,6 +36,33 @@ def paths_from_nul(payload, source):
     return items
 
 
+def patch_names(payload, source):
+    """Parse git apply --numstat -z, including binary files and renames."""
+    if not payload:
+        return []
+    require(payload.endswith(b"\0"), source + ": truncated numstat output")
+    items = payload[:-1].split(b"\0")
+    found = []
+    i = 0
+    while i < len(items):
+        fields = items[i].split(b"\t", 2)
+        require(len(fields) == 3 and all(
+            n == b"-" or (n.isascii() and n.isdigit()) for n in fields[:2]),
+            source + ": malformed binary/text numstat row")
+        name = fields[2]
+        if not name:
+            # Git's -z rename/copy form is 0<TAB>0<TAB><NUL>from<NUL>to<NUL>.
+            require(i + 2 < len(items) and items[i + 1] and items[i + 2],
+                    source + ": incomplete rename/copy metadata")
+            paths_from_nul(items[i + 1] + b"\0", source + " source")
+            name = items[i + 2]
+            i += 2
+        found.append(name)
+        i += 1
+    paths_from_nul(b"\0".join(found) + b"\0", source)
+    return found
+
+
 def regular(path):
     require(path.is_file() and not path.is_symlink(),
             "writer artifact missing, directory, or symlink: " + path.name)
@@ -57,7 +84,7 @@ def inspect(directory):
         declared = paths_from_nul(manifest.read_bytes(), writer + ".files")
         try:
             parsed = subprocess.run(
-                ["git", "apply", "--name-only", "-z", str(patch)],
+                ["git", "apply", "--numstat", "-z", str(patch)],
                 check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 timeout=30,
             )
@@ -65,7 +92,7 @@ def inspect(directory):
             raise ValueError(writer + ": cannot inspect patch") from error
         require(parsed.returncode == 0,
                 writer + ": invalid binary/text patch path inventory")
-        actual = paths_from_nul(parsed.stdout, writer + ".patch")
+        actual = patch_names(parsed.stdout, writer + ".patch")
         require(set(declared) == set(actual),
                 writer + ": patch and declared file inventory disagree")
         for item in declared:
