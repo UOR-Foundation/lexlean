@@ -664,6 +664,155 @@
       },
       "first_job_started": "2026-11-18T21:52:34Z",
       "last_job_completed": "2026-11-19T01:12:57Z"
+    },
+    {
+      "id": 44405517566,
+      "pr": 574,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 6.7,
+      "by_platform_minutes": {
+        "linux": 6.7
+      },
+      "first_job_started": "2026-11-18T21:50:43Z",
+      "last_job_completed": "2026-11-18T21:57:25Z"
+    },
+    {
+      "id": 44377983844,
+      "pr": 575,
+      "job_count": 72,
+      "returned": 72,
+      "complete": true,
+      "job_minutes": 1730.783,
+      "by_platform_minutes": {
+        "linux": 1324.967,
+        "macos": 281.167,
+        "windows": 124.65
+      },
+      "first_job_started": "2026-11-18T19:13:46Z",
+      "last_job_completed": "2026-11-18T23:11:23Z"
+    },
+    {
+      "id": 44377983819,
+      "pr": 575,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 7.15,
+      "by_platform_minutes": {
+        "linux": 7.15
+      },
+      "first_job_started": "2026-11-18T19:19:12Z",
+      "last_job_completed": "2026-11-18T19:26:21Z"
+    },
+    {
+      "id": 44294421472,
+      "pr": 572,
+      "job_count": 18,
+      "returned": 18,
+      "complete": true,
+      "job_minutes": 2.767,
+      "by_platform_minutes": {
+        "linux": 2.767,
+        "macos": 0,
+        "windows": 0,
+        "unknown": 0
+      },
+      "first_job_started": "2026-11-18T11:24:33Z",
+      "last_job_completed": "2026-11-18T11:27:21Z"
+    },
+    {
+      "id": 44294421278,
+      "pr": 572,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 4.633,
+      "by_platform_minutes": {
+        "linux": 4.633
+      },
+      "first_job_started": "2026-11-18T11:24:33Z",
+      "last_job_completed": "2026-11-18T11:29:11Z"
+    },
+    {
+      "id": 44347758431,
+      "pr": 576,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 6.667,
+      "by_platform_minutes": {
+        "linux": 6.667
+      },
+      "first_job_started": "2026-11-18T16:29:09Z",
+      "last_job_completed": "2026-11-18T16:35:49Z"
+    },
+    {
+      "id": 44347758697,
+      "pr": 576,
+      "error": "UNKNOWN: Error code: UNKNOWN; Error: ReadTimeout: ",
+      "complete": false
+    },
+    {
+      "id": 44294059978,
+      "pr": 573,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 6.917,
+      "by_platform_minutes": {
+        "linux": 6.917
+      },
+      "first_job_started": "2026-11-18T11:22:13Z",
+      "last_job_completed": "2026-11-18T11:29:08Z"
+    },
+    {
+      "id": 44294059764,
+      "pr": 573,
+      "job_count": 6,
+      "returned": 6,
+      "complete": true,
+      "job_minutes": 349.617,
+      "by_platform_minutes": {
+        "linux": 349.617
+      },
+      "first_job_started": "2026-11-18T11:22:13Z",
+      "last_job_completed": "2026-11-18T15:25:34Z"
+    },
+    {
+      "id": 44294059974,
+      "pr": 573,
+      "job_count": 72,
+      "returned": 72,
+      "complete": true,
+      "job_minutes": 2105.617,
+      "by_platform_minutes": {
+        "linux": 1683.417,
+        "macos": 300.367,
+        "windows": 121.833
+      },
+      "first_job_started": "2026-11-18T11:22:14Z",
+      "last_job_completed": "2026-11-18T13:17:16Z"
+    },
+    {
+      "id": 44270426412,
+      "pr": 570,
+      "error": "UNKNOWN: Error code: UNKNOWN; Error: ReadTimeout: ",
+      "complete": false
+    },
+    {
+      "id": 44270423434,
+      "pr": 570,
+      "job_count": 6,
+      "returned": 6,
+      "complete": true,
+      "job_minutes": 229.067,
+      "by_platform_minutes": {
+        "linux": 229.067
+      },
+      "first_job_started": "2026-11-18T08:50:34Z",
+      "last_job_completed": "2026-11-18T11:21:49Z"
     }
   ]
 }
