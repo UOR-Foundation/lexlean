@@ -1320,7 +1320,16 @@ impl Render<'_> {
                 "{pad}simp only [{}]\n",
                 definitions
                     .iter()
-                    .map(|member| self.member(member))
+                    .map(|member| {
+                        // Linking admits a registered law by its Lean name;
+                        // no document member has a dotted name.
+                        member
+                            .module
+                            .is_none()
+                            .then(|| crate::ir::semantic::laws::law_by_lean(&member.name))
+                            .flatten()
+                            .map_or_else(|| self.member(member), law_lean_name)
+                    })
                     .collect::<Vec<_>>()
                     .join(", ")
             ),
@@ -1490,16 +1499,8 @@ impl Render<'_> {
             } => {
                 // Linking resolved the law; a law it did not resolve never
                 // reaches the backend.
-                // A law of a module other than the laws module is named
-                // from the root: its namespace is not a reserved document
-                // name, so only the rooted name is safe from capture.
-                let lean = crate::ir::semantic::laws::law(name).map_or_else(
-                    |_| identifier(name),
-                    |law| match law.module {
-                        Some(_) => format!("_root_.{}", law.lean),
-                        None => law.lean.clone(),
-                    },
-                );
+                let lean = crate::ir::semantic::laws::law(name)
+                    .map_or_else(|_| identifier(name), law_lean_name);
                 let arguments = type_arguments
                     .iter()
                     .map(|argument| format!(" ({})", self.ty(argument)))
@@ -1760,6 +1761,16 @@ fn uses_collections(module: &serde_json::Value) -> bool {
     walk(module)
 }
 
+/// How generated Lean names a registered law. A law of a module other than
+/// the laws module is named from the root: its namespace is not a reserved
+/// document name, so only the rooted name is safe from capture.
+fn law_lean_name(law: &crate::ir::semantic::laws::Law) -> String {
+    match law.module {
+        Some(_) => format!("_root_.{}", law.lean),
+        None => law.lean.clone(),
+    }
+}
+
 /// The runtime modules that state the laws a module's `law` proofs apply
 /// (§17.12, *Fold laws*): the laws module, unless the law's registry row names
 /// another. A law linking did not resolve never reaches the backend.
@@ -1768,6 +1779,27 @@ fn law_modules(module: &serde_json::Value) -> std::collections::BTreeSet<String>
         match value {
             serde_json::Value::Array(items) => items.iter().for_each(|item| walk(item, found)),
             serde_json::Value::Object(object) => {
+                // A `simplify` that names a registered law by its Lean name
+                // rewrites with it, so it imports the law's module too.
+                if object.get("kind").and_then(serde_json::Value::as_str) == Some("simplify") {
+                    for law in object
+                        .get("definitions")
+                        .and_then(serde_json::Value::as_array)
+                        .into_iter()
+                        .flatten()
+                        .filter(|member| {
+                            member.get("module").is_none_or(serde_json::Value::is_null)
+                        })
+                        .filter_map(|member| member.get("name").and_then(serde_json::Value::as_str))
+                        .filter_map(crate::ir::semantic::laws::law_by_lean)
+                    {
+                        found.insert(
+                            law.module
+                                .clone()
+                                .unwrap_or_else(|| crate::backend::runtime::LAWS.to_owned()),
+                        );
+                    }
+                }
                 if object.get("kind").and_then(serde_json::Value::as_str) == Some("law") {
                     let declared = object
                         .get("name")

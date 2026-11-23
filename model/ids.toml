@@ -1016,6 +1016,12 @@ suite = "proofs"
 statement = "The language-1.2 linear_arithmetic proof form decides a first-match chain of many conditions: when the fixed script leaves a goal open, a second attempt adds the law LexLeanLaws.ite_eq_iff, which reads an if equal to a value as the disjunction of its branches, each with its condition, and the propositional simplifications that drop every branch whose condition is decided, so a chain of fourteen conditions verifies for all inputs, a proof the fixed script closes keeps its axioms, and a false bound on the chain is refused by Lean."
 
 [[id]]
+id = "PF-28"
+level = "build"
+suite = "proofs"
+statement = "The runtime module LexLeanRuntime.Laws states natural-number laws over the runtime's multiply, quotient, remainder, and subtract (commutativity, associativity, distributivity over addition and truncated subtraction, the unit and zero, the successor, monotonicity and cancellation of order, and the quotient and remainder identities by a positive divisor for every zero case), each row's axioms within propext; the language-1.2 law proof form applies each by name, and simplify accepts each by its Lean name as a rewrite, so every law verifies both ways, a language-1.2 simplify also accepts Nat.ble_eq and Nat.le_refl, a language-1.1 simplify naming a law is refused in linking, and a misstated instance is refused by Lean."
+
+[[id]]
 id = "LN-01"
 level = "build"
 suite = "lean-backend"

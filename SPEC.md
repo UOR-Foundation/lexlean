@@ -2681,7 +2681,9 @@ unchanged.
 The closed proof variants are reflexivity, decidable Boolean bridging,
 `simp only` over a nonempty sorted unique set of document definitions,
 induction hypotheses, and the fixed `Bool.and_eq_true`, `Nat.beq_eq`, or
-`Nat.blt_eq` Boolean-to-proposition bridge lemmas; constructor
+`Nat.blt_eq` Boolean-to-proposition bridge lemmas, which language 1.2
+extends with `Nat.ble_eq`, `Nat.le_refl`, and every registered law named by
+its Lean name (§17.12, *Fold laws*, rule 7); constructor
 congruence, cases, and structural induction. Each has one fixed proof-term or
 tactic lowering and one canonical LaTeX description; users cannot supply a
 tactic name or argument string. Cases and induction require a `Nat`, `List`,
@@ -2832,7 +2834,7 @@ backend runs.
 | `mutual` definition label | `lexlean/semantic-module/3` | `"mutual":"Label"` on a structurally recursive definition places it in a mutual definition group under the recursion rules below. |
 | `termination` evidence | `lexlean/semantic-module/3` | `{"measure":m,"evidence":[theorem...]}` on a definition declares well-founded recursion under the recursion rules below. |
 | `linear_arithmetic` proof | `lexlean/semantic-module/3` | `{"kind":"linear_arithmetic"}`, optionally with `definitions`, a strictly sorted list of prior document definitions and no other member. It lowers to one fixed script (*Fold laws* below): `intros`; with definitions, `subst_vars`; one `simp only [...] at *` over, in order, the named definitions, the Boolean-comparison bridges `← Bool.not_eq_true, Bool.and_eq_true, Bool.or_eq_true, Bool.not_eq_true', and_true, true_and, Option.some.injEq, Nat.beq_eq, Nat.blt_eq, Nat.ble_eq`, the runtime definitions `LexLeanRuntime.subtract, LexLeanRuntime.multiply, LexLeanRuntime.negate, LexLeanRuntime.equal`, the Lean lemmas `beq_iff_eq, decide_eq_true_eq, decide_eq_false_iff_not, Nat.add_assoc, Int.add_assoc, Int.neg_neg, Int.emod_neg, Int.neg_zero, ↓reduceIte`, the registered rewrite set of the fold laws, and for each fixed-width type `T` (`UInt8`, `UInt16`, `UInt32`, `UInt64` read by `toNat`; `Int8`, `Int16`, `Int32`, `Int64` read by `toInt`) first `T.le_iff_v_le, T.lt_iff_v_lt` and then `T.reduceToNat` or `T.reduceToInt` and `← T.v_inj`; a second `simp only [...] at *` over `UInt8.toNat` … `Int64.toInt` and `BitVec.toInt_eq_toNat_cond`, which reads every remaining fixed-width value as the bounded natural number of its bits; `all_goals (repeat' split)`, which splits every `if` and `match` left in the goal; `all_goals omega`; and `done`. That sequence is the first alternative of a `first`; the second is the same sequence without `done`, whose first `simp only` also takes `LexLeanLaws.ite_eq_iff`, which reads an `if` equal to a value as the disjunction of its branches, each with its condition, and the propositional simplifications `and_false, false_and, or_false, false_or, not_false_eq_true, not_true_eq_false`, which drop a branch whose condition is decided, so a first-match chain of many conditions becomes cases `omega` decides rather than nested splits. A proof the first alternative closes keeps the proof term and the axioms it had before the second existed. Each `simp only` is under `try` with the unused-argument linter off, so a goal the simplifier already closed leaves nothing for `omega`. With definitions, hypotheses equating a local with a constructor value are substituted and a measure over them unfolds to linear arithmetic. A module with this proof imports `LexLeanRuntime.Laws`. |
-| `law` proof | `lexlean/semantic-module/3` | `{"kind":"law","name":N,"type_arguments":[T...],"arguments":[...],"premises":[theorem...]}` (`type_arguments` and `premises` omitted when empty): exact application of the registered fold law `N` (*Fold laws* below) to explicit type arguments, arguments, and prior theorems discharging its premises in order. Linking checks the counts, the type arguments, each argument against the registered parameter type, and that each premise names a prior theorem; Lean checks the statement. It lowers to `exact @L (T1) … (a1) … p1 …`, `L` the law's Lean name, and a module with it imports `LexLeanRuntime.Laws`. |
+| `law` proof | `lexlean/semantic-module/3` | `{"kind":"law","name":N,"type_arguments":[T...],"arguments":[...],"premises":[theorem...]}` (`type_arguments` and `premises` omitted when empty): exact application of the registered law `N` (*Fold laws* below: a fold, array, or natural-number arithmetic law) to explicit type arguments, arguments, and prior theorems discharging its premises in order. Linking checks the counts, the type arguments, each argument against the registered parameter type, and that each premise names a prior theorem; Lean checks the statement. It lowers to `exact @L (T1) … (a1) … p1 …`, `L` the law's Lean name, and a module with it imports `LexLeanRuntime.Laws`. |
 | `region_check` proof | `lexlean/semantic-module/3` | `{"kind":"region_check"}` and no other member, the whole proof of a theorem whose statement is `breaks request = false` over a decision fragment (*Decision regions* below). It lowers to `exact LexLeanRegions.holds R d P B (by decide +kernel) [(request).f1, …] rfl`, with the rules `R`, the `otherwise` answer `d`, the property `P`, and its box `B` read from the module, and a module with it imports `LexLeanRuntime.Regions`. |
 | integer order | `lexlean/semantic-module/3` | The order propositions `le` and `lt`, which language 1.1 types over `Nat` only, take two operands of one integer type: `Nat`, `Int`, or one fixed-width type. They lower to Lean's `<=` and `<` on that type, which on a fixed-width type is the order of its mathematical value. |
 | `map`, `set` types | `lexlean/semantic-module/3` | `{"kind":"map","key":K,"value":V}` and `{"kind":"set","element":K}` over an ordered key type, under the collection rules below. |
@@ -3367,6 +3369,33 @@ rules are LexLean's own; the diagnostic each linking failure raises is
 6. **Closed instances.** `decide` evaluates a closed statement and does not
    decide one with a free variable, so a statement over all inputs is proved
    by the laws and `omega`, never by enumerating inputs.
+7. **Natural-number arithmetic.** `omega` reads a product of two variables
+   as an opaque atom, so a fact about products and quotients needs a law.
+   The module states, over `Nat` and the runtime's `multiply`, `quotient`,
+   `remainder`, and `subtract` exactly as a document writes them, so that
+   each matches without unfolding: `nat_mul_comm`, `nat_mul_assoc`,
+   `nat_mul_left_comm`, `nat_left_distrib`, `nat_right_distrib`,
+   `nat_mul_sub` (truncated subtraction), `nat_mul_one`, `nat_one_mul`,
+   `nat_mul_zero`, `nat_zero_mul`, `nat_mul_succ`; `nat_mul_le_mul`,
+   `nat_mul_lt_mul_of_pos_right`, `nat_le_of_mul_le_mul_left`, with their
+   order premises, and `nat_mul_le_mul_left_iff`, the cancellation as a
+   rewrite of the product order (the factor of `nat_le_of_mul_le_mul_left`
+   is absent from its conclusion, so `simp` cannot instantiate it); and
+   `nat_mul_div_cancel_left`, `nat_div_div_eq_div_mul`,
+   `nat_mul_div_mul_left`, `nat_div_add_mod`, `nat_mul_mod_left`,
+   `nat_mod_mul_left_div_self`, `nat_add_mul_div_left`, `nat_mod_lt`. Each
+   quotient and remainder law has a positive divisor among its premises
+   (for `nat_mul_div_mul_left`, a positive common factor and one zero case),
+   so it holds for every zero case, which is an explicit argument; a zero
+   case on the right side is one of the left side's. A law is
+   used two ways: a `law` proof applies it by its name (`nat_mul_comm`), and
+   in language 1.2 `simplify` rewrites with it by its Lean name
+   (`LexLeanLaws.nat_mul_comm`), discharging its premises with the other
+   names it lists; a module whose `simplify` names a law imports the module
+   that states it. A step proved by `linear_arithmetic` with a law's
+   instance as its premise, then discharged by `simplify` naming the step
+   and the law, combines a law with `omega`. Every row's axioms are within
+   `propext`.
 
 #### Decision regions (language 1.2)
 
@@ -12029,6 +12058,7 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `PF-23` | `proofs` | The language-1.2 law proof form applies one registered fold law (fusion, the fold of a pair, or the fold of an append) to checked type arguments, arguments, and prior theorems discharging its premises, and is refused in linking for an unregistered law, a wrong argument count or type, or a missing premise, and by Lean for a statement the law does not prove. | §17.12, §16 |
 | `PF-24` | `proofs` | The runtime module LexLeanRuntime.Regions states the decision-region checker and its soundness theorem as LexLean source with every row's axioms within propext and Quot.sound, and the language-1.2 region_check proof form lowers a property of a first-match decision fragment to that checker's data, closes it with one kernel-decided obligation, is refused in linking outside the fragment or as a branch, and by Lean for a defective rule. | §17.12, §16, §22.6 |
 | `PF-26` | `proofs` | The language-1.2 linear_arithmetic proof form decides a first-match chain of many conditions: when the fixed script leaves a goal open, a second attempt adds the law LexLeanLaws.ite_eq_iff, which reads an if equal to a value as the disjunction of its branches, each with its condition, and the propositional simplifications that drop every branch whose condition is decided, so a chain of fourteen conditions verifies for all inputs, a proof the fixed script closes keeps its axioms, and a false bound on the chain is refused by Lean. | §17.12, §16 |
+| `PF-28` | `proofs` | The runtime module LexLeanRuntime.Laws states natural-number laws over the runtime's multiply, quotient, remainder, and subtract (commutativity, associativity, distributivity over addition and truncated subtraction, the unit and zero, the successor, monotonicity and cancellation of order, and the quotient and remainder identities by a positive divisor for every zero case), each row's axioms within propext; the language-1.2 law proof form applies each by name, and simplify accepts each by its Lean name as a rewrite, so every law verifies both ways, a language-1.2 simplify also accepts Nat.ble_eq and Nat.le_refl, a language-1.1 simplify naming a law is refused in linking, and a misstated instance is refused by Lean. | §17.12, §16 |
 | `LN-01` | `lean-backend` | Each generated Lean file has the exact module, import, option, namespace, declaration, and end structure. | §18.1 |
 | `LN-02` | `lean-backend` | Imports are explicit, deduplicated, sorted, and every external global is fully qualified. | §18.3 |
 | `LN-03` | `lean-backend` | Generated Lean contains no comments, documentation, prose-bearing strings, or copied source prose. | §18.2 |
@@ -12369,7 +12399,7 @@ Every row below is normative, has honesty level `build`, and MUST be copied byte
 | `LM-09` | `language-models` | No prompt is code: no member of the closed language maps `string` or `bytes` to a function, a term, or source — every operation of the primitive registry that takes a `string` or `bytes` operand is classified by the audit with a data result, the registry's schema enumeration and the production registry's primitive rows equal one another and equal that classified set, and the text declarations of `lexlean/semantic-module/3` state no `string`-typed member, so a prompt reaches a model only as the tokens `encodeText` makes of it; a planted operation or text member of that shape is caught by the audit with its name. | §17.12 |
 | `LM-13` | `language-models` | The text laws a tokenizer elaborates through are LexLean source and not authored text: the module that states them is one language-1.2 native core module of the embedded `language/text-1.2` project, the project holds no file of Lean source, no independently authored Lean file anywhere in the release tree declares the `LexLeanText` namespace or lies under its module root, and the one-time migration input is absent; the registry lists only that module, the declarations and their exact axiom policies are read from its native data, which the compiler embeds and hashes into the language-1.2 semantics, and a module that declares a text component imports the generated module rather than splicing any Lean text. | §17.10, §17.12 |
 
-**Total required capability IDs:** 506.
+**Total required capability IDs:** 507.
 
 No row may be downgraded to `some-true` or `open`. Upstream Lean facts are ledger/authority rows, not substitutions for these build behaviors.
 
