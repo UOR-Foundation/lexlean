@@ -24,7 +24,7 @@ jobs:
   preview:
     name: nonqualifying selected checks
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -59,7 +59,7 @@ jobs:
           echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
           python3 .github/scripts/ci_impact_preview.py \
             --base "$base_sha" --head "$head_sha" \
-            --diff-nul "$RUNNER_TEMP/ci-preview-changes.z" \
+            --diff-nul "$RUNNER_TEMP/ci-preview-changes.z" --repo-root . \
             --github-output "$GITHUB_OUTPUT" --summary "$GITHUB_STEP_SUMMARY"
       - name: Check changed-line whitespace
         if: ${{ steps.plan.outputs.whitespace == 'true' }}
@@ -74,12 +74,32 @@ jobs:
       - name: Run impacted CI Python contracts
         if: ${{ steps.plan.outputs.python_contracts == 'true' }}
         run: python3 -m unittest discover -s .github/scripts -p 'test_*.py' -v
-      - name: Install pinned Rust for impacted formatting
-        if: ${{ steps.plan.outputs.rust_format == 'true' }}
+      - name: Install pinned Rust for selected checks
+        if: ${{ steps.plan.outputs.rust_format == 'true' || steps.plan.outputs.cargo_check == 'true' }}
         run: rustup toolchain install
       - name: Check impacted Rust formatting
         if: ${{ steps.plan.outputs.rust_format == 'true' }}
         run: cargo fmt --all -- --check
+      - name: Check actual affected Cargo package targets
+        if: ${{ steps.plan.outputs.cargo_check == 'true' }}
+        shell: bash
+        env:
+          MODEL: ${{ steps.plan.outputs.cargo_repo_model }}
+          LEXLEAN: ${{ steps.plan.outputs.cargo_lexlean }}
+          CONFORMANCE: ${{ steps.plan.outputs.cargo_repo_conformance }}
+          XTASK: ${{ steps.plan.outputs.cargo_xtask }}
+        run: |
+          set -euo pipefail
+          packages=()
+          [[ "$MODEL" == "true" ]] && packages+=(-p repo-model)
+          [[ "$LEXLEAN" == "true" ]] && packages+=(-p lexlean)
+          [[ "$CONFORMANCE" == "true" ]] && packages+=(-p repo-conformance)
+          [[ "$XTASK" == "true" ]] && packages+=(-p xtask)
+          if [[ "${#packages[@]}" -eq 0 ]]; then
+            echo "::error::Requested Cargo check without a package"
+            exit 1
+          fi
+          cargo check --all-targets --all-features "${packages[@]}"
       - name: State the assurance boundary even on failure
         if: ${{ always() }}
         shell: bash
