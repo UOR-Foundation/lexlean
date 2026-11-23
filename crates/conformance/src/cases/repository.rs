@@ -743,7 +743,19 @@ fn plan_decisions() {
             .collect::<Vec<_>>();
         assert!(
             block.iter().any(|line| line.trim() == guard),
-            "§9.4: {workflow_path} {job} must skip automatic draft PRs"
+            "§9.4: {workflow_path} {job} mandatory job guard missing"
+        );
+    }
+    // A draft cannot inherit a skipped independent reproducibility status
+    // when it becomes ready. Both workflows must explicitly re-run on
+    // ready_for_review, which is not a default pull_request activity type.
+    for path in [
+        ".github/workflows/ci.yml",
+        ".github/workflows/reproducibility.yml",
+    ] {
+        assert!(
+            root_file(path).contains("  pull_request:\n    types: [opened, synchronize, reopened, ready_for_review]"),
+            "§9.4: {path} must run when a draft PR becomes ready"
         );
     }
 
