@@ -759,68 +759,6 @@ fn plan_decisions() {
         );
     }
 
-    // The workflow-level Draft guard is only sufficient if EVERY CI worker
-    // waits on plan. A future job without that dependency could allocate
-    // runners on Draft PRs even while the existing plan is skipped.
-    let ci_source = root_file(".github/workflows/ci.yml");
-    let mut job_names = std::collections::BTreeSet::new();
-    let mut dependencies = std::collections::BTreeSet::new();
-    let mut current_job: Option<String> = None;
-    let mut in_jobs = false;
-    for line in ci_source.lines() {
-        if line == "jobs:" {
-            in_jobs = true;
-            continue;
-        }
-        if !in_jobs {
-            continue;
-        }
-        if line.starts_with("  ") && !line.starts_with("   ") && line.ends_with(':') {
-            let name = &line[2..line.len() - 1];
-            if name.starts_with('#') {
-                continue;
-            }
-            assert!(
-                !name.is_empty()
-                    && name
-                        .bytes()
-                        .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-'),
-                "§9.4: unsupported CI job key requires explicit review"
-            );
-            assert!(job_names.insert(name.to_owned()), "duplicate ci.yml job");
-            current_job = Some(name.to_owned());
-            continue;
-        }
-        if let Some(job) = current_job.as_deref() {
-            if let Some(needs) = line.strip_prefix("    needs: ") {
-                let names = needs
-                    .strip_prefix('[')
-                    .and_then(|rest| rest.strip_suffix(']'))
-                    .expect("job dependencies must be explicit list");
-                if names.split(',').map(str::trim).any(|name| name == "plan") {
-                    dependencies.insert(job.to_owned());
-                }
-            }
-            if let Some(condition) = line.strip_prefix("    if: ") {
-                assert!(
-                    !condition.contains("always()")
-                        || condition.contains("needs.plan.outputs.full == 'true'"),
-                    "§9.4: {job} must not override Draft suppression using always()"
-                );
-            }
-        }
-    }
-    assert!(job_names.contains("plan"), "the plan job is mandatory");
-    assert!(job_names.len() > 1, "a normative CI graph must contain workers");
-    for job in job_names {
-        if job != "plan" {
-            assert!(
-                dependencies.contains(&job),
-                "§9.4: {job} can allocate a runner before Draft plan"
-            );
-        }
-    }
-
     // A run of another repository's pull request is not one of this one's.
     let script_text = root_file(".github/ci-plan.sh");
     assert!(
@@ -1866,6 +1804,37 @@ pub(crate) fn run(id: &str) {
                 .filter(|(key, _)| key.starts_with("atlas-"))
                 .collect();
             assert!(!atlas_jobs.is_empty(), "§9.4: the Atlas jobs");
+            // No normative job may allocate a Draft PR runner independently
+            // of the plan. An always() job must also retain the full-gate
+            // condition, or it could bypass the skipped planner.
+            let mut seen = std::collections::BTreeSet::new();
+            for (key, body) in &jobs {
+                assert!(seen.insert(key), "§9.4: duplicate CI job {key}");
+                if key == "plan" {
+                    continue;
+                }
+                let needs = body
+                    .lines()
+                    .find_map(|line| line.strip_prefix("    needs: "))
+                    .expect("§9.4: every CI worker must declare plan dependency");
+                let dependencies = needs
+                    .strip_prefix('[')
+                    .and_then(|rest| rest.strip_suffix(']'))
+                    .expect("§9.4: CI dependencies must be an explicit list");
+                assert!(
+                    dependencies.split(',').map(str::trim).any(|value| value == "plan"),
+                    "§9.4: CI job {key} can bypass Draft plan"
+                );
+                if let Some(condition) =
+                    body.lines().find_map(|line| line.strip_prefix("    if: "))
+                {
+                    assert!(
+                        !condition.contains("always()")
+                            || condition.contains("needs.plan.outputs.full == 'true'"),
+                        "§9.4: CI job {key} can bypass Draft with always()"
+                    );
+                }
+            }
             // Normative gate jobs and the Intel receipt join run on the
             // standard runner. Only host execution runs elsewhere (§8.3).
             for (key, body) in &jobs {
