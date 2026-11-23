@@ -38,7 +38,7 @@ class WriterCollisionTests(unittest.TestCase):
             stderr=subprocess.PIPE, timeout=10,
         ).stdout
 
-    def make_writer(self, writer, changes):
+    def make_writer(self, writer, changes, unstage_locks=False):
         for path, data in changes.items():
             filename = self.repo / path
             filename.parent.mkdir(parents=True, exist_ok=True)
@@ -49,6 +49,9 @@ class WriterCollisionTests(unittest.TestCase):
             else:
                 filename.write_text(data)
         self.git("add", "-A")
+        if unstage_locks:
+            self.git("reset", "-q", "--", "bootstrap/lexlean.lock",
+                     "stdlib/lexlean.lock", "compiler/lexlean.lock")
         patch = self.git("diff", "--cached", "--binary")
         paths = self.git("diff", "--cached", "--name-only", "-z")
         (self.parts / (writer + ".patch")).write_bytes(patch)
@@ -136,6 +139,47 @@ class WriterCollisionTests(unittest.TestCase):
         self.git("commit", "-qm", "add newline path")
         self.make_writer("records", {name: "after\n"})
         self.assertEqual(inspect(self.parts)[1], ("records", 1))
+
+    def lock_changes(self):
+        locks = ["bootstrap/lexlean.lock", "stdlib/lexlean.lock", "compiler/lexlean.lock"]
+        for lock in locks:
+            target = self.repo / lock
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("old\n")
+        self.git("add", "-A")
+        self.git("commit", "-qm", "register lock fixtures")
+        return {lock: "new compiler identity\n" for lock in locks}
+
+    def test_lock_refresh_only_one_writer_publishes_lock_paths(self):
+        changes = self.lock_changes()
+        self.make_writer("production-export", changes)
+        self.make_writer("records", {**changes, "unique.txt": "record written\n"},
+                         unstage_locks=True)
+        self.make_writer("oracles", {**changes, "shared.txt": "oracle\n"},
+                         unstage_locks=True)
+        self.assertEqual(inspect(self.parts),
+                         [("production-export", 3), ("records", 1), ("oracles", 1)])
+        self.assertEqual((self.parts / "records.files").read_bytes(), b"unique.txt\0")
+
+    def test_without_single_lock_owner_collision_is_detected(self):
+        changes = self.lock_changes()
+        self.make_writer("production-export", changes)
+        self.make_writer("records", changes)
+        with self.assertRaisesRegex(ValueError, "writer collision.*lexlean.lock"):
+            inspect(self.parts)
+
+    def test_workflow_relocks_before_writers_and_checks_before_apply(self):
+        workflow = Path(__file__).resolve().parents[1] / "workflows" / "regenerate.yml"
+        if not workflow.is_file():
+            self.skipTest("workflow unavailable outside full checkout")
+        source = workflow.read_text()
+        self.assertLess(source.index("- name: Refresh the project locks"),
+                        source.index("- name: Run the write recipes"))
+        self.assertIn("cargo build -q -p lexlean", source)
+        self.assertIn("for p in bootstrap stdlib compiler", source)
+        self.assertIn("git reset -q -- bootstrap/lexlean.lock stdlib/lexlean.lock compiler/lexlean.lock", source)
+        self.assertLess(source.index("- name: Reject overlapping or unaccounted writer paths"),
+                        source.index("- name: Apply every part"))
 
     def test_incomplete_binary_numstat_is_refused(self):
         with self.assertRaisesRegex(ValueError, "truncated"):
