@@ -15,7 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 from ci_metrics_collect import JOB_SCHEMA
-from ci_metrics_report import COST_SCHEMA, pct
+from ci_metrics_report import COST_SCHEMA, RUN_SCHEMA, pct
 
 OS = ("linux", "windows", "macos", "unknown")
 
@@ -40,17 +40,34 @@ def timestamp(s):
         raise ValueError("job timestamp malformed") from exc
 
 
-def analyze(details, costs):
+def analyze(details, costs, runs):
     require(isinstance(details, dict) and details.get("schema") == JOB_SCHEMA,
             "real job-level snapshot required, aggregate-only historical file insufficient")
     require(isinstance(costs, dict) and costs.get("schema") == COST_SCHEMA,
             "run cost snapshot schema missing")
+    require(isinstance(runs, dict) and runs.get("schema") == RUN_SCHEMA,
+            "exact-head PR run inventory required")
     jobs = details.get("jobs")
     source_runs = costs.get("run_costs")
     require(isinstance(jobs, list) and jobs and
             details.get("expected_jobs") == len(jobs), "missing/truncated per-job inventory")
     require(isinstance(source_runs, list) and source_runs,
             "missing run totals")
+    source_runs_by_id = {}
+    for pr in runs.get("rows", []):
+        sha, number = pr.get("head_sha"), pr.get("number")
+        require(isinstance(sha, str) and len(sha) == 40 and
+                all(x in "0123456789abcdef" for x in sha) and
+                type(number) is int, "PR exact-head provenance malformed")
+        for source in pr.get("runs", []):
+            rid = source.get("id")
+            require(type(rid) is int and rid not in source_runs_by_id,
+                    "duplicate/invalid exact-head run ID")
+            require(source.get("head_sha") == sha, "source workflow HEAD mismatches PR")
+            source_runs_by_id[rid] = {
+                "pr": number, "head_sha": sha, "workflow": source.get("name"),
+                "run_attempt": source.get("run_attempt"),
+            }
     by_run = {}
     for run in source_runs:
         run_id = run.get("id")
@@ -58,7 +75,12 @@ def analyze(details, costs):
                 "duplicate/invalid source run id")
         require(run.get("complete") is True and run.get("returned") == run.get("job_count"),
                 "incomplete source run jobs")
+        require(run_id in source_runs_by_id and
+                run.get("pr") == source_runs_by_id[run_id]["pr"],
+                "cost run not matched to source exact-head PR")
         by_run[run_id] = run
+    require(set(by_run) == set(source_runs_by_id),
+            "unmatched source-run and cost-run inventories")
     buckets = defaultdict(list)
     within = defaultdict(list)
     seen_ids = set()
