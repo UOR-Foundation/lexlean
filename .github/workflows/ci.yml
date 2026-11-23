@@ -145,7 +145,7 @@ jobs:
   honesty:
     name: ${{ matrix.part }}
     needs: [plan]
-    if: ${{ needs.plan.outputs.honesty != '[]' }}
+    if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}
     strategy:
       matrix:
         include: ${{ fromJSON(needs.plan.outputs.honesty) }}
