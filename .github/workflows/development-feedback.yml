@@ -35,6 +35,8 @@ jobs:
     steps:
       # Draft-only cost experiment: query a live ref with an explicit 5s limit.
       # Never substitute this for the exact-head and ancestry checks below.
+      # Checkout A/B is selected only by a direct one-time DRAFT PR edit.
+      # Both paths verify the exact head + the same complete base ancestry.
       - name: Bounded stale-base preflight before checkout
         shell: bash
         env:
@@ -72,8 +74,6 @@ jobs:
               exit 1
             fi
           fi
-      # Checkout A/B is selected only by a direct one-time DRAFT PR edit.
-      # Both paths verify the exact head + the same complete base ancestry.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.body, '<!-- ci-preview-once: head-only -->') }}
         with:
