@@ -82,17 +82,22 @@ def inspect(directory):
         require(manifest.stat().st_size <= MAX_MANIFEST_BYTES,
                 writer + ": oversized file manifest")
         declared = paths_from_nul(manifest.read_bytes(), writer + ".files")
-        try:
-            parsed = subprocess.run(
-                ["git", "apply", "--numstat", "-z", str(patch)],
-                check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                timeout=30,
-            )
-        except (OSError, subprocess.TimeoutExpired) as error:
-            raise ValueError(writer + ": cannot inspect patch") from error
-        require(parsed.returncode == 0,
-                writer + ": invalid binary/text patch path inventory")
-        actual = patch_names(parsed.stdout, writer + ".patch")
+        if patch.stat().st_size == 0:
+            # An unchanged writer has a genuinely empty Git patch; git apply
+            # reports an error for this expected no-op input.
+            actual = []
+        else:
+            try:
+                parsed = subprocess.run(
+                    ["git", "apply", "--numstat", "-z", str(patch)],
+                    check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    timeout=30,
+                )
+            except (OSError, subprocess.TimeoutExpired) as error:
+                raise ValueError(writer + ": cannot inspect patch") from error
+            require(parsed.returncode == 0,
+                    writer + ": invalid binary/text patch path inventory")
+            actual = patch_names(parsed.stdout, writer + ".patch")
         require(set(declared) == set(actual),
                 writer + ": patch and declared file inventory disagree")
         for item in declared:
