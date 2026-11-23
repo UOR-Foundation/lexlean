@@ -36,7 +36,7 @@ class EvidenceWiringTest(unittest.TestCase):
 
     def test_missing_guard_refuses(self):
         with self.assertRaises(AssertionError):
-            check(self.source.replace(GUARD, '', 1))
+            check(self.source.replace(MARKER + '\n' + GUARD, MARKER, 1))
 
     def test_removed_verifier_refuses(self):
         with self.assertRaises(AssertionError):
