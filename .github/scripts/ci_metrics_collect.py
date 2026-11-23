@@ -146,6 +146,43 @@ class Reader:
                     "run_started_at", "updated_at", "run_attempt", "head_sha")})
                 jobs = self.paged("actions/runs/" + str(run["id"]) + "/jobs",
                                   "jobs", filter="all")
+                # Detail uses these already-fetched pages, never extra API calls.
+                if include_jobs:
+                    for item in jobs:
+                        jid, name = item.get("id"), item.get("name")
+                        require(type(jid) is int and jid > 0 and jid not in seen_job_ids,
+                                "missing or repeated provider job id")
+                        require(isinstance(name, str) and 0 < len(name) <= 300,
+                                "missing or invalid provider job name")
+                        seen_job_ids.add(jid)
+                        started, completed = item.get("started_at"), item.get("completed_at")
+                        require(bool(started) == bool(completed), "partial job timestamps")
+                        duration = None
+                        if started:
+                            duration = (clock(completed) - clock(started)).total_seconds()/60
+                            require(math.isfinite(duration) and duration >= 0,
+                                    "invalid detailed job duration")
+                        else:
+                            require(item.get("conclusion") in ("skipped", "cancelled", None),
+                                    "executed job has no timing evidence")
+                        labels = item.get("labels") or []
+                        require(isinstance(labels, list) and
+                                all(isinstance(x, str) and len(x) <= 128 for x in labels),
+                                "invalid job runner labels")
+                        label_text = ",".join(labels).lower()
+                        platform = ("windows" if "windows" in label_text else
+                                    "macos" if "macos" in label_text else
+                                    "linux" if "ubuntu" in label_text or "linux" in label_text
+                                    else "unknown")
+                        job_rows.append({
+                            "job_id": jid, "job_name": name,
+                            "run_id": run["id"], "run_attempt": run.get("run_attempt"),
+                            "workflow": run["name"], "pr": pr["number"], "head_sha": head,
+                            "platform": platform, "labels": labels,
+                            "conclusion": item.get("conclusion"), "started_at": started,
+                            "completed_at": completed,
+                            "elapsed_minutes": round(duration, 3) if duration is not None else None,
+                        })
                 buckets, elapsed, first_start, last_completed = {}, 0.0, None, None
                 for job in jobs:
                     start, finish = job.get("started_at"), job.get("completed_at")
@@ -191,6 +228,17 @@ class Reader:
             "linked_run_inventory": mode + "-runs.json",
             "expected_runs": len(all_costs), "run_costs": all_costs,
         }
+        if include_jobs:
+            require(len(job_rows) == sum(x["job_count"] for x in all_costs),
+                    "incomplete provider job ledger")
+            self.job_details = {
+                "schema": JOB_SCHEMA,
+                "scope": "exact-final-HEAD GitHub executed-job elapsed time; NOT billed time",
+                "period": mode, "expected_jobs": len(job_rows),
+                "linked_run_inventory": mode + "-runs.json",
+                "linked_cost_inventory": mode + "-costs.json",
+                "jobs": job_rows,
+            }
         return base, costs
 
 
