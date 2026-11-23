@@ -84,6 +84,8 @@ jobs:
         if: ${{ always() }}
         shell: bash
         run: |
-          printf '\n**NONQUALIFYING:** only the selected development-feedback commands ran. '
-          printf 'A green preview does not replace SPEC.md §9.4, native/proof checks, '
-          printf 'reproducibility, or the exact-head release gate.\n' | tee -a "$GITHUB_STEP_SUMMARY"
+          {
+            printf '\n**NONQUALIFYING:** only the selected development-feedback commands ran. '
+            printf 'A green preview does not replace SPEC.md §9.4, native/proof checks, '
+            printf 'reproducibility, or the exact-head release gate.\n'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
