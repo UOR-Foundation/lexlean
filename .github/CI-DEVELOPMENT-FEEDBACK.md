@@ -3,7 +3,7 @@
 **Owner issue:** [#603](https://github.com/UOR-Foundation/lexlean/issues/603).
 **Baseline:** full qualified PR #602 used **1,051.85 unweighted completed runner-job minutes** across main CI and standalone reproducibility. This is an observed starting point, not a predicted saving from this pilot.
 
-This is an **optional, explicitly invoked** feedback workflow, independent of the normative `ci.yml` and `reproducibility.yml`. It **never** replaces SPEC.md §9.4, required checks, exact-HEAD native/proof/release evidence, or RP-13/14. Do not add its status to required merge checks. It has no `push` or `pull_request` triggers, so routine draft and ready PRs do not allocate workers for this pilot.
+This is an **optional, explicitly invoked** feedback workflow, independent of the normative `ci.yml` and `reproducibility.yml`. It **never** replaces SPEC.md §9.4, required checks, exact-HEAD native/proof/release evidence, or RP-13/14. Do not add its status to required merge checks. It has **no push or synchronize trigger**. Its only PR trigger is a deliberately opted-in **draft PR body edit**; routine draft/ready PR pushes allocate no runner for this pilot.
 
 ## What runs
 
@@ -22,7 +22,11 @@ This **is not yet a transitive dependency-to-verifier graph**. Its small, conser
 
 ## Use and verification
 
-The workflow is manually dispatched using **Actions → CI development feedback (NONQUALIFYING) → Run workflow**, selecting the source branch and specifying `base_ref`. It needs **Python 3.11+** for standard-library TOML parsing (`tomllib`), provided on Ubuntu 24.04. GitHub Actions generally requires a `workflow_dispatch` workflow to exist on the default branch before manual runs are available; this PR alone does not establish that it is dispatchable.
+When the workflow file is available on the repository's **default branch**, manually dispatch it via **Actions → CI development feedback (NONQUALIFYING) → Run workflow**, selecting the source branch and specifying `base_ref`. GitHub Actions requires a `workflow_dispatch` workflow to exist on default before manual runs are available; **this draft PR does not make that route available**.
+
+To perform an explicitly requested, bounded **hosted evaluation while this PR remains draft**, edit its PR description and put the exact token `<!-- ci-preview-once -->` on **the first line**, then save the edit. The `pull_request: edited` event runs **one 20-minute-max diagnostic job** only when the PR is draft, the head is in this repository, and that exact marker begins the body. The existing normative `ci.yml` and `reproducibility.yml` do not subscribe to `edited`, so no full matrix is started. **Remove the token after the observation**; ordinary synchronize/push events never trigger the preview, and an unmarked body edit allocates no runner. A PR event checks out the exact PR head and refuses a base revision that has moved since the event.
+
+The preview requires **Python 3.11+** for standard-library TOML parsing (`tomllib`), provided on Ubuntu 24.04.
 
 To validate without any hosted runner:
 
