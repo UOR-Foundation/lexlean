@@ -123,6 +123,35 @@ workspace carried at those versions without a tag.
   table. Both admit `recursion`, structural over a bound on nesting the host
   passes.
 
+## 0.4.5
+
+- Natural-number arithmetic laws (`PF-28`, SPEC.md §17.12, *Fold laws*, rule 7).
+  `omega` reads a product of two variables as an opaque atom, so a stage size
+  such as `mantissa * powTwo scale` could not be related to a shifted kernel.
+  `LexLeanRuntime.Laws` now states 23 laws over `Nat` and the runtime's
+  `multiply`, `quotient`, `remainder`, and `subtract`, as a document writes
+  them: commutativity, associativity, left commutativity, both distributive
+  laws, distribution over truncated subtraction, the unit and zero on each
+  side, the successor; `nat_mul_le_mul`, `nat_mul_lt_mul_of_pos_right`,
+  `nat_le_of_mul_le_mul_left` and its rewrite form `nat_mul_le_mul_left_iff`;
+  and the quotient and remainder identities by a positive divisor
+  (`nat_mul_div_cancel_left`, `nat_div_div_eq_div_mul`, `nat_mul_div_mul_left`,
+  `nat_div_add_mod`, `nat_mul_mod_left`, `nat_mod_mul_left_div_self`,
+  `nat_add_mul_div_left`, `nat_mod_lt`), each holding for every zero case.
+  Every row's axioms are within `propext`; core's
+  `Nat.mod_mul_right_div_self` depends on `Classical.choice`, so that law is
+  proved without it. A `law` proof applies each by name, and a language-1.2
+  `simplify` rewrites with each by its Lean name (`LexLeanLaws.nat_mul_comm`)
+  and imports the laws module, so a step proved by `linear_arithmetic` with a
+  law's instance as its premise is discharged by `simplify` naming the step
+  and the law. A language-1.2 `simplify` also accepts `Nat.ble_eq` and
+  `Nat.le_refl`. The fold-laws example gains `Arithmetic`, which proves an
+  instance of every law by `law` and another by `simplify` (the cancellation
+  `nat_le_of_mul_le_mul_left` by `law`, its rewrite form by both). The existing 120
+  declarations of the laws module are unchanged, declaration by declaration
+  (`tests/runtime-library/LAWS.md`). The language-1.2 compiler-semantics ID
+  changes. The register is 507.
+
 ## 0.4.4
 
 - Every identity LexLean computes, names, or pins is a UOR κ-label on the BLAKE3 σ-axis,

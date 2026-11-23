@@ -1,7 +1,7 @@
 spec = "lexlean/lock/4"
 language = "1.2"
-compiler_semantics = "blake3:dea5f1964f7f0eb5c9d5bd6c4a194f0da0efa6bfef7fc596f82622d243d3908e"
-project_config_kappa = "blake3:46be8acc0641203e220c95a70379976373ceb78ff7c507fcad7da8d49584262b"
+compiler_semantics = "blake3:ccb147883807678b975239e2d603f2a296e8fae42223edbf0a7d9b1d1f893c6b"
+project_config_kappa = "blake3:8203204453ae4ed5cbd7b1eeb633c798cbd037989718f6d36a87f1c45ec1dc23"
 lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[workspace_file]]
@@ -22,7 +22,7 @@ version = "1.0.0"
 kind = "path"
 source = "glossary/folds.titles"
 revision = "none"
-tree_kappa = "blake3:63d3d7cf39fff800a8c55e97fe56a3773638fcc0f2c25d20c082bde89dab8ec6"
+tree_kappa = "blake3:74c9ba084c26ee23af2ceaf684dbf8f843a0ecbdc45ed413b7c8d731bd463bd4"
 manifest_kappa = "blake3:c17a19061cc9b6f2b944115b09fe6a43d716fbc105ed57936a7bcea37a4f4909"
 imports = ["lexlean.core@1.2.0", "lexlean.std.nat@1.2.0"]
 
