@@ -159,3 +159,51 @@ Early staging can delay clean PRs; reuse may weaken independent assurance.
 Source-selective *merge* qualification stays HOLD until all generated,
 native, proof and release edges and required-status governance are proven.
 Simulated or predicted production ROI remains **UNKNOWN**, not zero.
+
+## Controlled preview gate A/B: full-history lazy blobs (2026-11-23 UTC)
+
+Two 20-minute-capped, NONQUALIFYING preview runs were performed on
+[disposable draft PR #611](https://github.com/UOR-Foundation/lexlean/pull/611),
+based on the same then-live `release/v0.4` SHA
+`a1baff747319f026882aec7e84382c8619949d20`.
+The same full preview workflow and six other source inputs were copied
+byte-for-byte from pilot #606, with only checkout filtering changed
+between the two commits. **Both** runs passed current-base authenticated
+preflight, full checkout, exact tree and ancestor validation, whitespace,
+49/49 Python tests, frozen-baseline graph generation and artifact upload.
+
+| Candidate | Run and immutable commit | Observed runner log span | Report artifact |
+| --- | --- | ---: | --- |
+| Full checkout (`fetch-depth: 0`) | [#45116345568](https://github.com/UOR-Foundation/lexlean/actions/runs/45116345568), `357c946a6ab596ad2aebb38b91bfd08fde9accff` | **81.005 s** | `14791189802` |
+| Full ancestry, lazy blobs (`fetch-depth: 0`, `filter: blob:none`) | [#45116629117](https://github.com/UOR-Foundation/lexlean/actions/runs/45116629117), `8e4a9d8d06b758ed7d03f566099eab5691970697` | **34.766 s** | `14792021512` |
+
+**Observed change:** 46.239 fewer runner-seconds (**57.08%** of the
+unweighted control duration). The GitHub checkout log's repository-fetch
+phase spanned ~68.97 seconds in the first run, versus ~1.66 seconds to
+checkout in the partial-clone run. Materializing the filtered working
+tree still took ~20.46 seconds. The Python suite ran 49 tests in 3.878
+and 2.400 seconds respectively. A two-run comparison on distinct HEADs
+does not prove variance, causality beyond the only intentionally changed
+checkout field, or any improvement in protected merge acceptance.
+
+**Private-repository economics:** runner-seconds are NOT billed minutes.
+With the separate report's illustrative Linux $0.006/min rate and
+whole-job per-minute rounding, these two *hypothetical* private-job
+durations correspond to 2 vs 1 billable minutes, or $0.012 vs $0.006
+before plan allowances. Neither number is the public repository's actual
+bill or evidence of a 57% monetary saving. No provider invoice accessed.
+
+**Adoption:** The nonqualifying draft-only pilot #606 now includes the
+validated `filter: blob:none` with full `fetch-depth: 0`; the source-bound
+test asserts both. Its strict 5-second authenticated early ref preflight
+remains. The earlier actual moved-base failure run #45115407349 refused
+before checkout in 1.234 seconds, compared with a previous 80.713-second
+checkout-first refusal #45113854088. A separate positive preflight-only
+run #45115686535 passed in 0.547 seconds. The full valid-base A/B above
+closes the additional 'positive path after checkout' evidence gap.
+
+**Scope and release safety:** Neither experiment changed `ci.yml`,
+`reproducibility.yml`, proof payloads, expected outputs, host coverage,
+required check names, tag rules or release evidence. Draft #606 remains
+OPEN and UNMERGED; disposable draft #611 was CLOSED UNMERGED. The
+production cutover, AFTER cohort and realized ROI are **NOT MEASURED**.
