@@ -722,6 +722,29 @@ fn plan_decisions() {
         decide("push", "", "main", &direct, "4242", &green, false),
         whole
     );
+    // Workflow-level draft suppression: the planner still supports explicitly
+    // dispatched draft feedback, but automatic draft pull_request events must
+    // never allocate a runner. These guards are both required.
+    let guard = "if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}";
+    for (workflow_path, job) in [
+        (".github/workflows/ci.yml", "plan"),
+        (".github/workflows/reproducibility.yml", "repro"),
+    ] {
+        let workflow = root_file(workflow_path);
+        let heading = format!("  {job}:\n");
+        let block = workflow
+            .split_once(&heading)
+            .expect("required workflow job")
+            .1
+            .split("\n  ")
+            .next()
+            .expect("job body");
+        assert!(
+            block.lines().any(|line| line.trim() == guard),
+            "§9.4: {workflow_path} {job} must skip automatic draft PRs"
+        );
+    }
+
     // A run of another repository's pull request is not one of this one's.
     let script_text = root_file(".github/ci-plan.sh");
     assert!(
