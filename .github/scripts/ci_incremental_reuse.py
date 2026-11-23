@@ -33,6 +33,8 @@ CONTROLS = frozenset((
     "crates/conformance/src/cases/repository.rs",
     "crates/conformance/src/cases/mod.rs",
     "crates/conformance/src/lib.rs",
+    "crates/conformance/src/bdd_parts.rs",
+    "model/ids.toml", ".github/scripts/ci_test_ownership.py",
     "xtask/src/ci.rs", ".github/intel-host-lanes.json",
     ".github/scripts/host_lanes.py", ".github/scripts/intel_host_tests.py",
     ".github/scripts/ci_execution_receipts.py",
