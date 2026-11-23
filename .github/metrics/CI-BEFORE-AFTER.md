@@ -653,3 +653,25 @@ deliver checkout, artifact download and COMMIT env, plus branch binding.
 Three new negative tests reject spoofed COMMIT, branch and artifact.
 No normative job, detector, release workflow or trust boundary was removed.
 Hosted exact-head source validation remains pending after this correction.
+
+### Real two-attempt provider cost correction receipt (2026-11-23 UTC)
+
+After exact-SHA Linux ARM targeted recovery, GitHub GET `filter=all`
+returned **156 job metadata records**, 78 in each attempt, but only
+**79 distinct execution windows**: 77 original successes, the original
+ARM failed execution and its actual newly successful retry. Original
+success timestamps/runner labels were preserved exactly under 77 new IDs.
+
+| Source-backed measurement | Unweighted runner-job minutes |
+| --- | ---: |
+| Attempt 1, all 78 execution windows | 1,176.00 |
+| Attempt 2 display rows (includes 77 reissued successes) | 1,187.20 |
+| Naive sum of all 156 provider rows | 2,363.20 |
+| **Actual distinct executions across attempts** | **1,233.25** |
+| Phantom compute from reissued IDs | **1,129.95** |
+
+This is a real-provider regression oracle for the collector: the prior
+aggregation would overstate this run's unweighted compute by 1,129.95
+minutes. It proves no actual GitHub invoice dollars or full before/after
+cutover savings. All attempts and exact job timestamps are retained in
+`.github/metrics/ci-retry-execution-receipts-20261123.json`.

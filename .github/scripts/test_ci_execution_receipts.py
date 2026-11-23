@@ -37,6 +37,25 @@ class ExecutionReceiptsTest(unittest.TestCase):
         self.assertEqual(sorted(durations), [3, 5, 8])
         self.assertEqual(sum(durations), 16)
 
+    def test_real_completed_provider_attempts_not_double_counted(self):
+        import json
+        from pathlib import Path
+        path = Path(__file__).resolve().parents[1] / "metrics" / "ci-retry-execution-receipts-20261123.json"
+        if not path.is_file():
+            self.skipTest("complete checkout required")
+        captured = json.loads(path.read_text())
+        self.assertEqual(captured["run_conclusion"], "success")
+        self.assertEqual(captured["head_sha"], "f57650e6cf1fd04df0858d7bb97b1071a1c83220")
+        chosen, facts = canonical_executions(captured["jobs"], captured["run_attempt"])
+        self.assertEqual(facts["provider_job_records"], 156)
+        self.assertEqual(facts["unique_execution_records"], 79)
+        self.assertEqual(facts["reissued_carried_records"], 77)
+        actual = sum((__import__("datetime").datetime.fromisoformat(x["completed_at"].replace("Z", "+00:00")) -
+                      __import__("datetime").datetime.fromisoformat(x["started_at"].replace("Z", "+00:00"))).total_seconds() / 60
+                     for x in chosen)
+        self.assertAlmostEqual(actual, 1233.25, places=3)
+        self.assertEqual(captured["independent_repro_conclusion"], "success")
+
     def test_single_attempt_no_new_api_required(self):
         chosen, evidence = canonical_executions(fixture()[:2], 1)
         self.assertEqual(len(chosen), 2)
