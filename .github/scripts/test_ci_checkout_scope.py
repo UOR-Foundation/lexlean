@@ -3,8 +3,8 @@ from pathlib import Path
 import unittest
 
 WORKFLOW = Path(__file__).resolve().parent.parent / 'workflows' / 'development-feedback.yml'
-ALT = "github.event_name == 'pull_request' && startsWith(github.event.pull_request.body, '<!-- ci-preview-once: head-only -->')"
-BASE = "github.event_name != 'pull_request' || !startsWith(github.event.pull_request.body, '<!-- ci-preview-once: head-only -->')"
+ALT = "github.event_name == 'pull_request' && startsWith(github.event.pull_request.body, '<!-- ci-preview-head-only -->')"
+BASE = "github.event_name != 'pull_request' || !startsWith(github.event.pull_request.body, '<!-- ci-preview-head-only -->')"
 CHECKOUT = '      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
 RESTORE = '      - name: Restore complete exact-head ancestry for head-only checkout'
 PLAN = '      - name: Pin trusted-base comparison and decide real feedback commands'
@@ -13,7 +13,7 @@ def prove(text):
     assert text.count(CHECKOUT) == 2
     assert text.count(RESTORE) == 1
     assert text.count(PLAN) == 1
-    assert text.count("<!-- ci-preview-once: head-only -->") == 4
+    assert text.count("<!-- ci-preview-head-only -->") == 4
     assert text.count("<!-- ci-preview-once -->") == 1
     assert text.index('Bounded stale-base preflight before checkout') < text.index(CHECKOUT)
     before, after = text.split(RESTORE, 1)
@@ -39,6 +39,13 @@ def prove(text):
 class CheckoutTrial(unittest.TestCase):
     def setUp(self):
         self.text = WORKFLOW.read_text()
+
+    def test_yaml_plain_if_cannot_contain_colon_space_marker(self):
+        # A colon followed by space inside an unquoted YAML scalar is invalid,
+        # even when enclosed in *expression* string quotes.
+        for line in self.text.splitlines():
+            if line.strip().startswith('if: ${{'):
+                self.assertNotIn(': ', line.split('if: ', 1)[1])
 
     def test_real_workflow(self): prove(self.text)
     def test_missing_restore(self):

@@ -146,7 +146,7 @@ security negative controls, then continue native queue/test profiling.
 ## Controlled checkout comparison: same-source baseline vs head-only ancestry restoration
 
 A single new *draft PR-only* opt-in marker,
-`<!-- ci-preview-once: head-only -->`, selects the experimental checkout
+`<!-- ci-preview-head-only -->`, selects the experimental checkout
 path instead of the existing baseline `<!-- ci-preview-once -->`. The two
 mutually exclusive paths use the same single bounded Ubuntu job and the
 same HEAD, base, impact planner, Python contracts and nonqualifying artifact.
@@ -167,3 +167,14 @@ after completion. A single run per treatment is a screening comparison,
 **not** enough for a confident performance or cost claim; stop early if
 any step fails, runner queueing diverges materially, or the base moves.
 Do not promote a variant that loses provenance/ancestry/receipts.
+
+## A/B workflow-parse negative control, November 23, 2026
+
+An initial checkout A/B workflow commit was rejected by GitHub before job
+allocation, so zero runner minutes were spent. Its plain YAML `if:` field
+included the experiment marker `<!-- ci-preview-once: head-only -->`;
+the colon followed by a space is not permitted inside an unquoted YAML
+plain scalar even if the embedded GitHub expression uses string quotes.
+The marker was changed to `<!-- ci-preview-head-only -->` (no colon),
+and a stdlib-only regression test checks condition lines for colon-space
+after their YAML `if:` prefix. No full acceptance workflow changed.

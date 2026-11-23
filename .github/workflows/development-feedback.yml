@@ -29,7 +29,7 @@ jobs:
     # A fresh workflow_dispatch can run once this file is on default.
     # Until then, one owner-authored PR body edit with the exact leading
     # marker triggers a bounded draft-only diagnostic, never merge proof.
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository && (startsWith(github.event.pull_request.body, '<!-- ci-preview-once -->') || startsWith(github.event.pull_request.body, '<!-- ci-preview-once: head-only -->'))) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository && (startsWith(github.event.pull_request.body, '<!-- ci-preview-once -->') || startsWith(github.event.pull_request.body, '<!-- ci-preview-head-only -->'))) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -75,7 +75,7 @@ jobs:
             fi
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.body, '<!-- ci-preview-once: head-only -->') }}
+        if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.body, '<!-- ci-preview-head-only -->') }}
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
@@ -83,7 +83,7 @@ jobs:
           filter: blob:none
           persist-credentials: false
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ github.event_name == 'pull_request' && startsWith(github.event.pull_request.body, '<!-- ci-preview-once: head-only -->') }}
+        if: ${{ github.event_name == 'pull_request' && startsWith(github.event.pull_request.body, '<!-- ci-preview-head-only -->') }}
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           # Candidate: retrieve the exact commit without all remote refs.
@@ -91,7 +91,7 @@ jobs:
           filter: blob:none
           persist-credentials: false
       - name: Restore complete exact-head ancestry for head-only checkout
-        if: ${{ github.event_name == 'pull_request' && startsWith(github.event.pull_request.body, '<!-- ci-preview-once: head-only -->') }}
+        if: ${{ github.event_name == 'pull_request' && startsWith(github.event.pull_request.body, '<!-- ci-preview-head-only -->') }}
         shell: bash
         env:
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
