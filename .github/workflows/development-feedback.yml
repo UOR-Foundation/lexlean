@@ -1,10 +1,13 @@
 # Optional, manual *nonqualifying* development feedback (CI Phase B, #603).
 # This is not SPEC.md §9.4's ci.yml or reproducibility.yml. It may not satisfy
 # required checks, release evidence, or a ready PR's exact-head acceptance.
-# No push/PR trigger: merely adding this workflow must not start another gate.
+# No push trigger. PR 'edited' is an explicit, draft-only, one-time opt-in;
+# normal pushes, synchronizations and PR opening do not dispatch a runner.
 name: CI development feedback (NONQUALIFYING)
 
 on:
+  pull_request:
+    types: [edited]
   workflow_dispatch:
     inputs:
       base_ref:
@@ -23,19 +26,25 @@ concurrency:
 jobs:
   preview:
     name: nonqualifying selected checks
+    # A fresh workflow_dispatch can run once this file is on default.
+    # Until then, one owner-authored PR body edit with the exact leading
+    # marker triggers a bounded draft-only diagnostic, never merge proof.
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.event.pull_request.body, '<!-- ci-preview-once -->')) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
       - name: Pin trusted-base comparison and decide real feedback commands
         id: plan
         shell: bash
         env:
-          BASE_REF: ${{ inputs.base_ref }}
-          EXPECTED_HEAD: ${{ github.sha }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || inputs.base_ref }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          EXPECTED_BASE: ${{ github.event.pull_request.base.sha || '' }}
         run: |
           set -euo pipefail
           # User input is data, not a shell command or a revision expression.
@@ -50,6 +59,10 @@ jobs:
           fi
           git fetch --no-tags origin "$BASE_REF:refs/remotes/origin/$BASE_REF"
           base_sha="$(git rev-parse --verify "refs/remotes/origin/$BASE_REF^{commit}")"
+          if [[ -n "$EXPECTED_BASE" && "$base_sha" != "$EXPECTED_BASE" ]]; then
+            echo "::error::Base branch moved since the opted-in event"
+            exit 1
+          fi
           # Do not silently compare a stale or unrelated branch.
           git merge-base --is-ancestor "$base_sha" "$head_sha" || {
             echo "::error::Base is not an ancestor: update branch before preview"
@@ -66,7 +79,7 @@ jobs:
         shell: bash
         env:
           BASE_SHA: ${{ steps.plan.outputs.base_sha }}
-          EXPECTED_HEAD: ${{ github.sha }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
