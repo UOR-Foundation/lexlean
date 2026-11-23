@@ -145,7 +145,10 @@ def supported_hosts(rows, bdd, lane_file, jobs, intel_source, host_source):
         require(isinstance(lane, str) and lane and isinstance(members, list) and members,
                 "malformed host lane")
         actual.extend(members)
-    require(len(actual) == len(set(actual)) and set(actual) == expected_rows,
+    # Host lanes name BDD parts without the workflow-only "bdd-" prefix.
+    normalized_rows = {name[4:] if name.startswith("bdd-") else name
+                       for name in expected_rows}
+    require(len(actual) == len(set(actual)) and set(actual) == normalized_rows,
             "host lane partition duplicates/omits normative verification rows")
     require('LANES = ".github/intel-host-lanes.json"' in intel_source and
             "import intel_host_tests as factory" in host_source,
