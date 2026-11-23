@@ -18,7 +18,7 @@ def fixture():
         "jobs": [
             {
                 "job_id": 11, "job_name": "atlas (prefix)",
-                "run_id": 101, "workflow": "ci", "pr": 1, "head_sha": SHA,
+                "run_id": 101, "run_attempt": 1, "workflow": "ci", "pr": 1, "head_sha": SHA,
                 "platform": "linux", "conclusion": "success",
                 "started_at": "2026-01-01T00:00:00Z",
                 "completed_at": "2026-01-01T00:03:00Z",
@@ -26,7 +26,7 @@ def fixture():
             },
             {
                 "job_id": 12, "job_name": "atlas (prefix)",
-                "run_id": 101, "workflow": "ci", "pr": 1, "head_sha": SHA,
+                "run_id": 101, "run_attempt": 1, "workflow": "ci", "pr": 1, "head_sha": SHA,
                 "platform": "linux", "conclusion": "failure",
                 "started_at": "2026-01-01T00:01:00Z",
                 "completed_at": "2026-01-01T00:08:00Z",
@@ -34,7 +34,7 @@ def fixture():
             },
             {
                 "job_id": 13, "job_name": "repro",
-                "run_id": 103, "workflow": "reproducibility", "pr": 2,
+                "run_id": 103, "run_attempt": 1, "workflow": "reproducibility", "pr": 2,
                 "head_sha": "b" * 40, "platform": "linux",
                 "conclusion": "skipped", "started_at": None,
                 "completed_at": None, "elapsed_minutes": None,
@@ -61,15 +61,28 @@ def fixture():
             },
         ],
     }
-    return jobs, costs
+    runs = {
+        "schema": "lexlean/ci-pr-baseline/1",
+        "rows": [
+            {"number": 1, "head_sha": SHA, "runs": [
+                {"id": 101, "name": "ci", "head_sha": SHA, "run_attempt": 1},
+                {"id": 102, "name": "ci", "head_sha": SHA, "run_attempt": 1},
+            ]},
+            {"number": 2, "head_sha": "b" * 40, "runs": [
+                {"id": 103, "name": "reproducibility",
+                 "head_sha": "b" * 40, "run_attempt": 1},
+            ]},
+        ],
+    }
+    return jobs, costs, runs
 
 
 class JobAttributionContracts(unittest.TestCase):
     def setUp(self):
-        self.jobs, self.costs = fixture()
+        self.jobs, self.costs, self.runs = fixture()
 
     def test_hotspot_observations_reconcile_with_zero_job_runs(self):
-        result = mod.analyze(self.jobs, self.costs)
+        result = mod.analyze(self.jobs, self.costs, self.runs)
         self.assertEqual(result["classification"],
                          "OBSERVED_JOB_ELAPSED_ONLY_NOT_BILLING_OR_CUTOVER_EVIDENCE")
         self.assertEqual(result["job_rows"], 3)
@@ -90,48 +103,63 @@ class JobAttributionContracts(unittest.TestCase):
 
     def test_aggregate_only_historical_snapshot_cannot_invent_hotspots(self):
         with self.assertRaisesRegex(ValueError, "real job-level snapshot"):
-            mod.analyze(self.costs, self.costs)
+            mod.analyze(self.costs, self.costs, self.runs)
 
     def test_missing_detailed_job_is_hold(self):
         self.jobs["jobs"].pop()
         with self.assertRaisesRegex(ValueError, "truncated"):
-            mod.analyze(self.jobs, self.costs)
+            mod.analyze(self.jobs, self.costs, self.runs)
 
     def test_repeated_id_is_hold(self):
         self.jobs["jobs"][1]["job_id"] = 11
         with self.assertRaisesRegex(ValueError, "duplicate/invalid"):
-            mod.analyze(self.jobs, self.costs)
+            mod.analyze(self.jobs, self.costs, self.runs)
 
     def test_forged_duration_is_hold(self):
         self.jobs["jobs"][0]["elapsed_minutes"] = 1.0
         with self.assertRaisesRegex(ValueError, "does not match"):
-            mod.analyze(self.jobs, self.costs)
+            mod.analyze(self.jobs, self.costs, self.runs)
 
     def test_mismatched_platform_is_hold(self):
         self.jobs["jobs"][1]["platform"] = "windows"
         with self.assertRaisesRegex(ValueError, "per-platform"):
-            mod.analyze(self.jobs, self.costs)
+            mod.analyze(self.jobs, self.costs, self.runs)
+
+    def test_cross_head_job_provenance_is_hold(self):
+        self.jobs["jobs"][0]["head_sha"] = "f" * 40
+        with self.assertRaisesRegex(ValueError, "exact-head"):
+            mod.analyze(self.jobs, self.costs, self.runs)
+
+    def test_wrong_attempt_provenance_is_hold(self):
+        self.jobs["jobs"][0]["run_attempt"] = 3
+        with self.assertRaisesRegex(ValueError, "attempt provenance"):
+            mod.analyze(self.jobs, self.costs, self.runs)
+
+    def test_cost_run_without_head_provenance_is_hold(self):
+        self.runs["rows"][0]["runs"].pop()
+        with self.assertRaisesRegex(ValueError, "cost run not matched"):
+            mod.analyze(self.jobs, self.costs, self.runs)
 
     def test_unattributed_run_is_hold(self):
         self.jobs["jobs"][1]["run_id"] = 999
         with self.assertRaisesRegex(ValueError, "unmatched run"):
-            mod.analyze(self.jobs, self.costs)
+            mod.analyze(self.jobs, self.costs, self.runs)
 
     def test_missing_executed_timestamp_is_hold(self):
         self.jobs["jobs"][0]["completed_at"] = None
         with self.assertRaisesRegex(ValueError, "unaccounted"):
-            mod.analyze(self.jobs, self.costs)
+            mod.analyze(self.jobs, self.costs, self.runs)
 
     def test_job_count_tamper_is_hold(self):
         self.costs["run_costs"][0]["job_count"] = 3
         self.costs["run_costs"][0]["returned"] = 3
         with self.assertRaisesRegex(ValueError, "detail count"):
-            mod.analyze(self.jobs, self.costs)
+            mod.analyze(self.jobs, self.costs, self.runs)
 
     def test_partial_cost_run_is_hold(self):
         self.costs["run_costs"][0]["complete"] = False
         with self.assertRaisesRegex(ValueError, "incomplete"):
-            mod.analyze(self.jobs, self.costs)
+            mod.analyze(self.jobs, self.costs, self.runs)
 
     def test_load_rejects_symlinks(self):
         with tempfile.TemporaryDirectory() as directory:
