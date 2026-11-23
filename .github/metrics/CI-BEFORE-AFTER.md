@@ -584,3 +584,9 @@ paths rather than claim fractional preview-job savings. Require evidence
 from actual detector ownership, preserved failure discovery, like-for-like
 runner minutes and protected merge critical path before changing normative
 CI. Production AFTER remains N/A.
+
+## Exact-release native-host targeted recovery (2026-11-23 UTC)
+
+[Release CI #45170496660](https://github.com/UOR-Foundation/lexlean/actions/runs/45170496660) at `f57650e6cf1fd04df0858d7bb97b1071a1c83220` had 77/78 successful jobs and Linux ARM failed on an external runner shutdown during conformance. The run had approximately **1,176 unweighted runner-job minutes**, of which ARM occupied **46.05 minutes** before interruption. A single GitHub-supported rerun of the failed job was requested. Attempt 2 contains 77 successful job receipts carrying **byte-identical original started/completed timestamps**, and one newly running Linux ARM job (`137750931489`). GitHub reassigns job IDs and `run_attempt=2` to the entire displayed job set, so ID changes must NOT be counted as new executions.
+
+The 77 untouched successful jobs represent **1129.950 observed unweighted minutes of work** not repeated by this targeted attempt. **Actual billed delta and retry final outcome remain unknown**. This recovery is source-/run-bound, not a production CI architecture cutover. See [native recovery runbook](../CI-NATIVE-RECOVERY.md) and [paginated attempt ledger](ci-native-targeted-retry-20261123.json). No normative workflow, automatic retry, required context, host identity, proof or publication authority was altered.
