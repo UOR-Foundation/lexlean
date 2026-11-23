@@ -14,7 +14,7 @@ from ci_cargo_scope import affected as cargo_affected
 
 _MAX_BYTES = 1024 * 1024
 _SHA = re.compile(r"[0-9a-f]{40}(?:[0-9a-f]{24})?\Z")
-_STATUS = re.compile(r"(?:[AMDT]|[RC][0-9]{1,3})\Z")
+_STATUS = re.compile(r"(?:[AMD]|[RC][0-9]{1,3})\Z")
 
 
 def _path(token):
