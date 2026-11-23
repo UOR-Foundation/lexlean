@@ -4,6 +4,7 @@
 //! Each task enforces named rules and says which promise broke when it
 //! fails.
 
+// CI Phase B Rust-source selection probe (#603); remove after hosted evidence.
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
