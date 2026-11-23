@@ -87,6 +87,20 @@ jobs:
       - name: Run impacted CI Python contracts
         if: ${{ steps.plan.outputs.python_contracts == 'true' }}
         run: python3 -m unittest discover -s .github/scripts -p 'test_*.py' -v
+      - name: Generate the observed before-after CI report
+        if: ${{ steps.plan.outputs.python_contracts == 'true' }}
+        run: |
+          python3 .github/scripts/ci_metrics_report.py \
+            --before-runs .github/metrics/ci-before-pr50-runs.json \
+            --before-costs .github/metrics/ci-before-pr50-job-costs.json \
+            --output-dir ci-evidence/ci-before-after
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ steps.plan.outputs.python_contracts == 'true' && !cancelled() }}
+        with:
+          name: ci-before-after-evidence
+          path: ci-evidence/ci-before-after
+          if-no-files-found: error
+          retention-days: 14
       - name: Install pinned Rust for selected checks
         if: ${{ steps.plan.outputs.rust_format == 'true' || steps.plan.outputs.cargo_check == 'true' }}
         run: rustup toolchain install
