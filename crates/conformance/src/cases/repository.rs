@@ -759,6 +759,63 @@ fn plan_decisions() {
         );
     }
 
+    // The workflow-level Draft guard is only sufficient if EVERY CI worker
+    // waits on plan. A future job without that dependency could allocate
+    // runners on Draft PRs even while the existing plan is skipped.
+    let ci_source = root_file(".github/workflows/ci.yml");
+    let mut job_names = std::collections::BTreeSet::new();
+    let mut dependencies = std::collections::BTreeSet::new();
+    let mut current_job: Option<String> = None;
+    let mut in_jobs = false;
+    for line in ci_source.lines() {
+        if line == "jobs:" {
+            in_jobs = true;
+            continue;
+        }
+        if !in_jobs {
+            continue;
+        }
+        if let Some(name) = line.strip_prefix("  ").and_then(|s| s.strip_suffix(':')) {
+            if !name.is_empty()
+                && name
+                    .bytes()
+                    .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+            {
+                assert!(job_names.insert(name.to_owned()), "duplicate ci.yml job");
+                current_job = Some(name.to_owned());
+                continue;
+            }
+        }
+        if let Some(job) = current_job.as_deref() {
+            if let Some(needs) = line.strip_prefix("    needs: ") {
+                let names = needs
+                    .strip_prefix('[')
+                    .and_then(|rest| rest.strip_suffix(']'))
+                    .expect("job dependencies must be explicit list");
+                if names.split(',').map(str::trim).any(|name| name == "plan") {
+                    dependencies.insert(job.to_owned());
+                }
+            }
+            if let Some(condition) = line.strip_prefix("    if: ") {
+                assert!(
+                    !condition.contains("always()")
+                        || condition.contains("needs.plan.outputs.full == 'true'"),
+                    "§9.4: {job} must not override Draft suppression using always()"
+                );
+            }
+        }
+    }
+    assert!(job_names.contains("plan"), "the plan job is mandatory");
+    assert!(job_names.len() > 1, "a normative CI graph must contain workers");
+    for job in job_names {
+        if job != "plan" {
+            assert!(
+                dependencies.contains(&job),
+                "§9.4: {job} can allocate a runner before Draft plan"
+            );
+        }
+    }
+
     // A run of another repository's pull request is not one of this one's.
     let script_text = root_file(".github/ci-plan.sh");
     assert!(
