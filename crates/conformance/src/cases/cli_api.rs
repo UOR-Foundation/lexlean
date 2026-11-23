@@ -936,10 +936,11 @@ pub(crate) fn run(id: &str) {
             );
 
             // §23.1: no source in `crates/lexlean/src` reads an environment
-            // variable beyond the four operational variables of §23.1
+            // variable beyond the five operational variables of §23.1
             // (`LEXLEAN_VERIFY_WIDTH`, `LEXLEAN_VERIFY_HINTS`,
-            // `LEXLEAN_VERIFY_MEMORY_KIB`, `LEXLEAN_CI_TELEMETRY`, in
-            // `verify/operational.rs`) and the toolchain locator's ambient
+            // `LEXLEAN_VERIFY_MEMORY_KIB`, `LEXLEAN_CI_TELEMETRY` in
+            // `verify/operational.rs`, and `LEXLEAN_VERIFY_STORE` in
+            // `verify/store.rs`) and the toolchain locator's ambient
             // `HOME`, `PATH`, and `ELAN_HOME` (`verify/child.rs` and
             // `verify/toolchain.rs`).
             fn undeclared_env_reads(sources: &[(String, String)]) -> Vec<String> {
@@ -948,6 +949,7 @@ pub(crate) fn run(id: &str) {
                     ("verify/operational.rs", "TELEMETRY_VARIABLE"),
                     ("verify/operational.rs", "HINTS_VARIABLE"),
                     ("verify/operational.rs", "MEMORY_VARIABLE"),
+                    ("verify/store.rs", "STORE_VARIABLE"),
                     ("cli.rs", "\"NO_COLOR\""),
                     ("verify/child.rs", "\"HOME\""),
                     ("verify/child.rs", "\"PATH\""),
