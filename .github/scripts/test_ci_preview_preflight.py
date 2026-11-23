@@ -151,7 +151,7 @@ class EarlyRefCheck(unittest.TestCase):
         for expected in (
             "git merge-base --is-ancestor", "Base branch moved since the opted-in event",
             "test \"$(git rev-parse HEAD)\" = \"$EXPECTED_HEAD\"",
-            "fetch-depth: 0", "timeout-minutes: 20",
+            "fetch-depth: 0", "filter: blob:none", "timeout-minutes: 20",
         ):
             self.assertIn(expected, body)
         self.assertLess(body.index(PRECHECK), body.index(CHECKOUT))
