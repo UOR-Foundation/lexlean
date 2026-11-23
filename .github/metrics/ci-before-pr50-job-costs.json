@@ -1077,7 +1077,17 @@
       "id": 43851090792,
       "pr": 493,
       "error": "UNKNOWN: Error code: UNKNOWN; Error: ReadTimeout: ",
-      "complete": false
+      "complete": true,
+      "job_count": 148,
+      "returned": 148,
+      "job_minutes": 3123.617,
+      "by_platform_minutes": {
+        "linux": 2655.117,
+        "windows": 238.7,
+        "macos": 229.8
+      },
+      "first_job_started": "2026-11-16T10:41:26Z",
+      "last_job_completed": "2026-11-16T12:52:04Z"
     },
     {
       "id": 43806860856,
@@ -1219,7 +1229,17 @@
       "id": 43773711832,
       "pr": 556,
       "error": "UNKNOWN: Error code: UNKNOWN; Error: ReadTimeout: ",
-      "complete": false
+      "complete": true,
+      "job_count": 144,
+      "returned": 144,
+      "job_minutes": 2537.067,
+      "by_platform_minutes": {
+        "linux": 1738.467,
+        "macos": 539.833,
+        "windows": 258.767
+      },
+      "first_job_started": "2026-11-15T23:19:59Z",
+      "last_job_completed": "2026-11-16T04:08:23Z"
     },
     {
       "id": 43773562747,
