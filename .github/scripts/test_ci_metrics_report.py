@@ -14,7 +14,7 @@ spec.loader.exec_module(metrics)
 
 ROOT = Path(__file__).parents[1]
 RUNS = ROOT / "metrics" / "ci-before-pr50-runs.json"
-COSTS = ROOT / "metrics" / "ci-before-pr50-job-costs.json"
+COSTS = ROOT / "metrics" / "ci-before-pr50-job-costs-corrected.json"
 A = "a" * 40
 B = "b" * 40
 
@@ -67,9 +67,9 @@ class ReportContracts(unittest.TestCase):
         self.assertEqual(len(prs), 50)
         self.assertEqual(summary["workflow_run_count"], 128)
         self.assertEqual(summary["pr_with_premerge_green"], 29)
-        self.assertAlmostEqual(summary["observed_runner_job_minutes_total"], 99321.66, delta=.1)
+        self.assertAlmostEqual(summary["observed_runner_job_minutes_total"], 88298.35, delta=.1)
         self.assertIsNone(summary["billing_minutes"])
-        self.assertAlmostEqual(summary["estimated_private_equivalent_usd_total"], 1408.78, delta=0.15)
+        self.assertAlmostEqual(summary["estimated_private_equivalent_usd_total"], 1249.19, delta=0.15)
         self.assertTrue(all(x["period"] == "before" for x in prs))
 
     def test_premerge_qualification_is_not_merge_time(self):

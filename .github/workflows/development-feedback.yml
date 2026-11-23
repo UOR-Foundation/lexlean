@@ -134,7 +134,7 @@ jobs:
         run: |
           python3 .github/scripts/ci_metrics_report.py \
             --before-runs .github/metrics/ci-before-pr50-runs.json \
-            --before-costs .github/metrics/ci-before-pr50-job-costs.json \
+            --before-costs .github/metrics/ci-before-pr50-job-costs-corrected.json \
             --output-dir ci-evidence/ci-before-after
       # Replay frozen CI evidence within the existing nonqualifying preview.
       # No extra runner, host matrix, protected status or release authority.

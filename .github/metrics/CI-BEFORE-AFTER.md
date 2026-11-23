@@ -1,3 +1,39 @@
+## Verified source-bound correction to historical 50-PR BEFORE accounting (2026-11-23 UTC)
+
+The historical run-cost RAW snapshot remains intact. Seven anomalous runs
+were independently checked against complete paginated GitHub job API receipts:
+six reissued historical successful job rows after targeted reruns, and one
+cancelled workflow that returned 57 never-allocated job rows with synthetic
+execution timestamps. A seventh multi-attempt run had a verified empty first
+attempt, causing no correction. All seven cancelled runs were reviewed.
+
+| Metric | Raw historical | Corrected BEFORE |
+| --- | ---: | ---: |
+| 50-PR final-head job execution minutes | **99,321.656** | **88,298.354** |
+| Historical metadata falsely counted as runner time | **11,023.302** | **0 in corrected seven** |
+| Median unweighted runner minutes / PR | 1,873.400 | **1,818.700** |
+| p90 runner minutes / PR | 3,225.220 | **2,615.012** |
+
+These **11,023.302 minutes are an accounting correction ONLY**. Not CI
+run-time saved, not an achieved Actions billing reduction, and not a
+before/after cutover change. Private-repository cost figures remain
+illustrative time-based proxies, not provider invoices. The matched
+postcutover AFTER cohort is still **N/A**. The corrected 128-run snapshot
+is `.github/metrics/ci-before-pr50-job-costs-corrected.json`; the immutable
+raw input is `.github/metrics/ci-before-pr50-job-costs.json`; source identities,
+exact per-run deltas, pagination and exceptions are in
+`.github/metrics/ci-before-pr50-reconciliation-20261123.json`.
+The nonqualifying report generator now consumes only the corrected snapshot.
+Future collection uses `ci_execution_receipts.py` and ignores unallocated
+cancelled/skipped scheduling timestamps rather than treating them as work.
+
+**Governance:** This correction restores a usable historical evidence
+baseline. It does NOT qualify or cut over the normative CI gate under
+#603 DOD-3 through DOD-6. Remaining 121 run rows are unchanged from the
+prior retained historical collection, not individually refetched here.
+
+---
+
 ## CI cost baseline accounting correction in progress (2026-11-23 UTC)
 
 > **ACCOUNTING HOLD:** The previously published 50-PR BEFORE total of
