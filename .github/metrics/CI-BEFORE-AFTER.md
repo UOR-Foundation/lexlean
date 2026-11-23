@@ -228,3 +228,59 @@ synthetic Rust comment was reverted byte-for-byte (source blob restored
 to `4ef56fb32c2b34e72871ea1e295d37d3a03492d7`), the one-shot
 marker was removed, and fixture PR #612 was CLOSED UNMERGED. No merge
 acceptance or production cost-saving evidence is claimed.
+
+## Matched 28-partition bootstrap CI historical run pair (2026-11-23 UTC)
+
+Unlike the two-run **draft-feedback** partial-clone A/B above, this is
+**actual complete normative CI** evidence retrieved read-only from GitHub:
+
+- **BEFORE:** [full run #44599982425](https://github.com/UOR-Foundation/lexlean/actions/runs/44599982425) on 2026-11-19, checkout prefix `6c6912f`, workflow Git blob `daa958aac0d72ef62b80fb1cd4ffd8a3a145327c`. All bootstrap BDD consumers began beside the `bootstrap-export` producer and could poll for its artifact while occupying runners.
+- **AFTER:** [full run #45100057759](https://github.com/UOR-Foundation/lexlean/actions/runs/45100057759) on 2026-11-23, exact HEAD `b693bb4259d311fd71da90ac38701214a74be27f`, workflow blob `f4b6ab5d8a229665d3d43ba19e6e2db1e34e5f63`. [Merged PR #602](https://github.com/UOR-Foundation/lexlean/pull/602) had already split the manifest-selected jobs into `vv-fast` and producer-dependent `vv`. **This scheduler change is ALREADY MERGED**, not a new #606 change.
+
+Downloaded **56 archived acceptance-evidence ZIPs** and compared all **28 shared `bdd-bootstrap-*` partitions**, matching each conformance case ID across runs. Each archive's `summary.md` gives BDD recipe seconds, `cases-telemetry.jsonl` gives case wall milliseconds and PASS, and `take-bootstrap-export.txt` gives request/receipt clock times. All **28/28 case IDs matched, and every case passed in both runs**. The durable per-partition metrics, artifact IDs, exact source/workflow IDs and caveats are in [ci-bdd-bootstrap-28-matched-20261123.json](ci-bdd-bootstrap-28-matched-20261123.json). GitHub original artifact ZIPs expire under their retention policy; the extracted counts must stay durable.
+
+| Observed sum across 28 matching partitions | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| BDD recipe execution (runner-occupied, excludes job setup) | **1,094.82 min** | **179.50 min** | **−915.32 min (−83.60%)** |
+| Individual conformance-case wall time | 1,058.50 min | 96.81 min | −961.69 min (−90.85%) |
+| Waiting for run-bound export after request | 909.47 min | 2.40 min | −907.07 min (−99.74%) |
+| Matched case failure count | 0 | 0 | no detector omitted in this paired set |
+
+**Specific detector:** BS-09's case wall time went from **2,305.935s**
+to **126.963s**, while its export wait decreased from **2,161s** to **8s**;
+the BDD recipe fell from **2,380s** to **299s**. Before/after archived
+`acceptance-gate-evidence-bdd-bootstrap-runtime` artifacts:
+`14571111769` and `14787015783`.
+
+**Causal restraint:** These are two **different code commits** and
+not an identical-head controlled A/B. Revisions, host conditions,
+case implementations and other work may contribute. Crucially,
+**BS-15** waited only **3s** for the export in the original run yet
+its recipe also sped up: the full 83.6% recipe delta **cannot**
+be credited solely to scheduling. The measured artifact-wait
+reduction is the most directly schedule-connected evidence.
+These are recipe and test elapsed times, **not complete billable
+runner-job minutes or protected time-to-merge**. For an illustrative
+unrounded private Linux rate of $0.006/min, multiplying the 915.32
+recipe-minute difference yields ~$5.49 of **modelled** compute
+for this subset. It excludes runner setup, per-job minute rounding,
+allowances and unrelated jobs; this is not a provider bill or earned savings.
+
+**Regression check (new, draft-only):**
+`ci_bootstrap_staging_audit.py` executes the real committed jq planner
+against the row and BDD manifests, Rust BS test registrations and
+actual `vv-fast`/`vv` dependency source. It found **29 producer-dependent
+and 11 independent BDD partitions**, and all **31 BS tests** assigned
+uniquely. Its 15 adversarial mutations, including forced early scheduling
+and removal of the producer dependency, all passed in [hosted
+nonqualifying run #45119389992](https://github.com/UOR-Foundation/lexlean/actions/runs/45119389992);
+the whole selected Python suite was **64/64 PASS**, artifact uploaded.
+This is source/planner regression evidence, not execution of the
+40+ minute normative BDD matrix. PR #613 was only its temporary draft fixture.
+
+**Decision:** Retain and protect the already-merged two-lane scheduler.
+Do not introduce a second rearrangement or record the 915.32 minute
+historical delta as a new #606 ROI. Continue testing remaining actual
+post-staging native-host, Atlas and BDD costs with source-specific
+falsifiers and no unnecessary full Actions runs. The 50-PR production
+AFTER cohort remains **UNKNOWN**, not fabricated from this run pair.
