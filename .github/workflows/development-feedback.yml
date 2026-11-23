@@ -1,0 +1,89 @@
+# Optional, manual *nonqualifying* development feedback (CI Phase B, #603).
+# This is not SPEC.md §9.4's ci.yml or reproducibility.yml. It may not satisfy
+# required checks, release evidence, or a ready PR's exact-head acceptance.
+# No push/PR trigger: merely adding this workflow must not start another gate.
+name: CI development feedback (NONQUALIFYING)
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: "Trusted baseline branch (main or release/vX.Y)"
+        required: true
+        type: string
+        default: "release/v0.4"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-development-feedback-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: nonqualifying selected checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Pin trusted-base comparison and decide real feedback commands
+        id: plan
+        shell: bash
+        env:
+          BASE_REF: ${{ inputs.base_ref }}
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # User input is data, not a shell command or a revision expression.
+          if [[ ! "$BASE_REF" =~ ^(main|release/v[0-9]+\.[0-9]+)$ ]]; then
+            echo "::error::Only main or release/vX.Y baselines are supported"
+            exit 1
+          fi
+          head_sha="$(git rev-parse --verify HEAD)"
+          if [[ "$head_sha" != "$EXPECTED_HEAD" ]]; then
+            echo "::error::Checkout SHA differs from dispatch SHA"
+            exit 1
+          fi
+          git fetch --no-tags origin "$BASE_REF:refs/remotes/origin/$BASE_REF"
+          base_sha="$(git rev-parse --verify "refs/remotes/origin/$BASE_REF^{commit}")"
+          # Do not silently compare a stale or unrelated branch.
+          git merge-base --is-ancestor "$base_sha" "$head_sha" || {
+            echo "::error::Base is not an ancestor: update branch before preview"
+            exit 1
+          }
+          git diff --name-status -z -M --no-ext-diff "$base_sha" "$head_sha" > "$RUNNER_TEMP/ci-preview-changes.z"
+          echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
+          python3 .github/scripts/ci_impact_preview.py \
+            --base "$base_sha" --head "$head_sha" \
+            --diff-nul "$RUNNER_TEMP/ci-preview-changes.z" \
+            --github-output "$GITHUB_OUTPUT" --summary "$GITHUB_STEP_SUMMARY"
+      - name: Check changed-line whitespace
+        if: ${{ steps.plan.outputs.whitespace == 'true' }}
+        shell: bash
+        env:
+          BASE_SHA: ${{ steps.plan.outputs.base_sha }}
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          git diff --check --no-ext-diff "$BASE_SHA" HEAD
+      - name: Run impacted CI Python contracts
+        if: ${{ steps.plan.outputs.python_contracts == 'true' }}
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py' -v
+      - name: Install pinned Rust for impacted formatting
+        if: ${{ steps.plan.outputs.rust_format == 'true' }}
+        run: rustup toolchain install
+      - name: Check impacted Rust formatting
+        if: ${{ steps.plan.outputs.rust_format == 'true' }}
+        run: cargo fmt --all -- --check
+      - name: State the assurance boundary even on failure
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          printf '\n**NONQUALIFYING:** only the selected development-feedback commands ran. '
+          printf 'A green preview does not replace SPEC.md §9.4, native/proof checks, '
+          printf 'reproducibility, or the exact-head release gate.\n' | tee -a "$GITHUB_STEP_SUMMARY"
