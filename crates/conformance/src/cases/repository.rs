@@ -1012,7 +1012,7 @@ pub(crate) fn run(id: &str) {
         "RP-01" => {
             let workspace = root_file("Cargo.toml");
             for required in [
-                "version = \"0.4.4\"",
+                "version = \"0.4.5\"",
                 "edition = \"2021\"",
                 "rust-version = \"1.97\"",
                 "license = \"MIT OR Apache-2.0\"",
@@ -1045,7 +1045,7 @@ pub(crate) fn run(id: &str) {
             let (exit, stdout, _) = support::cli_in(&root, &["--version"]);
             assert_eq!(exit, 0);
             assert!(
-                stdout.starts_with("lexlean 0.4.4\n"),
+                stdout.starts_with("lexlean 0.4.5\n"),
                 "§30.3: the binary reports the lexlean identity, got {stdout:?}"
             );
         }
@@ -1647,7 +1647,7 @@ pub(crate) fn run(id: &str) {
                 "no workspace test is ignored or cfg-hidden: {hidden_tests:?}"
             );
             let unmet = repo_model::release::check(root.as_std_path(), &hidden_tests)
-                .expect_err("a 0.4.4 tree must refuse release (§2.3, §30.4)");
+                .expect_err("a 0.4.5 tree must refuse release (§2.3, §30.4)");
             // The criterion reads the attribute-block scan, so a hidden test
             // is unmet whatever attribute form hides it (§30.4).
             let planted: BTreeSet<String> = ["conformance_rp_12".to_owned()].into_iter().collect();
