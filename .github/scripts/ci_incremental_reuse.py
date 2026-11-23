@@ -26,6 +26,17 @@ CONTROLS = frozenset((
     "rust-toolchain.toml", "lean-toolchain", "Cargo.lock",
     "Justfile", ".github/vv-rows.json", ".github/bdd-parts.json",
     ".github/verify-shards.json", "SPEC.md", "spec/src/Chapter09.lex.tex",
+    # RP-14 is compiled into every conformance lane's common Rust binary.
+    # A file-level policy is not allowed to declare this shared test source,
+    # its lane planner, or the receipt validators as harmless changed paths.
+    "crates/conformance/tests/conformance.rs",
+    "crates/conformance/src/cases/repository.rs",
+    "crates/conformance/src/cases/mod.rs",
+    "crates/conformance/src/lib.rs",
+    "xtask/src/ci.rs", ".github/intel-host-lanes.json",
+    ".github/scripts/host_lanes.py", ".github/scripts/intel_host_tests.py",
+    ".github/scripts/ci_execution_receipts.py",
+    ".github/scripts/ci_generated_lineage.py",
 ))
 
 

@@ -27,7 +27,11 @@ an altered shared test binary.
 
 Every unit must explicitly classify EACH changed path as an input or as
 explicit nonimpact. Unknown paths mean RERUN. A changed control file or policy
-forces RERUN. Missing/failed/cancelled receipts and downstream dependents
+forces RERUN. LexLean's 524-case shared conformance source, native lane
+planners and test/receipt custody logic are mandatory invalidation controls:
+a hand-written "nonimpact" claim cannot override them. This conservative
+file-level policy deliberately yields no cross-HEAD reuse for the RP-14 fix.
+Missing/failed/cancelled receipts and downstream dependents
 force RERUN. Native, Lean/proof, repro, and release kinds are **always RERUN**
 in this prototype. The algorithm emits CANDIDATE_REUSE only for declared
 ordinary units, never a validated carry-forward receipt.

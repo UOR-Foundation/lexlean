@@ -85,6 +85,17 @@ class ReuseContract(unittest.TestCase):
                     s["changed"] = [item]
                 self.assertEqual(result(change)["candidate_count"], 0)
 
+    def test_rp14_shared_harness_cannot_be_marked_nonimpact(self):
+        shared = "crates/conformance/src/cases/repository.rs"
+        def falsely_exempt(p, _, s):
+            s["changed"] = [shared]
+            for unit in p["units"]:
+                unit["explicit_nonimpact"].append(shared)
+        got = result(falsely_exempt)
+        self.assertEqual(got["candidate_count"], 0)
+        for unit in got["units"].values():
+            self.assertIn("global_policy_or_toolchain_change", unit["reasons"])
+
     def test_failed_or_cancelled_job_is_not_reuse(self):
         def change(_, r, __):
             r["jobs"][0]["conclusion"] = "failure"
