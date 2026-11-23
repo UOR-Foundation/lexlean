@@ -10,12 +10,18 @@ spec.loader.exec_module(cargo_scope)
 
 
 def fixture(root):
-    (root / 'Cargo.toml').write_text('[workspace]\nmembers = ["crates/*", "xtask"]\n')
+    (root / 'Cargo.toml').write_text(
+        '[workspace]\nmembers = ["crates/*", "xtask"]\n'
+        '[workspace.dependencies]\n'
+        'repo-model = {path = "crates/model"}\n'
+        'lexlean = {path = "crates/lexlean"}\n'
+        'repo-conformance = {path = "crates/conformance"}\n'
+    )
     specs = [
         ('crates/model', 'repo-model', ''),
         ('crates/lexlean', 'lexlean', ''),
-        ('crates/conformance', 'repo-conformance', '[dependencies]\nlexlean = "0.4"\nrepo-model = "0.4"\n'),
-        ('xtask', 'xtask', '[dependencies]\nrepo-conformance = "0.4"\nrepo-model = "0.4"\nlexlean = "0.4"\n'),
+        ('crates/conformance', 'repo-conformance', '[dependencies]\nlexlean = {workspace = true}\nrepo-model = {workspace = true}\n'),
+        ('xtask', 'xtask', '[dependencies]\nrepo-conformance = {workspace = true}\nrepo-model = {workspace = true}\nlexlean = {workspace = true}\n'),
     ]
     for folder, name, dependencies in specs:
         directory = root / folder
@@ -78,8 +84,29 @@ class CargoScope(unittest.TestCase):
     def test_target_specific_reverse_dependency(self):
         file = self.root / 'crates/conformance/Cargo.toml'
         file.write_text('[package]\nname = "repo-conformance"\n'
-                        '[target.\'cfg(unix)\'.dev-dependencies]\nlexlean = "0.4"\n')
+                        '[target.\'cfg(unix)\'.dev-dependencies]\nlexlean = {workspace = true}\n')
         self.check(['crates/lexlean/src/lib.rs'], ['lexlean', 'repo-conformance', 'xtask'])
+
+    def test_external_workspace_path_dependency_fail_closed(self):
+        with (self.root / 'Cargo.toml').open('a') as fd:
+            fd.write('another = {path = "crates/another"}\n')
+        with self.assertRaisesRegex(ValueError, 'unmodeled workspace path'):
+            cargo_scope.affected(self.root, ['xtask/src/main.rs'])
+
+    def test_missing_inherited_dependency_fail_closed(self):
+        file = self.root / 'xtask/Cargo.toml'
+        with file.open('a') as fd:
+            fd.write('newdependency = {workspace = true}\n')
+        with self.assertRaisesRegex(ValueError, 'unknown inherited'):
+            cargo_scope.affected(self.root, ['xtask/src/main.rs'])
+
+    def test_workspace_exclusion_fail_closed(self):
+        file = self.root / 'Cargo.toml'
+        content = file.read_text().replace('members = ["crates/*", "xtask"]',
+                                           'members = ["crates/*", "xtask"]\nexclude = ["crates/model"]')
+        file.write_text(content)
+        with self.assertRaisesRegex(ValueError, 'membership'):
+            cargo_scope.affected(self.root, ['xtask/src/main.rs'])
 
     def test_manifest_content_hash_changes(self):
         before = cargo_scope.affected(self.root, [])['cargo_manifest_sha256']
