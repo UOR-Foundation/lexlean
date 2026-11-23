@@ -102,6 +102,12 @@ class GraphControls(unittest.TestCase):
         with self.assertRaisesRegex(AuditHold, "duplicate"):
             atlas_graph(atlas, jobs)
 
+    def test_duplicate_elaboration_across_shards_fails(self):
+        atlas, jobs = atlas_fixture()
+        atlas["shards"]["cert4"]["elaborate"] = ["prefix"]
+        with self.assertRaisesRegex(AuditHold, "multiple shards"):
+            atlas_graph(atlas, jobs)
+
     def test_workflow_job_cycle_fails(self):
         with self.assertRaisesRegex(AuditHold, "cycle"):
             job_dependencies({"a": "    needs: [b]\n", "b": "    needs: [a]\n"})
