@@ -157,7 +157,7 @@ jobs:
         run: bash .github/retry.sh rustup toolchain install
       - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
         with:
-          tool: just
+          tool: just@1.58.0
       # The SIMD probe of decision #109 (D4) on the pinned Rust (#119): every
       # outcome VERIFICATION.md records for it ("The SIMD probe of #109 on the
       # pinned Rust"), held by `.github/simd-probe/run.sh`. It builds for the
@@ -326,7 +326,7 @@ jobs:
         run: bash .github/retry.sh rustup target add aarch64-unknown-linux-gnu wasm32-unknown-unknown
       - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
         with:
-          tool: just,cargo-deny
+          tool: just@1.58.0,cargo-deny
       - name: Install elan and the pinned Lean toolchain
         run: |
           set -euo pipefail
