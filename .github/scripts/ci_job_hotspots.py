@@ -93,6 +93,11 @@ def analyze(details, costs, runs):
         require(type(rid) is int and rid in by_run, "unmatched run for job")
         run = by_run[rid]
         require(job.get("pr") == run.get("pr"), "job attributed to wrong PR")
+        provenance = source_runs_by_id[rid]
+        require(job.get("head_sha") == provenance["head_sha"] and
+                job.get("workflow") == provenance["workflow"] and
+                job.get("run_attempt") == provenance["run_attempt"],
+                "job exact-head, workflow or attempt provenance mismatch")
         name, workflow, platform = job.get("job_name"), job.get("workflow"), job.get("platform")
         require(isinstance(name, str) and 0 < len(name) <= 300 and
                 isinstance(workflow, str) and workflow and platform in OS,
@@ -171,9 +176,11 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--jobs", type=Path, required=True)
     ap.add_argument("--costs", type=Path, required=True)
+    ap.add_argument("--runs", type=Path, required=True)
     ap.add_argument("--output-dir", type=Path, required=True)
     args = ap.parse_args(argv)
-    result = analyze(read_snapshot(args.jobs), read_snapshot(args.costs))
+    result = analyze(read_snapshot(args.jobs), read_snapshot(args.costs),
+                     read_snapshot(args.runs))
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "job-hotspots.json").write_text(
         json.dumps(result, indent=2, sort_keys=True)+"\n", encoding="utf-8")
