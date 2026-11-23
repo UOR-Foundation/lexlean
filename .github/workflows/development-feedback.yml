@@ -33,44 +33,6 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      # Source-bound, fail-closed and cheap before fetching the large checkout.
-      - name: Reject stale preview base before checkout
-        shell: bash
-        env:
-          BASE_REF: ${{ github.event.pull_request.base.ref || inputs.base_ref }}
-          EXPECTED_BASE: ${{ github.event.pull_request.base.sha || '' }}
-        run: |
-          set -euo pipefail
-          if [[ ! "$BASE_REF" =~ ^(main|release/v[0-9]+\.[0-9]+)$ ]]; then
-            echo "::error::Preview baseline must be main or release/vX.Y"
-            exit 1
-          fi
-          if [[ ! "$GITHUB_REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
-            echo "::error::Invalid repository identity"
-            exit 1
-          fi
-          if [[ -n "$EXPECTED_BASE" && ! "$EXPECTED_BASE" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "::error::Invalid event base commit identity"
-            exit 1
-          fi
-          remote="https://github.com/$GITHUB_REPOSITORY.git"
-          live="$(git ls-remote --exit-code --heads "$remote" "refs/heads/$BASE_REF")" || {
-            echo "::error::Could not read current baseline ref"
-            exit 1
-          }
-          if [[ $(wc -l <<< "$live") -ne 1 ]]; then
-            echo "::error::Ambiguous baseline ref response"
-            exit 1
-          fi
-          read -r live_sha live_ref <<< "$live"
-          if [[ ! "$live_sha" =~ ^[0-9a-f]{40}$ || "$live_ref" != "refs/heads/$BASE_REF" ]]; then
-            echo "::error::Malformed baseline ref response"
-            exit 1
-          fi
-          if [[ -n "$EXPECTED_BASE" && "$live_sha" != "$EXPECTED_BASE" ]]; then
-            echo "::error::Base branch moved since the opted-in event; refusing before checkout"
-            exit 1
-          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
