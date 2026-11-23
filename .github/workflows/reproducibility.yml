@@ -31,7 +31,7 @@ jobs:
         run: bash .github/retry.sh rustup toolchain install
       - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
         with:
-          tool: just
+          tool: just@1.58.0
       # The gate builds each example project twice, in two distinct absolute
       # directories, and compares the published file set and every file's
       # bytes directly. §9.4 allows a path normalization before the
