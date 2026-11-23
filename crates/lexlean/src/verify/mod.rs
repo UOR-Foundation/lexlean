@@ -885,21 +885,10 @@ pub fn run_part(
         use crate::production::rust_cert;
         for (index, root) in roots(checked).map_err(fail)?.iter().enumerate() {
             let (lowered, program) = lowered_roots[index].clone();
-            // A root's certificates are named by what they are about, the
-            // root and its lowered program, and not by the project's semantic
-            // identity: a root whose program a change leaves as it was keeps
-            // its certificates' names and text, so their processes keep their
-            // content identities (§22.13).
-            let root_hex32: String = {
-                let mut bytes = format!(
-                    "lexlean/certificate-name/1\0{}\0{}\0",
-                    root.module, root.name
-                )
-                .into_bytes();
-                bytes.extend_from_slice(&program);
-                Sha256Digest::of(&bytes).to_hex()[..32].to_owned()
-            };
-            let module = format!("LexLeanPreserve.C{root_hex32}.R{index}");
+            // SPEC §17: certificates are named by the project's semantic ID.
+            // The operational process store (§22.13) must not rename proof
+            // modules or change the committed verification identity.
+            let module = format!("LexLeanPreserve.C{semantic_hex32}.R{index}");
             // Certificate A and the renderings (B and E) are made from the
             // lowered program and the linked modules alone, and neither reads
             // the other: A is generated beside them, and its result is judged
