@@ -20,7 +20,7 @@ SHA = "a" * 40
 
 def actual_script():
     body = WORKFLOW.read_text(encoding="utf-8")
-    if body.count(PRECHECK) != 1 or body.count(CHECKOUT) != 2:
+    if body.count(PRECHECK) != 1 or body.count(CHECKOUT) != 1:
         raise ValueError("precheck/checkout missing or duplicated")
     left, right = body.split(PRECHECK, 1)
     if CHECKOUT in left:
@@ -151,7 +151,7 @@ class EarlyRefCheck(unittest.TestCase):
         for expected in (
             "git merge-base --is-ancestor", "Base branch moved since the opted-in event",
             "test \"$(git rev-parse HEAD)\" = \"$EXPECTED_HEAD\"",
-            "fetch-depth: 0", "fetch-depth: 1", "--unshallow", "--no-tags", "filter: blob:none", "timeout-minutes: 20",
+            "fetch-depth: 0", "filter: blob:none", "timeout-minutes: 20",
         ):
             self.assertIn(expected, body)
         self.assertLess(body.index(PRECHECK), body.index(CHECKOUT))

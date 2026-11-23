@@ -1,0 +1,62 @@
+{
+  "schema": "lexlean/checkout-AB-experiment-v1",
+  "classification": "NONQUALIFYING_ONLY",
+  "date_utc": "2026-11-23",
+  "repository": "UOR-Foundation/lexlean",
+  "pr": 606,
+  "exact_head": "f66668584e8eabc326c05962f75f15a12dc60531",
+  "exact_base": "f57650e6cf1fd04df0858d7bb97b1071a1c83220",
+  "live_provider": "GitHub Actions REST completed run/jobs and original logs",
+  "observations": [
+    {
+      "run_id": 45186482602,
+      "mode": "complete-history-current",
+      "job_id": 137733309672,
+      "head_sha": "f66668584e8eabc326c05962f75f15a12dc60531",
+      "base_sha": "f57650e6cf1fd04df0858d7bb97b1071a1c83220",
+      "job_s": 48,
+      "queue_s": 3,
+      "checkout_s": 36,
+      "ancestry_restore_s": 0,
+      "python_suite_tests": 222,
+      "python_suite_seconds": 2.494,
+      "checks": "success",
+      "artifact_id": 14823737399,
+      "artifact_zip_bytes": 13002
+    },
+    {
+      "run_id": 45186716080,
+      "mode": "one-commit-plus-bounded-unshallow",
+      "job_id": 137734131818,
+      "head_sha": "f66668584e8eabc326c05962f75f15a12dc60531",
+      "base_sha": "f57650e6cf1fd04df0858d7bb97b1071a1c83220",
+      "job_s": 47,
+      "queue_s": 2,
+      "checkout_s": 38,
+      "ancestry_restore_s": 2,
+      "python_suite_tests": 222,
+      "python_suite_seconds": 2.365,
+      "checks": "success",
+      "artifact_id": 14823312741,
+      "artifact_zip_bytes": 13002
+    }
+  ],
+  "observed_difference": {
+    "source_preparation_candidate_minus_baseline_s": 4,
+    "runner_job_candidate_minus_baseline_s": -1
+  },
+  "meaning": "ONE trial per mode; no significant performance gain demonstrated. Source preparation slower with candidate, entire job difference within runner variance; not a causal financial saving.",
+  "disposition": "REJECT candidate; restore prior fully qualified nonqualifying preview workflow",
+  "production_gate": "UNMODIFIED",
+  "billing_cost": "UNKNOWN; public repo not equivalent to private costs",
+  "other_failed_attempts": [
+    {
+      "run_id": 45185461567,
+      "reason": "YAML colon-space in unquoted if; no jobs allocated"
+    },
+    {
+      "run_id": 45186120828,
+      "reason": "negative-control structural test missing expected HEAD assertion; 221 of 222 tests passed"
+    }
+  ]
+}

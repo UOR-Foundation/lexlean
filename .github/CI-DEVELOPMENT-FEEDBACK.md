@@ -143,38 +143,17 @@ Do not re-trigger this pilot merely to collect more nearly identical data.
 Next: a source-matched and budget-capped checkout A/B with ancestry and
 security negative controls, then continue native queue/test profiling.
 
-## Controlled checkout comparison: same-source baseline vs head-only ancestry restoration
+## Checkout A/B disposition (November 23, 2026)
 
-A single new *draft PR-only* opt-in marker,
-`<!-- ci-preview-head-only -->`, selects the experimental checkout
-path instead of the existing baseline `<!-- ci-preview-once -->`. The two
-mutually exclusive paths use the same single bounded Ubuntu job and the
-same HEAD, base, impact planner, Python contracts and nonqualifying artifact.
-No matrix, native-host test, proof gate or extra required status is added.
+Two exact-head, same-base draft previews compared the existing full-history
+partial-blob checkout against a one-commit fetch followed by complete
+ancestry restoration. Both passed all 222 Python tests and historical
+audits. Baseline checkout took 36s (48s total job); candidate took 38s
+checkout + 2s ancestry restoration (47s total job). The candidate was
+REJECTED for no credible performance benefit, and the original
+single-checkout workflow + preflight test was restored, including the
+original opt-in marker `<!-- ci-preview-once -->`.
 
-The candidate begins with a one-commit blob-filtered `actions/checkout`,
-then a bounded (120-second) `git fetch --unshallow` of the exact event HEAD.
-It explicitly requires the result to be nonshallow and that the event's
-trusted base be an ancestor before the normal exact-HEAD/source-planner
-checks run. The old baseline keeps `fetch-depth: 0` and `filter: blob:none`.
-Both checkouts continue to disable credential persistence.
-
-Conduct two opt-in PR body edits on an unchanged HEAD and release base:
-one baseline and one candidate. Record checkout plus restore step elapsed,
-total job occupancy, branch/ancestry verification, failure guards, and
-identical selected checks/results. Remove each one-time marker immediately
-after completion. A single run per treatment is a screening comparison,
-**not** enough for a confident performance or cost claim; stop early if
-any step fails, runner queueing diverges materially, or the base moves.
-Do not promote a variant that loses provenance/ancestry/receipts.
-
-## A/B workflow-parse negative control, November 23, 2026
-
-An initial checkout A/B workflow commit was rejected by GitHub before job
-allocation, so zero runner minutes were spent. Its plain YAML `if:` field
-included the experiment marker `<!-- ci-preview-once: head-only -->`;
-the colon followed by a space is not permitted inside an unquoted YAML
-plain scalar even if the embedded GitHub expression uses string quotes.
-The marker was changed to `<!-- ci-preview-head-only -->` (no colon),
-and a stdlib-only regression test checks condition lines for colon-space
-after their YAML `if:` prefix. No full acceptance workflow changed.
+Full observations: `.github/metrics/ci-checkout-ab-20261123.json`.
+Do not use the now-removed head-only marker or interpret the one-second
+job result as a proven CI cost saving.

@@ -545,3 +545,42 @@ identity checks or alter the full production workflow for this experiment.
 All preview opt-in markers were removed after completion. PR #606 stays
 DRAFT; normative ci.yml, reproducibility.yml, all native joins, and SPEC
 are unchanged. The first 50 production after-PRs remain N/A.
+
+## Same-head checkout A/B iteration, observed and rejected (2026-11-23 UTC)
+
+**Controlled exact-head comparison** at `f66668584e8eabc326c05962f75f15a12dc60531`
+and identical release base `f57650e6cf1fd04df0858d7bb97b1071a1c83220`:
+
+| Mode | Run | Runner occupied | Queue | Checkout | Restore ancestry | Python tests | Outcome |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Existing full history, lazy blobs | [45186482602](https://github.com/UOR-Foundation/lexlean/actions/runs/45186482602) | 48s | 3s | 36s | n/a | 222/222 | SUCCESS |
+| Exact-head depth 1 plus bounded unshallow | [45186716080](https://github.com/UOR-Foundation/lexlean/actions/runs/45186716080) | 47s | 2s | 38s | 2s | 222/222 | SUCCESS |
+
+The candidate did restore full ancestry, require the exact event base as an
+ancestor, retain exact-HEAD comparison and independent source classification,
+run both Intel historical auditors and upload the existing 13,002-byte
+`ci-before-after-evidence` artifact. Both successful runs used the same
+single Ubuntu worker/job shape, source revision and release baseline.
+
+**Disposition: REJECT the head-only candidate.** It increased source
+preparation from 36s to 40s. The 1s shorter total runner wall is too
+small to attribute to the candidate from one run per arm; checkout and
+host scheduling varied. The full-history lazy-blob baseline has therefore
+been **restored byte-for-byte** from previously qualified draft commit
+`91aceb27954b435c654c00b5d37440b298806423`. The original
+`test_ci_preview_preflight.py` was also restored; the now-obsolete
+`test_ci_checkout_scope.py` was removed. No production CI, job count,
+protected check, native test or release behavior changed.
+
+Setup failures were captured rather than buried: GitHub rejected the first
+unquoted YAML experiment marker with a colon-space before any job started;
+a subsequent mutation negative-control detected a missing exact-HEAD
+assertion in its own structural test. Both were corrected before the
+successful matched-head runs. These errors and the two successful
+comparable receipts are preserved in the adjacent JSON evidence ledger.
+
+**Next high-ROI work:** return to native-host, proof, and CI recipe critical
+paths rather than claim fractional preview-job savings. Require evidence
+from actual detector ownership, preserved failure discovery, like-for-like
+runner minutes and protected merge critical path before changing normative
+CI. Production AFTER remains N/A.
