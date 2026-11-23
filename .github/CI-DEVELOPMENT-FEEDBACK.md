@@ -39,3 +39,55 @@ The local tests plant Rust deletion, cross-language rename, CI Python, model/REA
 ## Next gated phase
 
 Before replacing any `ci.yml` ready-PR or release path: inventory every terminal command/required context, build the trusted source→transitive obligation map, reconcile RP-13/14 and SPEC against actual source, compare two or more alternative graphs and seeded detection failures, agree on required-check migration, and prove actual like-for-like runner-minute and critical-path savings. **Keep the full gate unchanged until those controls are met.**
+
+
+## Before/after Actions economics report
+
+A reproducible, offline Python-stdlib report generator is committed as
+`.github/scripts/ci_metrics_report.py`; source evidence is two immutable
+historical capture files under `.github/metrics/`. They cover the last **50
+merged PRs in the captured pre-Phase-B-cutover window**, November 14–23, 2026:
+128 workflow runs attributed to the exact **final PR head SHA**. Job inventories
+include **all attempts** and were retrieved in paginated batches, including
+older 100+ job workflows.
+
+For an opt-in developer-feedback run that changes CI Python, the runner creates
+`ci-before-after-evidence` as a short-lived artifact containing:
+`runner-minutes-per-pr.svg`, `final-head-time-to-green.svg`,
+`ci-before-after-prs.csv`, `ci-before-after-summary.json` and `README.md`.
+Both graph panels have fixed 50-PR horizontal space. **After remains visibly
+N/A**, not a fabricated zero, until the actual production cutover has qualified
+PRs. Independently regenerate without GitHub Actions:
+
+```sh
+python3 .github/scripts/ci_metrics_report.py \
+  --before-runs .github/metrics/ci-before-pr50-runs.json \
+  --before-costs .github/metrics/ci-before-pr50-job-costs.json \
+  --output-dir ci-evidence/ci-before-after
+python3 -m unittest discover -s .github/scripts -p 'test_ci_metrics_report.py' -v
+```
+
+When the normative production CI migration is merged and proven, snapshot the
+**first up to 50 comparable merged PRs after that cutover**, preserving exact
+source/run/job receipts. Supply `--after-runs`, `--after-costs`, and the
+actual `--cutover-utc`; mixed windows or pre-cutover after samples are refused.
+Do not pretend the optional feedback workflow itself is the cutover.
+
+**Metric contract:** The graph's usage minutes are the sum of each completed
+GitHub job's `completed_at - started_at` times, by runner platform. They are
+**unweighted, not GitHub's billed minutes or dollars**. A public repository's
+GitHub run timing endpoint may report 0 *billable* minutes even when thousands
+of runner-job minutes were consumed. No billable/minute budget improvement is
+asserted without independent billing evidence. The time-to-green graph measures
+the interval from the first non-skipped, final-HEAD `ci` or `reproducibility`
+PR run to the point **both** had successful conclusions *before merge*; cases
+without this evidence are N/A, not 0. This is **not** a claim that branch
+protection actually prevented merging, nor the total time from PR creation.
+It is useful evidence about CI latency with that precise scope.
+
+A PR can have older heads and postmerge workflows that the captured last-HEAD
+query does not count. These are explicitly excluded; the 50-PR total is an
+**observed attributed scope, not total organization Actions spend**.
+Compare PR base branch, change type, CI workflow revision, host mix, and
+qualification class before interpreting a percent difference as causal ROI.
+Do not publish an after/before improvement from unrelated cohorts.
