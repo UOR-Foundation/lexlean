@@ -112,6 +112,8 @@ jobs:
   # decision, and RP-14 runs it against planted events.
   plan:
     name: plan
+    # Automatic draft PR events allocate no runner. Ready and manual runs retain the plan.
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
