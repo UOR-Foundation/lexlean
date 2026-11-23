@@ -284,3 +284,43 @@ historical delta as a new #606 ROI. Continue testing remaining actual
 post-staging native-host, Atlas and BDD costs with source-specific
 falsifiers and no unnecessary full Actions runs. The 50-PR production
 AFTER cohort remains **UNKNOWN**, not fabricated from this run pair.
+
+## Native macOS ARM host: split-lane latency versus cost (2026-11-23 UTC)
+
+Read-only [pre-change full CI run #44599982425](https://github.com/UOR-Foundation/lexlean/actions/runs/44599982425) had
+one normative `aarch64-apple-darwin` job with **124.528 observed runner-minutes**.
+Read-only [later full CI run #45100057759](https://github.com/UOR-Foundation/lexlean/actions/runs/45100057759) split the same supported host into
+five `macOS arm64 tests` jobs (`producer`, `moves`, `validate`, `print`, `lower`).
+All five visible jobs concluded SUCCESS. Their combined log spans totaled
+**123.049 runner-minutes**; the earliest start to latest completion occupied
+**58.956 elapsed minutes**, a **65.572-minute (52.66%) shorter host-lane
+execution envelope**. This is not the PR's actual required-check
+queue-to-green or time-to-merge; the separate Linux `macos-join` status
+is not in the read-only connector's first job page, though current
+`host_lanes.py` and `ci.yml` source require a fail-closed whole-inventory join.
+
+| Direct log observation | Old single macOS ARM job | Later five macOS ARM jobs |
+| --- | ---: | ---: |
+| Sum of observed job execution | 124.528 min | 123.049 min |
+| Host job/lane envelope | 124.528 min | 58.956 min |
+| Hypothetical per-job whole-minute rounding | 125 min | 12 + 37 + 14 + 29 + 33 = 125 min |
+| **Illustrative private macOS compute equivalent** at $0.062/min | **$7.75** | **$7.75** |
+
+**Interpretation:** This is evidence of **latency optimization through
+parallel lanes**, with negligible measured unweighted compute reduction.
+The rounded illustrative private-equivalent compute cost of these macOS
+jobs was unchanged. The additional Linux join costs are excluded, so
+the split is not proved to lower total billable cost. The before
+conformance harness reported **502 passing tests**, whereas after
+the four conformance lanes reported **507**, showing source/test
+inventory evolution; do not claim same-commit parity. The present join
+has explicit completeness, disjointness, exact-run/host checks and
+fail-closed behavior; those source safeguards cannot substitute
+for a provider join receipt.
+
+The durable per-job timestamps, IDs, cost rounding and limitations are
+in [ci-native-macos-arm-runpair-20261123.json](ci-native-macos-arm-runpair-20261123.json).
+Because the host verification is mandatory under SPEC §8.3 and its
+partition already exists, keep it unchanged. Next prioritize residual
+real-world gate critical-path jobs and cost concentration rather than
+reorganizing macOS ARM on incomplete evidence.
