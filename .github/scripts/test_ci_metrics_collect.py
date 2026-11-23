@@ -199,6 +199,70 @@ class CollectorContracts(unittest.TestCase):
         self.assertEqual(out["rows"][0]["runs"], [])
         self.assertEqual(costs["run_costs"], [])
 
+    @staticmethod
+    def retry_fixture():
+        reader = FakeReader()
+        source = reader.data[("actions/runs", SHA2)][0]
+        source["run_attempt"] = 2
+        baseline = copy.deepcopy(reader.data[("actions/runs/202/jobs", None)][0])
+        baseline.update(id=20201, run_attempt=1, status="completed",
+                        created_at="2026-11-23T04:01:00Z")
+        arm_failure = {"id": 20202, "name": "Linux ARM", "run_attempt": 1,
+                       "status": "completed", "conclusion": "failure",
+                       "labels": ["ubuntu-24.04-arm"],
+                       "created_at": "2026-11-23T04:01:00Z",
+                       "started_at": "2026-11-23T04:02:00Z",
+                       "completed_at": "2026-11-23T04:07:00Z"}
+        carried = copy.deepcopy(baseline)
+        carried.update(id=20211, run_attempt=2,
+                       created_at="2026-11-23T04:09:00Z")
+        arm_retry = copy.deepcopy(arm_failure)
+        arm_retry.update(id=20212, run_attempt=2, conclusion="success",
+                         created_at="2026-11-23T04:09:00Z",
+                         started_at="2026-11-23T04:10:00Z",
+                         completed_at="2026-11-23T04:16:00Z")
+        reader.data[("actions/runs/202/jobs", None)] = [
+            baseline, arm_failure, carried, arm_retry]
+        return reader
+
+    def test_rerun_carried_success_does_not_inflate_job_minutes(self):
+        reader = self.retry_fixture()
+        _, costs = reader.capture("after", B, 1, include_jobs=True)
+        cost = costs["run_costs"][0]
+        self.assertEqual(cost["provider_job_records"], 4)
+        self.assertEqual(cost["carried_reissued_records"], 1)
+        self.assertEqual(cost["job_count"], 3)
+        self.assertEqual(cost["job_minutes"], 13)
+        self.assertEqual(cost["run_attempts"], 2)
+        self.assertEqual(reader.job_details["expected_jobs"], 3)
+        self.assertEqual(sorted(x["execution_attempt"] for x in
+                                reader.job_details["jobs"]), [1, 1, 2])
+        self.assertFalse(any("/attempts/" in name for name, _ in reader.calls))
+
+    def test_missing_prior_attempt_requires_read_only_zero_job_proof(self):
+        reader = self.retry_fixture()
+        only_retry = reader.data[("actions/runs/202/jobs", None)][-1]
+        reader.data[("actions/runs/202/jobs", None)] = [only_retry]
+        _, costs = reader.capture("after", B, 1)
+        self.assertEqual(costs["run_costs"][0]["verified_zero_job_attempts"], [1])
+        self.assertIn(("actions/runs/202/attempts/1/jobs", None), reader.data)
+        self.assertTrue(any("/attempts/1/jobs" in name for name, _ in reader.calls))
+
+    def test_missing_prior_nonempty_attempt_fails_closed(self):
+        reader = self.retry_fixture()
+        only_retry = reader.data[("actions/runs/202/jobs", None)][-1]
+        old = reader.data[("actions/runs/202/jobs", None)][0]
+        reader.data[("actions/runs/202/jobs", None)] = [only_retry]
+        reader.data[("actions/runs/202/attempts/1/jobs", None)] = [old]
+        with self.assertRaisesRegex(ValueError, "missing nonempty historical"):
+            reader.capture("after", B, 1)
+
+    def test_conflicting_reissued_host_fails_cost_accounting(self):
+        reader = self.retry_fixture()
+        reader.data[("actions/runs/202/jobs", None)][2]["labels"] = ["windows-2022"]
+        with self.assertRaisesRegex(ValueError, "conflicting result or host"):
+            reader.capture("after", B, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

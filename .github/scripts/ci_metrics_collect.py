@@ -17,6 +17,8 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+from ci_execution_receipts import canonical_executions
+
 REPO_PATTERN = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 JOB_SCHEMA = "lexlean/ci-job-detail/1"
 
@@ -144,9 +146,29 @@ class Reader:
                 selected.append({k:run.get(k) for k in (
                     "id", "name", "event", "conclusion", "status", "created_at",
                     "run_started_at", "updated_at", "run_attempt", "head_sha")})
-                jobs = self.paged("actions/runs/" + str(run["id"]) + "/jobs",
-                                  "jobs", filter="all")
-                # Detail uses these already-fetched pages, never extra API calls.
+                # GET filter=all includes every attempt. GitHub may reissue
+                # successful rows with NEW job IDs without executing them again.
+                # Include genuine failed and retried execution windows once each.
+                jobs_path = "actions/runs/" + str(run["id"]) + "/jobs"
+                provider_rows = self.paged(jobs_path, "jobs", filter="all")
+                attempt = run.get("run_attempt")
+                require(type(attempt) is int and attempt >= 1,
+                        "workflow run lacks exact attempt count")
+                present = {row.get("run_attempt", 1 if attempt == 1 else None)
+                           for row in provider_rows}
+                require(None not in present, "provider job missing rerun attempt")
+                zero_attempts = []
+                for missing in sorted(set(range(1, attempt + 1)) - present):
+                    # An early workflow attempt may have ZERO allocated jobs.
+                    # Prove that using its attempt-specific endpoint, not a guess.
+                    proof = self.paged("actions/runs/" + str(run["id"]) +
+                                       "/attempts/" + str(missing) + "/jobs", "jobs")
+                    require(not proof, "missing nonempty historical job attempt")
+                    zero_attempts.append(missing)
+                jobs, execution_receipts = canonical_executions(
+                    provider_rows, attempt, proven_empty_attempts=zero_attempts)
+                # Detail reuses the same paginated GETs; only missing-attempt
+                # zero-job provenance may require an additional read.
                 if include_jobs:
                     for item in jobs:
                         jid, name = item.get("id"), item.get("name")
@@ -177,6 +199,7 @@ class Reader:
                         job_rows.append({
                             "job_id": jid, "job_name": name,
                             "run_id": run["id"], "run_attempt": run.get("run_attempt"),
+                            "execution_attempt": item.get("run_attempt", 1),
                             "workflow": run["name"], "pr": pr["number"], "head_sha": head,
                             "platform": platform, "labels": labels,
                             "conclusion": item.get("conclusion"), "started_at": started,
@@ -204,7 +227,13 @@ class Reader:
                     last_completed = max(last_completed, finish) if last_completed else finish
                 all_costs.append({
                     "id": run["id"], "pr": pr["number"],
+                    # job_count means actual distinct execution windows, not
+                    # provider metadata rows echoed again on a retry.
                     "job_count": len(jobs), "returned": len(jobs), "complete": True,
+                    "provider_job_records": execution_receipts["provider_job_records"],
+                    "carried_reissued_records": execution_receipts["reissued_carried_records"],
+                    "verified_zero_job_attempts": execution_receipts["verified_empty_attempts"],
+                    "run_attempts": attempt,
                     "job_minutes": round(elapsed, 3),
                     "by_platform_minutes": {k: round(v, 3) for k,v in buckets.items()},
                     "first_job_started": first_start, "last_job_completed": last_completed,

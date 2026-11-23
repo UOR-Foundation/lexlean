@@ -1,3 +1,27 @@
+## CI cost baseline accounting correction in progress (2026-11-23 UTC)
+
+> **ACCOUNTING HOLD:** The previously published 50-PR BEFORE total of
+> **99,321.66 unweighted runner-job minutes is provisional**, not qualified
+> for A/B savings claims. Seven of its 128 workflow runs are attempt 2.
+> GitHub's `jobs?filter=all` can return carried-forward successful execution
+> timestamps under newly issued attempt-2 job IDs; the former collector
+> summed these duplicate metadata records as new compute. Some original
+> multi-attempt source snapshots also contain API timeout notes. They need
+> complete current attempt-level provider reconciliation before a corrected
+> baseline can be called verified. No post-cutover AFTER cohort exists yet.
+
+New source-bound `ci_execution_receipts.py` canonically counts original
+failed execution windows and newly executed retries, but collapses only
+the verifiably reissued metadata records with identical name, start/end,
+outcome and host. Missing earlier attempts demand a separate GET proving
+there were zero jobs; partial provider data FAILS CLOSED. The collector
+now records both raw metadata-row count and actual execution count,
+with per-row origin attempt when detailed breakdown is enabled.
+Existing report generators remain nonqualifying. No normative detector
+or release behavior was changed. Hosted QA remains pending for this fix.
+
+---
+
 # LexLean Actions economics: before/after evidence ledger
 
 **Owner issue:** [#603](https://github.com/UOR-Foundation/lexlean/issues/603).
