@@ -396,3 +396,65 @@ No change to normative `ci.yml`, repro, native detectors, artifact
 status, release permissions, branch rules or required checks. No new
 Actions workflow was deliberately triggered. Production AFTER measurement
 and billed savings remain **NOT ESTABLISHED**.
+
+## Intel host scenario model, with native receipts and measured concurrency (2026-11-23 UTC)
+
+**New audit-only source-bound files:** [ci_intel_rebalance.py](../scripts/ci_intel_rebalance.py),
+[test_ci_intel_rebalance.py](../scripts/test_ci_intel_rebalance.py), and
+[ci-intel-historical-lanes-20261123.json](ci-intel-historical-lanes-20261123.json).
+The saved source is the **exact historical** BDD manifest blob
+`e24c687c2cf8ad49561aab8ee815ee66f02cb0d5` and Intel lanes blob
+`53e2ddc625266b0d0e7ea58f1ae9dbee25125812` from full successful [CI #45100057759](https://github.com/UOR-Foundation/lexlean/actions/runs/45100057759),
+at head `b693bb4259d311fd71da90ac38701214a74be27f`. It includes all **507 successful native Intel conformance case
+identities** independently extracted from the 4 GitHub job logs (6 lower,
+20 print, 86 validate, 395 moves), the original job/step elapsed seconds,
+and 60-second slow-test warnings. Exactly 229 names are manifest-assigned;
+278 cases are the `rest` remainder, owned only by `moves`.
+The old measured manifest differs from the CURRENT main BDD manifest,
+which adds VR-24 and VR-25. The simulator **refuses source drift**, rather
+than projecting old test receipts onto a newer source tree.
+
+**Observed concurrency:** Intel construction ran for 1,028s before native
+conformance jobs were dispatched. A timeline of the 4 job start/end
+intervals shows **peak overlap = 3 native Intel jobs**, not a provider
+capacity guarantee or configured quota. Intel `moves` spent
+3,584 of 3,656 job seconds in the actual native case-execution step.
+The 72-second difference is measured job overhead, not an experimentally
+proved constant for additional jobs.
+
+**Counterfactual bounds:** This offline model distributes the existing
+3,584-second `moves` *test-step elapsed time* ideally and
+equally across 1, 2, 3 or 4 hypothetical sublanes, adds the observed 72s
+of per-lane wrapper overhead, and runs a deterministic greedy placement
+under 1-5 hypothetical Intel worker slots. Because actual per-case
+costs and native scheduling behavior have **NOT** been measured for the
+new partitions, these are deliberately optimistic mathematical scenarios,
+not a prediction, ROI, or safe cutover candidate.
+
+| Hypothetical Intel concurrency | Existing 4 native jobs | Perfect 2-way `moves` split | Perfect 3-way `moves` split |
+| --- | ---: | ---: | ---: |
+| 1 worker slot | 8,987s | 9,059s | 9,131s |
+| 2 worker slots | 5,051s | 5,223s | 4,625.7s |
+| **3 worker slots (observed peak overlap)** | **3,656s** | **3,728s** | **3,238.7s** |
+| 4 worker slots | 3,656s | 3,259s | 2,661.7s |
+| 5 worker slots | 3,656s | 1,972s | 2,533.3s |
+
+The model excludes producer runtime, final joined receipt, queueing,
+concurrency limits, failure paths, host contention and inventory drift,
+all of which would have to be replayed before any optimization claim.
+**At 3 assumed slots, a 2-way split can worsen the modeled execution
+envelope by 72 seconds; even an ideal 3-way split adds 144 aggregate
+runner-seconds**. These results challenge the hypothesis that more
+Intel jobs automatically save time or money.
+
+**Disposition:** NO-GO on an unmeasured Intel partition change. The
+manifest is deliberately SHARED by Intel, Windows and Apple silicon;
+changing it would change all three native hosts. Keep production
+`ci.yml`, host joins, clean native execution, exact-run
+receipts, required statuses, and release authority UNCHANGED.
+Only develop a platform-safe proposal after per-case duration collection,
+bounded native-host concurrency measurements, assurance parity across
+all three hosts, and a controlled budgeted test. Retain #603 open and
+PR #606 draft. Local synthetic fixture tests for the new Python model
+passed **15/15**; no hosted execution of the new Python source
+or production full gate has been claimed.
