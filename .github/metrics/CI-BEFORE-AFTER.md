@@ -324,3 +324,75 @@ Because the host verification is mandatory under SPEC §8.3 and its
 partition already exists, keep it unchanged. Next prioritize residual
 real-world gate critical-path jobs and cost concentration rather than
 reorganizing macOS ARM on incomplete evidence.
+
+## Complete full-run job attribution and remaining compute hotspots (2026-11-23 UTC)
+
+Retrieved **all** GitHub Actions jobs, not the connector's 30-job preview, via read-only paginated REST:
+[historical CI #44599982425](https://github.com/UOR-Foundation/lexlean/actions/runs/44599982425)
+and [later CI #45100057759](https://github.com/UOR-Foundation/lexlean/actions/runs/45100057759).
+Permanent, exact-ID and exact-HEAD receipts for all **150 jobs**, including timestamps, platform/labels, outcome, and selected step durations:
+[`ci-full-run-job-attribution-20261123.json`](ci-full-run-job-attribution-20261123.json).
+
+| Complete run-wide observation | Before (Nov 19) | Later (Nov 23) |
+| --- | ---: | ---: |
+| Jobs returned by provider / successful jobs | 72 / 72 | 78 / 78 |
+| Summed job occupancy, **not billed time** | 2148.17 min | 1177.97 min |
+| Earliest job start to latest job completion | 289.12 min | 104.75 min |
+
+**Observed cross-revision difference:** 970.20
+fewer aggregate job-minutes (**45.16%**). This broader job-level comparison is *not* an
+isolated estimate of PR #602's causal effect: test versions, job composition,
+runtime, workflow source, scheduling and host allocation changed. Neither the
+full-run envelope nor the job sum is a PR's required-check time-to-green.
+Already-merged staging must not be booked as new Phase B ROI.
+
+### Actual post-staging occupancy, by job family
+
+| Family | Jobs | Job-minutes | Share of observed job sum |
+| --- | ---: | ---: | ---: |
+| vv | 42 | 520.77 | 44.2% |
+| intel | 6 | 167.65 | 14.2% |
+| atlas | 14 | 145.13 | 12.3% |
+| windows | 6 | 126.43 | 10.7% |
+| macos_arm | 6 | 124.08 | 10.5% |
+| linux_arm | 1 | 58.78 | 5.0% |
+| bootstrap_export | 1 | 30.77 | 2.6% |
+| other | 2 | 4.35 | 0.4% |
+
+The three longest individual jobs are **Intel conformance (moves)**, 60.93 min;
+**Linux ARM native workspace tests**, 58.78 min; and
+**`just vv (examples)`**, 57.50 min.
+The actual long-running steps, respectively, are **3,584 seconds**
+(`Execute this lane against the checked construction`),
+**3,499 seconds** (`cargo test --locked --workspace --all-features --no-fail-fast`),
+and **3,401 seconds** (`Run the normative acceptance gate`).
+Checkout in these jobs took **44, 19, and 20 seconds** respectively.
+The Intel moves job printed **395 passing cases, 112 filtered out** and ended at
+04:08:55 UTC; the **fail-closed Intel host join** finished at 04:09:41 UTC,
+last among the 78 jobs, so Intel host qualification is the **observed
+end-of-run tail**, not Atlas or checkout. That is not automatically the
+critical path of a specific PR's complete set of protected required checks.
+
+The examples recipe's archived job summary reported **production-coverage
+844.1 seconds and stdlib 752.5 seconds** in distinct verifications,
+about 26.6 min combined. The Atlas prefix shard's own detailed output
+attributed **1,035.4 seconds** of elaboration to `LexLeanExample.Census`.
+These are genuine verifier-runtime measurements, not evidence that the
+verifications are duplicates or safe to skip.
+
+**Next experiment priority:** evaluate a *receipt-complete, source-derived
+rebalance of Intel conformance lanes*, with actual host inventory disjointness,
+all test IDs retained, native execution on Intel, host join preserved, and
+provider runner-concurrency/queue behavior measured. This is a
+**simulation/falsifier candidate only**. Alternative lower-risk trials are
+optimizing the internals of the heavy examples verifiers or ARM conformance
+without weakening assurance. The ARM Linux runner intentionally limits test
+threads to two after historical crashes; blindly increasing concurrency is
+not acceptable. Atlas remains independently required and should be profiled
+on its actual proof obligations.
+
+**Changes made in this checkpoint:** evidence and analysis in draft #606 only.
+No change to normative `ci.yml`, repro, native detectors, artifact
+status, release permissions, branch rules or required checks. No new
+Actions workflow was deliberately triggered. Production AFTER measurement
+and billed savings remain **NOT ESTABLISHED**.
