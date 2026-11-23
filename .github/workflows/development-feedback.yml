@@ -33,6 +33,45 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
+      # Draft-only cost experiment: query a live ref with an explicit 5s limit.
+      # Never substitute this for the exact-head and ancestry checks below.
+      - name: Bounded stale-base preflight before checkout
+        shell: bash
+        env:
+          EXPECTED_BASE: ${{ github.event.pull_request.base.sha || '' }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || inputs.base_ref }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # A manual dispatch has no event-base SHA; it still checks post-checkout.
+          if [[ "$GITHUB_EVENT_NAME" == pull_request ]]; then
+            if [[ ! "$GITHUB_REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ||
+                  ! "$BASE_REF" =~ ^(main|release/v[0-9]+\.[0-9]+)$ ||
+                  ! "$EXPECTED_BASE" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "::error::Untrusted preflight ref or event commit"
+              exit 1
+            fi
+            payload="$(curl --silent --show-error --fail --retry 0 \
+              --connect-timeout 2 --max-time 5 --max-filesize 65536 \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/git/ref/heads/$BASE_REF")" || {
+              echo "::error::Bounded base-ref lookup failed; no checkout attempted"
+              exit 1
+            }
+            live_sha="$(printf '%s' "$payload" | python3 -c \
+              'import json,os,sys; x=json.load(sys.stdin); want="refs/heads/"+os.environ["BASE_REF"]; \
+              assert isinstance(x,dict) and x.get("ref")==want and x.get("object",{}).get("type")=="commit"; \
+              print(x["object"]["sha"])')" || {
+              echo "::error::Malformed base-ref response; no checkout attempted"
+              exit 1
+            }
+            if [[ ! "$live_sha" =~ ^[0-9a-f]{40}$ || "$live_sha" != "$EXPECTED_BASE" ]]; then
+              echo "::error::Base moved or untrusted SHA; refusing before checkout"
+              exit 1
+            fi
+          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
