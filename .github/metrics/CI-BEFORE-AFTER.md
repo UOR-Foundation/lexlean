@@ -632,3 +632,24 @@ contexts, nor that the release branch is unprotected or the normative
 SPEC obligations can be removed. See the associated ruleset JSON snapshot.
 Effective required contexts and classic branch protection remain an open
 authority-boundary item for #603 DOD-1. No branch policies were changed.
+
+## Current-release conformance/lineage source oracle reconciliation (2026-11-23 UTC)
+
+With the release branch advanced, the optional Python preview correctly held
+on **four outdated audit assumptions** rather than claiming a false pass:
+the bootstrap registry expanded to **45 BS cases** and **43 dependent BDD
+partitions**; the prior tests were pinned to 31 and 29, and their planted
+`BS-35` mutation now duplicated a real case. The regeneration `deliver`
+job still depends on `finish`, but its exact-source binding uses checkout
+`ref`, download artifact name, COMMIT and BRANCH, not a `head:` literal.
+
+The bootstrap staging tests now derive expected counts independently from
+the live test-function registry and BDD partition manifest; they retain
+strict source-to-manifest bijection and planted missing/duplicate/miswired
+case controls, choosing an actually unused two-digit BS identifier for
+the injected negative test. The regeneration lineage audit now checks
+the exact `inputs.ref || github.sha` expression at the finish artifact,
+deliver checkout, artifact download and COMMIT env, plus branch binding.
+Three new negative tests reject spoofed COMMIT, branch and artifact.
+No normative job, detector, release workflow or trust boundary was removed.
+Hosted exact-head source validation remains pending after this correction.

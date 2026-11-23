@@ -55,10 +55,17 @@ def assert_lineage(source):
             "cargo xtask validate-model --write" in regen["finish"] and
             "LEXLEAN_COUNTS=fast" in regen["finish"],
             "regeneration final oracle/count stage changed")
-    require("needs: [finish]" in regen["deliver"] and
-            "run: .github/scripts/deliver-regenerated.sh" in regen["deliver"] and
-            "head:" in regen["deliver"] and "COMMIT:" in regen["deliver"],
-            "regeneration delivery is not bound to final head")
+    # Artifact creation, download, checkout and eventual push must share one
+    # exact SHA expression; a textual "head:" field is not sufficient proof.
+    exact = "${{ inputs.ref || github.sha }}"
+    require("name: regenerated-" + exact in regen["finish"] and
+            "needs: [finish]" in regen["deliver"] and
+            "ref: " + exact in regen["deliver"] and
+            "name: regenerated-" + exact in regen["deliver"] and
+            "COMMIT: " + exact in regen["deliver"] and
+            "BRANCH: ${{ inputs.branch }}" in regen["deliver"] and
+            "run: .github/scripts/deliver-regenerated.sh" in regen["deliver"],
+            "regeneration artifact, delivery or exact source identity changed")
     delivery = source[".github/scripts/deliver-regenerated.sh"]
     require('gh workflow run ci.yml --repo "$repo" --ref "$branch"' in delivery and
             'git push origin "HEAD:refs/heads/$branch"' in delivery,

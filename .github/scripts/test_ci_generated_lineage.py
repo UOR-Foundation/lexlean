@@ -26,10 +26,13 @@ def fixture():
         '    run: cargo xtask counts --write\n'
         '    run: cargo xtask validate-model --write\n'
         '    LEXLEAN_COUNTS=fast\n'
+        '    name: regenerated-${{ inputs.ref || github.sha }}\n'
         '  deliver:\n'
         '    needs: [finish]\n'
-        '    head: source\n'
-        '    COMMIT: exact\n'
+        '    ref: ${{ inputs.ref || github.sha }}\n'
+        '    name: regenerated-${{ inputs.ref || github.sha }}\n'
+        '    COMMIT: ${{ inputs.ref || github.sha }}\n'
+        '    BRANCH: ${{ inputs.branch }}\n'
         '    run: .github/scripts/deliver-regenerated.sh\n'
     )
     cut = (
@@ -110,6 +113,26 @@ class GeneratedLineageNegativeControls(unittest.TestCase):
         self.mutate('.github/workflows/regenerate.yml',
                     'cargo xtask counts --write', 'echo omit-counts')
         with self.assertRaisesRegex(mod.AuditHold, 'final oracle'):
+            mod.assert_lineage(self.sources)
+
+    def test_wrong_regenerated_commit_is_not_delivered(self):
+        self.mutate('.github/workflows/regenerate.yml',
+                    'COMMIT: ${{ inputs.ref || github.sha }}',
+                    'COMMIT: ${{ github.ref_name }}')
+        with self.assertRaisesRegex(mod.AuditHold, 'exact source identity'):
+            mod.assert_lineage(self.sources)
+
+    def test_wrong_delivery_branch_refuses(self):
+        self.mutate('.github/workflows/regenerate.yml',
+                    'BRANCH: ${{ inputs.branch }}', 'BRANCH: main')
+        with self.assertRaisesRegex(mod.AuditHold, 'delivery'):
+            mod.assert_lineage(self.sources)
+
+    def test_missing_exact_artifact_refuses(self):
+        self.mutate('.github/workflows/regenerate.yml',
+                    'name: regenerated-${{ inputs.ref || github.sha }}',
+                    'name: regenerated-floating')
+        with self.assertRaisesRegex(mod.AuditHold, 'artifact'):
             mod.assert_lineage(self.sources)
 
     def test_delivery_no_ci_dispatch_holds(self):

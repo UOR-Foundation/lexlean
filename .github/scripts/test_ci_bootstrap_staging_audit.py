@@ -1,6 +1,7 @@
 """Adversarial tests for the ACTUAL governed BDD stage scheduler (#603)."""
 import importlib.util
 import json
+import re
 import shutil
 import tempfile
 import unittest
@@ -43,15 +44,31 @@ class BootstrapSchedulingTests(unittest.TestCase):
     def test_current_real_planner_executes_and_preserves_all_bootstrap_tests(self):
         result = mod.audit(self.root)
         self.assertEqual(result["classification"], "AUDIT_ONLY_NOT_QUALIFICATION")
-        self.assertEqual(result["registered_bootstrap_cases"], 31)
-        self.assertEqual(result["producer_dependent_bdd_partitions"], 29)
-        self.assertEqual(result["producer_independent_bdd_partitions"], 11)
+        registry = (self.root / "crates/conformance/tests/conformance.rs").read_text()
+        declared = re.findall(r"fn conformance_bs_(\d{2})\(\)", registry)
+        plan = json.loads((self.root / ".github/bdd-parts.json").read_text())
+        parts = plan["parts"]
+        source_ids = {"BS-" + value for value in declared}
+        staged_ids = [case for group in parts.values() for case in group
+                      if case.startswith("BS-")]
+        self.assertEqual(set(staged_ids), source_ids)
+        self.assertEqual(len(staged_ids), len(source_ids))
+        self.assertEqual(result["registered_bootstrap_cases"], len(declared))
+        depend = sum(any(case.startswith("BS-") for case in cases)
+                     for cases in parts.values())
+        self.assertEqual(result["producer_dependent_bdd_partitions"], depend)
+        self.assertEqual(result["producer_independent_bdd_partitions"],
+                         len(parts) - depend)
+        self.assertEqual(result["independent_rows_including_examples_and_rest"],
+                         len(parts) - depend + 2)
         self.assertFalse(result["provider_proof_receipts_verified"])
 
     def test_compiler_mixed_partition_must_wait_for_export(self):
         result = mod.audit(self.root)
-        self.assertEqual(result["producer_dependent_bdd_partitions"], 29)
         parts = json.loads((self.root / ".github/bdd-parts.json").read_text())
+        expected = sum(any(c.startswith("BS-") for c in cases)
+                       for cases in parts["parts"].values())
+        self.assertEqual(result["producer_dependent_bdd_partitions"], expected)
         self.assertIn("BS-01", parts["parts"]["compiler"])
 
     def test_deleted_bootstrap_test_from_manifest_is_blocked(self):
@@ -68,7 +85,12 @@ class BootstrapSchedulingTests(unittest.TestCase):
     def test_new_registered_bs_case_requires_explicit_partition(self):
         path = "crates/conformance/tests/conformance.rs"
         source = (self.root / path).read_text()
-        source += '\n#[test]\nfn conformance_bs_35() {\n    repo_conformance::cases::run("BS-35");\n}\n'
+        existing = set(re.findall(r"fn conformance_bs_(\d{2})\(\)", source))
+        candidate = next((n for n in range(99, 0, -1)
+                          if f"{n:02d}" not in existing), None)
+        self.assertIsNotNone(candidate, "two-digit BS namespace exhausted")
+        source += (f'\n#[test]\nfn conformance_bs_{candidate:02d}() {{\n'
+                   f'    repo_conformance::cases::run("BS-{candidate:02d}");\n}}\n')
         (self.root / path).write_text(source)
         self.hold("bootstrap detector missing/extra")
 
