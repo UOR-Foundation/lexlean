@@ -48,11 +48,13 @@ class FakeReader(collector.Reader):
                 "updated_at": "2026-11-23T02:05:00Z", "run_attempt": 1,
             }],
             ("actions/runs/202/jobs", None): [{
+                "id": 20201, "name": "Atlas shard (example)",
                 "started_at": "2026-11-23T04:02:00Z",
                 "completed_at": "2026-11-23T04:04:00Z",
                 "labels": ["ubuntu-24.04"], "conclusion": "success",
             }],
             ("actions/runs/101/jobs", None): [{
+                "id": 10101, "name": "Windows smoke (fixture)",
                 "started_at": "2026-11-23T02:02:00Z",
                 "completed_at": "2026-11-23T02:04:00Z",
                 "labels": ["macos-15"], "conclusion": "success",
@@ -101,6 +103,62 @@ class CollectorContracts(unittest.TestCase):
         runs, costs = reader.capture("before", B, 1)
         self.assertEqual(runs["rows"][0]["number"], 1)
         self.assertEqual(costs["run_costs"][0]["by_platform_minutes"], {"macos": 2})
+
+    def test_optional_job_receipts_add_no_network_requests(self):
+        default = FakeReader()
+        default.capture("after", B, 1)
+        opt = FakeReader()
+        runs, costs = opt.capture("after", B, 1, include_jobs=True)
+        self.assertEqual(opt.calls, default.calls)
+        ledger = opt.job_details
+        self.assertEqual(ledger["schema"], collector.JOB_SCHEMA)
+        self.assertEqual(ledger["expected_jobs"], 1)
+        self.assertEqual(ledger["jobs"][0]["job_id"], 20201)
+        self.assertEqual(ledger["jobs"][0]["workflow"], "ci")
+        self.assertEqual(ledger["jobs"][0]["elapsed_minutes"], 2.0)
+        self.assertEqual(ledger["jobs"][0]["head_sha"], SHA2)
+        self.assertEqual(runs["rows"][0]["head_sha"], SHA2)
+        self.assertEqual(costs["run_costs"][0]["job_minutes"], 2.0)
+        self.assertIsNone(default.job_details)
+
+    def test_skipped_job_preserved_without_invented_zero_duration(self):
+        reader = FakeReader()
+        reader.data[("actions/runs/202/jobs", None)].append({
+            "id": 20202, "name": "Skipped source worker",
+            "labels": ["ubuntu-24.04"], "conclusion": "skipped",
+            "started_at": None, "completed_at": None,
+        })
+        _, costs = reader.capture("after", B, 1, include_jobs=True)
+        self.assertEqual(costs["run_costs"][0]["job_count"], 2)
+        self.assertEqual(reader.job_details["expected_jobs"], 2)
+        skipped = reader.job_details["jobs"][-1]
+        self.assertIsNone(skipped["elapsed_minutes"])
+        self.assertEqual(skipped["conclusion"], "skipped")
+
+    def test_duplicate_provider_job_id_is_hold(self):
+        reader = FakeReader()
+        item = copy.deepcopy(reader.data[("actions/runs/202/jobs", None)][0])
+        reader.data[("actions/runs/202/jobs", None)].append(item)
+        with self.assertRaisesRegex(ValueError, "provider job id"):
+            reader.capture("after", B, 1, include_jobs=True)
+
+    def test_missing_provider_job_identity_is_hold(self):
+        reader = FakeReader()
+        del reader.data[("actions/runs/202/jobs", None)][0]["name"]
+        with self.assertRaisesRegex(ValueError, "provider job name"):
+            reader.capture("after", B, 1, include_jobs=True)
+
+    def test_partial_timing_is_hold(self):
+        reader = FakeReader()
+        reader.data[("actions/runs/202/jobs", None)][0]["completed_at"] = None
+        with self.assertRaisesRegex(ValueError, "partial job timestamps"):
+            reader.capture("after", B, 1, include_jobs=True)
+
+    def test_bad_runner_labels_are_hold(self):
+        reader = FakeReader()
+        reader.data[("actions/runs/202/jobs", None)][0]["labels"] = "windows-2022"
+        with self.assertRaisesRegex(ValueError, "runner labels"):
+            reader.capture("after", B, 1, include_jobs=True)
 
     def test_before_requires_full_cohort(self):
         reader = FakeReader()
