@@ -72,6 +72,7 @@ def atlas_graph(document, jobs):
     require(set(shards) == set(seen) and all(count == 1 for count in seen.values()),
             "Atlas shards and workflow job mapping disagree")
     names = set(shards)
+    elaboration_owners = {}
     for name, shard in shards.items():
         require(isinstance(shard, dict) and all(isinstance(shard.get(k), list)
                 for k in ("needs", "elaborate", "replay")),
@@ -81,6 +82,10 @@ def atlas_graph(document, jobs):
             require(all(isinstance(x, str) and x for x in entries) and
                     len(entries) == len(set(entries)),
                     "duplicate or invalid Atlas " + key + ": " + name)
+        for module in shard["elaborate"]:
+            require(module not in elaboration_owners,
+                    "Atlas module elaborated by multiple shards: " + module)
+            elaboration_owners[module] = name
         require(set(shard["needs"]) <= names and name not in shard["needs"],
                 "unknown Atlas dependency: " + name)
     require(set(shards["join"]["needs"]) == names - {"join"},
