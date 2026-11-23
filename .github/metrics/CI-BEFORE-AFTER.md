@@ -207,3 +207,24 @@ closes the additional 'positive path after checkout' evidence gap.
 required check names, tag rules or release evidence. Draft #606 remains
 OPEN and UNMERGED; disposable draft #611 was CLOSED UNMERGED. The
 production cutover, AFTER cohort and realized ROI are **NOT MEASURED**.
+
+### Filtered-checkout Rust-source coverage (2026-11-23 UTC)
+
+Temporary [draft PR #612](https://github.com/UOR-Foundation/lexlean/pull/612)
+started from the successful filtered preview experiment and planted
+a single comment in `xtask/src/main.rs` to exercise actual Rust-source
+impact selection. Hosted [run #45117080560](https://github.com/UOR-Foundation/lexlean/actions/runs/45117080560)
+on exact HEAD `ea759db5e578d68b52702458b88e5a1b3b61a688` **PASSED**:
+authenticated live-base preflight, full-history lazy-blob checkout, exact
+HEAD/ancestor comparison, whitespace, 49/49 Python tests, before/after
+report upload, pinned Rust installation, `cargo fmt --all -- --check`,
+and the real `cargo check --all-targets --all-features -p xtask`.
+
+Observed whole-job log span: **114.717 seconds**; Cargo reported
+**1m08s** for its selected compilation. This validates a second workload
+class under filtered checkout, but is **not a controlled Rust-source A/B**
+against the older nonfiltered run on a different base/test cohort. The
+synthetic Rust comment was reverted byte-for-byte (source blob restored
+to `4ef56fb32c2b34e72871ea1e295d37d3a03492d7`), the one-shot
+marker was removed, and fixture PR #612 was CLOSED UNMERGED. No merge
+acceptance or production cost-saving evidence is claimed.
