@@ -725,10 +725,12 @@ fn plan_decisions() {
     // Workflow-level draft suppression: the planner still supports explicitly
     // dispatched draft feedback, but automatic draft pull_request events must
     // never allocate a runner. These guards are both required.
-    let guard = "if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}";
-    for (workflow_path, job) in [
-        (".github/workflows/ci.yml", "plan"),
-        (".github/workflows/reproducibility.yml", "repro"),
+    let draft_guard = "if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}";
+    let plan_guard = "if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}";
+    for (workflow_path, job, guard) in [
+        (".github/workflows/ci.yml", "plan", draft_guard),
+        (".github/workflows/reproducibility.yml", "repro", draft_guard),
+        (".github/workflows/ci.yml", "honesty", plan_guard),
     ] {
         let workflow = root_file(workflow_path);
         let heading = format!("  {job}:\n");
