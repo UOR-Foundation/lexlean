@@ -10,6 +10,8 @@ import json
 import re
 from pathlib import Path
 
+from ci_cargo_scope import affected as cargo_affected
+
 _MAX_BYTES = 1024 * 1024
 _SHA = re.compile(r"[0-9a-f]{40}(?:[0-9a-f]{24})?\Z")
 _STATUS = re.compile(r"(?:[AMDT]|[RC][0-9]{1,3})\Z")
@@ -52,7 +54,7 @@ def changed_paths(data):
     return sorted(set(result))
 
 
-def preview(base, head, diff):
+def preview(base, head, diff, repo_root=None):
     """Select actual feedback actions, not protected verification obligations."""
     if not _SHA.fullmatch(base) or not _SHA.fullmatch(head):
         raise ValueError("expected exact Git commit identities")
@@ -72,6 +74,13 @@ def preview(base, head, diff):
         selected.append("rust-format")
     if python:
         selected.append("ci-python-contracts")
+    cargo = cargo_affected(repo_root, paths) if repo_root is not None else {
+        "cargo_package_roots": [], "cargo_check_packages": [],
+        "cargo_unresolved_rust_paths": [], "cargo_manifest_sha256": None,
+        "cargo_feedback_only": True,
+    }
+    if cargo["cargo_check_packages"]:
+        selected.append("cargo-check")
     return {
         "schema": "lexlean/dev-feedback/1",
         "base": base,
@@ -79,6 +88,7 @@ def preview(base, head, diff):
         "diff_sha256": hashlib.sha256(diff).hexdigest(),
         "changed": paths,
         "selected_feedback": selected,
+        **cargo,
         "not_classified_for_fast_feedback": risk,
         "requires_normative_full_gate_for_merge": True,
         "qualification": "NONQUALIFYING",
@@ -91,12 +101,13 @@ def main(argv=None):
     parser.add_argument("--base", required=True)
     parser.add_argument("--head", required=True)
     parser.add_argument("--diff-nul", type=Path, required=True)
+    parser.add_argument("--repo-root", type=Path)
     parser.add_argument("--github-output", type=Path)
     parser.add_argument("--summary", type=Path)
     args = parser.parse_args(argv)
     try:
         diff = args.diff_nul.read_bytes()
-        plan = preview(args.base, args.head, diff)
+        plan = preview(args.base, args.head, diff, repo_root=args.repo_root)
     except (OSError, ValueError) as exc:
         parser.exit(2, f"HOLD: {exc}\n")
     if args.github_output:
@@ -105,6 +116,10 @@ def main(argv=None):
                 ("whitespace", "diff-whitespace" in plan["selected_feedback"]),
                 ("rust_format", "rust-format" in plan["selected_feedback"]),
                 ("python_contracts", "ci-python-contracts" in plan["selected_feedback"]),
+                ("cargo_check", "cargo-check" in plan["selected_feedback"]),
+                *(("cargo_" + name.replace("-", "_"),
+                   name in plan["cargo_check_packages"])
+                  for name in ("repo-model", "lexlean", "repo-conformance", "xtask")),
             ):
                 out.write(f"{name}={'true' if enabled else 'false'}\n")
     if args.summary:
@@ -114,6 +129,8 @@ def main(argv=None):
             out.write(f"Selected real commands: {', '.join(plan['selected_feedback']) or 'none'}\n\n")
             out.write(f"Changed paths: {len(plan['changed'])}. Unclassified for fast feedback: {len(plan['not_classified_for_fast_feedback'])}.\n\n")
             out.write("**This result does not satisfy SPEC §9.4 or authorize merge/release.**\n")
+            if plan["cargo_check_packages"]:
+                out.write("\nCargo check packages: " + ", ".join(plan["cargo_check_packages"]) + "\n")
     print(json.dumps(plan, sort_keys=True, indent=2))
     return 0
 
