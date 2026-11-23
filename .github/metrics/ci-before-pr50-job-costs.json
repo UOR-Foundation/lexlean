@@ -493,6 +493,177 @@
       },
       "first_job_started": "2026-11-19T14:31:49Z",
       "last_job_completed": "2026-11-19T20:01:18Z"
+    },
+    {
+      "id": 44531903730,
+      "pr": 587,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 6.05,
+      "by_platform_minutes": {
+        "linux": 6.05
+      },
+      "first_job_started": "2026-11-19T13:16:57Z",
+      "last_job_completed": "2026-11-19T13:23:00Z"
+    },
+    {
+      "id": 44531903761,
+      "pr": 587,
+      "job_count": 18,
+      "returned": 18,
+      "complete": true,
+      "job_minutes": 64.45,
+      "by_platform_minutes": {
+        "linux": 64.45,
+        "windows": 0,
+        "macos": 0,
+        "unknown": 0
+      },
+      "first_job_started": "2026-11-19T13:16:57Z",
+      "last_job_completed": "2026-11-19T14:21:28Z"
+    },
+    {
+      "id": 44534653426,
+      "pr": 584,
+      "job_count": 72,
+      "returned": 72,
+      "complete": true,
+      "job_minutes": 2021.417,
+      "by_platform_minutes": {
+        "linux": 1646.633,
+        "macos": 254.2,
+        "windows": 120.583
+      },
+      "first_job_started": "2026-11-19T13:33:40Z",
+      "last_job_completed": "2026-11-19T16:03:08Z"
+    },
+    {
+      "id": 44524310594,
+      "pr": 584,
+      "job_count": 18,
+      "returned": 18,
+      "complete": true,
+      "job_minutes": 42.3,
+      "by_platform_minutes": {
+        "linux": 42.3,
+        "macos": 0
+      },
+      "first_job_started": "2026-11-19T12:29:33Z",
+      "last_job_completed": "2026-11-19T13:11:57Z"
+    },
+    {
+      "id": 44524310664,
+      "pr": 584,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 5.35,
+      "by_platform_minutes": {
+        "linux": 5.35
+      },
+      "first_job_started": "2026-11-19T12:29:16Z",
+      "last_job_completed": "2026-11-19T12:34:37Z"
+    },
+    {
+      "id": 44409839036,
+      "pr": 579,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 5.3,
+      "by_platform_minutes": {
+        "linux": 5.3
+      },
+      "first_job_started": "2026-11-18T22:22:16Z",
+      "last_job_completed": "2026-11-18T22:27:34Z"
+    },
+    {
+      "id": 44409839256,
+      "pr": 579,
+      "job_count": 20,
+      "returned": 20,
+      "complete": true,
+      "job_minutes": 39,
+      "by_platform_minutes": {
+        "linux": 39,
+        "macos": 0,
+        "windows": 0,
+        "unknown": 0
+      },
+      "first_job_started": "2026-11-18T22:21:43Z",
+      "last_job_completed": "2026-11-18T23:02:22Z"
+    },
+    {
+      "id": 44396790061,
+      "pr": 566,
+      "job_count": 74,
+      "returned": 74,
+      "complete": true,
+      "job_minutes": 1330.4,
+      "by_platform_minutes": {
+        "linux": 1111.3,
+        "windows": 101.117,
+        "macos": 117.983
+      },
+      "first_job_started": "2026-11-18T21:00:30Z",
+      "last_job_completed": "2026-11-18T23:44:37Z"
+    },
+    {
+      "id": 44396789818,
+      "pr": 566,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 5.983,
+      "by_platform_minutes": {
+        "linux": 5.983
+      },
+      "first_job_started": "2026-11-18T21:00:10Z",
+      "last_job_completed": "2026-11-18T21:06:09Z"
+    },
+    {
+      "id": 44456684276,
+      "pr": 577,
+      "job_count": 1,
+      "returned": 1,
+      "complete": true,
+      "job_minutes": 6,
+      "by_platform_minutes": {
+        "linux": 6
+      },
+      "first_job_started": "2026-11-19T04:12:18Z",
+      "last_job_completed": "2026-11-19T04:18:18Z"
+    },
+    {
+      "id": 44456684225,
+      "pr": 577,
+      "job_count": 72,
+      "returned": 72,
+      "complete": true,
+      "job_minutes": 2170.183,
+      "by_platform_minutes": {
+        "linux": 1748.7,
+        "windows": 123.35,
+        "macos": 298.133
+      },
+      "first_job_started": "2026-11-19T04:12:19Z",
+      "last_job_completed": "2026-11-19T06:17:31Z"
+    },
+    {
+      "id": 44405517445,
+      "pr": 574,
+      "job_count": 72,
+      "returned": 72,
+      "complete": true,
+      "job_minutes": 1698.517,
+      "by_platform_minutes": {
+        "linux": 1288.067,
+        "macos": 276.767,
+        "windows": 133.683
+      },
+      "first_job_started": "2026-11-18T21:52:34Z",
+      "last_job_completed": "2026-11-19T01:12:57Z"
     }
   ]
 }
