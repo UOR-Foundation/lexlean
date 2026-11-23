@@ -1,0 +1,95 @@
+{
+  "schema": "lexlean/ci-native-macos-arm-run-pair/1",
+  "classification": "OBSERVED_DIFFERENT_HEADS_NOT_PROTECTED_MERGE_WAIT_AB",
+  "source": "GitHub Actions job logs from two actual full CI runs; first-page job metadata; current workflow's host_lanes.py checked separately",
+  "before": {
+    "run_id": 44599982425,
+    "job_id": 135830728701,
+    "checkout_commit_prefix": "6c6912f",
+    "date_utc": "2026-11-19",
+    "workflow_blob": "daa958aac0d72ef62b80fb1cd4ffd8a3a145327c",
+    "name": "build and non-Lean tests (aarch64-apple-darwin)",
+    "start_utc": "2026-11-19T20:00:18.0709960Z",
+    "end_utc": "2026-11-19T22:04:49.7332180Z",
+    "observed_seconds": 7471.663,
+    "observed_billed_minutes_proxy_rounded": 125,
+    "test_harness_pass_count_observed": 502
+  },
+  "after": {
+    "run_id": 45100057759,
+    "checkout_commit": "b693bb4259d311fd71da90ac38701214a74be27f",
+    "date_utc": "2026-11-23",
+    "workflow_blob": "f4b6ab5d8a229665d3d43ba19e6e2db1e34e5f63",
+    "job_family": "macOS arm64 tests (lane)",
+    "jobs": [
+      {
+        "lane": "producer",
+        "job_id": 137449976678,
+        "start_utc": "2026-11-23T02:43:47.3774660Z",
+        "end_utc": "2026-11-23T02:55:14.9209660Z",
+        "observed_seconds": 687.543,
+        "rounded_minutes_proxy": 12,
+        "conformance_tests_passed": null
+      },
+      {
+        "lane": "moves",
+        "job_id": 137449976684,
+        "start_utc": "2026-11-23T02:43:24.8188660Z",
+        "end_utc": "2026-11-23T03:20:03.9908000Z",
+        "observed_seconds": 2199.172,
+        "rounded_minutes_proxy": 37,
+        "conformance_tests_passed": 395
+      },
+      {
+        "lane": "validate",
+        "job_id": 137449976697,
+        "start_utc": "2026-11-23T02:29:24.4910940Z",
+        "end_utc": "2026-11-23T02:43:17.4731320Z",
+        "observed_seconds": 832.982,
+        "rounded_minutes_proxy": 14,
+        "conformance_tests_passed": 86
+      },
+      {
+        "lane": "print",
+        "job_id": 137449976718,
+        "start_utc": "2026-11-23T02:29:22.6977040Z",
+        "end_utc": "2026-11-23T02:57:28.7340860Z",
+        "observed_seconds": 1686.037,
+        "rounded_minutes_proxy": 29,
+        "conformance_tests_passed": 20
+      },
+      {
+        "lane": "lower",
+        "job_id": 137449976759,
+        "start_utc": "2026-11-23T02:55:22.8422760Z",
+        "end_utc": "2026-11-23T03:28:20.0438750Z",
+        "observed_seconds": 1977.201,
+        "rounded_minutes_proxy": 33,
+        "conformance_tests_passed": 6
+      }
+    ],
+    "full_conformance_join_status_not_accessible_with_first_page_wrapper": true,
+    "workflow_source_has_fail_closed_join": true
+  },
+  "comparison": {
+    "old_one_job_minutes": 124.52771666666666,
+    "new_sum_five_job_minutes": 123.04891666666667,
+    "new_five_job_execution_envelope_minutes": 58.95576666666667,
+    "change_sum_job_minutes": -1.478799999999986,
+    "change_execution_envelope_minutes": -65.57194999999999,
+    "private_standard_macos_usd_per_rounded_minute_proxy": 0.062,
+    "old_rounded_job_minutes_proxy": 125,
+    "new_sum_rounded_job_minutes_proxy": 125,
+    "old_private_compute_equivalent_usd_proxy": 7.75,
+    "new_private_compute_equivalent_usd_proxy": 7.75,
+    "after_conformance_lane_tests_passed_observed": 507,
+    "old_conformance_harness_passed_observed": 502
+  },
+  "caveats": [
+    "No measured queue-to-start, whole workflow critical path, required-check status mapping, or PR merge-ready latency.",
+    "The old conformance harness reported 502 passed tests; the later partitioned harness reported 507 across lanes. This is different test inventory and code commit, not same-head assurance parity.",
+    "Old one-job lane to new five-job execution envelope does not account for the Linux macOS-join job, which adds runner use and can extend host context completion.",
+    "Private-repository model uses standard macOS $0.062 per minute and illustrative whole-minute rounding per job; no invoice or plan allowances verified.",
+    "The five lane conclusions were success as observed in the first page of #45100057759; the join receipt is not in that page, so a complete provider join outcome is not claimed."
+  ]
+}
