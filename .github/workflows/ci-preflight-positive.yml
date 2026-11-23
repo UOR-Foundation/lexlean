@@ -52,4 +52,5 @@ jobs:
             fi
           fi
       - name: Confirm successful preflight was not merge qualification
-        run: echo 'PASS: current event base SHA matches authenticated live base ref; NONQUALIFYING'
+        run: |
+          echo 'PASS: current event base SHA matches authenticated live base ref; NONQUALIFYING'
