@@ -25,6 +25,12 @@ an altered shared test binary.
   inputs. No policy is inferred to be complete merely because the graph
   script was able to parse it.
 
+The advisory CLI now refuses to classify a changed HEAD until the real
+checked-out conformance-to-host ownership auditor succeeds. Its output attaches
+exact SHA-256 values of the eight inspected ownership source files. This does
+NOT certify transitive dependencies or authenticate a prior GitHub job. Source
+audit failures are HOLD and cannot result in positive advisory suggestions.
+
 Every unit must explicitly classify EACH changed path as an input or as
 explicit nonimpact. Unknown paths mean RERUN. A changed control file or policy
 forces RERUN. LexLean's 524-case shared conformance source, native lane

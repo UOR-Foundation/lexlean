@@ -54,6 +54,30 @@ def result(mutate=None):
 
 
 class ReuseContract(unittest.TestCase):
+    def test_cli_source_audit_must_refuse_missing_repository(self):
+        from pathlib import Path
+        with self.assertRaises(mod.Hold):
+            mod.audit_source_ownership(Path("/nonexistent/ci-a4-checkout"))
+
+    def test_cli_source_audit_rejects_claim_of_qualification_authority(self):
+        from unittest import mock
+        forged = {"qualification": "QUALIFIED",
+                  "source_to_runtime_dependency_closure": "INCOMPLETE",
+                  "cross_commit_reuse_authority": False}
+        with mock.patch("ci_incremental_reuse.source_ownership.audit_repo",
+                        return_value=forged):
+            with self.assertRaisesRegex(mod.Hold, "unsupported acceptance"):
+                mod.audit_source_ownership(".")
+
+    def test_real_source_audit_is_nonqualifying(self):
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[2]
+        if not (root / "model/ids.toml").is_file():
+            self.skipTest("full checkout needed")
+        receipt = mod.audit_source_ownership(root)
+        self.assertGreater(receipt["conformance_case_count"], 500)
+        self.assertFalse(receipt["cross_commit_reuse_authority"])
+
     def test_read_only_advisory_only(self):
         got = result()
         self.assertEqual(got["qualification"], "NONQUALIFYING_NO_MERGE_OR_RELEASE_AUTHORITY")

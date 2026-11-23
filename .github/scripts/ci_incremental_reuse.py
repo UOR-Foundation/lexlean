@@ -12,6 +12,8 @@ import re
 import subprocess
 from pathlib import Path
 
+import ci_test_ownership as source_ownership
+
 SHA = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 IDENT = re.compile(r"[A-Za-z0-9_.:-]{1,120}\Z")
 STATUS = re.compile(r"(?:[AMD]|[RC][0-9]{1,3})\Z")
@@ -295,6 +297,21 @@ def classify(policy, observations, snapshot):
     }
 
 
+
+def audit_source_ownership(repo_root):
+    """Require source-derived conformance/host ownership before advisory CLI."""
+    try:
+        evidence = source_ownership.audit_repo(repo_root)
+    except source_ownership.Hold as error:
+        raise Hold("conformance/host ownership audit refused") from error
+    require(evidence.get("qualification") == "NONQUALIFYING_OWNER_MAP_ONLY"
+            and evidence.get("source_to_runtime_dependency_closure") ==
+            "INCOMPLETE"
+            and evidence.get("cross_commit_reuse_authority") is False,
+            "source audit claimed unsupported acceptance authority")
+    return evidence
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, required=True)
@@ -306,6 +323,9 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         snapshot = git_snapshot(args.repo_root, args.old, args.head)
+        # Source ownership must match the checked-out manifest and real
+        # generated test wrappers before classifying even candidate reuse.
+        ownership = audit_source_ownership(args.repo_root)
         policy = load(args.policy)
         # The policy must be committed unchanged on both revisions. A local,
         # altered or newly introduced policy does not supply closed evidence.
@@ -318,6 +338,10 @@ def main(argv=None):
         require(show(args.old) == show(args.head) ==
                 args.policy.read_bytes(), "policy unavailable or changed")
         report = classify(policy, load(args.observations), snapshot)
+        report["audited_ownership_source_sha256"] = ownership["source_sha256"]
+        report["audited_case_count"] = ownership["conformance_case_count"]
+        report["source_to_runtime_dependency_closure"] = ownership[
+            "source_to_runtime_dependency_closure"]
     except (Hold, OSError, ValueError, subprocess.SubprocessError) as error:
         parser.exit(2, "HOLD: " + str(error) + "\n")
     encoded = json.dumps(report, sort_keys=True, indent=2) + "\n"
