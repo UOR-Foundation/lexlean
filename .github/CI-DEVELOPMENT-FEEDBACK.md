@@ -120,3 +120,25 @@ query does not count. These are explicitly excluded; the 50-PR total is an
 Compare PR base branch, change type, CI workflow revision, host mix, and
 qualification class before interpreting a percent difference as causal ROI.
 Do not publish an after/before improvement from unrelated cohorts.
+
+## Hosted pilot qualification (November 23, 2026)
+
+The opt-in draft preview succeeded on exact HEAD `105e21be020813ef0044d8af876711b6f5192d3c`:
+[Actions #45183454282](https://github.com/UOR-Foundation/lexlean/actions/runs/45183454282).
+All 211 Python contracts passed, including the real Intel audit fixture;
+both historical Intel validators passed and generated JSON into the existing
+8-file `ci-before-after-evidence` artifact. Runner-occupied time: 53 seconds;
+checkout: 40 seconds; Python tests: 3 seconds. This is real hosted preview
+qualification, **not** a full native/proof/reproducibility or merge check.
+
+A real stale-base refusal was proved by [#45182363019](https://github.com/UOR-Foundation/lexlean/actions/runs/45182363019),
+with the checkout correctly skipped. The intermediate attempt
+[#45182928295](https://github.com/UOR-Foundation/lexlean/actions/runs/45182928295)
+found a one-millisecond upward-rounding defect in the source-bound native
+case-tail evidence test. That bug was corrected by flooring exact microsecond
+durations to milliseconds and a new regression test.
+
+The temporary `<!-- ci-preview-once -->` marker is no longer in the PR body.
+Do not re-trigger this pilot merely to collect more nearly identical data.
+Next: a source-matched and budget-capped checkout A/B with ancestry and
+security negative controls, then continue native queue/test profiling.

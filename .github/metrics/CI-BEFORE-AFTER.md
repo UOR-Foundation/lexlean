@@ -511,3 +511,37 @@ and floors to milliseconds, preserving its conservative lower-bound contract.
 A seeded microsecond-case regression test explicitly refuses upward rounding.
 No actual case-time improvement is claimed. Both incomplete previews remain
 nonqualifying; the corrected exact-head positive path still requires a rerun.
+
+## Hosted Phase B positive-path qualification and measured runner occupancy (2026-11-23 UTC)
+
+Three one-job NONQUALIFYING GitHub Actions previews were executed in sequence.
+The first passed the negative-control expectation: stale event base refused
+BEFORE checkout. The next reached the Python contracts and caught an actual
+one-millisecond lower-bound rounding bug, then stopped before evidence upload.
+The corrected third run passed the entire selected feedback path.
+
+| Run | Exact HEAD | Job result | Runner-occupied seconds | Queue seconds | Evidence |
+| --- | --- | --- | ---: | ---: | --- |
+| [#45182363019](https://github.com/UOR-Foundation/lexlean/actions/runs/45182363019) | 33b419a9 | FAIL expected stale-base guard | 7 | 2 | no checkout |
+| [#45182928295](https://github.com/UOR-Foundation/lexlean/actions/runs/45182928295) | 416c1cae | FAIL real Python regression | 42 | 2 | 209/210 passed, 1 precision failure |
+| [#45183454282](https://github.com/UOR-Foundation/lexlean/actions/runs/45183454282) | 105e21be | SUCCESS nonqualifying | 53 | 3 | 211/211 tests, both Intel auditors, uploaded artifact |
+
+The successful job spent 40 seconds in its already bounded lazy-blob checkout
+and about 3 seconds in the entire local Python unittest discovery. The
+historical report and Intel auditors succeeded and **8 files were uploaded**
+in GitHub artifact `ci-before-after-evidence` (artifact ID 14821284967,
+ZIP byte size 13002, uploaded SHA-256 `bc2ddb4560391c1ad9591f55cbb068ed8be94d61dac3811a47cdd061c9098f53`).
+Runner occupancy is `(job.completed_at - job.started_at)` and is explicitly
+NOT user-visible billed Actions minutes. These three runs consume
+**102 unweighted Linux runner-seconds** combined; they do not establish a
+protected merge-critical-path or production-after improvement.
+
+**Next bounded optimization:** Compare known safe checkout shapes under the
+same exact base and branch, preserving complete ancestry, exact-head pinning
+and trust checks. Checkout (~40s) dominates this successful preview, not
+Python tests (~3s). Do not weaken stale-base refusal, replace the source
+identity checks or alter the full production workflow for this experiment.
+
+All preview opt-in markers were removed after completion. PR #606 stays
+DRAFT; normative ci.yml, reproducibility.yml, all native joins, and SPEC
+are unchanged. The first 50 production after-PRs remain N/A.
