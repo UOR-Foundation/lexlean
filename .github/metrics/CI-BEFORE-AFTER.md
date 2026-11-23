@@ -458,3 +458,28 @@ all three hosts, and a controlled budgeted test. Retain #603 open and
 PR #606 draft. Local synthetic fixture tests for the new Python model
 passed **15/15**; no hosted execution of the new Python source
 or production full gate has been claimed.
+
+## Native Intel queue / per-case 60-second warning bounds (2026-11-23 UTC)
+
+**New source-bound evidence:** [ci-intel-case-tail-20261123.json](ci-intel-case-tail-20261123.json), [ci_intel_tail_audit.py](../scripts/ci_intel_tail_audit.py) and [test_ci_intel_tail_audit.py](../scripts/test_ci_intel_tail_audit.py). Four native Intel job logs in successful [CI #45100057759](https://github.com/UOR-Foundation/lexlean/actions/runs/45100057759) yielded **507 unique passing case-completion timestamps** and **67** warnings for cases exceeding 60 seconds (6 lower, 18 print, 12 validate, 31 moves). A genuinely executed local Python unittest suite passed **13/13** synthetic negative-control tests; full historical ledger verification in hosted CI has **not** been run.
+
+For each warned case, the conservative wall-time bound is **60 seconds + (completion timestamp − warning timestamp)**. Rust libtest did not report exact case start times. These case bounds cannot be summed as runner-time or CPU-time, because multiple tests execute concurrently.
+
+| Slowest historical Intel moves case | Conservative observed wall-time minimum |
+| --- | ---: |
+| BS-08 | 24.18 min |
+| AU-08 | 22.51 min |
+| RP-20 | 18.96 min |
+| RP-19 | 15.85 min |
+| CL-26 | 13.56 min |
+| AU-09 | 12.99 min |
+| CL-27 | 12.65 min |
+| SL-05 | 10.84 min |
+| AU-01 | 10.79 min |
+| RP-12 | 7.60 min |
+
+**Feasibility check:** The longest observed case has a wall-time lower bound of **1450.727 seconds**. The previous perfect 3-way moves split assumed each subgroup takes just **1,194.67 seconds** (3,584 / 3). With individual case times held fixed, that assumption is contradicted by the existing BS-08 receipt. Changing host contention or threading could alter durations, so this is **not proof** that splitting cannot improve performance, only that ideal splitting at unchanged case runtime is not a credible prediction.
+
+**Runner queue evidence:** In full CI [#44599982425](https://github.com/UOR-Foundation/lexlean/actions/runs/44599982425), Intel construction queued **78.6 minutes** and its four conformance lanes each queued **136.2–139.9 minutes** before runner allocation. In later full CI [#45100057759](https://github.com/UOR-Foundation/lexlean/actions/runs/45100057759), construction queued **8.9 minutes** and lanes queued between **4 seconds and 23.4 minutes**. These are provider-created-to-started delays, **not billable runner-occupied minutes**, and cannot be attributed to a single source optimization across different runs. The peak observed three overlapping Intel jobs is **not** a guaranteed provider concurrency cap.
+
+**Decision:** Production Intel, Windows, and Apple Silicon host lane manifests, original detector and receipt coverage, normative CI and reproducibility, release authority, and required contexts remain **unchanged**. To justify a real reshuffle, obtain precise per-case start/end runtime measurements and multi-run native host queue behavior, verify all three host joins and fail-closed negative cases, then budget a tightly scoped experiment. The current theoretical 2/3/4-way models remain audit-only, and the 50-PR production AFTER remains N/A.
