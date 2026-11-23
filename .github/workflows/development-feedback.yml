@@ -76,6 +76,8 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
+          # Experiment: retain complete ancestry, defer historical blob transfer.
+          filter: blob:none
           persist-credentials: false
       - name: Pin trusted-base comparison and decide real feedback commands
         id: plan
