@@ -142,3 +142,28 @@ The temporary `<!-- ci-preview-once -->` marker is no longer in the PR body.
 Do not re-trigger this pilot merely to collect more nearly identical data.
 Next: a source-matched and budget-capped checkout A/B with ancestry and
 security negative controls, then continue native queue/test profiling.
+
+## Controlled checkout comparison: same-source baseline vs head-only ancestry restoration
+
+A single new *draft PR-only* opt-in marker,
+`<!-- ci-preview-once: head-only -->`, selects the experimental checkout
+path instead of the existing baseline `<!-- ci-preview-once -->`. The two
+mutually exclusive paths use the same single bounded Ubuntu job and the
+same HEAD, base, impact planner, Python contracts and nonqualifying artifact.
+No matrix, native-host test, proof gate or extra required status is added.
+
+The candidate begins with a one-commit blob-filtered `actions/checkout`,
+then a bounded (120-second) `git fetch --unshallow` of the exact event HEAD.
+It explicitly requires the result to be nonshallow and that the event's
+trusted base be an ancestor before the normal exact-HEAD/source-planner
+checks run. The old baseline keeps `fetch-depth: 0` and `filter: blob:none`.
+Both checkouts continue to disable credential persistence.
+
+Conduct two opt-in PR body edits on an unchanged HEAD and release base:
+one baseline and one candidate. Record checkout plus restore step elapsed,
+total job occupancy, branch/ancestry verification, failure guards, and
+identical selected checks/results. Remove each one-time marker immediately
+after completion. A single run per treatment is a screening comparison,
+**not** enough for a confident performance or cost claim; stop early if
+any step fails, runner queueing diverges materially, or the base moves.
+Do not promote a variant that loses provenance/ancestry/receipts.

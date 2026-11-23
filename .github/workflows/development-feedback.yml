@@ -29,7 +29,7 @@ jobs:
     # A fresh workflow_dispatch can run once this file is on default.
     # Until then, one owner-authored PR body edit with the exact leading
     # marker triggers a bounded draft-only diagnostic, never merge proof.
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.event.pull_request.body, '<!-- ci-preview-once -->')) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository && (startsWith(github.event.pull_request.body, '<!-- ci-preview-once -->') || startsWith(github.event.pull_request.body, '<!-- ci-preview-once: head-only -->'))) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -72,14 +72,42 @@ jobs:
               exit 1
             fi
           fi
+      # Checkout A/B is selected only by a direct one-time DRAFT PR edit.
+      # Both paths verify the exact head + the same complete base ancestry.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.body, '<!-- ci-preview-once: head-only -->') }}
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
-          # Preserve full ancestry for merge-base, fetch historical blobs lazily.
-          # Nonqualifying pilot only: matched A/B #45116345568 and #45116629117.
+          # Existing baseline: full ancestry, Git object blobs fetched lazily.
           filter: blob:none
           persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ github.event_name == 'pull_request' && startsWith(github.event.pull_request.body, '<!-- ci-preview-once: head-only -->') }}
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          # Candidate: retrieve the exact commit without all remote refs.
+          fetch-depth: 1
+          filter: blob:none
+          persist-credentials: false
+      - name: Restore complete exact-head ancestry for head-only checkout
+        if: ${{ github.event_name == 'pull_request' && startsWith(github.event.pull_request.body, '<!-- ci-preview-once: head-only -->') }}
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_BASE: ${{ github.event.pull_request.base.sha }}
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_HEAD" =~ ^[0-9a-f]{40}$ && "$EXPECTED_BASE" =~ ^[0-9a-f]{40}$ ]] || exit 1
+          test "$(git rev-parse --verify HEAD)" = "$EXPECTED_HEAD"
+          # Bounded second Git read; failure prevents the normal diff planner.
+          timeout 120 git -c protocol.version=2 fetch --no-tags --filter=blob:none --unshallow origin "$EXPECTED_HEAD"
+          test "$(git rev-parse --is-shallow-repository)" = false
+          git merge-base --is-ancestor "$EXPECTED_BASE" "$EXPECTED_HEAD" || {
+            echo "::error::Head ancestry does not contain the exact event base"
+            exit 1
+          }
       - name: Pin trusted-base comparison and decide real feedback commands
         id: plan
         shell: bash
