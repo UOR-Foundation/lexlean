@@ -67,6 +67,35 @@ python3 .github/scripts/ci_metrics_report.py \
 python3 -m unittest discover -s .github/scripts -p 'test_ci_metrics_report.py' -v
 ```
 
+The collector is reproducible without an agent or scheduled task. It is an
+**explicitly invoked read-only tool**, `.github/scripts/ci_metrics_collect.py`,
+which uses GitHub REST GET only, requires `GITHUB_TOKEN` with read-only
+Actions/PR permissions, paginates all job attempts, checks source identities and
+does not start any GitHub Actions jobs. It caps network reads by the caller's
+`--max-api-calls` budget and fails rather than writing incomplete snapshots.
+The post-cutover cohort is the **first 50 merged PRs after the actual governed
+cutover timestamp**, not the 50 most recently updated issues. With fewer than
+50 after PRs, it reports a provisional sample. Example after a real cutover:
+
+```sh
+python3 .github/scripts/ci_metrics_collect.py \
+  --period after --repo UOR-Foundation/lexlean \
+  --cutover-utc "ACTUAL_CUTOVER_UTC" \
+  --limit 50 --max-api-calls 800 \
+  --output-dir ci-evidence/ci-after-snapshot
+python3 .github/scripts/ci_metrics_report.py \
+  --before-runs .github/metrics/ci-before-pr50-runs.json \
+  --before-costs .github/metrics/ci-before-pr50-job-costs.json \
+  --after-runs ci-evidence/ci-after-snapshot/after-runs.json \
+  --after-costs ci-evidence/ci-after-snapshot/after-costs.json \
+  --cutover-utc "ACTUAL_CUTOVER_UTC" \
+  --output-dir ci-evidence/ci-before-after
+```
+
+Replace `ACTUAL_CUTOVER_UTC` with an exact UTC ISO timestamp after the
+normative production gate has actually changed. Never commit or print
+`GITHUB_TOKEN`; do not run an automatic monitor or background collection.
+
 When the normative production CI migration is merged and proven, snapshot the
 **first up to 50 comparable merged PRs after that cutover**, preserving exact
 source/run/job receipts. Supply `--after-runs`, `--after-costs`, and the
