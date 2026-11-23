@@ -162,6 +162,8 @@ jobs:
           merge-multiple: true
       - name: Exercise writer ownership regression controls
         run: python3 -m unittest discover -s .github/scripts -p 'test_check_regen_writers.py' -v
+      - name: Exercise transferred-export environment guard checks
+        run: python3 -m unittest discover -s .github/scripts -p 'test_export_custody_guard.py' -v
       - name: Reject overlapping or unaccounted writer paths
         run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts"
       - name: Apply every part
