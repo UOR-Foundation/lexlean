@@ -483,3 +483,16 @@ For each warned case, the conservative wall-time bound is **60 seconds + (comple
 **Runner queue evidence:** In full CI [#44599982425](https://github.com/UOR-Foundation/lexlean/actions/runs/44599982425), Intel construction queued **78.6 minutes** and its four conformance lanes each queued **136.2–139.9 minutes** before runner allocation. In later full CI [#45100057759](https://github.com/UOR-Foundation/lexlean/actions/runs/45100057759), construction queued **8.9 minutes** and lanes queued between **4 seconds and 23.4 minutes**. These are provider-created-to-started delays, **not billable runner-occupied minutes**, and cannot be attributed to a single source optimization across different runs. The peak observed three overlapping Intel jobs is **not** a guaranteed provider concurrency cap.
 
 **Decision:** Production Intel, Windows, and Apple Silicon host lane manifests, original detector and receipt coverage, normative CI and reproducibility, release authority, and required contexts remain **unchanged**. To justify a real reshuffle, obtain precise per-case start/end runtime measurements and multi-run native host queue behavior, verify all three host joins and fail-closed negative cases, then budget a tightly scoped experiment. The current theoretical 2/3/4-way models remain audit-only, and the 50-PR production AFTER remains N/A.
+
+## Incremental existing-workflow improvement: verify Intel evidence within preview (2026-11-23 UTC)
+
+The existing nonqualifying development-feedback workflow now replays both historical
+Intel audit scripts on the already selected Python-contract path. The fail-closed
+step runs after existing report generation and writes two JSON artifacts into the
+same existing upload: intel-lane-scenarios.json and intel-case-tail.json.
+No additional jobs, native runners, checks or dispatches are introduced.
+
+Six local source-wiring mutation tests and both existing 15-test Intel suites pass
+in the offline environment. The exact new PR head is not yet provider-qualified.
+The normative ci.yml and reproducibility.yml are unchanged; this remains an
+observability/feedback refinement rather than realized full-gate savings.
