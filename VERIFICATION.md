@@ -41,6 +41,57 @@ Outside `vv`:
 
 ## Falsifiability records
 
+### Early freshness refusal and regeneration ownership (RP-14)
+
+The early `cargo xtask check-freshness` check rejects stale committed inputs,
+locks, and export provenance before costly acceptance work. The original
+implementation's owner evidence is preserved in
+[#478](https://github.com/UOR-Foundation/lexlean/pull/478), and the
+documentation omission was retained in
+[review 5867944910](https://github.com/UOR-Foundation/lexlean/pull/478#pullrequestreview-5867944910)
+and [#489](https://github.com/UOR-Foundation/lexlean/issues/489).
+The owner reported the clean command on WSL at release/v0.4 base
+`7eb816284`: 23 build oracles, 262 recorded inputs, their locks, and 139
+committed export packages current in 2.5 s with Lean removed from PATH.
+The same detector refused these three direct plants (owner-reported):
+
+| Planted defect | Observed refusal |
+| --- | --- |
+| Append a line to `bootstrap/src/TokenAudit.lex.tex` | Recorded oracle input changed; 37 bootstrap packages lost their semantic ID |
+| Replace one stdlib export package's `sources` | Export provenance refused |
+| Alter the stdlib lock's compiler semantics | Input digest changed and `lock --check` refused |
+
+Command: `cargo xtask check-freshness`. The owner separately reported clean
+execution and the individual negative controls. Exact per-plant shell edits,
+stderr, exit numbers and restoration transcript were not included in the
+retained public evidence and are not reconstructed here. This is recorded
+historical owner evidence, not a repeat on this head. Hosted draft run
+[43142198451](https://github.com/UOR-Foundation/lexlean/actions/runs/43142198451)
+confirmed the clean detector on `834522b91`; no hosted stale-slice plant
+was reported. Existing full golden, example, PX and bootstrap checks retain
+authority over newly discovered inputs, completeness and output bytes.
+
+Regeneration ownership: the original local demonstration in
+[#609](https://github.com/UOR-Foundation/lexlean/pull/609) applied two Git
+patches touching separate hunks of the same file; Git accepted both, but
+the new preflight refused the overlapping path. The prior review at
+`7c8a17b7` also detected a working-directory dependency and missing
+negative controls. On a local Git 2.47.3 fixture, `git apply --numstat -z`
+from a nested checkout returned an empty path inventory for a real
+root-level file change. The new isolated scratch-directory invocation
+returned `1<TAB>1<TAB>unique.txt<NUL>` for the same patch. This focused
+reproduction verifies the invocation strategy, not a complete execution of
+the updated Python test modules.
+
+The updated draft adds source checks for bypassing the writer guard,
+removing either rename-source capture flag, and explicitly dropping the
+shared environment guard before replay. The environment checks inspect
+source placement and explicit binding use, not arbitrary Rust lifetimes
+or an observed production race. The caller-inclusive evaluator permit
+pool adds accounting, single-processor waiting and panic-return tests.
+These new tests and real export replay require execution at the resulting
+head before acceptance; no runtime or performance result is asserted here.
+
 ### browser prover assets can differ, fail to build, or go unpublished (RP-20)
 
 `RP-20` holds the assets a browser prover loads (§7, §30.3).
