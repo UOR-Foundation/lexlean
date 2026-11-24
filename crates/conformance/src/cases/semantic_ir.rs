@@ -54,6 +54,8 @@ theorem{
         );
         project.verify_fails_with("LLV7002");
     }
+}
+
 fn depth_fixture(name: &str) -> String {
     std::fs::read_to_string(
         support::repo_root()

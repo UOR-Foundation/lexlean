@@ -343,7 +343,7 @@ definition{
   parameters: [],
   result: DocRows::Item,
   body: constructor{
-    arguments: [4, 1, "`build`"],
+    arguments: [4, 1, "`snapshot`"],
     constructor: DocRows::Item.heading,
     type_arguments: []
   },
@@ -355,7 +355,7 @@ definition{
   parameters: [],
   result: DocRows::Item,
   body: constructor{
-    arguments: ["text", (cons "lexlean build [--all | INPUT...]" (nil String))],
+    arguments: ["text", (cons "lexlean snapshot [--all | INPUT...]" (nil String))],
     constructor: DocRows::Item.fence,
     type_arguments: []
   },
@@ -364,6 +364,78 @@ definition{
 
 definition{
   name: i0029,
+  parameters: [],
+  result: DocRows::Item,
+  body: constructor{
+    arguments: [(cons "Runs the `check` pipeline and takes no lock. In human mode a project that checks writes to stdout exactly the canonical file bytes of its semantic snapshot (§24.1), whose κ-label is the snapshot ID, and nothing else; in JSON mode it writes the command result `check` writes, with `command` set to `snapshot`. A project `check` refuses exits and reports as `check` does, and writes no snapshot. It emits no build artifact." (nil String))],
+    constructor: DocRows::Item.para,
+    type_arguments: []
+  },
+  executable: true
+}
+
+definition{
+  name: i0030,
+  parameters: [],
+  result: DocRows::Item,
+  body: constructor{
+    arguments: [4, 1, "`lean-modules`"],
+    constructor: DocRows::Item.heading,
+    type_arguments: []
+  },
+  executable: true
+}
+
+definition{
+  name: i0031,
+  parameters: [],
+  result: DocRows::Item,
+  body: constructor{
+    arguments: ["text", (cons "lexlean lean-modules [--all | INPUT...]" (nil String))],
+    constructor: DocRows::Item.fence,
+    type_arguments: []
+  },
+  executable: true
+}
+
+definition{
+  name: i0032,
+  parameters: [],
+  result: DocRows::Item,
+  body: constructor{
+    arguments: [(cons "Runs the `check` pipeline and renders the build of the selection as `build` does (§21.5), then publishes nothing: it takes no lock and writes nothing, so it runs where `build` is refused (§8.3). In human mode a project that checks writes to stdout exactly one canonical JSON document and nothing else, `lexlean/lean-modules/1`, with the members `spec`; `compiler` (`version` and `semantics_id`) and `language`, `lean_toolchain`, `source_id`, `semantic_id`, and `build_id`, each the value the build manifest of that build records; and `modules`, every Lean module verification elaborates for the selection, in the order it elaborates them (§22.3): first the text-laws library modules when a generated module imports them, then the runtime modules the generated modules import, closed under their own imports and in their dependency order (a runtime module the project generates itself is the project's), then the project's modules in topological frontiers of the import graph, each frontier in module order. Each entry has `kind` (`text-laws`, `runtime`, or `project`), `lean_module`, `text`, the module's exact Lean text, and `kappa`, the κ-label of that text's UTF-8 bytes; a `project` entry also has `module`, its source module name, and its `text` is the bytes `build` writes at `modules/<lean module path>.lean` under `build_id`, so its `kappa` is that file's manifest row. The runtime and text-laws modules are the compiler's own, generated from the sources the compiler-semantics ID covers, so `compiler.semantics_id` pins them. Each entry also has `axiom_policies`, the rows of the axiom-policy table that verification's policy stage evaluates for that module (§22.6), in the order the stage reads them (the stage reads the project's modules in module order, then the runtime modules), and nothing else decides that stage's verdict: `declaration`, the full Lean name; `kind` (`none`, `allow`, or `exact`) and `axioms`, the declared policy; and `rule`. A `document` row's policy must permit the observed set (`none`: empty; `allow`: a subset; `exact`: equal once sorted without repeats), and a name the audit does not report is observed empty. A `core` row is the same, except that a name the audit does not report is not checked. A `semantic` row's observed set must equal `axioms`. A `model` row (§17.12) has `members`, the full names of the Lean declarations the model generates; each must observe a subset of `axioms`, their observed sets together must be exactly `axioms`, and the row itself is not audited. A `runtime` row is `exact` and its observed set must equal `axioms`. A name of a `semantic`, `model`, or `runtime` row the audit does not report fails the verification. A text-laws entry has none (`CL-28`). The modules certificates of a production root import, the probe, and the audit modules are verification's and are not listed, nor are the policies of a production root's certificates. In JSON mode it writes the command result `check` writes, with `command` set to `lean-modules` and `build_id` set, and names no artifact. A project `check` refuses exits and reports as `check` does and writes no document." (nil String))],
+    constructor: DocRows::Item.para,
+    type_arguments: []
+  },
+  executable: true
+}
+
+definition{
+  name: i0033,
+  parameters: [],
+  result: DocRows::Item,
+  body: constructor{
+    arguments: [4, 1, "`build`"],
+    constructor: DocRows::Item.heading,
+    type_arguments: []
+  },
+  executable: true
+}
+
+definition{
+  name: i0034,
+  parameters: [],
+  result: DocRows::Item,
+  body: constructor{
+    arguments: ["text", (cons "lexlean build [--all | INPUT...]" (nil String))],
+    constructor: DocRows::Item.fence,
+    type_arguments: []
+  },
+  executable: true
+}
+
+definition{
+  name: i0035,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -377,7 +449,7 @@ definition{
 }
 
 definition{
-  name: i0030,
+  name: i0036,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -389,7 +461,7 @@ definition{
 }
 
 definition{
-  name: i0031,
+  name: i0037,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -401,7 +473,7 @@ definition{
 }
 
 definition{
-  name: i0032,
+  name: i0038,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -413,7 +485,7 @@ definition{
 }
 
 definition{
-  name: i0033,
+  name: i0039,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -425,7 +497,7 @@ definition{
 }
 
 definition{
-  name: i0034,
+  name: i0040,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -437,7 +509,7 @@ definition{
 }
 
 definition{
-  name: i0035,
+  name: i0041,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -451,7 +523,7 @@ definition{
 }
 
 definition{
-  name: i0036,
+  name: i0042,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -463,7 +535,7 @@ definition{
 }
 
 definition{
-  name: i0037,
+  name: i0043,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -475,7 +547,7 @@ definition{
 }
 
 definition{
-  name: i0038,
+  name: i0044,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -489,7 +561,7 @@ definition{
 }
 
 definition{
-  name: i0039,
+  name: i0045,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -501,7 +573,7 @@ definition{
 }
 
 definition{
-  name: i0040,
+  name: i0046,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -513,7 +585,7 @@ definition{
 }
 
 definition{
-  name: i0041,
+  name: i0047,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -527,7 +599,7 @@ definition{
 }
 
 definition{
-  name: i0042,
+  name: i0048,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -539,7 +611,7 @@ definition{
 }
 
 definition{
-  name: i0043,
+  name: i0049,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -551,7 +623,7 @@ definition{
 }
 
 definition{
-  name: i0044,
+  name: i0050,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -565,7 +637,7 @@ definition{
 }
 
 definition{
-  name: i0045,
+  name: i0051,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -577,7 +649,7 @@ definition{
 }
 
 definition{
-  name: i0046,
+  name: i0052,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -592,7 +664,7 @@ definition{
 }
 
 definition{
-  name: i0047,
+  name: i0053,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -606,7 +678,7 @@ definition{
 }
 
 definition{
-  name: i0048,
+  name: i0054,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -618,7 +690,7 @@ definition{
 }
 
 definition{
-  name: i0049,
+  name: i0055,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -630,7 +702,7 @@ definition{
 }
 
 definition{
-  name: i0050,
+  name: i0056,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -644,7 +716,7 @@ definition{
 }
 
 definition{
-  name: i0051,
+  name: i0057,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -658,7 +730,7 @@ definition{
 }
 
 definition{
-  name: i0052,
+  name: i0058,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -670,7 +742,7 @@ definition{
 }
 
 definition{
-  name: i0053,
+  name: i0059,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -684,7 +756,7 @@ definition{
 }
 
 definition{
-  name: i0054,
+  name: i0060,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -698,7 +770,7 @@ definition{
 }
 
 definition{
-  name: i0055,
+  name: i0061,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -710,7 +782,7 @@ definition{
 }
 
 definition{
-  name: i0056,
+  name: i0062,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -722,7 +794,7 @@ definition{
 }
 
 definition{
-  name: i0057,
+  name: i0063,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -736,7 +808,7 @@ definition{
 }
 
 definition{
-  name: i0058,
+  name: i0064,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -748,7 +820,7 @@ definition{
 }
 
 definition{
-  name: i0059,
+  name: i0065,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -762,7 +834,7 @@ definition{
 }
 
 definition{
-  name: i0060,
+  name: i0066,
   parameters: [],
   result: DocRows::Item,
   body: constructor{

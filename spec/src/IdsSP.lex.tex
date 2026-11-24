@@ -251,5 +251,12 @@ definition{
   body: (record Rows::IdRow {id := "SP-33", level := "build", suite := "preservation", statement := "A match arm whose whole body is a binder of a boxed field renders as the read of the box, with no binding, in a function that cannot overflow: `fold` of the Rust lowering of SPEC.md §17.16 and `returnedLet` of `RustBodies` fold a returned clone as they fold a returned move or copy, which is the arm that `foldB` of certificate B's `mCons` states, so that the kernel accepts certificate B of a production root whose closure has such an arm.", sections := "§17.16, §17.17"}),
   executable: true
 }
+definition{
+  name: sp34,
+  parameters: [],
+  result: Rows::IdRow,
+  body: (record Rows::IdRow {id := "SP-34", level := "build", suite := "preservation", statement := "A structurally recursive definition with more parameters than Lean's structural search considers recurses in its generated Lean on the argument its source declares: Lean tries no candidate argument once more than ten are possible and then compiles the definition by well-founded recursion, which a `reflexivity` proof through it cannot unfold, so a definition with `recursive_argument` and more than ten parameters, executable or not, states the argument with `termination_by structural`; a definition with at most ten parameters generates the bytes it generated before.", sections := "§17.12, §17.17"}),
+  executable: true
+}
 \end{semanticmodule}
 \end{lexlean}

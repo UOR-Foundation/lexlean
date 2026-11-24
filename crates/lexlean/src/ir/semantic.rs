@@ -260,7 +260,10 @@ impl SemanticPrimitive {
             | Self::GraphTopological
             | Self::LessThan
             | Self::ToInt
-            | Self::ToNat => None,
+            | Self::ToNat
+            | Self::ArrayFromList
+            | Self::ArrayToList
+            | Self::ArraySet => None,
         }
     }
 

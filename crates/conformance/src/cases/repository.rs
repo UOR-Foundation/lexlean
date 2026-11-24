@@ -3730,7 +3730,7 @@ fn rp_17() {
         .map(|language| {
             format!(
                 "{language} {}\n",
-                lexlean::compiler_semantics_id_for(language).to_hex()
+                lexlean::compiler_semantics_id_for(language).label()
             )
         })
         .collect();
@@ -3793,7 +3793,7 @@ fn rp_17() {
     );
     let four_lines = format!(
         "lexlean 0.5.0\nlanguage 1.0\ncompiler-semantics {}\nlean-toolchain {}\n",
-        lexlean::compiler_semantics_id_for("1.0").to_hex(),
+        lexlean::compiler_semantics_id_for("1.0").label(),
         lexlean::LEAN_TOOLCHAIN
     );
     plant(
@@ -3805,7 +3805,7 @@ fn rp_17() {
     );
     let without_1_2 = format!(
         "1.2 {}\n",
-        lexlean::compiler_semantics_id_for("1.2").to_hex()
+        lexlean::compiler_semantics_id_for("1.2").label()
     );
     plant(
         "release/compiler-semantics-id.txt",
@@ -3817,10 +3817,13 @@ fn rp_17() {
 
     // A listed ID that is not the compiler's: the list is compared with the
     // IDs compiled into this source, not with the report alone.
-    let id_1_1 = lexlean::compiler_semantics_id_for("1.1").to_hex();
+    let id_1_1 = lexlean::compiler_semantics_id_for("1.1").label();
+    // The first hex digit after the `blake3:` axis changes, so that the plant
+    // is a well-formed κ-label naming another ID, not a malformed line.
     let other = {
-        let first = if id_1_1.starts_with('0') { "1" } else { "0" };
-        format!("{first}{}", &id_1_1[1..])
+        let (axis, digits) = id_1_1.split_at("blake3:".len());
+        let first = if digits.starts_with('0') { "1" } else { "0" };
+        format!("{axis}{first}{}", &digits[1..])
     };
     assert_ne!(other, id_1_1);
     plant(

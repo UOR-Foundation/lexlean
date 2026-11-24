@@ -91,7 +91,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "SHA-256 appears in LexLean only where a format LexLean does not own requires" (cons "it: the release's `checksums.txt` and `MANIFEST.sha256` (`sha256sum` and" (cons "crates.io, §30.3), the digest the Lean release's publisher states for its bytes" (cons "(`model/authorities.toml`), and the standard library's `Sha256` module, which is" (cons "a function LexLean offers and never an identity it computes. `audit-hashes`" (cons "refuses any other (`AR-15`)." (nil String)))))))
+      (cons "SHA-256 appears in LexLean only where a format LexLean does not own requires" (cons "it: the release's `checksums.txt` and `MANIFEST.sha256` (`sha256sum` and" (cons "crates.io, §30.3), the digest the Lean release's publisher states for its bytes" (cons "(`model/authorities.toml`), the differential oracle's pin of an external" (cons "checkout (§17.19), and the standard library's `Sha256` module, which is a" (cons "function LexLean offers and never an identity it computes. `audit-hashes`" (cons "refuses any other (`AR-15`)." (nil String))))))))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -130,7 +130,7 @@ definition{
   body: constructor{
     arguments: [
       "toml",
-      (cons "spec = \"lexlean/compiler-semantics/1\"" (cons "language = \"1.0\"" (cons "project_schema = \"lexlean/project/2\"" (cons "lock_schema = \"lexlean/lock/3\"" (cons "lexicon_schema = \"lexlean/lexicon/1\"" (cons "entry_schema = \"lexlean/entry/1\"" (cons "lean_backend = \"3\"" (cons "latex_backend = \"2\"" (cons "proof_lowering = \"1\"" (cons "axiom_parser = \"lean-4.32.1/2\"" (cons "canonical_json = \"1\"" (nil String))))))))))))
+      (cons "spec = \"lexlean/compiler-semantics/1\"" (cons "language = \"1.0\"" (cons "project_schema = \"lexlean/project/2\"" (cons "lock_schema = \"lexlean/lock/3\"" (cons "lexicon_schema = \"lexlean/lexicon/1\"" (cons "entry_schema = \"lexlean/entry/1\"" (cons "lean_backend = \"3\"" (cons "latex_backend = \"2\"" (cons "proof_lowering = \"1\"" (cons "axiom_parser = \"lean-4.32.2/2\"" (cons "canonical_json = \"1\"" (nil String))))))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -318,7 +318,7 @@ definition{
   body: constructor{
     arguments: [
       "text",
-      (cons "KAPPA(" (cons "  \"lexlean-semantic-v2\\0\"" (cons "  || frame(\"compiler-semantics\", compiler_semantics_label)" (cons "  || frame(\"language\", \"1.0\")" (cons "  || frame(\"toolchain\", \"leanprover/lean4:v4.32.1\")" (cons "  || frame(\"linked-ir\", canonical_linked_ir_json)" (cons "  || frame(\"lexicon-closure\", canonical_linked_lexicon_json)" (cons ")" (nil String)))))))))
+      (cons "KAPPA(" (cons "  \"lexlean-semantic-v2\\0\"" (cons "  || frame(\"compiler-semantics\", compiler_semantics_label)" (cons "  || frame(\"language\", \"1.0\")" (cons "  || frame(\"toolchain\", \"leanprover/lean4:v4.32.2\")" (cons "  || frame(\"linked-ir\", canonical_linked_ir_json)" (cons "  || frame(\"lexicon-closure\", canonical_linked_lexicon_json)" (cons ")" (nil String)))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -491,7 +491,7 @@ definition{
   body: constructor{
     arguments: [
       "json",
-      (cons "{" (cons "  \"spec\": \"lexlean/build-manifest/2\"," (cons "  \"compiler\": {" (cons "    \"version\": \"1.0.0\"," (cons "    \"semantics_id\": \"...\"" (cons "  }," (cons "  \"language\": \"1.0\"," (cons "  \"project\": \"example-project\"," (cons "  \"source_id\": \"...\"," (cons "  \"semantic_id\": \"...\"," (cons "  \"build_id\": \"...\"," (cons "  \"lean_toolchain\": \"leanprover/lean4:v4.32.1\"," (cons "  \"selection\": []," (cons "  \"modules\": []," (cons "  \"inputs\": []," (cons "  \"outputs\": []" (cons "}" (nil String))))))))))))))))))
+      (cons "{" (cons "  \"spec\": \"lexlean/build-manifest/2\"," (cons "  \"compiler\": {" (cons "    \"version\": \"1.0.0\"," (cons "    \"semantics_id\": \"...\"" (cons "  }," (cons "  \"language\": \"1.0\"," (cons "  \"project\": \"example-project\"," (cons "  \"source_id\": \"...\"," (cons "  \"semantic_id\": \"...\"," (cons "  \"build_id\": \"...\"," (cons "  \"lean_toolchain\": \"leanprover/lean4:v4.32.2\"," (cons "  \"selection\": []," (cons "  \"modules\": []," (cons "  \"inputs\": []," (cons "  \"outputs\": []" (cons "}" (nil String))))))))))))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -718,7 +718,7 @@ definition{
   body: constructor{
     arguments: [
       "text",
-      (cons "group_digest(G) = KAPPA(" (cons "  \"lexlean-declaration-group-v2\u0000\"" (cons "  || frame(\"compiler-semantics\", compiler_semantics_label)" (cons "  || frame(\"language\", \"1.2\")" (cons "  || frame(\"toolchain\", \"leanprover/lean4:v4.32.1\")" (cons "  || for each member of G in (module, name) order:" (cons "       frame(\"declaration\", canonical_declaration_json)" (cons "  || for each reference from a member of G to a declaration outside G," (cons "     once each, in (module, name) order:" (cons "       [frame(\"reference-module\", module_utf8), when it is another module's]" (cons "       || frame(\"reference\", name_utf8)" (cons "       || frame(\"reference-id\", declaration_id_label)" (cons ")" (cons "" (cons "declaration_id(D in G) = KAPPA(" (cons "  \"lexlean-declaration-v2\u0000\"" (cons "  || frame(\"group\", group_digest(G))" (cons "  || frame(\"name\", name_utf8)" (cons ")" (nil String))))))))))))))))))))
+      (cons "group_digest(G) = KAPPA(" (cons "  \"lexlean-declaration-group-v2\u0000\"" (cons "  || frame(\"compiler-semantics\", compiler_semantics_label)" (cons "  || frame(\"language\", \"1.2\")" (cons "  || frame(\"toolchain\", \"leanprover/lean4:v4.32.2\")" (cons "  || for each member of G in (module, name) order:" (cons "       frame(\"declaration\", canonical_declaration_json)" (cons "  || for each reference from a member of G to a declaration outside G," (cons "     once each, in (module, name) order:" (cons "       [frame(\"reference-module\", module_utf8), when it is another module's]" (cons "       || frame(\"reference\", name_utf8)" (cons "       || frame(\"reference-id\", declaration_id_label)" (cons ")" (cons "" (cons "declaration_id(D in G) = KAPPA(" (cons "  \"lexlean-declaration-v2\u0000\"" (cons "  || frame(\"group\", group_digest(G))" (cons "  || frame(\"name\", name_utf8)" (cons ")" (nil String))))))))))))))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -747,7 +747,7 @@ definition{
   body: constructor{
     arguments: [
       "text",
-      (cons "statement_id(T) = KAPPA(" (cons "  \"lexlean-statement-v2\u0000\"" (cons "  || frame(\"compiler-semantics\", compiler_semantics_label)" (cons "  || frame(\"language\", \"1.2\")" (cons "  || frame(\"toolchain\", \"leanprover/lean4:v4.32.1\")" (cons "  || frame(\"statement\", canonical_declaration_json_without_proof)" (cons "  || for each reference of that JSON, other than T itself, in (module, name)" (cons "     order, framed as for a group" (cons ")" (nil String))))))))))
+      (cons "statement_id(T) = KAPPA(" (cons "  \"lexlean-statement-v2\u0000\"" (cons "  || frame(\"compiler-semantics\", compiler_semantics_label)" (cons "  || frame(\"language\", \"1.2\")" (cons "  || frame(\"toolchain\", \"leanprover/lean4:v4.32.2\")" (cons "  || frame(\"statement\", canonical_declaration_json_without_proof)" (cons "  || for each reference of that JSON, other than T itself, in (module, name)" (cons "     order, framed as for a group" (cons ")" (nil String))))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []

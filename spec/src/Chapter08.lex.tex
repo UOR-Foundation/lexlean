@@ -98,7 +98,7 @@ definition{
   parameters: [],
   result: DocRows::Item,
   body: constructor{
-    arguments: ["text", (cons "leanprover/lean4:v4.32.1" (nil String))],
+    arguments: ["text", (cons "leanprover/lean4:v4.32.2" (nil String))],
     constructor: DocRows::Item.fence,
     type_arguments: []
   },
@@ -136,7 +136,7 @@ definition{
   parameters: [],
   result: DocRows::Item,
   body: constructor{
-    arguments: ["text", (cons "f054605aea4b840552cca2e725580bffd1e1b704" (nil String))],
+    arguments: ["text", (cons "f3b06c705e6c85f5314019d5d3baab0fec5b580c" (nil String))],
     constructor: DocRows::Item.fence,
     type_arguments: []
   },
@@ -149,7 +149,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "LexLean MUST reject a verification environment whose reported Lean version is not 4.32.1. The verification attestation records the κ-label of the actual `lean`, `lake`, and `leanchecker` executables used, so platform-specific executable bytes do not need to be assumed identical." (nil String))
+      (cons "LexLean MUST reject a verification environment whose reported Lean version is not 4.32.2. The verification attestation records the κ-label of the actual `lean`, `lake`, and `leanchecker` executables used, so platform-specific executable bytes do not need to be assumed identical." (nil String))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -203,7 +203,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "`ci.yml` checks these hosts in every run that is the whole gate (§9.4). The normative full verification and reproducibility gate runs on Linux x86-64. The Linux AArch64 and macOS AArch64 legs each run one `cargo test --locked --workspace --all-features --no-fail-fast`, which builds the library and binary in the same locked, all-features test profile and reports every failing test binary rather than stopping at the first. These two legs are unchanged by the partitions below. Each execution job MUST check the actual Rust host triple against the host it claims. Other hosts produce platform-bound attestations and MUST obey the same source, manifest, and policy formats." (nil String))
+      (cons "`ci.yml` checks these hosts in every run that is the whole gate (§9.4), except macOS x86-64 on a pull request into a release line that is not a release cut, which the push that lands it checks instead (§9.4). The normative full verification and reproducibility gate runs on Linux x86-64. The Linux AArch64 leg runs one `cargo test --locked --workspace --all-features --no-fail-fast`, which builds the library and binary in the same locked, all-features test profile and reports every failing test binary rather than stopping at the first. This leg is unchanged by the partitions below. Each execution job MUST check the actual Rust host triple against the host it claims. Other hosts produce platform-bound attestations and MUST obey the same source, manifest, and policy formats." (nil String))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -245,7 +245,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "The aggregate MUST require the construction result and exactly one successful receipt for each committed lane, reject missing, duplicate, foreign, changed, failed or incomplete evidence, and run even when a prerequisite failed or was cancelled so absence cannot become success. Its check context MUST remain exactly `build and non-Lean tests (x86_64-apple-darwin)`. The other auxiliary contexts remain exactly `build and non-Lean tests (aarch64-unknown-linux-gnu)`, `build and non-Lean tests (aarch64-apple-darwin)` and `build and non-Lean tests (x86_64-pc-windows-msvc)`. Previous-run and release evidence MUST require each of these four exact contexts once, not infer complete coverage from the number of matrix rows or accept a partition context in place of a host. The partition changes scheduling and custody only: it reduces no test, changes no assertion or corpus, and raises no host timeout." (nil String))
+      (cons "The aggregate MUST require the construction result and exactly one successful receipt for each committed lane, reject missing, duplicate, foreign, changed, failed or incomplete evidence, and run even when a prerequisite failed or a lane was cancelled so absence cannot become success; only the cancellation of the whole run, which a newer push to the same pull request makes and which leaves no evidence, skips it. Its check context MUST remain exactly `build and non-Lean tests (x86_64-apple-darwin)`. The other auxiliary contexts remain exactly `build and non-Lean tests (aarch64-unknown-linux-gnu)`, `build and non-Lean tests (aarch64-apple-darwin)` and `build and non-Lean tests (x86_64-pc-windows-msvc)`. Previous-run and release evidence MUST require each of these four exact contexts once and passed, a skipped Intel context being absent evidence, not infer complete coverage from the number of matrix rows or accept a partition context in place of a host. The partition changes scheduling and custody only: it reduces no test, changes no assertion or corpus, and raises no host timeout." (nil String))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -259,7 +259,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "On Windows x86-64 that same complete workspace test workload runs as lanes of one run (`.github/scripts/host_lanes.py`): the conformance lanes of `.github/intel-host-lanes.json`, each running the conformance harness with that lane's filters, and a `producer` lane running every other test target of the workspace, the `repo-conformance` library, `bdd` meta target and other integration targets among them, and every doctest. Each lane is a job of its own clean checkout that builds with the pinned toolchain, locked dependencies, all features and the default test profile, checks its host triple, and records the commit, tree, run and attempt, the harness's listing, the producer's listing of the whole workspace, and every test it executed. The aggregate, whose check context remains exactly `build and non-Lean tests (x86_64-pc-windows-msvc)`, runs even when a lane failed or was cancelled, and passes only with exactly one passing receipt for each lane of the run and commit, lanes that listed the same harness, and executed tests whose union is the whole listing with each test once. It reduces no test, changes no assertion, and raises no host timeout." (nil String))
+      (cons "On Windows x86-64 and on macOS AArch64 that same complete workspace test workload runs, for each of the two hosts, as lanes of one run (`.github/scripts/host_lanes.py`): the conformance lanes of `.github/intel-host-lanes.json`, each running the conformance harness with that lane's filters, and a `producer` lane running every other test target of the workspace, the `repo-conformance` library, `bdd` meta target and other integration targets among them, and every doctest. Each lane is a job of its own clean checkout that builds with the pinned toolchain, locked dependencies, all features and the default test profile, checks its host triple, and records the commit, tree, run and attempt, the harness's listing, the producer's listing of the whole workspace, and every test it executed. Each host's aggregate, whose check context remains exactly `build and non-Lean tests (x86_64-pc-windows-msvc)` or `build and non-Lean tests (aarch64-apple-darwin)`, runs even when a lane failed or was cancelled, and passes only with exactly one passing receipt of that host for each lane of the run and commit, lanes that listed the same harness, and executed tests whose union is the whole listing with each test once. It reduces no test, changes no assertion, and raises no host timeout." (nil String))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -286,6 +286,20 @@ definition{
   parameters: [],
   result: DocRows::Item,
   body: constructor{
+    arguments: [
+      (cons "The `lexlean` executable MUST also build for `wasm32-wasip1` with the pinned toolchain, so that `check` runs where a WASI host is the only host, such as a browser worker over a file system held in memory. Run by a WASI host, `check` MUST give the native executable's exit code and JSON output on the same project. WASI has no threads, no file lock, and no processes, and three things follow on that target alone. The check pipeline runs on the instance's one stack rather than on a thread, and the executable is linked with the stack `Limits::compile_stack_plan` plans on there, `lexlean::config::WASI_STACK_BYTES` (80 MiB, which hosts a depth of 1,024), so nesting beyond the configured or the hosted depth is `LLS8002` as on every host (§25.5). The host supplies the rest of the instance's call stack; Node 22's default is sufficient at the hosted depth, and a host whose call stack ends sooner stops the instance with a trap, which is never a verdict. An embedder that links the library into a module of its own links it with at least that stack. A command that changes the project is refused with `LLV7010` before it touches the project, since the exclusive lock of §21.8 cannot be taken; `check` takes no lock. `verify` starts no toolchain process. A file's identity (§25.1) is the device and inode WASI reports for it, so a host that gives one file two names is refused with `LLC0104` there as well. `snapshot` (§23.4) runs there too and prints the native executable's bytes, since a snapshot holds no path or host data (`CL-26`). `lean-modules` (§23.4) runs there too and prints the native executable's bytes, so a host that cannot run `build` gets the exact Lean modules `build` would publish and elaborates them with the pinned toolchain itself (`CL-27`); the rendering it runs is on the instance's one stack as well, and a native core module deeper than that stack holds is `LLS8002`. `CL-25` builds the executable for the target from the tree under test and runs it under Node's `node:wasi`, over the real file system, beside the native executable on every single-step `check` fixture of §28.2 that sets no toolchain, overlay, or environment, and on every example." (nil String))
+    ],
+    constructor: DocRows::Item.para,
+    type_arguments: []
+  },
+  executable: true
+}
+
+definition{
+  name: i0023,
+  parameters: [],
+  result: DocRows::Item,
+  body: constructor{
     arguments: [3, 1, "8.4 Cargo dependency rules"],
     constructor: DocRows::Item.heading,
     type_arguments: []
@@ -294,7 +308,7 @@ definition{
 }
 
 definition{
-  name: i0023,
+  name: i0024,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -308,7 +322,7 @@ definition{
 }
 
 definition{
-  name: i0024,
+  name: i0025,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -320,7 +334,7 @@ definition{
 }
 
 definition{
-  name: i0025,
+  name: i0026,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -334,7 +348,7 @@ definition{
 }
 
 definition{
-  name: i0026,
+  name: i0027,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -348,7 +362,7 @@ definition{
 }
 
 definition{
-  name: i0027,
+  name: i0028,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -362,12 +376,12 @@ definition{
 }
 
 definition{
-  name: i0028,
+  name: i0029,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "| Dependency | Role |" (cons "| --- | --- |" (cons "| `camino` | UTF-8 path handling |" (cons "| `clap` | CLI parsing |" (cons "| `fs4` | file locking |" (cons "| `rustix` | process-group signalling (`kill` of a group, without an external `kill`; safe wrappers, the crate forbids unsafe code) |" (cons "| `same-file` | file identity |" (cons "| `semver` | semantic-version parsing |" (cons "| `serde` | JSON and TOML deserialization and serialization |" (cons "| `serde_json` | JSON parsing and serialization |" (cons "| `signal-hook` | interrupt handling (SIGINT, SIGTERM, SIGHUP, SIGQUIT end the live child process groups; §17.17) |" (cons "| `tempfile` | temporary directories |" (cons "| `toml` | TOML parsing |" (cons "| `unicode-normalization` | Unicode NFC normalization |" (cons "| `walkdir` | directory walking |" (nil String))))))))))))))))
+      (cons "| Dependency | Role |" (cons "| --- | --- |" (cons "| `camino` | UTF-8 path handling |" (cons "| `clap` | CLI parsing |" (cons "| `fs4` | file locking (every target but WASI, which has no file lock; §8.3) |" (cons "| `rustix` | process-group signalling (`kill` of a group, without an external `kill`; safe wrappers, the crate forbids unsafe code), and file identity on WASI (the device and inode of `stat`; §8.3) |" (cons "| `same-file` | file identity (every target but WASI, where it refuses every path; §8.3) |" (cons "| `semver` | semantic-version parsing |" (cons "| `serde` | JSON and TOML deserialization and serialization |" (cons "| `serde_json` | JSON parsing and serialization |" (cons "| `signal-hook` | interrupt handling (SIGINT, SIGTERM, SIGHUP, SIGQUIT end the live child process groups; §17.17) |" (cons "| `tempfile` | temporary directories |" (cons "| `toml` | TOML parsing |" (cons "| `unicode-normalization` | Unicode NFC normalization |" (cons "| `walkdir` | directory walking |" (nil String))))))))))))))))
     ],
     constructor: DocRows::Item.table,
     type_arguments: []
@@ -376,7 +390,7 @@ definition{
 }
 
 definition{
-  name: i0029,
+  name: i0030,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -390,7 +404,7 @@ definition{
 }
 
 definition{
-  name: i0030,
+  name: i0031,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -404,7 +418,7 @@ definition{
 }
 
 definition{
-  name: i0031,
+  name: i0032,
   parameters: [],
   result: DocRows::Item,
   body: constructor{

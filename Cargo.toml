@@ -32,21 +32,21 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["unbounded_depth"] }
 # The oracles of the compiler's κ-label (SPEC.md §21.1, `SL-06`): the reference
 # BLAKE3 in the release the Hologram workspace and uor-addr lock, and uor-addr's
-# `blake3` σ-axis, which Hologram's store re-derives. They may falsify the
+# `blake3` σ-axis (below), which Hologram's store re-derives. They may falsify the
 # certified package and never establish it. Dev and CI only, through
 # `repo-conformance` and `repo-model`; never a dependency of a shipped crate.
 blake3 = "=1.5.5"
-uor-addr = { version = "=0.2.0", default-features = false, features = ["std"] }
 sha2 = "0.10"
 signal-hook = { version = "0.3", default-features = false, features = ["iterator"] }
 tempfile = "3"
 thiserror = "2"
 toml = "0.8"
 unicode-normalization = "0.1"
-# The oracle of the `kappa` package (SPEC.md §17.22, `KA-02`..`KA-08`): the JSON,
-# GGUF, and ONNX realizations; `gguf` and `onnx` add only `uor-prism-tensor`
-# (MIT), already in the graph through `uor-prism`. Dev and CI only, through
-# `repo-conformance`; never a dependency of a shipped crate.
+# uor-addr is also the oracle of the `kappa` package (SPEC.md §17.22,
+# `KA-02`..`KA-08`): the JSON, GGUF, and ONNX realizations; `gguf` and `onnx`
+# add only `uor-prism-tensor` (MIT), already in the graph through `uor-prism`.
+# Dev and CI only, through `repo-conformance` and `repo-model`; never a
+# dependency of a shipped crate.
 uor-addr = { version = "=0.2.0", default-features = false, features = ["std", "gguf", "onnx"] }
 walkdir = "2"
 
