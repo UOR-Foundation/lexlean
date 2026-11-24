@@ -94,11 +94,11 @@ whole_gate_passed() {
     printf '%s\n' "$jobs" | grep -P "^\Q$job\E\tsuccess\t" >/dev/null || return 1
   done
 }
-old_jobs_of {
+old_jobs_of() {
   gh api "repos/$repo/actions/runs/$1/jobs?per_page=100" --paginate \
     --jq '.jobs[] | "\(.name)\t\(.conclusion)\t\(.started_at)\t\(.completed_at)"' 2>/dev/null || true
 }
-fixed_jobs_of {
+fixed_jobs_of() {
   ci_provider_read "repos/$repo/actions/runs/$1/jobs?per_page=50" --paginate \
     --jq '.jobs[] | "\(.name)\t\(.conclusion)\t\(.started_at)\t\(.completed_at)"' || true
 }
