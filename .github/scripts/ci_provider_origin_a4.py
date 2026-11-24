@@ -66,9 +66,9 @@ def pinned_policy(policy):
                 isinstance(v, str) and v and len(v) < 100
                 for k, v in hosts.items()), "untrusted expected job names or hosts")
     require(isinstance(artifacts, list) and len(artifacts) <= MAX_ARTIFACTS and
-            len(set(artifacts)) == len(artifacts) and
             all(isinstance(a, str) and a and len(a) < 300
-                for a in artifacts), "untrusted artifact name inventory")
+                for a in artifacts) and
+            len(set(artifacts)) == len(artifacts), "untrusted artifact name inventory")
     return policy
 
 
@@ -178,7 +178,10 @@ def verified_metadata(policy, run, jobs, artifacts):
         "origin_conclusion": run["conclusion"],
         "jobs": {key: observed[key] for key in sorted(observed)},
         "artifacts": sorted(verified_artifacts, key=lambda a: a["name"]),
-        "job_inventory_complete": True, "artifact_inventory_complete": True,
+        "declared_job_inventory_matched": True,
+        "declared_artifact_inventory_matched": True,
+        "provider_pages_checked_live": False,
+        "expected_inventory_trust": "CALLER_DECLARED_NOT_GOVERNED",
         "source_dependency_closure": "NOT_PROVEN",
         "artifact_producer_binding": "NOT_PROVEN_BY_REST",
         "artifact_archive_byte_digest": "NOT_VERIFIED",
@@ -269,7 +272,14 @@ def fetch_live(policy, token, reader=live_json):
         pages("artifacts", MAX_ARTIFACTS))
     # Only this trusted read-only API path claims live observation. STILL no
     # authority to reuse old-HEAD test evidence on current HEAD.
-    observations["origin_transport"] = "GITHUB_REST_LIVE_READ_ONLY"
+    if reader is live_json:
+        observations["origin_transport"] = "GITHUB_REST_LIVE_READ_ONLY"
+        observations["provider_pages_checked_live"] = True
+    else:
+        # A stubbed or injected reader can test validation, but cannot
+        # assert that GitHub supplied these records.
+        observations["origin_transport"] = "INJECTED_READER_UNVERIFIED"
+        observations["provider_pages_checked_live"] = False
     return observations
 
 

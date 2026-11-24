@@ -169,7 +169,10 @@ class OriginMetadataContract(unittest.TestCase):
                 return {"total_count": 1, "artifacts": arts}
             return r
         got = a4.fetch_live(p, "testtoken" * 3, reader=get)
-        self.assertEqual(got["origin_transport"], "GITHUB_REST_LIVE_READ_ONLY")
+        self.assertEqual(got["origin_transport"], "INJECTED_READER_UNVERIFIED")
+        self.assertFalse(got["provider_pages_checked_live"])
+        self.assertEqual(got["expected_inventory_trust"],
+                         "CALLER_DECLARED_NOT_GOVERNED")
         self.assertEqual(len(seen), 3)
         self.assertTrue(all(url.startswith("https://api.github.com/repos/UOR-Foundation/lexlean/actions/runs/")
                             for url in seen))
@@ -197,6 +200,26 @@ class OriginMetadataContract(unittest.TestCase):
                     a4.live_json(url, "token" * 10)
         with self.assertRaisesRegex(a4.Hold, "redirect"):
             a4.NoRedirect().redirect_request(None, None, 302, "Found", {}, "https://evil.com")
+
+    def test_unhashable_artifact_policy_is_hold_not_exception(self):
+        p, run, jobs, artifacts = fixture()
+        p["artifact_names"] = [{"name": "bad"}]
+        with self.assertRaisesRegex(a4.Hold, "artifact name"):
+            a4.verified_metadata(p, run, jobs, artifacts)
+
+    def test_injected_reader_cannot_claim_live_provider(self):
+        p, run, jobs, artifacts = fixture()
+        def injected(url, token):
+            if "/jobs?" in url:
+                return {"total_count": 2, "jobs": jobs}
+            if "/artifacts?" in url:
+                return {"total_count": 1, "artifacts": artifacts}
+            return run
+        result = a4.fetch_live(p, "synthetic", reader=injected)
+        self.assertEqual(result["origin_transport"],
+                         "INJECTED_READER_UNVERIFIED")
+        self.assertFalse(result["provider_pages_checked_live"])
+        self.assertFalse(result["release_or_current_head_authority"])
 
     def test_no_auth_token_or_invalid_json_is_rejected(self):
         with self.assertRaisesRegex(a4.Hold, "credential"):

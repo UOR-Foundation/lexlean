@@ -14,6 +14,12 @@ unexpected workflows and expired/missing/invalid artifact digests. A failed
 origin run may contain successful individual jobs; only completed-success
 jobs can be *candidates* for later scrutiny. Every other result is negative.
 
+**Adversarial clarification:** a mock/injected reader is explicitly tagged
+INJECTED_READER_UNVERIFIED, never GITHUB_REST_LIVE_READ_ONLY.
+"Complete inventory" in the report means only that a caller's declared
+job/artifact names match, not that the user-supplied policy is an authoritative
+normative detector roster. Even the real API path has no cross-HEAD authority.
+
 **Critical limitations:** A GitHub REST artifact.digest is a provider claim
 about the archive, not a locally checked ZIP hash. The artifacts endpoint
 does not itself bind a particular upload job to that artifact. Run and job
