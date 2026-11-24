@@ -177,6 +177,7 @@ jobs:
           python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_provider_read.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_plan_provider_retry.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_summarize_host_samples.py'
       # Stale generated files fail here in minutes, before the expensive
       # roots: every input a committed build oracle records, every lock, and
       # every committed export package must be current (§9.4). No Lean.
@@ -1367,7 +1368,20 @@ jobs:
       # fails, so a host with two independent failures reports one, and each
       # further one costs a whole run of the leg. The job fails exactly when a
       # test fails, as before; only what it reports is complete (SPEC.md §8.3).
-      - run: cargo test --locked --workspace --all-features --no-fail-fast
+      # Evidence for #603 DOD-7a, never a gate: the host's CPU and memory every
+      # five seconds while the tests run, summarized after them. The step's
+      # status is cargo's alone; the sampler's cannot reach it.
+      - name: Test the workspace on this host
+        shell: bash
+        run: |
+          bash .github/scripts/sample-host.sh "$RUNNER_TEMP/host-resources.tsv" &
+          sampler=$!
+          status=0
+          cargo test --locked --workspace --all-features --no-fail-fast || status=$?
+          kill "$sampler" 2>/dev/null || true
+          wait "$sampler" 2>/dev/null || true
+          python3 .github/scripts/summarize_host_samples.py "$RUNNER_TEMP/host-resources.tsv" || true
+          exit "$status"
 
   # Construct Intel workspace tests once, then keep ordinary tests, every
   # non-conformance harness, and all doctests on their original runner. The

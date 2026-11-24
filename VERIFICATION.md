@@ -21907,3 +21907,23 @@ wall time is modeled unchanged. Runner queueing under the shared pool can
 move both figures. No CI run of this change was made. One effect is not a
 saving: when the export fails, these legs no longer run at all, so a case of
 theirs that does not need the export no longer reports in that run.
+
+## The host matrix samples its own CPU and memory while it tests (evidence, #603 DOD-7a)
+
+DOD-7 needs each host's CPU use and memory pressure during `cargo test`, and no
+job recorded them: only the Linux x86-64 legs sample memory. The host matrix's
+one test step now runs `.github/scripts/sample-host.sh` beside the tests (one
+row every five seconds: CPU busy share, available memory, swap in use, largest
+resident set; `/proc` on Linux, `top`/`vm_stat`/`sysctl` on macOS) and prints
+`summarize_host_samples.py`'s one-line summary to the log and the step summary.
+It decides nothing: the step's status is cargo's alone, and RP-14 pins the step
+as exactly that program. A stubbed `cargo` exiting 101 gave a step exit of 101
+with the sampler stopped.
+
+| Planted defect | Refused by |
+| --- | --- |
+| `exit 0` in place of `exit "$status"` | `conformance_rp_14`: the host matrix's test step propagates cargo's status and nothing else |
+| `|| true` in place of `|| status=$?` | `conformance_rp_14` (same) |
+| `continue-on-error: true` on the step | `conformance_rp_14` (same) |
+| an `exit 0` before the tests | `conformance_rp_14` (same) |
+| a summary that fails on missing or empty samples | `test_summarize_host_samples.py` |

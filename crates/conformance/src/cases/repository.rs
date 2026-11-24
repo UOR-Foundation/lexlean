@@ -2762,10 +2762,17 @@ pub(crate) fn run(id: &str) {
             let matrix = job("host-matrix");
             assert_eq!(
                 matrix
-                    .matches("cargo test --locked --workspace --all-features --no-fail-fast\n")
+                    .matches("cargo test --locked --workspace --all-features --no-fail-fast")
                     .count(),
                 1,
                 "the host matrix runs the workspace's tests once, and reports every failing test of the host, not the first binary's"
+            );
+            // The host sampler (#603 DOD-7a) is evidence beside the tests: the
+            // step is exactly this program, so its status is cargo's alone and
+            // no sampler failure, summary failure or added line can mask it.
+            assert!(
+                matrix.contains(HOST_TEST_STEP) && !matrix.contains("continue-on-error"),
+                "the host matrix's test step propagates cargo's status and nothing else"
             );
             // The honesty and reproducibility workflows stay separate.
             let honesty = job("honesty");
@@ -4856,6 +4863,22 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
     }
     Ok(())
 }
+
+/// The host matrix's one test step (#603 DOD-7a): the workspace's tests beside
+/// a resource sampler whose status cannot reach the step's.
+const HOST_TEST_STEP: &str = concat!(
+    "      - name: Test the workspace on this host\n",
+    "        shell: bash\n",
+    "        run: |\n",
+    "          bash .github/scripts/sample-host.sh \"$RUNNER_TEMP/host-resources.tsv\" &\n",
+    "          sampler=$!\n",
+    "          status=0\n",
+    "          cargo test --locked --workspace --all-features --no-fail-fast || status=$?\n",
+    "          kill \"$sampler\" 2>/dev/null || true\n",
+    "          wait \"$sampler\" 2>/dev/null || true\n",
+    "          python3 .github/scripts/summarize_host_samples.py \"$RUNNER_TEMP/host-resources.tsv\" || true\n",
+    "          exit \"$status\"\n",
+);
 
 /// Claim drift must finish successfully before a costly root can start.
 fn honesty_dependencies(ci: &str) -> Result<(), String> {
