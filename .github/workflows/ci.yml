@@ -193,6 +193,10 @@ jobs:
         run: |
           python3 -m unittest discover -s .github/scripts -p 'test_intel_host_tests.py'
           python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'
+      # The forward merge runs only on a push to a release line, where a
+      # defect surfaces as a missing pull request; its cases run here (#600).
+      - name: Test the forward merge of a release line
+        run: bash .github/scripts/test-forward-merge.sh
       # Stale generated files fail here in minutes, before the expensive
       # roots: every input a committed build oracle records, every lock, and
       # every committed export package must be current (§9.4). No Lean.

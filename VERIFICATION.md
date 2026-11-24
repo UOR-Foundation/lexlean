@@ -15590,3 +15590,54 @@ own; no case's assertion changes. The part runs in the Intel and Windows
 `moves` lane, which held them as part of `rest`, so no host lane's work
 changes, and `check-test-inventory` still requires the parts to be disjoint
 and complete (RP-13).
+
+## The forward merge listed its conflicts while it resolved them (#600, 2026-11-24)
+
+Every `forward.yml` run on `release/v0.4` since run 45087014994 failed
+before it committed or opened a pull request; run 45461480494 (v0.4
+`d553cbf4` into v0.5 `471237b3`, 4,136 conflicted paths) ended 71 s after
+the merge with `fatal: Unable to create '.git/index.lock': File exists`
+(exit 128). The conflict loop read porcelain `git diff --name-only
+--diff-filter=U` through a process substitution and wrote the index once per
+path while that `git diff` was still running. Porcelain `git diff` refreshes
+the index when it finds stat-dirty entries whose content is unchanged, which
+the entries a merge smudges as racily clean are, and takes `index.lock` to do
+it after its last output: once the loop had read all but the last pipe buffer
+of names, the refresh held the lock and the loop's next `git checkout` was
+refused. The lock is the listing's own and is gone when it exits, which is
+why a replay found none. `GIT_OPTIONAL_LOCKS=0` does not suppress the
+refresh (observed with Git 2.55); plumbing `git diff-files` never writes the
+index. Reproduced on this host with 3,000 conflicted paths and 300 stat-dirty
+2 MB files: the original loop failed at path 2,038 with the same message
+and left no lock.
+
+The script now lists the conflicts with `git diff-files -z` into a file,
+read whole before the index is written (a failed listing stops the run
+instead of reading as no conflicts), and restores each side with one
+`git checkout --pathspec-from-file` and one `git rm --pathspec-from-file`.
+The directories `calculus::GENERATED_DIRECTORIES` names
+(`compiler/{certificates,fixtures,gnaf,rust}`, `language/lcnf-1.2/tooling`)
+take the next line's side: `calculus-write`, which regenerate's `oracles`
+writer runs with the pinned Lean, writes every file in them and deletes any
+other. In that run 351 conflicts were under `compiler/rust/`.
+
+`.github/scripts/test-forward-merge.sh` runs the script against a scratch
+origin with `gh` and `cargo` recorded, in the honesty job, and `RP-14`
+requires that step, the plumbing listing, no porcelain listing read through
+a pipe, and a pattern for every generated directory. Its four cases, with
+the defect each was seen to catch (`FORWARD_MERGE=<plant>`):
+
+| Case | Plant | Observed |
+| --- | --- | --- |
+| `clean` | `git checkout HEAD -- .` before `git add --all` (the line's side dropped) | `v0.4's change is not carried` |
+| `generated` | the `compiler/...` pattern removed | `generated-only conflicts are not clean`, opened as a draft; `RP-14`: `forward-merge.sh has compiler/rust/*` |
+| `source` | `draft=()` for an unclean merge | `an authored conflict was not opened as a draft` |
+| `source` | every path generated (`*) return 0`) | reported clean, not a draft, `src/main.rs` and `src/dropped.rs` not named |
+| `lock` | the listing read by `while read … < <(git diff -z …)` while writing | exit 128, `Unable to create '…/index.lock': File exists`; `RP-14`: `forward-merge.sh has git diff-files …` |
+| all | the script as it was at `d553cbf4` | `generated` and `lock` fail as above, the latter with the message of run 45461480494 |
+| (RP-14) | the honesty step removed from `ci.yml` | `the honesty job runs the forward merge's behavioral tests` |
+
+The `lock` case's `git` holds `index.lock` for two seconds after a listing
+(`diff`, `diff-files`) prints, as the refresh does, and fails closed if that
+never happened (`the listing never held index.lock: the case tested
+nothing`).
