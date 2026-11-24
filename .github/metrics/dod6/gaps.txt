@@ -1,0 +1,54 @@
+**Billing.**
+- No billed usage was obtained. The repository is public, so standard hosted minutes are not metered per minute. Organisation and enterprise billing endpoints were not read (they need admin scope), and per-run `/timing` was not sampled in this pass; an earlier #606 sample reported 0 billable ms.
+- Every dollar figure here is MODELED list price for a private-repository equivalent.
+
+**The BEFORE recomputation differs from the published 88,298.354 by -527.6 min.**
+- The whole difference sits in three cancelled `ci` runs: 43592465105 (#431), 43624887562 (#535) and 44269465823 (#567).
+- Each has jobs with `runner_id: 0`, an empty `runner_name` and no steps, which means a queued request that never received a runner.
+- One example: `Intel conformance (print)` in 43592465105 waited on `macos-15-intel` from 15:04:58Z to 20:02:39Z, about 298 min.
+- The published corrected baseline counts these waits as runner time. This collector does not, because they are queue wait rather than execution.
+- The PR list and the run IDs are unchanged. Only the executed-only accounting rule differs. Choose one rule deliberately before freezing BEFORE.
+
+**Nonterminal at collection.** These runs' minutes are lower bounds:
+- B2 combined #609 CI 45490646681 was in progress, with 26 jobs executed and 17 placeholders.
+- #614's post-merge push CI 45461480630 on release/v0.4 was in progress, with 90 jobs executed.
+- B2 therefore has no terminal full gate. B2 latency, cost and parity are not yet measurable.
+
+**Phase marker approximations.**
+- Phase is decided by ancestry of marker commits. Earlier draft revisions of #619 do not contain its final head `bd80fa37`, so they are labelled A even though their merge-ref workflow already carried draft suppression. That is the `release/v0.5|A` zero-allocation row.
+- A `pull_request` run's base tip is approximated by the first-parent commit before the run was created, using committer date.
+
+**B1 full gates are not cheaper than A full gates.**
+- Median full-gate `ci` minutes (MEASURED):
+
+  | Gate | Median min | n |
+  | --- | ---: | ---: |
+  | BEFORE cohort | 1,746 | 50 |
+  | Window A, release/v0.5 | 2,095 | |
+  | Window A, release/v0.4 | 1,330 | |
+  | B1 | 2,616 | 3 |
+
+- The workload, the job roster and the source revisions all differ. The B1 mechanisms save minutes by not executing: draft suppression, plan-only post-merge reuse and targeted retry. They do not make a single full gate cheaper. No CONTROLLED (same source, same host) comparison exists.
+
+**Feedback latency.**
+- "First failure" is the first failing job's completion, which is when a log becomes readable. It is not the time a failure was classified as actionable.
+- Ready-or-push-to-merge includes human review and waiting time. It is not CI time.
+- Terminal minutes count from run creation and include queue wait.
+
+**Queue delay.**
+- Queue delay is attempt-1 job `started_at` minus job `created_at` for allocated jobs only. Never-allocated waits are excluded, and some of those reached about 5 h on macOS Intel and ARM in the BEFORE window.
+- The provider does not expose per-runner pool capacity. Concurrency is therefore observed peak simultaneous executions, not capacity.
+
+**Draft counterfactual bounds.**
+- The upper bound charges each zero-allocation `ci` run a full-gate median.
+- The lower bound charges the median of 20 observed honesty-plus-`rest`-style partial PR runs: 8.1 min, with a p90 of 70.8 min. Before the guards, drafts ran honesty plus `rest`, not the full matrix.
+- The true avoided amount lies between the two bounds and is not established.
+- Some zero-allocation runs belong to ready PRs into experiment or feature branches, which is stacked-PR skipping rather than draft suppression. The "PR still draft now" column separates them, as of read time only.
+
+**Mechanisms not separately measured.** Intel deferral, the atomic and bounded provider reads (correctness, not minutes), and B2 batching throughput.
+
+**Phase C.** No Rust-specific optimisation exists. DOD-7 has not started.
+
+**AFTER is far from 50.**
+- Three PRs have merged since the cutover: #619 (the cutover PR itself), #620 and #614. #614 is on release/v0.4, whose gate revision is A-line.
+- AFTER runs are naturally occurring. Nothing was dispatched for this measurement.

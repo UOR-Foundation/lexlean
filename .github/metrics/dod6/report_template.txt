@@ -1,0 +1,199 @@
+# DOD-6 measurement baseline (#603), A / B1 / B2 / C
+
+Collected {{COLLECTED}} from the GitHub REST API, using `gh api` GET calls only.
+
+To reproduce:
+- **Live:** `python -I collect.py`. It caches every raw response under `raw/`.
+- **Offline replay of the cached bytes:** `python -I collect.py --offline && python -I analyze.py && python -I report.py`.
+
+**Evidence labels:**
+- **MEASURED:** computed from provider job `started_at`/`completed_at`, or from PR events.
+- **MODELED:** MEASURED minutes multiplied by published list price. This is not this repository's billing.
+- **COUNTERFACTUAL:** minutes a run would have used had it executed a gate.
+- **CONTROLLED:** same source, host and toolchain. No CONTROLLED comparison exists in this baseline.
+
+Nothing here is a causal saving. Every comparison between A and B crosses source revisions,
+PR mix, release lines, provider queue state and workload, and §10 lists these differences.
+
+## 1. Method
+
+**Job accounting, with retried-run lineage reconciled.**
+- **Reads:** jobs are read with `jobs?filter=all&per_page=50`. A page size of 60 or more returns HTTP 502 on retried runs.
+- **Fail closed:** a read is refused if `total_count` changes between pages, if the inventory is short, or if a job ID repeats.
+- **Lineage:** on a retried run, the provider gives carried-forward jobs the new `run_attempt` and new job IDs, but keeps their original `started_at`/`completed_at`. Each executed `(name, started_at, completed_at)` is therefore counted once, at its lowest attempt.
+- **Executed:** a job counts as executed only if the provider allocated it a runner (`runner_name`/`runner_id` set, or steps executed) and `completed_at >= started_at`.
+- **Placeholders:** skipped jobs, and cancelled jobs that never received a runner, carry synthetic timestamps. They are placeholders and count as zero minutes.
+
+**Host classification** comes from the runner labels:
+
+| Label | Host |
+| --- | --- |
+| `ubuntu-24.04` | linux-x64 |
+| `ubuntu-24.04-arm` | linux-arm64 |
+| `windows-2022` | windows-x64 |
+| `macos-15` | macos-arm64 |
+| `macos-15-intel` or `macos-13` | macos-x64 |
+
+A placeholder has no labels, so it is classified by its job name:
+- "Windows tests (...)" is windows-x64.
+- "Intel ..." is macos-x64.
+- "macOS arm64 ..." and `*-apple-darwin` are macos-arm64.
+- `aarch64-unknown-linux-gnu` is linux-arm64.
+
+**Phase attribution is by gate revision, not by calendar date.** The collector tests each
+run's `head_sha` for ancestry of a set of marker commits. For a `pull_request` run it also
+tests the base-branch tip at the time the run was created. The marker commits are:
+- `cb8eca0021`: the #601 draft guard on release/v0.4, landed 2026-11-22 08:46Z.
+- `3588a567c8`: the #602 independent/bootstrap split (the issue's "Phase A" PR), merged 2026-11-23 00:08Z.
+- `bd80fa3739`: the #619 head, the B1 cutover on release/v0.5, merged as `44616baa` at 2026-11-24 15:03:55Z.
+- `603336bf27`: the #620 head (pages of 50, bounded atomic reads, retry custody), merged as `471237b3` at 20:33:54Z.
+- `96f35dce8c`: the #609/#607 combined composition, the B2 pilot.
+
+The phases are assigned as follows:
+- **B2:** the gate revision contains the combined composition.
+- **B1:** the gate revision contains the #619 head.
+- **A:** everything else.
+- **C:** no runs. DOD-7 has not started.
+
+**Confounder you must carry: release/v0.4 already has a B1-type mechanism.**
+- #601 draft suppression landed on release/v0.4 on 2026-11-22, which is inside the BEFORE window and before #619.
+- release/v0.4 has neither the #619 cutover nor the #620 reader, so its runs are labelled A.
+- Its zero-allocation draft runs are reported separately by line in §6, so the #619 cutover is not credited with them.
+
+**Modeled rates (MODELED, list price).**
+- **Source:** <https://docs.github.com/en/billing/reference/actions-runner-pricing>, fetched 2026-11-24. The page itself carries no date or version.
+
+| Standard hosted runner | SKU | Rate per minute |
+| --- | --- | ---: |
+| Linux 2-core x64 | `actions_linux` | $0.006 |
+| Linux 2-core arm64 | `actions_linux_arm` | $0.005 |
+| Windows 2-core x64 | `actions_windows` | $0.010 |
+| Windows 2-core arm64 | `actions_windows_arm` | $0.010 |
+| macOS 3-core or 4-core (M1 or Intel) | `actions_macos` | $0.062 |
+
+- **Rounding:** the page says each job's minutes are rounded up to the next whole minute. Cost is therefore shown two ways: exact minutes times rate, and per-job ceiling minutes times rate.
+- **Repository visibility:** `UOR-Foundation/lexlean` is **public**. Standard hosted runners are not metered per minute for a public repository, so this repository's actual billing is unknown, and probably zero. These dollars are a private-repository-equivalent model only.
+- **Not comparable to the earlier figure:** the earlier #606 economics comment priced linux-arm64 at the x64 rate ($0.006), and this model uses $0.005. Its $1,408.78 is therefore not directly comparable with the dollars here.
+
+## 2. BEFORE cohort (preserved unchanged)
+
+The definition is taken verbatim from `.github/metrics/ci-before-pr50-runs.json` on the
+advisory branch `ci/phase-b-selective-development-feedback-20261122` (PR #606):
+
+- **Window:** `last-50-merged-prs-before-phase-b-production-cutover-preview`.
+- **Scope:** `exact-final-HEAD-run-attribution; earlier PR revisions and postmerge push omitted`.
+- **PRs:** the 50 most recently merged PRs by `merged_at`, merged from 2026-11-14T15:58:52Z to 2026-11-23T00:56:43Z.
+- **Bases:**
+
+  | Base | PRs |
+  | --- | ---: |
+  | release/v0.4 | 25 |
+  | main | 16 |
+  | release/v0.5 | 7 |
+  | stacked feature branches | 2 |
+
+- **Runs:** every workflow run, of any workflow and any event, whose `head_sha` equals the PR's final head. There are 128.
+
+The 50 PRs are:
+
+#405, 431, 441, 493, 503, 507, 518, 519, 526, 529,
+535, 536, 539, 540, 543, 545, 550, 551, 553, 554,
+556, 557, 560, 561, 563, 564, 566, 567, 570, 572,
+573, 574, 575, 576, 577, 578, 579, 580, 581, 584,
+587, 590, 591, 595, 596, 597, 599, 601, 602, 604.
+
+This collector reuses those exact 128 run IDs. It refetches their complete job inventories
+and applies the lineage rule from §1.
+
+**Recomputed total: {{BEFORE_TOTAL}} job-min (MEASURED).** That is {{BEFORE_DELTA}} min away
+from the published corrected baseline of 88,298.354. The difference comes from the
+executed-only rule (allocation required) and from rounding.
+
+Gate features in the cohort's runs: {{BEFORE_FEATURES}}.
+
+{{BEFORE_PR}}
+
+## 3. Runner-job minutes and modeled cost, per cohort and phase
+
+The window holds every run created since 2026-11-22T00:00Z. The provider reported
+{{WINDOW_TOTAL}} runs. The BEFORE cohort lies partly inside the window, so its runs also
+appear in the window phases.
+
+{{AGG}}
+
+## 4. Feedback latency and queue delay (full-gate `ci` runs, at least 40 executed jobs)
+
+- **First failure:** the first failed job's `completed_at` minus the run's `created_at`. It is a lower bound on time to the first actionable failure: the log is readable at that point, but nobody has classified it yet.
+- **Terminal:** the last executed job's `completed_at` minus the run's `created_at`.
+- **Queue:** a job's `started_at` minus its own `created_at`, for attempt-1 executions only.
+
+{{LAT}}
+
+### Maximum simultaneous executing jobs per host (sweep over every run in the group)
+
+{{CONC}}
+
+## 5. AFTER cohort (naturally occurring, still accumulating)
+
+**Definition.**
+- **Runs:** every run created at or after the B1 cutover (2026-11-24T15:03:55Z, when #619 merged as `44616baa`), grouped by line and by gate-revision phase.
+- **PR-level AFTER (defined the same way as BEFORE):** PRs merged at or after the cutover, attributed to their final-head runs.
+
+**PRs merged so far: {{AFTER_PR_COUNT}} of the 50 that the BEFORE definition needs.** The
+cohort is still accumulating, and no workload was manufactured for it.
+
+{{AFTER_PR}}
+
+## 6. Draft execution avoidance (zero-allocation `pull_request` runs in the window)
+
+A zero-allocation run is a `ci` or `reproducibility` run whose every job is a skipped
+placeholder, with no runner allocated and no step executed.
+
+**COUNTERFACTUAL charge per run:**
+- **`ci`:** the median completed full-gate `ci` for the same phase and line. Where there is none, the median of all full gates.
+- **`reproducibility`:** the median reproducibility run.
+
+Counterfactual basis: {{CFBASIS}}.
+
+**Read it as an upper bound:**
+- Before the guards, a draft ran only honesty plus `rest`, not the full matrix.
+- A run can also be zero-allocation because a ready PR is stacked on a feature base. The "PR still draft now" column separates those cases from genuine drafts.
+
+{{ZERO}}
+
+## 7. Targeted retries: retained versus repeated minutes (MEASURED)
+
+- **Retained:** executed in an earlier attempt and carried into the final attempt with identical timestamps.
+- **Lost:** an earlier-attempt execution that is absent from the final attempt.
+- **Repeated:** newly executed in the final attempt.
+- **Avoided (COUNTERFACTUAL):** the retained minutes, which a full re-run would have executed again.
+
+{{RETRY}}
+
+Other multi-attempt runs in the window:
+
+{{OTHER_RETRY}}
+
+## 8. Avoided duplicate post-merge executions
+
+These are `push` `ci` runs whose only executed job is `plan`, because the tree equals a
+verified head.
+
+{{REUSE}}
+
+Specific case: {{SPECIFIC}}.
+
+Full-gate `push` `ci` runs in the window, where reuse did not apply:
+
+{{PUSHFULL}}
+
+## 9. Assurance parity: normative job names per phase
+
+Each phase is represented by its latest full-gate `ci` run on the given line. The job names
+are the union of executed and placeholder names in that run.
+
+{{PARITY}}
+
+## 10. Gaps, confounders and what this baseline does not show
+
+{{GAPS}}
