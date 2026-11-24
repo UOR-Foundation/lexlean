@@ -29,9 +29,9 @@
 # tree that lands.
 #
 # Inputs, all from the environment: EVENT, DRAFT, BASE (the base branch of a
-# pull request), REPO, and REF (the branch a dispatch names). The jobs read `full`
-# and `rows` from GITHUB_OUTPUT. `LEXLEAN_CI_ROWS` names the legs file
-# when a test runs the script elsewhere.
+# pull request), REPO, and REF (the branch a dispatch names). The jobs read `full`,
+# `rows` and the rows' split below from GITHUB_OUTPUT. `LEXLEAN_CI_ROWS` names
+# the legs file when a test runs the script elsewhere.
 set -euo pipefail
 
 # A transient provider error must not immediately allocate the full gate.
@@ -46,10 +46,17 @@ ref=${REF:-}
 out=${GITHUB_OUTPUT:-/dev/stdout}
 summary=${GITHUB_STEP_SUMMARY:-/dev/null}
 
+# The planned rows, split by the job that runs them: `honesty`; `fanout`, the
+# legs of `vv`, which start when honesty passes; and `bootstrap`, the legs of
+# `vv-bootstrap`, which start only when the bootstrap export has passed too.
+# Started with the others, the 28 `bdd-bootstrap-*` legs of run 45437716141
+# held their runners 595 of their 986.6 job-minutes waiting for that export
+# (#603), and none of them is on the gate's critical path once it has arrived.
 emit() {
-  printf 'full=%s\nrows=%s\nhonesty=%s\nfanout=%s\n' "$1" "$2" \
+  printf 'full=%s\nrows=%s\nhonesty=%s\nfanout=%s\nbootstrap=%s\n' "$1" "$2" \
     "$(jq -c '[.[] | select(.part == "honesty")]' <<< "$2")" \
-    "$(jq -c '[.[] | select(.part != "honesty")]' <<< "$2")" >> "$out"
+    "$(jq -c '[.[] | select(.part != "honesty" and (.part | startswith("bdd-bootstrap-") | not))]' <<< "$2")" \
+    "$(jq -c '[.[] | select(.part | startswith("bdd-bootstrap-"))]' <<< "$2")" >> "$out"
 }
 
 whole_gate() {

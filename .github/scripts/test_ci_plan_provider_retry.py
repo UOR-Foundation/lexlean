@@ -8,7 +8,8 @@ import unittest
 
 
 class PlannerProviderRetry(unittest.TestCase):
-    def check_plan(self, fail_runs=0, fail_jobs=0, defect='', changed_tree=False):
+    def check_plan(self, fail_runs=0, fail_jobs=0, defect='', changed_tree=False,
+                   event='push', draft=''):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             def git(*args):
@@ -32,10 +33,13 @@ class PlannerProviderRetry(unittest.TestCase):
                 git('commit', '-qm', 'other')
             git('merge', '-q', '--no-ff', '-m', 'merge', 'feature')
             planner = Path(__file__).resolve().parents[1] / 'ci-plan.sh'
-            parts = ['honesty', 'rest', 'examples']
+            # The `bdd-bootstrap-*` legs are run by `vv-bootstrap`, after the export.
+            parts = ['honesty', 'rest', 'bdd-bootstrap-lower', 'examples', 'bdd-bootstrap-check']
             rows = root / 'rows.json'
             rows.write_text(json.dumps([{'part': part} for part in parts]))
-            jobs = ['plan', 'honesty', 'just vv (rest)', 'just vv (examples)', 'atlas (join)']
+            jobs = ['plan', 'honesty', 'just vv (rest)', 'just vv (examples)',
+                    'just vv (bdd-bootstrap-lower)', 'just vv (bdd-bootstrap-check)',
+                    'atlas (join)']
             jobs += [f'build and non-Lean tests ({host})' for host in (
                 'aarch64-unknown-linux-gnu', 'x86_64-apple-darwin',
                 'aarch64-apple-darwin', 'x86_64-pc-windows-msvc')]
@@ -43,8 +47,17 @@ class PlannerProviderRetry(unittest.TestCase):
                 jobs.remove('just vv (rest)')
             if defect == 'duplicate':
                 jobs.append(jobs[-1])
-            listing = '\n'.join(name + '\t' + ('failure' if defect == 'failed' and
-                                name == 'honesty' else 'success') for name in jobs)
+            # A failed export skips `vv-bootstrap` before its matrix expands:
+            # the run lists one `skipped` job that names no leg.
+            skipped = defect == 'skipped-bootstrap'
+            if skipped:
+                jobs.remove('just vv (bdd-bootstrap-check)')
+                jobs[jobs.index('just vv (bdd-bootstrap-lower)')] = 'just vv (${{ matrix.part }})'
+            def conclusion(name):
+                if defect == 'failed' and name == 'honesty':
+                    return 'failure'
+                return 'skipped' if skipped and '${{' in name else 'success'
+            listing = '\n'.join(name + '\t' + conclusion(name) for name in jobs)
             (root / 'jobs').write_text(listing)
             bin_dir = root / 'bin'
             bin_dir.mkdir()
@@ -85,7 +98,7 @@ fi
             summary = root / 'summary'
             env = dict(os.environ, PATH=f'{bin_dir}:{os.environ["PATH"]}', ROOT=directory,
                        PARENT=parent, FAIL_RUNS=str(fail_runs), FAIL_JOBS=str(fail_jobs),
-                       EVENT='push', REPO='owner/repo', LEXLEAN_CI_ROWS=str(rows),
+                       EVENT=event, DRAFT=draft, REPO='owner/repo', LEXLEAN_CI_ROWS=str(rows),
                        GITHUB_OUTPUT=str(out), GITHUB_STEP_SUMMARY=str(summary))
             proc = subprocess.run(['bash', str(planner)], cwd=directory, env=env,
                                   capture_output=True, text=True, timeout=15)
@@ -117,6 +130,23 @@ fi
             with self.subTest(defect=defect):
                 r, _, _, jobs = self.check_plan(fail_jobs=1, defect=defect)
                 self.assertEqual((r['full'], jobs), ('true', 2))
+
+    def test_skipped_bootstrap_legs_are_no_verified_run(self):
+        r, _, _, jobs = self.check_plan(defect='skipped-bootstrap')
+        self.assertEqual((r['full'], jobs), ('true', 1))
+
+    def test_outputs_partition_the_rows(self):
+        def parts(value):
+            return [row['part'] for row in json.loads(value)]
+        r, _, _, _ = self.check_plan(changed_tree=True)
+        self.assertEqual((parts(r['honesty']), parts(r['fanout']), parts(r['bootstrap'])),
+                         (['honesty'], ['rest', 'examples'],
+                          ['bdd-bootstrap-lower', 'bdd-bootstrap-check']))
+        # A draft runs honesty then `rest`: no export, so no bootstrap leg.
+        r, _, runs, jobs = self.check_plan(event='pull_request', draft='true')
+        self.assertEqual((r['full'], parts(r['honesty']), parts(r['fanout']),
+                          parts(r['bootstrap']), runs, jobs),
+                         ('false', ['honesty'], ['rest'], [], 0, 0))
 
     def test_changed_merge_tree_does_not_query_provider(self):
         r, _, runs, jobs = self.check_plan(changed_tree=True)
