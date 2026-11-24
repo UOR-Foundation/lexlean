@@ -1,0 +1,121 @@
+{
+  "schema": "lexlean/ci-dod6-b1-complete-push-events/1",
+  "prior_receipt_blob": "7ff71f3213f083010ebb9daf55994ef595c4dfca",
+  "source_specs": [
+    {
+      "name": "prior",
+      "head": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "ci": 45421145394,
+      "repro": 45421145205,
+      "tag": 45421145299
+    },
+    {
+      "name": "fixed",
+      "head": "471237b3c00b6b6a78f8867de190c7cd9eaf4d3c",
+      "ci": 45482125626,
+      "repro": 45482125397,
+      "tag": 45482125392
+    }
+  ],
+  "raw": [
+    {
+      "cohort": "prior",
+      "role": "repro",
+      "run": 45421145205,
+      "id": 138540683235,
+      "head": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "status": "completed",
+      "conclusion": "success",
+      "allocated": true,
+      "started": "2026-11-24T15:04:02Z",
+      "completed": "2026-11-24T15:13:45Z",
+      "labels": [
+        "ubuntu-24.04"
+      ]
+    },
+    {
+      "cohort": "prior",
+      "role": "tag",
+      "run": 45421145299,
+      "id": 138540684654,
+      "head": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "status": "completed",
+      "conclusion": "success",
+      "allocated": true,
+      "started": "2026-11-24T15:04:02Z",
+      "completed": "2026-11-24T15:05:04Z",
+      "labels": [
+        "ubuntu-24.04"
+      ]
+    },
+    {
+      "cohort": "fixed",
+      "role": "repro",
+      "run": 45482125397,
+      "id": 138757744497,
+      "head": "471237b3c00b6b6a78f8867de190c7cd9eaf4d3c",
+      "status": "completed",
+      "conclusion": "success",
+      "allocated": true,
+      "started": "2026-11-24T20:33:59Z",
+      "completed": "2026-11-24T20:40:39Z",
+      "labels": [
+        "ubuntu-24.04"
+      ]
+    },
+    {
+      "cohort": "fixed",
+      "role": "tag",
+      "run": 45482125392,
+      "id": 138757745487,
+      "head": "471237b3c00b6b6a78f8867de190c7cd9eaf4d3c",
+      "status": "completed",
+      "conclusion": "success",
+      "allocated": true,
+      "started": "2026-11-24T20:34:00Z",
+      "completed": "2026-11-24T20:34:59Z",
+      "labels": [
+        "ubuntu-24.04"
+      ]
+    }
+  ],
+  "summary": {
+    "rows": [
+      {
+        "cohort": "prior",
+        "head": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+        "ci_run": 45421145394,
+        "ci_seconds": 151256,
+        "ci_allocated": 70,
+        "repro_seconds": 583,
+        "tag_seconds": 62,
+        "all_three_workflow_job_seconds": 151901,
+        "allocated_jobs": 72,
+        "ci_outcome": "cancelled"
+      },
+      {
+        "cohort": "fixed",
+        "head": "471237b3c00b6b6a78f8867de190c7cd9eaf4d3c",
+        "ci_run": 45482125626,
+        "ci_seconds": 82,
+        "ci_allocated": 1,
+        "repro_seconds": 400,
+        "tag_seconds": 59,
+        "all_three_workflow_job_seconds": 541,
+        "allocated_jobs": 3,
+        "ci_outcome": "success"
+      }
+    ],
+    "observed_difference_seconds": 151360,
+    "scope": "Three observed push workflows only; prior CI cancelled, distinct source trees, unweighted job seconds, not billed usage or causal savings. Independent repro is preserved; no production tag published."
+  },
+  "negative_controls": [
+    "missing repro",
+    "wrong head",
+    "failed repro",
+    "swapped role",
+    "duplicate run",
+    "invalid elapsed"
+  ],
+  "scope": "Complete observed CI/repro/tag push-event accounting; excludes PR runs and other events; no B2/C inference."
+}
