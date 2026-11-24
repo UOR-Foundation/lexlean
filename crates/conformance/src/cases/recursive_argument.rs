@@ -17,7 +17,7 @@ const STATED: &str = "termination_by structural _ types _ _ _ _ => types";
 
 /// The generated Lean of the fixture's definition `name`: from its line to the
 /// next declaration.
-fn definition<'a>(lean: &'a str, name: &str) -> &'a str {
+pub(super) fn definition<'a>(lean: &'a str, name: &str) -> &'a str {
     let head = format!("public def {name} ");
     let start = lean
         .find(&head)

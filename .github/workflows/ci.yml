@@ -126,6 +126,8 @@ jobs:
       rows: ${{ steps.plan.outputs.rows }}
       honesty: ${{ steps.plan.outputs.honesty }}
       fanout: ${{ steps.plan.outputs.fanout }}
+      fanout_fast: ${{ steps.plan.outputs.fanout_fast }}
+      fanout_export: ${{ steps.plan.outputs.fanout_export }}
       intel: ${{ steps.plan.outputs.intel }}
     steps:
       # Regeneration dispatches this workflow on PR heads. A dispatch cannot
@@ -225,9 +227,11 @@ jobs:
   # takes it through `.github/scripts/take-bootstrap-export.sh` when one of
   # its cases first needs it, and the harness checks the record against the
   # leg's own run and checkout and replays the bundle before the case reads
-  # it. The legs start when honesty passes, as before, and wait only at that
-  # point; the artifact is read by this run alone. The export verifies the
-  # bootstrap project through the same `verify` the `examples` recipe runs,
+  # it. In a full gate, the legs now wait before acquiring runners for this
+  # producer; a stacked development signal still starts after honesty and
+  # performs a local export if required. The artifact stays same-run only.
+  # The export verifies the bootstrap project through the same `verify`
+  # that the `examples` recipe runs,
   # so this job is also that project's part of the recipe: it formats, locks,
   # checks, and builds a clean copy first, and holds the export's verified
   # directory to the recipe's checks after, and the `examples` leg does not
@@ -309,17 +313,169 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  vv:
+  vv-fast:
     name: just vv (${{ matrix.part }})
+    # Independent rows start immediately after honesty, while export runs.
+    # The stacked-PR rest row follows this same producer-free path.
     needs: [plan, honesty]
-    if: ${{ needs.plan.result == 'success' && needs.plan.outputs.fanout != '[]' }}
+    if: ${{ needs.plan.result == 'success' && needs.honesty.result == 'success' && needs.plan.outputs.fanout_fast != '[]' }}
     # A failing leg does not cancel the others: each leg's evidence is complete.
     # The legs are the rows of `.github/vv-rows.json`, or only its `rest` row
     # while a ready PR is stacked on a non-release feature branch.
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.plan.outputs.fanout) }}
+        include: ${{ fromJSON(needs.plan.outputs.fanout_fast) }}
+    runs-on: ubuntu-24.04
+    # Independent rows do not fetch the shared bootstrap artifact.
+    # Retain the existing access permissions to avoid unrelated changes.
+    permissions:
+      contents: read
+      actions: read
+    # Complete proof coverage is intentionally the long pole. GitHub-hosted
+    # jobs permit six hours; a shorter local-style timeout would turn complete
+    # proof coverage into a CI failure mode.
+    timeout-minutes: 360
+    env:
+      # CI-only contract: fail rather than silently export bootstrap locally.
+      LEXLEAN_CI_INDEPENDENT_LANE: "1"
+      # Operational only (SPEC.md §22.12): no artifact records it, and the
+      # telemetry directory is CI evidence, uploaded below.
+      LEXLEAN_CI_TELEMETRY: ${{ github.workspace }}/ci-evidence
+      # The part of the `examples` recipe this leg runs (§9.4): every example
+      # but the one the Atlas jobs below verify as parts; the other leg names
+      # none, and runs no example.
+      LEXLEAN_EXAMPLES_PART: ${{ matrix.examples_part }}
+      # The part of the `bdd` recipe this row runs (§9.4): a part of
+      # `.github/bdd-parts.json` on the `bdd-<part>` rows, its remainder on the
+      # `rest` leg; the `examples` leg runs no `bdd` and names none.
+      LEXLEAN_BDD_PART: ${{ matrix.bdd_part }}
+      # The leg's resource profile (§22.11), read from its matrix row; an empty
+      # value is the default. Operational only, like the telemetry: no artifact
+      # records it and no identity contains it.
+      LEXLEAN_VERIFY_WIDTH: ${{ matrix.width }}
+      LEXLEAN_VERIFY_MEMORY_KIB: ${{ matrix.memory_kib }}
+      LEXLEAN_VERIFY_HINTS: ${{ matrix.hints && format('{0}/{1}', github.workspace, matrix.hints) || '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+      # CL-25 builds the executable for WASI with the pinned toolchain and runs
+      # it under the runner's Node (§8.3); the target is added here rather than
+      # in rust-toolchain.toml, which the export custody records byte for byte.
+      - name: Add the WASI target of the pinned toolchain
+        run: rustup target add wasm32-wasip1
+      - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        with:
+          tool: just,cargo-deny
+      - name: Install elan and the pinned Lean toolchain
+        run: |
+          set -euo pipefail
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/elan" toolchain install "$(cat lean-toolchain)"
+      - name: Reserve bounded overflow memory for native Atlas
+        run: |
+          set -euo pipefail
+          sudo fallocate -l 4G "$RUNNER_TEMP/lexlean-atlas.swap"
+          sudo chmod 600 "$RUNNER_TEMP/lexlean-atlas.swap"
+          sudo mkswap "$RUNNER_TEMP/lexlean-atlas.swap"
+          sudo swapon "$RUNNER_TEMP/lexlean-atlas.swap"
+          sudo sysctl vm.swappiness=10
+          swapon --show
+      - name: Run the normative acceptance gate
+        shell: bash
+        env:
+          FULL_GATE: ${{ needs.plan.outputs.full }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p ci-evidence
+          take_pid=
+          # No BS conformance cases: no export fetcher is allocated.
+          monitor_resources() {
+            while true; do
+              date -u +'%Y-%m-%dT%H:%M:%SZ'
+              free -m
+              df -h "$RUNNER_TEMP"
+              sleep 60
+            done
+          }
+          # One row every five seconds: time, free memory, swap in use, and the
+          # largest resident set, so that the memory of each recipe is read
+          # from the run itself (`cargo xtask ci-summary`).
+          sample_resources() {
+            set +e
+            while true; do
+              avail=$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)
+              swap=$(awk '/^SwapTotal:/ {t=$2} /^SwapFree:/ {f=$2} END {print t-f}' /proc/meminfo)
+              top=$( (ps -eo rss= --sort=-rss || true) | awk 'NR==1 {print $1}')
+              printf '%s\t%s\t%s\t%s\n' "$(date +%s.%N | cut -c1-14)" "$avail" "$swap" "${top:-0}"
+              sleep 5
+            done
+          }
+          monitor_resources > >(tee ci-evidence/resources.txt) &
+          monitor_pid=$!
+          sample_resources > ci-evidence/resources.tsv &
+          sample_pid=$!
+          trap 'kill "$monitor_pid" "$sample_pid" $take_pid 2>/dev/null || true; wait "$monitor_pid" "$sample_pid" $take_pid 2>/dev/null || true' EXIT
+          just --timestamp --timestamp-format '%s%.3f' ${{ matrix.recipes }} 2>&1 | tee ci-evidence/vv.txt
+          # The end of the leg's last recipe, as `vv` prints its own at the end
+          # of the whole gate (`repo_conformance::evidence::PART_PASSED_LINE`).
+          printf '[%s] %s\n' "$(date +%s.%3N)" 'vv part: every recipe passed' >> ci-evidence/vv.txt
+      # What the run cost, by recipe, stage, and module (SPEC.md §9.4). Evidence
+      # only: it is read by people and by later measurements, never by a recipe.
+      # It prints the summary to this log and appends it to the step summary, as
+      # well as keeping `summary.md`, because an uploaded artifact cannot be read
+      # from the log; it runs when the gate failed, for the same reason.
+      - name: Summarize the run's timing and memory
+        if: ${{ !cancelled() }}
+        run: cargo xtask ci-summary --evidence ci-evidence
+      # The example gate discovers Atlas rather than receiving an allow-list.
+      # These assertions make its complete proof run visible as first-class CI
+      # evidence without running the expensive verifier a second time.
+      # The leg that runs `examples` is chosen by the matrix, not by the log,
+      # so a leg that should have verified the examples and did not fails
+      # here, as does one that verified Atlas or the bootstrap project, which
+      # their own jobs verify.
+      - name: Assert the leg verified every example but Atlas and bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          case " ${{ matrix.recipes }} " in
+            *" examples "*)
+              grep -F "verify-examples: nat-add-zero verified (attestation " ci-evidence/vv.txt
+              if grep -F "verify-examples: uor-atlas" ci-evidence/vv.txt; then
+                echo "::error::the examples leg verified Atlas, which the Atlas jobs verify as parts (SPEC.md §9.4)"
+                exit 1
+              fi
+              if grep -F "verify-examples: bootstrap" ci-evidence/vv.txt; then
+                echo "::error::the examples leg verified the bootstrap project, which the bootstrap export verifies (SPEC.md §9.4)"
+                exit 1
+              fi
+              ;;
+          esac
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ !cancelled() }}
+        with:
+          name: acceptance-gate-evidence-${{ matrix.part }}
+          path: ci-evidence
+          if-no-files-found: error
+          retention-days: 14
+
+  vv:
+    name: just vv (${{ matrix.part }})
+    # Export consumers start only after the same-run producer has succeeded.
+    # Non-full development runs have no export-dependent rows.
+    needs: [plan, honesty, bootstrap-export]
+    if: ${{ needs.plan.outputs.full == 'true' && needs.bootstrap-export.result == 'success' && needs.plan.outputs.fanout_export != '[]' }}
+    # A failing leg does not cancel the others: each leg's evidence is complete.
+    # The legs are the rows of `.github/vv-rows.json`, or only its `rest` row
+    # while a ready PR is stacked on a non-release feature branch.
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.fanout_export) }}
     runs-on: ubuntu-24.04
     # `actions: read` lets a leg list and download this run's artifacts: the
     # bootstrap export, which its fetcher takes when a case needs it.

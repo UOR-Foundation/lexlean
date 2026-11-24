@@ -539,5 +539,5 @@ jobs:
             release/SPEC.md \
             release/LICENSE-APACHE \
             release/LICENSE-MIT \
-            "release/lexlean-${VERSION}-binaries.tar.gz" \n            "release/lexlean-${VERSION}-lean-wasm.tar.gz" \n            "release/lexlean-${VERSION}.wasm.gz" \n            release/lean-wasm.json
+            "release/lexlean-${VERSION}-binaries.tar.gz" "release/lexlean-${VERSION}-lean-wasm.tar.gz" "release/lexlean-${VERSION}.wasm.gz" release/lean-wasm.json
           echo "published ${GITHUB_REF_NAME} (compiler-semantics ${semantics})"

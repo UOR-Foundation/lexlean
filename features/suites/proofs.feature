@@ -179,3 +179,10 @@ Feature: proofs
     When it is rendered and verified, and a copy states the middle band one too low
     Then the generated Lean is the fixed script, whose second attempt adds LexLeanLaws.ite_eq_iff, and it verifies for all inputs
     And the false copy checks but fails verification with LLV7002
+
+  @PF-28 @build
+  Scenario: The runtime module LexLeanRuntime.Laws states natural-number laws over the runtime's multiply, quotient, remainder, and subtract (commutativity, associativity, distributivity over addition and truncated subtraction, the unit and zero, the successor, monotonicity and cancellation of order, and the quotient and remainder identities by a positive divisor for every zero case), each row's axioms within propext; the language-1.2 law proof form applies each by name, and simplify accepts each by its Lean name as a rewrite, so every law verifies both ways, a language-1.2 simplify also accepts Nat.ble_eq and Nat.le_refl, a language-1.1 simplify naming a law is refused in linking, and a misstated instance is refused by Lean.
+    Given the shipped runtime and the committed fold-laws example, whose arithmetic module proves an instance of every natural-number law by law and another by simplify naming the law
+    When the runtime is built, the example is rendered and verified, a language-1.1 module names a law in simplify, and a copy adds the wrong summand to the successor law in both of its instances
+    Then every natural-number law is a declaration of the laws module with its axioms within propext, each law proof lowers to the registered theorem and each simplify to a rewrite by its Lean name, and every theorem verifies
+    And the language-1.1 use fails with LLT4001 and each misstated instance fails verification with LLV7002
