@@ -21816,3 +21816,26 @@ it with all 70 jobs and 55 leg transcripts.
 | `per_page=100`, or a direct `gh api` evidence read, in either script (both originals) | `§9.4: … reads runs and jobs through the bounded helper, jobs in pages of 50, every page` |
 | `per_page=100` in `ci-plan.sh` against a stand-in that answers 502 above 50 a page, as the provider did | `test_ci_plan_provider_retry.py`: 5 of 5 cases fail (all pass at 50) |
 | no `jq` on `PATH`, every leg missing from the listing | the planner as #620 first drafted it: `full=false`; now `full=true` (observed, host without `jq`) |
+
+## The Linux gate jobs record the workspace files they open (advisory, #603 phase 1)
+
+A change-scoped gate may skip a job only when a change cannot reach what the
+job reads, and LexLean's cases read arbitrary repository files at run time
+(`root_file`), so the reads are measured. Right after checkout, each of the 11
+Linux gate jobs (`honesty`, `bootstrap-export`, every `vv` leg, every Atlas
+job) starts `.github/scripts/ci_read_trace.py`, which bind-mounts the workspace
+onto itself and marks that mount with fanotify; the job's last step stops it
+and uploads `read-trace-<job>`: the files and directories opened, `.git` reads
+apart, build output (`target/`) counted but not listed, and whether the
+kernel's bounded queue overflowed. The recording decides nothing and cannot
+fail a job: `ci.yml` still admits no `continue-on-error`, and both actions end
+every path with `exit 0`. Native host jobs are not traced.
+
+| Planted defect | Refused by |
+| --- | --- |
+| the stop step removed from `atlas-join` | `conformance_rp_14`: `#603: atlas-join never stops the read recorder` |
+| the recorder started in the native `host-matrix` job | `conformance_rp_14`: `#603: native host job host-matrix is traced` |
+| the recorder started after the toolchain step instead of right after checkout (`vv`) | `conformance_rp_14`: `#603: vv starts the read recorder once, right after checkout` |
+| `exit 1` in `read-trace-stop` | `conformance_rp_14`: `#603: read-trace-stop can fail the job it traces` |
+| a stop step's input named `name:` (it collided with the export job's artifact `name: bootstrap-export`) | the existing bootstrap-export custody plant in `conformance_rp_14`; the input is `job:` |
+| a truncated, overlong, or wrong-version fanotify event | `test_ci_read_trace.py` (`Parse`) |

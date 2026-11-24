@@ -1,0 +1,24 @@
+name: Start recording workspace reads
+description: >-
+  Advisory, CI #603 phase 1. Records which workspace files the rest of the job
+  opens (`.github/scripts/ci_read_trace.py`); never decides what runs, and a
+  failure here never fails the job. Use right after checkout.
+runs:
+  using: composite
+  steps:
+    - name: Start the read recorder
+      shell: bash
+      run: |
+        set -u
+        dir="$RUNNER_TEMP/read-trace"
+        mkdir -p "$dir" || exit 0
+        sudo -n nohup python3 "$GITHUB_WORKSPACE/.github/scripts/ci_read_trace.py" record \
+          --root "$GITHUB_WORKSPACE" --output "$dir/reads.json" --ready "$dir/ready" \
+          > "$dir/recorder.log" 2>&1 &
+        for _ in $(seq 1 300); do
+          [ -s "$dir/ready" ] && { echo "read recorder: pid $(cat "$dir/ready")"; exit 0; }
+          sleep 0.1
+        done
+        echo "::warning::the read recorder did not start (advisory, #603)"
+        cat "$dir/recorder.log" || true
+        exit 0

@@ -2431,11 +2431,22 @@ pub(crate) fn run(id: &str) {
                     }
                 }
             }
+            // The advisory read recorder's stop (#603 phase 1) carries it too,
+            // once in each job it traces, and in no other form.
+            let trace_stops = ci
+                .matches("      - uses: ./.github/actions/read-trace-stop\n        if: ${{ !cancelled() }}\n")
+                .count();
+            assert_eq!(
+                trace_stops,
+                ci.matches("read-trace-stop").count(),
+                "every read-trace stop runs unless the job was cancelled"
+            );
             assert_eq!(
                 step_conditions,
-                6 + 2 * atlas_jobs.len(),
+                6 + 2 * atlas_jobs.len() + trace_stops,
                 "the summary step and the evidence upload of every gate job carry it"
             );
+            read_trace_workflow(&ci).expect("#603: the advisory read recorder");
             assert_eq!(
                 full_conditions,
                 atlas_jobs.len() + 2,
@@ -4541,6 +4552,72 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
             if body.contains(forbidden) {
                 return Err(format!("RP-14: the Windows lanes admit `{forbidden}`"));
             }
+        }
+    }
+    Ok(())
+}
+
+/// The advisory read recorder (#603 phase 1) traces exactly the Linux gate
+/// jobs, from right after their checkout to their last step, and can never
+/// gate: its actions end every path with success, no step of the workflow
+/// masks a failure, and no native host job is traced, because a Linux trace is
+/// no evidence about another host.
+fn read_trace_workflow(ci: &str) -> Result<(), String> {
+    const START: &str = "      - uses: ./.github/actions/read-trace-start\n";
+    const CHECKOUT: &str =
+        "      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n";
+    let traced = [
+        "honesty",
+        "bootstrap-export",
+        "vv",
+        "atlas-prefix",
+        "atlas-cert4",
+        "atlas-l1",
+        "atlas-census-tail",
+        "atlas-cert4-replay",
+        "atlas-closure",
+        "atlas-l3",
+        "atlas-join",
+    ];
+    for key in traced {
+        let body = workflow_job(ci, key)?;
+        if body.matches(START).count() != 1
+            || !body.contains(&format!("{CHECKOUT}      # Advisory (#603 phase 1)"))
+        {
+            return Err(format!(
+                "#603: {key} starts the read recorder once, right after checkout"
+            ));
+        }
+        let stop = body
+            .rfind("      - uses: ./.github/actions/read-trace-stop\n")
+            .ok_or(format!("#603: {key} never stops the read recorder"))?;
+        if body[stop..].matches("\n      - ").count() != 0
+            || body.matches("read-trace-stop").count() != 1
+        {
+            return Err(format!(
+                "#603: {key} stops the read recorder once, as its last step"
+            ));
+        }
+    }
+    for key in [
+        "host-matrix",
+        "intel-construction",
+        "intel-part",
+        "windows-part",
+    ] {
+        if workflow_job(ci, key)?.contains("read-trace") {
+            return Err(format!("#603: native host job {key} is traced"));
+        }
+    }
+    if ci.matches(START).count() != traced.len() {
+        return Err("#603: the read recorder traces a job outside the Linux gate".to_owned());
+    }
+    for action in ["start", "stop"] {
+        let text = root_file(&format!(".github/actions/read-trace-{action}/action.yml"));
+        if text.contains("set -e") || text.contains("exit 1") || !text.contains("exit 0") {
+            return Err(format!(
+                "#603: read-trace-{action} can fail the job it traces"
+            ));
         }
     }
     Ok(())
