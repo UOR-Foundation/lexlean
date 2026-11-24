@@ -15730,3 +15730,21 @@ own; no case's assertion changes. The part runs in the Intel and Windows
 `moves` lane, which held them as part of `rest`, so no host lane's work
 changes, and `check-test-inventory` still requires the parts to be disjoint
 and complete (RP-13).
+
+## The release gate reads provider evidence whole or not at all (§30.3, #603; backport of #620)
+
+`release-gate.sh` read a run's jobs as `gh api …/jobs?per_page=100 --paginate … || true`.
+A request that printed a success-shaped partial listing and then failed was
+taken as the run's whole roster, so it could authorize a tag; reproduced on
+synthetic provider output (advisory #606 @ `a752992f`, which runs once its two
+function definitions gain `()`). It now reads through `ci-provider-read.sh` as
+release/v0.5 does: each read is retried whole up to three times (30 s each) and
+its output is used only from a read that succeeded; jobs are read in pages of
+50; and a rows file naming no leg is refused. The planner's two legs loops
+treat an empty or failed legs read as no verified run (the whole gate).
+
+| Planted defect | Refused by |
+| --- | --- |
+| release/v0.4's original `release-gate.sh` (partial output accepted) | `test_release_gate_partial_read.py`: partial, transient, no-leg and source cases fail |
+| release/v0.4's original `ci-plan.sh` (`for part in $(jq …)`) | `test_release_gate_partial_read.py` (`Source`) |
+| either test removed from the honesty step | `conformance_rp_14` (`regression_honesty`, and its command-removal plant) |
