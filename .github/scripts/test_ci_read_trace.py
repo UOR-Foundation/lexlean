@@ -394,7 +394,11 @@ class Scripts(unittest.TestCase):
     def run_script(self, name, extra=None):
         python = Path(sys.executable).as_posix()
         self.tool("python3", f'exec "{python}" "$@"\n')
-        env = dict(os.environ, GITHUB_WORKSPACE=str(self.workspace), RUNNER_TEMP=str(self.tmp),
+        # Inside a traced CI job the environment names the job's own live
+        # recording (#621's first hosted gate: this test stopped it). A test
+        # must never reach it, so every LEXLEAN_READ_TRACE_ variable goes.
+        inherited = {k: v for k, v in os.environ.items() if not k.startswith("LEXLEAN_READ_TRACE_")}
+        env = dict(inherited, GITHUB_WORKSPACE=str(self.workspace), RUNNER_TEMP=str(self.tmp),
                    GITHUB_ENV=str(self.env_file), READ_TRACE_JOB="vv",
                    PATH=f"{self.bin}{os.pathsep}{os.environ.get('PATH', '')}")
         env.update(extra or {})
@@ -414,6 +418,27 @@ class Scripts(unittest.TestCase):
         done = self.run_script("read-trace-start.sh", {"RUNNER_TEMP": str(self.tmp / "absent" / "x")})
         self.assertEqual(done.returncode, 0, done.stderr)
         self.assertIn("could not be prepared", done.stdout)
+
+    def test_the_job_s_own_recording_is_never_reached(self):
+        live = self.tmp / "read-trace.live"
+        live.mkdir()
+        prepare(live, nonce="live")
+        (live / "ready.json").write_text(json.dumps({"nonce": "live", "pid": 1, "start": "1"}))
+        before = sorted(p.name for p in live.iterdir())
+        saved = {k: os.environ.get(k) for k in ("LEXLEAN_READ_TRACE_DIR", "LEXLEAN_READ_TRACE_NONCE")}
+        os.environ.update(LEXLEAN_READ_TRACE_DIR=str(live), LEXLEAN_READ_TRACE_NONCE="live")
+        try:
+            self.tool("sudo", "touch \"$LEXLEAN_READ_TRACE_DIR/reached\"; exit 1\n")
+            done = self.run_script("read-trace-stop.sh")
+        finally:
+            for key, value in saved.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("no read recorder ran", done.stdout)
+        self.assertEqual(sorted(p.name for p in live.iterdir()), before)
 
     def test_stop_without_a_recording_succeeds(self):
         done = self.run_script("read-trace-stop.sh")
