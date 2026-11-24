@@ -1,0 +1,31 @@
+{
+  "schema": "lexlean/ci-transition-overlap/1",
+  "scope": "observed completed first-attempt job intervals only",
+  "terminal_both": false,
+  "runs": [
+    {
+      "id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "terminal": false,
+      "unfinished_jobs": 6,
+      "nonexecuted_jobs": 0,
+      "completed_job_seconds": 120311,
+      "completed_job_seconds_during_other_run": 333
+    },
+    {
+      "id": 45437716141,
+      "head_sha": "603336bf2752ecbfa4d688ccb5d52b3585bfa64b",
+      "terminal": false,
+      "unfinished_jobs": 48,
+      "nonexecuted_jobs": 0,
+      "completed_job_seconds": 785,
+      "completed_job_seconds_during_other_run": 333
+    }
+  ],
+  "combined_completed_job_seconds": 121096,
+  "concurrent_run_wall_seconds": 333,
+  "peak_observed_concurrent_jobs": 46,
+  "billed_minutes": null,
+  "causal_contention_delay_seconds": null,
+  "warning": "Incomplete snapshots are lower bounds. Overlap is not proof of queue contention or delay."
+}
