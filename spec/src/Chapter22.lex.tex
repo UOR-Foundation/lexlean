@@ -617,7 +617,7 @@ definition{
   body: constructor{
     arguments: [
       "text",
-      (cons "SHA256(" (cons "  \"lexlean-attestation-v1\\0\"" (cons "  || frame(\"attestation-body\", canonical_json(body_without_attestation_id))" (cons ")" (nil String)))))
+      (cons "KAPPA(" (cons "  \"lexlean-attestation-v2\\0\"" (cons "  || frame(\"attestation-body\", canonical_json(body_without_attestation_id))" (cons ")" (nil String)))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -643,7 +643,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "- build manifest bytes and SHA-256;" (cons "- semantic ID;" (cons "- host OS and architecture;" (cons "- LexLean version and executable hash;" (cons "- Lean, Lake, and leanchecker version output and executable hashes;" (cons "- Lake workspace lock hashes;" (cons "- every process record;" (cons "- generated `.olean` hashes;" (cons "- axiom policies and observed sets;" (cons "- the canonical compiler input's byte length and SHA-256, when a production root exists;" (cons "- `preservation.json`'s byte length and SHA-256, when a production root exists;" (cons "- optional PDF process and bytes;" (cons "- overall status exactly `verified`." (nil String))))))))))))))
+      (cons "- build manifest bytes and κ-label;" (cons "- semantic ID;" (cons "- host OS and architecture;" (cons "- LexLean version and executable hash;" (cons "- Lean, Lake, and leanchecker version output and executable hashes;" (cons "- Lake workspace lock hashes;" (cons "- every process record;" (cons "- generated `.olean` hashes;" (cons "- axiom policies and observed sets;" (cons "- the canonical compiler input's byte length and κ-label, when a production root exists;" (cons "- `preservation.json`'s byte length and κ-label, when a production root exists;" (cons "- optional PDF process and bytes;" (cons "- overall status exactly `verified`." (nil String))))))))))))))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -657,7 +657,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "A language-1.0 or 1.1 project's attestation is `lexlean/attestation/1`" (cons "(`schemas/attestation.schema.json`). A language-1.2 project's is" (cons "`lexlean/attestation/2` (`schemas/attestation-v2.schema.json`, in the 1.2-only" (cons "partition): the same body plus `compiler_input` and `preservation`, each" (cons "present exactly when a production root exists. Routing is fixed by the project language." (nil String))))))
+      (cons "A language-1.0 or 1.1 project's attestation is `lexlean/attestation/3`" (cons "(`schemas/attestation.schema.json`). A language-1.2 project's is" (cons "`lexlean/attestation/4` (`schemas/attestation-v2.schema.json`, in the 1.2-only" (cons "partition): the same body plus `compiler_input` and `preservation`, each" (cons "present exactly when a production root exists. Routing is fixed by the project language." (nil String))))))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -725,7 +725,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "- a *call* (a definition of Lean's `Lean` namespace other than a projection," (cons "  recursor, instance, or matcher) names its exact signature at Lean 4.32.1" (cons "  (`f054605aea4b840552cca2e725580bffd1e1b704`), the defining source file at" (cons "  that revision with its SHA-256, and its role;" (cons "- a *type* names its complete constructor list in Lean's order with every" (cons "  field typed, or is *opaque* when no definition of the adapter matches," (cons "  constructs, or projects it, and then pins no constructors;" (cons "- *plumbing* lists every other used constant by name: structural constants," (cons "  instances, matchers, recursors, and core-library data, whose meaning the" (cons "  calls and types fix." (nil String)))))))))))
+      (cons "- a *call* (a definition of Lean's `Lean` namespace other than a projection," (cons "  recursor, instance, or matcher) names its exact signature at Lean 4.32.1" (cons "  (`f054605aea4b840552cca2e725580bffd1e1b704`), the defining source file at" (cons "  that revision with its κ-label, and its role;" (cons "- a *type* names its complete constructor list in Lean's order with every" (cons "  field typed, or is *opaque* when no definition of the adapter matches," (cons "  constructs, or projects it, and then pins no constructors;" (cons "- *plumbing* lists every other used constant by name: structural constants," (cons "  instances, matchers, recursors, and core-library data, whose meaning the" (cons "  calls and types fix." (nil String)))))))))))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -919,7 +919,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "**Compiler input.** On success verification publishes" (cons "`production/compiler-input.json` (`lexlean/compiler-input/2`," (cons "`schemas/compiler-input.schema.json`): the Lean identity, the roots, each" (cons "root's closure with its source members, runtime members, instances, and erased" (cons "proofs, every closure definition with its recursion, universe parameters," (cons "type, parameters, and LCNF code, the project inductives, the externals, and" (cons "the erased proofs. Every LCNF variable is renamed `v<n>` in binding order" (cons "within its declaration and every list is sorted, so the bytes and their" (cons "SHA-256 (the compiler-input ID) depend on neither Lean's unique-name counter," (cons "the source path, nor the host. The attestation records the byte length and" (cons "SHA-256, and the normalized verification records include the input, the" (cons "driver, and its process record." (nil String)))))))))))))
+      (cons "**Compiler input.** On success verification publishes" (cons "`production/compiler-input.json` (`lexlean/compiler-input/2`," (cons "`schemas/compiler-input.schema.json`): the Lean identity, the roots, each" (cons "root's closure with its source members, runtime members, instances, and erased" (cons "proofs, every closure definition with its recursion, universe parameters," (cons "type, parameters, and LCNF code, the project inductives, the externals, and" (cons "the erased proofs. Every LCNF variable is renamed `v<n>` in binding order" (cons "within its declaration and every list is sorted, so the bytes and their" (cons "κ-label (the compiler-input ID) depend on neither Lean's unique-name counter," (cons "the source path, nor the host. The attestation records the byte length and" (cons "κ-label, and the normalized verification records include the input, the" (cons "driver, and its process record." (nil String)))))))))))))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -1109,7 +1109,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "The content identity of a staged Lean module is the SHA-256 of the domain `lexlean/verify-store/1`, its name, the digest of its staged text, and, for each module its import header names (the `import` commands before its first other command, with their `public`, `private`, `meta` and `all` modifiers), that module's name and content identity. A module the stage does not hold is bound only when the pinned toolchain's library holds its `.olean`; it is then identified by its name, and its bytes by the toolchain digest below. A module neither holds is unbound, and so is every module whose imports reach it: a process about an unbound module is not answered by the store and is not stored." (nil String))
+      (cons "The content identity of a staged Lean module is the κ-label of the domain `lexlean/verify-store/2`, its name, the digest of its staged text, and, for each module its import header names (the `import` commands before its first other command, with their `public`, `private`, `meta` and `all` modifiers), that module's name and content identity. A module the stage does not hold is bound only when the pinned toolchain's library holds its `.olean`; it is then identified by its name, and its bytes by the toolchain digest below. A module neither holds is unbound, and so is every module whose imports reach it: a process about an unbound module is not answered by the store and is not stored." (nil String))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -1123,7 +1123,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "The context of one process is the SHA-256 of the domain, the digest of the program it starts, the toolchain digest, its normalized toolchain `bin` directory and working directory (§22.7), the digest of each of `lakefile.lean`, `lakefile.toml`, `lake-manifest.json` and `lean-toolchain` in its working directory (or that it is absent), the tree digest of the working directory's `.lake` (or that it is absent), and its environment rows with normalized values. The toolchain digest is the tree digest of the toolchain directory, and a tree digest is the SHA-256 of the domain and, in path order, the relative path and digest of every file under it a `lean`, `lake` or `leanchecker` process loads: the executables under `bin`, the shared libraries, and every `.olean`, `.olean.server`, `.olean.private` and `.ir`. The traversal follows symbolic links, as the processes reading the tree do; a link that does not resolve, or a directory reached a second time, makes the tree unreadable. A process whose context cannot be read whole, or that does not run under the toolchain's home, is not answered by the store. The key of one process is the SHA-256 of the domain, its tool, the digest of its executable, the digest of the content identity of the module (or, for an audit member, the extraction driver and the interface probe, of its source) it is about together with its context, and its normalized argument vector (§22.7). The elaborations (§22.3), the replays (§22.4), the audit members (§22.5), the interface probe (§18.8), the named-root extraction (§22.10), and the compilations and replays of the preservation environment and the certificates (§17.17) go through the store." (nil String))
+      (cons "The context of one process is the κ-label of the domain, the digest of the program it starts, the toolchain digest, its normalized toolchain `bin` directory and working directory (§22.7), the digest of each of `lakefile.lean`, `lakefile.toml`, `lake-manifest.json` and `lean-toolchain` in its working directory (or that it is absent), the tree digest of the working directory's `.lake` (or that it is absent), and its environment rows with normalized values. The toolchain digest is the tree digest of the toolchain directory, and a tree digest is the κ-label of the domain and, in path order, the relative path and digest of every file under it a `lean`, `lake` or `leanchecker` process loads: the executables under `bin`, the shared libraries, and every `.olean`, `.olean.server`, `.olean.private` and `.ir`. The traversal follows symbolic links, as the processes reading the tree do; a link that does not resolve, or a directory reached a second time, makes the tree unreadable. A process whose context cannot be read whole, or that does not run under the toolchain's home, is not answered by the store. The key of one process is the κ-label of the domain, its tool, the digest of its executable, the digest of the content identity of the module (or, for an audit member, the extraction driver and the interface probe, of its source) it is about together with its context, and its normalized argument vector (§22.7). The elaborations (§22.3), the replays (§22.4), the audit members (§22.5), the interface probe (§18.8), the named-root extraction (§22.10), and the compilations and replays of the preservation environment and the certificates (§17.17) go through the store." (nil String))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []

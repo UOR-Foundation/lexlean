@@ -149,7 +149,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "LexLean MUST reject a verification environment whose reported Lean version is not 4.32.1. The verification attestation records the SHA-256 digest of the actual `lean`, `lake`, and `leanchecker` executables used, so platform-specific executable bytes do not need to be assumed identical." (nil String))
+      (cons "LexLean MUST reject a verification environment whose reported Lean version is not 4.32.1. The verification attestation records the κ-label of the actual `lean`, `lake`, and `leanchecker` executables used, so platform-specific executable bytes do not need to be assumed identical." (nil String))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -339,7 +339,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "- CLI parsing;" (cons "- TOML parsing;" (cons "- JSON parsing and serialization;" (cons "- SHA-256;" (cons "- semantic-version parsing;" (cons "- UTF-8 path handling;" (cons "- Unicode NFC normalization;" (cons "- structured errors;" (cons "- temporary directories;" (cons "- directory walking;" (cons "- file locking;" (cons "- file identity (whether two paths are the same file);" (cons "- process-group signalling and interrupt handling (unix)." (nil String))))))))))))))
+      (cons "- CLI parsing;" (cons "- TOML parsing;" (cons "- JSON parsing and serialization;" (cons "- the κ-label (filled by the standard library's certified `Blake3` package, §17.22, and by no crate);" (cons "- semantic-version parsing;" (cons "- UTF-8 path handling;" (cons "- Unicode NFC normalization;" (cons "- structured errors;" (cons "- temporary directories;" (cons "- directory walking;" (cons "- file locking;" (cons "- file identity (whether two paths are the same file);" (cons "- process-group signalling and interrupt handling (unix)." (nil String))))))))))))))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []

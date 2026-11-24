@@ -854,7 +854,7 @@ pub(super) fn run(id: &str) {
             project
                 .root
                 .join(".lexlean/verified")
-                .join(verified.attestation_id.to_hex())
+                .join(verified.attestation_id.label())
                 .join("attestation.json")
                 .as_std_path(),
         )

@@ -1,28 +1,22 @@
-//! The compiler running the `Sha256` package reproduces it (SPEC.md §17.22,
-//! `SL-08`, #126 stage 2): the digests the committed exports record are the
-//! oracle's, the package's `lib.rs` holds none of them, and the standard
-//! library rebuilt by the compiler is the committed export, whose `sha256`
-//! `lib.rs` is the file the compiler links. The oracle may falsify and never
-//! establishes.
+//! The compiler running the `Blake3` package reproduces it (SPEC.md §17.22,
+//! `SL-08`): the κ-labels the committed exports record are the oracle's, the
+//! package's `lib.rs` holds none of them, and the standard library rebuilt by
+//! the compiler is the committed export, whose `blake3_label` `lib.rs` is the
+//! file the compiler links. The oracle may falsify and never establishes.
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value as Json;
-use sha2::{Digest, Sha256};
 
 use crate::production_export as harness;
 use crate::support;
 
 /// The committed exports.
 const EXPORTS: [&str; 4] = ["bootstrap", "production", "production-coverage", "stdlib"];
-/// The two SHA-256 packages, by directory under the `rust-std` profile.
-const SHA_PACKAGES: [&str; 2] = ["sha256", "sha256_hex"];
+/// The package the compiler links, by directory under the `rust-std` profile.
+const LINKED_PACKAGES: [&str; 1] = ["blake3_label"];
 /// The link the compiler is built from.
-const LINK: &str = "crates/lexlean/sha256_package.rs";
-
-fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
-}
+const LINK: &str = "crates/lexlean/blake3_package.rs";
 
 /// The committed packages of one export: package directory (`rust-std/name`)
 /// to the package's files by relative path.
@@ -51,7 +45,7 @@ fn recorded_digests(provenance: &Json, files: &BTreeMap<String, Vec<u8>>) -> Res
         let bytes = files
             .get(path)
             .ok_or_else(|| format!("{path} is named and absent"))?;
-        let oracle = hex(Sha256::digest(bytes).as_slice());
+        let oracle = support::oracle_kappa(bytes).label();
         if recorded.as_str() != Some(oracle.as_str()) {
             return Err(format!(
                 "{path}: recorded {recorded}, the oracle gives {oracle}"
@@ -100,7 +94,7 @@ pub(super) fn run(id: &str) {
 
     // The digests every committed export records are the oracle's.
     let mut compared = 0usize;
-    let mut sha: Vec<(String, String, String)> = Vec::new();
+    let mut linked_packages: Vec<(String, String, String)> = Vec::new();
     for example in EXPORTS {
         let tree = harness::tree(&harness::fixture_dir(example).join("packages"));
         for (directory, files) in packages(tree) {
@@ -111,8 +105,8 @@ pub(super) fn run(id: &str) {
                 serde_json::from_slice(provenance_bytes).expect("a provenance is JSON");
             compared += recorded_digests(&provenance, &files)
                 .unwrap_or_else(|reason| panic!("{example}/{directory}: {reason}"));
-            if example == "stdlib" && SHA_PACKAGES.iter().any(|name| directory.ends_with(name)) {
-                sha.push((
+            if example == "stdlib" && LINKED_PACKAGES.iter().any(|name| directory.ends_with(name)) {
+                linked_packages.push((
                     directory,
                     String::from_utf8(files["src/lib.rs"].clone()).expect("UTF-8"),
                     String::from_utf8(provenance_bytes.clone()).expect("UTF-8"),
@@ -121,10 +115,14 @@ pub(super) fn run(id: &str) {
         }
     }
     assert!(compared > 100, "{compared} recorded digests compared");
-    assert_eq!(sha.len(), SHA_PACKAGES.len(), "the two SHA-256 packages");
+    assert_eq!(
+        linked_packages.len(),
+        LINKED_PACKAGES.len(),
+        "the package the compiler links"
+    );
 
     // `lib.rs` holds none of the digests that describe the package.
-    for (directory, lib, provenance) in &sha {
+    for (directory, lib, provenance) in &linked_packages {
         assert_eq!(
             lib_holds_a_digest(lib, provenance),
             None,
@@ -133,15 +131,16 @@ pub(super) fn run(id: &str) {
     }
 
     // Each planted defect is found by the check the tree just passed.
-    let (directory, lib, provenance) = &sha[0];
+    let (directory, lib, provenance) = &linked_packages[0];
     let mut altered: Json = serde_json::from_str(provenance).expect("JSON");
     let recorded = altered["files"]["src/lib.rs"]
         .as_str()
         .expect("lib.rs is named")
         .to_owned();
     let mut flipped = recorded.clone().into_bytes();
-    flipped[0] = if flipped[0] == b'0' { b'1' } else { b'0' };
-    altered["files"]["src/lib.rs"] = Json::String(String::from_utf8(flipped).expect("hexadecimal"));
+    let last = flipped.len() - 1;
+    flipped[last] = if flipped[last] == b'0' { b'1' } else { b'0' };
+    altered["files"]["src/lib.rs"] = Json::String(String::from_utf8(flipped).expect("a κ-label"));
     let files = packages(harness::tree(
         &harness::fixture_dir("stdlib").join("packages"),
     ));
@@ -157,7 +156,7 @@ pub(super) fn run(id: &str) {
 
     // Under the pinned Lean, rebuilding the standard library with the
     // compiler running the package yields the committed packages, and the
-    // rebuilt `lib.rs` of `sha256` is the file the compiler links.
+    // rebuilt `lib.rs` of `blake3_label` is the file the compiler links.
     if !support::lean_backed("SL-08") {
         return;
     }
@@ -179,8 +178,8 @@ pub(super) fn run(id: &str) {
     let linked = std::fs::read(root.join(LINK).as_std_path())
         .unwrap_or_else(|error| panic!("{LINK}: {error}"));
     let rebuilt_lib = rebuilt
-        .get("rust-std/sha256/src/lib.rs")
-        .expect("the rebuilt sha256 lib.rs");
+        .get("rust-std/blake3_label/src/lib.rs")
+        .expect("the rebuilt blake3_label lib.rs");
     assert!(
         &linked == rebuilt_lib,
         "the file the compiler links is not the lib.rs it rebuilds"
