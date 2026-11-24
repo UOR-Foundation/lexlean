@@ -2947,7 +2947,10 @@ pub(crate) fn run(id: &str) {
             ] {
                 let command =
                     format!("python3 -m unittest discover -s .github/scripts -p '{script}'");
-                assert!(ci.contains(&command), "the plant must remove a real command");
+                assert!(
+                    ci.contains(&command),
+                    "the plant must remove a real command"
+                );
                 assert!(
                     regression_honesty(&ci.replacen(&command, "echo bypass", 1)).is_err(),
                     "RP-14 must refuse removal of {script}"
@@ -4877,7 +4880,9 @@ fn regression_honesty(ci: &str) -> Result<(), String> {
     let mut steps = initial.split("\n      - ").filter(|step| {
         step.starts_with("name: Test the Intel construction and inventory checks\n")
     });
-    let checks = steps.next().ok_or("RP-14: the regression step is missing")?;
+    let checks = steps
+        .next()
+        .ok_or("RP-14: the regression step is missing")?;
     let expected = concat!(
         "name: Test the Intel construction and inventory checks\n",
         "        env:\n",
