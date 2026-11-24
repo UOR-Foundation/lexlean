@@ -193,6 +193,7 @@ jobs:
         run: |
           python3 -m unittest discover -s .github/scripts -p 'test_intel_host_tests.py'
           python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_tag_gate_poll.py'
       # Stale generated files fail here in minutes, before the expensive
       # roots: every input a committed build oracle records, every lock, and
       # every committed export package must be current (§9.4). No Lean.
