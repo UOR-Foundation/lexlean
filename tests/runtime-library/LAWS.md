@@ -211,3 +211,28 @@ the committed source found its 120 declarations present, in their order, and
 equal in every field and term; the 25 added rows are the 23 laws and the two
 helpers, and Lean realized no auxiliary row for them.
 
+
+## The forward merge of release/v0.4 into release/v0.5 (#600)
+
+Both lines extended the module after `0a9891ea`: release/v0.5 with the
+runtime bounds and the bit laws (166 declarations), release/v0.4 with
+`ite_eq_iff` (PF-26) and the natural-number laws with their two helpers
+(PF-28, 145 declarations). Their term tables are shared and numbered, so the
+text does not merge; the module was merged as data instead.
+
+- **Method.** Both committed modules were read with `lexlean::sdk::read_module`.
+  The release/v0.5 module is kept whole; each release/v0.4 declaration it
+  lacks is added after the declaration that precedes it on release/v0.4, its
+  term graph re-interned into the v0.5 node table (a node equal to one the
+  table holds is that node; new nodes are appended, so children still precede
+  parents), and the merge is written with `lexlean::sdk::write_module`. A
+  declaration both modules have must be the same term in both, or the merge
+  refuses.
+- **Result.** 119 declarations equal in both by structure, 26 added, 192 in
+  all; the data read back from the written source equals the merged data.
+  Eight shared declarations differ only in which of their nodes are marked as
+  proof nodes, which steers only what the Lean backend shares as a `let`; the
+  merge marks the union.
+- **Check.** The Lean `lexlean build` generates from the merged module is
+  checked by the runtime and proof suites (`RT-01`, `PF-22`, `PF-26`..`PF-28`)
+  in the gate, as for every other change of this module.
