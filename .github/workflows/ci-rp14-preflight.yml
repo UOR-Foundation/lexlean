@@ -1,0 +1,36 @@
+# Bounded focused preflight for issue #603; not a required check.
+# Runs only after an explicit same-repo Draft PR edit with a one-shot marker.
+# No synchronize/push trigger, secrets, artifact reuse or merge authority.
+name: CI RP-14 focused preflight (NONQUALIFYING)
+
+on:
+  pull_request:
+    types: [edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-rp14-preflight-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  rp14:
+    name: focused RP-14 and rustfmt
+    if: ${{ github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.event.pull_request.body, '<!-- ci-603-rp14-once -->') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install
+      - name: Rust formatting
+        run: cargo fmt --all -- --check
+      - name: Exact RP-14 conformance smoke
+        run: cargo test --locked --all-features -p repo-conformance --test conformance conformance_rp_14 -- --exact
+      - name: State the assurance boundary
+        if: ${{ always() }}
+        run: echo 'NONQUALIFYING: targeted RP-14 and formatting only. Full exact-head CI, all hosts and independent reproducibility are still required.'

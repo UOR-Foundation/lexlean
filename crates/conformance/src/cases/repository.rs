@@ -2357,19 +2357,15 @@ pub(crate) fn run(id: &str) {
             ] {
                 assert!(!ci.contains(forbidden), "ci.yml has no `{forbidden}`");
             }
-            // A condition appears in three forms and nowhere else: a step's
-            // `if: ${{ !cancelled() }}` on the summary and evidence steps, so
-            // that a failed run still reports; a job's `full` condition on the
-            // Atlas jobs and the host matrix, which run only when the plan says
-            // the run is the whole gate; and the legs' condition on `vv`, which
-            // runs when the plan names a leg. Never on the gate step, and never
-            // a condition on the event or the pull request itself: what a run
-            // is, is decided once, by the plan (a gate skipped by a condition
-            // written elsewhere is the weaker PR-only gate).
+            // The plan alone may suppress automatic Draft PR events.
+            // Honesty follows a successful plan, which selects full/fanout
+            // jobs. Summary/evidence steps may use `!cancelled()` to report
+            // failures; no other event conditions or bypasses are allowed.
             let mut step_conditions = 0;
             let mut full_conditions = 0;
             let mut rows_conditions = 0;
             let mut honesty_conditions = 0;
+            let mut draft_conditions = 0;
             for (index, line) in jobs
                 .iter()
                 .filter(|(key, _)| !key.starts_with("intel-") && !key.starts_with("windows-"))
@@ -2381,7 +2377,12 @@ pub(crate) fn run(id: &str) {
                         "        if: ${{ !cancelled() }}" => step_conditions += 1,
                         "    if: ${{ needs.plan.outputs.full == 'true' }}" => full_conditions += 1,
                         "    if: ${{ needs.plan.outputs.fanout != '[]' }}" => rows_conditions += 1,
-                        "    if: ${{ needs.plan.outputs.honesty != '[]' }}" => honesty_conditions += 1,
+                        "    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}" => {
+                            draft_conditions += 1
+                        }
+                        "    if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}" => {
+                            honesty_conditions += 1
+                        }
                         other => panic!(
                             "ci.yml:{}: a condition other than a step's `!cancelled()` or a job's condition on the plan: {other}",
                             index + 1
@@ -2400,7 +2401,11 @@ pub(crate) fn run(id: &str) {
                 "every Atlas job, the bootstrap export, and the host matrix, and no other job, wait for the plan to name the whole gate"
             );
             assert_eq!(rows_conditions, 1, "the legs run when the plan names a leg");
-            assert_eq!(honesty_conditions, 1, "honesty runs when the plan names it");
+            assert_eq!(honesty_conditions, 1, "honesty follows a successful plan");
+            assert_eq!(
+                draft_conditions, 1,
+                "only the planner suppresses automatic Draft PR events"
+            );
             intel_host_workflow(&ci).expect("§8.3: the host inventory and Intel custody graph");
             windows_host_workflow(&ci).expect("§8.3: the Windows lanes and their join");
             for (from, to) in [
@@ -2541,6 +2546,15 @@ pub(crate) fn run(id: &str) {
             }
             bootstrap_custody_decisions();
             honesty_dependencies(&ci).expect("expensive roots require successful same-run honesty");
+            assert!(
+                honesty_dependencies(&ci.replacen(
+                    "if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}",
+                    "if: ${{ needs.plan.outputs.honesty != '[]' }}",
+                    1,
+                ))
+                .is_err(),
+                "honesty must not run when the planner failed"
+            );
             assert!(
                 honesty_dependencies(&ci.replacen("name: ${{ matrix.part }}", "name: honesty", 1))
                     .is_err(),
@@ -4496,7 +4510,9 @@ fn honesty_dependencies(ci: &str) -> Result<(), String> {
     let initial = workflow_job(ci, "honesty")?;
     if !initial.contains("name: ${{ matrix.part }}\n")
         || !initial.contains("needs: [plan]\n")
-        || !initial.contains("if: ${{ needs.plan.outputs.honesty != '[]' }}")
+        || !initial.contains(
+            "if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}",
+        )
     {
         return Err(
             "RP-14: honesty must expose its matrix-resolved context and follow the plan".to_owned(),
