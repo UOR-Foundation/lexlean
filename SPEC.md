@@ -66,7 +66,7 @@ The root workspace metadata MUST be:
 
 ```toml
 [workspace.package]
-version = "0.4.5"
+version = "0.4.0"
 edition = "2021"
 rust-version = "1.97"
 license = "MIT OR Apache-2.0"
