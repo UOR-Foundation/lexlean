@@ -1,0 +1,182 @@
+{
+  "schema": "lexlean/ci-native-macos-arm-joined-history/1",
+  "classification": "OBSERVED_CROSS_REVISION_NOT_CAUSAL",
+  "source": "GitHub REST complete paginated jobs inventories; provider job timestamps; explicit attempt 1 for retried #619. Selected exact job records below.",
+  "inventories": [
+    {
+      "run_id": 44599982425,
+      "latest_attempt": 1,
+      "total_jobs": 72,
+      "terminal": "success"
+    },
+    {
+      "run_id": 45100057759,
+      "latest_attempt": 1,
+      "total_jobs": 78,
+      "terminal": "success"
+    },
+    {
+      "run_id": 45316289312,
+      "latest_attempt": 2,
+      "attempt1_total_jobs": 70,
+      "latest_conclusion": "success"
+    }
+  ],
+  "records": [
+    {
+      "run_id": 44599982425,
+      "head_sha": "d38af68cc4afd1a344b2f5775f6468cbba2593fb",
+      "attempt": 1,
+      "job_id": 135830728701,
+      "name": "build and non-Lean tests (aarch64-apple-darwin)",
+      "labels": [
+        "macos-15"
+      ],
+      "conclusion": "success",
+      "created_at": "2026-11-19T19:39:43Z",
+      "started_at": "2026-11-19T20:00:17Z",
+      "completed_at": "2026-11-19T22:04:57Z",
+      "created_to_start_seconds": 1234,
+      "execution_seconds": 7480
+    },
+    {
+      "run_id": 45100057759,
+      "head_sha": "b693bb4259d311fd71da90ac38701214a74be27f",
+      "attempt": 1,
+      "job_id": 137449976678,
+      "name": "macOS arm64 tests (producer)",
+      "labels": [
+        "macos-15"
+      ],
+      "conclusion": "success",
+      "created_at": "2026-11-23T02:29:20Z",
+      "started_at": "2026-11-23T02:43:45Z",
+      "completed_at": "2026-11-23T02:55:19Z",
+      "created_to_start_seconds": 865,
+      "execution_seconds": 694
+    },
+    {
+      "run_id": 45100057759,
+      "head_sha": "b693bb4259d311fd71da90ac38701214a74be27f",
+      "attempt": 1,
+      "job_id": 137449976684,
+      "name": "macOS arm64 tests (moves)",
+      "labels": [
+        "macos-15"
+      ],
+      "conclusion": "success",
+      "created_at": "2026-11-23T02:29:20Z",
+      "started_at": "2026-11-23T02:43:23Z",
+      "completed_at": "2026-11-23T03:20:10Z",
+      "created_to_start_seconds": 843,
+      "execution_seconds": 2207
+    },
+    {
+      "run_id": 45100057759,
+      "head_sha": "b693bb4259d311fd71da90ac38701214a74be27f",
+      "attempt": 1,
+      "job_id": 137449976697,
+      "name": "macOS arm64 tests (validate)",
+      "labels": [
+        "macos-15"
+      ],
+      "conclusion": "success",
+      "created_at": "2026-11-23T02:29:20Z",
+      "started_at": "2026-11-23T02:29:23Z",
+      "completed_at": "2026-11-23T02:43:21Z",
+      "created_to_start_seconds": 3,
+      "execution_seconds": 838
+    },
+    {
+      "run_id": 45100057759,
+      "head_sha": "b693bb4259d311fd71da90ac38701214a74be27f",
+      "attempt": 1,
+      "job_id": 137449976718,
+      "name": "macOS arm64 tests (print)",
+      "labels": [
+        "macos-15"
+      ],
+      "conclusion": "success",
+      "created_at": "2026-11-23T02:29:20Z",
+      "started_at": "2026-11-23T02:29:22Z",
+      "completed_at": "2026-11-23T02:57:32Z",
+      "created_to_start_seconds": 2,
+      "execution_seconds": 1690
+    },
+    {
+      "run_id": 45100057759,
+      "head_sha": "b693bb4259d311fd71da90ac38701214a74be27f",
+      "attempt": 1,
+      "job_id": 137449976759,
+      "name": "macOS arm64 tests (lower)",
+      "labels": [
+        "macos-15"
+      ],
+      "conclusion": "success",
+      "created_at": "2026-11-23T02:29:20Z",
+      "started_at": "2026-11-23T02:55:22Z",
+      "completed_at": "2026-11-23T03:28:28Z",
+      "created_to_start_seconds": 1562,
+      "execution_seconds": 1986
+    },
+    {
+      "run_id": 45100057759,
+      "head_sha": "b693bb4259d311fd71da90ac38701214a74be27f",
+      "attempt": 1,
+      "job_id": 137467893151,
+      "name": "build and non-Lean tests (aarch64-apple-darwin)",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "conclusion": "success",
+      "created_at": "2026-11-23T03:28:28Z",
+      "started_at": "2026-11-23T03:28:30Z",
+      "completed_at": "2026-11-23T03:29:00Z",
+      "created_to_start_seconds": 2,
+      "execution_seconds": 30
+    },
+    {
+      "run_id": 45316289312,
+      "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+      "attempt": 1,
+      "job_id": 138185881445,
+      "name": "build and non-Lean tests (aarch64-apple-darwin)",
+      "labels": [
+        "macos-15"
+      ],
+      "conclusion": "success",
+      "created_at": "2026-11-24T03:04:36Z",
+      "started_at": "2026-11-24T03:04:38Z",
+      "completed_at": "2026-11-24T06:07:00Z",
+      "created_to_start_seconds": 2,
+      "execution_seconds": 10942
+    }
+  ],
+  "comparison": {
+    "old_execution_seconds": 7480,
+    "old_created_to_completed_seconds": 8714,
+    "partitioned_native_execution_seconds": 7415,
+    "partitioned_join_execution_seconds": 30,
+    "partitioned_total_execution_seconds": 7445,
+    "partitioned_created_to_join_completed_seconds": 3580,
+    "peak_observed_native_jobs": 3,
+    "latest_monolithic_execution_seconds": 10942,
+    "latest_monolithic_created_to_completed_seconds": 10944,
+    "source_test_inventory_old_reported": 502,
+    "source_test_inventory_partitioned_reported": 507,
+    "causal_savings_seconds": null,
+    "billed_minutes": null
+  },
+  "workflow_source": {
+    "partitioned": "b693bb4259d311fd71da90ac38701214a74be27f",
+    "partitioned_workflow_blob": "f4b6ab5d8a229665d3d43ba19e6e2db1e34e5f63",
+    "current": "603336bf2752ecbfa4d688ccb5d52b3585bfa64b",
+    "current_workflow_blob": "871ea52e244aae3f39d77abfe266c76bedbe7fd3"
+  },
+  "limitations": [
+    "Different source heads and test inventories; not a controlled experiment.",
+    "Native host completion envelope includes scheduling and aggregate join, not whole gate wall time.",
+    "Host labels and overlapping intervals do not establish physical runner count or capacity guarantees.",
+    "Historical lane structure is a reference, not current qualified code. Preserve exact current SPEC/host inventory and receipts before any restoration."
+  ]
+}
