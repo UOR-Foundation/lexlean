@@ -23,9 +23,20 @@ What this must not weaken, and how it holds:
   are the only files that can ask for permissions or secrets. ci.yml and
   reproducibility.yml declare read-only tokens and use no secrets, and the
   branch name matches no other workflow's push trigger (checked here).
+- Indirectly executed code: dependencies (fetched crates and their build
+  scripts and proc macros), toolchain pins and `.cargo/` configuration
+  (which can name a linker or runner), `build.rs`, and the scripts the
+  workflows run all execute on the candidate branch. They run there with the
+  read-only token and no secrets, which is exactly what they get after the
+  merge, so they are not refused; each kind a change touches must be
+  acknowledged by name as reviewed. A base workflow triggered by
+  `pull_request_target` or `workflow_run`, or one that runs on pull requests
+  with a write permission or a secret, refuses the path outright.
 - Artifact custody: the run's artifacts are produced by this repository's
   workflows from the reviewed commit; nothing produced by a fork run is
-  imported.
+  imported. They become same-repository artifacts, which `release-gate.sh`
+  and the export take select by run and head commit, so they are the
+  artifacts the post-merge run of the same commit would have produced.
 - Exactness: the reviewed SHA must equal the fork's head when checked, when
   pushed, and when merged (`--match-head-commit`). If the base moved, the
   merge's tree differs from the candidate's and the gate runs in full after
@@ -36,12 +47,36 @@ Python 3.9+, standard library only.
 
 import argparse
 import json
+from pathlib import PurePosixPath
 import re
 import subprocess
 import sys
 
 BRANCH = "integrate/pr-{number}"
 PROTECTED = (".github/workflows/", ".github/actions/")
+
+# Code the gate executes without it being the code under test: the runner
+# fetches it, or it runs before or around the tests. On the candidate branch
+# it runs with exactly the trust it would have after the merge, so it is
+# not refused, but it is the part a review most easily skips, so each kind a
+# change touches must be acknowledged by name (`--acknowledge`).
+SENSITIVE = {
+    "dependencies": lambda p: PurePosixPath(p).name in (
+        "Cargo.lock", "Cargo.toml", "lake-manifest.json", "lakefile.lean", "lakefile.toml",
+        "deny.toml", "package.json", "package-lock.json", "requirements.txt"),
+    "toolchain": lambda p: PurePosixPath(p).name in (
+        "rust-toolchain", "rust-toolchain.toml", "lean-toolchain") or p.startswith(".cargo/")
+        or "/.cargo/" in p,
+    "build-scripts": lambda p: PurePosixPath(p).name == "build.rs",
+    "executed-scripts": lambda p: p.startswith((".github/", "xtask/", "scripts/"))
+        or PurePosixPath(p).name in ("justfile", "Justfile", "Makefile")
+        or PurePosixPath(p).suffix in (".sh", ".py", ".ps1"),
+}
+
+# A base workflow with one of these can run with more than a read-only
+# token, or act on the candidate's run after it ends; the candidate path then
+# needs a review of that workflow first, so it is refused.
+PRIVILEGED_TRIGGERS = ("pull_request_target", "workflow_run")
 
 
 def glob_regex(pattern):
@@ -123,7 +158,50 @@ def push_patterns(workflow_text):
     return []
 
 
-def check(pr, files, reviewed_sha, workflows):
+def sensitive_kinds(files):
+    """The kinds of indirectly executed code FILES touch, each with its paths."""
+    kinds = {}
+    for path in files:
+        for kind, test in SENSITIVE.items():
+            if test(path):
+                kinds.setdefault(kind, []).append(path)
+    return kinds
+
+
+def on_section(text):
+    """The text of a workflow's top-level `on:` (inline or block)."""
+    lines = text.splitlines()
+    for number, line in enumerate(lines):
+        if re.match(r"""(on|"on"|'on'|true):""", line):
+            body = [line]
+            for following in lines[number + 1:]:
+                if following.strip() and not following.startswith((" ", "#")):
+                    break
+                body.append(following)
+            return "\n".join(body)
+    return None
+
+
+def elevation(name, text):
+    """Why workflow NAME could run a candidate's code with more than read
+    access, or act on its run afterwards; empty when it cannot."""
+    reasons = []
+    on = on_section(text)
+    if on is None:
+        return [f"{name}: its triggers cannot be read"]
+    for trigger in PRIVILEGED_TRIGGERS:
+        if re.search(rf"\b{trigger}\b", on):
+            reasons.append(f"{name}: triggered by {trigger}")
+    if re.search(r"\bpull_request\b", on):
+        if re.search(r"^\s*permissions:\s*write-all", text, re.M) or re.search(
+                r"^\s+[a-z-]+:\s*write\b", text, re.M):
+            reasons.append(f"{name}: runs on pull requests with a write permission")
+        if re.search(r"secrets\.(?!GITHUB_TOKEN\b)", text):
+            reasons.append(f"{name}: runs on pull requests and reads a secret")
+    return reasons
+
+
+def check(pr, files, reviewed_sha, workflows, acknowledged=()):
     """(eligible, reasons, steps) for fork pull request PR.
 
     PR is the provider's pull request object, FILES the paths its change
@@ -150,9 +228,14 @@ def check(pr, files, reviewed_sha, workflows):
     for path in files:
         if path.startswith(PROTECTED):
             reasons.append(f"{path}: would run with this repository's trust on a same-repository branch")
+    for kind, paths in sorted(sensitive_kinds(files).items()):
+        if kind not in acknowledged:
+            reasons.append(f"{kind} changed ({', '.join(paths[:3])}{', ...' if len(paths) > 3 else ''})"
+                           f": review it and pass --acknowledge {kind}")
     if not workflows:
         reasons.append("the base's workflows are unread")
     for name, text in sorted(workflows.items()):
+        reasons.extend(elevation(name, text))
         try:
             patterns = push_patterns(text)
         except ValueError as error:
@@ -188,6 +271,8 @@ def main(argv=None):
     parser.add_argument("--repo", required=True)
     parser.add_argument("--pr", type=int, required=True)
     parser.add_argument("--reviewed-sha", required=True)
+    parser.add_argument("--acknowledge", action="append", default=[], choices=sorted(SENSITIVE),
+                        help="a kind of indirectly executed code the review covered")
     arguments = parser.parse_args(argv)
     try:
         pr = gh_json(f"repos/{arguments.repo}/pulls/{arguments.pr}")
@@ -204,7 +289,8 @@ def main(argv=None):
     except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as error:
         print(f"integration-candidate: cannot read the pull request: {error}", file=sys.stderr)
         return 1
-    eligible, reasons, steps = check(pr, files, arguments.reviewed_sha, workflows)
+    eligible, reasons, steps = check(pr, files, arguments.reviewed_sha, workflows,
+                                     arguments.acknowledge)
     print(json.dumps({"eligible": eligible, "reasons": reasons, "steps": steps}, indent=1))
     return 0 if eligible else 2
 

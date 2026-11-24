@@ -21923,11 +21923,25 @@ from a fork, not at the reviewed full SHA, whose file list is unread, whose
 change touches `.github/workflows/` or `.github/actions/` (on a branch of this
 repository, those would run with its trust), or whose branch name a base
 workflow's push trigger admits. An unreadable trigger counts as admitting
-every branch. It prints the steps and performs none. Read against #614 on the
-provider, the only refusal was that #614 is closed.
+every branch. Code the gate runs around the tests is not refused, because it
+runs on the candidate branch with the read-only token and no secrets, exactly
+as after the merge; but each kind a change touches must be acknowledged as
+reviewed by name (`--acknowledge dependencies|toolchain|build-scripts|executed-scripts`).
+Dependencies cover fetched crates and their build scripts and proc macros.
+Toolchain covers the toolchain pins and `.cargo/` configuration, which can
+name a linker or runner. A base workflow triggered by `pull_request_target`
+or `workflow_run`, or one that runs on pull requests with a write permission
+or a secret other than `GITHUB_TOKEN`, refuses the path outright; this
+repository's seven workflows have none. It prints the steps and performs
+none. Read against #614 on the provider, it refused because #614 is closed
+and because three kinds were unacknowledged: dependencies and toolchain (a
+Lean fixture's `lake-manifest.json`, `lakefile.toml` and `lean-toolchain`),
+and executed scripts (`xtask/src/spec_links.rs`, `.github/bdd-parts.json`).
 
 | Planted defect | Refused by |
 | --- | --- |
 | a closed, same-repository, moved-head, short-SHA, workflow-, action-touching or empty candidate | `test_ci_integration_candidate.py` (`Check.test_each_unsafe_fact_refuses`) |
 | a workflow pushing on `integrate/**`, or on every branch | `Check.test_a_branch_a_workflow_pushes_on_is_refused` |
 | a bracket inside a branch pattern (`cut/v[0-9]*`) misread | `Patterns.test_this_repository_s_push_triggers` |
+| acknowledgements ignored; `build.rs` not treated as executed code | `Indirect.test_an_acknowledgement_covers_only_its_kind` |
+| `workflow_run` not privileged; secrets on pull requests ignored; unreadable triggers accepted | `Indirect.test_a_privileged_base_workflow_refuses_the_path` |

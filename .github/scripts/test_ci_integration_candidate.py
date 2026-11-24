@@ -65,6 +65,54 @@ class Check(unittest.TestCase):
         self.assertFalse(candidate.check(PR, ["a.rs"], SHA, bare)[0])
 
 
+class Indirect(unittest.TestCase):
+    """Code the gate runs around the tests must be acknowledged by kind."""
+
+    def test_each_kind_needs_its_acknowledgement(self):
+        cases = {
+            "dependencies": ["Cargo.lock"],
+            "toolchain": ["crates/x/.cargo/config.toml"],
+            "build-scripts": ["crates/lexlean/build.rs"],
+            "executed-scripts": ["xtask/src/main.rs"],
+        }
+        for kind, files in cases.items():
+            with self.subTest(kind):
+                eligible, reasons, _ = candidate.check(PR, files, SHA, workflows())
+                self.assertFalse(eligible)
+                self.assertTrue(any(f"--acknowledge {kind}" in r for r in reasons), reasons)
+                self.assertTrue(candidate.check(PR, files, SHA, workflows(), [kind])[0])
+
+    def test_an_acknowledgement_covers_only_its_kind(self):
+        eligible, reasons, _ = candidate.check(
+            PR, ["Cargo.lock", "crates/lexlean/build.rs"], SHA, workflows(), ["dependencies"])
+        self.assertFalse(eligible)
+        self.assertEqual(len(reasons), 1)
+        self.assertIn("build-scripts", reasons[0])
+
+    def test_a_privileged_base_workflow_refuses_the_path(self):
+        base = workflows()
+        cases = {
+            "target": "on:\n  pull_request_target:\njobs: {}\n",
+            "after a run": "on:\n  workflow_run:\n    workflows: [ci]\njobs: {}\n",
+            "write on pull requests": ("on:\n  pull_request:\npermissions:\n  contents: write\n"
+                                       "jobs: {}\n"),
+            "secret on pull requests": ("on:\n  pull_request:\njobs:\n  a:\n    steps:\n"
+                                        "      - run: echo ${{ secrets.DEPLOY_KEY }}\n"),
+            "unreadable triggers": "jobs: {}\n",
+        }
+        for name, text in cases.items():
+            with self.subTest(name):
+                eligible, reasons, _ = candidate.check(PR, ["a.rs"], SHA, {**base, "x.yml": text})
+                self.assertFalse(eligible, reasons)
+        token = "on:\n  pull_request:\njobs:\n  a:\n    env: {T: '${{ secrets.GITHUB_TOKEN }}'}\n"
+        self.assertTrue(candidate.check(PR, ["a.rs"], SHA, {**base, "x.yml": token})[0])
+
+    def test_this_repository_s_workflows_grant_nothing_more(self):
+        for name, text in workflows().items():
+            with self.subTest(name):
+                self.assertEqual(candidate.elevation(name, text), [])
+
+
 class Patterns(unittest.TestCase):
     def test_this_repository_s_push_triggers(self):
         found = {name: candidate.push_patterns(text) for name, text in workflows().items()}
