@@ -2,7 +2,8 @@
 # What a run of ci.yml is (SPEC.md §9.4), decided from the event and the
 # repository alone, before any job that costs a runner starts.
 #
-#   pull request, draft       honesty then the `rest` leg only: a development signal
+#   automatic draft PR event  workflow job guard skips plan (no runner).
+#   manually dispatched draft honesty then the `rest` leg: a nonqualifying signal
 #   pull request, ready, base honesty then the `rest` leg only, the same signal: only a pull
 #   not main or release/*     request into a line can land on it
 #   pull request, ready, base the whole gate
