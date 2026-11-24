@@ -288,6 +288,9 @@ class OriginMetadataContract(unittest.TestCase):
             lambda r, first, old, new, latest: old.pop(),
             lambda r, first, old, new, latest: new[0].update(id=51),
             lambda r, first, old, new, latest: latest[0].update(id=99),
+            lambda r, first, old, new, latest: (
+                new[0].update(runner_id=999), latest[0].update(runner_id=999)),
+            lambda r, first, old, new, latest: r.update(conclusion="failure"),
         )
         for mutate in cases:
             with self.subTest(mutate=mutate):

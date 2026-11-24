@@ -304,6 +304,16 @@ def fetch_live(policy, token, reader=live_json):
                                            policy["job_hosts"], snapshots)
         except (ValueError, KeyError, TypeError) as error:
             raise Hold("attempt lineage refused: " + str(error)) from error
+        require((run["conclusion"] == "success") ==
+                reconciled["all_latest_jobs_success"], "run/job outcome disagreement")
+        original_rows = {row["id"]: row for snapshot in snapshots
+                         for row in snapshot["jobs"]}
+        for row in latest_jobs:
+            origin = original_rows[reconciled["jobs"][row["name"]]["origin_job_id"]]
+            if origin["id"] != row["id"]:
+                require(number(origin["runner_id"]) and
+                        origin["runner_id"] == row["runner_id"],
+                        "carried execution runner identity changed")
         observations["attempt_lineage"] = reconciled
         for name, job in observations["jobs"].items():
             original = reconciled["jobs"][name]
