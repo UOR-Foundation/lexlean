@@ -2962,7 +2962,8 @@ pub(crate) fn run(id: &str) {
                     "RP-14 must refuse bypassing the regression checks"
                 );
             }
-            let first = "python3 -m unittest discover -s .github/scripts -p 'test_check_regen_writers.py'";
+            let first =
+                "python3 -m unittest discover -s .github/scripts -p 'test_check_regen_writers.py'";
             for bypass in [
                 format!("exit 0\n          {first}"),
                 format!("set +e\n          {first}"),

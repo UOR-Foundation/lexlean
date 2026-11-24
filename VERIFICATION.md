@@ -63,6 +63,13 @@ workflow tests, actual RP-14, rustfmt, build and Clippy on the new
 commit remain to be run before promotion. No hosted gate was started
 for these edits.
 
+A local Bash process also executed the exact five-command program with a
+stub `python3` executable: all five ran and exit 0 was observed when
+all succeeded; independently failing each position with exit 7 produced
+exit 7 and stopped after that position (six experiments). This exercises
+shell failure propagation, not the real test suites or GitHub's runner.
+The formatting changes are source adjustments, not a rustfmt receipt.
+
 
 ### Delayed successful CI is not release qualification (RP-14)
 
