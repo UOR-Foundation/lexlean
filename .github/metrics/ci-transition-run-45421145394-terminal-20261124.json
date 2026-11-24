@@ -1,0 +1,1631 @@
+{
+  "schema": "lexlean/ci-transition-run-snapshot/1",
+  "source": "GitHub REST explicit attempt 1; terminal cancellation",
+  "run": {
+    "id": 45421145394,
+    "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "cancelled",
+    "created_at": "2026-11-24T15:03:59Z",
+    "updated_at": "2026-11-24T16:49:39Z",
+    "run_started_at": "2026-11-24T15:03:59Z",
+    "path": ".github/workflows/ci.yml",
+    "event": "push",
+    "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45421145394"
+  },
+  "observed_at": "2026-11-24T16:49:39Z",
+  "total_count": 70,
+  "jobs": [
+    {
+      "id": 138540685551,
+      "name": "plan",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181380,
+      "runner_name": "GitHub Actions 1000181380",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:04:00Z",
+      "started_at": "2026-11-24T15:04:02Z",
+      "completed_at": "2026-11-24T15:05:15Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138540685551",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138541542154,
+      "name": "honesty",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181381,
+      "runner_name": "GitHub Actions 1000181381",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:05:15Z",
+      "started_at": "2026-11-24T15:05:17Z",
+      "completed_at": "2026-11-24T15:10:24Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138541542154",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545120714,
+      "name": "atlas (prefix)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181387,
+      "runner_name": "GitHub Actions 1000181387",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:37:01Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545120714",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545120725,
+      "name": "bootstrap export",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181388,
+      "runner_name": "GitHub Actions 1000181388",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:50:28Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545120725",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545120741,
+      "name": "Intel test construction and local targets",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181411,
+      "runner_name": "GitHub Actions 1000181411",
+      "labels": [
+        "macos-15-intel"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:31:10Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545120741",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545120784,
+      "name": "Windows tests (producer)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181382,
+      "runner_name": "GitHub Actions 1000181382",
+      "labels": [
+        "windows-2022"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:20:51Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545120784",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545120873,
+      "name": "Windows tests (validate)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181384,
+      "runner_name": "GitHub Actions 1000181384",
+      "labels": [
+        "windows-2022"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:44:56Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545120873",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545120876,
+      "name": "Windows tests (moves)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181383,
+      "runner_name": "GitHub Actions 1000181383",
+      "labels": [
+        "windows-2022"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:58:19Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545120876",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545120890,
+      "name": "Windows tests (print)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181385,
+      "runner_name": "GitHub Actions 1000181385",
+      "labels": [
+        "windows-2022"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T16:22:42Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545120890",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545120908,
+      "name": "Windows tests (lower)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181386,
+      "runner_name": "GitHub Actions 1000181386",
+      "labels": [
+        "windows-2022"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T16:27:52Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545120908",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545120930,
+      "name": "build and non-Lean tests (aarch64-unknown-linux-gnu)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "runner_id": 1000181412,
+      "runner_name": "GitHub Actions 1000181412",
+      "labels": [
+        "ubuntu-24.04-arm"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:31Z",
+      "completed_at": "2026-11-24T16:47:04Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545120930",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545121000,
+      "name": "build and non-Lean tests (aarch64-apple-darwin)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "runner_id": 1000181413,
+      "runner_name": "GitHub Actions 1000181413",
+      "labels": [
+        "macos-15"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T16:47:09Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545121000",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122053,
+      "name": "just vv (examples)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "runner_id": 1000181394,
+      "runner_name": "GitHub Actions 1000181394",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T16:47:00Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122053",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122070,
+      "name": "just vv (bdd-bootstrap-check)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181389,
+      "runner_name": "GitHub Actions 1000181389",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:59:21Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122070",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122123,
+      "name": "just vv (bdd-bootstrap-print)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181390,
+      "runner_name": "GitHub Actions 1000181390",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:34Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122123",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122129,
+      "name": "just vv (bdd-bootstrap-runtime)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181391,
+      "runner_name": "GitHub Actions 1000181391",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:41Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122129",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122204,
+      "name": "just vv (bdd-bootstrap-gnaf)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181402,
+      "runner_name": "GitHub Actions 1000181402",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:51:39Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122204",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122257,
+      "name": "just vv (rest)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181426,
+      "runner_name": "GitHub Actions 1000181426",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T16:18:34Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122257",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122312,
+      "name": "just vv (bdd-bootstrap-lexicon-lse)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181393,
+      "runner_name": "GitHub Actions 1000181393",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:51:36Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122312",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122352,
+      "name": "just vv (bdd-bootstrap-lower)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181392,
+      "runner_name": "GitHub Actions 1000181392",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T16:01:44Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122352",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122357,
+      "name": "just vv (bdd-bootstrap-bodies)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181395,
+      "runner_name": "GitHub Actions 1000181395",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:39Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122357",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122367,
+      "name": "just vv (bdd-bootstrap-moves)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181396,
+      "runner_name": "GitHub Actions 1000181396",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:51:22Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122367",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122384,
+      "name": "just vv (bdd-bootstrap-surface-lex)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181404,
+      "runner_name": "GitHub Actions 1000181404",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:55Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122384",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122391,
+      "name": "just vv (bdd-bootstrap-loops)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181403,
+      "runner_name": "GitHub Actions 1000181403",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:51:14Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122391",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122394,
+      "name": "just vv (bdd-bootstrap-surface-doc)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181397,
+      "runner_name": "GitHub Actions 1000181397",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:51:35Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122394",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122414,
+      "name": "just vv (bdd-bootstrap-package)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181401,
+      "runner_name": "GitHub Actions 1000181401",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:38Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122414",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122419,
+      "name": "just vv (bdd-bootstrap-project-text)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181398,
+      "runner_name": "GitHub Actions 1000181398",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:51:49Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122419",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122433,
+      "name": "just vv (bdd-bootstrap-succeed)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181407,
+      "runner_name": "GitHub Actions 1000181407",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:51:42Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122433",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122444,
+      "name": "just vv (bdd-bootstrap-validate)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181406,
+      "runner_name": "GitHub Actions 1000181406",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:28Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122444",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122488,
+      "name": "just vv (bdd-bootstrap-surface-generic)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181400,
+      "runner_name": "GitHub Actions 1000181400",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:46Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122488",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122525,
+      "name": "just vv (bdd-bootstrap-tooling-latex)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181423,
+      "runner_name": "GitHub Actions 1000181423",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:51:31Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122525",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122555,
+      "name": "just vv (bdd-bootstrap-cli-output)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181415,
+      "runner_name": "GitHub Actions 1000181415",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:51:17Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122555",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122587,
+      "name": "just vv (bdd-bootstrap-assemble)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181418,
+      "runner_name": "GitHub Actions 1000181418",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:46Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122587",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122599,
+      "name": "just vv (bdd-compiler)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181399,
+      "runner_name": "GitHub Actions 1000181399",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:55:16Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122599",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122600,
+      "name": "just vv (bdd-preservation-support)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181419,
+      "runner_name": "GitHub Actions 1000181419",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:23:13Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122600",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122608,
+      "name": "just vv (bdd-bootstrap-lexicon-lre)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181425,
+      "runner_name": "GitHub Actions 1000181425",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:57Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122608",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122635,
+      "name": "just vv (bdd-bootstrap-structural-grammar)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181414,
+      "runner_name": "GitHub Actions 1000181414",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:51:25Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122635",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122670,
+      "name": "just vv (bdd-bootstrap-diagnostics)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181408,
+      "runner_name": "GitHub Actions 1000181408",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:51:24Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122670",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122681,
+      "name": "just vv (bdd-preservation-runtime)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181416,
+      "runner_name": "GitHub Actions 1000181416",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:19:31Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122681",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122688,
+      "name": "just vv (bdd-bootstrap-lock-text)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181405,
+      "runner_name": "GitHub Actions 1000181405",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:34Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122688",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122692,
+      "name": "just vv (bdd-preservation-std)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181409,
+      "runner_name": "GitHub Actions 1000181409",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:17:44Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122692",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122713,
+      "name": "just vv (bdd-bootstrap-content-id)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181422,
+      "runner_name": "GitHub Actions 1000181422",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:25Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122713",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122728,
+      "name": "just vv (bdd-production)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181428,
+      "runner_name": "GitHub Actions 1000181428",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:44:20Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122728",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122733,
+      "name": "just vv (bdd-bootstrap-surface-tooling)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181424,
+      "runner_name": "GitHub Actions 1000181424",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:16Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122733",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122740,
+      "name": "just vv (bdd-verification)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181421,
+      "runner_name": "GitHub Actions 1000181421",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:47:22Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122740",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122759,
+      "name": "just vv (bdd-preservation)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181420,
+      "runner_name": "GitHub Actions 1000181420",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T16:10:29Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122759",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122843,
+      "name": "just vv (bdd-bootstrap-manifest-text)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181427,
+      "runner_name": "GitHub Actions 1000181427",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:32Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122843",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122854,
+      "name": "just vv (bdd-preservation-prims)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181417,
+      "runner_name": "GitHub Actions 1000181417",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:27Z",
+      "completed_at": "2026-11-24T15:15:29Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122854",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122903,
+      "name": "just vv (bdd-bootstrap-terms)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181410,
+      "runner_name": "GitHub Actions 1000181410",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:37Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122903",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545122971,
+      "name": "just vv (bdd-preservation-lists)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181429,
+      "runner_name": "GitHub Actions 1000181429",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:24:23Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545122971",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138545123230,
+      "name": "just vv (bdd-bootstrap-surface-module)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181430,
+      "runner_name": "GitHub Actions 1000181430",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:10:24Z",
+      "started_at": "2026-11-24T15:10:26Z",
+      "completed_at": "2026-11-24T15:51:32Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545123230",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138559612970,
+      "name": "Intel conformance (print)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "runner_id": 1000181495,
+      "runner_name": "GitHub Actions 1000181495",
+      "labels": [
+        "macos-15-intel"
+      ],
+      "created_at": "2026-11-24T15:31:10Z",
+      "started_at": "2026-11-24T15:34:15Z",
+      "completed_at": "2026-11-24T16:47:10Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138559612970",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138559612976,
+      "name": "Intel conformance (moves)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "runner_id": 1000181489,
+      "runner_name": "GitHub Actions 1000181489",
+      "labels": [
+        "macos-15-intel"
+      ],
+      "created_at": "2026-11-24T15:31:10Z",
+      "started_at": "2026-11-24T15:31:16Z",
+      "completed_at": "2026-11-24T16:47:06Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138559612976",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138559612999,
+      "name": "Intel conformance (validate)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181490,
+      "runner_name": "GitHub Actions 1000181490",
+      "labels": [
+        "macos-15-intel"
+      ],
+      "created_at": "2026-11-24T15:31:10Z",
+      "started_at": "2026-11-24T15:31:13Z",
+      "completed_at": "2026-11-24T16:35:16Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138559612999",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138559613052,
+      "name": "Intel conformance (lower)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "runner_id": 1000181491,
+      "runner_name": "GitHub Actions 1000181491",
+      "labels": [
+        "macos-15-intel"
+      ],
+      "created_at": "2026-11-24T15:31:10Z",
+      "started_at": "2026-11-24T15:31:14Z",
+      "completed_at": "2026-11-24T16:47:04Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138559613052",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138563667061,
+      "name": "atlas (cert4)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181497,
+      "runner_name": "GitHub Actions 1000181497",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:37:01Z",
+      "started_at": "2026-11-24T15:37:04Z",
+      "completed_at": "2026-11-24T15:40:59Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138563667061",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138563667098,
+      "name": "atlas (census-b)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181500,
+      "runner_name": "GitHub Actions 1000181500",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:37:01Z",
+      "started_at": "2026-11-24T15:37:04Z",
+      "completed_at": "2026-11-24T15:45:11Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138563667098",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138563667109,
+      "name": "atlas (census-c)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181498,
+      "runner_name": "GitHub Actions 1000181498",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:37:01Z",
+      "started_at": "2026-11-24T15:37:03Z",
+      "completed_at": "2026-11-24T16:02:01Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138563667109",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138563667116,
+      "name": "atlas (census-a)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181496,
+      "runner_name": "GitHub Actions 1000181496",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:37:01Z",
+      "started_at": "2026-11-24T15:37:04Z",
+      "completed_at": "2026-11-24T15:48:50Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138563667116",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138563667135,
+      "name": "atlas (census-d)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181499,
+      "runner_name": "GitHub Actions 1000181499",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:37:01Z",
+      "started_at": "2026-11-24T15:37:03Z",
+      "completed_at": "2026-11-24T15:47:40Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138563667135",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138566423862,
+      "name": "atlas (cert4-replay)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181517,
+      "runner_name": "GitHub Actions 1000181517",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:41:02Z",
+      "started_at": "2026-11-24T15:42:48Z",
+      "completed_at": "2026-11-24T15:48:25Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138566423862",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138571760976,
+      "name": "atlas (closure)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181552,
+      "runner_name": "GitHub Actions 1000181552",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:48:50Z",
+      "started_at": "2026-11-24T15:51:19Z",
+      "completed_at": "2026-11-24T15:57:05Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138571760976",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138577419295,
+      "name": "atlas (pairs-a)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181576,
+      "runner_name": "GitHub Actions 1000181576",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:57:05Z",
+      "started_at": "2026-11-24T15:57:07Z",
+      "completed_at": "2026-11-24T16:12:15Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138577419295",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138577419345,
+      "name": "atlas (orbit)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181578,
+      "runner_name": "GitHub Actions 1000181578",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:57:05Z",
+      "started_at": "2026-11-24T15:57:08Z",
+      "completed_at": "2026-11-24T16:08:22Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138577419345",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138577419350,
+      "name": "atlas (pairs-d)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181577,
+      "runner_name": "GitHub Actions 1000181577",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:57:05Z",
+      "started_at": "2026-11-24T15:57:07Z",
+      "completed_at": "2026-11-24T16:11:33Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138577419350",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138577419352,
+      "name": "atlas (pairs-b)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181575,
+      "runner_name": "GitHub Actions 1000181575",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:57:05Z",
+      "started_at": "2026-11-24T15:57:08Z",
+      "completed_at": "2026-11-24T16:11:00Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138577419352",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138577419370,
+      "name": "atlas (pairs-c)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181579,
+      "runner_name": "GitHub Actions 1000181579",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T15:57:05Z",
+      "started_at": "2026-11-24T15:57:07Z",
+      "completed_at": "2026-11-24T16:10:24Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138577419370",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138587998706,
+      "name": "atlas (join)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181637,
+      "runner_name": "GitHub Actions 1000181637",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T16:12:15Z",
+      "started_at": "2026-11-24T16:12:18Z",
+      "completed_at": "2026-11-24T16:15:52Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138587998706",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138598920051,
+      "name": "build and non-Lean tests (x86_64-pc-windows-msvc)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1000181684,
+      "runner_name": "GitHub Actions 1000181684",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T16:27:55Z",
+      "started_at": "2026-11-24T16:27:58Z",
+      "completed_at": "2026-11-24T16:29:05Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138598920051",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    },
+    {
+      "id": 138612277704,
+      "name": "build and non-Lean tests (x86_64-apple-darwin)",
+      "run_id": 45421145394,
+      "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "runner_id": 1000181783,
+      "runner_name": "GitHub Actions 1000181783",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "created_at": "2026-11-24T16:47:10Z",
+      "started_at": "2026-11-24T16:48:17Z",
+      "completed_at": "2026-11-24T16:49:38Z",
+      "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138612277704",
+      "steps": [
+        {
+          "name": "Set up job"
+        }
+      ]
+    }
+  ]
+}

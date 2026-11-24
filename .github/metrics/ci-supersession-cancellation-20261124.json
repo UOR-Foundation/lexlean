@@ -1,0 +1,54 @@
+{
+  "schema": "lexlean/ci-supersession-cancellation/1",
+  "old_run": 45421145394,
+  "new_run": 45437716141,
+  "old_job": {
+    "id": 138545121000,
+    "name": "build and non-Lean tests (aarch64-apple-darwin)",
+    "run_id": 45421145394,
+    "head_sha": "44616baaa0fcd1551a92dea468b07b5847e2eb7c",
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "cancelled",
+    "runner_id": 1000181413,
+    "runner_name": "GitHub Actions 1000181413",
+    "labels": [
+      "macos-15"
+    ],
+    "created_at": "2026-11-24T15:10:24Z",
+    "started_at": "2026-11-24T15:10:26Z",
+    "completed_at": "2026-11-24T16:47:09Z",
+    "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138545121000"
+  },
+  "new_job": {
+    "id": 138604050533,
+    "name": "build and non-Lean tests (aarch64-apple-darwin)",
+    "run_id": 45437716141,
+    "head_sha": "603336bf2752ecbfa4d688ccb5d52b3585bfa64b",
+    "run_attempt": 1,
+    "status": "in_progress",
+    "conclusion": null,
+    "runner_id": 1000181770,
+    "runner_name": "GitHub Actions 1000181770",
+    "labels": [
+      "macos-15"
+    ],
+    "created_at": "2026-11-24T16:35:15Z",
+    "started_at": "2026-11-24T16:47:09Z",
+    "completed_at": null,
+    "check_run_url": "https://api.github.com/repos/UOR-Foundation/lexlean/check-runs/138604050533"
+  },
+  "new_job_created_to_start_seconds": 714,
+  "old_end_to_new_start_seconds": 0,
+  "same_runner_id": false,
+  "completed_execution_seconds": 151256,
+  "cancelled_allocated_execution_seconds": 30864,
+  "counts": {
+    "success": 63,
+    "cancelled": 6,
+    "failure": 1
+  },
+  "counterfactual_wait_avoided_seconds": null,
+  "billed_minutes": null,
+  "interpretation": "Same-second handoff supports contention; created-to-start is observed elapsed queue/scheduling time, not an isolated causal delay. Projected remaining old runtime is not measured savings. Cancellation never constitutes qualification; do not cancel independent or unsuperseded obligations."
+}
