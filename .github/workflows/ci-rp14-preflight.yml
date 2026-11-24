@@ -33,4 +33,5 @@ jobs:
         run: cargo test --locked --all-features -p repo-conformance --test conformance conformance_rp_14 -- --exact
       - name: State the assurance boundary
         if: ${{ always() }}
-        run: echo 'NONQUALIFYING: targeted RP-14 and formatting only. Full exact-head CI, all hosts and independent reproducibility are still required.'
+        run: |
+          echo 'NONQUALIFYING: RP-14 and rustfmt only. Full exact-head CI and repro remain required.'
