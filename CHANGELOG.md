@@ -32,6 +32,11 @@ and Unreleased holds what has landed since.
   so the elaborator's unifier never compares the two sides and the kernel decides the theorem when it is
   added. Reflexivity over two runs of a step machine whose state holds unevaluated bytes needed more
   than 13 GB in the unifier; the kernel checks the same theorems in seconds, and rejects a false one.
+- release/v0.4 is merged forward again, from `6a02d2c7` to its head: #431, #459, #492, #498,
+  #520 and #533. v0.4's §9.4, §22.11 and `VR-23` text is written into the modules of `spec/`.
+  The build script's address of the `rustc` that built the crate (#498) is hashed with the
+  certified `Sha256` package, compiled by that `rustc` into a hasher in `OUT_DIR`, so the
+  shipped crate still declares no `sha2` (`SL-05`, R6).
 - release/v0.4 is merged forward into release/v0.5 (#404, #405). Both lines had registered
   `PF-24` and `SM-38` for different claims; the released maintenance line keeps its numbers
   (`PF-24` decision regions, `SM-38` declaration IDs) and the v0.5 claims move unchanged to
@@ -303,6 +308,27 @@ and Unreleased holds what has landed since.
 
 ## Unreleased
 
+- Canonical JSON refuses duplicate keys that differ only in their escapes (SPEC.md §21.7,
+  `AR-11`, #475). The duplicate check compared each key as written, so `{"a":1,"\u0061":2}`
+  passed it and `Json::parse` returned `{"a":2}`, dropping the first member; keys are now
+  compared after escape decoding. Equal keys in distinct objects stay admitted, and no valid
+  canonical document is affected.
+- Every part of a verification names its toolchain by address (SPEC.md
+  §22.11, §9.4). A shard writes `toolchain.json` (`lexlean/verify-toolchain/1`)
+  beside its output: the SHA-256 of the `lean`, `lake`, and `leanchecker` its
+  preflight hashed, of the running `lexlean`, and the address of the `rustc`
+  that compiled it (its executable and `rustc_driver` library, which the build
+  script hashes). A part that reads another refuses it (`LLI9001`, naming the
+  part, the tool, and both addresses) unless all five equal its own. A record
+  names only the executable it ran, so a part that ran another `lake`,
+  `lexlean`, or `rustc` was accepted before. `VR-23` plants another `lake`
+  address in a shard's output, and on unix a join whose own `lake` differs by
+  one byte. The bootstrap export's custody record becomes
+  `lexlean/ci-bootstrap-export/2`: it also names the SHA-256 of the pinned
+  `lake`, `lean`, and `leanchecker` and the address of the `rustc` that built
+  the exporting binary, and a leg whose own differ refuses the export (`RP-14`
+  plants another `leanchecker` and another `rustc`). Published directories,
+  attestations, and `expected/verify` are unchanged.
 - Releases and regeneration need no hand steps (SPEC.md §9.4). `regenerate.yml`
   gains the job `deliver`: when the regenerated commit heads one open pull
   request of this repository, the patch is committed on it, pushed to the pull

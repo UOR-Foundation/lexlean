@@ -122,7 +122,150 @@ fn main() {
         errors.display()
     );
     fs::write(out_dir.join("errors.toml"), bytes).expect("write errors.toml");
+
+    rustc_identity(&out_dir, &body);
 }
+
+/// The address of the compiler that builds this crate (SPEC.md §22.11): the
+/// SHA-256 of one line `<sha256 of the file>  <sysroot-relative path>` per
+/// file of the `rustc` executable and its driver library, in path order, and
+/// what `rustc -vV` reports. The `rustc` executable is a thin launcher; the
+/// compiler is the driver library it loads, so both are addressed. A compiler
+/// whose sysroot cannot be read is a build failure, never an empty address.
+///
+/// The digests are the standard library's certified `Sha256` package (§17.22,
+/// `SL-05`), the crate's only SHA-256: a build script cannot link the crate it
+/// builds, so the package (`package`, the text `main` read) is compiled by the
+/// same `rustc` into a small hasher in `OUT_DIR` and run on the files.
+fn rustc_identity(out_dir: &Path, package: &str) {
+    use std::process::Command;
+
+    println!("cargo:rerun-if-env-changed=RUSTC");
+    let rustc = env::var("RUSTC").unwrap_or_else(|_| "rustc".to_owned());
+    let hasher_source = out_dir.join("rustc_identity_hasher.rs");
+    fs::write(
+        &hasher_source,
+        format!(
+            "#[allow(warnings, missing_docs, clippy::all, clippy::pedantic, clippy::nursery)]\nmod sha256_package {{\n{package}\n}}\n{HASHER_MAIN}"
+        ),
+    )
+    .expect("write the hasher source");
+    let hasher = out_dir.join(format!("rustc_identity_hasher{}", env::consts::EXE_SUFFIX));
+    let built = Command::new(&rustc)
+        .args(["--edition", "2021", "-O", "--crate-type", "bin", "-o"])
+        .arg(&hasher)
+        .arg(&hasher_source)
+        .output()
+        .unwrap_or_else(|error| panic!("running `{rustc}` on the hasher: {error}"));
+    assert!(
+        built.status.success(),
+        "`{rustc}` could not build the SHA-256 hasher: {}",
+        String::from_utf8_lossy(&built.stderr)
+    );
+    let digests = |paths: &[PathBuf]| -> Vec<String> {
+        let output = Command::new(&hasher)
+            .args(paths)
+            .output()
+            .unwrap_or_else(|error| panic!("running {}: {error}", hasher.display()));
+        assert!(
+            output.status.success(),
+            "the SHA-256 hasher failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let text = String::from_utf8(output.stdout).expect("the hasher prints hexadecimal");
+        let lines: Vec<String> = text.lines().map(str::to_owned).collect();
+        assert_eq!(
+            lines.len(),
+            paths.len(),
+            "the hasher prints one digest a file"
+        );
+        lines
+    };
+    let run = |argument: &str| {
+        let output = Command::new(&rustc)
+            .arg(argument)
+            .output()
+            .unwrap_or_else(|error| panic!("running `{rustc} {argument}`: {error}"));
+        assert!(
+            output.status.success(),
+            "`{rustc} {argument}` failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8(output.stdout).expect("rustc reports UTF-8")
+    };
+    let version = run("-vV").replace("\r\n", "\n");
+    let sysroot = PathBuf::from(run("--print=sysroot").trim());
+    let mut files: Vec<(String, PathBuf)> = Vec::new();
+    for directory in ["bin", "lib"] {
+        let Ok(entries) = fs::read_dir(sysroot.join(directory)) else {
+            continue;
+        };
+        for entry in entries.filter_map(Result::ok) {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            let compiler = name == "rustc"
+                || name == "rustc.exe"
+                || name.starts_with("rustc_driver-")
+                || name.starts_with("librustc_driver-");
+            if compiler && entry.path().is_file() {
+                files.push((format!("{directory}/{name}"), entry.path()));
+            }
+        }
+    }
+    files.sort();
+    assert!(
+        files.iter().any(|(path, _)| path.starts_with("bin/rustc")),
+        "{}: no `rustc` executable in the compiler's sysroot",
+        sysroot.display()
+    );
+    let paths: Vec<PathBuf> = files.iter().map(|(_, path)| path.clone()).collect();
+    for path in &paths {
+        println!("cargo:rerun-if-changed={}", path.display());
+    }
+    let mut listing = String::new();
+    for ((relative, _), digest) in files.iter().zip(digests(&paths)) {
+        listing.push_str(&digest);
+        listing.push_str("  ");
+        listing.push_str(relative);
+        listing.push('\n');
+    }
+    let listing_path = out_dir.join("rustc_identity_listing.txt");
+    fs::write(&listing_path, &listing).expect("write the compiler listing");
+    let address = digests(&[listing_path])
+        .pop()
+        .expect("one digest of the listing");
+    fs::write(
+        out_dir.join("rustc_identity.rs"),
+        format!(
+            "/// What `rustc -vV` reported for the compiler that built this crate.\n\
+             pub const RUSTC_VERSION: &str = {version:?};\n\
+             /// The address of that compiler's executable and driver library.\n\
+             pub const RUSTC_SHA256: &str = {address:?};\n"
+        ),
+    )
+    .expect("write rustc_identity.rs");
+}
+
+/// The hasher's entry point: the lowercase hexadecimal SHA-256 of each file
+/// named on its command line, one a line.
+const HASHER_MAIN: &str = r#"
+fn main() {
+    for path in std::env::args_os().skip(1) {
+        let bytes = std::fs::read(&path).unwrap_or_else(|error| {
+            eprintln!("{}: {error}", std::path::Path::new(&path).display());
+            std::process::exit(1)
+        });
+        let Ok(sha256_package::Adt0::C0(a, b, c, d, e, f, g, h)) =
+            sha256_package::run(sha256_package::Bytes::lit(&bytes))
+        else {
+            eprintln!("a file beyond the domain of FIPS 180-4");
+            std::process::exit(1)
+        };
+        let words = [a, b, c, d, e, f, g, h];
+        let hex: String = words.iter().map(|word| format!("{word:08x}")).collect();
+        println!("{hex}");
+    }
+}
+"#;
 
 /// Resolve a crate-relative normative path: a directory or file as such; a
 /// checked-out symlink stored as text (its relative target); otherwise a
