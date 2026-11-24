@@ -92,6 +92,34 @@ pool adds accounting, single-processor waiting and panic-return tests.
 These new tests and real export replay require execution at the resulting
 head before acceptance; no runtime or performance result is asserted here.
 
+Additional local validation of the draft at `d79bbd64` (2026-11-24):
+with Git 2.47.3, the checker blob
+`ed0fb7941da8a1784d3f069ed497f8f6c1f3b3d1` and test blob
+`71de2dcd8c9c1df0f682974f81068a52a1421aa6` were independently matched
+with `git hash-object`. Command from the scripts directory:
+`python -m unittest -v test_check_regen_writers.py`. Of 18 tests, 16
+passed and 2 workflow-dependent tests were skipped in the isolated local
+copy (0.583 s). On the actual retrieved workflow blob
+`9eae7e0c931b36bb1e53b4ffb9249f9b61514a14`, equivalent source assertions
+passed and all four bypass/rename mutations were refused; this was a
+separate source evaluation, not execution of the two skipped Python tests.
+
+For the nested-checkout regression, replaced the scratch-directory Git
+invocation with the previous invocation that inherits the caller's working
+directory. Command:
+`python -B -m unittest -v test_check_regen_writers.WriterCollisionTests.test_inspection_from_nested_checkout_preserves_root_paths`.
+The plant exited 1 with `ValueError: records: patch and declared file inventory disagree`.
+Restoring the original file yielded exit 0 (one test passed), and
+`git hash-object` again matched the checker blob above.
+
+The exact custody test blob `44ac4b9742f95ba82d5f6ede3f54fb37914ba175`
+passed six tests against the retrieved 2,935-byte `take()` function excerpt
+from Rust blob `a889651022f58202dc5a68fd8dab96887a78ef8d`, including the
+explicit early-drop plant. Command: `python -m unittest -v test_export_custody_guard.py`.
+This is source-level evidence, not a Rust compilation or replay. No hosted
+qualification, compiled evaluator test or performance measurement is
+claimed by these local receipts.
+
 ### browser prover assets can differ, fail to build, or go unpublished (RP-20)
 
 `RP-20` holds the assets a browser prover loads (§7, §30.3).
