@@ -9,6 +9,7 @@ import argparse
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 WRITERS = ("production-export", "records", "oracles")
@@ -88,11 +89,19 @@ def inspect(directory):
             actual = []
         else:
             try:
-                parsed = subprocess.run(
-                    ["git", "apply", "--numstat", "-z", str(patch)],
-                    check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                    timeout=30,
-                )
+                # Git filters numstat paths relative to a checkout subdirectory.
+                # Inspect from a scratch directory with repository discovery disabled.
+                with tempfile.TemporaryDirectory() as scratch:
+                    env = dict(os.environ)
+                    for key in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE",
+                                "GIT_PREFIX", "GIT_COMMON_DIR"):
+                        env.pop(key, None)
+                    env["GIT_CEILING_DIRECTORIES"] = str(Path(scratch).resolve().parent)
+                    parsed = subprocess.run(
+                        ["git", "apply", "--numstat", "-z", str(patch.resolve())],
+                        cwd=scratch, env=env, check=False, stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE, timeout=30,
+                    )
             except (OSError, subprocess.TimeoutExpired) as error:
                 raise ValueError(writer + ": cannot inspect patch") from error
             require(parsed.returncode == 0,

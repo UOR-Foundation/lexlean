@@ -29,6 +29,10 @@ def assert_guarded_take(source):
     ):
         if block.count(item) != 1:
             raise ValueError("transferred export contract missing: " + label)
+    # Explicit use of this RAII binding can release or move it before replay.
+    # This is a source check, not a proof of arbitrary Rust lock lifetimes.
+    if block.count("_environment") != 1:
+        raise ValueError("shared environment guard must remain bound through replay")
     guard = block.index(GUARD)
     if not (block.index("let artifact = directory.join(ARTIFACT_DIR);") <
             block.index("let digest = bundle_digest(&source);") <
@@ -77,6 +81,16 @@ class EnvironmentCustodyContract(unittest.TestCase):
             "    " + GUARD + "\n    let project = P::bootstrap();", 1,
         )
         with self.assertRaisesRegex(ValueError, "identity and replay"):
+            assert_guarded_take(source)
+
+    def test_early_drop_is_refused(self):
+        source = self.source.replace(
+            "    " + GUARD + "\n    let root = support::repo_root();",
+            "    " + GUARD + "\n    let root = support::repo_root();\n    drop(_environment);",
+            1,
+        )
+        self.assertNotEqual(source, self.source)
+        with self.assertRaisesRegex(ValueError, "remain bound"):
             assert_guarded_take(source)
 
     def test_exclusive_lock_is_refused(self):
