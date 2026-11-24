@@ -184,6 +184,8 @@ jobs:
           python3 -m unittest discover -s .github/scripts -p 'test_ci_provider_read.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_plan_provider_retry.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_read_trace.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_ci_change_scope.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_ci_integration_candidate.py'
       # The recorder's kernel path needs root (fanotify). Advisory like the
       # recording itself (#603 phase 1): it informs, it never gates.
       - name: Test the read recorder against the kernel

@@ -21877,3 +21877,57 @@ design property, not a measured one.
 | a half-written report | `Record.test_a_clean_recording_is_usable_and_unmounts` (atomic write) |
 | a log block that fails its digest | `Delivery.test_tampered_duplicated_and_truncated_blocks_are_refused` |
 | start with no `sudo` or no writable temp; stop with failing `sudo`, `timeout` or Python | `test_ci_read_trace.py` (`Scripts`): status 0 in every case |
+
+## A change-scoped decision is computed in shadow, never enforced (#603 phase 2)
+
+`.github/scripts/ci_change_scope.py` takes a verified base, a candidate, the
+change between them (`git diff --raw --no-renames`), and the base's receipts
+and decoded read traces. For each obligation it returns `run` or
+`would-reuse`, with every reason. It decides nothing that runs. A shadow
+decision is scored against the candidate's own full gate (`score`), and one
+`would-reuse` that failed there, or that the gate never ran, makes the model
+unsound. A would-reuse needs all of the following: a non-empty change of pure
+content modifications only (no add, delete, rename, mode, symlink or submodule
+change); no control path (`.github/`, `.cargo/`, the lock, the toolchain
+files, `justfile`, `deny.toml`); a traced Linux obligation; exactly one
+successful same-repository receipt of the base commit and tree; that job's own
+`usable` trace, bound to the same repository, run, attempt, commit, tree and
+matrix row, taken from a clean checkout by the expected recorder and unchanged
+from start to stop, that observed at least one workspace input; and no read of
+a changed file, no listing of a changed file's directory, and no `.git` read.
+A missing trace is a reason to run.
+
+| Planted defect | Refused by |
+| --- | --- |
+| each of the 38 facts above removed or falsified alone | `test_ci_change_scope.py` (`Decide.test_each_missing_or_false_fact_runs_the_obligation`) |
+| receipts from a fork accepted | the same test, `fork receipt` |
+| a missing trace treated as no reads | the same test, `no trace` |
+| added files treated as modifications | the same test, `added file` |
+| a listed directory ignored | `Decide.test_a_top_level_file_and_a_listed_root` |
+| `.git` reads ignored | the same test, `read .git` |
+| a native host decided by a Linux trace | the same test, `native host` |
+| a failed would-reuse scored sound | `Score.test_a_would_reuse_that_failed_is_unsound` |
+
+## A fork pull request may be qualified as a same-repository candidate (#603)
+
+The plan and the release gate reuse only runs whose head repository is this
+repository, so a fork's gate admits the pull request, but its run can never be
+reused, and landing it runs the whole gate again after the merge (#614: 1,818.9
+runner-minutes before the merge, the postmerge run cancelled partway).
+`.github/scripts/ci_integration_candidate.py` checks whether a maintainer may push the
+reviewed fork commit itself to `integrate/pr-<n>` and qualify it there once.
+The existing predicates then accept that run unchanged, and
+`gh pr merge <n> --merge --match-head-commit <sha>` lands a merge whose second
+parent is the qualified commit. It refuses a candidate that is closed, not
+from a fork, not at the reviewed full SHA, whose file list is unread, whose
+change touches `.github/workflows/` or `.github/actions/` (on a branch of this
+repository, those would run with its trust), or whose branch name a base
+workflow's push trigger admits. An unreadable trigger counts as admitting
+every branch. It prints the steps and performs none. Read against #614 on the
+provider, the only refusal was that #614 is closed.
+
+| Planted defect | Refused by |
+| --- | --- |
+| a closed, same-repository, moved-head, short-SHA, workflow-, action-touching or empty candidate | `test_ci_integration_candidate.py` (`Check.test_each_unsafe_fact_refuses`) |
+| a workflow pushing on `integrate/**`, or on every branch | `Check.test_a_branch_a_workflow_pushes_on_is_refused` |
+| a bracket inside a branch pattern (`cut/v[0-9]*`) misread | `Patterns.test_this_repository_s_push_triggers` |
