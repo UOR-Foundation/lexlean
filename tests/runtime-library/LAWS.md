@@ -130,3 +130,45 @@ and removed in the commit after. The check run compiled the committed
 source's generated Lean, exported it, and compared: 120 declarations, 120
 equal in every byte of their terms, and the decoder's private `Lean` import
 the only other difference (SPEC.md §17.10).
+
+## Natural-number arithmetic (PF-28)
+
+**Why.** `linear_arithmetic` unfolds `LexLeanRuntime.multiply` to `*`, and
+`omega` reads `a * b` of two variables as an opaque atom: it cannot relate
+`m * (2 * p)` to `2 * (m * p)`. Hologram AI's stages compute sizes as
+`mantissa * powTwo scale` and its kernels shift by variable amounts, so the
+equality of a kernel and its stage for every input needs the ring, order,
+and division laws. No nonlinear decision procedure is added: every step is a
+law and `omega`.
+
+**What.** 23 theorems in `LexLeanLaws`, over `Nat` and the runtime's
+`multiply`, `quotient`, `remainder`, and `subtract` exactly as a document
+writes them, so each matches without unfolding (SPEC.md §17.12, *Fold laws*,
+rule 7), and two helpers, `quotient_nat_pos` and `remainder_nat_pos`, which
+read a quotient and remainder by a positive divisor as `/` and `%` by `rfl`
+on the divisor's successor case. Each quotient and remainder law takes a
+positive divisor, so it holds for every zero case; a zero case on a law's
+right side is one of its left side's, so that `simp` instantiates it. The
+cancellation `nat_le_of_mul_le_mul_left` names a factor its conclusion does
+not contain, which `simp` cannot instantiate, so `nat_mul_le_mul_left_iff`
+states it as a rewrite of the product order. Rows pin `[]` or `[propext]`:
+`propext` comes from core's proofs of `Nat.mul_assoc`, `Nat.mul_sub` and the
+division lemmas. Core's `Nat.mod_mul_right_div_self` depends on
+`Classical.choice`, so `nat_mod_mul_left_div_self` is proved from
+`Nat.mod_add_div`, `Nat.add_mul_div_left`, `Nat.add_mul_mod_self_left`, and
+`Nat.mod_eq_of_lt` instead.
+
+**Export.** The oracle of #117 was restored outside the repository and run
+with the pinned Lean 4.32.2. The authored module was the Lean `lexlean build`
+generates from the committed source (the decoder that adds its 120
+declarations) with the new theorems appended, so every committed row is
+re-added from its own data. It was exported, its header imports set to the
+committed `Init`, `Portable` and `Collections` (the decoder's private imports
+are the generated Lean's, SPEC.md §17.10), and printed in the notation by
+`lexlean::sdk::to_notation` and `lexlean fmt`. The check run compiled the new
+source's generated Lean, exported it, and compared: 145 declarations, all
+equal in every byte of their terms. A second comparison against the export of
+the committed source found its 120 declarations present, in their order, and
+equal in every field and term; the 25 added rows are the 23 laws and the two
+helpers, and Lean realized no auxiliary row for them.
+

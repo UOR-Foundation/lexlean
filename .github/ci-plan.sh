@@ -46,6 +46,7 @@
 set -euo pipefail
 
 rows_file=${LEXLEAN_CI_ROWS:-.github/vv-rows.json}
+bdd_parts_file=${LEXLEAN_CI_BDD_PARTS:-.github/bdd-parts.json}
 event=${EVENT:?EVENT names the workflow event}
 draft=${DRAFT:-}
 base=${BASE:-}
@@ -57,9 +58,34 @@ summary=${GITHUB_STEP_SUMMARY:-/dev/null}
 
 # full, rows, and whether the Intel macOS jobs run (default: with the whole gate).
 emit() {
-  printf 'full=%s\nrows=%s\nhonesty=%s\nfanout=%s\nintel=%s\n' "$1" "$2" \
+  local classified fast export_rows
+  # Classify from the committed BDD case manifest, never from a fixed prefix
+  # list. Any unrecognized verification partition fails the plan closed.
+  classified=$(jq -cn --argjson rows "$2" --slurpfile manifest "$bdd_parts_file" '
+    def uses_export:
+      if .part == "examples" then
+        if .bdd_part == "" then false else error("examples must not run BDD") end
+      elif .part == "rest" then
+        if .bdd_part == "rest" then false else error("rest BDD part mismatch") end
+      else
+        .bdd_part as $part
+        | if .part != ("bdd-" + $part) then error("unrecognized BDD row")
+          else
+            ($manifest[0].parts[$part] // error("unregistered BDD part")) as $ids
+            | if ($ids | type) != "array" then error("BDD part is not an array")
+              else any($ids[]; startswith("BS-")) end
+          end
+      end;
+    [$rows[] | select(.part != "honesty")] as $work
+    | {fast: [$work[] | select(uses_export | not)],
+       export: [$work[] | select(uses_export)]}
+  ') || return 1
+  fast=$(jq -c .fast <<< "$classified") || return 1
+  export_rows=$(jq -c .export <<< "$classified") || return 1
+  printf 'full=%s\nrows=%s\nhonesty=%s\nfanout=%s\nfanout_fast=%s\nfanout_export=%s\nintel=%s\n' "$1" "$2" \
     "$(jq -c '[.[] | select(.part == "honesty")]' <<< "$2")" \
-    "$(jq -c '[.[] | select(.part != "honesty")]' <<< "$2")" "${3:-$1}" >> "$out"
+    "$(jq -c '[.[] | select(.part != "honesty")]' <<< "$2")" \
+    "$fast" "$export_rows" "${3:-$1}" >> "$out"
 }
 
 # The whole gate; INTEL (default true) says whether its Intel macOS jobs run.

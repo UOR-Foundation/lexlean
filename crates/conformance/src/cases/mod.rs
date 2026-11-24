@@ -77,6 +77,7 @@ mod tooling;
 mod typed_diagnostics;
 mod verification;
 mod wasi;
+mod wide_recursion;
 
 /// The wall time of one case, written to the CI evidence directory when the
 /// environment names one (SPEC.md §22.12) and nowhere else. It is written when
@@ -96,12 +97,20 @@ mod wasi;
 /// limits, current pressure, other processes, and the other cases, and where
 /// `/proc/meminfo` is unreadable (macOS, Windows, whose lanes already run
 /// these cases apart) it admits every case.
+///
+/// `BS-36`..`BS-40` joined the bound on the same evidence: in #532's own gate,
+/// on a 16 GiB runner, the parts' job peaks were `BS-37` 11.0 GiB, `BS-40` 9.5
+/// GiB, `BS-36` 8.7 GiB, and `BS-38` and `BS-39` 7.0 GiB each, and the ARM leg,
+/// which runs them together, lost its runner while `BS-35`..`BS-38` overlapped.
 mod heavy {
     use std::sync::{Condvar, Mutex};
 
     /// The cases bounded: the four whose lanes split the macOS, Windows, and
-    /// Intel hosts.
-    const HEAVY: [&str; 4] = ["BS-05", "BS-06", "BS-07", "BS-08"];
+    /// Intel hosts, and the five semantic/core print-and-read and math
+    /// cases whose own job peaks forced them in too (see below).
+    const HEAVY: [&str; 9] = [
+        "BS-05", "BS-06", "BS-07", "BS-08", "BS-36", "BS-37", "BS-38", "BS-39", "BS-40",
+    ];
 
     /// The memory one of them is planned for, chosen so a host with less
     /// than 20 GiB, the 16 GiB runners whatever their exact `MemTotal`, runs

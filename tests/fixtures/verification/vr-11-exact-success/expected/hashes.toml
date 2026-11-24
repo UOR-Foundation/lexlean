@@ -5,7 +5,7 @@
 [platform_independent]
 ".lexlean/verified/$ATTESTATION/audit/LexLeanAudit.A4cb4e1d480437ac95fbf07af3dd973fe.LexLeanExample.Main.lean" = "blake3:b80ff0205a94c853ebb6c4c074ccbb32a5066729ba669f8fb8c95f14cfda4eab"
 ".lexlean/verified/$ATTESTATION/audit/output.txt" = "blake3:c62ec571ca253c8e5f5eebcd6304720665235b3fe85c286021580cbfe0d8cb3e"
-".lexlean/verified/$ATTESTATION/build-manifest.json" = "blake3:3645f9d2c77fb9e7c661b82f7515da5019d08a50fe7d8fc67e0c8a58d11a8587"
+".lexlean/verified/$ATTESTATION/build-manifest.json" = "blake3:9e648ba4f81b0640e944e564290ee9cbb2edad42678bf6dac1b886cb0febb1ac"
 ".lexlean/verified/$ATTESTATION/coverage/LexLeanExample/Main.coverage.json" = "blake3:9260934f91366dd8019a918e14e06d7746f2b49aa79469e706a0f2828d003117"
 ".lexlean/verified/$ATTESTATION/lexicons/Main.closure.json" = "blake3:432d888fc70d4349a4309dd29c6096b089a135ceaa000bf1dfc80f9c4eefbef7"
 ".lexlean/verified/$ATTESTATION/maps/LexLeanExample/Main.map.json" = "blake3:e5ccc9b890dc144ce4d2553673759477bc4599ade572ee984bc1d3cc13160717"

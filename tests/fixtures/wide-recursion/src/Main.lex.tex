@@ -1,0 +1,96 @@
+\begin{lexlean}{Main}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Natural number addition}
+\begin{semanticmodule}
+definition{
+  name: wideOf,
+  parameters: [
+    a0 : Nat,
+    a1 : Nat,
+    a2 : Nat,
+    a3 : Nat,
+    a4 : Nat,
+    a5 : Nat,
+    a6 : Nat,
+    a7 : Nat,
+    a8 : Nat,
+    a9 : Nat,
+    fuel : Nat
+  ],
+  result: Nat,
+  body: (match fuel
+    | Nat.zero => a0
+    | Nat.succ less => (wideOf (a0 + 1) a1 a2 a3 a4 a5 a6 a7 a8 a9 less)),
+  executable: true,
+  recursive_argument: fuel
+}
+
+definition{
+  name: wideModelOf,
+  parameters: [
+    a0 : Nat,
+    a1 : Nat,
+    a2 : Nat,
+    a3 : Nat,
+    a4 : Nat,
+    a5 : Nat,
+    a6 : Nat,
+    a7 : Nat,
+    a8 : Nat,
+    a9 : Nat,
+    fuel : Nat
+  ],
+  result: Nat,
+  body: (match fuel
+    | Nat.zero => a0
+    | Nat.succ less => (wideModelOf (a0 + 1) a1 a2 a3 a4 a5 a6 a7 a8 a9 less)),
+  recursive_argument: fuel
+}
+
+definition{
+  name: narrowOf,
+  parameters: [
+    a0 : Nat,
+    a1 : Nat,
+    a2 : Nat,
+    a3 : Nat,
+    a4 : Nat,
+    a5 : Nat,
+    a6 : Nat,
+    a7 : Nat,
+    a8 : Nat,
+    fuel : Nat
+  ],
+  result: Nat,
+  body: (match fuel
+    | Nat.zero => a0
+    | Nat.succ less => (narrowOf (a0 + 1) a1 a2 a3 a4 a5 a6 a7 a8 less)),
+  executable: true,
+  recursive_argument: fuel
+}
+
+theorem{
+  name: wide_reduces,
+  parameters: [],
+  statement: ((wideOf 0 0 0 0 0 0 0 0 0 0 3) = 3),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: wide_model_reduces,
+  parameters: [],
+  statement: ((wideModelOf 0 0 0 0 0 0 0 0 0 0 3) = 3),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: narrow_reduces,
+  parameters: [],
+  statement: ((narrowOf 0 0 0 0 0 0 0 0 0 3) = 3),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

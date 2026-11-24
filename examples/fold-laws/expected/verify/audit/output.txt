@@ -1,3 +1,60 @@
+'FoldLaws.Arithmetic.add_mul_div_law' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.add_mul_div_simp' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.bits_law' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.bits_simp' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.ble_refl_simp' depends on axioms: [propext]
+'FoldLaws.Arithmetic.cancel_iff_law' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.cancel_iff_simp' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.cancel_law' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.div_add_mod_law' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.div_add_mod_simp' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.div_cancel_law' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.div_cancel_simp' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.div_div_law' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.div_div_simp' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.div_mul_div_law' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.div_mul_div_simp' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.eight_pos' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.four_le_five' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.four_pos' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.four_two_le_four_three' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.le_add_two' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.le_succ' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.left_distrib_law' does not depend on any axioms
+'FoldLaws.Arithmetic.left_distrib_simp' depends on axioms: [propext]
+'FoldLaws.Arithmetic.lt_succ' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.mod_lt_law' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.mod_lt_simp' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.mul_assoc_law' depends on axioms: [propext]
+'FoldLaws.Arithmetic.mul_assoc_simp' depends on axioms: [propext]
+'FoldLaws.Arithmetic.mul_comm_law' does not depend on any axioms
+'FoldLaws.Arithmetic.mul_comm_simp' depends on axioms: [propext]
+'FoldLaws.Arithmetic.mul_le_mul_law' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.mul_le_mul_simp' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.mul_left_comm_law' depends on axioms: [propext]
+'FoldLaws.Arithmetic.mul_left_comm_simp' depends on axioms: [propext]
+'FoldLaws.Arithmetic.mul_lt_mul_law' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.mul_lt_mul_simp' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.mul_mod_law' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.mul_mod_simp' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.mul_one_law' does not depend on any axioms
+'FoldLaws.Arithmetic.mul_sub_law' depends on axioms: [propext]
+'FoldLaws.Arithmetic.mul_sub_simp' depends on axioms: [propext]
+'FoldLaws.Arithmetic.mul_succ_law' does not depend on any axioms
+'FoldLaws.Arithmetic.mul_succ_simp' depends on axioms: [propext]
+'FoldLaws.Arithmetic.mul_zero_law' does not depend on any axioms
+'FoldLaws.Arithmetic.one_mul_law' does not depend on any axioms
+'FoldLaws.Arithmetic.right_distrib_law' depends on axioms: [propext]
+'FoldLaws.Arithmetic.right_distrib_simp' depends on axioms: [propext]
+'FoldLaws.Arithmetic.shift_injected' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.shift_step' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.succ_pos' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.three_pos' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.two_le_three' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.two_lt_three' depends on axioms: [propext, Quot.sound]
+'FoldLaws.Arithmetic.units_simp' depends on axioms: [propext]
+'FoldLaws.Arithmetic.zero_mul_law' does not depend on any axioms
+'FoldLaws.Arithmetic.zeros_simp' depends on axioms: [propext]
 'FoldLaws.Folds.balance' does not depend on any axioms
 'FoldLaws.Folds.balance_credit' depends on axioms: [propext, Quot.sound]
 'FoldLaws.Folds.count' does not depend on any axioms
@@ -182,10 +239,35 @@
 'LexLeanLaws.mapEntries_self' does not depend on any axioms
 'LexLeanLaws.mapFold_listFold' does not depend on any axioms
 'LexLeanLaws.mapSize_length' does not depend on any axioms
+'LexLeanLaws.nat_add_mul_div_left' depends on axioms: [propext]
+'LexLeanLaws.nat_div_add_mod' depends on axioms: [propext]
+'LexLeanLaws.nat_div_div_eq_div_mul' depends on axioms: [propext]
+'LexLeanLaws.nat_le_of_mul_le_mul_left' does not depend on any axioms
+'LexLeanLaws.nat_left_distrib' does not depend on any axioms
+'LexLeanLaws.nat_mod_lt' does not depend on any axioms
+'LexLeanLaws.nat_mod_mul_left_div_self' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_assoc' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_comm' does not depend on any axioms
+'LexLeanLaws.nat_mul_div_cancel_left' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_div_mul_left' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_le_mul' does not depend on any axioms
+'LexLeanLaws.nat_mul_le_mul_left_iff' does not depend on any axioms
+'LexLeanLaws.nat_mul_left_comm' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_lt_mul_of_pos_right' does not depend on any axioms
+'LexLeanLaws.nat_mul_mod_left' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_one' does not depend on any axioms
+'LexLeanLaws.nat_mul_sub' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_succ' does not depend on any axioms
+'LexLeanLaws.nat_mul_zero' does not depend on any axioms
+'LexLeanLaws.nat_one_mul' does not depend on any axioms
+'LexLeanLaws.nat_right_distrib' depends on axioms: [propext]
+'LexLeanLaws.nat_zero_mul' does not depend on any axioms
 'LexLeanLaws.quotient_int' depends on axioms: [propext, Quot.sound]
 'LexLeanLaws.quotient_nat' depends on axioms: [propext, Quot.sound]
+'LexLeanLaws.quotient_nat_pos' does not depend on any axioms
 'LexLeanLaws.remainder_int' depends on axioms: [propext, Quot.sound]
 'LexLeanLaws.remainder_nat' depends on axioms: [propext, Quot.sound]
+'LexLeanLaws.remainder_nat_pos' does not depend on any axioms
 'LexLeanLaws.setElements_self' does not depend on any axioms
 'LexLeanLaws.setFold_listFold' does not depend on any axioms
 'LexLeanLaws.setSize_length' does not depend on any axioms
