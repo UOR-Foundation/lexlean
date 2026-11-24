@@ -4559,11 +4559,16 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
 
 /// The advisory read recorder (#603 phase 1) traces exactly the Linux gate
 /// jobs, from right after their checkout to their last step, and can never
-/// gate: its actions end every path with success, no step of the workflow
-/// masks a failure, and no native host job is traced, because a Linux trace is
-/// no evidence about another host.
+/// gate: its actions end every path with success, they contain no step that
+/// could fail on its own (the report goes to the job log, not an artifact), no
+/// step of the workflow masks a failure, and no native host job is traced,
+/// because a Linux trace is no evidence about another host.
 fn read_trace_workflow(ci: &str) -> Result<(), String> {
     const START: &str = "      - uses: ./.github/actions/read-trace-start\n";
+    // The exact matrix row and index bind a trace to one job of a matrix,
+    // whose jobs share a job key.
+    const MATRIX: &str =
+        "          row: ${{ toJSON(matrix) }}\n          job-index: ${{ strategy.job-index }}\n";
     const CHECKOUT: &str =
         "      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n";
     let traced = [
@@ -4583,6 +4588,8 @@ fn read_trace_workflow(ci: &str) -> Result<(), String> {
         let body = workflow_job(ci, key)?;
         if body.matches(START).count() != 1
             || !body.contains(&format!("{CHECKOUT}      # Advisory (#603 phase 1)"))
+            || !body.contains(&format!("{START}        with:\n          job: "))
+            || !body.contains(MATRIX)
         {
             return Err(format!(
                 "#603: {key} starts the read recorder once, right after checkout"
@@ -4612,9 +4619,27 @@ fn read_trace_workflow(ci: &str) -> Result<(), String> {
     if ci.matches(START).count() != traced.len() {
         return Err("#603: the read recorder traces a job outside the Linux gate".to_owned());
     }
+    // Composite `shell: bash` means `bash -e -o pipefail`, and any `uses:`
+    // inside the action (an artifact upload, say) can fail on its own, so the
+    // action must be one step that names its shell without -e, runs its script
+    // with its status ignored, and ends in success; the script likewise.
     for action in ["start", "stop"] {
         let text = root_file(&format!(".github/actions/read-trace-{action}/action.yml"));
-        if text.contains("set -e") || text.contains("exit 1") || !text.contains("exit 0") {
+        let script = root_file(&format!(".github/scripts/read-trace-{action}.sh"));
+        let run = format!(
+            "bash --noprofile --norc \"$GITHUB_WORKSPACE/.github/scripts/read-trace-{action}.sh\" \
+             || true\n        exit 0\n"
+        );
+        if text.contains("set -e")
+            || text.contains("exit 1")
+            || text.contains("uses:")
+            || text.matches("shell:").count() != 1
+            || !text.contains("      shell: bash --noprofile --norc {0}\n")
+            || !text.ends_with(&run)
+            || script.contains("set -e")
+            || script.contains("exit 1")
+            || !script.ends_with("\nexit 0\n")
+        {
             return Err(format!(
                 "#603: read-trace-{action} can fail the job it traces"
             ));

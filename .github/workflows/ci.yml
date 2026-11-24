@@ -155,9 +155,13 @@ jobs:
       LEXLEAN_BDD_PART: ${{ matrix.bdd_part }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Advisory (#603 phase 1): which workspace files this job opens. It
-      # never decides what runs, and its actions exit successfully whatever happens.
+      # Advisory (#603 phase 1): which workspace files this job opens, printed
+      # into this job's log. It never decides what runs and never fails the job.
       - uses: ./.github/actions/read-trace-start
+        with:
+          job: ${{ matrix.part }}
+          row: ${{ toJSON(matrix) }}
+          job-index: ${{ strategy.job-index }}
       - name: Install the pinned Rust toolchain
         run: bash .github/retry.sh rustup toolchain install
       - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
@@ -211,8 +215,6 @@ jobs:
           retention-days: 14
       - uses: ./.github/actions/read-trace-stop
         if: ${{ !cancelled() }}
-        with:
-          job: ${{ matrix.part }}
 
   # The bootstrap production export, once for the run (SPEC.md §9.4). Every
   # bootstrap case compares the packages of that export with the committed
@@ -241,9 +243,13 @@ jobs:
       LEXLEAN_VERIFY_HINTS: ${{ github.workspace }}/.github/verify-hints.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Advisory (#603 phase 1): which workspace files this job opens. It
-      # never decides what runs, and its actions exit successfully whatever happens.
+      # Advisory (#603 phase 1): which workspace files this job opens, printed
+      # into this job's log. It never decides what runs and never fails the job.
       - uses: ./.github/actions/read-trace-start
+        with:
+          job: bootstrap-export
+          row: ${{ toJSON(matrix) }}
+          job-index: ${{ strategy.job-index }}
       - name: Install the pinned Rust toolchain
         run: bash .github/retry.sh rustup toolchain install
       - name: Install elan and the pinned Lean toolchain
@@ -299,8 +305,6 @@ jobs:
           retention-days: 14
       - uses: ./.github/actions/read-trace-stop
         if: ${{ !cancelled() }}
-        with:
-          job: bootstrap-export
 
   vv:
     name: just vv (${{ matrix.part }})
@@ -343,9 +347,13 @@ jobs:
       LEXLEAN_VERIFY_HINTS: ${{ matrix.hints && format('{0}/{1}', github.workspace, matrix.hints) || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Advisory (#603 phase 1): which workspace files this job opens. It
-      # never decides what runs, and its actions exit successfully whatever happens.
+      # Advisory (#603 phase 1): which workspace files this job opens, printed
+      # into this job's log. It never decides what runs and never fails the job.
       - uses: ./.github/actions/read-trace-start
+        with:
+          job: ${{ matrix.part }}
+          row: ${{ toJSON(matrix) }}
+          job-index: ${{ strategy.job-index }}
       - name: Install the pinned Rust toolchain
         run: bash .github/retry.sh rustup toolchain install
       # `GN-09` runs each modeled SIMD instruction by the pinned rustc: AVX2 in
@@ -455,8 +463,6 @@ jobs:
           retention-days: 14
       - uses: ./.github/actions/read-trace-stop
         if: ${{ !cancelled() }}
-        with:
-          job: ${{ matrix.part }}
 
   # UOR Atlas as the parts of one run (SPEC.md §9.4): the shards of
   # `.github/verify-shards.json`, each a clean checkout that runs the processes
@@ -482,9 +488,13 @@ jobs:
       LEXLEAN_VERIFY_HINTS: ${{ github.workspace }}/.github/verify-hints.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Advisory (#603 phase 1): which workspace files this job opens. It
-      # never decides what runs, and its actions exit successfully whatever happens.
+      # Advisory (#603 phase 1): which workspace files this job opens, printed
+      # into this job's log. It never decides what runs and never fails the job.
       - uses: ./.github/actions/read-trace-start
+        with:
+          job: atlas-prefix
+          row: ${{ toJSON(matrix) }}
+          job-index: ${{ strategy.job-index }}
       - name: Install the pinned Rust toolchain
         run: bash .github/retry.sh rustup toolchain install
       - name: Install elan and the pinned Lean toolchain
@@ -552,8 +562,6 @@ jobs:
           retention-days: 14
       - uses: ./.github/actions/read-trace-stop
         if: ${{ !cancelled() }}
-        with:
-          job: atlas-prefix
 
   # These shards need only `prefix`, but their consumers need different
   # subsets: replay needs `cert4`; closure also needs `census-a` and `census-b`.
@@ -577,9 +585,13 @@ jobs:
       LEXLEAN_VERIFY_HINTS: ${{ github.workspace }}/.github/verify-hints.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Advisory (#603 phase 1): which workspace files this job opens. It
-      # never decides what runs, and its actions exit successfully whatever happens.
+      # Advisory (#603 phase 1): which workspace files this job opens, printed
+      # into this job's log. It never decides what runs and never fails the job.
       - uses: ./.github/actions/read-trace-start
+        with:
+          job: atlas-cert4
+          row: ${{ toJSON(matrix) }}
+          job-index: ${{ strategy.job-index }}
       - name: Install elan and the pinned Lean toolchain
         run: |
           set -euo pipefail
@@ -649,8 +661,6 @@ jobs:
           retention-days: 14
       - uses: ./.github/actions/read-trace-stop
         if: ${{ !cancelled() }}
-        with:
-          job: atlas-cert4
 
   # The census shards imported by `closure`.
   atlas-l1:
@@ -673,9 +683,13 @@ jobs:
       LEXLEAN_VERIFY_HINTS: ${{ github.workspace }}/.github/verify-hints.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Advisory (#603 phase 1): which workspace files this job opens. It
-      # never decides what runs, and its actions exit successfully whatever happens.
+      # Advisory (#603 phase 1): which workspace files this job opens, printed
+      # into this job's log. It never decides what runs and never fails the job.
       - uses: ./.github/actions/read-trace-start
+        with:
+          job: atlas-${{ matrix.shard }}
+          row: ${{ toJSON(matrix) }}
+          job-index: ${{ strategy.job-index }}
       - name: Install elan and the pinned Lean toolchain
         run: |
           set -euo pipefail
@@ -745,8 +759,6 @@ jobs:
           retention-days: 14
       - uses: ./.github/actions/read-trace-stop
         if: ${{ !cancelled() }}
-        with:
-          job: atlas-${{ matrix.shard }}
 
   # These shards join with the rest but are not prerequisites of `closure`.
   atlas-census-tail:
@@ -769,9 +781,13 @@ jobs:
       LEXLEAN_VERIFY_HINTS: ${{ github.workspace }}/.github/verify-hints.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Advisory (#603 phase 1): which workspace files this job opens. It
-      # never decides what runs, and its actions exit successfully whatever happens.
+      # Advisory (#603 phase 1): which workspace files this job opens, printed
+      # into this job's log. It never decides what runs and never fails the job.
       - uses: ./.github/actions/read-trace-start
+        with:
+          job: atlas-${{ matrix.shard }}
+          row: ${{ toJSON(matrix) }}
+          job-index: ${{ strategy.job-index }}
       - name: Install elan and the pinned Lean toolchain
         run: |
           set -euo pipefail
@@ -841,8 +857,6 @@ jobs:
           retention-days: 14
       - uses: ./.github/actions/read-trace-stop
         if: ${{ !cancelled() }}
-        with:
-          job: atlas-${{ matrix.shard }}
 
   # The replay of `CensusCert4` and its pieces, which need their `.olean` files
   # and nothing after them.
@@ -865,9 +879,13 @@ jobs:
       LEXLEAN_VERIFY_HINTS: ${{ github.workspace }}/.github/verify-hints.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Advisory (#603 phase 1): which workspace files this job opens. It
-      # never decides what runs, and its actions exit successfully whatever happens.
+      # Advisory (#603 phase 1): which workspace files this job opens, printed
+      # into this job's log. It never decides what runs and never fails the job.
       - uses: ./.github/actions/read-trace-start
+        with:
+          job: atlas-cert4-replay
+          row: ${{ toJSON(matrix) }}
+          job-index: ${{ strategy.job-index }}
       - name: Install elan and the pinned Lean toolchain
         run: |
           set -euo pipefail
@@ -937,8 +955,6 @@ jobs:
           retention-days: 14
       - uses: ./.github/actions/read-trace-stop
         if: ${{ !cancelled() }}
-        with:
-          job: atlas-cert4-replay
 
   # `CensusComplete`, `Closure`, and `ClosurePairs`, which every module after
   # them imports.
@@ -961,9 +977,13 @@ jobs:
       LEXLEAN_VERIFY_HINTS: ${{ github.workspace }}/.github/verify-hints.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Advisory (#603 phase 1): which workspace files this job opens. It
-      # never decides what runs, and its actions exit successfully whatever happens.
+      # Advisory (#603 phase 1): which workspace files this job opens, printed
+      # into this job's log. It never decides what runs and never fails the job.
       - uses: ./.github/actions/read-trace-start
+        with:
+          job: atlas-closure
+          row: ${{ toJSON(matrix) }}
+          job-index: ${{ strategy.job-index }}
       - name: Install elan and the pinned Lean toolchain
         run: |
           set -euo pipefail
@@ -1033,8 +1053,6 @@ jobs:
           retention-days: 14
       - uses: ./.github/actions/read-trace-stop
         if: ${{ !cancelled() }}
-        with:
-          job: atlas-closure
 
   # The shards after `closure`: `ClosureOrbit` with the replays of the
   # closure modules, and the `ClosurePairCert*` modules in four bins.
@@ -1058,9 +1076,13 @@ jobs:
       LEXLEAN_VERIFY_HINTS: ${{ github.workspace }}/.github/verify-hints.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Advisory (#603 phase 1): which workspace files this job opens. It
-      # never decides what runs, and its actions exit successfully whatever happens.
+      # Advisory (#603 phase 1): which workspace files this job opens, printed
+      # into this job's log. It never decides what runs and never fails the job.
       - uses: ./.github/actions/read-trace-start
+        with:
+          job: atlas-${{ matrix.shard }}
+          row: ${{ toJSON(matrix) }}
+          job-index: ${{ strategy.job-index }}
       - name: Install elan and the pinned Lean toolchain
         run: |
           set -euo pipefail
@@ -1130,8 +1152,6 @@ jobs:
           retention-days: 14
       - uses: ./.github/actions/read-trace-stop
         if: ${{ !cancelled() }}
-        with:
-          job: atlas-${{ matrix.shard }}
 
   # The join: the last four modules, then every shard's records in the
   # canonical order, the attestation, publication, and the comparison with
@@ -1155,9 +1175,13 @@ jobs:
       LEXLEAN_VERIFY_HINTS: ${{ github.workspace }}/.github/verify-hints.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Advisory (#603 phase 1): which workspace files this job opens. It
-      # never decides what runs, and its actions exit successfully whatever happens.
+      # Advisory (#603 phase 1): which workspace files this job opens, printed
+      # into this job's log. It never decides what runs and never fails the job.
       - uses: ./.github/actions/read-trace-start
+        with:
+          job: atlas-join
+          row: ${{ toJSON(matrix) }}
+          job-index: ${{ strategy.job-index }}
       - name: Install elan and the pinned Lean toolchain
         run: |
           set -euo pipefail
@@ -1230,8 +1254,6 @@ jobs:
           retention-days: 14
       - uses: ./.github/actions/read-trace-stop
         if: ${{ !cancelled() }}
-        with:
-          job: atlas-join
 
   # §8.3: the crate builds and its non-Lean tests pass on every supported
   # host. This job installs no Lean toolchain on purpose — that is the

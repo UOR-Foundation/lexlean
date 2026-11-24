@@ -21825,17 +21825,55 @@ job reads, and LexLean's cases read arbitrary repository files at run time
 Linux gate jobs (`honesty`, `bootstrap-export`, every `vv` leg, every Atlas
 job) starts `.github/scripts/ci_read_trace.py`, which bind-mounts the workspace
 onto itself and marks that mount with fanotify; the job's last step stops it
-and uploads `read-trace-<job>`: the files and directories opened, `.git` reads
-apart, build output (`target/`) counted but not listed, and whether the
-kernel's bounded queue overflowed. The recording decides nothing and cannot
-fail a job: `ci.yml` still admits no `continue-on-error`, and both actions end
-every path with `exit 0`. Native host jobs are not traced.
+and prints its report into the job log as one digest-checked block. The report
+lists the files and directories opened, `.git` reads apart, and counts build
+output (`target/`) without listing it.
+
+A report is an observation of one run, not evidence of independence. Each one
+says so (`authority`) and lists what it cannot see: `stat`-only probes, failed
+opens (a dependency on a file's absence), files reached through a symlink that
+leaves the workspace, descriptors opened before the mark, non-file inputs, and
+other control flows. `usable` is false after a queue overflow, at the path cap,
+on any recorder error, or when the recorder never reported. It binds the
+checked-out `HEAD`, tree and dirtiness, the workflow, run and attempt, the
+matrix row and index, the tracked symlinks and their targets, and the digests
+of the recorder's own files at start and at stop. The provider binds the log to
+the exact job ID.
+
+The recording decides nothing, and every failure path is built to cost only the
+trace. `ci.yml` still admits no `continue-on-error`. Each action is one step run
+by `bash` without `-e`, ignores its script's status, and ends in `exit 0`. There
+is no artifact upload, so no upload, quota or retried-attempt name conflict can
+fail the job. The recorder limits its own address space to 1 GiB, makes itself
+the OOM killer's first choice, keeps the kernel queue bounded, caps its path
+sets at 100,000, and reads a bounded amount per loop turn so that a stop is
+always seen. It refuses a workspace that is already a mount point, and unmounts
+on every exit. A per-attempt private directory, a nonce, the recorder's process
+start time (so a recycled PID is never signalled), and atomic writes keep a
+stale or partial file from passing as this run's. A hung recorder is killed and
+its mount removed. Whether fanotify is permitted on hosted runners, and what the
+recording costs, can be measured only there. Until then non-interference is a
+design property, not a measured one.
 
 | Planted defect | Refused by |
 | --- | --- |
 | the stop step removed from `atlas-join` | `conformance_rp_14`: `#603: atlas-join never stops the read recorder` |
 | the recorder started in the native `host-matrix` job | `conformance_rp_14`: `#603: native host job host-matrix is traced` |
 | the recorder started after the toolchain step instead of right after checkout (`vv`) | `conformance_rp_14`: `#603: vv starts the read recorder once, right after checkout` |
-| `exit 1` in `read-trace-stop` | `conformance_rp_14`: `#603: read-trace-stop can fail the job it traces` |
-| a stop step's input named `name:` (it collided with the export job's artifact `name: bootstrap-export`) | the existing bootstrap-export custody plant in `conformance_rp_14`; the input is `job:` |
-| a truncated, overlong, or wrong-version fanotify event | `test_ci_read_trace.py` (`Parse`) |
+| the matrix row dropped from `atlas-l1`'s start | `conformance_rp_14`: `#603: atlas-l1 starts the read recorder once, right after checkout` |
+| an artifact upload put back in `read-trace-stop` | `conformance_rp_14`: `#603: read-trace-stop can fail the job it traces` |
+| `shell: bash` (that is, `-e -o pipefail`) in `read-trace-start` | `conformance_rp_14`: `#603: read-trace-start can fail the job it traces` |
+| the stop script's status no longer ignored (`|| true` removed) | `conformance_rp_14`: `#603: read-trace-stop can fail the job it traces` |
+| `set -e` in the stop script; the start script's final `exit 0` removed | `conformance_rp_14`: `#603: read-trace-{stop,start} can fail the job it traces` |
+| a start input named `matrix:` (it broke the single-shard Atlas jobs' no-matrix rule) | the existing §9.4 single-shard check in `conformance_rp_14`; the input is `row:` |
+| a truncated, overlong, or wrong-version fanotify event | `test_ci_read_trace.py` (`Parse`; `Record`: the trace fails, not the job) |
+| no unmount on exit | `Record.test_a_clean_recording_is_usable_and_unmounts` |
+| a fault injected at confine, bind, init, mark or read | `Record.test_every_injected_failure_ends_in_an_unusable_report_and_no_mount` |
+| a queue overflow ignored | `Record.test_a_queue_overflow_makes_the_trace_unusable` |
+| no path cap | `Inventory.test_the_path_sets_stop_at_the_cap_and_say_so` |
+| an unbounded read loop per turn | `Record.test_one_turn_reads_a_bounded_amount_so_a_stop_is_seen` |
+| a recycled PID signalled | `Stop.test_a_recycled_pid_is_never_signalled` |
+| a report with another recording's nonce accepted | `Stop.test_a_stale_or_partial_report_is_not_accepted` |
+| a half-written report | `Record.test_a_clean_recording_is_usable_and_unmounts` (atomic write) |
+| a log block that fails its digest | `Delivery.test_tampered_duplicated_and_truncated_blocks_are_refused` |
+| start with no `sudo` or no writable temp; stop with failing `sudo`, `timeout` or Python | `test_ci_read_trace.py` (`Scripts`): status 0 in every case |
