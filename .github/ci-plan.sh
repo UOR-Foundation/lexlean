@@ -34,6 +34,9 @@
 # when a test runs the script elsewhere.
 set -euo pipefail
 
+# A transient provider error must not immediately allocate the full gate.
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/ci-provider-read.sh"
+
 rows_file=${LEXLEAN_CI_ROWS:-.github/vv-rows.json}
 event=${EVENT:?EVENT names the workflow event}
 draft=${DRAFT:-}
@@ -82,10 +85,10 @@ hosts_passed() {
 # and no job that did not conclude `success`.
 full_run_of() {
   local commit=$1 runs id names part job
-  runs=$(gh api "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$commit&status=success&per_page=30" \
+  runs=$(ci_provider_read "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$commit&status=success&per_page=30" \
     --jq ".workflow_runs[] | select(.head_repository.full_name == \"$repo\") | select(.event == \"pull_request\" or .event == \"workflow_dispatch\") | .id") || return 1
   for id in $runs; do
-    names=$(gh api "repos/$repo/actions/runs/$id/jobs?per_page=100" --paginate \
+    names=$(ci_provider_read "repos/$repo/actions/runs/$id/jobs?per_page=100" --paginate \
       --jq '.jobs[] | "\(.name)\t\(.conclusion)"') || continue
     if printf '%s\n' "$names" | awk -F'\t' '$2 != "success" { bad = 1 } END { exit bad }' \
       && printf '%s\n' "$names" | grep -xF $'atlas (join)\tsuccess' >/dev/null \
