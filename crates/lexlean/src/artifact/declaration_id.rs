@@ -10,11 +10,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::{FramedHasher, Sha256Digest};
+use crate::artifact::content_id::{FramedHasher, Kappa};
 use crate::ir::semantic::{SemanticDeclaration, SemanticModule};
 
 /// The schema tag of a published declarations file.
-pub const DECLARATIONS_SPEC: &str = "lexlean/declarations/1";
+pub const DECLARATIONS_SPEC: &str = "lexlean/declarations/2";
 
 /// A project declaration: its module and its name.
 type Key = (String, String);
@@ -27,23 +27,23 @@ pub struct DeclarationRow {
     /// The declaration's kind (`definition`, `theorem`, ...).
     pub kind: &'static str,
     /// The declaration ID (§21.9).
-    pub id: Sha256Digest,
+    pub id: Kappa,
     /// For a theorem, the ID of its statement without its proof.
-    pub statement_id: Option<Sha256Digest>,
+    pub statement_id: Option<Kappa>,
     /// The project declarations it references: `None` for its own module.
     pub references: Vec<(Option<String>, String)>,
 }
 
 /// The fixed inputs every recipe frames first.
 struct Context<'a> {
-    compiler_semantics: Sha256Digest,
+    compiler_semantics: Kappa,
     language: &'a str,
 }
 
 impl Context<'_> {
     fn hasher(&self, domain: &str) -> FramedHasher {
         let mut hasher = FramedHasher::new(domain);
-        hasher.frame("compiler-semantics", &self.compiler_semantics.0);
+        hasher.frame_kappa("compiler-semantics", self.compiler_semantics);
         hasher.frame("language", self.language.as_bytes());
         hasher.frame("toolchain", crate::LEAN_TOOLCHAIN.as_bytes());
         hasher
@@ -67,7 +67,7 @@ struct Prepared {
 /// Never on a linked project: declarations serialize to canonical JSON.
 #[must_use]
 pub fn declaration_ids(
-    compiler_semantics: Sha256Digest,
+    compiler_semantics: Kappa,
     language: &str,
     modules: &[(&str, &SemanticModule)],
 ) -> BTreeMap<String, Vec<DeclarationRow>> {
@@ -109,7 +109,7 @@ pub fn declaration_ids(
                     kind: declaration.kind(),
                     id: ids[&key],
                     statement_id: entry.statement.as_ref().map(|(json, references)| {
-                        let mut hasher = context.hasher("lexlean-statement-v1");
+                        let mut hasher = context.hasher("lexlean-statement-v2");
                         hasher.frame("statement", json.to_canonical_string().as_bytes());
                         frame_references(&mut hasher, module, references, &ids);
                         hasher.finish()
@@ -143,7 +143,7 @@ pub fn declarations_json(module: &str, rows: &[DeclarationRow]) -> Json {
                         let mut fields = vec![
                             ("name", Json::Str(row.name.clone())),
                             ("kind", Json::Str(row.kind.to_owned())),
-                            ("id", Json::Str(row.id.to_hex())),
+                            ("id", Json::Str(row.id.label())),
                             (
                                 "references",
                                 Json::Arr(
@@ -163,7 +163,7 @@ pub fn declarations_json(module: &str, rows: &[DeclarationRow]) -> Json {
                             ),
                         ];
                         if let Some(statement) = row.statement_id {
-                            fields.push(("statement_id", Json::Str(statement.to_hex())));
+                            fields.push(("statement_id", Json::Str(statement.label())));
                         }
                         Json::object(fields)
                     })
@@ -297,29 +297,26 @@ fn frame_references(
     hasher: &mut FramedHasher,
     module: &str,
     references: &BTreeSet<Key>,
-    ids: &BTreeMap<Key, Sha256Digest>,
+    ids: &BTreeMap<Key, Kappa>,
 ) {
     for key in references {
         if key.0 != module {
             hasher.frame("reference-module", key.0.as_bytes());
         }
         hasher.frame("reference", key.1.as_bytes());
-        hasher.frame("reference-id", &ids[key].0);
+        hasher.frame_kappa("reference-id", ids[key]);
     }
 }
 
 /// Hash every strongly connected group of the reference graph, referenced
 /// groups first, and return every declaration's ID.
-fn hash_groups(
-    context: &Context<'_>,
-    prepared: &BTreeMap<Key, Prepared>,
-) -> BTreeMap<Key, Sha256Digest> {
+fn hash_groups(context: &Context<'_>, prepared: &BTreeMap<Key, Prepared>) -> BTreeMap<Key, Kappa> {
     let mut ids = BTreeMap::new();
     // Tarjan's algorithm emits each component after every component it
     // reaches, which is the order the hash chain needs.
     for group in components(prepared) {
         let members: BTreeSet<&Key> = group.iter().collect();
-        let mut hasher = context.hasher("lexlean-declaration-group-v1");
+        let mut hasher = context.hasher("lexlean-declaration-group-v2");
         for key in &members {
             hasher.frame(
                 "declaration",
@@ -343,8 +340,8 @@ fn hash_groups(
         frame_references(&mut hasher, &module, &outside, &ids);
         let group_digest = hasher.finish();
         for key in members {
-            let mut member = FramedHasher::new("lexlean-declaration-v1");
-            member.frame("group", &group_digest.0);
+            let mut member = FramedHasher::new("lexlean-declaration-v2");
+            member.frame_kappa("group", group_digest);
             member.frame("name", key.1.as_bytes());
             ids.insert(key.clone(), member.finish());
         }

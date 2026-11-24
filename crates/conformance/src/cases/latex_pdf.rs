@@ -1,6 +1,6 @@
 //! The `latex-pdf` suite: TX-01..TX-12.
 
-use lexlean::artifact::content_id::Sha256Digest;
+use lexlean::artifact::content_id::Kappa;
 use lexlean::config::PdfProvider;
 
 use crate::support::{self, P};
@@ -48,9 +48,9 @@ fn stub_provider(project: &P, body: &str, exit_code: i32) -> PdfProvider {
     }
     PdfProvider {
         program: "tools/fakepdf".to_owned(),
-        program_sha256: Sha256Digest::of(script.as_bytes()),
+        program_kappa: Kappa::of(script.as_bytes()),
         version_argv: vec!["--version".to_owned()],
-        version_stdout_sha256: Sha256Digest::of(b"\n"),
+        version_stdout_kappa: Kappa::of(b"\n"),
         compile_argv: vec![
             "--outdir".to_owned(),
             "{out_dir}".to_owned(),
@@ -510,8 +510,8 @@ math = "(token write18)"
             let mut provider = fake_provider(&project, 0);
 
             // A wrong executable hash refuses to run.
-            let correct = provider.program_sha256;
-            provider.program_sha256 = Sha256Digest::of(b"not the program");
+            let correct = provider.program_kappa;
+            provider.program_kappa = Kappa::of(b"not the program");
             let error = run_fake_provider(&project, &provider).expect_err("hash mismatch");
             assert_eq!(
                 error.code.as_str(),
@@ -521,7 +521,7 @@ math = "(token write18)"
 
             // The honest hash runs in an isolated directory seeing only the
             // canonical TeX and an isolated environment.
-            provider.program_sha256 = correct;
+            provider.program_kappa = correct;
             let result = support::with_env(
                 &[
                     ("HTTP_PROXY", Some("http://proxy.invalid")),
@@ -636,9 +636,9 @@ math = "(token write18)"
                     "lexlean.toml",
                     "\n[limits]",
                     &format!(
-                        "\n[pdf]\nmode = \"external\"\nprogram = \"tools/fakepdf\"\nprogram_sha256 = \"{}\"\nversion_argv = [\"--version\"]\nversion_stdout_sha256 = \"{}\"\ncompile_argv = [\"--outdir\", \"{{out_dir}}\", \"{{input}}\"]\noutput = \"{bad}\"\nresources = []\n\n[limits]",
-                        Sha256Digest::of(b"").to_hex(),
-                        Sha256Digest::of(b"\n").to_hex(),
+                        "\n[pdf]\nmode = \"external\"\nprogram = \"tools/fakepdf\"\nprogram_kappa = \"{}\"\nversion_argv = [\"--version\"]\nversion_stdout_kappa = \"{}\"\ncompile_argv = [\"--outdir\", \"{{out_dir}}\", \"{{input}}\"]\noutput = \"{bad}\"\nresources = []\n\n[limits]",
+                        Kappa::of(b"").label(),
+                        Kappa::of(b"\n").label(),
                     ),
                 );
                 let error = lexlean::Engine::load(&configured.root.join("lexlean.toml"))
@@ -729,23 +729,22 @@ math = "(token write18)"
             let result = run_fake_provider(&project, &provider).expect("runs");
 
             // Recompute the recipe per the §19.8 layout.
-            use sha2::Digest;
             let build = support::rendered(&project);
-            let mut hasher = sha2::Sha256::new();
-            hasher.update(b"lexlean-pdf-recipe-v1\0");
-            let frame = |hasher: &mut sha2::Sha256, label: &str, bytes: &[u8]| {
-                hasher.update(u32::try_from(label.len()).expect("short").to_be_bytes());
+            let mut hasher = blake3::Hasher::new();
+            hasher.update(b"lexlean-pdf-recipe-v2\0");
+            let frame = |hasher: &mut blake3::Hasher, label: &str, bytes: &[u8]| {
+                hasher.update(&u32::try_from(label.len()).expect("short").to_be_bytes());
                 hasher.update(label.as_bytes());
-                hasher.update((bytes.len() as u64).to_be_bytes());
+                hasher.update(&(bytes.len() as u64).to_be_bytes());
                 hasher.update(bytes);
             };
-            let tex_hash = Sha256Digest::of(build.modules[0].tex_text.as_bytes());
-            frame(&mut hasher, "tex", &tex_hash.0);
-            frame(&mut hasher, "program", &provider.program_sha256.0);
+            let tex_hash = support::oracle_kappa(build.modules[0].tex_text.as_bytes());
+            frame(&mut hasher, "tex", tex_hash.as_bytes());
+            frame(&mut hasher, "program", provider.program_kappa.as_bytes());
             frame(
                 &mut hasher,
                 "version-output",
-                &provider.version_stdout_sha256.0,
+                provider.version_stdout_kappa.as_bytes(),
             );
             let argv_json = lexlean::artifact::canonical_json::Json::Arr(
                 provider
@@ -757,20 +756,19 @@ math = "(token write18)"
             .to_canonical_string();
             frame(&mut hasher, "argv", argv_json.as_bytes());
             frame(&mut hasher, "resources", b"[]");
-            let manual: [u8; 32] = hasher.finalize().into();
             assert_eq!(
-                Sha256Digest(manual),
+                support::oracle_finish(&hasher),
                 result.recipe_id,
                 "§19.8: the recipe ID uses exactly the specified frames"
             );
             assert_eq!(
-                result.pdf_sha256,
-                Sha256Digest::of(&result.pdf_bytes),
+                result.pdf_kappa,
+                Kappa::of(&result.pdf_bytes),
                 "the actual PDF hash is recorded separately"
             );
             assert_ne!(
-                result.recipe_id.to_hex(),
-                result.pdf_sha256.to_hex(),
+                result.recipe_id.label(),
+                result.pdf_kappa.label(),
                 "recipe and content are independent records"
             );
         }
@@ -793,14 +791,14 @@ math = "(token write18)"
             let without = support::checked_project(&P::example()).semantic_id;
             let with_pdf = P::example();
             let _ = fake_provider(&with_pdf, 0);
-            let program_hash = Sha256Digest::of(with_pdf.read("tools/fakepdf").as_bytes());
+            let program_hash = Kappa::of(with_pdf.read("tools/fakepdf").as_bytes());
             with_pdf.edit(
                 "lexlean.toml",
                 "\n[limits]",
                 &format!(
-                    "\n[pdf]\nmode = \"external\"\nprogram = \"tools/fakepdf\"\nprogram_sha256 = \"{}\"\nversion_argv = [\"--version\"]\nversion_stdout_sha256 = \"{}\"\ncompile_argv = [\"--outdir\", \"{{out_dir}}\", \"{{input}}\"]\noutput = \"{{stem}}.pdf\"\nresources = []\n\n[limits]",
-                    program_hash.to_hex(),
-                    Sha256Digest::of(b"\n").to_hex()
+                    "\n[pdf]\nmode = \"external\"\nprogram = \"tools/fakepdf\"\nprogram_kappa = \"{}\"\nversion_argv = [\"--version\"]\nversion_stdout_kappa = \"{}\"\ncompile_argv = [\"--outdir\", \"{{out_dir}}\", \"{{input}}\"]\noutput = \"{{stem}}.pdf\"\nresources = []\n\n[limits]",
+                    program_hash.label(),
+                    Kappa::of(b"\n").label()
                 ),
             );
             with_pdf.relock();

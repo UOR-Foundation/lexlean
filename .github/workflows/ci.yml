@@ -572,6 +572,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -661,6 +667,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -750,6 +762,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -839,6 +857,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -928,6 +952,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -1018,6 +1048,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -1108,6 +1144,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -1165,10 +1207,10 @@ jobs:
   # reports which ones it skipped; on Linux x86-64 the same gate makes the
   # toolchain mandatory, so nothing passes vacuously where it matters.
   #
-  # The two hosts below keep their original single invocation. Windows runs
-  # as lanes below, each building for itself, and Intel's conformance
-  # execution is partitioned below after one construction; each aggregate
-  # retains its supported-host status (issue #449).
+  # The host below keeps its original single invocation. Windows and Apple
+  # silicon macOS run as lanes below, each building for itself, and Intel's
+  # conformance execution is partitioned below after one construction; each
+  # aggregate retains its supported-host status (issue #449).
   # There is no separate build step here: `cargo test` with the same `--locked
   # --workspace --all-features` builds, in the same profile, the library and the
   # binary of `lexlean` (its integration tests run the binary) before it runs a
@@ -1187,9 +1229,8 @@ jobs:
           # (runs 44271786254, 44294059974), each time about 29 minutes in
           # while bs_05..bs_08 ran together, every one starting compilers of
           # its own. The passing run took 66 minutes, so halving stays far
-          # inside the bound. macOS keeps its runner's 3.
+          # inside the bound. macOS runs as host lanes, below.
           - { os: ubuntu-24.04-arm, test_threads: 2, target: aarch64-unknown-linux-gnu }
-          - { os: macos-15, test_threads: 3, target: aarch64-apple-darwin }
     runs-on: ${{ matrix.os }}
     # Keep the existing bound; scheduling changes do not extend it.
     timeout-minutes: 240
@@ -1382,6 +1423,73 @@ jobs:
         shell: bash
         env:
           PART_RESULT: ${{ needs.windows-part.result }}
+        run: |
+          set -euo pipefail
+          test "$PART_RESULT" = success
+
+  # Apple silicon macOS as lanes of one run (§8.3), exactly as Windows: its
+  # one `cargo test` took about 104 minutes, almost all of it the conformance
+  # harness. Each lane is its own clean checkout and build of the same
+  # partition (`.github/intel-host-lanes.json` plus `producer`), and the join
+  # requires every lane of this run and commit, lanes that are disjoint, and
+  # an execution equal to the host's whole listing, before the host's context
+  # passes.
+  macos-part:
+    name: macOS arm64 tests (${{ matrix.lane }})
+    needs: [plan, honesty]
+    if: ${{ needs.plan.outputs.full == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [producer, lower, print, validate, moves]
+    runs-on: macos-15
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+      - name: The runner is the host this leg claims
+        shell: bash
+        run: |
+          set -euo pipefail
+          host="$(rustc -vV | sed -n 's/^host: //p')"
+          if [ "$host" != aarch64-apple-darwin ]; then
+            echo "::error::macos-15 is $host, not aarch64-apple-darwin (SPEC.md §8.3)"
+            exit 1
+          fi
+          echo "$host"
+      - name: Execute this lane and record its inventory
+        shell: bash
+        run: python3 .github/scripts/host_lanes.py execute --target aarch64-apple-darwin --lane ${{ matrix.lane }} --output "$RUNNER_TEMP/host-lane"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
+        with:
+          name: host-aarch64-apple-darwin-${{ matrix.lane }}
+          path: ${{ runner.temp }}/host-lane
+          if-no-files-found: error
+          retention-days: 14
+
+  # The Apple silicon host status: every lane's receipt, joined. It runs even
+  # after a failure, so a missing lane reads as a failure and never as success.
+  macos-join:
+    name: build and non-Lean tests (aarch64-apple-darwin)
+    needs: [plan, macos-part]
+    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: host-aarch64-apple-darwin-*
+          path: ${{ runner.temp }}/host-lanes
+      - name: Verify every lane and the complete macOS arm64 inventory
+        run: python3 .github/scripts/host_lanes.py join --target aarch64-apple-darwin --artifacts "$RUNNER_TEMP/host-lanes"
+      - name: All macOS arm64 lanes succeeded
+        if: ${{ always() }}
+        shell: bash
+        env:
+          PART_RESULT: ${{ needs.macos-part.result }}
         run: |
           set -euo pipefail
           test "$PART_RESULT" = success

@@ -856,38 +856,23 @@ pub fn format_int(p0: i64) -> Str {
 }
 
 pub fn f0(v0: Bytes, v1: Bytes) -> bool {
-    let v2: u64 = {
-        let a1 = v0.clone();
-        length_bytes(a1)
-    };
-    let v3: u64 = {
-        let a2 = v1.clone();
-        length_bytes(a2)
-    };
-    let a3 = v3;
-    let a4 = v2;
-    if nat_le(a3, a4) {
-        let m10 = {
-            let a7 = v0;
-            let a8 = {
-                let a5 = v2;
-                let a6 = v3;
-                nat_sub(a5, a6)
-            };
-            let a9 = v3;
-            slice_bytes(a7, a8, a9)
+    let m5 = {
+        let a2 = v0;
+        let a3 = 0u64;
+        let a4 = {
+            let a1 = v1.clone();
+            length_bytes(a1)
         };
-        match m10 {
-            None => {
-                false
-            }
-            Some(v4) => {
-                let a11 = v4;
-                let a12 = v1;
-                equal(a11, a12)
-            }
+        slice_bytes(a2, a3, a4)
+    };
+    match m5 {
+        None => {
+            false
         }
-    } else {
-        false
+        Some(v2) => {
+            let a6 = v2;
+            let a7 = v1;
+            equal(a6, a7)
+        }
     }
 }

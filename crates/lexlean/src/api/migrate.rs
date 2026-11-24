@@ -5,7 +5,7 @@
 //! module is rewritten into the authoring notation through
 //! [`crate::sdk::to_notation`], the builtin glossary references of every source
 //! and every path lexicon package move from `1.1.0` to `1.2.0`, and the lock is
-//! regenerated as `lexlean/lock/2`.
+//! regenerated as `lexlean/lock/4`.
 //!
 //! Nothing is written until the migrated project has been proven: every new
 //! file is first written into a scratch copy of the project, which is locked
@@ -22,9 +22,9 @@
 use std::collections::BTreeMap;
 use std::io::Write;
 
+use crate::artifact::content_id::Kappa;
 use camino::{Utf8Path, Utf8PathBuf};
 use serde::Deserialize;
-use sha2::{Digest, Sha256};
 
 use super::{acquire_lock, host_failure, CheckRequest, Engine, LockRequest};
 use crate::code;
@@ -37,7 +37,7 @@ use crate::sdk::{self, ModuleKind};
 /// The schema tag of a language-1.1 semantic module and the one language 1.2
 /// reads in its place.
 const MODULE_1_1: &str = "lexlean/semantic-module/1";
-const MODULE_1_2: &str = "lexlean/semantic-module/2";
+const MODULE_1_2: &str = "lexlean/semantic-module/3";
 
 /// The version of every builtin package of each language.
 const BUILTIN_1_1: &str = "@1.1.0";
@@ -209,9 +209,9 @@ fn migrated_manifest(relative: &str, text: &str) -> Result<String, Diagnostic> {
 /// Every file the migration rewrites, project-relative, with its new bytes.
 type Rewrites = BTreeMap<String, Vec<u8>>;
 
-/// The SHA-256 of every file the rewrites were derived from, by
+/// The κ-label of every file the rewrites were derived from, by
 /// project-relative path: exactly the bytes the proof read.
-type Inputs = BTreeMap<String, [u8; 32]>;
+type Inputs = BTreeMap<String, Kappa>;
 
 /// What the proof is of: the new files, the bytes they were derived from, and
 /// the names of the modules and manifests among them.
@@ -222,12 +222,14 @@ struct Plan {
     manifests: Vec<String>,
 }
 
-fn fingerprint(bytes: &[u8]) -> [u8; 32] {
-    Sha256::digest(bytes).into()
+// The compiler's own κ-label (§21.1), never a hash crate the shipped crate
+// does not depend on.
+fn fingerprint(bytes: &[u8]) -> Kappa {
+    Kappa::of(bytes)
 }
 
 /// The raw bytes of a project file and the text the migration reads from them.
-fn read_input(engine: &Engine, relative: &str) -> Result<(String, [u8; 32]), LexLeanError> {
+fn read_input(engine: &Engine, relative: &str) -> Result<(String, Kappa), LexLeanError> {
     let path = engine
         .project()
         .confined_file(relative)
@@ -347,7 +349,7 @@ fn stage(
     engine: &Engine,
     relative: &str,
     bytes: &[u8],
-    proven: Option<&[u8; 32]>,
+    proven: Option<&Kappa>,
 ) -> Result<Staged, LexLeanError> {
     let project = engine.project();
     let target = project

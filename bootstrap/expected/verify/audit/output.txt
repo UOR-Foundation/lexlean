@@ -199,7 +199,6 @@
 'LexLeanBoot.ContentId.buildId' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.byteText' does not depend on any axioms
 'LexLeanBoot.ContentId.cat' does not depend on any axioms
-'LexLeanBoot.ContentId.digestBytes' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.frame' does not depend on any axioms
 'LexLeanBoot.ContentId.framedHash' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.lit' does not depend on any axioms
@@ -207,7 +206,6 @@
 'LexLeanBoot.ContentId.semanticId' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.sourceId' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ContentId.treeDigest' depends on axioms: [propext, Quot.sound]
-'LexLeanBoot.ContentId.wordBytes' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.Diagnostics.Diagnostic' does not depend on any axioms
 'LexLeanBoot.Diagnostics.Label' does not depend on any axioms
 'LexLeanBoot.Diagnostics.Note' does not depend on any axioms
@@ -288,6 +286,74 @@
 'LexLeanBoot.GnafValidate.render' does not depend on any axioms
 'LexLeanBoot.GnafValidate.universeSize' does not depend on any axioms
 'LexLeanBoot.GnafValidate.validateRequest' does not depend on any axioms
+'LexLeanBoot.KernelTerms.Branch' does not depend on any axioms
+'LexLeanBoot.KernelTerms.Check' does not depend on any axioms
+'LexLeanBoot.KernelTerms.Ctor' does not depend on any axioms
+'LexLeanBoot.KernelTerms.Decl' does not depend on any axioms
+'LexLeanBoot.KernelTerms.Declared' does not depend on any axioms
+'LexLeanBoot.KernelTerms.Equation' does not depend on any axioms
+'LexLeanBoot.KernelTerms.Produced' does not depend on any axioms
+'LexLeanBoot.KernelTerms.Refusal' does not depend on any axioms
+'LexLeanBoot.KernelTerms.Term' does not depend on any axioms
+'LexLeanBoot.KernelTerms.allMembers' does not depend on any axioms
+'LexLeanBoot.KernelTerms.applyTerm' does not depend on any axioms
+'LexLeanBoot.KernelTerms.apply_refuses_exactly' depends on axioms: [propext]
+'LexLeanBoot.KernelTerms.apply_total' depends on axioms: [propext]
+'LexLeanBoot.KernelTerms.apps' does not depend on any axioms
+'LexLeanBoot.KernelTerms.argOf' does not depend on any axioms
+'LexLeanBoot.KernelTerms.binder_count_refused' does not depend on any axioms
+'LexLeanBoot.KernelTerms.bindersOf' does not depend on any axioms
+'LexLeanBoot.KernelTerms.casesTerm' does not depend on any axioms
+'LexLeanBoot.KernelTerms.cases_refuses_exactly' depends on axioms: [propext]
+'LexLeanBoot.KernelTerms.cases_selects_by_constructor' does not depend on any axioms
+'LexLeanBoot.KernelTerms.cases_total' depends on axioms: [propext]
+'LexLeanBoot.KernelTerms.checkFrom' does not depend on any axioms
+'LexLeanBoot.KernelTerms.constOf' does not depend on any axioms
+'LexLeanBoot.KernelTerms.constants' does not depend on any axioms
+'LexLeanBoot.KernelTerms.countCase' does not depend on any axioms
+'LexLeanBoot.KernelTerms.decideTerm' does not depend on any axioms
+'LexLeanBoot.KernelTerms.decide_never_refuses' does not depend on any axioms
+'LexLeanBoot.KernelTerms.decide_total' does not depend on any axioms
+'LexLeanBoot.KernelTerms.declare' does not depend on any axioms
+'LexLeanBoot.KernelTerms.declare_binds_statement' does not depend on any axioms
+'LexLeanBoot.KernelTerms.declaredType' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerateBranches' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerate_four_total' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerate_none_total' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerate_one_total' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerate_selects' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerate_three_total' does not depend on any axioms
+'LexLeanBoot.KernelTerms.enumerate_two_total' does not depend on any axioms
+'LexLeanBoot.KernelTerms.equationCheck' does not depend on any axioms
+'LexLeanBoot.KernelTerms.equationOf' does not depend on any axioms
+'LexLeanBoot.KernelTerms.fnOf' does not depend on any axioms
+'LexLeanBoot.KernelTerms.inductionTerm' does not depend on any axioms
+'LexLeanBoot.KernelTerms.induction_refuses_exactly' depends on axioms: [propext]
+'LexLeanBoot.KernelTerms.induction_total' depends on axioms: [propext]
+'LexLeanBoot.KernelTerms.isMade' does not depend on any axioms
+'LexLeanBoot.KernelTerms.lawCheck' does not depend on any axioms
+'LexLeanBoot.KernelTerms.lawTerm' does not depend on any axioms
+'LexLeanBoot.KernelTerms.law_refuses_exactly' depends on axioms: [propext]
+'LexLeanBoot.KernelTerms.law_total' depends on axioms: [propext]
+'LexLeanBoot.KernelTerms.memberCheck' does not depend on any axioms
+'LexLeanBoot.KernelTerms.minorsFrom' does not depend on any axioms
+'LexLeanBoot.KernelTerms.missing_case_refused' does not depend on any axioms
+'LexLeanBoot.KernelTerms.not_an_equation_refused' does not depend on any axioms
+'LexLeanBoot.KernelTerms.passes' does not depend on any axioms
+'LexLeanBoot.KernelTerms.proofOf' does not depend on any axioms
+'LexLeanBoot.KernelTerms.reflexivityTerm' does not depend on any axioms
+'LexLeanBoot.KernelTerms.reflexivity_refuses_exactly' depends on axioms: [propext]
+'LexLeanBoot.KernelTerms.reflexivity_term_of_equation' does not depend on any axioms
+'LexLeanBoot.KernelTerms.reflexivity_total' depends on axioms: [propext]
+'LexLeanBoot.KernelTerms.refusalOf' does not depend on any axioms
+'LexLeanBoot.KernelTerms.repeated_case_refused' does not depend on any axioms
+'LexLeanBoot.KernelTerms.strayFrom' does not depend on any axioms
+'LexLeanBoot.KernelTerms.termAt' does not depend on any axioms
+'LexLeanBoot.KernelTerms.unknown_case_refused' does not depend on any axioms
+'LexLeanBoot.KernelTerms.unproduced_theorem_refused' does not depend on any axioms
+'LexLeanBoot.KernelTerms.unregistered_law_refused' does not depend on any axioms
+'LexLeanBoot.KernelTerms.wanted' does not depend on any axioms
+'LexLeanBoot.KernelTerms.whenOk' does not depend on any axioms
 'LexLeanBoot.LexiconLre.Facts' does not depend on any axioms
 'LexLeanBoot.LexiconLre.RWork' does not depend on any axioms
 'LexLeanBoot.LexiconLre.Render' does not depend on any axioms
@@ -454,16 +520,16 @@
 'LexLeanBoot.ManifestText.buildManifest' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ManifestText.cat' does not depend on any axioms
 'LexLeanBoot.ManifestText.escapedKey' does not depend on any axioms
-'LexLeanBoot.ManifestText.jsonDigest' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.ManifestText.jsonDigest' does not depend on any axioms
 'LexLeanBoot.ManifestText.jsonText' does not depend on any axioms
 'LexLeanBoot.ManifestText.lit' does not depend on any axioms
-'LexLeanBoot.ManifestText.manifestJson' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.ManifestText.manifestJson' depends on axioms: [propext]
 'LexLeanBoot.ManifestText.member' does not depend on any axioms
 'LexLeanBoot.ManifestText.moduleJson' does not depend on any axioms
 'LexLeanBoot.ManifestText.modulesJson' does not depend on any axioms
-'LexLeanBoot.ManifestText.rowJson' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.ManifestText.rowJson' does not depend on any axioms
 'LexLeanBoot.ManifestText.rowKey' does not depend on any axioms
-'LexLeanBoot.ManifestText.rowsJson' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.ManifestText.rowsJson' depends on axioms: [propext]
 'LexLeanBoot.ManifestText.rowsSorted' depends on axioms: [propext]
 'LexLeanBoot.ManifestText.textArray' does not depend on any axioms
 'LexLeanBoot.PrimitiveScan.Atom' does not depend on any axioms
@@ -526,7 +592,7 @@
 'LexLeanBoot.ProjectText.artifactText' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ProjectText.canonicalProject' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ProjectText.cat' does not depend on any axioms
-'LexLeanBoot.ProjectText.configSha256' depends on axioms: [propext, Quot.sound]
+'LexLeanBoot.ProjectText.configKappa' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ProjectText.digestLine' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.ProjectText.header' does not depend on any axioms
 'LexLeanBoot.ProjectText.limitsText' does not depend on any axioms
@@ -2057,6 +2123,45 @@
 'LexLeanRuntime.subtract' does not depend on any axioms
 'LexLeanRuntime.utf8Decode' depends on axioms: [propext, Classical.choice, Quot.sound]
 'LexLeanRuntime.utf8Encode' does not depend on any axioms
+'LexLeanStd.Blake3.Block' does not depend on any axioms
+'LexLeanStd.Blake3.Cv' does not depend on any axioms
+'LexLeanStd.Blake3.Merge' does not depend on any axioms
+'LexLeanStd.Blake3.Quad' does not depend on any axioms
+'LexLeanStd.Blake3.State' does not depend on any axioms
+'LexLeanStd.Blake3.available' does not depend on any axioms
+'LexLeanStd.Blake3.blake3' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.blake3Hex' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.blake3Label' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.blocks' does not depend on any axioms
+'LexLeanStd.Blake3.byteAt' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.chunk' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.chunkAt' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.columns' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.compress' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.diagonals' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.foldRooted' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.foldStep' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.fullChunks' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.fullChunksAt' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.g' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.hexLittle' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.initial' does not depend on any axioms
+'LexLeanStd.Blake3.load' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.mergeStep' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.nibble' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.official_0' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.official_1' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.parent' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.parentBlock' does not depend on any axioms
+'LexLeanStd.Blake3.permute' does not depend on any axioms
+'LexLeanStd.Blake3.pieceChain' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.pieceRoot' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.prefix' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.push' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.roundStep' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.subtree' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.treeRoot' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Blake3.wordAt' depends on axioms: [propext, Quot.sound]
 'LexLeanStd.Buffer.Buffer' does not depend on any axioms
 'LexLeanStd.Buffer.byteStep' depends on axioms: [propext, Quot.sound]
 'LexLeanStd.Buffer.decimal' does not depend on any axioms

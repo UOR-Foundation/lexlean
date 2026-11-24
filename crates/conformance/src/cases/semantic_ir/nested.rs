@@ -559,7 +559,7 @@ pub fn run() {
             "src/Main.lex.tex",
             &text
                 .replace("@1.2.0", "@1.1.0")
-                .replace("lexlean/semantic-module/2", "lexlean/semantic-module/1"),
+                .replace("lexlean/semantic-module/3", "lexlean/semantic-module/1"),
         );
         old.relock();
         refuse_project(

@@ -1,4 +1,4 @@
-spec = "lexlean/project/1"
+spec = "lexlean/project/2"
 name = "language-twelve"
 language = "1.2.0"
 module_prefix = "LanguageTwelve"

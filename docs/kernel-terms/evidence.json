@@ -1,0 +1,1173 @@
+{
+ "spec": "lexlean/kernel-terms-evidence/1",
+ "kernel": {
+  "wasmBytes": 2235906,
+  "wasmGzipBytes": 420200
+ },
+ "totals": {
+  "theorems": 1471,
+  "produced": 745,
+  "phase0Theorems": 889,
+  "byForm": {
+   "reflexivity": {
+    "theorems": 609,
+    "produced": 557
+   },
+   "linear_arithmetic": {
+    "theorems": 261,
+    "produced": 0
+   },
+   "apply": {
+    "theorems": 24,
+    "produced": 2
+   },
+   "induction": {
+    "theorems": 54,
+    "produced": 1
+   },
+   "simplify": {
+    "theorems": 27,
+    "produced": 0
+   },
+   "decide": {
+    "theorems": 175,
+    "produced": 164
+   },
+   "cases": {
+    "theorems": 24,
+    "produced": 19
+   },
+   "term_cases": {
+    "theorems": 285,
+    "produced": 0
+   },
+   "region_check": {
+    "theorems": 4,
+    "produced": 0
+   },
+   "law": {
+    "theorems": 3,
+    "produced": 2
+   },
+   "nested_induction": {
+    "theorems": 1,
+    "produced": 0
+   },
+   "boolean_reflection": {
+    "theorems": 1,
+    "produced": 0
+   },
+   "congruence": {
+    "theorems": 1,
+    "produced": 0
+   }
+  },
+  "refusals": {
+   "proof form `…`": 57,
+   "it applies `…`, whose proof was not produced": 22,
+   "type `…`": 16,
+   "term `…`": 12,
+   "`…` is not a definition": 12,
+   "case analysis on type `…`": 10,
+   "decidability of `…`": 7,
+   "`…` at `…`": 4,
+   "primitive `…`": 2,
+   "proof form `term_cases`": 1,
+   "its premise `…` has no produced proof": 1
+  },
+  "axiomsExact": 745,
+  "axiomsDiffer": [],
+  "kernelRefused": [],
+  "latency": {
+   "parts": 745,
+   "medianMs": 6.76,
+   "p90Ms": 385.11,
+   "worstMs": 10417.19
+  }
+ },
+ "projects": {
+  "bootstrap": {
+   "theorems": 3,
+   "produced": 0,
+   "byForm": {
+    "reflexivity": {
+     "theorems": 3,
+     "produced": 0
+    }
+   },
+   "produceMs": 991.7,
+   "native": {
+    "whole": "Accepted 8633 declarations (7301 sent to the kernel).",
+    "wholeMs": 15762,
+    "suffix": "Accepted 0 declarations over the resident library (0 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 17873,
+    "suffix": true,
+    "suffixMs": 1,
+    "libraryLoadMs": 2180,
+    "heapMB": 92,
+    "partsAccepted": 0,
+    "parts": 0,
+    "medianPartMs": null,
+    "p90PartMs": null,
+    "worstPartMs": null
+   },
+   "bytes": {
+    "library": 29657056,
+    "libraryGzip": 4484961,
+    "suffix": 0,
+    "suffixGzip": 20
+   },
+   "axiomsExact": 0,
+   "faults": []
+  },
+  "compiler": {
+   "theorems": 876,
+   "produced": 417,
+   "byForm": {
+    "linear_arithmetic": {
+     "theorems": 48,
+     "produced": 0
+    },
+    "apply": {
+     "theorems": 14,
+     "produced": 0
+    },
+    "induction": {
+     "theorems": 51,
+     "produced": 0
+    },
+    "simplify": {
+     "theorems": 26,
+     "produced": 0
+    },
+    "decide": {
+     "theorems": 7,
+     "produced": 0
+    },
+    "reflexivity": {
+     "theorems": 439,
+     "produced": 414
+    },
+    "cases": {
+     "theorems": 6,
+     "produced": 3
+    },
+    "term_cases": {
+     "theorems": 285,
+     "produced": 0
+    }
+   },
+   "produceMs": 5049.7,
+   "native": {
+    "whole": "Accepted 9787 declarations (8589 sent to the kernel).",
+    "wholeMs": 313612,
+    "suffix": "Accepted 834 declarations over the resident library (834 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 356111,
+    "suffix": true,
+    "suffixMs": 88688,
+    "libraryLoadMs": 5173,
+    "heapMB": 877,
+    "partsAccepted": 417,
+    "parts": 417,
+    "medianPartMs": 28.24,
+    "p90PartMs": 566.95,
+    "worstPartMs": 10417.19
+   },
+   "bytes": {
+    "library": 80943999,
+    "libraryGzip": 12112238,
+    "suffix": 149934,
+    "suffixGzip": 19413
+   },
+   "axiomsExact": 417,
+   "faults": [
+    {
+     "fault": "altered-statement",
+     "theorem": "LexLeanTarget.Gnaf.vec01Optimum",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.bound.LexLeanTarget.Gnaf.vec01Optimum",
+     "reason": "(kernel) declaration type mismatch"
+    },
+    {
+     "fault": "omitted-case",
+     "theorem": "LexLeanTarget.RustRuntime.refines_bool_not",
+     "refusedBy": "producer",
+     "reason": "no case for constructor `true`"
+    }
+   ]
+  },
+  "examples-collections": {
+   "theorems": 51,
+   "produced": 49,
+   "byForm": {
+    "decide": {
+     "theorems": 50,
+     "produced": 48
+    },
+    "reflexivity": {
+     "theorems": 1,
+     "produced": 1
+    }
+   },
+   "produceMs": 498.2,
+   "native": {
+    "whole": "Accepted 3991 declarations (3712 sent to the kernel).",
+    "wholeMs": 8085,
+    "suffix": "Accepted 98 declarations over the resident library (98 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 9231,
+    "suffix": true,
+    "suffixMs": 835,
+    "libraryLoadMs": 1495,
+    "heapMB": 77,
+    "partsAccepted": 49,
+    "parts": 49,
+    "medianPartMs": 9.92,
+    "p90PartMs": 20.79,
+    "worstPartMs": 144.92
+   },
+   "bytes": {
+    "library": 17774368,
+    "libraryGzip": 2817389,
+    "suffix": 21178,
+    "suffixGzip": 3166
+   },
+   "axiomsExact": 49,
+   "faults": [
+    {
+     "fault": "false-decide",
+     "theorem": "Collections.Main.bounded_iteration",
+     "refusedBy": "kernel",
+     "names": "Refused: while replaying declaration 'LexLeanKernel.bound.Collections.Main.bounded_iteration':\n(kernel) declaration type mismatch",
+     "reason": "(kernel) declaration type mismatch"
+    }
+   ]
+  },
+  "examples-decision-regions": {
+   "theorems": 4,
+   "produced": 0,
+   "byForm": {
+    "region_check": {
+     "theorems": 4,
+     "produced": 0
+    }
+   },
+   "produceMs": 193.7,
+   "native": {
+    "whole": "Accepted 2233 declarations (2039 sent to the kernel).",
+    "wholeMs": 1817,
+    "suffix": "Accepted 0 declarations over the resident library (0 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 2266,
+    "suffix": true,
+    "suffixMs": 1,
+    "libraryLoadMs": 653,
+    "heapMB": 64,
+    "partsAccepted": 0,
+    "parts": 0,
+    "medianPartMs": null,
+    "p90PartMs": null,
+    "worstPartMs": null
+   },
+   "bytes": {
+    "library": 7432037,
+    "libraryGzip": 1182816,
+    "suffix": 0,
+    "suffixGzip": 20
+   },
+   "axiomsExact": 0,
+   "faults": []
+  },
+  "examples-fold-laws": {
+   "theorems": 31,
+   "produced": 4,
+   "byForm": {
+    "linear_arithmetic": {
+     "theorems": 25,
+     "produced": 0
+    },
+    "decide": {
+     "theorems": 2,
+     "produced": 2
+    },
+    "law": {
+     "theorems": 3,
+     "produced": 2
+    },
+    "apply": {
+     "theorems": 1,
+     "produced": 0
+    }
+   },
+   "produceMs": 618.9,
+   "native": {
+    "whole": "Accepted 4084 declarations (3800 sent to the kernel).",
+    "wholeMs": 7070,
+    "suffix": "Accepted 8 declarations over the resident library (8 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 7670,
+    "suffix": true,
+    "suffixMs": 24,
+    "libraryLoadMs": 1443,
+    "heapMB": 77,
+    "partsAccepted": 4,
+    "parts": 4,
+    "medianPartMs": 5.28,
+    "p90PartMs": 7.06,
+    "worstPartMs": 7.06
+   },
+   "bytes": {
+    "library": 19814934,
+    "libraryGzip": 3145708,
+    "suffix": 3002,
+    "suffixGzip": 674
+   },
+   "axiomsExact": 4,
+   "faults": [
+    {
+     "fault": "false-decide",
+     "theorem": "FoldLaws.Folds.doubled_total_closed",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.FoldLaws.Folds.doubled_total_closed",
+     "reason": "(kernel) application type mismatch"
+    }
+   ]
+  },
+  "examples-helpdesk": {
+   "theorems": 22,
+   "produced": 11,
+   "byForm": {
+    "decide": {
+     "theorems": 7,
+     "produced": 7
+    },
+    "cases": {
+     "theorems": 1,
+     "produced": 0
+    },
+    "linear_arithmetic": {
+     "theorems": 8,
+     "produced": 0
+    },
+    "reflexivity": {
+     "theorems": 6,
+     "produced": 4
+    }
+   },
+   "produceMs": 564.3,
+   "native": {
+    "whole": "Accepted 4047 declarations (3750 sent to the kernel).",
+    "wholeMs": 4822,
+    "suffix": "Accepted 22 declarations over the resident library (22 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 5748,
+    "suffix": true,
+    "suffixMs": 44,
+    "libraryLoadMs": 1266,
+    "heapMB": 64,
+    "partsAccepted": 11,
+    "parts": 11,
+    "medianPartMs": 3.84,
+    "p90PartMs": 6.87,
+    "worstPartMs": 7.25
+   },
+   "bytes": {
+    "library": 17974139,
+    "libraryGzip": 2847374,
+    "suffix": 5027,
+    "suffixGzip": 929
+   },
+   "axiomsExact": 11,
+   "faults": [
+    {
+     "fault": "altered-statement",
+     "theorem": "Helpdesk.Main.plan_outage",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.bound.Helpdesk.Main.plan_outage",
+     "reason": "(kernel) declaration type mismatch"
+    },
+    {
+     "fault": "false-decide",
+     "theorem": "LexLeanStdModels.Scores.best_first_maximal",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.LexLeanStdModels.Scores.best_first_maximal",
+     "reason": "(kernel) application type mismatch"
+    }
+   ]
+  },
+  "examples-higher-order": {
+   "theorems": 7,
+   "produced": 5,
+   "byForm": {
+    "reflexivity": {
+     "theorems": 5,
+     "produced": 5
+    },
+    "induction": {
+     "theorems": 1,
+     "produced": 0
+    },
+    "apply": {
+     "theorems": 1,
+     "produced": 0
+    }
+   },
+   "produceMs": 24.4,
+   "native": {
+    "whole": "Accepted 796 declarations (671 sent to the kernel).",
+    "wholeMs": 165,
+    "suffix": "Accepted 10 declarations over the resident library (10 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 310,
+    "suffix": true,
+    "suffixMs": 6,
+    "libraryLoadMs": 84,
+    "heapMB": 64,
+    "partsAccepted": 5,
+    "parts": 5,
+    "medianPartMs": 0.78,
+    "p90PartMs": 1.04,
+    "worstPartMs": 1.04
+   },
+   "bytes": {
+    "library": 1134127,
+    "libraryGzip": 171914,
+    "suffix": 1762,
+    "suffixGzip": 418
+   },
+   "axiomsExact": 5,
+   "faults": [
+    {
+     "fault": "altered-statement",
+     "theorem": "HigherOrder.Main.add_all",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.bound.HigherOrder.Main.add_all",
+     "reason": "(kernel) declaration type mismatch"
+    }
+   ]
+  },
+  "examples-language-1.2": {
+   "theorems": 2,
+   "produced": 2,
+   "byForm": {
+    "reflexivity": {
+     "theorems": 2,
+     "produced": 2
+    }
+   },
+   "produceMs": 21.1,
+   "native": {
+    "whole": "Accepted 744 declarations (625 sent to the kernel).",
+    "wholeMs": 184,
+    "suffix": "Accepted 4 declarations over the resident library (4 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 426,
+    "suffix": true,
+    "suffixMs": 4,
+    "libraryLoadMs": 100,
+    "heapMB": 64,
+    "partsAccepted": 2,
+    "parts": 2,
+    "medianPartMs": 0.49,
+    "p90PartMs": 0.49,
+    "worstPartMs": 0.49
+   },
+   "bytes": {
+    "library": 1059932,
+    "libraryGzip": 160806,
+    "suffix": 931,
+    "suffixGzip": 301
+   },
+   "axiomsExact": 2,
+   "faults": [
+    {
+     "fault": "altered-statement",
+     "theorem": "LanguageTwelve.Main.doubled_successor_two",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.bound.LanguageTwelve.Main.doubled_successor_two",
+     "reason": "(kernel) declaration type mismatch"
+    }
+   ]
+  },
+  "examples-models": {
+   "theorems": 152,
+   "produced": 103,
+   "byForm": {
+    "cases": {
+     "theorems": 15,
+     "produced": 15
+    },
+    "linear_arithmetic": {
+     "theorems": 44,
+     "produced": 0
+    },
+    "decide": {
+     "theorems": 88,
+     "produced": 86
+    },
+    "apply": {
+     "theorems": 4,
+     "produced": 2
+    }
+   },
+   "produceMs": 735.4,
+   "native": {
+    "whole": "Accepted 4536 declarations (4217 sent to the kernel).",
+    "wholeMs": 10466,
+    "suffix": "Accepted 206 declarations over the resident library (206 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 13316,
+    "suffix": true,
+    "suffixMs": 3346,
+    "libraryLoadMs": 1265,
+    "heapMB": 133,
+    "partsAccepted": 103,
+    "parts": 103,
+    "medianPartMs": 4.91,
+    "p90PartMs": 18.26,
+    "worstPartMs": 877.8
+   },
+   "bytes": {
+    "library": 18626724,
+    "libraryGzip": 2948840,
+    "suffix": 77737,
+    "suffixGzip": 11562
+   },
+   "axiomsExact": 103,
+   "faults": [
+    {
+     "fault": "false-decide",
+     "theorem": "Models.Main.classify_eight",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.Models.Main.classify_eight",
+     "reason": "(kernel) application type mismatch"
+    },
+    {
+     "fault": "omitted-case",
+     "theorem": "Models.Glyphs.encode_width",
+     "refusedBy": "producer",
+     "reason": "no case for constructor `g9`"
+    }
+   ]
+  },
+  "examples-nested-induction": {
+   "theorems": 1,
+   "produced": 0,
+   "byForm": {
+    "nested_induction": {
+     "theorems": 1,
+     "produced": 0
+    }
+   },
+   "produceMs": 675.5,
+   "native": {
+    "whole": "Accepted 3875 declarations (3588 sent to the kernel).",
+    "wholeMs": 5113,
+    "suffix": "Accepted 0 declarations over the resident library (0 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 5702,
+    "suffix": true,
+    "suffixMs": 1,
+    "libraryLoadMs": 1056,
+    "heapMB": 64,
+    "partsAccepted": 0,
+    "parts": 0,
+    "medianPartMs": null,
+    "p90PartMs": null,
+    "worstPartMs": null
+   },
+   "bytes": {
+    "library": 17816023,
+    "libraryGzip": 2820892,
+    "suffix": 0,
+    "suffixGzip": 20
+   },
+   "axiomsExact": 0,
+   "faults": []
+  },
+  "examples-production-coverage": {
+   "theorems": 9,
+   "produced": 1,
+   "byForm": {
+    "linear_arithmetic": {
+     "theorems": 8,
+     "produced": 0
+    },
+    "decide": {
+     "theorems": 1,
+     "produced": 1
+    }
+   },
+   "produceMs": 1088.9,
+   "native": {
+    "whole": "Accepted 5144 declarations (4750 sent to the kernel).",
+    "wholeMs": 7253,
+    "suffix": "Accepted 2 declarations over the resident library (2 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 8991,
+    "suffix": true,
+    "suffixMs": 50,
+    "libraryLoadMs": 1478,
+    "heapMB": 77,
+    "partsAccepted": 1,
+    "parts": 1,
+    "medianPartMs": 11.45,
+    "p90PartMs": 11.45,
+    "worstPartMs": 11.45
+   },
+   "bytes": {
+    "library": 25417807,
+    "libraryGzip": 4019978,
+    "suffix": 652,
+    "suffixGzip": 250
+   },
+   "axiomsExact": 1,
+   "faults": [
+    {
+     "fault": "false-decide",
+     "theorem": "Coverage.Recur.ping_seven",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.Coverage.Recur.ping_seven",
+     "reason": "(kernel) application type mismatch"
+    }
+   ]
+  },
+  "examples-production": {
+   "theorems": 4,
+   "produced": 3,
+   "byForm": {
+    "linear_arithmetic": {
+     "theorems": 1,
+     "produced": 0
+    },
+    "decide": {
+     "theorems": 3,
+     "produced": 3
+    }
+   },
+   "produceMs": 655.2,
+   "native": {
+    "whole": "Accepted 3903 declarations (3611 sent to the kernel).",
+    "wholeMs": 4993,
+    "suffix": "Accepted 6 declarations over the resident library (6 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 5662,
+    "suffix": true,
+    "suffixMs": 13,
+    "libraryLoadMs": 1105,
+    "heapMB": 64,
+    "partsAccepted": 3,
+    "parts": 3,
+    "medianPartMs": 3.43,
+    "p90PartMs": 3.66,
+    "worstPartMs": 3.66
+   },
+   "bytes": {
+    "library": 17734940,
+    "libraryGzip": 2810006,
+    "suffix": 1480,
+    "suffixGzip": 376
+   },
+   "axiomsExact": 3,
+   "faults": [
+    {
+     "fault": "false-decide",
+     "theorem": "Production.Kernel.area_square",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.Production.Kernel.area_square",
+     "reason": "(kernel) application type mismatch"
+    }
+   ]
+  },
+  "examples-reasoning": {
+   "theorems": 90,
+   "produced": 23,
+   "byForm": {
+    "linear_arithmetic": {
+     "theorems": 50,
+     "produced": 0
+    },
+    "apply": {
+     "theorems": 3,
+     "produced": 0
+    },
+    "reflexivity": {
+     "theorems": 37,
+     "produced": 23
+    }
+   },
+   "produceMs": 870.5,
+   "native": {
+    "whole": "Accepted 4765 declarations (4362 sent to the kernel).",
+    "wholeMs": 6775,
+    "suffix": "Accepted 46 declarations over the resident library (46 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 8501,
+    "suffix": true,
+    "suffixMs": 281,
+    "libraryLoadMs": 1309,
+    "heapMB": 111,
+    "partsAccepted": 23,
+    "parts": 23,
+    "medianPartMs": 4.44,
+    "p90PartMs": 11.31,
+    "worstPartMs": 153.6
+   },
+   "bytes": {
+    "library": 22389101,
+    "libraryGzip": 3539618,
+    "suffix": 7801,
+    "suffixGzip": 1156
+   },
+   "axiomsExact": 23,
+   "faults": [
+    {
+     "fault": "altered-statement",
+     "theorem": "Reasoning.Main.triage_level",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.bound.Reasoning.Main.triage_level",
+     "reason": "(kernel) declaration type mismatch"
+    }
+   ]
+  },
+  "examples-recursion": {
+   "theorems": 18,
+   "produced": 10,
+   "byForm": {
+    "linear_arithmetic": {
+     "theorems": 8,
+     "produced": 0
+    },
+    "reflexivity": {
+     "theorems": 3,
+     "produced": 3
+    },
+    "decide": {
+     "theorems": 7,
+     "produced": 7
+    }
+   },
+   "produceMs": 831.8,
+   "native": {
+    "whole": "Accepted 3972 declarations (3675 sent to the kernel).",
+    "wholeMs": 4856,
+    "suffix": "Accepted 20 declarations over the resident library (20 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 6335,
+    "suffix": true,
+    "suffixMs": 47,
+    "libraryLoadMs": 1086,
+    "heapMB": 64,
+    "partsAccepted": 10,
+    "parts": 10,
+    "medianPartMs": 4.16,
+    "p90PartMs": 4.75,
+    "worstPartMs": 5.03
+   },
+   "bytes": {
+    "library": 18048132,
+    "libraryGzip": 2858037,
+    "suffix": 3825,
+    "suffixGzip": 720
+   },
+   "axiomsExact": 10,
+   "faults": [
+    {
+     "fault": "altered-statement",
+     "theorem": "Recursion.Main.rose_size",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.bound.Recursion.Main.rose_size",
+     "reason": "(kernel) declaration type mismatch"
+    },
+    {
+     "fault": "false-decide",
+     "theorem": "Recursion.Main.countdown_nine",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.Recursion.Main.countdown_nine",
+     "reason": "(kernel) application type mismatch"
+    }
+   ]
+  },
+  "examples-recursive-data": {
+   "theorems": 8,
+   "produced": 7,
+   "byForm": {
+    "decide": {
+     "theorems": 1,
+     "produced": 1
+    },
+    "induction": {
+     "theorems": 1,
+     "produced": 0
+    },
+    "reflexivity": {
+     "theorems": 6,
+     "produced": 6
+    }
+   },
+   "produceMs": 32.6,
+   "native": {
+    "whole": "Accepted 844 declarations (699 sent to the kernel).",
+    "wholeMs": 152,
+    "suffix": "Accepted 14 declarations over the resident library (14 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 267,
+    "suffix": true,
+    "suffixMs": 10,
+    "libraryLoadMs": 107,
+    "heapMB": 64,
+    "partsAccepted": 7,
+    "parts": 7,
+    "medianPartMs": 0.53,
+    "p90PartMs": 0.68,
+    "worstPartMs": 0.86
+   },
+   "bytes": {
+    "library": 1199831,
+    "libraryGzip": 181677,
+    "suffix": 2487,
+    "suffixGzip": 547
+   },
+   "axiomsExact": 7,
+   "faults": [
+    {
+     "fault": "altered-statement",
+     "theorem": "RecursiveData.Main.rose_label",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.bound.RecursiveData.Main.rose_label",
+     "reason": "(kernel) declaration type mismatch"
+    },
+    {
+     "fault": "false-decide",
+     "theorem": "RecursiveData.Main.sample_tree_size",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.RecursiveData.Main.sample_tree_size",
+     "reason": "(kernel) application type mismatch"
+    }
+   ]
+  },
+  "examples-semantic-1.1": {
+   "theorems": 10,
+   "produced": 5,
+   "byForm": {
+    "boolean_reflection": {
+     "theorems": 1,
+     "produced": 0
+    },
+    "congruence": {
+     "theorems": 1,
+     "produced": 0
+    },
+    "apply": {
+     "theorems": 1,
+     "produced": 0
+    },
+    "decide": {
+     "theorems": 2,
+     "produced": 2
+    },
+    "reflexivity": {
+     "theorems": 1,
+     "produced": 1
+    },
+    "cases": {
+     "theorems": 1,
+     "produced": 1
+    },
+    "induction": {
+     "theorems": 1,
+     "produced": 1
+    },
+    "simplify": {
+     "theorems": 1,
+     "produced": 0
+    }
+   },
+   "produceMs": 1059.9,
+   "native": {
+    "whole": "Accepted 4945 declarations (4558 sent to the kernel).",
+    "wholeMs": 7032,
+    "suffix": "Accepted 10 declarations over the resident library (10 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 8505,
+    "suffix": true,
+    "suffixMs": 13,
+    "libraryLoadMs": 1383,
+    "heapMB": 77,
+    "partsAccepted": 5,
+    "parts": 5,
+    "medianPartMs": 4.84,
+    "p90PartMs": 5.58,
+    "worstPartMs": 5.58
+   },
+   "bytes": {
+    "library": 24678272,
+    "libraryGzip": 3911944,
+    "suffix": 2970,
+    "suffixGzip": 698
+   },
+   "axiomsExact": 5,
+   "faults": [
+    {
+     "fault": "false-decide",
+     "theorem": "SemanticFixture.KernelReductionProofs.importedAppendLengthIsFour",
+     "refusedBy": "kernel",
+     "names": "Refused: while replaying declaration 'LexLeanKernel.bound.SemanticFixture.KernelReductionProofs.importedAppendLengthIsFour':\n(kernel) declaration type mismatch",
+     "reason": "(kernel) declaration type mismatch"
+    },
+    {
+     "fault": "omitted-case",
+     "theorem": "SemanticFixture.Main.componentKind_refl",
+     "refusedBy": "producer",
+     "reason": "no case for constructor `database`"
+    }
+   ]
+  },
+  "ext-forge-app": {
+   "theorems": 160,
+   "produced": 98,
+   "byForm": {
+    "reflexivity": {
+     "theorems": 101,
+     "produced": 98
+    },
+    "linear_arithmetic": {
+     "theorems": 59,
+     "produced": 0
+    }
+   },
+   "produceMs": 932.4,
+   "native": {
+    "whole": "Accepted 5749 declarations (5164 sent to the kernel).",
+    "wholeMs": 9134,
+    "suffix": "Accepted 196 declarations over the resident library (196 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 11418,
+    "suffix": true,
+    "suffixMs": 259,
+    "libraryLoadMs": 1361,
+    "heapMB": 77,
+    "partsAccepted": 98,
+    "parts": 98,
+    "medianPartMs": 2.5,
+    "p90PartMs": 4.93,
+    "worstPartMs": 7.6
+   },
+   "bytes": {
+    "library": 22805168,
+    "libraryGzip": 3590199,
+    "suffix": 33782,
+    "suffixGzip": 4636
+   },
+   "axiomsExact": 98,
+   "faults": [
+    {
+     "fault": "altered-statement",
+     "theorem": "PrismForgeKernel.EventAdmission.naturalEventAdmitted",
+     "refusedBy": null,
+     "accepted": true
+    }
+   ]
+  },
+  "ext-prism": {
+   "theorems": 4,
+   "produced": 0,
+   "byForm": {
+    "linear_arithmetic": {
+     "theorems": 4,
+     "produced": 0
+    }
+   },
+   "produceMs": 720.8,
+   "native": {
+    "whole": "Accepted 4090 declarations (3780 sent to the kernel).",
+    "wholeMs": 5104,
+    "suffix": "Accepted 0 declarations over the resident library (0 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 6215,
+    "suffix": true,
+    "suffixMs": 1,
+    "libraryLoadMs": 1121,
+    "heapMB": 77,
+    "partsAccepted": 0,
+    "parts": 0,
+    "medianPartMs": null,
+    "p90PartMs": null,
+    "worstPartMs": null
+   },
+   "bytes": {
+    "library": 18744247,
+    "libraryGzip": 2968270,
+    "suffix": 0,
+    "suffixGzip": 20
+   },
+   "axiomsExact": 0,
+   "faults": []
+  },
+  "std-models": {
+   "theorems": 8,
+   "produced": 7,
+   "byForm": {
+    "decide": {
+     "theorems": 7,
+     "produced": 7
+    },
+    "cases": {
+     "theorems": 1,
+     "produced": 0
+    }
+   },
+   "produceMs": 556.5,
+   "native": {
+    "whole": "Accepted 3868 declarations (3586 sent to the kernel).",
+    "wholeMs": 4621,
+    "suffix": "Accepted 14 declarations over the resident library (14 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 5814,
+    "suffix": true,
+    "suffixMs": 25,
+    "libraryLoadMs": 1048,
+    "heapMB": 64,
+    "partsAccepted": 7,
+    "parts": 7,
+    "medianPartMs": 4.24,
+    "p90PartMs": 5.1,
+    "worstPartMs": 8.75
+   },
+   "bytes": {
+    "library": 17693773,
+    "libraryGzip": 2803924,
+    "suffix": 3373,
+    "suffixGzip": 647
+   },
+   "axiomsExact": 7,
+   "faults": [
+    {
+     "fault": "false-decide",
+     "theorem": "LexLeanStdModels.Scores.best_first_maximal",
+     "refusedBy": "kernel",
+     "names": "LexLeanKernel.LexLeanStdModels.Scores.best_first_maximal",
+     "reason": "(kernel) application type mismatch"
+    }
+   ]
+  },
+  "std-reasoning": {
+   "theorems": 8,
+   "produced": 0,
+   "byForm": {
+    "linear_arithmetic": {
+     "theorems": 6,
+     "produced": 0
+    },
+    "reflexivity": {
+     "theorems": 2,
+     "produced": 0
+    }
+   },
+   "produceMs": 504,
+   "native": {
+    "whole": "Accepted 3904 declarations (3618 sent to the kernel).",
+    "wholeMs": 4853,
+    "suffix": "Accepted 0 declarations over the resident library (0 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 5751,
+    "suffix": true,
+    "suffixMs": 1,
+    "libraryLoadMs": 1060,
+    "heapMB": 64,
+    "partsAccepted": 0,
+    "parts": 0,
+    "medianPartMs": null,
+    "p90PartMs": null,
+    "worstPartMs": null
+   },
+   "bytes": {
+    "library": 17800311,
+    "libraryGzip": 2819447,
+    "suffix": 0,
+    "suffixGzip": 20
+   },
+   "axiomsExact": 0,
+   "faults": []
+  },
+  "stdlib": {
+   "theorems": 3,
+   "produced": 0,
+   "byForm": {
+    "reflexivity": {
+     "theorems": 3,
+     "produced": 0
+    }
+   },
+   "produceMs": 512.8,
+   "native": {
+    "whole": "Accepted 4323 declarations (3964 sent to the kernel).",
+    "wholeMs": 9934,
+    "suffix": "Accepted 0 declarations over the resident library (0 sent to the kernel)."
+   },
+   "wasm": {
+    "whole": true,
+    "wholeMs": 11799,
+    "suffix": true,
+    "suffixMs": 1,
+    "libraryLoadMs": 1212,
+    "heapMB": 64,
+    "partsAccepted": 0,
+    "parts": 0,
+    "medianPartMs": null,
+    "p90PartMs": null,
+    "worstPartMs": null
+   },
+   "bytes": {
+    "library": 18495814,
+    "libraryGzip": 2923189,
+    "suffix": 0,
+    "suffixGzip": 20
+   },
+   "axiomsExact": 0,
+   "faults": []
+  }
+ }
+}

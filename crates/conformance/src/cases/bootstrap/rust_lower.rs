@@ -596,8 +596,8 @@ fn types_leg(legs: &Legs) -> &Run {
 /// of them and of the committed programs, as the statement of the register row
 /// and SPEC.md §17.23 count them.
 const RULE_PROGRAMS: usize = 22;
-const VECTORS: usize = 385;
-const VECTORS_WITHIN: usize = 296;
+const VECTORS: usize = 389;
+const VECTORS_WITHIN: usize = 299;
 const LITERALS: usize = 200;
 const PRIM_ROUNDS: usize = 3;
 /// The programs the evaluator is given in full: those of at most this many nodes.
@@ -834,7 +834,7 @@ pub(super) fn assert_eligible(row: &Json, root: &str, effects: &[&str]) {
 
 pub(super) fn eligibility_report(
     project: &support::P,
-    build_id: &lexlean::Sha256Digest,
+    build_id: &lexlean::Kappa,
     module: &str,
 ) -> Json {
     let file = module.replace('.', "/");

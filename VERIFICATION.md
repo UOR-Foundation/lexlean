@@ -9,7 +9,7 @@ How this repository's claims are checked, which recipe enforces which rule, and 
 | Recipe | Command | Rules it enforces |
 | --- | --- | --- |
 | `fmt-check` | `cargo fmt --all -- --check` | one canonical source formatting |
-| `model` | `cargo xtask validate-model` | R1 (model is the single source; every model file parsed with unknown-field rejection), R2 (honesty levels and vocabulary, via the meta-gate), R3 (register/scenario/test bijection, Gherkin subset), R4 (`audit-deferral`), R5 (`audit-errors`), R6 (`audit-shipped`, including the shipped crate's normative links, and every vendored authority's SHA-256 recomputed from its copy), R8 (`audit-generated`, `audit-language-closure`), RP-09 (`audit-no-unsafe`), PD-07 (`audit-production`), §17.19 (`audit-oracle-isolation`), §27.5 (CONFORMANCE.md and ERRORS.md equal regeneration) |
+| `model` | `cargo xtask validate-model` | R1 (model is the single source; every model file parsed with unknown-field rejection), R2 (honesty levels and vocabulary, via the meta-gate), R3 (register/scenario/test bijection, Gherkin subset), R4 (`audit-deferral`), R5 (`audit-errors`), R6 (`audit-shipped`, including the shipped crate's normative links, and every vendored authority's κ-label recomputed from its copy), AR-15 (`audit-hashes`: no SHA-256 identity outside the formats that require one), R8 (`audit-generated`, `audit-language-closure`), RP-09 (`audit-no-unsafe`), PD-07 (`audit-production`), §17.19 (`audit-oracle-isolation`), §27.5 (CONFORMANCE.md and ERRORS.md equal regeneration) |
 | `spec-links` | `cargo xtask validate-spec-links` | RP-07, §27.6: the §31 table and `model/ids.toml` are bijective and byte-consistent |
 | `lint` | `cargo clippy --workspace --all-targets --all-features -- -D warnings` | no tolerated warnings |
 | `test` | `cargo test --workspace --exclude repo-conformance --all-features` | §28.1 classes 1–2 and 4–5 (unit, property, integration, CLI) of every crate but `repo-conformance`, and the model crate's own tests. `repo-conformance` is excluded, not skipped: `bdd` owns it (RP-13) |
@@ -40,6 +40,34 @@ Outside `vv`:
 - Two host properties are measured rather than inferred from the target triple, because they vary by filesystem and not by operating system: `case_sensitive_backed` writes two names differing only in case and reads back whether both survived (§23.3's collision cannot be built where they do not), and `non_utf8_names_backed` writes a name carrying a byte that is not valid UTF-8 (§8.3's environment diagnostic cannot be provoked where the filesystem refuses it). Each reports the host it declined on.
 
 ## Falsifiability records
+
+### browser prover assets can differ, fail to build, or go unpublished (RP-20)
+
+`RP-20` holds the assets a browser prover loads (§7, §30.3).
+`conformance_rp_20` runs `cargo xtask runtime-package` and checks four
+things. Every runtime source must be the compiler's runtime text, with the
+pinned toolchain, every module listed, and one Lake library over all of them.
+A second run into the same directory must be refused. The four driver files
+under `lean/wasm-prover/driver/` must pin the same Lean and declare `elab` and
+`symlist`. The release's `lean-wasm` job and its `publish` wiring must build,
+wait for, and attach the three assets. With Lean, two packages in two
+directories must build to the same `.olean`, `.olean.server`,
+`.olean.private`, `.ir`, and `.ilean` bytes, and the driver's two executables
+must build. The case passed in 16 s on Linux x86-64 (WSL 2), with 30 runtime
+build files identical.
+
+Planted: `publish` does not wait for `lean-wasm`.
+
+```text
+publish: "release.yml job `publish` has no `needs: [identity, crate, gate, binaries, manifest, lean-wasm]`"
+```
+
+Measured beside it, outside the gate: `.github/lean-wasm.sh 0.4.3` on that
+host took 412 s and produced 35 labelled files. Lake's `.trace` and
+`setup.json` files record the build directory and differ between two
+directories, so the script neither compares nor publishes them. Every file it
+publishes agreed byte for byte across the two builds, `lexlean.wasm` across
+two clean target directories included.
 
 ### semantic snapshot nesting can fail
 
@@ -958,6 +986,162 @@ Planted: `mentions_family_group` ignored the arguments again (the comparison
 test ir::semantic::family_order_tests::a_group_instantiated_at_its_own_type_has_two_motives ... FAILED
 ```
 
+### an array can take any element, lose its runtime import, or drag in the laws module (SM-39)
+
+`SM-39` holds the language-1.2 arrays of §17.12. `conformance_sm_39` reads the
+shipped runtime: `LexLeanRuntime.Arrays` imports the portable module alone,
+declares the two instances, the three primitives, and the nine registered laws,
+and no row of it depends on more than `propext`. It renders `examples/arrays`
+and requires the generated Lean to import the arrays module and to name
+`_root_.Array` and `_root_.LexLeanArrays`, and the canonical document to name
+neither root. It requires a module that applies an array law and no fold law
+to import the arrays module and not the laws module. It refuses, in linking,
+six element types that are not fixed-width integers, a write of another
+element type, a write to a list, both conversions applied to the wrong
+container or at the wrong element, an index at the wrong element, a pattern
+match on an array, an unregistered law, a law applied to a list, and a
+language-1.1 use, and in eligibility a production root over an array
+(`LLT4005`). With the pinned Lean it verifies the example with exactly its
+stated axioms and a round trip at each of the eight element types, and has
+Lean refuse, with `LLV7002`, a copy whose loop advances by two and a law
+applied to a statement it does not prove.
+
+Four planted defects were run against it, each alone, and each was refused.
+Command: `cargo test -p repo-conformance --test conformance conformance_sm_39 -- --exact`.
+
+- The element check accepting every type (`check_array_element` returning
+  `Ok` first): refused at the first element refusal.
+
+```text
+thread 'conformance_sm_39' panicked at crates/conformance/src/support.rs:874:14:
+check fails
+```
+
+- The arrays import never written (`(arrays && false, ARRAYS)` in
+  `render_lean`): refused at the rendered example.
+
+```text
+thread 'conformance_sm_39' panicked at crates/conformance/src/cases/semantic_ir/arrays.rs:245:9:
+missing "public import LexLeanRuntime.Arrays\n" in:
+```
+
+- Every `law` proof importing the laws module, whatever module states its law
+  (`law_modules` inserting `LAWS` always): refused at the module that applies
+  an array law alone.
+
+```text
+thread 'conformance_sm_39' panicked at crates/conformance/src/cases/semantic_ir/arrays.rs:270:5:
+an array law imports the arrays module alone:
+```
+
+- `array_set` typed to write an `Int16` whatever the array holds: refused at
+  the committed example, which no longer links.
+
+```text
+phase link: primitive ArraySet argument 2 has type Int8, expected Int16
+```
+
+Two registry plants are part of the case itself: a law row that names a
+theorem the arrays module does not declare, and the index law filed under the
+portable module, are each refused by `check_laws_registry` with the module
+named. The production audit of §17.17 refused the first version of this
+change, which wrote the array type with a rest pattern in
+`production/lower.rs` ("a rest pattern would classify constructs by default");
+every production match now names the element field.
+
+The five negative fixtures `array-element-not-fixed-width`,
+`array-set-wrong-element`, `array-pattern-match`, `array-under-1.1`
+(`LLT4001`), and `array-production-root` (`LLT4005`) hold the same refusals
+through the command line.
+
+That the pinned Lean indexes an array in constant time and writes one in
+place when it is referenced once is cited (`LEAN-ARRAY-4-32-2`), not gated
+here: no case measures time.
+
+### lean-modules can print a policy verify does not apply (CL-28)
+
+`CL-28` holds the `axiom_policies` of `lexlean lean-modules` (§22.6, §23.4).
+`conformance_cl_28` reads the table of every example that checks: each row
+must have a kind, axioms, and one of the five rules, a model must name its
+members, a runtime row must be exact, a text-laws module must have no row, and
+every rule must occur somewhere. It then verifies `peano-arithmetic`,
+`list-induction`, and `models` with the pinned Lean. The attestation's
+declaration rows must be exactly the printed rows, in stage order, with a
+model's members in its place and a `core` row only where the audit reports it.
+The case passed in 300 s on Linux x86-64 (WSL 2). The attestations hold 33, 7,
+and 806 rows, and the rows are the printed table.
+
+Planted: the printed kind is `none` or `allow` whatever the policy is.
+
+```text
+assertion `left == right` failed: CL-28: .../examples/collections: a runtime declaration is exact
+  left: "none"
+```
+
+Stage 11 now evaluates the table instead of walking the IR itself. The cases
+that drive `LLV7005` through real Lean pass unchanged on the refactored stage:
+`VR-11`, `VR-16`, `VR-25`, `MD-06`, `RT-03`, and `LM-02`. `CL-27` passes too,
+with the 18 documents, policies included, byte-identical under `node:wasi`.
+
+### lean-modules can differ from build, write, or differ on WASI (CL-27)
+
+`CL-27` holds `lexlean lean-modules` (§23.4). `conformance_cl_27` runs it on
+every example project that checks, then runs `build` on the same copy. The
+document must be canonical JSON, and it must write nothing. Its build ID,
+language, Lean toolchain, compiler, and source and semantic IDs must be the
+manifest's. It must have one `project` row per Lean output of the manifest,
+whose text is the file `build` wrote, byte for byte, and whose `sha256` is that
+file's manifest row. Its `runtime` and `text-laws` rows must be the compiler's
+own texts, and every row must come after each row it imports. In JSON mode the
+command result must name `lean-modules` with `check`'s IDs and modules, the
+build ID, and no artifact. A module `check` refuses must give `check`'s exit
+code and diagnostics and no document. Built for `wasm32-wasip1` and run under
+Node's `node:wasi`, the executable must print the native bytes on every example
+and write nothing, and `build` must stay refused there. The case passed in
+552 s, the module build included, on Linux x86-64 (WSL 2): 18 documents agree.
+
+Planted: the project text loses its final LF.
+
+```text
+CL-27: .../examples/collections: Collections.Tables is the bytes build writes at modules/Collections/Tables.lean
+```
+
+The first run of the case also found a real defect. On WASI the printer of a
+native core module asked for a thread, so `examples/uor-atlas` was refused:
+
+```text
+error[LLS8002]: a stack of 5324800 bytes for rendering a native core module 87 expressions deep could not be reserved: Not supported (os error 58)
+```
+
+The printer now runs on the instance's linked stack there, and the
+`uor-atlas` document, 54,153,022 bytes, is the native one. Under Node 22 it
+renders in 44 s; `models` takes 1.6 s and `nat-add-zero` 0.8 s.
+
+### snapshot can differ from the API, write, or differ on WASI (CL-26)
+
+`CL-26` holds `lexlean snapshot` (§23.4). `conformance_cl_26` runs it on every
+example project that checks. In human mode, stdout must equal
+`Engine::snapshot(..).canonical_bytes()` byte for byte, its SHA-256 the
+snapshot ID, its semantic and source IDs those `check` reports, and its spec
+the project's language's. In JSON mode the command result must name `snapshot`
+with `check`'s IDs and modules. Nothing may be written. A module `check`
+refuses must give `check`'s exit code and diagnostics and no snapshot. Built
+for `wasm32-wasip1` and run under Node's `node:wasi`, the executable must print
+the native bytes on every example. The case passed in 769 s, the module build
+included, on a shared Linux x86-64 host.
+
+Red first: run against the tree without the command,
+
+```text
+CL-26: .../examples/collections: snapshot exits 0: error[LLC0001]: unrecognized subcommand 'snapshot'
+```
+
+Measured beside it, outside the gate: on `examples/nat-add-zero` the native
+and WASI snapshots are both `d8497a00...`, 26,916 bytes, and under Node 22 a
+compiled `lexlean.wasm` (19,133,367 bytes, 4,112,161 gzipped, without
+`production-data`) checks it in 360 to 460 ms and takes its snapshot in 170 to
+300 ms.
+
 ### check on WASI can trap, merge two names of a file, or differ (CL-25)
 
 `CL-25` holds `lexlean check` on `wasm32-wasip1` (§8.3). `conformance_cl_25`
@@ -1802,6 +1986,111 @@ the copy whose `drying` rule tests `humidity != 70` links.
 thread 'conformance_pf_24' panicked at crates\conformance\src\support.rs:874:14:
 check fails
 test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 482 filtered out
+```
+
+### kernel-term production can fail (LN-13)
+
+Kernel-term production (§18.10) writes proof terms with no elaborator; Lean's
+kernel is what makes one count. `conformance_ln_13` plants four faults in the
+IR in every run, and requires three things:
+
+- the kernel refuses the altered statement's binding, the swapped case branch,
+  and the false decide;
+- production refuses the omitted case;
+- every unplanted theorem and binding is accepted with exactly its declared
+  axioms, by `crates/conformance/lean/KernelCheck.lean` (`addDeclCore`) under
+  the pinned Lean.
+
+A defect in the producers themselves is caught too. Planted:
+`cases` passes its minor premises in reverse constructor order (`minors.reverse()`
+before `@T.casesOn` is applied in `crates/lexlean/src/backend/kernel/prove.rs`).
+
+Command and host: `cargo test --release -p repo-conformance --test conformance --
+conformance_ln_13 conformance_rp_07`, WSL Ubuntu on Windows x86-64, rustc
+1.97.1, pinned Lean 4.32.2. The plant was then reverted, and the case passes on
+the reverted tree.
+
+```text
+test conformance_rp_07 ... ok
+test conformance_ln_13 ... FAILED
+thread 'conformance_ln_13' panicked at crates/conformance/src/cases/kernel_terms.rs:353:13:
+assertion `left == right` failed: [
+    "accepted LexLeanKernel.LanguageTwelve.Main.double_two axioms: ",
+```
+
+The kernel refuses `LexLeanKernel.LanguageTwelve.Main.flip_flip`, whose `false`
+case now receives the `true` case's proof. The same plants, and the live corpus,
+run through the browser path in `docs/kernel-terms/run.sh`: lean4export, the
+native checker, and the WebAssembly kernel with the library resident.
+`docs/kernel-terms/DESIGN.md` records those results.
+
+### kernel-term producers modelled in LexLean can fail (BS-35 to BS-38)
+
+`bootstrap/src/KernelTerms.lex.tex` states kernel-term production's
+producers as LexLean source (SPEC.md §17.23, §18.10). The planted defects
+below are run by the cases themselves on every run. Command and host:
+`cargo test --release -p repo-conformance --test conformance --
+conformance_bs_35 conformance_bs_36 conformance_bs_37 conformance_bs_38`,
+WSL Ubuntu on Windows x86-64, rustc 1.97.1, pinned Lean 4.32.2.
+
+`conformance_bs_35` plants five defects in the source of the three checks.
+On the normative host, each plant is detected by the one vector it names,
+under the calculus evaluator:
+
+```text
+BS-35: checkFrom: the evaluator agrees on 315 runs
+BS-35: memberCheck: the evaluator agrees on 304 runs
+BS-35: lawCheck: the evaluator agrees on 304 runs
+BS-35: plant detected: a constructor with no branch passes: run 0 on [...]
+BS-35: plant detected: a repeated branch passes: run 0 on [...]
+BS-35: plant detected: the hypotheses of an induction are not counted: run 0 on [...]
+BS-35: plant detected: a branch past the last constructor passes: run 0 on [...]
+BS-35: plant detected: an unregistered law is reported as an unproduced premise: run 0 on [...]
+BS-35: stage-0 check: 6023 rustc runs agree with the oracle
+```
+
+`conformance_bs_36`, `conformance_bs_37`, and `conformance_bs_38` verify
+the module alone under the pinned Lean, and require each theorem to be
+proved with exactly its declared axioms. Each then verifies a planted copy,
+and Lean refuses it with `LLV7002`:
+
+- binding: `declare` types the declaration by its proof term;
+- totality: `casesTerm` refuses every branch list its check passes;
+- refusal: `checkFrom` admits a missing case, and `reflexivityTerm`
+  refuses a non-equation with `missingCase`.
+
+Run with `--nocapture`, every plant is refused:
+
+```text
+BS-37: the planted module is refused: LLV7002: Lean rejected `LanguageTwelve.Main` (error): unsolved goals
+BS-38: the planted module is refused: LLV7002: Lean rejected `LanguageTwelve.Main` (error): Tactic `rfl` failed: The left-hand side
+BS-36: the planted module is refused: LLV7002: Lean rejected `LanguageTwelve.Main` (error): Tactic `rfl` failed: The left-hand side
+BS-38: the planted module is refused: LLV7002: Lean rejected `LanguageTwelve.Main` (error): unsolved goals
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 499 filtered out; finished in 240.64s
+```
+
+### term_cases by enumeration can fail (LN-14, BS-39)
+
+`term_cases` is produced by splitting every finite-typed local and closing
+each leaf by evaluation (§18.10). `conformance_ln_14` plants a false
+statement in every run: `code_small` is restated as `code flag <= 0`, which
+fails when the Boolean is `false`. Production writes the planted term, and
+the kernel refuses it; every unplanted theorem is accepted, its binding with
+exactly the declared axioms and its proof with a subset of them.
+
+`conformance_bs_39` verifies the enumeration model in
+`bootstrap/src/KernelTerms.lex.tex` under the pinned Lean, then plants an
+off-by-one in `enumerateBranches` (`ctor := (index + 1)`), so every branch
+names the next constructor. Lean refuses the planted module with `LLV7002`.
+
+Command and host: `cargo test --release -p repo-conformance --test conformance
+-- conformance_ln_13 conformance_ln_14 conformance_bs_39`, WSL Ubuntu on
+Windows x86-64, rustc 1.97.1, pinned Lean 4.32.2.
+
+```text
+test conformance_bs_39 ... ok
+test conformance_ln_14 ... ok
+test conformance_ln_13 ... ok
 ```
 
 ### a derived row is made by the pinned Lean and never stored (SM-34)
@@ -14731,3 +15020,18 @@ are about 20 minutes each. Both new parts run in the Intel and Windows
 `moves` lane, which held them as part of `rest`, so no host lane's work
 changes. `check-test-inventory` reports the 545 tests of `bdd` as the 41
 parts, disjoint and complete (RP-13).
+
+## The WASI cases as their own part (2026-11-18)
+
+`CL-25`..`CL-28` each build `lexlean` for `wasm32-wasip1` in the release
+profile and run it under Node beside the native executable; `CL-27` also
+builds every example that checks, and `CL-28` verifies three with Lean. In the remainder they overlapped the rest
+of `bdd` and the leg's `golden` and `repro` recipes. With `CL-27` on the
+`release/v0.4` base, the `rest` leg of run 44396317256 lost its runner 55
+minutes in ("The hosted runner lost communication with the server"), as did
+run 44396318041 with `CL-28` beside it, where the remainder otherwise
+finishes in 32 to 48 minutes. They become the `wasi` part, one leg of their
+own; no case's assertion changes. The part runs in the Intel and Windows
+`moves` lane, which held them as part of `rest`, so no host lane's work
+changes, and `check-test-inventory` still requires the parts to be disjoint
+and complete (RP-13).

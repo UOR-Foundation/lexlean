@@ -3,7 +3,7 @@
 //! it, the official BLAKE3 test vectors (`tests/stdlib/blake3/`) and the
 //! `blake3` crate on a seeded corpus, under the calculus evaluator and under
 //! the pinned rustc; and its piece members against the `blake3` crate's own
-//! subtree API (`hazmat`), so that the chaining values of the 1 MiB pieces of
+//! chunk and parent functions (`guts`), so that the chaining values of the 1 MiB pieces of
 //! an input, merged by `pieceRoot`, are the input's BLAKE3 hash.
 //!
 //! An oracle is evidence, not authority: a disagreement fails the case and
@@ -12,7 +12,6 @@
 
 use std::collections::BTreeMap;
 
-use blake3::hazmat::HasherExt;
 use lexlean::calculus::rust::package::Passing;
 use lexlean::calculus::rust::{self, Profile};
 use lexlean::calculus::{self as target, interp, Value};
@@ -33,9 +32,10 @@ const MODULE: &str = "LexLeanStd.Blake3";
 /// its declaration admits, which are exactly the effects its closure
 /// realizes: `Bytes` and the stack of chaining values allocate, and the
 /// positions and counters are `Nat` arithmetic realized in 64 bits.
-const MEMBERS: [(&str, &[&str]); 4] = [
-    ("blake3", &["allocation", "overflow"]),
+const MEMBERS: [(&str, &[&str]); 5] = [
     ("blake3Hex", &["allocation", "overflow"]),
+    ("blake3Label", &["allocation", "overflow"]),
+    ("blake3", &["allocation", "overflow"]),
     ("pieceChain", &["allocation", "overflow"]),
     ("pieceRoot", &["allocation", "overflow"]),
 ];
@@ -124,6 +124,7 @@ fn outcome(member: &str, value: &[u8; 32]) -> Json {
     match member {
         "blake3" => json(&digest(value)),
         "blake3Hex" => json(&bytes(hex(value).as_bytes())),
+        "blake3Label" => json(&bytes(format!("blake3:{}", hex(value)).as_bytes())),
         other => panic!("`{other}` is not a whole-input member of {MODULE}"),
     }
 }
@@ -135,10 +136,26 @@ fn piece_oracle(piece: &[u8], index: usize, total: usize) -> [u8; 32] {
     if total == 1 {
         return *blake3::hash(piece).as_bytes();
     }
-    blake3::Hasher::new()
-        .set_input_offset(u64::try_from(index * PIECE).expect("an offset"))
-        .update(piece)
-        .finalize_non_root()
+    let first = u64::try_from(index * (PIECE / 1024)).expect("a chunk counter");
+    let chunks: Vec<(u64, &[u8])> = piece
+        .chunks(1024)
+        .enumerate()
+        .map(|(at, chunk)| (first + u64::try_from(at).expect("a chunk counter"), chunk))
+        .collect();
+    *subtree(&chunks).as_bytes()
+}
+
+/// The non-root chaining value of consecutive chunks, merged as the BLAKE3
+/// reference merges them: the left subtree holds the largest power of two of
+/// chunks that is less than their count.
+fn subtree(chunks: &[(u64, &[u8])]) -> blake3::Hash {
+    if let [(counter, chunk)] = chunks {
+        return blake3::guts::ChunkState::new(*counter)
+            .update(chunk)
+            .finalize(false);
+    }
+    let left = 1usize << (usize::BITS - 1 - (chunks.len() - 1).leading_zeros());
+    blake3::guts::parent_cv(&subtree(&chunks[..left]), &subtree(&chunks[left..]), false)
 }
 
 /// The official vectors: the input is the repeating sequence 0, 1, ..., 250
@@ -273,7 +290,9 @@ fn piece_root_runs() -> Vec<Run> {
 /// A member's runs under the evaluator.
 fn evaluator_runs(member: &str) -> Vec<Run> {
     match member {
-        "blake3" | "blake3Hex" => corpus(member, EVALUATOR_RUNS, EVALUATOR_LONGEST, 2_100),
+        "blake3" | "blake3Hex" | "blake3Label" => {
+            corpus(member, EVALUATOR_RUNS, EVALUATOR_LONGEST, 2_100)
+        }
         "pieceChain" => piece_chain_runs(false),
         "pieceRoot" => piece_root_runs(),
         other => panic!("`{other}` is not a member of {MODULE}"),
@@ -283,7 +302,7 @@ fn evaluator_runs(member: &str) -> Vec<Run> {
 /// A member's runs under rustc.
 fn rustc_runs(member: &str) -> Vec<Run> {
     match member {
-        "blake3" | "blake3Hex" => corpus(member, RUSTC_RUNS, usize::MAX, 16_384),
+        "blake3" | "blake3Hex" | "blake3Label" => corpus(member, RUSTC_RUNS, usize::MAX, 16_384),
         "pieceChain" => piece_chain_runs(true),
         "pieceRoot" => piece_root_runs(),
         other => panic!("`{other}` is not a member of {MODULE}"),
@@ -335,7 +354,7 @@ fn run_on_stack() {
             .iter()
             .map(|(member, _)| format!("{MODULE}.{member}"))
             .collect::<Vec<_>>(),
-        "the four members are the module's production roots, in order"
+        "the five members are the module's production roots, in order"
     );
     for (row, (member, effects)) in reported.iter().zip(MEMBERS) {
         let declared: Vec<&str> = row["declared_effects"]
@@ -456,6 +475,7 @@ fn run_on_stack() {
         let package = match *member {
             "blake3" => "stdlib/blake3",
             "blake3Hex" => "stdlib/blake3_hex",
+            "blake3Label" => "stdlib/blake3_label",
             "pieceChain" => "stdlib/piece_chain",
             _ => "stdlib/piece_root",
         };
@@ -517,7 +537,7 @@ fn run_on_stack() {
         1,
         "a planted one-bit error in the quarter-round is detected on the empty input"
     );
-    // Under the pinned Lean, the production export certifies the four
+    // Under the pinned Lean, the production export certifies the five
     // members; their packages are the committed ones and realize the
     // programs the differential ran.
     if !support::lean_backed("SL-16") {

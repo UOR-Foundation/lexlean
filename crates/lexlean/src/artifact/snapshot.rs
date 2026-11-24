@@ -4,21 +4,21 @@
 //! output and never a reference to LexLean's mutable compiler structures.
 
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::ir::core::CoreDeclKind;
 use crate::ir::semantic::SemanticModule;
 use crate::ir::term::Renumber;
 use crate::link::CheckedProject;
 use serde::{Deserialize, Serialize};
 
-/// Stable semantic snapshot envelope (`lexlean/semantic-snapshot/1`).
+/// Stable semantic snapshot envelope (`lexlean/semantic-snapshot/3`).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SemanticSnapshot {
     spec: String,
-    source_id: Sha256Digest,
-    semantic_id: Sha256Digest,
-    compiler_semantics_id: Sha256Digest,
+    source_id: Kappa,
+    semantic_id: Kappa,
+    compiler_semantics_id: Kappa,
     language: String,
     modules: Vec<SnapshotModule>,
     lexicon_closure: serde_json::Value,
@@ -55,7 +55,7 @@ pub struct SnapshotModule {
 #[serde(deny_unknown_fields)]
 pub struct SnapshotSource {
     path: String,
-    sha256: Sha256Digest,
+    kappa: Kappa,
 }
 
 /// One source byte range `[start, end)`.
@@ -93,7 +93,7 @@ pub struct SnapshotDeclaration {
     linked_ir: serde_json::Value,
     /// Language 1.2: the alpha identity of a semantic definition (§17.12).
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    alpha_id: Option<Sha256Digest>,
+    alpha_id: Option<Kappa>,
     /// Language 1.2 (models): what linking elaborated the declaration to,
     /// present for a model declaration and for a declaration whose checked
     /// model applications were elaborated (§17.12).
@@ -110,7 +110,7 @@ pub struct SnapshotElaboration {
     declarations: Vec<serde_json::Value>,
     /// The alpha identity of every elaborated definition, by name, as for a
     /// source definition (§17.12).
-    alpha_ids: std::collections::BTreeMap<String, Sha256Digest>,
+    alpha_ids: std::collections::BTreeMap<String, Kappa>,
     obligations: Vec<serde_json::Value>,
     cross_checks: Vec<serde_json::Value>,
     required_checks: Vec<String>,
@@ -129,7 +129,7 @@ impl SnapshotElaboration {
 
     /// The alpha identity of each elaborated definition, by name.
     #[must_use]
-    pub const fn alpha_ids(&self) -> &std::collections::BTreeMap<String, Sha256Digest> {
+    pub const fn alpha_ids(&self) -> &std::collections::BTreeMap<String, Kappa> {
         &self.alpha_ids
     }
 
@@ -168,13 +168,13 @@ pub struct SnapshotAxiomPolicy {
 
 /// The snapshot envelope a project language selects (§17.12). Languages 1.0
 /// and 1.1 keep the historical envelope byte for byte; language 1.2 carries
-/// `lexlean/semantic-module/2` values and so has its own closed schema.
+/// `lexlean/semantic-module/3` values and so has its own closed schema.
 #[must_use]
 pub fn snapshot_spec(language: &str) -> &'static str {
     if language == crate::LANGUAGE_1_2 {
-        "lexlean/semantic-snapshot/2"
+        "lexlean/semantic-snapshot/4"
     } else {
-        "lexlean/semantic-snapshot/1"
+        "lexlean/semantic-snapshot/3"
     }
 }
 
@@ -225,7 +225,7 @@ impl SemanticSnapshot {
     pub(crate) fn from_checked(
         checked: &CheckedProject,
         language: &str,
-        compiler_semantics_id: Sha256Digest,
+        compiler_semantics_id: Kappa,
     ) -> Self {
         crate::on_stack(crate::config::MAX_COMPILE_STACK_BYTES, || {
             Self::from_checked_inline(checked, language, compiler_semantics_id)
@@ -235,7 +235,7 @@ impl SemanticSnapshot {
     fn from_checked_inline(
         checked: &CheckedProject,
         language: &str,
-        compiler_semantics_id: Sha256Digest,
+        compiler_semantics_id: Kappa,
     ) -> Self {
         let mut modules = Vec::with_capacity(checked.modules.len());
         for (name, module) in &checked.modules {
@@ -369,7 +369,7 @@ impl SemanticSnapshot {
                 visible_packages: module.visible.iter().cloned().collect(),
                 source: SnapshotSource {
                     path: module.document.source_path.clone(),
-                    sha256: module.document.source_sha256,
+                    kappa: module.document.source_kappa,
                 },
                 declarations,
                 core: module
@@ -397,7 +397,7 @@ impl SemanticSnapshot {
     /// Every definition's language-1.2 alpha identity as
     /// `(module, declaration, alpha ID)`, in module and declaration order.
     #[must_use]
-    pub fn alpha_ids(&self) -> Vec<(String, String, Sha256Digest)> {
+    pub fn alpha_ids(&self) -> Vec<(String, String, Kappa)> {
         self.modules
             .iter()
             .flat_map(|module| {
@@ -418,19 +418,19 @@ impl SemanticSnapshot {
 
     /// Source identity.
     #[must_use]
-    pub const fn source_id(&self) -> Sha256Digest {
+    pub const fn source_id(&self) -> Kappa {
         self.source_id
     }
 
     /// Semantic identity.
     #[must_use]
-    pub const fn semantic_id(&self) -> Sha256Digest {
+    pub const fn semantic_id(&self) -> Kappa {
         self.semantic_id
     }
 
     /// Compiler-semantics identity.
     #[must_use]
-    pub const fn compiler_semantics_id(&self) -> Sha256Digest {
+    pub const fn compiler_semantics_id(&self) -> Kappa {
         self.compiler_semantics_id
     }
 
@@ -477,10 +477,10 @@ impl SemanticSnapshot {
         })
     }
 
-    /// SHA-256 of [`Self::canonical_bytes`].
+    /// κ-label of [`Self::canonical_bytes`].
     #[must_use]
-    pub fn snapshot_id(&self) -> Sha256Digest {
-        Sha256Digest::of(&self.canonical_bytes())
+    pub fn snapshot_id(&self) -> Kappa {
+        Kappa::of(&self.canonical_bytes())
     }
 }
 
@@ -601,8 +601,8 @@ impl SnapshotSource {
 
     /// Hash of the normalized source bytes.
     #[must_use]
-    pub const fn sha256(&self) -> Sha256Digest {
-        self.sha256
+    pub const fn kappa(&self) -> Kappa {
+        self.kappa
     }
 }
 
@@ -629,9 +629,9 @@ mod tests {
         for _ in 0..depth {
             linked_ir = serde_json::Value::Array(vec![linked_ir]);
         }
-        let digest = Sha256Digest::of(b"snapshot fixture");
+        let digest = Kappa::of(b"snapshot fixture");
         SemanticSnapshot {
-            spec: "lexlean/semantic-snapshot/2".into(),
+            spec: "lexlean/semantic-snapshot/4".into(),
             source_id: digest,
             semantic_id: digest,
             compiler_semantics_id: digest,
@@ -645,7 +645,7 @@ mod tests {
                 visible_packages: vec![],
                 source: SnapshotSource {
                     path: "src/Main.lex.tex".into(),
-                    sha256: digest,
+                    kappa: digest,
                 },
                 declarations: vec![],
                 core: None,
@@ -666,7 +666,7 @@ mod tests {
         reader.end().expect("complete snapshot");
         assert_eq!(restored, snapshot);
         assert_eq!(restored.canonical_bytes(), bytes);
-        assert_eq!(snapshot.snapshot_id(), Sha256Digest::of(&bytes));
+        assert_eq!(snapshot.snapshot_id(), Kappa::of(&bytes));
     }
 
     #[test]

@@ -22,7 +22,7 @@ use std::sync::OnceLock;
 use serde::{Deserialize, Serialize};
 
 use super::ModuleReport;
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::ir::tooling::{InvokeArgument, ToolDeclaration, ToolTerm, ToolType, ToolingModule};
 
 /// The embedded tooling project that is the adapter, hashed into the
@@ -872,10 +872,10 @@ impl CompilerInput {
         })
     }
 
-    /// The content identity: the SHA-256 of the canonical bytes.
+    /// The content identity: the κ-label of the canonical bytes.
     #[must_use]
-    pub fn id(&self) -> Sha256Digest {
-        Sha256Digest::of(&self.to_file_bytes())
+    pub fn id(&self) -> Kappa {
+        Kappa::of(&self.to_file_bytes())
     }
 }
 

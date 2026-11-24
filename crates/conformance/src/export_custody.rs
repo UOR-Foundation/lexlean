@@ -18,7 +18,6 @@ use std::time::{Duration, Instant};
 use camino::{Utf8Path, Utf8PathBuf};
 use lexlean::api::production::{self, ProductionOutput, ProductionResult};
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 
 use crate::production_export::{self as harness, Exported, BOOTSTRAP};
 use crate::support::{self, P};
@@ -85,7 +84,7 @@ pub struct Custody {
     /// The project-relative bundle directory of the export.
     pub bundle_path: String,
     /// [`bundle_digest`] of the bundle.
-    pub bundle_sha256: String,
+    pub bundle_kappa: String,
     /// The number of files in the bundle.
     pub bundle_files: u64,
 }
@@ -111,11 +110,8 @@ pub struct Identity {
     pub executables: BTreeMap<String, String>,
 }
 
-fn sha256_hex(bytes: &[u8]) -> String {
-    Sha256::digest(bytes)
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect()
+fn kappa_label(bytes: &[u8]) -> String {
+    crate::support::oracle_kappa(bytes).label()
 }
 
 fn run(root: &Utf8Path, program: &str, arguments: &[&str]) -> Result<String, String> {
@@ -175,7 +171,7 @@ pub fn identity(root: &Utf8Path) -> Result<Identity, String> {
     for name in PINS {
         let bytes = std::fs::read(root.join(name).as_std_path())
             .map_err(|error| format!("{name}: {error}"))?;
-        pins.insert(name.to_owned(), sha256_hex(&bytes));
+        pins.insert(name.to_owned(), kappa_label(&bytes));
     }
     let toolchains = BTreeMap::from([
         ("lean".to_owned(), run(root, "lean", &["--version"])?),
@@ -188,11 +184,11 @@ pub fn identity(root: &Utf8Path) -> Result<Identity, String> {
     for name in LEAN_EXECUTABLES {
         let bytes = std::fs::read(bin.join(name).as_std_path())
             .map_err(|error| format!("{bin}/{name}: {error}"))?;
-        executables.insert(name.to_owned(), sha256_hex(&bytes));
+        executables.insert(name.to_owned(), kappa_label(&bytes));
     }
     executables.insert(
         "rustc".to_owned(),
-        lexlean::build_identity::RUSTC_SHA256.to_owned(),
+        lexlean::build_identity::RUSTC_KAPPA.to_owned(),
     );
     Ok(Identity {
         repository,
@@ -207,19 +203,19 @@ pub fn identity(root: &Utf8Path) -> Result<Identity, String> {
 }
 
 /// The digest of a bundle directory: the SHA-256 of one line
-/// `<sha256 of the file>  <relative path>` per file, in path order, and the
+/// `<kappa of the file>  <relative path>` per file, in path order, and the
 /// number of files.
 #[must_use]
 pub fn bundle_digest(bundle: &Utf8Path) -> (String, u64) {
     let files = harness::tree(bundle);
     let mut listing = String::new();
     for (relative, bytes) in &files {
-        listing.push_str(&sha256_hex(bytes));
+        listing.push_str(&kappa_label(bytes));
         listing.push_str("  ");
         listing.push_str(relative);
         listing.push('\n');
     }
-    (sha256_hex(listing.as_bytes()), files.len() as u64)
+    (kappa_label(listing.as_bytes()), files.len() as u64)
 }
 
 /// Whether `custody` names the run and checkout `current` is in and the
@@ -295,9 +291,9 @@ pub fn check(custody: &Custody, current: &Identity, bundle: &(String, u64)) -> R
     );
     same(
         "bundle",
-        &(&custody.bundle_sha256, custody.bundle_files),
+        &(&custody.bundle_kappa, custody.bundle_files),
         &(&bundle.0, bundle.1),
-        custody.bundle_sha256 == bundle.0 && custody.bundle_files == bundle.1,
+        custody.bundle_kappa == bundle.0 && custody.bundle_files == bundle.1,
     );
     let path = Utf8Path::new(&custody.bundle_path);
     same(
@@ -353,7 +349,7 @@ pub fn publish(output: &Utf8Path) -> Result<(Custody, Exported), String> {
     }
     let bundle = output.join(BUNDLE_DIR);
     copy_files(&exported.bundle(), &bundle)?;
-    let (bundle_sha256, bundle_files) = bundle_digest(&bundle);
+    let (bundle_kappa, bundle_files) = bundle_digest(&bundle);
     let custody = Custody {
         spec: SPEC.to_owned(),
         repository: before.repository,
@@ -365,7 +361,7 @@ pub fn publish(output: &Utf8Path) -> Result<(Custody, Exported), String> {
         toolchains: before.toolchains,
         executables: before.executables,
         bundle_path: exported.output.bundle.to_string(),
-        bundle_sha256,
+        bundle_kappa,
         bundle_files,
     };
     std::fs::write(
@@ -432,12 +428,12 @@ pub fn take(directory: &Utf8Path) -> Result<Exported, String> {
         ));
     }
     eprintln!(
-        "bootstrap export: taken from run {} attempt {} after {:?} (commit {}, bundle sha256 {}, {} files), replayed",
+        "bootstrap export: taken from run {} attempt {} after {:?} (commit {}, bundle kappa {}, {} files), replayed",
         custody.run_id,
         custody.run_attempt,
         started.elapsed(),
         custody.commit,
-        custody.bundle_sha256,
+        custody.bundle_kappa,
         custody.bundle_files
     );
     Ok(Exported {

@@ -55,3 +55,7 @@ writers it uses, and the standard library's `Numeral`, `Order`, and `Sha256`, an
 canonical project manifest of SPEC.md §10.1 and its digest.
 `src/ManifestText.lex.tex` (SPEC.md §17.23, `BS-34`) imports the standard library's `Json`,
 `Numeral`, `Order`, and `Text`, and writes the build manifest of SPEC.md §21.6.
+
+`src/KernelTerms.lex.tex` (SPEC.md §17.23, §18.10, `BS-35` to `BS-38`) imports nothing: it states
+kernel-term production's producers over a kernel-term datatype of its own, proves their binding,
+totality, and refusal, and exports the three checks the stage-0 producer decides by.

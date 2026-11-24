@@ -111,15 +111,14 @@ fn scripts(lean: &str, start: usize, end: usize) -> Option<Vec<Script>> {
             .filter(|name| !name.is_empty())
             .map(str::to_owned)
             .collect();
-        // Walk back to the script's `intros` line.
+        // Walk back to the script's `intros` line, whose indentation is the
+        // script's pad: the `simp only` lines sit deeper, under `first`.
         let mut line_start = lean[..list].rfind('\n').map_or(0, |index| index + 1);
-        let pad: String = lean[line_start..]
-            .chars()
-            .take_while(|c| *c == ' ')
-            .collect();
-        loop {
-            if lean[line_start..].starts_with(&format!("{pad}intros\n")) {
-                break;
+        let pad = loop {
+            let line = &lean[line_start..];
+            let indent = line.len() - line.trim_start_matches(' ').len();
+            if line[indent..].starts_with("intros\n") {
+                break line[..indent].to_owned();
             }
             if line_start == 0 {
                 return None;
@@ -130,7 +129,7 @@ fn scripts(lean: &str, start: usize, end: usize) -> Option<Vec<Script>> {
             if line_start < start {
                 return None;
             }
-        }
+        };
         let rendered = crate::backend::semantic::linear_arithmetic(&pad, &names);
         if !lean[line_start..].starts_with(&rendered) || line_start + rendered.len() > end {
             return None;

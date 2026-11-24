@@ -11,9 +11,12 @@ use camino::Utf8PathBuf;
 
 mod audit;
 mod bump;
+mod census;
 mod ci;
 mod codegen;
 mod counts;
+mod kernel_terms;
+mod lean_wasm;
 mod release_manifest;
 mod spec_links;
 
@@ -41,6 +44,15 @@ fn main() -> ExitCode {
         "export-bootstrap" => export_bootstrap(&std::env::args().skip(2).collect::<Vec<_>>()),
         "check-package" => check_package(&root),
         "counts" => counts::counts(&root, write),
+        "kernel-terms" => kernel_terms::kernel_terms(&std::env::args().skip(2).collect::<Vec<_>>()),
+        "proof-census" => census::census(
+            &root,
+            write,
+            &std::env::args()
+                .skip(2)
+                .filter(|argument| argument != "--write")
+                .collect::<Vec<_>>(),
+        ),
         "check-test-inventory" => ci::check_test_inventory(&root),
         "bdd" => ci::bdd(&root),
         "ci-summary" => ci::ci_summary(&root, &std::env::args().skip(2).collect::<Vec<_>>()),
@@ -48,6 +60,9 @@ fn main() -> ExitCode {
         "ci-shards" => ci::ci_shards(&root),
         "release-artifacts" => release_artifacts(&root),
         "release-check" => release_check(&root),
+        "runtime-package" => {
+            lean_wasm::runtime_package(&root, &std::env::args().skip(2).collect::<Vec<_>>())
+        }
         "bump-version" => bump::bump_version(&root, &std::env::args().skip(2).collect::<Vec<_>>()),
         "validate" => codegen::check_model(&root, false).and_then(|()| spec_links::validate(&root)),
         _ => {
@@ -66,6 +81,10 @@ fn main() -> ExitCode {
                                          their generator\n\
                  counts                  §17.23: write the counts a bootstrap case reported under\n\
                                          LEXLEAN_COUNTS=fast|report into its constants and statements\n\
+                 kernel-terms            §18.10: stage a project's Lean for export, or produce kernel
+                                         terms over a library export (docs/kernel-terms/run.sh)
+                 proof-census            §18.10: count each semantic proof form over every project's
+                                         linked IR and compare with docs/kernel-terms/census.json
                  check-production-export §24.7: the consumer's exported packages equal the committed\n\
                                          packages under tests/production-export\n\
                  check-freshness         §9.4: every committed build oracle's recorded inputs, every lock,
@@ -85,6 +104,8 @@ fn main() -> ExitCode {
                                          runs every process once in import order\n\
                  release-artifacts       §30.3: derive the release/ artifact set from the repository\n\
                  release-check           RP-12: refuse release until §30.3/§30.4 are fully satisfied\n\
+                 runtime-package         §30.3: write the runtime modules as a Lake package\n\
+                                         (--output DIR), for the release's .olean files\n\
                  bump-version X.Y.Z      §2.3, §9.4: move every site of the workspace version and the\n\
                                          lock's workspace rows to X.Y.Z (a release cut, `cut.yml`)\n\
                  validate                validate-model then validate-spec-links\n\
@@ -180,8 +201,8 @@ fn export_bootstrap(arguments: &[String]) -> Result<(), Fail> {
         serde_json::json!(u64::try_from(clock.elapsed().as_millis()).unwrap_or(u64::MAX)),
     );
     println!(
-        "export-bootstrap: the bootstrap project exported once for run {} attempt {} (commit {}); its packages equal the committed packages (§24.7); bundle sha256 {} ({} files) in {output}",
-        custody.run_id, custody.run_attempt, custody.commit, custody.bundle_sha256, custody.bundle_files
+        "export-bootstrap: the bootstrap project exported once for run {} attempt {} (commit {}); its packages equal the committed packages (§24.7); bundle κ-label {} ({} files) in {output}",
+        custody.run_id, custody.run_attempt, custody.commit, custody.bundle_kappa, custody.bundle_files
     );
     println!(
         "verify-examples: {name} took {} s",
@@ -192,7 +213,7 @@ fn export_bootstrap(arguments: &[String]) -> Result<(), Fail> {
         &dir,
         name,
         exported.verified_root().as_std_path(),
-        &exported.output.result.verification.attestation_id.to_hex(),
+        &exported.output.result.verification.attestation_id.label(),
         false,
     )
 }
@@ -384,7 +405,7 @@ fn verify_examples(root: &Path, write: bool) -> Result<(), Fail> {
             &dir,
             &name,
             verified.root.as_std_path(),
-            &verified.attestation_id.to_hex(),
+            &verified.attestation_id.label(),
             write,
         )?;
     }
@@ -496,7 +517,7 @@ fn example_after_verify(
     }
     println!(
         "verify-examples: {name} verified-digest {}",
-        ci::tree_digest(verified)?
+        ci::tree_kappa(verified)?
     );
     let records = normalized_verify_records(verified)?;
     let expected_root = dir.join("expected").join("verify");
@@ -746,10 +767,10 @@ fn normalized_verify_records(verified: &Path) -> Result<Vec<(String, Vec<u8>)>, 
 /// is the point of the record (§22.3).
 fn normalize_process_record(mut value: serde_json::Value) -> serde_json::Value {
     if let Some(object) = value.as_object_mut() {
-        if object.contains_key("executable_sha256") {
+        if object.contains_key("executable_kappa") {
             object.insert(
-                "executable_sha256".to_owned(),
-                serde_json::Value::String("$EXECUTABLE_SHA256".to_owned()),
+                "executable_kappa".to_owned(),
+                serde_json::Value::String("$EXECUTABLE_KAPPA".to_owned()),
             );
         }
         if let Some(serde_json::Value::Array(argv)) = object.get_mut("argv") {
@@ -842,7 +863,7 @@ fn published_build(
     let published = staged
         .join(&project.config.build_root)
         .join("build")
-        .join(build_id.to_hex());
+        .join(build_id.hex());
     if !published.is_dir() {
         return Err(format!(
             "AR-09: the build published nothing at {}",
@@ -1224,11 +1245,10 @@ fn release_artifacts(root: &Path) -> Result<(), Fail> {
     // The exact captured archive supplies both identities. Cargo's mutable
     // unpacked verification directory is never release authority.
     release_manifest::write_asset(&release, "MANIFEST.sha256", manifest_content.as_bytes())?;
-    let manifest_sha256 =
-        lexlean::artifact::content_id::Sha256Digest::of(manifest_content.as_bytes()).to_hex();
+    let manifest_sha256 = release_manifest::sha256_hex(manifest_content.as_bytes());
 
     // Immutable release identity provenance package for downstream consumers.
-    let crate_sha256 = lexlean::artifact::content_id::Sha256Digest::of(&crate_bytes).to_hex();
+    let crate_sha256 = release_manifest::sha256_hex(&crate_bytes);
     let release_identity = serde_json::json!({
         "spec": "lexlean/release-identity/1",
         "package": "lexlean",
@@ -1364,7 +1384,7 @@ fn check_package(root: &Path) -> Result<(), Fail> {
         .join(format!("lexlean-{version}.crate"));
     if crate_path.is_file() {
         let bytes = std::fs::read(&crate_path)?;
-        let digest = lexlean::artifact::content_id::Sha256Digest::of(&bytes).to_hex();
+        let digest = release_manifest::sha256_hex(&bytes);
         println!("check-package: lexlean-{version}.crate SHA-256 = {digest}");
     }
     Ok(())
@@ -1409,18 +1429,18 @@ mod tests {
     fn toolchain_argv_keeps_the_relative_path() {
         let record = serde_json::json!({
             "argv": ["env", "/home/someone/.elan/toolchains/x/bin/leanchecker", "M"],
-            "executable_sha256": "00",
+            "executable_kappa": "00",
         });
         let normalized = normalize_process_record(serde_json::json!({
             "argv": ["env", "$TOOLCHAIN/bin/leanchecker", "M"],
-            "executable_sha256": "00",
+            "executable_kappa": "00",
         }));
         assert_eq!(
             normalized["argv"],
             serde_json::json!(["env", "$TOOLCHAIN/bin/leanchecker", "M"]),
             "which binary ran survives normalization"
         );
-        assert_eq!(normalized["executable_sha256"], "$EXECUTABLE_SHA256");
+        assert_eq!(normalized["executable_kappa"], "$EXECUTABLE_KAPPA");
         // A token the verification normalizer did not rewrite is left
         // exactly as recorded; nothing here invents a placeholder.
         let untouched = normalize_process_record(record);

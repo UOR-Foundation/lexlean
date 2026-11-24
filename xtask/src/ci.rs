@@ -221,10 +221,10 @@ pub fn check_test_inventory(root: &Path) -> Result<(), Fail> {
     Ok(())
 }
 
-/// The digest of a directory: the SHA-256 of every relative path and the
+/// The digest of a directory: the κ-label of every relative path and the
 /// bytes of every file under it, in path order. Two directories with the same
 /// digest are byte for byte the same tree.
-pub fn tree_digest(directory: &Path) -> Result<String, Fail> {
+pub fn tree_kappa(directory: &Path) -> Result<String, Fail> {
     let mut files: Vec<(String, PathBuf)> = Vec::new();
     for entry in walkdir::WalkDir::new(directory) {
         let entry = entry?;
@@ -245,10 +245,10 @@ pub fn tree_digest(directory: &Path) -> Result<String, Fail> {
         rows.push_str(&format!(
             "{relative}\0{}\0{}\n",
             bytes.len(),
-            lexlean::Sha256Digest::of(&bytes).to_hex()
+            lexlean::Kappa::of(&bytes).label()
         ));
     }
-    Ok(lexlean::Sha256Digest::of(rows.as_bytes()).to_hex())
+    Ok(lexlean::Kappa::of(rows.as_bytes()).label())
 }
 
 fn option(arguments: &[String], name: &str) -> Option<String> {

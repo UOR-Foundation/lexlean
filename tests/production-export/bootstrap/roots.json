@@ -65,8 +65,8 @@
       "version": "1.0.0"
     },
     {
-      "name": "config_sha256",
-      "root": "LexLeanBoot.ProjectText.configSha256",
+      "name": "config_kappa",
+      "root": "LexLeanBoot.ProjectText.configKappa",
       "targets": [
         "rust-std"
       ],
@@ -491,6 +491,30 @@
     {
       "name": "build_manifest",
       "root": "LexLeanBoot.ManifestText.buildManifest",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "name": "check_from",
+      "root": "LexLeanBoot.KernelTerms.checkFrom",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "name": "member_check",
+      "root": "LexLeanBoot.KernelTerms.memberCheck",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "name": "law_check",
+      "root": "LexLeanBoot.KernelTerms.lawCheck",
       "targets": [
         "rust-std"
       ],
