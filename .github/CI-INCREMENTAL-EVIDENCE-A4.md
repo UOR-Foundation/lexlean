@@ -77,3 +77,11 @@ value supplied in JSON does not authenticate its publisher**.
    without claiming that 61 already-green jobs are automatically reusable.
 
 **Do not promote this code into normative ci.yml or release-gate.sh.**
+
+## Committed input inventory prototype
+
+`ci_input_closure.py` enumerates exact committed Git trees, including modes and object IDs; expands declared input roots; propagates dependency closure; and fingerprints sorted inputs using algorithm-prefixed SHA-256. Unowned changes force all candidates to rerun. Relevant symlinks/submodules refuse reuse. A known affected input invalidates its dependent units. This is language-independent, but does not prove that the declared roots and graph capture every runtime input. No production authority is granted. Local unit tests include real Git and fail-closed controls; hosted integration remains pending.
+
+## Phase B raw provider observation
+
+`metrics/ci-v05-targeted-retry-provider-snapshot-20261124.json` preserves exact attempt-specific run/job records for the release/v0.5 recovery, including runner identity, timestamps, old/fresh execution counts, and independent reproducibility. If captured while the retry is active, it is an incomplete observation, not terminal qualification. No billed usage is inferred. Preserve Phase A/B/C attribution; do not introduce Rust-specific tuning before DOD-6's generic comparison is frozen.
