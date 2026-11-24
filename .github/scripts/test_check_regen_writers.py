@@ -210,8 +210,12 @@ class WriterCollisionTests(unittest.TestCase):
             "git diff --cached --no-renames --name-only -z",
         )):
             raise ValueError("both capture commands must expose rename source paths")
-        if ("continue-on-error:" in guard or "\n        if:" in guard or
-                'run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts"' not in guard):
+        expected_guard = (
+            "name: Reject overlapping or unaccounted writer paths\n"
+            "        shell: bash\n"
+            '        run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts"'
+        )
+        if guard != expected_guard:
             raise ValueError("writer guard must execute unconditionally and fail closed")
         if steps.index(guard) >= steps.index(apply):
             raise ValueError("writer guard must precede patch application")
@@ -239,6 +243,11 @@ class WriterCollisionTests(unittest.TestCase):
         for old, new, reason in (
             (name, name + "\n        continue-on-error: true", "fail closed"),
             (name, name + "\n        if: false", "fail closed"),
+            ('run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts"',
+             'run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts" || true', "fail closed"),
+            ('run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts"',
+             'run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts"; exit 0', "fail closed"),
+            (name + "\n        shell: bash", name + "\n        shell: bash {0}", "fail closed"),
             ("git diff --cached --no-renames --binary", "git diff --cached --binary", "rename source"),
             ("git diff --cached --no-renames --name-only -z", "git diff --cached --name-only -z", "rename source"),
         ):

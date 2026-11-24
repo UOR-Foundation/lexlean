@@ -41,6 +41,29 @@ Outside `vv`:
 
 ## Falsifiability records
 
+### Regression shell execution is not command presence (RP-14, #609/#607)
+
+Independent offline review of the combined tree `96f35dce` found a
+rustfmt mismatch, a writer guard accepting a trailing `|| true`, and an
+honesty step accepting an early `exit 0`. The same review reported the
+build, writer/custody/tag/host-lane tests, three evaluator-budget tests,
+RP-14 and R4/R5 passing on that earlier tree; it is not acceptance of
+this changed tree.
+
+Pin the writer step to its exact single command and explicit Bash shell.
+Pin the small honesty step to its complete ordered five-test shell
+program, explicit Bash and `set -euo pipefail`. Refuse omission of any
+of the five tests, step conditions, ignored errors, early success,
+disabled errexit, appended success masking and shell overrides. The
+structural assertions are intentionally narrow; they are not general
+YAML or shell semantic analysis. An offline JavaScript equivalent of
+the two source guards passed against the actual edited workflow texts
+and refused 11 honesty and 5 writer-step mutations. Full Python
+workflow tests, actual RP-14, rustfmt, build and Clippy on the new
+commit remain to be run before promotion. No hosted gate was started
+for these edits.
+
+
 ### Delayed successful CI is not release qualification (RP-14)
 
 The tag workflow waits for a push run only when the initial exact-tree
