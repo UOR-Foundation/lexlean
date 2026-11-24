@@ -963,9 +963,7 @@ impl Render<'_> {
                 Spelling::Array(name) if self.document => {
                     (format!("LexLeanArrays.{name}"), self.ty(result))
                 }
-                Spelling::Array(name) => {
-                    (format!("_root_.LexLeanArrays.{name}"), self.ty(result))
-                }
+                Spelling::Array(name) => (format!("_root_.LexLeanArrays.{name}"), self.ty(result)),
             }
         };
         let mut out = format!("({head}");
