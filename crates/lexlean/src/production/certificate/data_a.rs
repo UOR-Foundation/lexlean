@@ -690,7 +690,7 @@ fn runtime_axioms(name: &str) -> Vec<String> {
     };
     let some = |axioms: &[&str]| axioms.iter().map(|axiom| (*axiom).to_owned()).collect();
     match name {
-        "compareBytes" | "join" => some(&["propext"]),
+        "compareBytes" | "instDecimalFormatInt" | "join" => some(&["propext"]),
         "instDecimalInt"
         | "instDecimalOfFixedOfToString"
         | "instLengthableString"

@@ -18,6 +18,13 @@ and Unreleased holds what has landed since.
 
 ## Unreleased
 
+- Decimal formatting at a fixed width uses no axiom (`SM-43`, SPEC.md §17.12). In the pinned
+  Lean, `ToString` at `Int8`..`Int64` goes through `Int.repr`, whose `"-" ++` depends on
+  `propext`. `LexLeanRuntime.formatDecimal` now takes the runtime class `DecimalFormat`: at
+  `Int` and the unsigned widths its instance is `ToString`, and at the signed widths it is
+  `intDecimal` of the value's `Int`, which writes the `-` with `String.ofList`. Each output
+  is the same bytes. Parsing keeps its `Decimal` evidence. The language-1.2 compiler-semantics
+  ID changes.
 - `just relock-identity` writes what a moved compiler-semantics ID moves: it writes the Rust
   backend records of `language/semantics-1.2.toml` (`cargo xtask semantics-records --write`,
   new), builds the compiler, keeps each relocked `lexlean.lock` whose only change is its `compiler_semantics`
