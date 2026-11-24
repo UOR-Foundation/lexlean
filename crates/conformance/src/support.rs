@@ -13,6 +13,34 @@ use lexlean::{
     BuildRequest, CheckRequest, Engine, FormatRequest, LockRequest, Selection, VerifyRequest,
 };
 
+/// The κ-label of a BLAKE3 digest: `blake3:` and its 64 lowercase hex digits.
+///
+/// # Panics
+///
+/// Never: the label is well formed by construction.
+#[must_use]
+pub fn kappa_of_digest(digest: &[u8; 32]) -> lexlean::Kappa {
+    use std::fmt::Write as _;
+    let mut label = String::from("blake3:");
+    for byte in digest {
+        write!(label, "{byte:02x}").expect("writing to a string");
+    }
+    lexlean::Kappa::parse(&label).expect("a well-formed κ-label")
+}
+
+/// The κ-label of `bytes` by the reference BLAKE3, the oracle that may
+/// falsify the compiler's certified package and never establishes it.
+#[must_use]
+pub fn oracle_kappa(bytes: &[u8]) -> lexlean::Kappa {
+    kappa_of_digest(blake3::hash(bytes).as_bytes())
+}
+
+/// The κ-label of a reference BLAKE3 hasher's input so far.
+#[must_use]
+pub fn oracle_finish(hasher: &blake3::Hasher) -> lexlean::Kappa {
+    kappa_of_digest(hasher.finalize().as_bytes())
+}
+
 /// The repository root.
 #[must_use]
 pub fn repo_root() -> Utf8PathBuf {
@@ -204,6 +232,7 @@ fn ty(value: &SnapshotType) -> usize {
         SnapshotType::Function { parameters, result } => parameters.iter().map(ty).sum::<usize>() + ty(result),
         SnapshotType::Map { key, value } => ty(key) + ty(value),
         SnapshotType::Set { element } => ty(element),
+        SnapshotType::Array { element } => ty(element),
     }
 }
 
@@ -943,8 +972,8 @@ impl P {
 
     /// The published build directory for a build ID.
     #[must_use]
-    pub fn build_dir(&self, build_id: &lexlean::artifact::content_id::Sha256Digest) -> Utf8PathBuf {
-        self.root.join(".lexlean/build").join(build_id.to_hex())
+    pub fn build_dir(&self, build_id: &lexlean::artifact::content_id::Kappa) -> Utf8PathBuf {
+        self.root.join(".lexlean/build").join(build_id.hex())
     }
 
     /// Append a path lexicon source to the configuration (before `[limits]`).
@@ -1126,7 +1155,7 @@ pub fn verified() -> &'static VerifiedFixture {
             .verify(VerifyRequest {
                 selection: Selection::Entrypoints,
             })
-            .expect("the literal example verifies (EX-01); is leanprover/lean4:v4.32.1 installed?");
+            .expect("the literal example verifies (EX-01); is leanprover/lean4:v4.32.2 installed?");
         let attestation: serde_json::Value = serde_json::from_slice(
             &std::fs::read(outcome.root.join("attestation.json").as_std_path())
                 .expect("attestation exists"),
@@ -2251,7 +2280,7 @@ pub fn verified_corpus() -> &'static VerifiedFixture {
                 selection: Selection::Entrypoints,
             })
             .unwrap_or_else(|error| {
-                panic!("the proof corpus verifies under pinned Lean 4.32.1: {error:#?}")
+                panic!("the proof corpus verifies under pinned Lean 4.32.2: {error:#?}")
             });
         let attestation: serde_json::Value = serde_json::from_slice(
             &std::fs::read(outcome.root.join("attestation.json").as_std_path())
@@ -2279,7 +2308,7 @@ pub fn verified_compiler() -> &'static VerifiedFixture {
                 selection: Selection::Entrypoints,
             })
             .unwrap_or_else(|error| {
-                panic!("the compiler project verifies under pinned Lean 4.32.1: {error:#?}")
+                panic!("the compiler project verifies under pinned Lean 4.32.2: {error:#?}")
             });
         let attestation: serde_json::Value = serde_json::from_slice(
             &std::fs::read(outcome.root.join("attestation.json").as_std_path())
@@ -2552,7 +2581,7 @@ pub fn declares(text: &str, name: &str) -> bool {
 /// compiler-semantics ID (§21.2): a module written in the authoring notation
 /// contributes its data form. The rows are `(path, bytes)` in path order.
 #[must_use]
-pub fn identity_tree_digest(rows: &[(&str, &[u8])]) -> lexlean::artifact::content_id::Sha256Digest {
+pub fn identity_tree_digest(rows: &[(&str, &[u8])]) -> lexlean::artifact::content_id::Kappa {
     let normalized: Vec<(&str, std::borrow::Cow<'_, [u8]>)> = rows
         .iter()
         .map(|(path, bytes)| (*path, lexlean::identity_bytes(path, bytes)))
@@ -2561,7 +2590,7 @@ pub fn identity_tree_digest(rows: &[(&str, &[u8])]) -> lexlean::artifact::conten
         .iter()
         .map(|(path, bytes)| (*path, bytes.as_ref()))
         .collect();
-    lexlean::artifact::content_id::tree_digest(&borrowed)
+    lexlean::artifact::content_id::tree_kappa(&borrowed)
 }
 
 /// The normative tree the compiler-semantics ID is the digest of, read from
@@ -2658,9 +2687,9 @@ pub fn introduced_later() -> (Vec<String>, Vec<String>) {
 pub fn semantics_ids(
     rows: &[(&str, &[u8])],
 ) -> (
-    lexlean::artifact::content_id::Sha256Digest,
-    lexlean::artifact::content_id::Sha256Digest,
-    lexlean::artifact::content_id::Sha256Digest,
+    lexlean::artifact::content_id::Kappa,
+    lexlean::artifact::content_id::Kappa,
+    lexlean::artifact::content_id::Kappa,
 ) {
     let (only_1_2, only_1_1) = introduced_later();
     let excluded = |path: &str, lists: &[&Vec<String>]| {
@@ -2807,7 +2836,7 @@ pub fn probe_lean(
             },
         );
     }
-    let hex32: String = checked.semantic_id.to_hex()[..32].to_owned();
+    let hex32: String = checked.semantic_id.hex()[..32].to_owned();
     let probe = lexlean::backend::lean::probe_module(&hex32, &externals, &checked.closure)
         .expect("probe renders");
     let _guard = env_shared();
@@ -2830,7 +2859,7 @@ pub fn probe_lean(
             tool: "lean",
             module: Some(probe.name.clone()),
             program: &toolchain.lake.path,
-            executable_sha256: toolchain.lean.sha256,
+            executable_kappa: toolchain.lean.kappa,
             argv: vec!["env".to_owned(), "lean".to_owned(), source.to_string()],
             cwd: &project.root,
             extra_env: vec![("LEAN_PATH".to_owned(), scratch.to_string())],
@@ -2906,7 +2935,7 @@ pub fn lean_backed(id: &str) -> bool {
     }
     assert!(
         !normative_host(),
-        "{id}: the normative host (Linux x86-64) must have leanprover/lean4:v4.32.1 installed; a Lean-backed case never passes vacuously here (§8.3)"
+        "{id}: the normative host (Linux x86-64) must have leanprover/lean4:v4.32.2 installed; a Lean-backed case never passes vacuously here (§8.3)"
     );
     eprintln!(
         "{id}: platform-bound host without the pinned toolchain; only the platform-independent assertions ran (§8.3)"
@@ -3811,7 +3840,7 @@ pub fn verified_frames() -> &'static VerifiedFixture {
                 selection: Selection::Entrypoints,
             })
             .unwrap_or_else(|error| {
-                panic!("the frames module verifies under pinned Lean 4.32.1: {error:#?}")
+                panic!("the frames module verifies under pinned Lean 4.32.2: {error:#?}")
             });
         let attestation: serde_json::Value = serde_json::from_slice(
             &std::fs::read(outcome.root.join("attestation.json").as_std_path())
@@ -3882,7 +3911,7 @@ pub fn verified_polish() -> &'static VerifiedFixture {
                 selection: Selection::Entrypoints,
             })
             .unwrap_or_else(|error| {
-                panic!("the polish module verifies under pinned Lean 4.32.1: {error:#?}")
+                panic!("the polish module verifies under pinned Lean 4.32.2: {error:#?}")
             });
         let attestation: serde_json::Value = serde_json::from_slice(
             &std::fs::read(outcome.root.join("attestation.json").as_std_path())
@@ -4105,7 +4134,7 @@ features = ["article-an", "lower-case", "singular"]
 /// constant, a definition at a calculation endpoint), when negation is
 /// read as its function type, when an external predicate leaves the
 /// residual to Lean, and when the core arrow elaborates in math; every
-/// theorem verifies under pinned Lean 4.32.1.
+/// theorem verifies under pinned Lean 4.32.2.
 pub const F1_MODULE: &str = r"\begin{lexlean}{Main}
 \useglossary{lexlean.std.nat@1.0.0}
 \useglossary{test.f1@1.0.0}
@@ -4228,7 +4257,7 @@ pub fn verified_f1() -> &'static VerifiedFixture {
                 selection: Selection::Entrypoints,
             })
             .unwrap_or_else(|error| {
-                panic!("the WS-F1 module verifies under pinned Lean 4.32.1: {error:#?}")
+                panic!("the WS-F1 module verifies under pinned Lean 4.32.2: {error:#?}")
             });
         let attestation: serde_json::Value = serde_json::from_slice(
             &std::fs::read(outcome.root.join("attestation.json").as_std_path())

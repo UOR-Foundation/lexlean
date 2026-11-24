@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{acquire_lock, publish_tree, Engine, Selection, VerifyRequest};
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::{FramedHasher, Sha256Digest};
+use crate::artifact::content_id::{FramedHasher, Kappa};
 use crate::calculus::rust::package::{self, Errors, Export, Manifest, Passing};
 use crate::calculus::rust::Profile;
 use crate::calculus::Program;
@@ -24,15 +24,15 @@ use crate::diagnostic::Diagnostic;
 use crate::error::LexLeanError;
 
 /// The schema tag of a production request.
-pub const REQUEST_SPEC: &str = "lexlean/production-request/1";
+pub const REQUEST_SPEC: &str = "lexlean/production-request/2";
 /// The schema tag of a production result.
-pub const RESULT_SPEC: &str = "lexlean/production-result/2";
+pub const RESULT_SPEC: &str = "lexlean/production-result/3";
 /// The schema tag of one target descriptor.
-pub const TARGET_SPEC: &str = "lexlean/target-descriptor/1";
+pub const TARGET_SPEC: &str = "lexlean/target-descriptor/2";
 /// The schema tag of the target-descriptor document.
-pub const TARGETS_SPEC: &str = "lexlean/target-descriptors/1";
+pub const TARGETS_SPEC: &str = "lexlean/target-descriptors/2";
 /// The schema tag of a replay report.
-pub const REPLAY_SPEC: &str = "lexlean/production-replay/1";
+pub const REPLAY_SPEC: &str = "lexlean/production-replay/2";
 /// The name every package exports its root's recorded entry under.
 pub const EXPORT_NAME: &str = "run";
 /// The build-root area that holds production bundles.
@@ -53,7 +53,7 @@ const SEMANTICS_PATH: &str = "language/semantics-1.2.toml";
 // Request
 // ---------------------------------------------------------------------------
 
-/// A production request (`lexlean/production-request/1`).
+/// A production request (`lexlean/production-request/2`).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProductionRequest {
@@ -98,7 +98,7 @@ pub struct TargetRef {
     /// A registered target ID.
     pub id: String,
     /// The digest of that target's descriptor ([`targets`]).
-    pub digest: Sha256Digest,
+    pub digest: Kappa,
 }
 
 /// Identities pinned during setup; each present one must still hold.
@@ -107,18 +107,18 @@ pub struct TargetRef {
 pub struct Expectation {
     /// The project's source ID (§21.3).
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub source_id: Option<Sha256Digest>,
+    pub source_id: Option<Kappa>,
     /// The project's semantic ID (§21.4).
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub semantic_id: Option<Sha256Digest>,
-    /// The SHA-256 of the lock file's bytes.
+    pub semantic_id: Option<Kappa>,
+    /// The κ-label of the lock file's bytes.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub lock_sha256: Option<Sha256Digest>,
+    pub lock_kappa: Option<Kappa>,
 }
 
 impl Expectation {
     fn is_empty(&self) -> bool {
-        self.source_id.is_none() && self.semantic_id.is_none() && self.lock_sha256.is_none()
+        self.source_id.is_none() && self.semantic_id.is_none() && self.lock_kappa.is_none()
     }
 }
 
@@ -138,12 +138,12 @@ pub struct Evidence {
     pub root: String,
     /// Its kind.
     pub kind: EvidenceKind,
-    /// The project-relative path of the `lexlean/gnaf-request/1` document.
+    /// The project-relative path of the `lexlean/gnaf-request/2` document.
     pub request: String,
-    /// The project-relative path of the `lexlean/gnaf-certificate/1` document.
+    /// The project-relative path of the `lexlean/gnaf-certificate/2` document.
     pub certificate: String,
     /// The identity of the certificate (§17.18) the caller means.
-    pub certificate_id: Sha256Digest,
+    pub certificate_id: Kappa,
 }
 
 fn request_error(message: impl Into<String>) -> LexLeanError {
@@ -299,7 +299,7 @@ impl ProductionRequest {
 // Target descriptors
 // ---------------------------------------------------------------------------
 
-/// What a registered target means (`lexlean/target-descriptor/1`): its
+/// What a registered target means (`lexlean/target-descriptor/2`): its
 /// registry row, the runtime its profile carries, and the renderer.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -316,12 +316,12 @@ pub struct TargetDescriptor {
     pub natural_bits: u32,
     /// The width of the integer representation.
     pub integer_bits: u32,
-    /// The SHA-256 of the runtime the target's profile carries.
-    pub runtime: Sha256Digest,
+    /// The κ-label of the runtime the target's profile carries.
+    pub runtime: Kappa,
     /// The digest of the Rust renderer's sources.
-    pub renderer: Sha256Digest,
-    /// The framed SHA-256 of the canonical descriptor without this field.
-    pub digest: Sha256Digest,
+    pub renderer: Kappa,
+    /// The framed κ-label of the canonical descriptor without this field.
+    pub digest: Kappa,
 }
 
 fn internal(message: impl Into<String>) -> LexLeanError {
@@ -332,7 +332,7 @@ fn internal(message: impl Into<String>) -> LexLeanError {
 }
 
 /// The framed digest of `value`'s canonical JSON with `field` removed.
-fn digest_without<T: Serialize>(value: &T, field: &str, domain: &str, label: &str) -> Sha256Digest {
+fn digest_without<T: Serialize>(value: &T, field: &str, domain: &str, label: &str) -> Kappa {
     let mut json = serde_json::to_value(value).unwrap_or(serde_json::Value::Null);
     if let serde_json::Value::Object(map) = &mut json {
         map.remove(field);
@@ -366,12 +366,12 @@ pub fn targets() -> Result<Vec<TargetDescriptor>, LexLeanError> {
         .and_then(|(_, bytes)| std::str::from_utf8(bytes).ok())
         .and_then(|text| text.parse::<toml::Table>().ok())
         .ok_or_else(|| internal(format!("embedded `{SEMANTICS_PATH}` is unreadable")))?;
-    let record = |key: &str| -> Result<Sha256Digest, LexLeanError> {
+    let record = |key: &str| -> Result<Kappa, LexLeanError> {
         semantics
             .get(key)
             .and_then(toml::Value::as_str)
             .ok_or_else(|| internal(format!("`{SEMANTICS_PATH}` records no `{key}`")))
-            .and_then(|hex| Sha256Digest::from_hex(hex).map_err(internal))
+            .and_then(|hex| Kappa::parse(hex).map_err(internal))
     };
     let renderer = record("rust_renderer")?;
     let mut out = Vec::new();
@@ -391,12 +391,12 @@ pub fn targets() -> Result<Vec<TargetDescriptor>, LexLeanError> {
             integer_bits: target.integer_bits,
             runtime,
             renderer,
-            digest: Sha256Digest([0; 32]),
+            digest: Kappa::ZERO,
         };
         descriptor.digest = digest_without(
             &descriptor,
             "digest",
-            "lexlean-target-descriptor-v1",
+            "lexlean-target-descriptor-v2",
             "descriptor",
         );
         out.push(descriptor);
@@ -404,7 +404,7 @@ pub fn targets() -> Result<Vec<TargetDescriptor>, LexLeanError> {
     Ok(out)
 }
 
-/// The canonical `lexlean/target-descriptors/1` document.
+/// The canonical `lexlean/target-descriptors/2` document.
 ///
 /// # Errors
 ///
@@ -425,14 +425,14 @@ pub fn targets_document() -> Result<Vec<u8>, LexLeanError> {
 // Result
 // ---------------------------------------------------------------------------
 
-/// A production result (`lexlean/production-result/2`).
+/// A production result (`lexlean/production-result/3`).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProductionResult {
     /// Exactly [`RESULT_SPEC`].
     pub spec: String,
-    /// The framed SHA-256 of the canonical result without this field.
-    pub result_id: Sha256Digest,
+    /// The framed κ-label of the canonical result without this field.
+    pub result_id: Kappa,
     /// The compiler that produced it.
     pub compiler: CompilerBinding,
     /// The project it was produced from.
@@ -450,7 +450,7 @@ pub struct CompilerBinding {
     /// The crate version.
     pub version: String,
     /// The language-1.2 compiler-semantics ID (§21.2), an opaque digest.
-    pub semantics: Sha256Digest,
+    pub semantics: Kappa,
     /// The pinned Lean toolchain.
     pub lean_toolchain: String,
 }
@@ -460,11 +460,11 @@ pub struct CompilerBinding {
 #[serde(deny_unknown_fields)]
 pub struct SourceBinding {
     /// The source ID (§21.3).
-    pub source_id: Sha256Digest,
+    pub source_id: Kappa,
     /// The semantic ID (§21.4).
-    pub semantic_id: Sha256Digest,
-    /// The SHA-256 of the lock file's bytes.
-    pub lock_sha256: Sha256Digest,
+    pub semantic_id: Kappa,
+    /// The κ-label of the lock file's bytes.
+    pub lock_kappa: Kappa,
 }
 
 /// One file of the bundle by its bundle-relative path.
@@ -475,8 +475,8 @@ pub struct FileDigest {
     pub path: String,
     /// The byte length.
     pub byte_length: u64,
-    /// The SHA-256 of the bytes.
-    pub sha256: Sha256Digest,
+    /// The κ-label of the bytes.
+    pub kappa: Kappa,
 }
 
 /// The verification the outputs rest on (§22.9).
@@ -484,12 +484,12 @@ pub struct FileDigest {
 #[serde(deny_unknown_fields)]
 pub struct VerificationBinding {
     /// The build ID.
-    pub build_id: Sha256Digest,
+    pub build_id: Kappa,
     /// The attestation ID.
-    pub attestation_id: Sha256Digest,
+    pub attestation_id: Kappa,
     /// The attestation.
     pub attestation: FileDigest,
-    /// The canonical compiler input; its SHA-256 is the compiler-input ID.
+    /// The canonical compiler input; its κ-label is the compiler-input ID.
     pub compiler_input: FileDigest,
     /// The preservation record.
     pub preservation: FileDigest,
@@ -623,9 +623,9 @@ pub enum Optimality {
 #[serde(deny_unknown_fields)]
 pub struct GnafOptimality {
     /// The certificate's identity.
-    pub certificate_id: Sha256Digest,
+    pub certificate_id: Kappa,
     /// The `SystemUniverseId` of its request.
-    pub universe_id: Sha256Digest,
+    pub universe_id: Kappa,
     /// The request.
     pub request: FileDigest,
     /// The certificate.
@@ -646,11 +646,11 @@ pub struct ProductionOutput {
 impl ProductionResult {
     /// The identity of this result's content.
     #[must_use]
-    pub fn recomputed_id(&self) -> Sha256Digest {
+    pub fn recomputed_id(&self) -> Kappa {
         digest_without(
             self,
             "result_id",
-            "lexlean-production-result-v1",
+            "lexlean-production-result-v2",
             "result-body",
         )
     }
@@ -681,7 +681,7 @@ impl ProductionResult {
 #[serde(deny_unknown_fields)]
 struct Digested {
     byte_length: u64,
-    sha256: Sha256Digest,
+    kappa: Kappa,
 }
 
 #[derive(Deserialize)]
@@ -689,7 +689,7 @@ struct Digested {
 struct Theorem {
     byte_length: u64,
     module: String,
-    sha256: Sha256Digest,
+    kappa: Kappa,
     theorem: String,
 }
 
@@ -709,7 +709,7 @@ struct Rendering {
     krate: Digested,
     entry: EntryRecord,
     module: String,
-    sha256: Sha256Digest,
+    kappa: Kappa,
     target: String,
     theorem: String,
 }
@@ -722,7 +722,7 @@ struct PreservedRoot {
     program: Digested,
     renderings: Vec<Rendering>,
     root: String,
-    sha256: Sha256Digest,
+    kappa: Kappa,
     #[allow(dead_code)]
     targets: Vec<String>,
     theorem: String,
@@ -733,7 +733,7 @@ struct PreservedRoot {
 struct Library {
     axioms: Vec<String>,
     #[allow(dead_code)]
-    registry_sha256: Sha256Digest,
+    registry_kappa: Kappa,
 }
 
 #[derive(Deserialize)]
@@ -744,7 +744,7 @@ struct Preservation {
     spec: String,
 }
 
-const PRESERVATION_SPEC: &str = "lexlean/preservation/1";
+const PRESERVATION_SPEC: &str = "lexlean/preservation/2";
 
 fn parse_preservation(bytes: &[u8]) -> Result<Preservation, String> {
     let record: Preservation =
@@ -758,14 +758,14 @@ fn parse_preservation(bytes: &[u8]) -> Result<Preservation, String> {
 /// The fields of an attestation the result binds, after its identity is
 /// recomputed from its body (§22.9).
 struct AttestationFacts {
-    attestation_id: Sha256Digest,
+    attestation_id: Kappa,
     compiler_version: String,
-    compiler_semantics: Sha256Digest,
-    source_id: Sha256Digest,
-    semantic_id: Sha256Digest,
-    build_id: Sha256Digest,
-    compiler_input: (u64, Sha256Digest),
-    preservation: (u64, Sha256Digest),
+    compiler_semantics: Kappa,
+    source_id: Kappa,
+    semantic_id: Kappa,
+    build_id: Kappa,
+    compiler_input: (u64, Kappa),
+    preservation: (u64, Kappa),
 }
 
 fn require_attested_toolchain(body: &BTreeMap<String, Json>) -> Result<(), String> {
@@ -799,7 +799,7 @@ fn attestation_facts(bytes: &[u8]) -> Result<AttestationFacts, String> {
         return Err("attestation.json is not an object".to_owned());
     };
     let stated = match body.remove("attestation_id") {
-        Some(Json::Str(hex)) => Sha256Digest::from_hex(&hex)?,
+        Some(Json::Str(hex)) => Kappa::parse(&hex)?,
         _ => return Err("attestation.json states no attestation_id".to_owned()),
     };
     let recomputed =
@@ -809,7 +809,7 @@ fn attestation_facts(bytes: &[u8]) -> Result<AttestationFacts, String> {
             "attestation.json states {stated}, its body hashes to {recomputed}"
         ));
     }
-    for (field, expected) in [("spec", "lexlean/attestation/2"), ("status", "verified")] {
+    for (field, expected) in [("spec", "lexlean/attestation/4"), ("status", "verified")] {
         if !matches!(body.get(field), Some(Json::Str(value)) if value == expected) {
             return Err(format!(
                 "attestation.json requires `{field}` = `{expected}`"
@@ -828,16 +828,16 @@ fn attestation_facts(bytes: &[u8]) -> Result<AttestationFacts, String> {
     let Some(Json::Str(compiler_semantics)) = compiler.get("compiler_semantics") else {
         return Err("attestation.json states no string `lexlean.compiler_semantics`".to_owned());
     };
-    let compiler_semantics = Sha256Digest::from_hex(compiler_semantics)
+    let compiler_semantics = Kappa::parse(compiler_semantics)
         .map_err(|reason| format!("attestation.json `lexlean.compiler_semantics`: {reason}"))?;
     require_attested_toolchain(&body)?;
-    let digest = |name: &str| -> Result<Sha256Digest, String> {
+    let digest = |name: &str| -> Result<Kappa, String> {
         match body.get(name) {
-            Some(Json::Str(hex)) => Sha256Digest::from_hex(hex),
+            Some(Json::Str(hex)) => Kappa::parse(hex),
             _ => Err(format!("attestation.json states no `{name}`")),
         }
     };
-    let row = |name: &str| -> Result<(u64, Sha256Digest), String> {
+    let row = |name: &str| -> Result<(u64, Kappa), String> {
         let Some(Json::Obj(row)) = body.get(name) else {
             return Err(format!(
                 "attestation.json binds no `{name}`: the project has no production root"
@@ -847,9 +847,9 @@ fn attestation_facts(bytes: &[u8]) -> Result<AttestationFacts, String> {
             Some(Json::Int(value)) => u64::try_from(*value).map_err(|error| error.to_string())?,
             _ => return Err(format!("attestation.json `{name}` has no byte_length")),
         };
-        let sha = match row.get("sha256") {
-            Some(Json::Str(hex)) => Sha256Digest::from_hex(hex)?,
-            _ => return Err(format!("attestation.json `{name}` has no sha256")),
+        let sha = match row.get("kappa") {
+            Some(Json::Str(hex)) => Kappa::parse(hex)?,
+            _ => return Err(format!("attestation.json `{name}` has no kappa")),
         };
         Ok((length, sha))
     };
@@ -931,8 +931,8 @@ struct Planned {
 struct CheckedEvidence {
     request_bytes: Vec<u8>,
     certificate_bytes: Vec<u8>,
-    certificate_id: Sha256Digest,
-    universe_id: Sha256Digest,
+    certificate_id: Kappa,
+    universe_id: Kappa,
     verdict: serde_json::Value,
 }
 
@@ -946,7 +946,7 @@ fn check_gnaf(
     program: &Program,
     request_bytes: Vec<u8>,
     certificate_bytes: Vec<u8>,
-    pinned: Sha256Digest,
+    pinned: Kappa,
 ) -> Result<CheckedEvidence, LexLeanError> {
     use crate::gnaf::certification::{self, Verdict};
     let request = crate::gnaf::load(&request_bytes)?;
@@ -992,7 +992,7 @@ fn manifest_for(
     target: &str,
     program: &Program,
     entry: u64,
-    semantic_id: Sha256Digest,
+    semantic_id: Kappa,
     effects: Vec<String>,
 ) -> Result<Manifest, String> {
     let fallible = crate::calculus::rust::fallible_functions(program)?;
@@ -1022,7 +1022,7 @@ fn manifest_for(
         profile: target.to_owned(),
         program: program.clone(),
         exports,
-        sources: vec![semantic_id.to_hex()],
+        sources: vec![semantic_id.label()],
         effects,
         entry: command.then(|| EXPORT_NAME.to_owned()),
     })
@@ -1032,7 +1032,7 @@ fn file_digest(path: String, bytes: &[u8]) -> FileDigest {
     FileDigest {
         path,
         byte_length: bytes.len() as u64,
-        sha256: Sha256Digest::of(bytes),
+        kappa: Kappa::of(bytes),
     }
 }
 
@@ -1073,7 +1073,7 @@ fn build_inner(
     let (checked, _lock) = engine.checked(&Selection::Entrypoints)?;
     let lock_bytes =
         crate::lock::read_lock_bytes(project).map_err(LexLeanError::from_diagnostic)?;
-    let lock_sha256 = Sha256Digest::of(&lock_bytes);
+    let lock_kappa = Kappa::of(&lock_bytes);
     for (what, pinned, actual) in [
         ("source ID", request.expect.source_id, checked.source_id),
         (
@@ -1081,7 +1081,7 @@ fn build_inner(
             request.expect.semantic_id,
             checked.semantic_id,
         ),
-        ("lock digest", request.expect.lock_sha256, lock_sha256),
+        ("lock digest", request.expect.lock_kappa, lock_kappa),
     ] {
         if let Some(pinned) = pinned {
             if pinned != actual {
@@ -1241,7 +1241,7 @@ fn build_inner(
     };
     if verified.source_id != checked_source
         || verified.semantic_id != checked_semantic
-        || Sha256Digest::of(&lock_after) != lock_sha256
+        || Kappa::of(&lock_after) != lock_kappa
         || request
             .expect
             .source_id
@@ -1417,7 +1417,7 @@ fn build_inner(
     }
     let mut result = ProductionResult {
         spec: RESULT_SPEC.to_owned(),
-        result_id: Sha256Digest([0; 32]),
+        result_id: Kappa::ZERO,
         compiler: CompilerBinding {
             version: crate::COMPILER_VERSION.to_owned(),
             semantics: crate::compiler_semantics_id_for(crate::LANGUAGE_1_2),
@@ -1426,7 +1426,7 @@ fn build_inner(
         source: SourceBinding {
             source_id: verified.source_id,
             semantic_id: verified.semantic_id,
-            lock_sha256,
+            lock_kappa,
         },
         verification: VerificationBinding {
             build_id: verified.build_id,
@@ -1443,19 +1443,13 @@ fn build_inner(
     // The bundle states exactly what it holds; replay is the check.
     replay_files(&files)?;
     let guard = acquire_lock(project)?;
-    publish_tree(
-        project,
-        BUNDLE_AREA,
-        &result.result_id.to_hex(),
-        &files,
-        &guard,
-    )?;
+    publish_tree(project, BUNDLE_AREA, result.result_id.hex(), &files, &guard)?;
     drop(guard);
     Ok(ProductionOutput {
         bundle: Utf8PathBuf::from(format!(
             "{}/{BUNDLE_AREA}/{}",
             project.config.build_root,
-            result.result_id.to_hex()
+            result.result_id.hex().to_owned()
         )),
         result,
     })
@@ -1475,14 +1469,14 @@ pub enum ReplayStatus {
     BindingsVerified,
 }
 
-/// What a replay established (`lexlean/production-replay/1`).
+/// What a replay established (`lexlean/production-replay/2`).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ReplayReport {
     /// Exactly [`REPLAY_SPEC`].
     pub spec: String,
     /// The replayed result.
-    pub result_id: Sha256Digest,
+    pub result_id: Kappa,
     /// The status.
     pub status: ReplayStatus,
     /// The number of outputs replayed.
@@ -1620,9 +1614,9 @@ fn replay_files(files: &[(String, Vec<u8>)]) -> Result<ReplayReport, LexLeanErro
             .get(digest.path.as_str())
             .copied()
             .ok_or_else(|| replay_error(format!("the bundle has no `{}`", digest.path)))?;
-        if bytes.len() as u64 != digest.byte_length || Sha256Digest::of(bytes) != digest.sha256 {
+        if bytes.len() as u64 != digest.byte_length || Kappa::of(bytes) != digest.kappa {
             return Err(replay_error(format!(
-                "`{}` does not have the length and SHA-256 the result states",
+                "`{}` does not have the length and κ-label the result states",
                 digest.path
             )));
         }
@@ -1667,11 +1661,7 @@ fn replay_files(files: &[(String, Vec<u8>)]) -> Result<ReplayReport, LexLeanErro
     )?;
     bind(
         "the compiler input the attestation binds",
-        attestation.compiler_input
-            == (
-                compiler_input.len() as u64,
-                Sha256Digest::of(compiler_input),
-            ),
+        attestation.compiler_input == (compiler_input.len() as u64, Kappa::of(compiler_input)),
     )?;
     require_compiler_input_identity(compiler_input).map_err(replay_error)?;
     bind(
@@ -1679,7 +1669,7 @@ fn replay_files(files: &[(String, Vec<u8>)]) -> Result<ReplayReport, LexLeanErro
         attestation.preservation
             == (
                 preservation_bytes.len() as u64,
-                Sha256Digest::of(preservation_bytes),
+                Kappa::of(preservation_bytes),
             ),
     )?;
     let preservation = parse_preservation(preservation_bytes).map_err(replay_error)?;
@@ -1687,7 +1677,7 @@ fn replay_files(files: &[(String, Vec<u8>)]) -> Result<ReplayReport, LexLeanErro
         .into_iter()
         .map(|descriptor| (descriptor.id.clone(), descriptor))
         .collect();
-    let semantic_hex = result.source.semantic_id.to_hex();
+    let semantic_hex = result.source.semantic_id.label();
 
     if !strictly_ascending(&result.roots, |root| root.root.clone()) || result.roots.is_empty() {
         return Err(replay_error(
@@ -1713,8 +1703,8 @@ fn replay_files(files: &[(String, Vec<u8>)]) -> Result<ReplayReport, LexLeanErro
         let program_bytes = check(&root.program)?;
         bind(
             &format!("root `{}`'s program digest", root.root),
-            (preserved.program.byte_length, preserved.program.sha256)
-                == (program_bytes.len() as u64, Sha256Digest::of(program_bytes)),
+            (preserved.program.byte_length, preserved.program.kappa)
+                == (program_bytes.len() as u64, Kappa::of(program_bytes)),
         )?;
         let program = Program::parse(program_bytes)
             .map_err(|reason| replay_error(format!("root `{}`: {reason}", root.root)))?;
@@ -1788,8 +1778,8 @@ fn replay_files(files: &[(String, Vec<u8>)]) -> Result<ReplayReport, LexLeanErro
             let crate_bytes = check(&output.krate)?;
             bind(
                 &format!("root `{}`'s {target} crate digest", root.root),
-                (rendering.krate.byte_length, rendering.krate.sha256)
-                    == (crate_bytes.len() as u64, Sha256Digest::of(crate_bytes)),
+                (rendering.krate.byte_length, rendering.krate.kappa)
+                    == (crate_bytes.len() as u64, Kappa::of(crate_bytes)),
             )?;
             // The certification is recomputed, never read: the record of
             // the certificates is what the attestation binds.
@@ -1798,27 +1788,27 @@ fn replay_files(files: &[(String, Vec<u8>)]) -> Result<ReplayReport, LexLeanErro
                 output.certification.status == CertificationStatus::KernelChecked
                     && output.certification.axioms == preservation.library.axioms,
             )?;
-            let expected: [(CertificateRole, &str, &str, u64, Sha256Digest); 3] = [
+            let expected: [(CertificateRole, &str, &str, u64, Kappa); 3] = [
                 (
                     CertificateRole::A,
                     &preserved.module,
                     &preserved.theorem,
                     preserved.byte_length,
-                    preserved.sha256,
+                    preserved.kappa,
                 ),
                 (
                     CertificateRole::B,
                     &rendering.module,
                     &rendering.theorem,
                     rendering.byte_length,
-                    rendering.sha256,
+                    rendering.kappa,
                 ),
                 (
                     CertificateRole::E,
                     &rendering.composed.module,
                     &rendering.composed.theorem,
                     rendering.composed.byte_length,
-                    rendering.composed.sha256,
+                    rendering.composed.kappa,
                 ),
             ];
             if output.certification.certificates.len() != expected.len() {
@@ -1842,7 +1832,7 @@ fn replay_files(files: &[(String, Vec<u8>)]) -> Result<ReplayReport, LexLeanErro
                             )
                         && (
                             stated_certificate.file.byte_length,
-                            stated_certificate.file.sha256,
+                            stated_certificate.file.kappa,
                         ) == (length, sha),
                 )?;
                 check(&stated_certificate.file)?;
@@ -1948,7 +1938,7 @@ mod tests {
 
     use super::{attestation_facts, collect_bundle, replay_files, require_compiler_input_identity};
     use crate::artifact::canonical_json::Json;
-    use crate::artifact::content_id::{attestation_id, Sha256Digest};
+    use crate::artifact::content_id::{attestation_id, Kappa};
     use camino::Utf8Path;
 
     fn compiler_with_version(version: Json) -> Json {
@@ -1956,7 +1946,7 @@ mod tests {
             ("version", version),
             (
                 "compiler_semantics",
-                Json::Str(Sha256Digest::of(b"compiler semantics fixture").to_hex()),
+                Json::Str(Kappa::of(b"compiler semantics fixture").label()),
             ),
         ])
     }
@@ -1964,20 +1954,20 @@ mod tests {
     fn hashed_attestation(mut body: BTreeMap<String, Json>) -> Vec<u8> {
         body.remove("attestation_id");
         let id = attestation_id(&Json::Obj(body.clone()).to_canonical_string());
-        body.insert("attestation_id".to_owned(), Json::Str(id.to_hex()));
+        body.insert("attestation_id".to_owned(), Json::Str(id.label()));
         Json::Obj(body).to_file_bytes()
     }
 
     fn attestation_with_compiler(compiler: Option<Json>) -> Vec<u8> {
-        let digest = Sha256Digest::of(b"attestation fixture").to_hex();
+        let digest = Kappa::of(b"attestation fixture").label();
         let row = || {
             Json::object(vec![
                 ("byte_length", Json::Int(1)),
-                ("sha256", Json::Str(digest.clone())),
+                ("kappa", Json::Str(digest.clone())),
             ])
         };
         let mut fields = vec![
-            ("spec", Json::Str("lexlean/attestation/2".to_owned())),
+            ("spec", Json::Str("lexlean/attestation/4".to_owned())),
             ("status", Json::Str("verified".to_owned())),
             ("source_id", Json::Str(digest.clone())),
             ("semantic_id", Json::Str(digest.clone())),
@@ -1991,14 +1981,14 @@ mod tests {
                         "lean",
                         Json::object(vec![(
                             "version_output",
-                            Json::Str("Lean (version 4.32.1, release)".to_owned()),
+                            Json::Str("Lean (version 4.32.2, release)".to_owned()),
                         )]),
                     ),
                     (
                         "lake",
                         Json::object(vec![(
                             "version_output",
-                            Json::Str("Lake version 5.0.0 (Lean version 4.32.1)".to_owned()),
+                            Json::Str("Lake version 5.0.0 (Lean version 4.32.2)".to_owned()),
                         )]),
                     ),
                 ]),
@@ -2092,7 +2082,7 @@ mod tests {
 
     #[test]
     fn attestation_facts_refuses_missing_or_malformed_verification_envelope() {
-        for (field, wrong) in [("spec", "lexlean/attestation/1"), ("status", "unverified")] {
+        for (field, wrong) in [("spec", "lexlean/attestation/3"), ("status", "unverified")] {
             for value in [None, Some(Json::Int(1)), Some(Json::Str(wrong.to_owned()))] {
                 let bytes = edited_attestation(&[field], value.clone());
                 assert!(
@@ -2127,21 +2117,25 @@ mod tests {
     fn attestation_facts_refuses_foreign_or_colliding_lean_versions() {
         for (tool, banner) in [
             ("lean", ""),
-            ("lean", "unrecognized banner 4.32.1"),
+            ("lean", "unrecognized banner 4.32.2"),
+            ("lean", "Lean (version 4.32.1, release)"),
+            ("lean", "Lean (version 4.32.20, release)"),
             ("lean", "Lean (version 4.32.10, release)"),
-            ("lean", "Lean (version 4.32.1-rc1, release)"),
-            ("lean", "Lean (version 4.31.0, built with 4.32.1)"),
-            ("lean", "Lean (version 4.32.1, release"),
-            ("lean", "Lean (version 4.32.1, release)\nextra output"),
+            ("lean", "Lean (version 4.32.2-rc1, release)"),
+            ("lean", "Lean (version 4.31.0, built with 4.32.2)"),
+            ("lean", "Lean (version 4.32.2, release"),
+            ("lean", "Lean (version 4.32.2, release)\nextra output"),
             ("lake", ""),
-            ("lake", "unrecognized banner 4.32.1"),
+            ("lake", "unrecognized banner 4.32.2"),
+            ("lake", "Lake version 5.0.0 (Lean version 4.32.1)"),
+            ("lake", "Lake version 5.0.0 (Lean version 4.32.20)"),
             ("lake", "Lake version 5.0.0 (Lean version 4.32.10)"),
-            ("lake", "Lake version 5.0.0 (Lean version 4.32.1-rc1)"),
-            ("lake", "Lake version 4.32.1 (Lean version 4.31.0)"),
-            ("lake", "Lake version 5.0.0 (Lean version 4.32.1"),
+            ("lake", "Lake version 5.0.0 (Lean version 4.32.2-rc1)"),
+            ("lake", "Lake version 4.32.2 (Lean version 4.31.0)"),
+            ("lake", "Lake version 5.0.0 (Lean version 4.32.2"),
             (
                 "lake",
-                "Lake version 5.0.0 (Lean version 4.32.1)\nextra output",
+                "Lake version 5.0.0 (Lean version 4.32.2)\nextra output",
             ),
         ] {
             let bytes = edited_attestation(

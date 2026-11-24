@@ -211,7 +211,7 @@ fn enc_term(term: &ToolTerm) -> Value {
 }
 
 fn enc_pin(pin: &lexlean::ir::tooling::SourcePin) -> Value {
-    adt(0, vec![text(&pin.file), text(&pin.sha256)])
+    adt(0, vec![text(&pin.file), text(&pin.kappa)])
 }
 
 /// `TypeParam`: a name and its `ParamKind` (type, constructor, index).

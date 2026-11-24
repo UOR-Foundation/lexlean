@@ -5,7 +5,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::artifact::content_id::{self, Sha256Digest};
+use crate::artifact::content_id::{self, Kappa};
 use crate::code;
 use crate::diagnostic::Diagnostic;
 use crate::elaborate::definitions::elab_definition;
@@ -188,14 +188,14 @@ pub struct CheckedProject {
     /// the probe module, §18.8).
     pub external_used: BTreeMap<String, ExternalConstRef>,
     /// The source ID (§21.3).
-    pub source_id: Sha256Digest,
+    pub source_id: Kappa,
     /// The semantic ID (§21.4).
-    pub semantic_id: Sha256Digest,
+    pub semantic_id: Kappa,
     /// The canonical lock bytes hashed into the source ID.
     pub canonical_lock: Vec<u8>,
     /// Language 1.2: every configured model artifact read for linking, as
-    /// `(project-relative path, byte length, SHA-256)` (§10.1, §21.6).
-    pub artifacts: Vec<(String, usize, Sha256Digest)>,
+    /// `(project-relative path, byte length, κ-label)` (§10.1, §21.6).
+    pub artifacts: Vec<(String, usize, Kappa)>,
 }
 
 impl CheckedProject {
@@ -358,6 +358,7 @@ struct ModuleSource {
 /// bounded by `max_scope_depth`, and a configured depth larger than the
 /// stack can host is enforced at the depth the stack does host, so deep
 /// input is `LLS8002` and never a stack overflow.
+#[cfg(not(target_os = "wasi"))]
 pub fn check_project(
     project: &Project,
     selection: &Selection,
@@ -387,8 +388,22 @@ pub fn check_project(
     })
 }
 
+/// Run the complete check pipeline for a selection on the caller's stack:
+/// WASI has no threads. The executable is linked with the stack the plan is
+/// sized on there (`config::WASI_STACK_BYTES`), so the depth it hosts is
+/// enforced as on any other host and deeper input is `LLS8002` (§8.3, §25.5).
+#[cfg(target_os = "wasi")]
+pub fn check_project(
+    project: &Project,
+    selection: &Selection,
+    lock: &Lock,
+    packages: Vec<LexiconPackage>,
+) -> Result<CheckedProject, LexLeanError> {
+    check_project_inline(project, selection, lock, packages)
+}
+
 /// Read every configured model artifact (§10.1): a confined regular file of
-/// at most `max_file_bytes` whose SHA-256 is its configured digest. A missing
+/// at most `max_file_bytes` whose κ-label is its configured digest. A missing
 /// file or a digest mismatch is `LLR3007`.
 fn load_artifacts(
     project: &Project,
@@ -403,9 +418,9 @@ fn load_artifacts(
             Diagnostic::new(
                 code!("LLR3007"),
                 format!(
-                    "model artifact `{}` with SHA-256 {} is missing",
+                    "model artifact `{}` with κ-label {} is missing",
                     source.path,
-                    source.sha256.to_hex()
+                    source.kappa.label()
                 ),
             )
         })?;
@@ -426,19 +441,19 @@ fn load_artifacts(
                 ),
             ));
         }
-        let observed = Sha256Digest::of(&bytes);
-        if observed != source.sha256 {
+        let observed = Kappa::of(&bytes);
+        if observed != source.kappa {
             return Err(Diagnostic::new(
                 code!("LLR3007"),
                 format!(
-                    "model artifact `{}` has SHA-256 {}, not its configured {}",
+                    "model artifact `{}` has κ-label {}, not its configured {}",
                     source.path,
-                    observed.to_hex(),
-                    source.sha256.to_hex()
+                    observed.label(),
+                    source.kappa.label()
                 ),
             ));
         }
-        store.insert(source.sha256.to_hex(), bytes);
+        store.insert(source.kappa.label(), bytes);
     }
     Ok(store)
 }
@@ -901,6 +916,13 @@ fn check_project_inline(
             // Artifact declarations are charged before they decode, against
             // the nodes every earlier module linked (§17.12 rule 2).
             artifacts.begin_module(ir_node_count, total_bytes);
+            // The notation and the data nest as deeply as the compile thread's
+            // stack hosts `max_scope_depth` (§25.5), and no deeper.
+            let max_depth = project
+                .config
+                .limits
+                .compile_stack_plan()
+                .effective_max_scope_depth;
             // The notation is read to the canonical JSON the decoder reads, so
             // that what a module means is decided in one place (§17.21).
             let data: std::borrow::Cow<'_, str> = if ast.surface {
@@ -913,12 +935,23 @@ fn check_project_inline(
                 }
                 let spec = crate::ir::semantic::semantic_module_spec(&project.config.language)
                     .expect("language 1.2 has a semantic-module schema");
-                match crate::surface::semantic::parse_module(&ast.data.text, spec) {
+                match crate::surface::semantic::parse_module_bounded(
+                    &ast.data.text,
+                    spec,
+                    usize::try_from(max_depth).unwrap_or(usize::MAX),
+                ) {
                     Ok(json) => std::borrow::Cow::Owned(json.to_canonical_string()),
                     Err(error) => {
+                        let bound = if error.message == crate::surface::generic::TOO_DEEP {
+                            format!(
+                                " ({max_depth} levels, the project's max_scope_depth as its compile stack hosts it; a list of n elements nests about n levels)"
+                            )
+                        } else {
+                            String::new()
+                        };
                         return Err(err(vec![Diagnostic::new(
                             code!("LLP2001"),
-                            format!("phase link: semantic notation: {}", error.message),
+                            format!("phase link: semantic notation: {}{bound}", error.message),
                         )
                         .with_span(notation_span(
                             &load.path,
@@ -943,36 +976,42 @@ fn check_project_inline(
             // A package's source writes a sibling module by its own name; the
             // linked project names it by its key, so the references are read
             // under the key and every later phase finds the module (§10.5).
-            let data: std::borrow::Cow<'_, str> = if renamed.is_empty() {
+            // Data deeper than the compile thread hosts is left as written, for
+            // the semantic reader to refuse by its depth.
+            let too_deep = u64::try_from(crate::production::lower::json_depth(&data))
+                .map_or(true, |depth| depth > max_depth);
+            let data: std::borrow::Cow<'_, str> = if renamed.is_empty() || too_deep {
                 data
             } else {
                 let to_key: BTreeMap<String, String> = renamed
                     .iter()
                     .map(|(key, written)| (written.clone(), key.clone()))
                     .collect();
-                let mut json = crate::artifact::canonical_json::Json::parse(data.as_bytes())
-                    .map_err(|reason| {
-                        err(vec![Diagnostic::new(
-                            code!("LLP2001"),
-                            format!("phase link: semantic data: {reason}"),
-                        )
-                        .with_span(span_of_range(
-                            &load.path,
-                            &load.atoms,
-                            ast.data.range,
-                        ))])
-                    })?;
+                let mut json =
+                    crate::artifact::canonical_json::Json::parse_unbounded(data.as_bytes())
+                        .map_err(|reason| {
+                            err(vec![Diagnostic::new(
+                                code!("LLP2001"),
+                                format!("phase link: semantic data: {reason}"),
+                            )
+                            .with_span(span_of_range(
+                                &load.path,
+                                &load.atoms,
+                                ast.data.range,
+                            ))])
+                        })?;
                 rename_member_modules(&mut json, &to_key);
                 std::borrow::Cow::Owned(json.to_canonical_string())
             };
             Some(
-                SemanticModule::parse(
+                SemanticModule::parse_bounded(
                     &data,
                     &project.config.language,
                     &load.prefix,
                     &imports,
                     &imported_semantic,
                     &artifacts,
+                    max_depth,
                 )
                 .map_err(|failure| {
                     err(vec![Diagnostic::new(
@@ -1158,7 +1197,7 @@ fn check_project_inline(
             name: module_name.clone(),
             lean_module,
             source_path: load.path.clone(),
-            source_sha256: Sha256Digest::of(load.normalized.as_bytes()),
+            source_kappa: Kappa::of(load.normalized.as_bytes()),
             origin: load.package.clone(),
             glossary,
             import_lean,
@@ -1253,8 +1292,8 @@ fn check_project_inline(
             .map(|source| {
                 (
                     source.path.clone(),
-                    artifacts.get(&source.sha256.to_hex()).map_or(0, Vec::len),
-                    source.sha256,
+                    artifacts.get(&source.kappa.label()).map_or(0, Vec::len),
+                    source.kappa,
                 )
             })
             .collect(),

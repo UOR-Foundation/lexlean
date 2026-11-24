@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use crate::diagnostic::DiagnosticCode;
 
 /// The schema discriminator of a tooling module (SPEC.md §17.20).
-pub const TOOLING_SPEC: &str = "lexlean/tooling-module/1";
+pub const TOOLING_SPEC: &str = "lexlean/tooling-module/2";
 
 /// A failed decode or check: the registered code and the reason.
 #[derive(Debug, Clone)]
@@ -52,7 +52,7 @@ impl ToolingFailure {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ToolAuthority {
-    /// The authority row, `LEAN-LCNF-4-32-1`.
+    /// The authority row, `LEAN-LCNF-4-32-2`.
     pub id: String,
     /// The Lean version.
     pub lean_version: String,
@@ -61,14 +61,14 @@ pub struct ToolAuthority {
 }
 
 /// The file of the toolchain source that defines a registry row, and its
-/// SHA-256.
+/// κ-label.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SourcePin {
     /// The path within the toolchain source.
     pub file: String,
-    /// Lowercase hexadecimal SHA-256.
-    pub sha256: String,
+    /// The κ-label.
+    pub kappa: String,
 }
 
 /// A universe level in a registered signature.
@@ -551,7 +551,7 @@ fn is_false(value: &bool) -> bool {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ToolingModule {
-    /// `lexlean/tooling-module/1`.
+    /// `lexlean/tooling-module/2`.
     pub spec: String,
     /// The authority the registry cites.
     pub authority: ToolAuthority,

@@ -59,6 +59,7 @@ mod rust_runtime;
 pub use rust_runtime::{
     check_golden as check_runtime_transcript, golden_text, parse_golden, GOLDEN_FILE,
 };
+mod kappa_identity;
 mod rust_driver;
 mod rust_runtime_text;
 mod rust_scaffold;
@@ -82,10 +83,98 @@ mod target_machine;
 mod tooling;
 mod typed_diagnostics;
 mod verification;
+mod wasi;
+mod wide_recursion;
 
 /// The wall time of one case, written to the CI evidence directory when the
 /// environment names one (SPEC.md §22.12) and nowhere else. It is written when
 /// the case ends, by panic as well, and a failure to write it is dropped.
+/// How many of the heaviest bootstrap cases run at once in one process.
+/// Each checks its own copy of the whole bootstrap project and then works
+/// over the committed corpus. Measured on a 4-processor host with 16 GiB
+/// (`MemTotal` 16473776 KiB) under a 13.4 GiB memory limit: BS-07 alone
+/// peaks at 4.4 GiB, BS-05 with BS-07 was OOM-killed past 10 GiB, and
+/// BS-05..BS-08 together within a minute. The harness runs one thread per
+/// processor, so without a bound the processors, not the memory, decide how
+/// many overlap. A case waits here before it starts, so its recorded wall
+/// time excludes the wait.
+///
+/// The bound is a planning figure for this process alone, not a guarantee:
+/// it reads the host's total memory once per admission and ignores cgroup
+/// limits, current pressure, other processes, and the other cases, and where
+/// `/proc/meminfo` is unreadable (macOS, Windows, whose lanes already run
+/// these cases apart) it admits every case.
+///
+/// `BS-36`..`BS-40` joined the bound on the same evidence: in #532's own gate,
+/// on a 16 GiB runner, the parts' job peaks were `BS-37` 11.0 GiB, `BS-40` 9.5
+/// GiB, `BS-36` 8.7 GiB, and `BS-38` and `BS-39` 7.0 GiB each, and the ARM leg,
+/// which runs them together, lost its runner while `BS-35`..`BS-38` overlapped.
+mod heavy {
+    use std::sync::{Condvar, Mutex};
+
+    /// The cases bounded: the four whose lanes split the macOS, Windows, and
+    /// Intel hosts, and the five semantic/core print-and-read and math
+    /// cases whose own job peaks forced them in too (see below).
+    const HEAVY: [&str; 9] = [
+        "BS-05", "BS-06", "BS-07", "BS-08", "BS-36", "BS-37", "BS-38", "BS-39", "BS-40",
+    ];
+
+    /// The memory one of them is planned for, chosen so a host with less
+    /// than 20 GiB, the 16 GiB runners whatever their exact `MemTotal`, runs
+    /// one at a time.
+    const BUDGET_KIB: u64 = 10 * 1024 * 1024;
+
+    static RUNNING: Mutex<usize> = Mutex::new(0);
+    static FREED: Condvar = Condvar::new();
+
+    /// One case per [`BUDGET_KIB`] of the host's memory, at least one;
+    /// unbounded where the total is not readable.
+    fn capacity() -> usize {
+        std::fs::read_to_string("/proc/meminfo")
+            .ok()
+            .and_then(|text| {
+                let line = text.lines().find(|line| line.starts_with("MemTotal:"))?;
+                line.split_whitespace().nth(1)?.parse::<u64>().ok()
+            })
+            .map_or(usize::MAX, |total| {
+                usize::try_from(total / BUDGET_KIB)
+                    .unwrap_or(usize::MAX)
+                    .max(1)
+            })
+    }
+
+    /// Admission of one heavy case, released when dropped, on a panic too.
+    pub(super) struct Admitted;
+
+    impl Drop for Admitted {
+        fn drop(&mut self) {
+            let mut running = RUNNING
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            *running -= 1;
+            FREED.notify_one();
+        }
+    }
+
+    /// Waits until a heavy case may start; other cases start at once.
+    pub(super) fn admit(id: &str) -> Option<Admitted> {
+        if !HEAVY.contains(&id) {
+            return None;
+        }
+        let limit = capacity();
+        let mut running = RUNNING
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        while *running >= limit {
+            running = FREED
+                .wait(running)
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+        }
+        *running += 1;
+        Some(Admitted)
+    }
+}
+
 struct Timed {
     id: String,
     started: std::time::Instant,
@@ -126,6 +215,7 @@ impl Drop for Timed {
 /// Panics when the case's assertion fails, and for an ID with no wired
 /// case — an unimplemented registered capability must not pass silently.
 pub fn run(id: &str) {
+    let _admitted = heavy::admit(id);
     let _timed = Timed::start(id);
     let prefix = id.split('-').next().unwrap_or_default();
     match prefix {

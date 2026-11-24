@@ -308,6 +308,342 @@ and Unreleased holds what has landed since.
 
 ## Unreleased
 
+- A recursive definition with more than ten parameters states its recursive
+  argument (`SP-34`, SPEC.md §17.12). Lean's structural search tries no
+  candidate once more than ten are possible (`maxCombinationSize`) and
+  compiled such a definition by well-founded recursion, so a `reflexivity`
+  proof through it failed although both sides evaluate to the same value.
+  The backend now writes `termination_by structural` for it, executable or
+  not; a definition with at most ten parameters keeps its bytes. The register
+  is 522.
+- A lexicon entry is source (SPEC.md §13.1 to §13.6): `BS-55`, the module `LexiconEntry`, held
+  to `lexicon::entry::parse_entry` on the compiler's own committed lexicon packages, returning
+  every diagnostic the oracle raises rather than only the first. By the maintainer's decision
+  the bootstrap project's `max_file_bytes` is now 16 MiB, because the root's certificate
+  restates its whole reachable closure once per function.
+- By the maintainer's decision, the bootstrap project's `child_timeout_ms` is now 600,000 (10
+  minutes), raised from 300,000: `parseEntry`'s own certificate (`BS-55`) measured at 230 s to
+  type-check and 208 s to replay on an unloaded machine, and scaling by CI's own measured
+  0.4-2.1x spread against this laptop put it plausibly past 300 s on a slow CI runner.
+- The lexicon closure's `package@version` reference is source (SPEC.md §13.1, §12.2): `BS-54`,
+  the module `PackageRef`, held to `lexicon::package::PackageRef::parse` on the compiler's own
+  `\useglossary` directives and lexicon manifests.
+- The lexicon closure's reader for the TOML subset the compiler's own committed files use
+  (SPEC.md §13.1, §13.2, §12.3) is source: `BS-53`, the module `TomlRead`, held to the `toml`
+  crate on the compiler's own lexicon manifests, entry files, and language bootstrap data.
+- The bootstrap project configures `max_child_output_bytes = 268435456` (SPEC.md
+  §17.23, §10.2), by the maintainer's decision: the extraction of its export wrote
+  more than the default 33,554,432 bytes on `lean`'s output once the front end's
+  components (`BS-35`) joined it. The register is unchanged.
+- The text channel and the simple proof sentences as language-1.2 source
+  (SPEC.md §17.23, §15.5, §16.2, `BS-35`, #269; no new diagnostic code, no
+  change to the language-1.2 identity). `textTokens` and `parseProofSentence`
+  of `GrammarProof` return what `grammar::chart::text_tokens` and
+  `grammar::proof::parse_proof_sentence` return and admit no `recursion`. The
+  register is 495 IDs.
+- The bootstrap project configures `max_child_output_bytes = 268435456` (SPEC.md
+  §17.23, §10.2), by the maintainer's decision: the extraction of its export wrote
+  more than the default 33,554,432 bytes on `lean`'s output once the front end's
+  components (`BS-36`) joined it. The register is unchanged.
+- The printer of the semantic notation as language-1.2 source (SPEC.md
+  §17.23, §17.21, `BS-36`, #269; no new diagnostic code, no change to the
+  language-1.2 identity). `printAt` and `printSemanticModule` of
+  `SemanticPrint` return what `surface::semantic::print_at` and `print_module`
+  return, with the semantic-module schema as their input, and admit
+  `recursion`. The register is 494 IDs.
+- The bootstrap project configures `max_child_output_bytes = 268435456` (SPEC.md
+  §17.23, §10.2), by the maintainer's decision: the extraction of its export wrote
+  more than the default 33,554,432 bytes on `lean`'s output once the front end's
+  components (`BS-37`) joined it. The register is unchanged.
+- The reader of the semantic notation as language-1.2 source (SPEC.md
+  §17.23, §17.21, `BS-37`, #269; no new diagnostic code, no change to the
+  language-1.2 identity). `parseAt`, `parseSemanticModule`, and
+  `semanticSpans` of `SemanticRead` return what `surface::semantic::parse_at`,
+  `parse_module`, and `declaration_spans` return, with the semantic-module
+  schema as their input, and admit no `recursion`. The register is 494 IDs.
+- The bootstrap project configures `max_child_output_bytes = 268435456` (SPEC.md
+  §17.23, §10.2), by the maintainer's decision: the extraction of its export wrote
+  more than the default 33,554,432 bytes on `lean`'s output once the front end's
+  components (`BS-38`) joined it. The register is unchanged.
+- The canonical JSON of a native core module as language-1.2 source
+  (SPEC.md §17.23, §17.10, §21.7, `BS-38`, #269; no new diagnostic code, no
+  change to the language-1.2 identity). `coreJson` of `CoreJson` returns what
+  `surface::core::canonical_json` returns and admits `recursion`. The register
+  is 494 IDs.
+- The printer of the core notation as language-1.2 source (SPEC.md §17.23,
+  §17.21, `BS-39`, #269; no new diagnostic code, no change to the
+  language-1.2 identity). `printCoreModule` of `CorePrint` returns what
+  `surface::core::print_module` returns and admits `recursion`. The register
+  is 495 IDs.
+- The reader of the core notation as language-1.2 source (SPEC.md §17.23,
+  §17.21, `BS-40`, #269; no new diagnostic code, no change to the
+  language-1.2 identity). `readCoreModule` of `CoreRead` returns what
+  `surface::core::read_module` returns, the reader of `parse_module` before the
+  decoding of a declaration, and admits no `recursion`. `parse_module_with_spans`
+  reads with `read_module` and then decodes, with the same results and errors.
+  The register is 496 IDs.
+- The bootstrap project configures `max_child_output_bytes = 268435456` (SPEC.md
+  §17.23, §10.2), by the maintainer's decision: the extraction of its export wrote
+  more than the default 33,554,432 bytes on `lean`'s output once the front end's
+  components (`BS-42`) joined it. The register is unchanged.
+- The grammar of a mathematical island as language-1.2 source (SPEC.md
+  §17.23, §15.5, `BS-42`, #269; no new diagnostic code, no change to the
+  language-1.2 identity). `parseMath` of `GrammarMath` returns what
+  `grammar::math::parse_math` returns, with the glossary closure's projection
+  as its input, and admits no `recursion`. The register is 494 IDs.
+- The grammar keywords, the unknown-atom diagnosis, the binders, and the term
+  phrases of the text channel as language-1.2 source (SPEC.md §17.23, §15.3,
+  §15.4, `BS-43`, #269; no new diagnostic code, no change to the language-1.2
+  identity). `keywordEntry`, `unknownAtom`, `binderAlternatives`, and
+  `termPhrase` of `PropositionTerms` return what `keyword_entry` and the
+  `TextParser` methods return, with the glossary closure's projection as their
+  input, and admit no `recursion`. The register is 495 IDs.
+- The tables and predicates of the lexicon entry schema as language-1.2 source,
+  the first slice of the lexicon closure (SPEC.md §17.23, §13.1 to §13.6, `BS-50`,
+  #269; no new diagnostic code, no change to the language-1.2 identity).
+  `tokenIndex`, `shapeFacts`, `surfaceSafety`, `isLeanName`, `tomlCommentAt`,
+  and `entryPath` of `LexiconSchema` return what the schema's token tables,
+  `frame_permitted` with the category and frame facts, `surface_safety`,
+  `is_lean_name`, `toml_comment_at`, and `entry_path` return; `surfaceSafety`
+  reads the atoms of `scanSource`. None admits `recursion`.
+- The scopes, references, and outer shape of a LexLean Semantic Expression as
+  language-1.2 source, the second slice of the lexicon closure (SPEC.md §17.23,
+  §13.8, `BS-51`, #269; no new diagnostic code, no change to the language-1.2
+  identity). `checkScopes`, `referencedConsts`, and `outerShape` of `LseScopes`
+  return what `Lse::check_scopes`, `referenced_consts`, and
+  `outer_explicit_binders` with `result` return, over the expressions of
+  `BS-25`. None admits `recursion`.
+- The conservative checker of LexLean Semantic Expressions as language-1.2
+  source, the third slice of the lexicon closure (SPEC.md §17.23, §13.7,
+  `BS-52`, #269; no new diagnostic code, no change to the language-1.2
+  identity). `checkSignature` and `checkValue` of `LseTypes` return what
+  `lse::check_signature` and `check_value` return, the zonked type and the
+  literal types or the first error, with what the lookup answers given as a
+  table. Both admit `recursion`, structural over a bound on nesting the host
+  passes.
+
+## 0.4.5
+
+- Natural-number arithmetic laws (`PF-28`, SPEC.md §17.12, *Fold laws*, rule 7).
+  `omega` reads a product of two variables as an opaque atom, so a stage size
+  such as `mantissa * powTwo scale` could not be related to a shifted kernel.
+  `LexLeanRuntime.Laws` now states 23 laws over `Nat` and the runtime's
+  `multiply`, `quotient`, `remainder`, and `subtract`, as a document writes
+  them: commutativity, associativity, left commutativity, both distributive
+  laws, distribution over truncated subtraction, the unit and zero on each
+  side, the successor; `nat_mul_le_mul`, `nat_mul_lt_mul_of_pos_right`,
+  `nat_le_of_mul_le_mul_left` and its rewrite form `nat_mul_le_mul_left_iff`;
+  and the quotient and remainder identities by a positive divisor
+  (`nat_mul_div_cancel_left`, `nat_div_div_eq_div_mul`, `nat_mul_div_mul_left`,
+  `nat_div_add_mod`, `nat_mul_mod_left`, `nat_mod_mul_left_div_self`,
+  `nat_add_mul_div_left`, `nat_mod_lt`), each holding for every zero case.
+  Every row's axioms are within `propext`; core's
+  `Nat.mod_mul_right_div_self` depends on `Classical.choice`, so that law is
+  proved without it. A `law` proof applies each by name, and a language-1.2
+  `simplify` rewrites with each by its Lean name (`LexLeanLaws.nat_mul_comm`)
+  and imports the laws module, so a step proved by `linear_arithmetic` with a
+  law's instance as its premise is discharged by `simplify` naming the step
+  and the law. A language-1.2 `simplify` also accepts `Nat.ble_eq` and
+  `Nat.le_refl`. The fold-laws example gains `Arithmetic`, which proves an
+  instance of every law by `law` and another by `simplify` (the cancellation
+  `nat_le_of_mul_le_mul_left` by `law`, its rewrite form by both). The existing 120
+  declarations of the laws module are unchanged, declaration by declaration
+  (`tests/runtime-library/LAWS.md`). The language-1.2 compiler-semantics ID
+  changes. The register is 507.
+
+## 0.4.4
+
+- Every identity LexLean computes, names, or pins is a UOR κ-label on the BLAKE3 σ-axis,
+  `blake3:<64 lowercase hex>` (§21.1): the κ-label uor-addr writes on its `blake3` axis and the
+  address Hologram's store re-derives for the same bytes. The standard library's new certified
+  `LexLeanStd.Blake3` module (production root `blake3Label`) computes it; the crate compiles a
+  committed copy of its export, held byte for byte to the export (`SL-06`), in place of the `sha2`
+  crate, and no hash crate ships. Recipes keep the §21.1 framing on `-v2` domains, and an identity
+  framed into another is framed as its label. Every language's compiler-semantics ID moves, and
+  every format whose accepted bytes change raises its spec (`project/2`, `lock/3` and `/4`,
+  `semantic-snapshot/3` and `/4`, `attestation/3` and `/4`, `build-manifest/2`, and the rest),
+  with `*sha256*` fields renamed `*kappa*`. SHA-256 remains only where a format LexLean does not
+  own requires it, which the new `audit-hashes` (`AR-15`) enforces; `tests/kappa/vectors.json`
+  (`AR-16`) states cross-implementation vectors that an independent generator, the `blake3`
+  crate, and uor-addr reproduce. In WASM the identity hashes about six times faster than the
+  `sha2` crate it replaces.
+- `lexlean lean-modules` prints each module's axiom policies (SPEC.md §22.6,
+  §23.4, `CL-28`). Verification's policy stage now evaluates one table,
+  `lexlean::verify::policy::table`, and the command prints that same table
+  under `axiom_policies`, so a host that elaborates the modules itself holds
+  them to exactly the rules `verify` applies. Each row gives the declaration,
+  its policy kind and axioms, and its rule: `document`, `core`, `semantic`,
+  `model` with the generated declarations it governs, or `runtime`. Stage 11
+  keeps its diagnostics and attestation rows byte for byte. No language
+  identity moves; the register is 502.
+- `lexlean lean-modules [--all | INPUT...]` prints the Lean modules a build
+  of a selection elaborates (SPEC.md §23.4, `CL-27`). It renders the build as
+  `build` does and publishes nothing, so it takes no lock and writes nothing,
+  and the executable built for `wasm32-wasip1`, where `build` is refused,
+  prints the native bytes. Human mode writes one canonical
+  `lexlean/lean-modules/1` document: the manifest's compiler, language, Lean
+  toolchain, and source, semantic, and build IDs, then every module in the
+  order verification elaborates it, the shipped text-laws and runtime modules
+  the project imports first, each with its Lean module name, exact text, and
+  κ-label. A project module's text is the file `build` writes under that build
+  ID, byte for byte. JSON mode writes `check`'s command result named
+  `lean-modules` with the build ID. A host with Lean and no file lock, such as
+  a browser worker, can now elaborate exactly what native LexLean generates.
+  On `wasm32-wasip1` the printer of a native core module now runs on the
+  instance's one stack instead of a thread WASI cannot start, which refused
+  `examples/uor-atlas` with `LLS8002`; no native output changes. No language
+  identity moves; the register is 501.
+- `lexlean snapshot [--all | INPUT...]` writes the semantic snapshot of a
+  selection (SPEC.md §23.4, `CL-26`). In human mode its stdout is exactly the
+  snapshot's canonical file bytes, the bytes `Engine::snapshot` serializes, so
+  their κ-label is the snapshot ID; in JSON mode it writes the command result
+  `check` writes, named `snapshot`. A project `check` refuses exits and
+  reports as `check` does and prints no snapshot, and the command writes
+  nothing. Since a snapshot holds no path or host data, the executable built
+  for `wasm32-wasip1` prints the native bytes, so a WASI host with no other
+  host, such as a browser worker, can take a model's snapshot. No language
+  identity moves; the register is 500.
+- A release tag publishes what a browser prover loads (SPEC.md §7, §30.3,
+  `RP-20`). `lexlean-<version>-lean-wasm.tar.gz` holds the `.olean`,
+  `.olean.server`, `.olean.private`, `.ir`, and `.ilean` files of every runtime
+  module, built by the pinned Lean from the Lake package that the new
+  `cargo xtask runtime-package` writes. It also holds the WASM prover's driver,
+  now committed under `lean/wasm-prover/driver/` from foundry `43b66b26d38b`
+  byte for byte. `lexlean-<version>.wasm.gz` is the `wasm32-wasip1` executable
+  without `production-data`. Each is built twice and refused unless the two
+  builds agree. `lean-wasm.json` labels every file by the BLAKE3 κ of its raw
+  bytes, with the commit and the Lean version. CI builds the driver and the
+  runtime package in `RP-20`. No language identity moves; the register is 503.
+- An Atlas shard of the gate drops the part it uploaded in an earlier attempt
+  of its run before it runs (SPEC.md §9.4, `RP-14`). "Re-run all jobs"
+  downloaded that part with the rest, and the shard refused the non-empty
+  directory (`LLI9001`), so a gate could be recovered only by a new dispatch.
+- Arrays of fixed-width integers (SPEC.md §17.12, *Arrays*, `SM-39`; no new
+  diagnostic code; changes the language-1.2 identity). Language 1.2 gains the
+  type `array{element: T}` over one fixed-width integer type, lowered to the
+  pinned Lean's `Array`; `length` and `index` apply to it, and the primitives
+  `array_from_list`, `array_to_list`, and `array_set` convert it to and from
+  the list of its elements and replace one element, an offset at or past the
+  length leaving the array as it is. The runtime gains a native module,
+  `LexLeanRuntime.Arrays`: the two instances, the three primitives, and nine
+  laws that relate an array to its list, every row within `propext`
+  (`tests/runtime-library/ARRAYS.md`). A `law` proof now imports the module
+  that states its law, so a module that applies an array law does not import
+  `LexLeanRuntime.Laws`. `examples/arrays` proves, for all arrays, that an
+  int8 dot product computed by index equals its definition on lists, and that
+  a rectification written in place keeps the length. The array type and its
+  primitives are formal-only for production (§17.13): a root that reaches one
+  is `LLT4005`. That the pinned Lean writes a singly referenced array in place
+  is cited (`LEAN-ARRAY-4-32-2`), not established here. The design and the
+  decisions left to the owners are in `docs/proposals/verified-arrays.md`.
+  The register is 499 IDs.
+- Each push to a release line is merged forward by `forward.yml` (SPEC.md §9.4, `RP-14`):
+  the push is merged into the next line on `forward/vXY-to-vX(Y+1)-<head8>`, a conflict in a
+  generated projection or a lock takes the next line's side for `regenerate.yml` to rewrite,
+  SPEC.md and register changes of a line without `spec/` are carried into the next line's
+  modules by `cargo xtask spec port --register`, and any other conflict opens the pull
+  request as a draft naming its paths, an authored writer input such as an export's
+  `roots.json` among them. A newer push closes an older forward pull request only when its
+  branch holds nothing but the workflow's merge and regeneration, and only once the new one
+  is open; one with work finished by hand stays open and is linked.
+- CI runs the macOS AArch64 host's tests in lanes, as it does Windows' (SPEC.md §8.3): five lanes on `macos-15`,
+  the four conformance lanes of `.github/intel-host-lanes.json` and the `producer` lane, joined on
+  `ubuntu-24.04` under the unchanged context `build and non-Lean tests (aarch64-apple-darwin)`,
+  which passes only when the lanes' executed tests equal the host's listing, each once. The single
+  macOS AArch64 job took about 104 minutes. Linux AArch64 keeps its one `cargo test`.
+- At most one of BS-05..BS-08 per 10 GiB of the host's memory runs at a time
+  in one test process (no SPEC, language, or identity change), so a 16 GiB host
+  runs them one at a time. Each checks its own copy of the bootstrap project:
+  on a 16 GiB host BS-07 alone peaks at 4.4 GiB, and BS-05 with BS-07, like
+  the four together, was OOM-killed. The 16 GiB aarch64 runner lost the
+  `build and non-Lean tests (aarch64-unknown-linux-gnu)` job while the four
+  ran together. A waiting case is not timed.
+
+- `linear_arithmetic` decides a first-match chain of many conditions (`PF-26`,
+  SPEC.md §17.12). The fold laws gain `LexLeanLaws.ite_eq_iff`, an `if` equal
+  to a value read as the disjunction of its branches with their conditions.
+  The fixed script becomes the first alternative of a `first`; the second
+  repeats it with `ite_eq_iff` and `and_false, false_and, or_false, false_or,
+  not_false_eq_true, not_true_eq_false`, which drop each branch whose
+  condition is decided. Before, the script's `repeat' split` exhausted the
+  simplifier's step bound on a chain of more than about ten conditions and
+  `omega` failed: a fourteen-rule decision (a state machine's transition
+  table, a policy's rules) could not be proved. A proof the fixed script
+  already closes keeps its proof term and its axioms. The fold-laws example
+  carries a fourteen-condition `band` with theorems on its top and middle
+  bands. The language-1.2 compiler-semantics ID changes. The register is 509
+  IDs.
+
+## 0.4.3
+
+- A semantic module nests as deeply as the project's `max_scope_depth` allows
+  (SPEC.md §17.17, §17.21.3, `SM-12`; no new diagnostic code; no language
+  identity moves). The front end read a module's JSON with a fixed 128-level
+  limit and its notation with a fixed 256-level one, so a list of more than
+  about 122 elements was refused, and past about 115 the semantic snapshot
+  panicked writing its own bytes. Both readers now take the project's bound
+  on the compile thread's stack, and every later reading of what the linker
+  admitted (rendering, declaration IDs, the snapshot and its canonical bytes)
+  reads to the same depth on a stack sized for it: a list of 1000 elements
+  checks, builds, verifies, and has a snapshot. Past the bound the notation is
+  `LLP2001` and the data `LLT4001`, each naming `max_scope_depth`. The
+  authoring API (`lexlean::sdk`) reads, converts, and writes a semantic module
+  to 1024 levels, the default `max_scope_depth`, on a stack of its own, where
+  it read the notation to 256 and the JSON to 128 on its caller's. A module
+  within the old limits reads, renders, and hashes to the same bytes as
+  before. This reverses the decision of #375 to keep the 128-level limit.
+  The register is unchanged.
+- `lexlean check` builds and runs on `wasm32-wasip1`, #494 (SPEC.md §8.3,
+  `CL-25`). WASI has no threads, no file lock, and no processes: the check
+  pipeline runs on the instance's stack, a command that changes the project
+  is refused with `LLV7010` before it touches it, and the compiler-semantics
+  digest reads its files on the one thread. A file's identity there is the
+  device and inode WASI reports, read through `rustix`, so `LLC0104` still
+  refuses one file under two names; `fs4` and `same-file` are dependencies of
+  the other targets only. The executable is linked there with the 80 MiB
+  stack the depth plan assumes (`config::WASI_STACK_BYTES`, read by
+  `build.rs` and the plan alike), so deep input is `LLS8002` on WASI too, at a
+  hosted depth of 1,024. Native code is unchanged but
+  for the digest's reader, which reads on the calling thread when no thread
+  can be had. `CL-25` builds the target and compares it with the native
+  executable under Node's `node:wasi`; the register is 494.
+- Breaking security update: replace the single Lean 4.32.1 pin with
+  `leanprover/lean4:v4.32.2`, source commit
+  `f3b06c705e6c85f5314019d5d3baab0fec5b580c` (SPEC.md §8.2). The
+  [upstream point release](https://lean-lang.org/doc/reference/latest/releases/v4.32.2/)
+  fixes the nested-inductive kernel soundness issue
+  [leanprover/lean4#14576](https://github.com/leanprover/lean4/issues/14576).
+  All three compiler-semantics identities change; projects and generated
+  evidence must be regenerated under the new pin. The older toolchain is
+  refused. Historical evidence and frozen language-1.0/1.1 runtime text
+  retain their original bytes. This is a patch migration, not the separate
+  Lean 4.33.1 feature upgrade. The differential oracle's pinned commit names
+  4.32.1 and upstream has none naming 4.32.2, so its pin gains the optional
+  `source_lean_toolchain` (an exactly named earlier patch release, built with
+  the pinned Lean; SPEC.md §17.19).
+
+- Intel macOS runs on the line, not on every pull request (SPEC.md §8.3,
+  §9.4). The repository has about one hosted Intel runner and the host's
+  workload takes about three hours of it, so pull requests queued six hours
+  and more for it. `ci-plan.sh` writes `intel`: a ready pull request into a
+  release line runs the whole gate without the Intel construction, lanes and
+  aggregate, unless its head is a release cut (`cut/v*`) or its base is
+  `main`; a push and a request run them. A push landing a tree whose pull
+  request run passed every job but the skipped Intel jobs runs honesty and the
+  Intel jobs only. Such a run never counts as the whole gate for the plan, a
+  dispatch or `release-gate.sh`, so a tag's evidence is still one run with
+  every host. `RP-14` and `RP-18` pin the new cases.
+
+- `AU-01` reads the committed corpus one module at a time (SPEC.md §9.4). It
+  collected every semantic module of the repository as a value before checking
+  any, and the corpus holds modules of tens of megabytes, so the case alone
+  peaked at 11.2 GiB of resident memory in a debug test process. The
+  `bdd-verification` leg runs it on four test threads beside `AU-08`, `AU-09`
+  and the Lean processes of `NE-01` and the `VR` cases on a 16 GB runner, and
+  the leg intermittently exhausted memory and swap and lost the runner, failing
+  whichever case was running then. The case checks the same modules with the
+  same assertions; each is dropped once checked.
+
 - Canonical JSON refuses duplicate keys that differ only in their escapes (SPEC.md §21.7,
   `AR-11`, #475). The duplicate check compared each key as written, so `{"a":1,"\u0061":2}`
   passed it and `Json::parse` returned `{"a":2}`, dropping the first member; keys are now
@@ -340,8 +676,25 @@ and Unreleased holds what has landed since.
   A release is cut by pushing the line's head to `cut/vX.Y.Z`: `cut.yml` runs
   the new `cargo xtask bump-version X.Y.Z` (every site of the workspace
   version, the changelog's `## Unreleased` heading, and `Cargo.lock`), opens the
-  pull request, and regenerates it; `tag.yml` tags the merge once its gate
-  passes, dispatches `release.yml`, and opens the pull request into `main`.
+  pull request, regenerates it, waits for the gate on the regenerated head,
+  merges the pull request at that head, and calls `tag.yml`, which tags the
+  merge, dispatches `release.yml`, and opens the pull request into `main`; no
+  person merges a cut. `tag.yml` still tags a person's merge of a cut, and
+  accepts the run that verified a merged head's tree without waiting for the
+  merge's own.
+- The whole gate verifies the bootstrap project once (SPEC.md §9.4). The
+  `bootstrap export` job, whose export already verified it whole through the
+  `examples` recipe's own `verify`, is now that project's part of the recipe:
+  `export-bootstrap` formats, locks, checks and builds a clean copy first and
+  then holds the export's verified directory to the recipe's checks (no
+  telemetry, records equal to `bootstrap/expected/verify`). The `examples` leg
+  runs `without:uor-atlas,bootstrap` and no longer spends about 53 minutes
+  verifying the project a second time; `LEXLEAN_EXAMPLES_PART=without:` takes
+  a comma-separated list. `RP-14` pins the job's assertion and the leg's.
+- The Intel and Windows aggregates no longer run in a run that was cancelled
+  (a newer push to the pull request), so a superseded head no longer reports
+  a failed host context; they still run after a failed or cancelled lane of a
+  run that goes on (SPEC.md §8.3, `RP-14`).
 - Decision regions (SPEC.md §17.12, `PF-24`, UOR-Foundation/PrismPM#605; no
   new diagnostic code; changes the language-1.2 identity). The runtime gains a
   sixth native module, `LexLeanRuntime.Regions`: a checker of local box
@@ -369,7 +722,6 @@ and Unreleased holds what has landed since.
   feature disables a normative capability. A default build is unchanged.
   A landing that moves the language-1.2 ID now also updates the constant;
   `RP-10` names the new value when it is stale.
-
 - `RB-24`, the driver of a command root (#271). A `rust-std` root of the type of a
   command's step gets `src/main.rs` beside `src/lib.rs`: a loop, printed from the
   new language-1.2 module `RuntimeHost`, that calls the step and carries out each

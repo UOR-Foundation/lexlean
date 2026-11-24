@@ -4,7 +4,7 @@
 use std::collections::BTreeMap;
 
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::ir::core::CoreModule;
 use crate::ir::declaration::Declaration;
 use crate::ir::semantic::SemanticModule;
@@ -94,8 +94,8 @@ pub struct DocumentModule {
     pub lean_module: String,
     /// The project-relative source path.
     pub source_path: String,
-    /// SHA-256 of the normalized source.
-    pub source_sha256: Sha256Digest,
+    /// κ-label of the normalized source.
+    pub source_kappa: Kappa,
     /// The source package the module belongs to (SPEC.md §10.5), absent for
     /// a module of the project itself.
     pub origin: Option<String>,
@@ -251,7 +251,9 @@ impl DocumentModule {
         if let Some(semantic) = &self.semantic {
             fields.push((
                 "semantic",
-                Json::parse(
+                // As deep as the linker admitted it (`max_scope_depth`), which
+                // can be beyond the bounded reader's 128 levels.
+                Json::parse_unbounded(
                     &serde_json::to_vec(semantic)
                         .expect("semantic module serializes to canonical JSON domain"),
                 )

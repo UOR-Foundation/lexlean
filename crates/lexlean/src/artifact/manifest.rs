@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 
 /// One input or output row: kind, stable `/`-separated path, size, hash.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -15,8 +15,8 @@ pub struct FileRow {
     pub path: String,
     /// Exact byte length.
     pub byte_length: usize,
-    /// SHA-256 of the bytes.
-    pub sha256: Sha256Digest,
+    /// κ-label of the bytes.
+    pub kappa: Kappa,
 }
 
 impl FileRow {
@@ -25,7 +25,7 @@ impl FileRow {
             ("kind", Json::Str(self.kind.clone())),
             ("path", Json::Str(self.path.clone())),
             ("byte_length", Json::from_usize(self.byte_length)),
-            ("sha256", Json::Str(self.sha256.to_hex())),
+            ("kappa", Json::Str(self.kappa.label())),
         ])
     }
 }
@@ -52,15 +52,15 @@ pub struct BuildManifest {
     /// Compiler crate version.
     pub compiler_version: String,
     /// The embedded compiler-semantics ID.
-    pub semantics_id: Sha256Digest,
+    pub semantics_id: Kappa,
     /// The project name.
     pub project: String,
     /// The source ID.
-    pub source_id: Sha256Digest,
+    pub source_id: Kappa,
     /// The semantic ID.
-    pub semantic_id: Sha256Digest,
+    pub semantic_id: Kappa,
     /// The build ID.
-    pub build_id: Sha256Digest,
+    pub build_id: Kappa,
     /// Selected module names, sorted.
     pub selection: Vec<String>,
     /// Module rows in sorted module order.
@@ -83,23 +83,23 @@ impl BuildManifest {
         let mut o = BTreeMap::new();
         o.insert(
             "spec".to_owned(),
-            Json::Str("lexlean/build-manifest/1".to_owned()),
+            Json::Str("lexlean/build-manifest/2".to_owned()),
         );
         o.insert(
             "compiler".to_owned(),
             Json::object(vec![
                 ("version", Json::Str(self.compiler_version.clone())),
-                ("semantics_id", Json::Str(self.semantics_id.to_hex())),
+                ("semantics_id", Json::Str(self.semantics_id.label())),
             ]),
         );
         o.insert("language".to_owned(), Json::Str(self.language.clone()));
         o.insert("project".to_owned(), Json::Str(self.project.clone()));
-        o.insert("source_id".to_owned(), Json::Str(self.source_id.to_hex()));
+        o.insert("source_id".to_owned(), Json::Str(self.source_id.label()));
         o.insert(
             "semantic_id".to_owned(),
-            Json::Str(self.semantic_id.to_hex()),
+            Json::Str(self.semantic_id.label()),
         );
-        o.insert("build_id".to_owned(), Json::Str(self.build_id.to_hex()));
+        o.insert("build_id".to_owned(), Json::Str(self.build_id.label()));
         o.insert(
             "lean_toolchain".to_owned(),
             Json::Str(crate::LEAN_TOOLCHAIN.to_owned()),

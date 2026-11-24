@@ -38,7 +38,7 @@ pub const CRITERIA: &[(&str, &str)] = &[
     ),
     (
         "semantics-id",
-        "release/compiler-semantics-id.txt is one `<language> <64-hex-digit ID>` line for every language of the §30.3 report, in its order, each ID the compiler-semantics ID compiled into the compiler for that language",
+        "release/compiler-semantics-id.txt is one `<language> <κ-label>` line for every language of the §30.3 report, in its order, each ID the compiler-semantics ID compiled into the compiler for that language",
     ),
     (
         "version-output",
@@ -576,7 +576,7 @@ pub fn check(root: &Path, hidden_tests: &BTreeSet<String>) -> Result<(), Vec<Str
         .map(|language| {
             (
                 (*language).to_owned(),
-                lexlean::compiler_semantics_id_for(language).to_hex(),
+                lexlean::compiler_semantics_id_for(language).label(),
             )
         })
         .collect();
@@ -596,7 +596,7 @@ pub fn check(root: &Path, hidden_tests: &BTreeSet<String>) -> Result<(), Vec<Str
             let mut listed = Vec::new();
             for (index, line) in text.lines().enumerate() {
                 match line.split_once(' ') {
-                    Some((language, id)) if is_hex(id, 64) => {
+                    Some((language, id)) if lexlean::Kappa::parse(id).is_ok() => {
                         match compiled_id(language) {
                             Some(expected) if expected == id => {}
                             Some(expected) => fail(
@@ -620,7 +620,7 @@ pub fn check(root: &Path, hidden_tests: &BTreeSet<String>) -> Result<(), Vec<Str
                     _ => fail(
                         "semantics-id",
                         format!(
-                            "release/compiler-semantics-id.txt line {}: not `<language> <64-hex-digit ID>`",
+                            "release/compiler-semantics-id.txt line {}: not `<language> <κ-label>`",
                             index + 1
                         ),
                     ),

@@ -31,6 +31,11 @@ pub struct Law {
     pub name: String,
     /// The Lean theorem of the laws module it applies.
     pub lean: String,
+    /// The runtime module that declares the theorem, when it is not the
+    /// registry's own: the array laws are declarations of the arrays
+    /// module, so that a module applying one imports that module alone.
+    #[serde(default)]
+    pub module: Option<String>,
     /// The explicit type parameters, in the theorem's binder order.
     pub type_parameters: Vec<String>,
     /// The explicit parameter types, in the theorem's binder order.
@@ -117,4 +122,12 @@ pub fn law(name: &str) -> Result<&'static Law, String> {
         .iter()
         .find(|law| law.name == name)
         .ok_or_else(|| format!("`{name}` is not a registered law"))
+}
+
+/// The registered law whose Lean theorem is `lean`, which `simplify` names
+/// to rewrite with it; `None` when the registry cannot be read or no law has
+/// that theorem.
+#[must_use]
+pub fn law_by_lean(lean: &str) -> Option<&'static Law> {
+    registry().ok()?.laws.iter().find(|law| law.lean == lean)
 }

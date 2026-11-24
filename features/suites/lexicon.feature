@@ -124,7 +124,7 @@ Feature: lexicon
 
   @GL-18 @build
   Scenario: Cross-version package, lexicon, and lock combinations fail closed before backend execution.
-    Given a language 1.1 project importing a language 1.2 lexicon package, a language 1.2 project importing a 1.1 package, and a 1.0 lock tampered to `lexlean/lock/2` and language 1.2
+    Given a language 1.1 project importing a language 1.2 lexicon package, a language 1.2 project importing a 1.1 package, and a 1.0 lock tampered to `lexlean/lock/4` and language 1.2
     When lock, check, `lock --check`, and build run on each project
     Then each package mismatch fails lock with LLC0103 naming both languages
     And the tampered lock fails check and `lock --check` with LLC0102

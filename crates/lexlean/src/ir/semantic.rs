@@ -119,6 +119,14 @@ pub enum SemanticPrimitive {
     /// Language 1.2: the exact value of an unsigned fixed-width integer as a
     /// `Nat`, elaborated in linking as [`Self::ToInt`] is.
     ToNat,
+    /// Language 1.2 (arrays): the array holding the elements of a list, in
+    /// order (§17.12, *Arrays*).
+    ArrayFromList,
+    /// Language 1.2 (arrays): the list of an array's elements, in order.
+    ArrayToList,
+    /// Language 1.2 (arrays): the array with one element replaced; an
+    /// offset at or past the length leaves the array as it is.
+    ArraySet,
 }
 
 impl SemanticPrimitive {
@@ -154,6 +162,19 @@ impl SemanticPrimitive {
                 | Self::LessThan
                 | Self::ToInt
                 | Self::ToNat
+                | Self::ArrayFromList
+                | Self::ArrayToList
+                | Self::ArraySet
+        )
+    }
+
+    /// Whether the operation is one of the array primitives, which the
+    /// runtime module `LexLeanRuntime.Arrays` defines (§17.12, *Arrays*).
+    #[must_use]
+    pub const fn array(self) -> bool {
+        matches!(
+            self,
+            Self::ArrayFromList | Self::ArrayToList | Self::ArraySet
         )
     }
 
@@ -248,6 +269,8 @@ impl SemanticPrimitive {
     const fn language_1_2_construct(self) -> &'static str {
         if self.widening() {
             "widening primitive"
+        } else if self.array() {
+            "array primitive"
         } else {
             "collection primitive"
         }
@@ -311,7 +334,10 @@ impl SemanticPrimitive {
             | Self::GraphTopological
             | Self::LessThan
             | Self::ToInt
-            | Self::ToNat => None,
+            | Self::ToNat
+            | Self::ArrayFromList
+            | Self::ArrayToList
+            | Self::ArraySet => None,
         }
     }
 }
@@ -450,6 +476,10 @@ pub enum SemanticType {
     ContractViolation,
     /// Language 1.2 (reasoning): why a reasoner returned no verified answer.
     ReasoningFailure,
+    /// Language 1.2 (arrays): a sequence of fixed-width integers with
+    /// constant-time indexing, whose value is the list of its elements
+    /// (§17.12, *Arrays*).
+    Array { element: Box<Self> },
 }
 
 /// One explicit declaration parameter.
@@ -1430,7 +1460,7 @@ pub enum SemanticDeclaration {
     Artifact {
         name: String,
         role: ArtifactRole,
-        sha256: String,
+        kappa: String,
         length: u64,
         schema: ArtifactSchema,
         r#type: SemanticType,
@@ -2081,7 +2111,7 @@ impl SemanticDeclaration {
     /// binder renamed positionally in binding order. Alpha-equivalent
     /// definitions share it; any other difference changes it.
     #[must_use]
-    pub fn alpha_identity(&self) -> Option<crate::artifact::content_id::Sha256Digest> {
+    pub fn alpha_identity(&self) -> Option<crate::artifact::content_id::Kappa> {
         let Self::Definition {
             name,
             type_parameters,
@@ -2141,12 +2171,11 @@ impl SemanticDeclaration {
             production: production.clone(),
         };
         let text = serde_json::to_string(&normalized).expect("definition serializes");
-        let canonical = crate::artifact::canonical_json::Json::parse(text.as_bytes())
+        // As deep as the linker admitted the definition (`max_scope_depth`).
+        let canonical = crate::artifact::canonical_json::Json::parse_unbounded(text.as_bytes())
             .expect("serialized definition is JSON")
             .to_canonical_string();
-        Some(crate::artifact::content_id::Sha256Digest::of(
-            canonical.as_bytes(),
-        ))
+        Some(crate::artifact::content_id::Kappa::of(canonical.as_bytes()))
     }
 }
 
@@ -2198,7 +2227,7 @@ fn type_node_count(ty: &SemanticType) -> u64 {
             parameters.iter().map(type_node_count).sum::<u64>() + type_node_count(result)
         }
         SemanticType::Map { key, value } => type_node_count(key) + type_node_count(value),
-        SemanticType::Set { element } => type_node_count(element),
+        SemanticType::Set { element } | SemanticType::Array { element } => type_node_count(element),
         SemanticType::Type
         | SemanticType::Parameter { .. }
         | SemanticType::Nat
@@ -2609,7 +2638,7 @@ fn ignored_member(
 pub fn semantic_module_spec(language: &str) -> Option<&'static str> {
     match language {
         crate::LANGUAGE_1_1 => Some("lexlean/semantic-module/1"),
-        crate::LANGUAGE_1_2 => Some("lexlean/semantic-module/2"),
+        crate::LANGUAGE_1_2 => Some("lexlean/semantic-module/3"),
         _ => None,
     }
 }
@@ -2995,6 +3024,7 @@ impl std::fmt::Display for SemanticType {
             Self::Product { left, right } => return write!(f, "Prod ({left}) ({right})"),
             Self::Map { key, value } => return write!(f, "Map ({key}) ({value})"),
             Self::Set { element } => return write!(f, "Set ({element})"),
+            Self::Array { element } => return write!(f, "Array ({element})"),
             Self::Function { parameters, result } => {
                 f.write_str("(")?;
                 for parameter in parameters {
@@ -3024,6 +3054,7 @@ fn language_1_2_type(ty: &SemanticType) -> Option<&'static str> {
         SemanticType::Function { .. } => Some("function type"),
         SemanticType::Map { .. } => Some("map type"),
         SemanticType::Set { .. } => Some("set type"),
+        SemanticType::Array { .. } => Some("array type"),
         SemanticType::ContractViolation => Some("contract_violation type"),
         SemanticType::ReasoningFailure => Some("reasoning_failure type"),
         SemanticType::Option { value: inner } | SemanticType::List { element: inner } => {
@@ -3644,7 +3675,8 @@ fn type_mentions_parameter(ty: &SemanticType, name: &str) -> bool {
         SemanticType::Parameter { name: parameter } => parameter == name,
         SemanticType::Option { value: inner }
         | SemanticType::List { element: inner }
-        | SemanticType::Set { element: inner } => type_mentions_parameter(inner, name),
+        | SemanticType::Set { element: inner }
+        | SemanticType::Array { element: inner } => type_mentions_parameter(inner, name),
         SemanticType::Result { ok, error }
         | SemanticType::Map {
             key: ok,
@@ -3856,7 +3888,7 @@ impl SemanticModule {
 
 #[derive(Default)]
 struct Environment<'a> {
-    /// Whether the module is language-1.2 data (`lexlean/semantic-module/2`).
+    /// Whether the module is language-1.2 data (`lexlean/semantic-module/3`).
     language_1_2: bool,
     imports: &'a [String],
     types: BTreeMap<String, TypeInfo>,
@@ -3990,6 +4022,9 @@ fn qualify_type(ty: &SemanticType, module: &str) -> SemanticType {
         SemanticType::Map { key, value } => SemanticType::Map {
             key: Box::new(qualify_type(key, module)),
             value: Box::new(qualify_type(value, module)),
+        },
+        SemanticType::Array { element } => SemanticType::Array {
+            element: Box::new(qualify_type(element, module)),
         },
         SemanticType::Set { element } => SemanticType::Set {
             element: Box::new(qualify_type(element, module)),
@@ -4262,6 +4297,11 @@ fn check_type(ty: &SemanticType, env: &Environment<'_>) -> Result<(), String> {
             check_ordered_key(element)?;
             check_type(element, env)
         }
+        SemanticType::Array { element } => {
+            require_language_1_2(env, "array type")?;
+            check_array_element(element)?;
+            check_type(element, env)
+        }
         SemanticType::Named { member, arguments } => {
             check_member(member, env)?;
             for argument in arguments {
@@ -4313,7 +4353,9 @@ fn check_type_parameters(ty: &SemanticType, allowed: &BTreeSet<String>) -> Resul
             check_type_parameters(key, allowed)?;
             check_type_parameters(value, allowed)
         }
-        SemanticType::Set { element } => check_type_parameters(element, allowed),
+        SemanticType::Set { element } | SemanticType::Array { element } => {
+            check_type_parameters(element, allowed)
+        }
         SemanticType::Named { arguments, .. } => {
             for argument in arguments {
                 check_type_parameters(argument, allowed)?;
@@ -4412,7 +4454,9 @@ fn mentions_universe(ty: &SemanticType) -> bool {
             parameters.iter().any(mentions_universe) || mentions_universe(result)
         }
         SemanticType::Map { key, value } => mentions_universe(key) || mentions_universe(value),
-        SemanticType::Set { element } => mentions_universe(element),
+        SemanticType::Set { element } | SemanticType::Array { element } => {
+            mentions_universe(element)
+        }
         SemanticType::Parameter { .. }
         | SemanticType::Nat
         | SemanticType::Bool
@@ -4483,6 +4527,7 @@ fn integer_representation(ty: &SemanticType) -> Option<SemanticInteger> {
         | SemanticType::Function { .. }
         | SemanticType::Map { .. }
         | SemanticType::Set { .. }
+        | SemanticType::Array { .. }
         | SemanticType::ContractViolation
         | SemanticType::ReasoningFailure => return None,
     })
@@ -4609,7 +4654,9 @@ fn mentions_group(ty: &SemanticType, group: &BTreeSet<String>) -> bool {
         SemanticType::Map { key, value } => {
             mentions_group(key, group) || mentions_group(value, group)
         }
-        SemanticType::Set { element } => mentions_group(element, group),
+        SemanticType::Set { element } | SemanticType::Array { element } => {
+            mentions_group(element, group)
+        }
         SemanticType::Type
         | SemanticType::Parameter { .. }
         | SemanticType::Nat
@@ -4673,7 +4720,10 @@ fn classify_occurrence(
             }
             Ok(Occurrence::Absent)
         }
-        SemanticType::Function { .. } | SemanticType::Map { .. } | SemanticType::Set { .. } => {
+        SemanticType::Function { .. }
+        | SemanticType::Map { .. }
+        | SemanticType::Set { .. }
+        | SemanticType::Array { .. } => {
             if mentions_group(ty, group) {
                 return Err(format!(
                     "positivity violation in `{owner}`: a recursive occurrence under a function, map, or set type is not permitted"
@@ -4747,7 +4797,7 @@ fn constructible(
             constructible(left, group, inhabited) && constructible(right, group, inhabited)
         }
         SemanticType::Function { result, .. } => constructible(result, group, inhabited),
-        SemanticType::Map { .. } | SemanticType::Set { .. } => true,
+        SemanticType::Map { .. } | SemanticType::Set { .. } | SemanticType::Array { .. } => true,
         SemanticType::List { .. }
         | SemanticType::Option { .. }
         | SemanticType::Named { .. }
@@ -5196,7 +5246,9 @@ fn holds_function(
         SemanticType::Map { key, value } => {
             holds_function(key, env, visiting) || holds_function(value, env, visiting)
         }
-        SemanticType::Set { element } => holds_function(element, env, visiting),
+        SemanticType::Set { element } | SemanticType::Array { element } => {
+            holds_function(element, env, visiting)
+        }
         SemanticType::Type
         | SemanticType::Parameter { .. }
         | SemanticType::Nat
@@ -5469,7 +5521,8 @@ fn type_children(ty: &SemanticType) -> Vec<&SemanticType> {
         SemanticType::Named { arguments, .. } => arguments.iter().collect(),
         SemanticType::List { element: inner }
         | SemanticType::Option { value: inner }
-        | SemanticType::Set { element: inner } => vec![inner.as_ref()],
+        | SemanticType::Set { element: inner }
+        | SemanticType::Array { element: inner } => vec![inner.as_ref()],
         SemanticType::Result {
             ok: left,
             error: right,
@@ -5600,7 +5653,8 @@ fn family_constructors(
         | SemanticType::ReasoningFailure
         | SemanticType::Function { .. }
         | SemanticType::Map { .. }
-        | SemanticType::Set { .. } => Vec::new(),
+        | SemanticType::Set { .. }
+        | SemanticType::Array { .. } => Vec::new(),
     }
 }
 
@@ -6672,8 +6726,47 @@ fn check_ordered_key(ty: &SemanticType) -> Result<(), String> {
             check_ordered_key(left)?;
             check_ordered_key(right)
         }
-        other @ (SemanticType::Type | SemanticType::Parameter { .. } | SemanticType::Prop | SemanticType::Unit | SemanticType::Bytes | SemanticType::Ordering | SemanticType::Option { .. } | SemanticType::Result { .. } | SemanticType::List { .. } | SemanticType::Named { .. } | SemanticType::Function { .. } | SemanticType::Map { .. } | SemanticType::Set { .. } | SemanticType::ContractViolation | SemanticType::ReasoningFailure) => Err(format!(
+        other @ (SemanticType::Type | SemanticType::Parameter { .. } | SemanticType::Prop | SemanticType::Unit | SemanticType::Bytes | SemanticType::Ordering | SemanticType::Option { .. } | SemanticType::Result { .. } | SemanticType::List { .. } | SemanticType::Named { .. } | SemanticType::Function { .. } | SemanticType::Map { .. } | SemanticType::Set { .. } | SemanticType::ContractViolation | SemanticType::ReasoningFailure | SemanticType::Array { .. }) => Err(format!(
             "type {other} has no canonical order and cannot key a map, set, or graph: its iteration order would be unspecified"
+        )),
+    }
+}
+
+/// §17.12 (arrays): an array holds values of one fixed-width integer type.
+/// Every other element type is refused, so that an array is always a flat
+/// sequence of machine integers and never a container of containers.
+fn check_array_element(ty: &SemanticType) -> Result<(), String> {
+    match ty {
+        SemanticType::Int8
+        | SemanticType::Int16
+        | SemanticType::Int32
+        | SemanticType::Int64
+        | SemanticType::UInt8
+        | SemanticType::UInt16
+        | SemanticType::UInt32
+        | SemanticType::UInt64 => Ok(()),
+        other @ (SemanticType::Type
+        | SemanticType::Parameter { .. }
+        | SemanticType::Nat
+        | SemanticType::Bool
+        | SemanticType::Prop
+        | SemanticType::Unit
+        | SemanticType::Int
+        | SemanticType::String
+        | SemanticType::Bytes
+        | SemanticType::Ordering
+        | SemanticType::Option { .. }
+        | SemanticType::Result { .. }
+        | SemanticType::List { .. }
+        | SemanticType::Named { .. }
+        | SemanticType::Product { .. }
+        | SemanticType::Function { .. }
+        | SemanticType::Map { .. }
+        | SemanticType::Set { .. }
+        | SemanticType::ContractViolation
+        | SemanticType::ReasoningFailure
+        | SemanticType::Array { .. }) => Err(format!(
+            "type {other} cannot be the element of an array: an array holds one fixed-width integer type (Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, or UInt64)"
         )),
     }
 }
@@ -7512,6 +7605,9 @@ fn substitute_type(
         SemanticType::Set { element } => SemanticType::Set {
             element: Box::new(substitute_type(element, substitutions)),
         },
+        SemanticType::Array { element } => SemanticType::Array {
+            element: Box::new(substitute_type(element, substitutions)),
+        },
         SemanticType::Type
         | SemanticType::Nat
         | SemanticType::Bool
@@ -7703,18 +7799,23 @@ fn infer_primitive(
         P::Length => {
             if !matches!(
                 first,
-                SemanticType::List { .. } | SemanticType::Bytes | SemanticType::String
+                SemanticType::List { .. }
+                    | SemanticType::Bytes
+                    | SemanticType::String
+                    | SemanticType::Array { .. }
             ) {
-                return Err("primitive Length requires list, bytes, or string".to_owned());
+                return Err("primitive Length requires list, bytes, string, or array".to_owned());
             }
             require_observed(arguments, core::slice::from_ref(&first), operation)?;
             exact_result(SemanticType::Nat)
         }
         P::Index => {
             let element = match &first {
-                SemanticType::List { element } => element.as_ref().clone(),
+                SemanticType::List { element } | SemanticType::Array { element } => {
+                    element.as_ref().clone()
+                }
                 SemanticType::Bytes => SemanticType::UInt8,
-                _ => return Err("primitive Index requires list or bytes".to_owned()),
+                _ => return Err("primitive Index requires list, bytes, or array".to_owned()),
             };
             require_observed(arguments, &[first, SemanticType::Nat], operation)?;
             exact_result(SemanticType::Option {
@@ -8039,6 +8140,46 @@ fn infer_primitive(
             require_observed(arguments, core::slice::from_ref(&first), operation)?;
             exact_result(SemanticType::Nat)
         }
+        // §17.12 (arrays). An array is the list of its elements: the two
+        // conversions are inverse, and a write is total, so that every law
+        // about it is an equation and none carries an `Option`.
+        P::ArrayFromList => {
+            let SemanticType::List { element } = &first else {
+                return Err(format!(
+                    "primitive ArrayFromList requires a list, not {first}"
+                ));
+            };
+            check_array_element(element)?;
+            let array = SemanticType::Array {
+                element: element.clone(),
+            };
+            require_observed(arguments, core::slice::from_ref(&first), operation)?;
+            exact_result(array)
+        }
+        P::ArrayToList => {
+            let SemanticType::Array { element } = &first else {
+                return Err(format!(
+                    "primitive ArrayToList requires an array, not {first}"
+                ));
+            };
+            let list = SemanticType::List {
+                element: element.clone(),
+            };
+            require_observed(arguments, core::slice::from_ref(&first), operation)?;
+            exact_result(list)
+        }
+        P::ArraySet => {
+            let SemanticType::Array { element } = &first else {
+                return Err(format!("primitive ArraySet requires an array, not {first}"));
+            };
+            let element = element.as_ref().clone();
+            require_observed(
+                arguments,
+                &[first.clone(), SemanticType::Nat, element],
+                operation,
+            )?;
+            exact_result(first)
+        }
     }
 }
 
@@ -8286,7 +8427,8 @@ fn branch_binder_types(
         | SemanticType::Ordering
         | SemanticType::Function { .. }
         | SemanticType::Map { .. }
-        | SemanticType::Set { .. }) => {
+        | SemanticType::Set { .. }
+        | SemanticType::Array { .. }) => {
             return Err(format!("cannot pattern match value of type {other}"));
         }
     })
@@ -8862,11 +9004,23 @@ fn check_proof(
                         definition.name.as_str(),
                         "Bool.and_eq_true" | "Nat.beq_eq" | "Nat.blt_eq"
                     );
+                // Language 1.2 adds the `<=` bridge and its reflexivity, and
+                // every registered law, named by its Lean name, as a rewrite
+                // the law module states (§17.12, *Fold laws*).
+                let bridge_1_2 = definition.module.is_none()
+                    && matches!(definition.name.as_str(), "Nat.ble_eq" | "Nat.le_refl");
+                let registered_law =
+                    definition.module.is_none() && laws::law_by_lean(&definition.name).is_some();
+                if bridge_1_2 || registered_law {
+                    require_language_1_2(env, &format!("simplify with {}", definition.name))?;
+                }
                 let local_hypothesis = definition.module.is_none()
                     && locals.get(&definition.name) == Some(&SemanticType::Prop);
                 if function_info(definition, env).is_none()
                     && !env.proof_rules.contains_key(&member_key(definition))
                     && !builtin_bridge
+                    && !bridge_1_2
+                    && !registered_law
                     && !local_hypothesis
                 {
                     return Err(format!(
@@ -9459,10 +9613,15 @@ fn elimination_binder_types(
     Ok(expected)
 }
 
+/// The nesting [`SemanticModule::parse`] reads, which is serde's own: deep
+/// enough for any module a default thread's stack can decode, debug or not.
+pub const DEFAULT_SEMANTIC_JSON_DEPTH: u64 = 127;
+
 impl SemanticModule {
     /// Decode canonical JSON and enforce all conservative semantic checks.
     /// `module_prefix` is the project's Lean module prefix, under which the
-    /// backend names every imported declaration.
+    /// backend names every imported declaration. The data may nest
+    /// [`DEFAULT_SEMANTIC_JSON_DEPTH`] levels; see [`Self::parse_bounded`].
     pub fn parse(
         text: &str,
         language: &str,
@@ -9471,17 +9630,44 @@ impl SemanticModule {
         imported_modules: &BTreeMap<String, &Self>,
         artifacts: &model::ArtifactStore,
     ) -> Result<Self, SemanticFailure> {
-        let module: Self = serde_json::from_str(text).map_err(|error| {
-            // The notation has already become JSON, so serde's coordinates
-            // cannot locate the offending term in the authored source.
-            if error.to_string().starts_with("recursion limit exceeded") {
-                "invalid semantic-module JSON: recursion limit exceeded (128-level semantic JSON bound); split long lists into smaller definitions joined by `prim append`".to_owned()
-            } else {
-                format!("invalid semantic-module JSON: {error}")
-            }
-        })?;
-        let canonical =
-            crate::artifact::canonical_json::Json::parse(text.as_bytes())?.to_canonical_string();
+        Self::parse_bounded(
+            text,
+            language,
+            module_prefix,
+            imports,
+            imported_modules,
+            artifacts,
+            DEFAULT_SEMANTIC_JSON_DEPTH,
+        )
+    }
+
+    /// [`Self::parse`] with the data nesting at most `max_depth` levels (the
+    /// linker passes `max_scope_depth` as the compile thread's stack hosts
+    /// it, §25.5). The decoder recurses once per level, so the caller decodes
+    /// on a stack sized for `max_depth`.
+    pub fn parse_bounded(
+        text: &str,
+        language: &str,
+        module_prefix: &str,
+        imports: &[String],
+        imported_modules: &BTreeMap<String, &Self>,
+        artifacts: &model::ArtifactStore,
+        max_depth: u64,
+    ) -> Result<Self, SemanticFailure> {
+        // Measured without recursing, so data too deep for the stack is
+        // refused before anything recurses on it. The notation has already
+        // become JSON, so no coordinate of it locates the term in the source.
+        let depth = crate::production::lower::json_depth(text);
+        if u64::try_from(depth).map_or(true, |depth| depth > max_depth) {
+            return Err(format!(
+                "invalid semantic-module JSON: nests {depth} levels, more than the {max_depth} that max_scope_depth allows; a list of n elements nests about n levels, so raise max_scope_depth or split long lists into smaller definitions joined by `prim append`"
+            )
+            .into());
+        }
+        let module: Self = crate::artifact::canonical_json::from_str_unbounded(text)
+            .map_err(|error| format!("invalid semantic-module JSON: {error}"))?;
+        let canonical = crate::artifact::canonical_json::Json::parse_unbounded(text.as_bytes())?
+            .to_canonical_string();
         if canonical != text {
             return Err("semantic-module JSON is not canonical".to_owned().into());
         }
@@ -9490,8 +9676,9 @@ impl SemanticModule {
         // member must survive into the typed value, except an explicitly
         // written default (an empty list or `false`) that serialization
         // omits.
-        let source: serde_json::Value = serde_json::from_str(text)
-            .map_err(|error| format!("invalid semantic-module JSON: {error}"))?;
+        let source: serde_json::Value =
+            crate::artifact::canonical_json::from_str_unbounded(text)
+                .map_err(|error| format!("invalid semantic-module JSON: {error}"))?;
         let typed = serde_json::to_value(&module).expect("semantic module serializes");
         if let Some(path) = ignored_member(&source, &typed, "$") {
             return Err(format!(
@@ -10446,7 +10633,7 @@ mod family_order_tests {
 
     /// `A | c1 : List (Option A) -> List A -> A | c2 : Option (List A) -> A * A -> A
     /// | c3 : Result A Nat -> A`: the motives of the recursor the pinned Lean
-    /// 4.32.1 generates for it are, in order, `A`, `List (Option A)`,
+    /// 4.32.2 generates for it are, in order, `A`, `List (Option A)`,
     /// `List A`, `Option (List A)`, `A * A`, `Except Nat A`, `Option A`
     /// (checked with `#check @A.rec`): the maximal nested applications of the
     /// fields of `A`'s constructors in field order, and only then those found

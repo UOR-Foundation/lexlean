@@ -703,7 +703,7 @@ definition{
   name: sourceLine,
   parameters: [out : LexLeanStd.Buffer::Buffer, pin : ToolingAst::Pin],
   result: LexLeanStd.Buffer::Buffer,
-  body: (plainLine out (putS (putB (putS (putB (putS (lineBuffer out) "Source: ") (project pin file)) " (") (project pin sha256)) ")")),
+  body: (plainLine out (putS (putB (putS (putB (putS (lineBuffer out) "Source: ") (project pin file)) " (") (project pin kappa)) ")")),
   axioms: [Quot.sound, propext],
   executable: true
 }

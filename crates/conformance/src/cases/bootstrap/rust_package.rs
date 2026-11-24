@@ -34,12 +34,12 @@ const CAPACITY: usize = 1 << 24;
 /// bytes. Under rustc every library is rendered.
 const EVALUATOR_LIBRARY: usize = 16_384;
 
-const MANIFESTS: usize = 349;
-const ACCEPTED: usize = 330;
-const HEADER_RULES: usize = 182;
+const MANIFESTS: usize = 379;
+const ACCEPTED: usize = 360;
+const HEADER_RULES: usize = 186;
 const RENDER_RULES: usize = 137;
 const HEADER_MUTANTS: usize = 2_000;
-const RENDER_MUTANTS: usize = 330;
+const RENDER_MUTANTS: usize = 360;
 const EVALUATOR_RENDERS: usize = 241;
 
 fn nat(value: usize) -> Value {
@@ -229,11 +229,11 @@ type Files = (Vec<u8>, Vec<u8>);
 type Reshape = Box<dyn Fn(&mut Scaffold)>;
 
 fn sha256(data: &[u8]) -> String {
-    lexlean::Sha256Digest::of(data).to_hex()
+    lexlean::Kappa::of(data).label()
 }
 
 fn semantics() -> String {
-    lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_2).to_hex()
+    lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_2).label()
 }
 
 fn runtime_text(std: bool) -> String {
@@ -351,7 +351,7 @@ fn accepted(manifest: &Manifest) -> Option<(Render, Files)> {
         name: manifest.name.clone(),
         version: manifest.version.clone(),
         std: manifest.profile == "rust-std",
-        program: manifest.program.id().expect("an accepted program").to_hex(),
+        program: manifest.program.id().expect("an accepted program").label(),
         sources: manifest.sources.clone(),
         effects: manifest.effects.clone(),
         exports: manifest
@@ -431,21 +431,23 @@ const VERSIONS: &[&str] = &[
 ];
 const PROFILES: &[&str] = &["rust-std", "rust-core", "rust-wasm", "", "rust-Std", "std"];
 const SPECS: &[&str] = &[
-    "lexlean/rust-package/1",
     "lexlean/rust-package/2",
+    "lexlean/rust-package/9",
     "",
-    "lexlean/rust-provenance/1",
+    "lexlean/rust-provenance/2",
 ];
 const SOURCES: &[&str] = &[
-    "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
-    "1111111111111111111111111111111111111111111111111111111111111111",
-    "0000000000000000000000000000000000000000000000000000000000000000",
-    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-    "09D5F3630D4F28017017DA9DF6A1032805F8848C3BB64AA228C953FD1534D028",
-    "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d02",
-    "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d0280",
-    "g9d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
+    "blake3:09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
+    "blake3:1111111111111111111111111111111111111111111111111111111111111111",
+    "blake3:0000000000000000000000000000000000000000000000000000000000000000",
+    "blake3:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "blake3:09D5F3630D4F28017017DA9DF6A1032805F8848C3BB64AA228C953FD1534D028",
+    "blake3:09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d02",
+    "blake3:09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d0280",
+    "blake3:g9d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
     "",
+    "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
+    "sha256:09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
 ];
 const EFFECTS: &[&str] = &[
     "allocation",
@@ -710,7 +712,7 @@ const PLANTS: [Plant; 21] = [
     Plant {
         label: "the spec is not checked",
         root: 0,
-        site: "(if (same spec (text \"lexlean/rust-package/1\")) then",
+        site: "(if (same spec (text \"lexlean/rust-package/2\")) then",
         replacement: "(if true then",
     },
     Plant {
@@ -728,8 +730,8 @@ const PLANTS: [Plant; 21] = [
     Plant {
         label: "the digests of Cargo.toml and lib.rs are swapped",
         root: 1,
-        site: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Sha256::sha256Hex cargo)) \",\") path (LexLeanStd.Sha256::sha256Hex library))",
-        replacement: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Sha256::sha256Hex library)) \",\") path (LexLeanStd.Sha256::sha256Hex cargo))",
+        site: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Blake3::blake3Label cargo)) \",\") path (LexLeanStd.Blake3::blake3Label library))",
+        replacement: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Blake3::blake3Label library)) \",\") path (LexLeanStd.Blake3::blake3Label cargo))",
     },
     Plant {
         label: "the library path is always src/lib.rs in Cargo.toml",
@@ -1091,8 +1093,8 @@ mod tests {
                     name: format!("render_{length}"),
                     version: "1.2.3".to_owned(),
                     std,
-                    program: "f".repeat(64),
-                    sources: vec!["a".repeat(64)],
+                    program: format!("blake3:{}", "f".repeat(64)),
+                    sources: vec![format!("blake3:{}", "a".repeat(64))],
                     effects: vec!["overflow".to_owned()],
                     exports: vec![("run".to_owned(), 0)],
                     library: (0u8..=255).cycle().take(length).collect(),

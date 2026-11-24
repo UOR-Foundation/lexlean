@@ -1775,17 +1775,11 @@ pub fn run(id: &str) {
                     }
                 }
             }
-            // A semantic module is JSON, and the JSON of the front end nests
-            // at most 128 levels: a chain of 100 `let`s is read (a family
-            // above certifies it) and a chain of 130 is refused, as the
-            // module that is not valid JSON of this reader, before any limit
-            // of this section.
-            let deep = crate::stress::let_chain_default(130);
-            let error = deep.check_fails_with("LLT4001");
-            assert!(
-                error.to_string().contains("recursion limit exceeded"),
-                "{error}"
-            );
+            // A semantic module nests as deeply as the project's
+            // max_scope_depth allows (1024 here; `SM-12` holds the bound): a
+            // chain of 130 `let`s, past the 128 levels of the JSON reader
+            // the front end once had, is read.
+            crate::stress::let_chain_default(130).check_ok();
             if let Some(stress) = stress {
                 let quadratic = stress
                     .join()
@@ -2392,10 +2386,10 @@ pub fn run(id: &str) {
                     )
                     .expect("the published certificate");
                     assert_eq!(
-                        row["sha256"].as_str(),
+                        row["kappa"].as_str(),
                         Some(
-                            lexlean::artifact::content_id::Sha256Digest::of(&text)
-                                .to_hex()
+                            lexlean::artifact::content_id::Kappa::of(&text)
+                                .label()
                                 .as_str()
                         ),
                         "{module}: the record binds the published certificate"
@@ -2403,17 +2397,17 @@ pub fn run(id: &str) {
                     // The program the certificates are about and each target's
                     // crate are published and bound too.
                     let digest = |path: &std::path::Path| {
-                        lexlean::artifact::content_id::Sha256Digest::of(
+                        lexlean::artifact::content_id::Kappa::of(
                             &std::fs::read(path).expect("a published file"),
                         )
-                        .to_hex()
+                        .label()
                     };
                     let index = rows
                         .iter()
                         .position(|candidate| candidate == row)
                         .expect("the row");
                     assert_eq!(
-                        row["program"]["sha256"].as_str(),
+                        row["program"]["kappa"].as_str(),
                         Some(
                             digest(&root.join(format!("preserve/program/R{index}.json"))).as_str()
                         ),
@@ -2422,7 +2416,7 @@ pub fn run(id: &str) {
                     for rendering in row["renderings"].as_array().expect("renderings") {
                         let target = rendering["target"].as_str().expect("a target");
                         assert_eq!(
-                            rendering["crate"]["sha256"].as_str(),
+                            rendering["crate"]["kappa"].as_str(),
                             Some(
                                 digest(&root.join(format!("preserve/crate/R{index}.{target}.rs")))
                                     .as_str()
@@ -2445,10 +2439,10 @@ pub fn run(id: &str) {
                             let text = std::fs::read(root.join("preserve").join(path))
                                 .expect("the published certificate");
                             assert_eq!(
-                                bound["sha256"].as_str(),
+                                bound["kappa"].as_str(),
                                 Some(
-                                    lexlean::artifact::content_id::Sha256Digest::of(&text)
-                                        .to_hex()
+                                    lexlean::artifact::content_id::Kappa::of(&text)
+                                        .label()
                                         .as_str()
                                 ),
                                 "{module}: the record binds the published certificate"
@@ -2461,10 +2455,10 @@ pub fn run(id: &str) {
                 )
                 .expect("attestation JSON");
                 assert_eq!(
-                    attestation["preservation"]["sha256"].as_str(),
+                    attestation["preservation"]["kappa"].as_str(),
                     Some(
-                        lexlean::artifact::content_id::Sha256Digest::of(&record_bytes)
-                            .to_hex()
+                        lexlean::artifact::content_id::Kappa::of(&record_bytes)
+                            .label()
                             .as_str()
                     ),
                     "the attestation binds preservation.json"
@@ -3514,7 +3508,7 @@ pub fn run(id: &str) {
                 let checked = support::checked_project(&project);
                 let limits = support::limits(&project);
                 let linked = linked_modules(&checked);
-                let hex = checked.semantic_id.to_hex()[..32].to_owned();
+                let hex = checked.semantic_id.hex()[..32].to_owned();
                 for (index, root) in roots(&checked).expect("the reports").iter().enumerate() {
                     let lowered =
                         lower_root(&linked, &root.module, &root.name, root.report, &limits)
@@ -3818,7 +3812,7 @@ pub fn run(id: &str) {
                 let checked = support::checked_project(&project);
                 let limits = support::limits(&project);
                 let linked = linked_modules(&checked);
-                let hex = checked.semantic_id.to_hex()[..32].to_owned();
+                let hex = checked.semantic_id.hex()[..32].to_owned();
                 let environment: BTreeSet<String> =
                     lexlean::production::certificate::LIBRARY_MODULES
                         .iter()
@@ -4347,7 +4341,7 @@ pub fn run(id: &str) {
                 let checked = support::checked_project(&project);
                 let limits = support::limits(&project);
                 let linked = linked_modules(&checked);
-                let hex = checked.semantic_id.to_hex()[..32].to_owned();
+                let hex = checked.semantic_id.hex()[..32].to_owned();
                 let environment: BTreeSet<String> =
                     [lexlean::production::rust_cert::SOUNDNESS_MODULE.to_owned()]
                         .into_iter()
@@ -4931,6 +4925,8 @@ pub fn run(id: &str) {
         "SP-32" => super::recursive_argument::run(id),
         // §17.16, §17.17: an arm that returns a boxed field.
         "SP-33" => super::binder_arm::run(id),
+        // §17.12, §17.17: a definition Lean's search would not recurse structurally.
+        "SP-34" => super::wide_recursion::run(id),
         "SP-23" => {
             let syntax = support::module_json(
                 &std::fs::read_to_string(

@@ -23,7 +23,7 @@ use lexlean::calculus::{Expr, Function, Prim, Program, Ty, Value, PROGRAM_SPEC};
 use lexlean::gnaf::{
     ActionKind, Carrier, Charge, ClaimClass, Completeness, Objective, Request, Scope, REQUEST_SPEC,
 };
-use lexlean::Sha256Digest;
+use lexlean::Kappa;
 
 use super::{machine, plan, prim, set_charge, var};
 
@@ -246,7 +246,7 @@ fn request(carrier: Carrier, objective: Objective, claim: ClaimClass) -> Request
         machine: machine(),
         carrier,
         completeness: Completeness::GrammarEquality,
-        universe: Sha256Digest([0; 32]),
+        universe: Kappa::ZERO,
         objective,
         claim,
         scope: Scope::GrammarUniverse,

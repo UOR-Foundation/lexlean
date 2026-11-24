@@ -785,7 +785,7 @@ pub fn audit_atlas_exercise(root: &Path) -> Result<(), Fail> {
 /// `build` claim with a conformance ID, not a `some-true` citation. The check
 /// reads the citation up to its first semicolon --- its primary reference ---
 /// because a legitimate row may go on to name repository fixtures as the
-/// evidence a third party compares against, which `PRINT-AXIOMS-4-32-1` does.
+/// evidence a third party compares against, which `PRINT-AXIOMS-4-32-2` does.
 ///
 /// # Errors
 /// Returns the offending row, or reports the gate armed when no row exists.
@@ -851,6 +851,18 @@ pub fn audit_oracle_isolation(root: &Path) -> Result<(), Fail> {
         "audit-oracle-isolation: {} files in {} roots name no part of the oracle (R2, §17.19)",
         scanned.files,
         scanned.per_root.len()
+    );
+    Ok(())
+}
+
+/// AR-15 (§21.1): every identity is a BLAKE3 κ-label, and the 256-bit SHA-2
+/// digest appears only where a format LexLean does not own requires it
+/// (`repo_model::hashes`, shared with the case that plants each defect).
+pub fn audit_hashes(root: &Path) -> Result<(), Fail> {
+    let files = repo_model::hashes::scan(root)?;
+    println!(
+        "audit-hashes: {files} files hold no SHA-2 digest outside the {} sanctioned external formats (AR-15)",
+        repo_model::hashes::ALLOWED.len()
     );
     Ok(())
 }

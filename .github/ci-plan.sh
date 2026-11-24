@@ -6,8 +6,9 @@
 #   manually dispatched draft honesty then the `rest` leg: a nonqualifying signal
 #   pull request, ready, base honesty then the `rest` leg only, the same signal: only a pull
 #   not main or release/*     request into a line can land on it
-#   pull request, ready, base the whole gate
-#   main or release/*
+#   pull request, ready, base the whole gate, without the Intel macOS jobs
+#   main or release/*         unless the head is a release cut (`cut/v*`) or
+#                             the base is `main`
 #   workflow_dispatch on the  planned as that pull request, by the rows above
 #   head branch of one open   (`regenerate.yml` dispatches this after it
 #   pull request              commits to the head)
@@ -17,7 +18,9 @@
 #                             tree is the tree of its second parent and the
 #                             whole gate passed on that parent as a pull
 #                             request or dispatched run: then nothing, and the run says
-#                             which run verified the tree
+#                             which run verified the tree; or when that run
+#                             passed every job but the Intel macOS jobs it did
+#                             not run, honesty and the Intel jobs only
 #
 # Why: a pull request is pushed to several times before its head is final, a
 # merge of a head that already contains main lands that head's tree
@@ -28,9 +31,18 @@
 # carries the stack into `main` or a release line runs the whole gate on the
 # tree that lands.
 #
+# Intel macOS (§8.3) has about one hosted runner for this repository and the
+# whole of its workload takes about three hours of it, so pull requests that
+# each waited for it queued for six hours and more. A pull request into a line
+# runs every other job and leaves the Intel jobs to the line: the push that
+# lands it runs them on the tree it lands. A release cut, and a pull request
+# into `main`, run them as part of their own gate, so the run a tag's evidence
+# names (`release-gate.sh`) is still one run with every host.
+#
 # Inputs, all from the environment: EVENT, DRAFT, BASE (the base branch of a
-# pull request), REPO, and REF (the branch a dispatch names). The jobs read `full`
-# and `rows` from GITHUB_OUTPUT. `LEXLEAN_CI_ROWS` names the legs file
+# pull request), HEAD (the head branch of a pull request), REPO, and REF (the
+# branch a dispatch names). The jobs read `full`, `rows` and `intel` from
+# GITHUB_OUTPUT. `LEXLEAN_CI_ROWS` names the legs file
 # when a test runs the script elsewhere.
 set -euo pipefail
 
@@ -38,23 +50,59 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/ci-provider-read.sh"
 
 rows_file=${LEXLEAN_CI_ROWS:-.github/vv-rows.json}
+bdd_parts_file=${LEXLEAN_CI_BDD_PARTS:-.github/bdd-parts.json}
 event=${EVENT:?EVENT names the workflow event}
 draft=${DRAFT:-}
 base=${BASE:-}
 repo=${REPO:?REPO names owner/name}
 ref=${REF:-}
+head=${HEAD:-}
 out=${GITHUB_OUTPUT:-/dev/stdout}
 summary=${GITHUB_STEP_SUMMARY:-/dev/null}
 
+# full, rows, and whether the Intel macOS jobs run (default: with the whole gate).
 emit() {
-  printf 'full=%s\nrows=%s\nhonesty=%s\nfanout=%s\n' "$1" "$2" \
+  local classified fast export_rows
+  # Classify from the committed BDD case manifest, never from a fixed prefix
+  # list. Any unrecognized verification partition fails the plan closed.
+  classified=$(jq -cn --argjson rows "$2" --slurpfile manifest "$bdd_parts_file" '
+    def uses_export:
+      if .part == "examples" then
+        if .bdd_part == "" then false else error("examples must not run BDD") end
+      elif .part == "rest" then
+        if .bdd_part == "rest" then false else error("rest BDD part mismatch") end
+      else
+        .bdd_part as $part
+        | if .part != ("bdd-" + $part) then error("unrecognized BDD row")
+          else
+            ($manifest[0].parts[$part] // error("unregistered BDD part")) as $ids
+            | if ($ids | type) != "array" then error("BDD part is not an array")
+              else any($ids[]; startswith("BS-")) end
+          end
+      end;
+    [$rows[] | select(.part != "honesty")] as $work
+    | {fast: [$work[] | select(uses_export | not)],
+       export: [$work[] | select(uses_export)]}
+  ') || return 1
+  fast=$(jq -c .fast <<< "$classified") || return 1
+  export_rows=$(jq -c .export <<< "$classified") || return 1
+  printf 'full=%s\nrows=%s\nhonesty=%s\nfanout=%s\nfanout_fast=%s\nfanout_export=%s\nintel=%s\n' "$1" "$2" \
     "$(jq -c '[.[] | select(.part == "honesty")]' <<< "$2")" \
-    "$(jq -c '[.[] | select(.part != "honesty")]' <<< "$2")" >> "$out"
+    "$(jq -c '[.[] | select(.part != "honesty")]' <<< "$2")" \
+    "$fast" "$export_rows" "${3:-$1}" >> "$out"
 }
 
+# The whole gate; INTEL (default true) says whether its Intel macOS jobs run.
 whole_gate() {
-  emit true "$(jq -c . "$rows_file")"
+  emit true "$(jq -c . "$rows_file")" "${2:-true}"
   printf '%s\n' "$1" >> "$summary"
+}
+
+# A pull request whose run carries the Intel macOS jobs: a release cut, whose
+# run is the evidence of its tag, and a pull request into `main`.
+intel_pull_request() {
+  case "$head" in cut/v*) return 0 ;; esac
+  [ "$base" = main ]
 }
 
 # These are the four auxiliary §8.3 contexts, not the number of matrix rows.
@@ -78,13 +126,52 @@ hosts_passed() {
     }'
 }
 
+# Whether a jobs listing (`name<TAB>conclusion`) is the whole gate without its
+# Intel macOS jobs, passed: every job concluded `success` but those Intel jobs,
+# which were skipped, and the run holds the Intel context exactly once and
+# skipped, the join of Atlas, the three other supported-host contexts exactly
+# once, and every leg of the rows file.
+linux_passed() {
+  local names=$1 part job
+  printf '%s\n' "$names" | awk -F'\t' '
+    $1 == "build and non-Lean tests (x86_64-apple-darwin)" { intel++ }
+    $1 == "Intel test construction and local targets" || $1 ~ /^Intel conformance \(/ \
+      || $1 == "build and non-Lean tests (x86_64-apple-darwin)" {
+      if ($2 != "skipped") bad = 1
+      next
+    }
+    $2 != "success" { bad = 1 }
+    END { exit bad || intel != 1 }' || return 1
+  printf '%s\n' "$names" | grep -xF $'atlas (join)\tsuccess' >/dev/null || return 1
+  printf '%s\n' "$names" | awk -F'\t' '
+    BEGIN {
+      expected["build and non-Lean tests (aarch64-unknown-linux-gnu)"] = 1
+      expected["build and non-Lean tests (aarch64-apple-darwin)"] = 1
+      expected["build and non-Lean tests (x86_64-pc-windows-msvc)"] = 1
+    }
+    /^build and non-Lean tests \(/ {
+      if ($1 == "build and non-Lean tests (x86_64-apple-darwin)") next
+      if (!($1 in expected) || ++seen[$1] != 1 || $2 != "success") bad = 1
+    }
+    END {
+      for (host in expected) if (seen[host] != 1) bad = 1
+      exit bad
+    }' || return 1
+  for part in $(jq -r '.[].part' "$rows_file"); do
+    job="just vv ($part)"
+    [ "$part" != honesty ] || job=honesty
+    printf '%s\n' "$names" | grep -xF "$job"$'\tsuccess' >/dev/null || return 1
+  done
+}
+
 # The id of a pull request run, or a dispatched run, of this workflow on
 # COMMIT that ran every job of the gate and passed every one. A draft run has
 # honesty and the `rest` leg, so it is never one: the run must hold the join of
 # Atlas, every exact supported-host context, and every leg of the rows file,
-# and no job that did not conclude `success`.
+# and no job that did not conclude `success`. With MODE `linux`, a run that
+# passed every job but the Intel macOS jobs it skipped counts as well.
 full_run_of() {
-  local commit=$1 runs id names part parts job
+  local commit=$1 mode=${2:-whole} runs id names part parts job
   # The legs every run must hold. A failed or empty read would make the loop
   # below check nothing and accept any run, so it is no verified run (#603).
   parts=$(jq -r '.[].part' "$rows_file") && [ -n "$parts" ] || return 1
@@ -96,6 +183,10 @@ full_run_of() {
     # every time, so retrying a page of 100 could never read it (#603).
     names=$(ci_provider_read "repos/$repo/actions/runs/$id/jobs?per_page=50" --paginate \
       --jq '.jobs[] | "\(.name)\t\(.conclusion)"') || continue
+    if [ "$mode" = linux ] && linux_passed "$names"; then
+      printf '%s\n' "$id"
+      return 0
+    fi
     if printf '%s\n' "$names" | awk -F'\t' '$2 != "success" { bad = 1 } END { exit bad }' \
       && printf '%s\n' "$names" | grep -xF $'atlas (join)\tsuccess' >/dev/null \
       && printf '%s\n' "$names" | hosts_passed; then
@@ -118,9 +209,9 @@ full_run_of() {
 # release merge lands the regenerated head's tree, and the pull request that
 # carries the line to `main` lands the release merge's.
 verified_tree_run() {
-  local commit=$1 depth=${2:-0}
+  local commit=$1 depth=${2:-0} mode=${3:-whole}
   while :; do
-    if full_run_of "$commit"; then
+    if full_run_of "$commit" "$mode"; then
       return 0
     fi
     [ "$depth" -lt 4 ] || return 1
@@ -135,14 +226,14 @@ verified_tree_run() {
 }
 
 # The verified run of the second parent of HEAD, when HEAD is a merge of that
-# parent with the same tree.
+# parent with the same tree (MODE as for `full_run_of`).
 verified_parent_run() {
   local parent
   parent=$(git rev-parse --verify --quiet 'HEAD^2') || return 1
   [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "$parent^{tree}")" ] || return 1
   # HEAD to its parent is the first of the four merges `release-gate.sh`
   # walks from the tagged commit.
-  verified_tree_run "$parent" 1
+  verified_tree_run "$parent" 1 "${1:-whole}"
 }
 
 # A pull request's run: honesty then `rest` for a draft or a stacked base,
@@ -155,7 +246,11 @@ pull_request_plan() {
     case "$base" in
       # An unknown base is not known to be stacked: the whole gate.
       main | release/* | '')
-        whole_gate 'Pull request ready for review: the whole gate.'
+        if intel_pull_request; then
+          whole_gate 'Pull request ready for review: the whole gate.'
+        else
+          whole_gate 'Pull request ready for review: the whole gate but its Intel macOS jobs, which the push that lands it runs.' false
+        fi
         ;;
       *)
         emit false "$(jq -c '[.[] | select(.part == "honesty" or .part == "rest")]' "$rows_file")"
@@ -185,6 +280,9 @@ case "$event" in
     if run=$(verified_parent_run); then
       emit false '[]'
       printf 'This push merges a head whose tree it equals, and the whole gate passed on that head: run %s of %s. Nothing is run again.\n' "$run" "$repo" >> "$summary"
+    elif run=$(verified_parent_run linux); then
+      emit false "$(jq -c '[.[] | select(.part == "honesty")]' "$rows_file")" true
+      printf 'This push merges a head whose tree it equals, and run %s of %s passed the whole gate on it but the Intel macOS jobs: honesty and the Intel jobs only.\n' "$run" "$repo" >> "$summary"
     else
       whole_gate 'Push: the whole gate.'
     fi
@@ -193,6 +291,7 @@ case "$event" in
     if found=$(dispatched_pull_request); then
       draft=${found%%$'\t'*}
       base=${found#*$'\t'}
+      head=$ref
       printf 'Dispatched on the head of an open pull request into `%s`: planned as that pull request.\n' "$base" >> "$summary"
       # A ready head whose tree a full run already verified (the line a cut
       # carries to `main`) is not verified again.

@@ -622,6 +622,7 @@ const fn fixed(ty: &SemanticType) -> Option<(SemanticInteger, bool, u32)> {
         | SemanticType::Function { .. }
         | SemanticType::Map { .. }
         | SemanticType::Set { .. }
+        | SemanticType::Array { .. }
         | SemanticType::ContractViolation
         | SemanticType::ReasoningFailure => return None,
     })

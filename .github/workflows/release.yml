@@ -233,6 +233,39 @@ jobs:
           path: staged/bin/${{ matrix.target }}/*
           if-no-files-found: error
 
+  # §30.3: the browser prover's assets. The runtime's `.olean` files built by
+  # the pinned Lean, the WASM prover's driver, and the executable for
+  # wasm32-wasip1, each built twice and labelled by the BLAKE3 κ of its raw
+  # bytes in `lean-wasm.json`.
+  lean-wasm:
+    name: browser prover assets
+    needs: identity
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+      - name: Add the WASI target of the pinned toolchain
+        run: rustup target add wasm32-wasip1
+      - name: Install elan and the pinned Lean toolchain
+        run: |
+          set -euo pipefail
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/elan" toolchain install "$(cat lean-toolchain)"
+      - name: Install b3sum
+        run: sudo apt-get update && sudo apt-get install -y b3sum
+      - name: Build and label the assets
+        env:
+          VERSION: ${{ needs.identity.outputs.version }}
+        run: .github/lean-wasm.sh "$VERSION" staged/lean-wasm
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: lean-wasm
+          path: staged/lean-wasm/*
+          if-no-files-found: error
+
   # The GitHub Packages artifact: one image per architecture, built natively,
   # joined into a single multi-architecture tag below.
   image:
@@ -309,7 +342,7 @@ jobs:
   # publish. This is the only job that writes to the repository.
   publish:
     name: publish the release
-    needs: [identity, crate, gate, binaries, manifest]
+    needs: [identity, crate, gate, binaries, manifest, lean-wasm]
     # Only a tag is a release. A manual run has already proved the gate, the
     # binaries, and the image by reaching here.
     if: needs.identity.outputs.tagged == 'true'
@@ -343,6 +376,7 @@ jobs:
             chmod +x "release/bin/$target/"* || true
           done
           cp downloaded/vv-evidence/vv-evidence.txt release/vv-evidence.txt
+          cp downloaded/lean-wasm/* release/
       - name: Generate the software bill of materials
         run: |
           set -euo pipefail
@@ -511,6 +545,16 @@ jobs:
             cat release/checksums.txt
             echo '```'
             echo
+            echo "The browser prover's assets: \`lexlean-${VERSION}-lean-wasm.tar.gz\` holds"
+            echo "the runtime's \`.olean\` files built by the pinned Lean and the WASM prover's"
+            echo "driver, and \`lexlean-${VERSION}.wasm.gz\` the executable for wasm32-wasip1"
+            echo "without \`production-data\`. \`lean-wasm.json\` names every file in them with"
+            echo "the BLAKE3 κ of its raw bytes, the commit, and the Lean version:"
+            echo
+            echo '```text'
+            python3 -c 'import json; d=json.load(open("release/lean-wasm.json")); print("commit", d["lexlean_commit"]); print(d["lean_version"]); [print(f["kappa"], f["asset"] if f["path"] == "lexlean.wasm" else "", f["path"]) for f in d["files"]]'
+            echo '```'
+            echo
             echo "\`release-check.txt\` records what SPEC.md §30 refuses at this version."
             echo "§2.3 names the completion release, the first release satisfying the"
             echo "complete specification; a tag before it does not claim that criterion,"
@@ -534,5 +578,5 @@ jobs:
             release/SPEC.md \
             release/LICENSE-APACHE \
             release/LICENSE-MIT \
-            "release/lexlean-${VERSION}-binaries.tar.gz"
+            "release/lexlean-${VERSION}-binaries.tar.gz" "release/lexlean-${VERSION}-lean-wasm.tar.gz" "release/lexlean-${VERSION}.wasm.gz" release/lean-wasm.json
           echo "published ${GITHUB_REF_NAME} (compiler-semantics ${semantics})"

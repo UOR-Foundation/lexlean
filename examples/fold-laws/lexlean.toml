@@ -1,13 +1,13 @@
-spec = "lexlean/project/1"
+spec = "lexlean/project/2"
 name = "fold-laws"
 language = "1.2"
 module_prefix = "FoldLaws"
 source_roots = ["src"]
-entrypoints = ["src/Guards.lex.tex", "src/Main.lex.tex"]
+entrypoints = ["src/Arithmetic.lex.tex", "src/Guards.lex.tex", "src/Main.lex.tex"]
 build_root = ".lexlean"
 lockfile = "lexlean.lock"
 lean_workspace = "."
-lean_toolchain = "leanprover/lean4:v4.32.1"
+lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[lexicon_source]]
 package = "folds.titles"

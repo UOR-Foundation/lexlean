@@ -17,8 +17,8 @@ public structure LockPackage where
   kind : ByteArray
   origin : ByteArray
   revision : ByteArray
-  treeSha256 : ByteArray
-  manifestSha256 : ByteArray
+  treeKappa : ByteArray
+  manifestKappa : ByteArray
   imports : List (ByteArray)
 
 public structure LockSourcePackage where
@@ -27,15 +27,15 @@ public structure LockSourcePackage where
   kind : ByteArray
   origin : ByteArray
   modulePrefix : ByteArray
-  treeSha256 : ByteArray
-  manifestSha256 : ByteArray
+  treeKappa : ByteArray
+  manifestKappa : ByteArray
   imports : List (ByteArray)
 
 public structure LockPdf where
   program : ByteArray
-  programSha256 : ByteArray
+  programKappa : ByteArray
   versionArgv : List (ByteArray)
-  versionStdoutSha256 : ByteArray
+  versionStdoutKappa : ByteArray
   compileArgv : List (ByteArray)
   output : ByteArray
   resources : List ((Prod (ByteArray) (ByteArray)))
@@ -43,7 +43,7 @@ public structure LockPdf where
 public structure Lock where
   language : ByteArray
   compilerSemantics : ByteArray
-  projectConfigSha256 : ByteArray
+  projectConfigKappa : ByteArray
   workspaceFiles : List ((Prod (ByteArray) (ByteArray)))
   packages : List (LockPackage)
   sourcePackages : List (LockSourcePackage)
@@ -53,7 +53,7 @@ public structure Lock where
 
 @[expose] public def cat (left : ByteArray) (right : ByteArray) : ByteArray := (LexLeanRuntime.append (left) (right) : ByteArray)
 
-@[expose] public def leanToolchain : ByteArray := lit ("leanprover/lean4:v4.32.1")
+@[expose] public def leanToolchain : ByteArray := lit ("leanprover/lean4:v4.32.2")
 
 @[expose] public def upperHex (value : Nat) : ByteArray := LexLeanStd.Numeral.pick (_root_.ByteArray.mk #[(_root_.UInt8.ofNat (nat_lit 48)), (_root_.UInt8.ofNat (nat_lit 49)), (_root_.UInt8.ofNat (nat_lit 50)), (_root_.UInt8.ofNat (nat_lit 51)), (_root_.UInt8.ofNat (nat_lit 52)), (_root_.UInt8.ofNat (nat_lit 53)), (_root_.UInt8.ofNat (nat_lit 54)), (_root_.UInt8.ofNat (nat_lit 55)), (_root_.UInt8.ofNat (nat_lit 56)), (_root_.UInt8.ofNat (nat_lit 57)), (_root_.UInt8.ofNat (nat_lit 65)), (_root_.UInt8.ofNat (nat_lit 66)), (_root_.UInt8.ofNat (nat_lit 67)), (_root_.UInt8.ofNat (nat_lit 68)), (_root_.UInt8.ofNat (nat_lit 69)), (_root_.UInt8.ofNat (nat_lit 70))]) (value)
 
@@ -69,7 +69,7 @@ public structure Lock where
 
 @[expose] public def stringLine (key : ByteArray) (value : ByteArray) : ByteArray := line (key) (tomlString (value))
 
-@[expose] public def digestLine (key : ByteArray) (digest : ByteArray) : ByteArray := line (key) (tomlString (LexLeanStd.Numeral.hex (digest)))
+@[expose] public def digestLine (key : ByteArray) (digest : ByteArray) : ByteArray := line (key) (tomlString (digest))
 
 @[expose] public def header (name : ByteArray) : ByteArray := cat (cat (_root_.ByteArray.mk #[(_root_.UInt8.ofNat (nat_lit 10))]) (name)) (_root_.ByteArray.mk #[(_root_.UInt8.ofNat (nat_lit 10))])
 
@@ -83,14 +83,14 @@ public structure Lock where
 
 @[expose] public def sourcesSorted (rows : List (LockSourcePackage)) : List (LockSourcePackage) := (LexLeanCollections.listFold ((fun (acc : List (LockSourcePackage)) (entry : (Prod (ByteArray) (LockSourcePackage))) => ((entry).2 :: acc))) (([] : List (LockSourcePackage))) (LexLeanStd.Order.reverseList ((Prod (ByteArray) (LockSourcePackage))) (LexLeanStd.Order.sortByKey (LockSourcePackage) (LexLeanStd.Order.reverseList ((Prod (ByteArray) (LockSourcePackage))) ((LexLeanCollections.listFold ((fun (acc : List ((Prod (ByteArray) (LockSourcePackage)))) (row : LockSourcePackage) => (((row).ident, row) :: acc))) (([] : List ((Prod (ByteArray) (LockSourcePackage))))) (rows) : List ((Prod (ByteArray) (LockSourcePackage)))))))) : List (LockSourcePackage))
 
-@[expose] public def pinText (table : ByteArray) (rows : List ((Prod (ByteArray) (ByteArray)))) : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : (Prod (ByteArray) (ByteArray))) => cat (acc) (cat (cat (header (table)) (stringLine (lit ("path")) ((row).1))) (digestLine (lit ("sha256")) ((row).2))))) (_root_.ByteArray.mk #[]) (pairsByPath (rows)) : ByteArray)
+@[expose] public def pinText (table : ByteArray) (rows : List ((Prod (ByteArray) (ByteArray)))) : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : (Prod (ByteArray) (ByteArray))) => cat (acc) (cat (cat (header (table)) (stringLine (lit ("path")) ((row).1))) (digestLine (lit ("kappa")) ((row).2))))) (_root_.ByteArray.mk #[]) (pairsByPath (rows)) : ByteArray)
 
-@[expose] public def packageText (row : LockPackage) : ByteArray := cat (cat (cat (cat (cat (cat (cat (cat (header (lit ("[[package]]"))) (stringLine (lit ("id")) ((row).ident))) (stringLine (lit ("version")) ((row).version))) (stringLine (lit ("kind")) ((row).kind))) (stringLine (lit ("source")) ((row).origin))) (stringLine (lit ("revision")) ((row).revision))) (digestLine (lit ("tree_sha256")) ((row).treeSha256))) (digestLine (lit ("manifest_sha256")) ((row).manifestSha256))) (line (lit ("imports")) (tomlArray ((row).imports)))
+@[expose] public def packageText (row : LockPackage) : ByteArray := cat (cat (cat (cat (cat (cat (cat (cat (header (lit ("[[package]]"))) (stringLine (lit ("id")) ((row).ident))) (stringLine (lit ("version")) ((row).version))) (stringLine (lit ("kind")) ((row).kind))) (stringLine (lit ("source")) ((row).origin))) (stringLine (lit ("revision")) ((row).revision))) (digestLine (lit ("tree_kappa")) ((row).treeKappa))) (digestLine (lit ("manifest_kappa")) ((row).manifestKappa))) (line (lit ("imports")) (tomlArray ((row).imports)))
 
-@[expose] public def sourceText (row : LockSourcePackage) : ByteArray := cat (cat (cat (cat (cat (cat (cat (cat (header (lit ("[[source_package]]"))) (stringLine (lit ("id")) ((row).ident))) (stringLine (lit ("version")) ((row).version))) (stringLine (lit ("kind")) ((row).kind))) (stringLine (lit ("source")) ((row).origin))) (stringLine (lit ("module_prefix")) ((row).modulePrefix))) (digestLine (lit ("tree_sha256")) ((row).treeSha256))) (digestLine (lit ("manifest_sha256")) ((row).manifestSha256))) (line (lit ("imports")) (tomlArray ((row).imports)))
+@[expose] public def sourceText (row : LockSourcePackage) : ByteArray := cat (cat (cat (cat (cat (cat (cat (cat (header (lit ("[[source_package]]"))) (stringLine (lit ("id")) ((row).ident))) (stringLine (lit ("version")) ((row).version))) (stringLine (lit ("kind")) ((row).kind))) (stringLine (lit ("source")) ((row).origin))) (stringLine (lit ("module_prefix")) ((row).modulePrefix))) (digestLine (lit ("tree_kappa")) ((row).treeKappa))) (digestLine (lit ("manifest_kappa")) ((row).manifestKappa))) (line (lit ("imports")) (tomlArray ((row).imports)))
 
-@[expose] public def pdfText (entry : LockPdf) : ByteArray := cat (cat (cat (cat (cat (cat (cat (header (lit ("[pdf]"))) (stringLine (lit ("program")) ((entry).program))) (digestLine (lit ("program_sha256")) ((entry).programSha256))) (line (lit ("version_argv")) (tomlArray ((entry).versionArgv)))) (digestLine (lit ("version_stdout_sha256")) ((entry).versionStdoutSha256))) (line (lit ("compile_argv")) (tomlArray ((entry).compileArgv)))) (stringLine (lit ("output")) ((entry).output))) (pinText (lit ("[[pdf.resource]]")) ((entry).resources))
+@[expose] public def pdfText (entry : LockPdf) : ByteArray := cat (cat (cat (cat (cat (cat (cat (header (lit ("[pdf]"))) (stringLine (lit ("program")) ((entry).program))) (digestLine (lit ("program_kappa")) ((entry).programKappa))) (line (lit ("version_argv")) (tomlArray ((entry).versionArgv)))) (digestLine (lit ("version_stdout_kappa")) ((entry).versionStdoutKappa))) (line (lit ("compile_argv")) (tomlArray ((entry).compileArgv)))) (stringLine (lit ("output")) ((entry).output))) (pinText (lit ("[[pdf.resource]]")) ((entry).resources))
 
-@[expose] public def canonicalLock (given : Lock) : ByteArray := (let spec : ByteArray := (if (LexLeanRuntime.equal ((given).language) (lit ("1.2")) : Bool) then lit ("lexlean/lock/2") else lit ("lexlean/lock/1")); (let head : ByteArray := cat (cat (cat (cat (stringLine (lit ("spec")) (spec)) (stringLine (lit ("language")) ((given).language))) (digestLine (lit ("compiler_semantics")) ((given).compilerSemantics))) (digestLine (lit ("project_config_sha256")) ((given).projectConfigSha256))) (stringLine (lit ("lean_toolchain")) (leanToolchain)); (let pins : ByteArray := pinText (lit ("[[workspace_file]]")) ((given).workspaceFiles); (let rows : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : LockPackage) => cat (acc) (packageText (row)))) (_root_.ByteArray.mk #[]) (packagesSorted ((given).packages)) : ByteArray); (let sources : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : LockSourcePackage) => cat (acc) (sourceText (row)))) (_root_.ByteArray.mk #[]) (sourcesSorted ((given).sourcePackages)) : ByteArray); (let tail : ByteArray := (match (given).pdf with | Option.some entry => pdfText (entry) | Option.none => _root_.ByteArray.mk #[]); cat (cat (cat (cat (head) (pins)) (rows)) (sources)) (tail)))))))
+@[expose] public def canonicalLock (given : Lock) : ByteArray := (let spec : ByteArray := (if (LexLeanRuntime.equal ((given).language) (lit ("1.2")) : Bool) then lit ("lexlean/lock/4") else lit ("lexlean/lock/3")); (let head : ByteArray := cat (cat (cat (cat (stringLine (lit ("spec")) (spec)) (stringLine (lit ("language")) ((given).language))) (digestLine (lit ("compiler_semantics")) ((given).compilerSemantics))) (digestLine (lit ("project_config_kappa")) ((given).projectConfigKappa))) (stringLine (lit ("lean_toolchain")) (leanToolchain)); (let pins : ByteArray := pinText (lit ("[[workspace_file]]")) ((given).workspaceFiles); (let rows : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : LockPackage) => cat (acc) (packageText (row)))) (_root_.ByteArray.mk #[]) (packagesSorted ((given).packages)) : ByteArray); (let sources : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : LockSourcePackage) => cat (acc) (sourceText (row)))) (_root_.ByteArray.mk #[]) (sourcesSorted ((given).sourcePackages)) : ByteArray); (let tail : ByteArray := (match (given).pdf with | Option.some entry => pdfText (entry) | Option.none => _root_.ByteArray.mk #[]); cat (cat (cat (cat (head) (pins)) (rows)) (sources)) (tail)))))))
 
 end LexLeanBoot.LockText

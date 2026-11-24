@@ -315,15 +315,18 @@ fn plan_decisions() {
     let path = format!("{}:{}", bin.display(), std::env::var("PATH").expect("PATH"));
     // (full, rows' parts) for one planted event; a dispatch names its branch
     // and the open pull requests `gh` lists for it, as `draft<TAB>base` lines.
-    let decide_with = |event: &str,
-                       draft: &str,
-                       base: &str,
-                       commit: &str,
-                       runs: &str,
-                       jobs: &[String],
-                       fail: bool,
-                       branch: &str,
-                       pulls: &str| {
+    // `plan_full` also names the pull request's head branch and returns
+    // whether the Intel macOS jobs run (`intel`).
+    let plan_full = |event: &str,
+                     draft: &str,
+                     base: &str,
+                     head: &str,
+                     commit: &str,
+                     runs: &str,
+                     jobs: &[String],
+                     fail: bool,
+                     branch: &str,
+                     pulls: &str| {
         git(&["checkout", "-q", "--detach", commit]);
         let out = dir.join("out");
         let _ = std::fs::remove_file(&out);
@@ -335,8 +338,13 @@ fn plan_decisions() {
             .env("EVENT", event)
             .env("DRAFT", draft)
             .env("BASE", base)
+            .env("HEAD", head)
             .env("REPO", "owner/repo")
             .env("LEXLEAN_CI_ROWS", rows_file.as_std_path())
+            .env(
+                "LEXLEAN_CI_BDD_PARTS",
+                root.join(".github/bdd-parts.json").as_std_path(),
+            )
             .env("GITHUB_OUTPUT", &out)
             .env("GITHUB_STEP_SUMMARY", dir.join("summary"))
             .env("STUB_RUNS", runs)
@@ -367,6 +375,44 @@ fn plan_decisions() {
             serde_json::from_str(&value("fanout")).expect("fanout is JSON");
         assert!(honesty.iter().all(|row| row["part"] == "honesty"));
         assert!(fanout.iter().all(|row| row["part"] != "honesty"));
+        let fast: Vec<serde_json::Value> =
+            serde_json::from_str(&value("fanout_fast")).expect("fast rows");
+        let export: Vec<serde_json::Value> =
+            serde_json::from_str(&value("fanout_export")).expect("export rows");
+        // A complete partition is not enough: the planner must also put
+        // every bootstrap-consuming case behind its producer and leave
+        // unrelated verification on the independent lane.
+        let bdd_manifest: serde_json::Value =
+            serde_json::from_str(&root_file(".github/bdd-parts.json"))
+                .expect("the committed BDD partition manifest");
+        let requires_export = |row: &serde_json::Value| {
+            if row["part"] == "examples" || row["part"] == "rest" {
+                return false;
+            }
+            let part = row["bdd_part"].as_str().expect("a BDD part");
+            let ids = bdd_manifest["parts"][part]
+                .as_array()
+                .expect("a registered BDD part");
+            ids.iter()
+                .any(|id| id.as_str().is_some_and(|id| id.starts_with("BS-")))
+        };
+        assert!(
+            fast.iter().all(|row| !requires_export(row)),
+            "the independent lane cannot contain a bootstrap-consuming BDD part"
+        );
+        assert!(
+            export.iter().all(requires_export),
+            "the exporter lane contains only bootstrap-consuming BDD parts"
+        );
+        let mut dispatched = fast;
+        dispatched.extend(export);
+        let mut expected = fanout.clone();
+        dispatched.sort_by_key(|row| row["part"].as_str().unwrap_or_default().to_owned());
+        expected.sort_by_key(|row| row["part"].as_str().unwrap_or_default().to_owned());
+        assert_eq!(
+            dispatched, expected,
+            "independent and export-dependent jobs exhaust all planned verification rows"
+        );
         let mut combined = honesty;
         combined.extend(fanout);
         assert_eq!(
@@ -380,7 +426,22 @@ fn plan_decisions() {
                 .iter()
                 .map(|row| row["part"].as_str().expect("a part").to_owned())
                 .collect::<Vec<_>>(),
+            value("intel"),
         )
+    };
+    let decide_with = |event: &str,
+                       draft: &str,
+                       base: &str,
+                       commit: &str,
+                       runs: &str,
+                       jobs: &[String],
+                       fail: bool,
+                       branch: &str,
+                       pulls: &str| {
+        let (full, parts, _) = plan_full(
+            event, draft, base, "", commit, runs, jobs, fail, branch, pulls,
+        );
+        (full, parts)
     };
     let decide =
         |event: &str,
@@ -391,13 +452,15 @@ fn plan_decisions() {
          jobs: &[String],
          fail: bool| { decide_with(event, draft, base, commit, runs, jobs, fail, "", "") };
     let whole = ("true".to_owned(), parts.clone());
-    let draft = (
+    let stacked = (
         "false".to_owned(),
         vec!["honesty".to_owned(), "rest".to_owned()],
     );
     let nothing = ("false".to_owned(), Vec::<String>::new());
-    // A draft pull request runs honesty then `rest`, as does a ready one stacked on
-    // a feature branch, which cannot land on a line; a ready one into `main`
+    let draft = nothing.clone();
+    // A draft pull request plans no work; a ready one stacked on another
+    // feature branch runs honesty and `rest`, without qualifying the landing.
+    // A ready pull request into `main`
     // or a release line, a request, and a push are the whole gate when no run
     // is known. A base the event does not name is not known to be stacked.
     for (what, draft_flag, base, expected) in [
@@ -411,7 +474,7 @@ fn plan_decisions() {
             "a ready pull request into a feature branch",
             "false",
             "claude/issue-91-h6",
-            &draft,
+            &stacked,
         ),
         (
             "a ready pull request into a release line",
@@ -430,7 +493,7 @@ fn plan_decisions() {
             "a ready pull request into a branch that only starts like main",
             "false",
             "main-2",
-            &draft,
+            &stacked,
         ),
     ] {
         assert_eq!(
@@ -457,7 +520,12 @@ fn plan_decisions() {
     // no pull request, several, or an unreadable list is the whole gate.
     for (what, pulls, fail, expected) in [
         ("a draft's head", "true\trelease/v0.4", false, &draft),
-        ("a stacked head", "false\tclaude/issue-91-h6", false, &draft),
+        (
+            "a stacked head",
+            "false\tclaude/issue-91-h6",
+            false,
+            &stacked,
+        ),
         (
             "a ready head into a line",
             "false\trelease/v0.4",
@@ -787,6 +855,212 @@ fn plan_decisions() {
         );
     }
 
+    // Intel macOS (§8.3, §9.4): a ready pull request into a release line runs
+    // the whole gate without the Intel jobs, unless its head is a release cut
+    // or its base is `main`; a draft never runs them; a push and a request do.
+    // A push that lands a tree a run verified without Intel runs honesty and
+    // the Intel jobs only, and a run without Intel never stands in for the
+    // whole gate.
+    let intel = |event: &str,
+                 draft: &str,
+                 base: &str,
+                 head: &str,
+                 commit: &str,
+                 runs: &str,
+                 jobs: &[String],
+                 branch: &str,
+                 pulls: &str| {
+        plan_full(
+            event, draft, base, head, commit, runs, jobs, false, branch, pulls,
+        )
+    };
+    let with_intel = |(full, parts): (String, Vec<String>), on: &str| (full, parts, on.to_owned());
+    for (what, base, head, expected) in [
+        (
+            "a pull request into a release line",
+            "release/v0.4",
+            "claude/x",
+            with_intel(whole.clone(), "false"),
+        ),
+        (
+            "a release cut",
+            "release/v0.4",
+            "cut/v0.4.1",
+            with_intel(whole.clone(), "true"),
+        ),
+        (
+            "a pull request into main",
+            "main",
+            "release/v0.4",
+            with_intel(whole.clone(), "true"),
+        ),
+        (
+            "a branch that only starts like a cut",
+            "release/v0.4",
+            "cutv0.4.1",
+            with_intel(whole.clone(), "false"),
+        ),
+    ] {
+        assert_eq!(
+            intel(
+                "pull_request",
+                "false",
+                base,
+                head,
+                &direct,
+                "",
+                &[],
+                "",
+                ""
+            ),
+            expected,
+            "§9.4: Intel on {what}"
+        );
+    }
+    assert_eq!(
+        intel(
+            "pull_request",
+            "true",
+            "release/v0.4",
+            "cut/v0.4.1",
+            &direct,
+            "",
+            &[],
+            "",
+            ""
+        ),
+        with_intel(draft.clone(), "false"),
+        "§9.4: a draft runs no Intel job"
+    );
+    assert_eq!(
+        intel("push", "", "main", "", &direct, "", &[], "", ""),
+        with_intel(whole.clone(), "true"),
+        "§9.4: a push runs the Intel jobs"
+    );
+    assert_eq!(
+        intel("workflow_dispatch", "", "", "", &direct, "", &[], "", ""),
+        with_intel(whole.clone(), "true"),
+        "§9.4: a request runs the Intel jobs"
+    );
+    for (what, pulls, branch, on) in [
+        (
+            "a ready head into a line",
+            "false\trelease/v0.4",
+            "claude/issue-91-h7",
+            "false",
+        ),
+        ("a cut's head", "false\trelease/v0.4", "cut/v0.4.1", "true"),
+    ] {
+        assert_eq!(
+            intel(
+                "workflow_dispatch",
+                "",
+                "",
+                "",
+                &direct,
+                "",
+                &[],
+                branch,
+                pulls
+            ),
+            with_intel(whole.clone(), on),
+            "§9.4: Intel on a dispatch on {what}"
+        );
+    }
+    // The jobs of a run that skipped the Intel jobs and passed every other.
+    let intel_job = |job: &String| {
+        job.starts_with("Intel ")
+            || job.starts_with("build and non-Lean tests (x86_64-apple-darwin)")
+    };
+    let mut linux: Vec<String> = green
+        .iter()
+        .filter(|job| !intel_job(job))
+        .cloned()
+        .collect();
+    linux.extend([
+        "Intel test construction and local targets\tskipped".to_owned(),
+        "Intel conformance (${{ matrix.lane }})\tskipped".to_owned(),
+        "build and non-Lean tests (x86_64-apple-darwin)\tskipped".to_owned(),
+    ]);
+    let honesty_only = (
+        "false".to_owned(),
+        vec!["honesty".to_owned()],
+        "true".to_owned(),
+    );
+    assert_eq!(
+        intel("push", "", "main", "", &merge_equal, "4242", &linux, "", ""),
+        honesty_only,
+        "§9.4: a push landing a tree verified without Intel runs honesty and the Intel jobs"
+    );
+    assert_eq!(
+        intel("push", "", "main", "", &merge_equal, "4242", &green, "", ""),
+        with_intel(nothing.clone(), "false"),
+        "§9.4: a push landing a tree verified with Intel runs nothing"
+    );
+    assert_eq!(
+        decide_with(
+            "workflow_dispatch",
+            "",
+            "",
+            &carried,
+            &on_regenerated,
+            &linux,
+            false,
+            "release/v0.4",
+            "false\tmain"
+        ),
+        whole,
+        "§9.4: a run without Intel never stands in for the whole gate of a head"
+    );
+    for (what, jobs) in [
+        (
+            "an Intel job that ran and failed",
+            linux
+                .iter()
+                .map(|job| {
+                    job.replace(
+                        "Intel test construction and local targets\tskipped",
+                        "Intel test construction and local targets\tfailure",
+                    )
+                })
+                .collect::<Vec<_>>(),
+        ),
+        ("a skipped job other than Intel", {
+            let mut jobs = linux.clone();
+            jobs.push("atlas (closure)\tskipped".to_owned());
+            jobs
+        }),
+        (
+            "another host missing",
+            linux
+                .iter()
+                .filter(|job| !job.starts_with("build and non-Lean tests (aarch64-apple-darwin)"))
+                .cloned()
+                .collect(),
+        ),
+        (
+            "no Intel context",
+            linux
+                .iter()
+                .filter(|job| !job.starts_with("build and non-Lean tests (x86_64-apple-darwin)"))
+                .cloned()
+                .collect(),
+        ),
+        (
+            "a leg missing",
+            linux
+                .iter()
+                .filter(|job| !job.starts_with("just vv (rest)"))
+                .cloned()
+                .collect(),
+        ),
+    ] {
+        assert_eq!(
+            intel("push", "", "main", "", &merge_equal, "4242", &jobs, "", ""),
+            with_intel(whole.clone(), "true"),
+            "§9.4: {what} is not the gate without Intel passing"
+        );
+    }
     // A run of another repository's pull request is not one of this one's.
     let script_text = root_file(".github/ci-plan.sh");
     assert!(
@@ -828,7 +1102,7 @@ pub(crate) fn run(id: &str) {
         "RP-01" => {
             let workspace = root_file("Cargo.toml");
             for required in [
-                "version = \"0.4.0\"",
+                "version = \"0.4.5\"",
                 "edition = \"2021\"",
                 "rust-version = \"1.97\"",
                 "license = \"MIT OR Apache-2.0\"",
@@ -861,7 +1135,7 @@ pub(crate) fn run(id: &str) {
             let (exit, stdout, _) = support::cli_in(&root, &["--version"]);
             assert_eq!(exit, 0);
             assert!(
-                stdout.starts_with("lexlean 0.4.0\n"),
+                stdout.starts_with("lexlean 0.4.5\n"),
                 "§30.3: the binary reports the lexlean identity, got {stdout:?}"
             );
         }
@@ -1339,9 +1613,9 @@ pub(crate) fn run(id: &str) {
             // stale one: that build locks and checks with it consistently.
             assert_eq!(
                 lexlean::LANGUAGE_1_2_SEMANTICS_ID,
-                twelve.to_hex(),
+                twelve.label(),
                 "RP-10: lexlean::LANGUAGE_1_2_SEMANTICS_ID is stale; the tree's language-1.2 ID is {}",
-                twelve.to_hex()
+                twelve.label()
             );
             assert_eq!(
                 eleven,
@@ -1477,7 +1751,7 @@ pub(crate) fn run(id: &str) {
                 "no workspace test is ignored or cfg-hidden: {hidden_tests:?}"
             );
             let unmet = repo_model::release::check(root.as_std_path(), &hidden_tests)
-                .expect_err("a 0.4.0 tree must refuse release (§2.3, §30.4)");
+                .expect_err("a 0.4.5 tree must refuse release (§2.3, §30.4)");
             // The criterion reads the attribute-block scan, so a hidden test
             // is unmet whatever attribute form hides it (§30.4).
             let planted: BTreeSet<String> = ["conformance_rp_12".to_owned()].into_iter().collect();
@@ -1891,7 +2165,11 @@ pub(crate) fn run(id: &str) {
             for (key, body) in &jobs {
                 if matches!(
                     key.as_str(),
-                    "host-matrix" | "intel-construction" | "intel-part" | "windows-part"
+                    "host-matrix"
+                        | "intel-construction"
+                        | "intel-part"
+                        | "windows-part"
+                        | "macos-part"
                 ) {
                     continue;
                 }
@@ -1901,7 +2179,7 @@ pub(crate) fn run(id: &str) {
                 );
                 // The plan decides what the run is and runs no recipe: it has
                 // ten minutes, not the six hours of the proof jobs.
-                if key == "intel-join" || key == "windows-join" {
+                if key == "intel-join" || key == "windows-join" || key == "macos-join" {
                     let limit = body
                         .lines()
                         .find_map(|line| line.trim().strip_prefix("timeout-minutes: "))
@@ -1928,6 +2206,7 @@ pub(crate) fn run(id: &str) {
             // from the row. An Atlas job names the examples profile itself,
             // once, the same on every shard.
             let vv = job("vv");
+            let vv_fast = job("vv-fast");
             for (variable, line) in [
                 ("LEXLEAN_VERIFY_WIDTH", "      LEXLEAN_VERIFY_WIDTH: ${{ matrix.width }}\n"),
                 (
@@ -1947,8 +2226,17 @@ pub(crate) fn run(id: &str) {
                     "      LEXLEAN_BDD_PART: ${{ matrix.bdd_part }}\n",
                 ),
             ] {
-                assert_eq!(vv.matches(variable).count(), 1, "§9.4: `{variable}` is set once on the gate job");
-                assert!(vv.contains(line), "§9.4: `{variable}` is read from the matrix row");
+                for lane in [vv, vv_fast] {
+                    assert_eq!(
+                        lane.matches(variable).count(),
+                        1,
+                        "§9.4: each lane sets its profile once"
+                    );
+                    assert!(
+                        lane.contains(line),
+                        "§9.4: each lane uses the matrix resource profile"
+                    );
+                }
             }
             for (key, body) in &atlas_jobs {
                 for line in [
@@ -2039,7 +2327,8 @@ pub(crate) fn run(id: &str) {
             assert!(legs.len() >= 2, "the gate runs in legs: {legs:?}");
             // The leg that runs `examples` verifies at width 2 with the
             // committed hints and a 12 GiB budget, and every example but the
-            // one the Atlas jobs verify as parts; every other leg names no
+            // one the Atlas jobs verify as parts and the bootstrap project,
+            // which the bootstrap export verifies; every other leg names no
             // profile and no part (§9.4, §22.11). The values are the
             // verifier's to accept: a width it refuses, or hints it cannot
             // read, would fail the gate as `LLV7017` before any stage ran, so
@@ -2055,7 +2344,7 @@ pub(crate) fn run(id: &str) {
                             "2",
                             "12582912",
                             ".github/verify-hints.json",
-                            "without:uor-atlas"
+                            "without:uor-atlas,bootstrap"
                         ]
                         .map(str::to_owned),
                         "§9.4: the examples leg's profile and part"
@@ -2166,8 +2455,8 @@ pub(crate) fn run(id: &str) {
                     "just --timestamp --timestamp-format '%s%.3f' ${{ matrix.recipes }} 2>&1 | tee ci-evidence/vv.txt"
                 )
                 .count(),
-                2,
-                "every leg runs its recipes through the one gate command"
+                3,
+                "honesty and both matrix lanes run the same normative command"
             );
             assert!(
                 ci.contains(&format!(
@@ -2180,9 +2469,9 @@ pub(crate) fn run(id: &str) {
             // log happens to hold, and it refuses a leg that verified Atlas,
             // which the join verifies.
             assert!(
-                vv.contains("case \" ${{ matrix.recipes }} \" in")
-                    && vv.contains("*\" examples \"*)")
-                    && vv.contains(
+                vv_fast.contains("case \" ${{ matrix.recipes }} \" in")
+                    && vv_fast.contains("*\" examples \"*)")
+                    && vv_fast.contains(
                         "if grep -F \"verify-examples: uor-atlas\" ci-evidence/vv.txt; then"
                     ),
                 "the leg that runs examples asserts that it verified the examples and not Atlas"
@@ -2348,6 +2637,12 @@ pub(crate) fn run(id: &str) {
                     !body.contains("run-id") && !body.contains("github-token"),
                     "§9.4: `{key}` reads the artifacts of this run only"
                 );
+                assert!(
+                    body.contains(
+                        "            shard:*) rm -rf \"ci-parts/${LEXLEAN_EXAMPLES_PART##*:}\" ;;\n"
+                    ),
+                    "§9.4: `{key}` drops its own part from an earlier attempt before it runs"
+                );
             }
             for (shard, job_key) in &runs {
                 if shard == crate::shards::JOIN {
@@ -2375,8 +2670,10 @@ pub(crate) fn run(id: &str) {
                 "the join asserts that Atlas verified"
             );
             assert!(
-                ci.contains("  pull_request:\n    types: [opened, synchronize, reopened, ready_for_review]\n"),
-                "§9.4: a pull request marked ready runs the jobs the draft did not"
+                ci.contains("if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}")
+                    && ci.contains(VV_EXPORT_GUARD)
+                    && ci.contains(VV_FAST_GUARD),
+                "skipped draft planner cannot expand expensive matrices"
             );
             // §9.4: a release line is held to the same gate as `main`, so the
             // push trigger of every workflow names both; a workflow that named
@@ -2386,6 +2683,51 @@ pub(crate) fn run(id: &str) {
                 assert!(
                     text.contains("  push: { branches: [main, \"release/**\"] }\n"),
                     "§9.4: {workflow} runs on a push to `main` and to a release line"
+                );
+            }
+            // §9.4: the forward merge runs on every push to a release line,
+            // superseded by a newer one, and hands its merge to the
+            // regeneration on the forward branch, whose `deliver` commits there.
+            let forward = root_file(".github/workflows/forward.yml");
+            for needed in [
+                "  push:\n    branches: [\"release/**\"]\n",
+                "      group: forward-${{ inputs.line || github.ref_name }}\n      cancel-in-progress: true\n",
+                "  workflow_call:\n",
+                "run: .github/scripts/forward-merge.sh",
+                "uses: ./.github/workflows/regenerate.yml",
+                "ref: ${{ needs.merge.outputs.commit }}",
+                "branch: ${{ needs.merge.outputs.branch }}",
+            ] {
+                assert!(forward.contains(needed), "§9.4: forward.yml has `{needed}`");
+            }
+            let merge = root_file(".github/scripts/forward-merge.sh");
+            // An authored writer input is never taken from one side unread.
+            for forbidden in [
+                "tests/production-export/* ",
+                "tests/production-export/*)",
+                "tests/stack-bounds.json)",
+            ] {
+                assert!(
+                    !merge.contains(forbidden),
+                    "§9.4: forward-merge.sh takes no side of an authored input: `{forbidden}`"
+                );
+            }
+            for needed in [
+                "git merge --quiet --no-ff --no-commit",
+                "cargo xtask spec port",
+                "--register",
+                "--draft",
+                "compare/$next...$branch",
+                "tests/production-export/*/packages/*)",
+                "Regenerate the written outputs of",
+                "superseded=()",
+                // The delete of a superseded branch is leased to the head
+                // inspected, and its pull request closes only after it.
+                "--force-with-lease=\"refs/heads/$ref:$sha\" origin \":refs/heads/$ref\"",
+            ] {
+                assert!(
+                    merge.contains(needed),
+                    "§9.4: forward-merge.sh has `{needed}`"
                 );
             }
             for forbidden in [
@@ -2398,10 +2740,11 @@ pub(crate) fn run(id: &str) {
             ] {
                 assert!(!ci.contains(forbidden), "ci.yml has no `{forbidden}`");
             }
-            // The plan alone may suppress automatic Draft PR events.
-            // Honesty follows a successful plan, which selects full/fanout
-            // jobs. Summary/evidence steps may use `!cancelled()` to report
-            // failures; no other event conditions or bypasses are allowed.
+            // The only event-level conditions are the pre-runner draft guard
+            // and the dispatch-status probe. Honesty and both verification
+            // lanes may start only on the plan's selected paths. An export
+            // failure blocks its dependent matrix without blocking unrelated
+            // test feedback. No acceptance recipe has its own skip condition.
             let mut step_conditions = 0;
             let mut full_conditions = 0;
             let mut rows_conditions = 0;
@@ -2409,7 +2752,11 @@ pub(crate) fn run(id: &str) {
             let mut draft_conditions = 0;
             for (index, line) in jobs
                 .iter()
-                .filter(|(key, _)| !key.starts_with("intel-") && !key.starts_with("windows-"))
+                .filter(|(key, _)| {
+                    !key.starts_with("intel-")
+                        && !key.starts_with("windows-")
+                        && !key.starts_with("macos-")
+                })
                 .flat_map(|(_, body)| body.lines())
                 .enumerate()
             {
@@ -2417,13 +2764,9 @@ pub(crate) fn run(id: &str) {
                     match line {
                         "        if: ${{ !cancelled() }}" => step_conditions += 1,
                         "    if: ${{ needs.plan.outputs.full == 'true' }}" => full_conditions += 1,
-                        "    if: ${{ needs.plan.outputs.fanout != '[]' }}" => rows_conditions += 1,
-                        "    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}" => {
-                            draft_conditions += 1
-                        }
-                        "    if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}" => {
-                            honesty_conditions += 1
-                        }
+                        VV_EXPORT_GUARD | VV_FAST_GUARD => rows_conditions += 1,
+                        "    if: ${{ needs.plan.result == 'success' && needs.plan.outputs.honesty != '[]' }}" => honesty_conditions += 1,
+                        "    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}" => draft_conditions += 1,
                         other => panic!(
                             "ci.yml:{}: a condition other than a step's `!cancelled()` or a job's condition on the plan: {other}",
                             index + 1
@@ -2433,7 +2776,7 @@ pub(crate) fn run(id: &str) {
             }
             assert_eq!(
                 step_conditions,
-                6 + 2 * atlas_jobs.len(),
+                8 + 2 * atlas_jobs.len(),
                 "the summary step and the evidence upload of every gate job carry it"
             );
             assert_eq!(
@@ -2441,37 +2784,70 @@ pub(crate) fn run(id: &str) {
                 atlas_jobs.len() + 2,
                 "every Atlas job, the bootstrap export, and the host matrix, and no other job, wait for the plan to name the whole gate"
             );
-            assert_eq!(rows_conditions, 1, "the legs run when the plan names a leg");
-            assert_eq!(honesty_conditions, 1, "honesty follows a successful plan");
             assert_eq!(
-                draft_conditions, 1,
-                "only the planner suppresses automatic Draft PR events"
+                rows_conditions, 2,
+                "each matrix lane runs only its plan-selected rows"
             );
+            assert_eq!(honesty_conditions, 1, "honesty runs when the plan names it");
+            assert_eq!(draft_conditions, 1, "drafts skip all runner-backed CI");
             intel_host_workflow(&ci).expect("§8.3: the host inventory and Intel custody graph");
-            windows_host_workflow(&ci).expect("§8.3: the Windows lanes and their join");
-            for (from, to) in [
-                ("lane: [producer, lower, print, validate, moves]", "lane: [producer, lower, print, validate]"),
-                ("    needs: [plan, windows-part]", "    needs: [plan]"),
-                (
-                    "    if: ${{ always() && needs.plan.outputs.full == 'true' }}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-x86_64",
-                    "    if: ${{ needs.plan.outputs.full == 'true' }}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-x86_64",
-                ),
-                ("host_lanes.py join --target", "host_lanes.py execute --target"),
-                (
-                    "windows-part.result }}\n        run: |\n          set -euo pipefail\n          test \"$PART_RESULT\" = success",
-                    "windows-part.result }}\n        run: |\n          set -euo pipefail\n          test \"$PART_RESULT\" != cancelled",
-                ),
-                ("    runs-on: windows-2022\n", "    runs-on: windows-2025\n"),
-                (
-                    "python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'",
-                    "echo lane checks",
-                ),
-            ] {
-                assert!(ci.contains(from), "the plant must change the workflow: {from}");
-                assert!(
-                    windows_host_workflow(&ci.replacen(from, to, 1)).is_err(),
-                    "the Windows lanes must refuse `{from}` replaced by `{to}`"
+            for host in &LANE_HOSTS {
+                lane_host_workflow(&ci, host).unwrap_or_else(|error| {
+                    panic!("§8.3: the {} lanes and their join: {error}", host.label)
+                });
+                let target = host.target;
+                let part = host.part;
+                let pattern = format!(
+                    "    if: ${{{{ !cancelled() && needs.plan.outputs.full == 'true' }}}}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n        with:\n          pattern: host-{target}-*"
                 );
+                let result = format!(
+                    "{part}.result }}}}\n        run: |\n          set -euo pipefail\n          test \"$PART_RESULT\" = success"
+                );
+                for (from, to) in [
+                    (
+                        format!(
+                            "lane: [producer, lower, print, validate, moves]\n    runs-on: {}\n",
+                            host.runner
+                        ),
+                        format!(
+                            "lane: [producer, lower, print, validate]\n    runs-on: {}\n",
+                            host.runner
+                        ),
+                    ),
+                    (
+                        format!("    needs: [plan, {part}]"),
+                        "    needs: [plan]".to_owned(),
+                    ),
+                    (pattern.clone(), pattern.replace("!cancelled() && ", "")),
+                    (
+                        format!("host_lanes.py join --target {target}"),
+                        format!("host_lanes.py execute --target {target}"),
+                    ),
+                    (result.clone(), result.replace("= success", "!= cancelled")),
+                    (
+                        format!("    runs-on: {}\n", host.runner),
+                        "    runs-on: ubuntu-24.04\n".to_owned(),
+                    ),
+                    (
+                        format!("    name: build and non-Lean tests ({target})\n"),
+                        format!("    name: {} tests (join)\n", host.label),
+                    ),
+                    (
+                        "python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'"
+                            .to_owned(),
+                        "echo lane checks".to_owned(),
+                    ),
+                ] {
+                    assert!(
+                        ci.contains(&from),
+                        "the plant must change the workflow: {from}"
+                    );
+                    assert!(
+                        lane_host_workflow(&ci.replacen(&from, &to, 1), host).is_err(),
+                        "the {} lanes must refuse `{from}` replaced by `{to}`",
+                        host.label
+                    );
+                }
             }
             for (from, to) in [
                 (
@@ -2484,7 +2860,11 @@ pub(crate) fn run(id: &str) {
                     "needs: [plan, intel-construction]",
                 ),
                 (
-                    "if: ${{ always() && needs.plan.outputs.full == 'true' }}",
+                    "if: ${{ !cancelled() && needs.plan.outputs.intel == 'true' }}",
+                    "if: ${{ needs.plan.outputs.intel == 'true' }}",
+                ),
+                (
+                    "if: ${{ needs.plan.outputs.intel == 'true' }}",
                     "if: ${{ needs.plan.outputs.full == 'true' }}",
                 ),
                 ("runs-on: macos-15-intel", "runs-on: macos-15"),
@@ -2517,6 +2897,45 @@ pub(crate) fn run(id: &str) {
             let take = root_file(TAKE_EXPORT);
             bootstrap_export_workflow(&ci, &take)
                 .expect("§9.4: the run's one bootstrap export and its same-run custody");
+            let vv_job = workflow_job(&ci, "vv").expect("the gate legs");
+            for (from, to) in [
+                (
+                    "needs: [plan, honesty, bootstrap-export]",
+                    "needs: [plan, honesty]",
+                ),
+                ("needs.bootstrap-export.result == 'success'", "true"),
+                ("needs.plan.outputs.full == 'true'", "true"),
+            ] {
+                assert!(vv_job.contains(from), "the plant must change vv: {from}");
+                let planted = ci.replacen(&vv_job, &vv_job.replacen(from, to, 1), 1);
+                assert!(
+                    bootstrap_export_workflow(&planted, &take).is_err(),
+                    "a vv leg cannot bypass export readiness or invent a non-full signal: {from}"
+                );
+            }
+            let fast_job = workflow_job(&ci, "vv-fast").expect("independent lane");
+            for (from, to) in [
+                (
+                    "needs: [plan, honesty]",
+                    "needs: [plan, honesty, bootstrap-export]",
+                ),
+                ("needs.plan.outputs.fanout_fast != '[]'", "true"),
+                (
+                    "LEXLEAN_CI_INDEPENDENT_LANE: \"1\"",
+                    "LEXLEAN_CI_INDEPENDENT_LANE: \"0\"",
+                ),
+                (
+                    "fromJSON(needs.plan.outputs.fanout_fast)",
+                    "fromJSON(needs.plan.outputs.fanout_export)",
+                ),
+            ] {
+                assert!(fast_job.contains(from), "the fast lane has {from}");
+                let planted = ci.replacen(&fast_job, &fast_job.replacen(from, to, 1), 1);
+                assert!(
+                    bootstrap_export_workflow(&planted, &take).is_err(),
+                    "the independent lane must never depend on the shared export or use export rows"
+                );
+            }
             let export_job = workflow_job(&ci, "bootstrap-export").expect("the export job");
             for (from, to) in [
                 ("    needs: [plan, honesty]", "    needs: [plan]"),
@@ -2533,6 +2952,14 @@ pub(crate) fn run(id: &str) {
                     "          name: bootstrap-bundle\n",
                 ),
                 ("    name: bootstrap export\n", "    name: export\n"),
+                (
+                    "grep -F \"verify-examples: bootstrap verified (attestation \" ci-evidence/vv.txt\n",
+                    "true\n",
+                ),
+                (
+                    "grep -E \"^verify-examples: bootstrap: [0-9]+ normalized verification records equal expected/verify \" ci-evidence/vv.txt\n",
+                    "true\n",
+                ),
             ] {
                 assert!(
                     export_job.contains(from),
@@ -2557,10 +2984,18 @@ pub(crate) fn run(id: &str) {
                     "            export LEXLEAN_BOOTSTRAP_EXPORT=\"$RUNNER_TEMP/bootstrap-export\"\n",
                     "            export LEXLEAN_BOOTSTRAP_EXPORT=\"$RUNNER_TEMP/elsewhere\"\n",
                 ),
+                (
+                    "              if grep -F \"verify-examples: bootstrap\" ci-evidence/vv.txt; then\n",
+                    "              if false; then\n",
+                ),
             ] {
-                assert!(ci.contains(from), "the plant must change the workflow: {from}");
                 assert!(
-                    bootstrap_export_workflow(&ci.replacen(from, to, 1), &take).is_err(),
+                    vv_job.contains(from),
+                    "the plant must change the export-dependent vv job: {from}"
+                );
+                let planted = ci.replacen(&vv_job, &vv_job.replacen(from, to, 1), 1);
+                assert!(
+                    bootstrap_export_workflow(&planted, &take).is_err(),
                     "the bootstrap export's custody must refuse `{from}` replaced by `{to}`"
                 );
             }
@@ -2585,6 +3020,14 @@ pub(crate) fn run(id: &str) {
                     "the fetcher's custody must refuse `{from}` replaced by `{to}`"
                 );
             }
+            let production_export = root_file("crates/conformance/src/production_export.rs");
+            assert_eq!(
+                production_export
+                    .matches("LEXLEAN_CI_INDEPENDENT_LANE")
+                    .count(),
+                2,
+                "§9.4: both direct and cached bootstrap export paths reject independent CI lanes"
+            );
             bootstrap_custody_decisions();
             honesty_dependencies(&ci).expect("expensive roots require successful same-run honesty");
             assert!(
@@ -2604,10 +3047,12 @@ pub(crate) fn run(id: &str) {
             for root in [
                 "bootstrap-export",
                 "vv",
+                "vv-fast",
                 "atlas-prefix",
                 "host-matrix",
                 "intel-construction",
                 "windows-part",
+                "macos-part",
             ] {
                 let original = format!("  {root}:\n");
                 let pos = ci.find(&original).expect("the root");
@@ -2615,7 +3060,12 @@ pub(crate) fn run(id: &str) {
                     .find("\n  #")
                     .map_or(ci.len(), |next| pos + original.len() + next);
                 let mut planted = ci.clone();
-                let body = ci[pos..end].replace("needs: [plan, honesty]", "needs: [plan]");
+                let before = if root == "vv" {
+                    "needs: [plan, honesty, bootstrap-export]"
+                } else {
+                    "needs: [plan, honesty]"
+                };
+                let body = ci[pos..end].replace(before, "needs: [plan]");
                 planted.replace_range(pos..end, &body);
                 assert!(
                     honesty_dependencies(&planted).is_err(),
@@ -2629,9 +3079,17 @@ pub(crate) fn run(id: &str) {
                 "§8.3: the hosts are checked when the plan says the run is the whole gate"
             );
             assert!(
-                vv.contains("    needs: [plan, honesty]\n")
-                    && vv.contains("        include: ${{ fromJSON(needs.plan.outputs.fanout) }}\n"),
-                "§9.4: the legs of vv are the rows the plan names"
+                vv.contains("    needs: [plan, honesty, bootstrap-export]\n")
+                    && vv.contains(VV_EXPORT_GUARD)
+                    && vv.contains(
+                        "        include: ${{ fromJSON(needs.plan.outputs.fanout_export) }}\n"
+                    )
+                    && vv_fast.contains("    needs: [plan, honesty]\n")
+                    && vv_fast.contains(VV_FAST_GUARD)
+                    && vv_fast.contains(
+                        "        include: ${{ fromJSON(needs.plan.outputs.fanout_fast) }}\n"
+                    ),
+                "§9.4: only export consumers wait for the shared producer"
             );
             // The plan: one job, no recipe, ten minutes, reading the event and
             // the repository and nothing else, through the one script whose
@@ -2643,6 +3101,14 @@ pub(crate) fn run(id: &str) {
                     && plan_job.contains("        run: .github/ci-plan.sh\n")
                     && plan_job.contains("          DRAFT: ${{ github.event.pull_request.draft }}\n")
                     && plan_job.contains("          BASE: ${{ github.event.pull_request.base.ref }}\n")
+                    && plan_job.contains("          HEAD: ${{ github.event.pull_request.head.ref }}\n")
+                    && plan_job.contains("      intel: ${{ steps.plan.outputs.intel }}\n")
+                    && plan_job.contains(
+                        "      fanout_fast: ${{ steps.plan.outputs.fanout_fast }}\n"
+                    )
+                    && plan_job.contains(
+                        "      fanout_export: ${{ steps.plan.outputs.fanout_export }}\n"
+                    )
                     && plan_job.contains("          EVENT: ${{ github.event_name }}\n")
                     && plan_job.contains("          REF: ${{ github.ref_name }}\n"),
                 "§9.4: the plan runs the script on the event and the base branch, and may read the runs of the repository"
@@ -2780,6 +3246,9 @@ pub(crate) fn run(id: &str) {
         // §8.4: a build without the production data checks and locks as the
         // default build does, and refuses the work that needs that data.
         "RP-19" => rp_19(),
+        // §30.3: the browser prover's assets: the runtime as a Lake package
+        // that builds to the same bytes twice, and the driver that builds.
+        "RP-20" => rp_20(),
         other => panic!("no repository case is wired for {other}"),
     }
 }
@@ -3010,7 +3479,7 @@ fn rp_19() {
     };
     let project = support::P::copy_example("production");
     refused(&project, &["--diagnostic-format", "json", "verify"]);
-    let digests: std::collections::BTreeMap<String, lexlean::Sha256Digest> = production::targets()
+    let digests: std::collections::BTreeMap<String, lexlean::Kappa> = production::targets()
         .expect("targets")
         .into_iter()
         .map(|descriptor| (descriptor.id, descriptor.digest))
@@ -3914,7 +4383,7 @@ fn rp_18() {
     let release_plants: Vec<(&str, String)> = vec![
         (
             "a tag that does not wait for the crate job",
-            replaced(&release, "needs: [identity, crate, gate, binaries, manifest]", "needs: [identity, gate, binaries, manifest]"),
+            replaced(&release, "needs: [identity, crate, gate, binaries, manifest, lean-wasm]", "needs: [identity, gate, binaries, manifest, lean-wasm]"),
         ),
         (
             "a release that does not call the crate workflow",
@@ -4063,14 +4532,15 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
         .find_map(|line| line.strip_prefix("    name: "))
         .ok_or("RP-14: the Intel aggregate has no context")?;
     contexts.push(aggregate_name.to_owned());
-    let windows = workflow_job(ci, "windows-join")?;
-    contexts.push(
-        windows
-            .lines()
-            .find_map(|line| line.strip_prefix("    name: "))
-            .ok_or("RP-14: the Windows aggregate has no context")?
-            .to_owned(),
-    );
+    for host in &LANE_HOSTS {
+        contexts.push(
+            workflow_job(ci, host.join)?
+                .lines()
+                .find_map(|line| line.strip_prefix("    name: "))
+                .ok_or_else(|| format!("RP-14: the {} aggregate has no context", host.label))?
+                .to_owned(),
+        );
+    }
     contexts.sort();
     let mut expected = supported_host_contexts();
     expected.sort();
@@ -4090,19 +4560,19 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
             "intel-construction",
             &construction,
             "needs: [plan, honesty]",
-            "if: ${{ needs.plan.outputs.full == 'true' }}",
+            "if: ${{ needs.plan.outputs.intel == 'true' }}",
         ),
         (
             "intel-part",
             &part,
             "needs: [plan, intel-construction]",
-            "if: ${{ needs.plan.outputs.full == 'true' }}",
+            "if: ${{ needs.plan.outputs.intel == 'true' }}",
         ),
         (
             "intel-join",
             &join,
             "needs: [plan, intel-construction, intel-part]",
-            "if: ${{ always() && needs.plan.outputs.full == 'true' }}",
+            "if: ${{ !cancelled() && needs.plan.outputs.intel == 'true' }}",
         ),
     ] {
         require(body, dependencies, key)?;
@@ -4112,7 +4582,7 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
             .collect();
         if conditions != vec![condition.trim_start_matches("if: ")] {
             return Err(format!(
-                "RP-14: {key} does not follow its full-gate dependency policy"
+                "RP-14: {key} does not follow its Intel dependency policy"
             ));
         }
         for forbidden in [
@@ -4214,6 +4684,15 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
 
 /// The fetcher a leg runs beside its gate command to take the run's
 /// bootstrap export (§9.4).
+const VV_EXPORT_GUARD: &str = concat!(
+    "    if: ${{ needs.plan.outputs.full == 'true' ",
+    "&& needs.bootstrap-export.result == 'success' ",
+    "&& needs.plan.outputs.fanout_export != '[]' }}"
+);
+const VV_FAST_GUARD: &str = concat!(
+    "    if: ${{ needs.plan.result == 'success' && needs.honesty.result == 'success' ",
+    "&& needs.plan.outputs.fanout_fast != '[]' }}"
+);
 const TAKE_EXPORT: &str = ".github/scripts/take-bootstrap-export.sh";
 
 /// §9.4: one bootstrap export per run, carried to the legs of the same run.
@@ -4222,10 +4701,13 @@ const TAKE_EXPORT: &str = ".github/scripts/take-bootstrap-export.sh";
 /// one name the fetcher reads; a leg reads the artifacts of its own run only,
 /// takes the export only in a run that is the whole gate, and only into the
 /// directory its harness waits in; the fetcher names this run and the export
-/// job, and asks nothing before a case wants the export.
+/// job, and asks nothing before a case wants the export. The job asserts
+/// that it verified the bootstrap example for the `examples` recipe, and the
+/// `examples` leg fails when it verifies that project again.
 fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
     let job = workflow_job(ci, "bootstrap-export")?;
     let legs = workflow_job(ci, "vv")?;
+    let independent = workflow_job(ci, "vv-fast")?;
     let require = |body: &str, text: &str, rule: &str| -> Result<(), String> {
         if body.contains(text) {
             Ok(())
@@ -4262,8 +4744,51 @@ fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
             "name: acceptance-gate-evidence-bootstrap-export\n",
             "the job's evidence",
         ),
+        (
+            "grep -F \"verify-examples: bootstrap verified (attestation \" ci-evidence/vv.txt\n",
+            "the export verified the bootstrap example",
+        ),
+        (
+            "grep -E \"^verify-examples: bootstrap: [0-9]+ normalized verification records equal expected/verify \" ci-evidence/vv.txt\n",
+            "the export's records equal the bootstrap example's expected/verify",
+        ),
     ] {
         require(&job, text, rule)?;
+    }
+    for (text, rule) in [
+        (
+            "    needs: [plan, honesty, bootstrap-export]\n",
+            "full-gate legs cannot start billed runners before the shared export",
+        ),
+        (
+            VV_EXPORT_GUARD,
+            "only export-dependent rows require the successful full-gate export",
+        ),
+    ] {
+        require(&legs, text, rule)?;
+    }
+    for (text, rule) in [
+        (
+            "    needs: [plan, honesty]",
+            "the independent lane starts after honesty",
+        ),
+        (
+            VV_FAST_GUARD,
+            "the independent lane follows the trusted plan",
+        ),
+        (
+            "fromJSON(needs.plan.outputs.fanout_fast)",
+            "the independent matrix uses fast rows",
+        ),
+        (
+            "      LEXLEAN_CI_INDEPENDENT_LANE: \"1\"",
+            "independent cases refuse unexpected export calls",
+        ),
+    ] {
+        require(&independent, text, rule)?;
+    }
+    if independent.contains("take-bootstrap-export.sh") {
+        return Err("RP-14: independent rows must never wait for the export".to_owned());
     }
     for (text, rule) in [
         ("      actions: read\n", "a leg lists the run's artifacts"),
@@ -4275,10 +4800,14 @@ fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
             "          if [ \"$FULL_GATE\" = true ]; then\n            export LEXLEAN_BOOTSTRAP_EXPORT=\"$RUNNER_TEMP/bootstrap-export\"\n            .github/scripts/take-bootstrap-export.sh \"$LEXLEAN_BOOTSTRAP_EXPORT\"",
             "the fetcher fills the directory the harness waits in",
         ),
+        (
+            "              if grep -F \"verify-examples: bootstrap\" ci-evidence/vv.txt; then\n",
+            "the examples leg does not verify the project the export verifies",
+        ),
     ] {
         require(&legs, text, rule)?;
     }
-    for body in [&job, &legs] {
+    for body in [&job, &legs, &independent] {
         for forbidden in [
             "run-id:",
             "github-token:",
@@ -4319,15 +4848,15 @@ fn bootstrap_custody_decisions() {
     use crate::export_custody::{check, Custody, Identity, SPEC};
     use std::collections::BTreeMap;
     let pins: BTreeMap<String, String> = [
-        ("Cargo.lock", "a".repeat(64)),
-        ("lean-toolchain", "b".repeat(64)),
-        ("rust-toolchain.toml", "c".repeat(64)),
+        ("Cargo.lock", format!("blake3:{}", "a".repeat(64))),
+        ("lean-toolchain", format!("blake3:{}", "b".repeat(64))),
+        ("rust-toolchain.toml", format!("blake3:{}", "c".repeat(64))),
     ]
     .into_iter()
     .map(|(name, digest)| (name.to_owned(), digest))
     .collect();
     let toolchains: BTreeMap<String, String> =
-        [("lean", "Lean (version 4.32.1)"), ("rustc", "rustc 1.97.1")]
+        [("lean", "Lean (version 4.32.2)"), ("rustc", "rustc 1.97.1")]
             .into_iter()
             .map(|(name, text)| (name.to_owned(), text.to_owned()))
             .collect();
@@ -4362,7 +4891,7 @@ fn bootstrap_custody_decisions() {
         toolchains,
         executables,
         bundle_path: ".lexlean/production/bundle".to_owned(),
-        bundle_sha256: bundle.0.clone(),
+        bundle_kappa: bundle.0.clone(),
         bundle_files: bundle.1,
     };
     check(&record, &here, &bundle).expect("§9.4: the run's own export, from an earlier attempt");
@@ -4417,7 +4946,7 @@ fn bootstrap_custody_decisions() {
         ),
         (
             "bundle",
-            Box::new(|record| record.bundle_sha256 = "f".repeat(64)),
+            Box::new(|record| record.bundle_kappa = "f".repeat(64)),
         ),
         ("bundle", Box::new(|record| record.bundle_files += 1)),
         (
@@ -4441,13 +4970,54 @@ fn bootstrap_custody_decisions() {
     }
 }
 
-/// §8.3: Windows runs as the lanes of one run, the conformance lanes of the
-/// Intel partition and the producer, after honesty and only in a run that is
-/// the whole gate; its aggregate keeps the host's context, runs after any
-/// lane's failure, joins every lane's receipt, and fails on a missing one.
-fn windows_host_workflow(ci: &str) -> Result<(), String> {
-    let part = workflow_job(ci, "windows-part")?;
-    let join = workflow_job(ci, "windows-join")?;
+/// A §8.3 host that runs its complete workspace tests as lanes of one run.
+struct LaneHost {
+    /// The lanes' job and the aggregate's job in `ci.yml`.
+    part: &'static str,
+    join: &'static str,
+    /// How the host's messages name it.
+    label: &'static str,
+    runner: &'static str,
+    target: &'static str,
+    /// The interpreter the runner image provides under this name.
+    python: &'static str,
+}
+
+const LANE_HOSTS: [LaneHost; 2] = [
+    LaneHost {
+        part: "windows-part",
+        join: "windows-join",
+        label: "Windows",
+        runner: "windows-2022",
+        target: "x86_64-pc-windows-msvc",
+        python: "python",
+    },
+    LaneHost {
+        part: "macos-part",
+        join: "macos-join",
+        label: "macOS arm64",
+        runner: "macos-15",
+        target: "aarch64-apple-darwin",
+        python: "python3",
+    },
+];
+
+/// §8.3: Windows and Apple silicon macOS each run as the lanes of one run,
+/// the conformance lanes of the Intel partition and the producer, after
+/// honesty and only in a run that is the whole gate; each aggregate keeps the
+/// host's context, runs after any lane's failure, joins every lane's receipt,
+/// and fails on a missing one.
+fn lane_host_workflow(ci: &str, host: &LaneHost) -> Result<(), String> {
+    let &LaneHost {
+        part: part_key,
+        join: join_key,
+        label,
+        runner,
+        target,
+        python,
+    } = host;
+    let part = workflow_job(ci, part_key)?;
+    let join = workflow_job(ci, join_key)?;
     let honesty = workflow_job(ci, "honesty")?;
     let require = |body: &str, text: &str, rule: &str| -> Result<(), String> {
         if body.contains(text) {
@@ -4471,83 +5041,83 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
         .lines()
         .find_map(|line| line.strip_prefix("        lane: ["))
         .and_then(|rest| rest.strip_suffix(']'))
-        .ok_or("RP-14: the Windows matrix names its lanes")?
+        .ok_or_else(|| format!("RP-14: the {label} matrix names its lanes"))?
         .split(',')
         .map(|lane| lane.trim().to_owned())
         .collect();
     matrix.sort();
     if matrix != lanes {
         return Err(format!(
-            "RP-14: the Windows matrix runs {matrix:?}, the producer and the lanes of the partition are {lanes:?}"
+            "RP-14: the {label} matrix runs {matrix:?}, the producer and the lanes of the partition are {lanes:?}"
         ));
     }
     for (body, text, rule) in [
-        (&part, "    needs: [plan, honesty]\n", "the lanes follow honesty"),
+        (&part, "    needs: [plan, honesty]\n".to_owned(), "the lanes follow honesty"),
         (
             &part,
-            "    if: ${{ needs.plan.outputs.full == 'true' }}\n",
+            "    if: ${{ needs.plan.outputs.full == 'true' }}\n".to_owned(),
             "the lanes run in a run that is the whole gate",
         ),
-        (&part, "      fail-fast: false\n", "a failing lane stops no other"),
-        (&part, "    runs-on: windows-2022\n", "the lanes run on the host"),
+        (&part, "      fail-fast: false\n".to_owned(), "a failing lane stops no other"),
+        (&part, format!("    runs-on: {runner}\n"), "the lanes run on the host"),
         (
             &part,
-            "        run: bash .github/retry.sh rustup toolchain install\n",
+            "        run: bash .github/retry.sh rustup toolchain install\n".to_owned(),
             "the Rust pin",
         ),
         (
             &part,
-            "if [ \"$host\" != x86_64-pc-windows-msvc ]; then",
+            format!("if [ \"$host\" != {target} ]; then"),
             "a lane checks its host triple",
         ),
         (
             &part,
-            "python .github/scripts/host_lanes.py execute --target x86_64-pc-windows-msvc --lane ${{ matrix.lane }} --output \"$RUNNER_TEMP/host-lane\"",
+            format!("{python} .github/scripts/host_lanes.py execute --target {target} --lane ${{{{ matrix.lane }}}} --output \"$RUNNER_TEMP/host-lane\""),
             "a lane executes and records its part",
         ),
         (
             &part,
-            "          name: host-x86_64-pc-windows-msvc-${{ matrix.lane }}\n",
+            format!("          name: host-{target}-${{{{ matrix.lane }}}}\n"),
             "a lane uploads its receipt",
         ),
         (
             &join,
-            "    name: build and non-Lean tests (x86_64-pc-windows-msvc)\n",
+            format!("    name: build and non-Lean tests ({target})\n"),
             "the aggregate keeps the host's context",
         ),
-        (&join, "    needs: [plan, windows-part]\n", "the aggregate follows the lanes"),
+        (&join, format!("    needs: [plan, {part_key}]\n"), "the aggregate follows the lanes"),
         (
             &join,
-            "    if: ${{ always() && needs.plan.outputs.full == 'true' }}\n",
-            "the aggregate runs after a failed or cancelled lane",
+            "    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}\n".to_owned(),
+            "the aggregate runs after a failed or cancelled lane, not after the run is cancelled",
         ),
         (
             &join,
-            "          pattern: host-x86_64-pc-windows-msvc-*\n",
+            format!("          pattern: host-{target}-*\n"),
             "the aggregate reads every lane's receipt",
         ),
         (
             &join,
-            "python3 .github/scripts/host_lanes.py join --target x86_64-pc-windows-msvc --artifacts \"$RUNNER_TEMP/host-lanes\"",
+            format!("python3 .github/scripts/host_lanes.py join --target {target} --artifacts \"$RUNNER_TEMP/host-lanes\""),
             "the aggregate joins the receipts",
         ),
         (
             &join,
-            "PART_RESULT: ${{ needs.windows-part.result }}",
+            format!("PART_RESULT: ${{{{ needs.{part_key}.result }}}}"),
             "the aggregate reads the lanes' result",
         ),
         (
             &honesty,
-            "python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'",
+            "python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'".to_owned(),
             "the join's behavioral tests run before expensive roots",
         ),
     ] {
-        require(body, text, rule)?;
+        require(body, &text, rule)?;
     }
     let result_step = join
         .split("\n      - ")
         .find(|step| step.contains("test \"$PART_RESULT\" = success"))
-        .ok_or("RP-14: the Windows aggregate does not check its lanes' result")?;
+        .ok_or_else(|| format!("RP-14: the {label} aggregate does not check its lanes' result"))?;
     require(
         result_step,
         "if: ${{ always() }}",
@@ -4557,9 +5127,11 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
         .lines()
         .find_map(|line| line.trim().strip_prefix("timeout-minutes: "))
         .and_then(|value| value.parse::<u32>().ok())
-        .ok_or("RP-14: a Windows lane has no timeout")?;
+        .ok_or_else(|| format!("RP-14: a {label} lane has no timeout"))?;
     if timeout == 0 || timeout > 240 {
-        return Err("RP-14: a Windows lane cannot raise the 240-minute bound".to_owned());
+        return Err(format!(
+            "RP-14: a {label} lane cannot raise the 240-minute bound"
+        ));
     }
     for body in [&part, &join] {
         for forbidden in [
@@ -4569,7 +5141,7 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
             "actions/cache",
         ] {
             if body.contains(forbidden) {
-                return Err(format!("RP-14: the Windows lanes admit `{forbidden}`"));
+                return Err(format!("RP-14: the {label} lanes admit `{forbidden}`"));
             }
         }
     }
@@ -4592,13 +5164,20 @@ fn honesty_dependencies(ci: &str) -> Result<(), String> {
     for root in [
         "bootstrap-export",
         "vv",
+        "vv-fast",
         "atlas-prefix",
         "host-matrix",
         "intel-construction",
         "windows-part",
+        "macos-part",
     ] {
         let body = workflow_job(ci, root)?;
-        if !body.contains("needs: [plan, honesty]\n")
+        let dependencies = if root == "vv" {
+            "needs: [plan, honesty, bootstrap-export]\n"
+        } else {
+            "needs: [plan, honesty]\n"
+        };
+        if !body.contains(dependencies)
             || body
                 .lines()
                 .any(|line| line.starts_with("    if:") && line.contains("always()"))
@@ -4692,6 +5271,23 @@ fn release_gate_decisions() {
         .filter(|job| !job.starts_with(hosts[1].as_str()))
         .cloned()
         .collect();
+    // A pull request run into a line, which skipped the Intel macOS jobs
+    // (§9.4): every other job passed, and it is still not the release's
+    // evidence.
+    let without_intel: Vec<String> = green
+        .iter()
+        .map(|job| {
+            job.replace(
+                "build and non-Lean tests (x86_64-apple-darwin)\tsuccess",
+                "build and non-Lean tests (x86_64-apple-darwin)\tskipped",
+            )
+        })
+        .chain([
+            stamp("Intel test construction and local targets", "skipped"),
+            stamp("Intel conformance (${{ matrix.lane }})", "skipped"),
+        ])
+        .collect();
+    assert_ne!(without_intel, green, "the plant skips the Intel context");
     // Every job but one leg: only the reading of every leg refuses it.
     let missing_leg: Vec<String> = green
         .iter()
@@ -4946,6 +5542,11 @@ fn release_gate_decisions() {
             vec![(head.as_str(), run_line("18"))],
             &missing_host,
         ),
+        (
+            "a run without the Intel macOS jobs",
+            vec![(head.as_str(), run_line("31"))],
+            &without_intel,
+        ),
     ] {
         let (code, evidence, stderr) = decide(&head, &runs, jobs);
         assert_eq!(code, 1, "{why}: refused ({stderr})");
@@ -4982,4 +5583,216 @@ fn release_gate_decisions() {
             assert!(evidence.is_empty(), "{defect} host writes no evidence");
         }
     }
+}
+
+/// The files of a Lean build that a browser prover loads for one module:
+/// what Lean itself writes, never Lake's traces, which record the directory.
+const LEAN_OUTPUTS: [&str; 5] = ["olean", "olean.server", "olean.private", "ir", "ilean"];
+
+/// The driver of the WASM prover, as the release publishes it (§30.3).
+const DRIVER_FILES: [&str; 4] = [
+    "Elab.lean",
+    "SymList.lean",
+    "lakefile.toml",
+    "lean-toolchain",
+];
+
+/// `cargo xtask runtime-package --output <dir>`, run from the repository.
+fn runtime_package(output: &std::path::Path) {
+    let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned());
+    let run = std::process::Command::new(cargo)
+        .args(["xtask", "runtime-package", "--output"])
+        .arg(output)
+        .current_dir(support::repo_root().as_std_path())
+        .output()
+        .expect("cargo runs");
+    assert!(
+        run.status.success(),
+        "RP-20: runtime-package fails: {}",
+        String::from_utf8_lossy(&run.stderr)
+    );
+}
+
+/// `lake <args>` in `dir` with the pinned toolchain the directory names.
+fn lake(dir: &std::path::Path, args: &[&str]) {
+    let run = std::process::Command::new("lake")
+        .args(args)
+        .current_dir(dir)
+        .output()
+        .expect("lake runs");
+    assert!(
+        run.status.success(),
+        "RP-20: `lake {}` fails in {}:\n{}{}",
+        args.join(" "),
+        dir.display(),
+        String::from_utf8_lossy(&run.stdout),
+        String::from_utf8_lossy(&run.stderr)
+    );
+}
+
+/// RP-20.
+fn rp_20() {
+    let root = support::repo_root();
+    let pinned = root_file("lean-toolchain");
+
+    // The runtime package: the compiler's own runtime Lean, byte for byte,
+    // under one Lake library, with the pinned toolchain.
+    let scratch = tempfile::Builder::new()
+        .prefix("lexlean-rp-20-")
+        .tempdir()
+        .expect("tempdir");
+    let first = scratch.path().join("a");
+    runtime_package(&first);
+    let modules = lexlean::backend::runtime::modules().expect("the runtime");
+    assert!(
+        modules.len() >= 6,
+        "RP-20: {} runtime modules",
+        modules.len()
+    );
+    for module in modules {
+        let path = first.join(format!("{}.lean", module.name.replace('.', "/")));
+        assert_eq!(
+            std::fs::read_to_string(&path).expect("a runtime source"),
+            module.text,
+            "RP-20: {} is the compiler's runtime text",
+            module.name
+        );
+    }
+    assert_eq!(
+        std::fs::read_to_string(first.join("lean-toolchain")).expect("lean-toolchain"),
+        pinned,
+        "RP-20: the package pins the repository's Lean"
+    );
+    let listed = std::fs::read_to_string(first.join("modules.txt")).expect("modules.txt");
+    let names: Vec<&str> = modules.iter().map(|module| module.name.as_str()).collect();
+    assert_eq!(
+        listed.lines().collect::<Vec<_>>(),
+        names,
+        "RP-20: modules.txt"
+    );
+    let lakefile = std::fs::read_to_string(first.join("lakefile.toml")).expect("lakefile");
+    assert!(
+        lakefile.contains("globs = [\"LexLeanRuntime.+\"]"),
+        "RP-20: the library builds every runtime module: {lakefile}"
+    );
+    // A second package into a directory that is not empty is refused.
+    let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned());
+    let refused = std::process::Command::new(cargo)
+        .args(["xtask", "runtime-package", "--output"])
+        .arg(&first)
+        .current_dir(root.as_std_path())
+        .output()
+        .expect("cargo runs");
+    assert!(
+        !refused.status.success(),
+        "RP-20: a non-empty output is refused"
+    );
+
+    // The driver: the four files the release publishes, on the pinned Lean,
+    // with the two executables the release builds.
+    let driver = root.join("lean/wasm-prover/driver");
+    for file in DRIVER_FILES {
+        assert!(
+            driver.join(file).is_file(),
+            "RP-20: lean/wasm-prover/driver/{file}"
+        );
+    }
+    assert_eq!(
+        std::fs::read_to_string(driver.join("lean-toolchain").as_std_path()).expect("toolchain"),
+        pinned,
+        "RP-20: the driver pins the repository's Lean"
+    );
+    let driver_lakefile =
+        std::fs::read_to_string(driver.join("lakefile.toml").as_std_path()).expect("lakefile");
+    for executable in ["name = \"elab\"", "name = \"symlist\""] {
+        assert!(
+            driver_lakefile.contains(executable),
+            "RP-20: the driver's {executable}"
+        );
+    }
+
+    // The release builds, labels, and attaches them.
+    let release = root_file(".github/workflows/release.yml");
+    let job = workflow_job(&release, "lean-wasm").expect("release.yml job `lean-wasm`");
+    for needle in [
+        "needs: identity",
+        "rustup target add wasm32-wasip1",
+        "elan\" toolchain install \"$(cat lean-toolchain)\"",
+        "b3sum",
+        ".github/lean-wasm.sh \"$VERSION\" staged/lean-wasm",
+        "name: lean-wasm",
+    ] {
+        position_of(&job, needle, "release.yml job `lean-wasm`").expect("the job");
+    }
+    let publish = workflow_job(&release, "publish").expect("release.yml job `publish`");
+    for needle in [
+        "needs: [identity, crate, gate, binaries, manifest, lean-wasm]",
+        "cp downloaded/lean-wasm/* release/",
+        "\"release/lexlean-${VERSION}-lean-wasm.tar.gz\"",
+        "\"release/lexlean-${VERSION}.wasm.gz\"",
+        "release/lean-wasm.json",
+    ] {
+        position_of(&publish, needle, "release.yml job `publish`").expect("publish");
+    }
+    let script = root_file(".github/lean-wasm.sh");
+    for needle in [
+        "cargo xtask runtime-package",
+        "cmp \"$a\" \"$b\"",
+        "lake build elab symlist",
+        "--no-default-features",
+        "gzip -9 -n",
+        "\"blake3:\"",
+        "lexlean/lean-wasm-assets/1",
+    ] {
+        position_of(&script, needle, ".github/lean-wasm.sh").expect("the script");
+    }
+
+    // With Lean: two packages in two directories build to the same bytes,
+    // and the driver builds.
+    if !support::lean_backed("RP-20") {
+        return;
+    }
+    let second = scratch.path().join("b");
+    runtime_package(&second);
+    lake(&first, &["build"]);
+    lake(&second, &["build"]);
+    let mut compared = 0usize;
+    for module in modules {
+        let relative = module.name.replace('.', "/");
+        for extension in LEAN_OUTPUTS {
+            let built = format!(".lake/build/lib/lean/{relative}.{extension}");
+            let a = first.join(&built);
+            if !a.is_file() {
+                assert!(
+                    !matches!(extension, "olean" | "ilean"),
+                    "RP-20: {built} was built"
+                );
+                continue;
+            }
+            assert!(
+                std::fs::read(&a).expect("first")
+                    == std::fs::read(second.join(&built)).expect("second"),
+                "RP-20: {built} is the same bytes from two directories"
+            );
+            compared += 1;
+        }
+    }
+    let driver_copy = scratch.path().join("driver");
+    std::fs::create_dir_all(&driver_copy).expect("driver copy");
+    for file in DRIVER_FILES {
+        std::fs::copy(driver.join(file).as_std_path(), driver_copy.join(file)).expect("copy");
+    }
+    lake(&driver_copy, &["build", "elab", "symlist"]);
+    for executable in ["elab", "symlist"] {
+        assert!(
+            driver_copy
+                .join(".lake/build/bin")
+                .join(executable)
+                .is_file(),
+            "RP-20: the driver's {executable} is built"
+        );
+    }
+    eprintln!(
+        "RP-20: {compared} runtime build files agree between two directories, and the driver builds"
+    );
 }

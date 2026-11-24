@@ -1,4 +1,4 @@
-spec = "lexlean/project/1"
+spec = "lexlean/project/2"
 name = "model-negative"
 language = "1.2"
 module_prefix = "Mini"
@@ -7,14 +7,14 @@ entrypoints = ["src/Main.lex.tex"]
 build_root = ".lexlean"
 lockfile = "lexlean.lock"
 lean_workspace = "."
-lean_toolchain = "leanprover/lean4:v4.32.1"
+lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[lexicon_source]]
 package = "lexlean.std.nat"
 kind = "builtin"
 
 [[artifact_source]]
-sha256 = "f55adc12d0294618d48a38e2262125d693c760e8614d29a7ca0702e034e4212d"
+kappa = "blake3:ef6937251928bab473dde753fab080f4c3ea7299bbd0d5e9d79d719af29c434d"
 path = "artifacts/lines.txt"
 
 [limits]

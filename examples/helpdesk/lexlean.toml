@@ -1,4 +1,4 @@
-spec = "lexlean/project/1"
+spec = "lexlean/project/2"
 name = "helpdesk"
 language = "1.2"
 module_prefix = "Helpdesk"
@@ -7,7 +7,7 @@ entrypoints = ["src/Main.lex.tex"]
 build_root = ".lexlean"
 lockfile = "lexlean.lock"
 lean_workspace = "."
-lean_toolchain = "leanprover/lean4:v4.32.1"
+lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[lexicon_source]]
 package = "helpdesk.titles"
@@ -19,11 +19,11 @@ package = "lexlean.std.nat"
 kind = "builtin"
 
 [[artifact_source]]
-sha256 = "b0f66adc83641586656866813fd9dd0b8ebb63796075661ba45d1aa8089e1d44"
+kappa = "blake3:3dbd5a09e7a3cb05765522ff5d618722f3ab7784973a3e7c3b8a43c095404ba1"
 path = "artifacts/topic-bias.bin"
 
 [[artifact_source]]
-sha256 = "dcad521bee95f3e0032ce4dcca4fa2fd6d21125c14f00898eb4336a466604617"
+kappa = "blake3:e38fb6e56d317b97665b3170e483bb6d927e5fbcab8e6ddd2f0475114683d240"
 path = "artifacts/topic-weights.bin"
 
 [[source_package]]

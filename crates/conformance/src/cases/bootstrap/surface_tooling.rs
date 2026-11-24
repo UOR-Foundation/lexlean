@@ -28,7 +28,7 @@ use crate::support::{self, repo_root};
 
 const MODULE: &str = "LexLeanBoot.SurfaceTooling";
 const JSON_SOURCE: &str = "stdlib/src/Json.lex.tex";
-const SPEC: &str = "lexlean/tooling-module/1";
+const SPEC: &str = "lexlean/tooling-module/2";
 const ROOTS: [(&str, &[&str]); 3] = [
     (
         "printToolingModule",
@@ -252,11 +252,11 @@ fn named() -> Vec<Vector> {
         ("a minimal module printed", r#"{"spec":"s"}"#),
         (
             "a module with members around spec printed",
-            r#"{"a":1,"spec":"lexlean/tooling-module/1","z":[true,"x"]}"#,
+            r#"{"a":1,"spec":"lexlean/tooling-module/2","z":[true,"x"]}"#,
         ),
         (
             "the oracle's own module printed",
-            r#"{"authority":{"id":"A","lean_githash":"g","lean_version":"4.32.1"},"declarations":[{"constructors":[{"fields":[],"name":"false"}],"kind":"type","name":"Bool","parameters":[]},{"kind":"call","name":"f"}],"imports":[],"spec":"lexlean/tooling-module/1"}"#,
+            r#"{"authority":{"id":"A","lean_githash":"g","lean_version":"4.32.2"},"declarations":[{"constructors":[{"fields":[],"name":"false"}],"kind":"type","name":"Bool","parameters":[]},{"kind":"call","name":"f"}],"imports":[],"spec":"lexlean/tooling-module/2"}"#,
         ),
         ("a module whose spec is a boolean", r#"{"spec":true}"#),
         ("a module whose spec is an object", r#"{"spec":{"a":1}}"#),

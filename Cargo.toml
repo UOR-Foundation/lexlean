@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/*", "xtask"]
 
 [workspace.package]
-version = "0.4.0"
+version = "0.4.5"
 edition = "2021"
 rust-version = "1.97"
 license = "MIT OR Apache-2.0"
@@ -17,9 +17,9 @@ categories = ["compilers", "development-tools"]
 # A `path` dependency with no `version` is a wildcard requirement, and
 # `cargo deny` refuses those (`wildcards = "deny"`). Every internal dependency
 # carries both.
-repo-model = { version = "0.4.0", path = "crates/model" }
-repo-conformance = { version = "0.4.0", path = "crates/conformance" }
-lexlean = { version = "0.4.0", path = "crates/lexlean" }
+repo-model = { version = "0.4.5", path = "crates/model" }
+repo-conformance = { version = "0.4.5", path = "crates/conformance" }
+lexlean = { version = "0.4.5", path = "crates/lexlean" }
 
 camino = "1.2"
 clap = { version = "4.5", features = ["derive"] }
@@ -30,6 +30,13 @@ same-file = "1.0"
 semver = "1.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["unbounded_depth"] }
+# The oracles of the compiler's κ-label (SPEC.md §21.1, `SL-06`): the reference
+# BLAKE3 in the release the Hologram workspace and uor-addr lock, and uor-addr's
+# `blake3` σ-axis, which Hologram's store re-derives. They may falsify the
+# certified package and never establish it. Dev and CI only, through
+# `repo-conformance` and `repo-model`; never a dependency of a shipped crate.
+blake3 = "=1.5.5"
+uor-addr = { version = "=0.2.0", default-features = false, features = ["std"] }
 sha2 = "0.10"
 signal-hook = { version = "0.3", default-features = false, features = ["iterator"] }
 tempfile = "3"
@@ -58,21 +65,23 @@ codegen-units = 1
 
 # Hashing is the one place unoptimized code costs seconds rather than
 # milliseconds: every verification reads the running executable (a debug
-# executable is a few hundred megabytes) and every olean, and `sha2` compiled
-# at the dev profile's opt-level 0 hashes about 60 MB/s, which was 4.7 seconds
-# of each verification in the test suite and the example gate. Optimizing this
-# one dependency in the dev profile changes no value it computes.
+# executable is a few hundred megabytes) and every olean, and the build script
+# hashes the compiler's driver library. The certified BLAKE3 package (SPEC.md
+# §17.22) is a module of the `lexlean` crate and of its build script, and a
+# module cannot be optimized apart from its crate, so both are optimized in
+# the dev profile; `sha2` stays optimized for the release checksums xtask
+# writes. The levels change no value anything computes.
 [profile.dev.package.sha2]
 opt-level = 3
 
-# The compiler's own digest is the standard library's certified `Sha256`
-# package, compiled into this crate (SPEC.md §17.22), and a module cannot be
-# optimized apart from its crate. At opt-level 0 it hashes 0.7 MB/s, 1,900
-# times slower than `sha2`, which is minutes for the executable a
-# verification reads; at opt-level 1 it hashes about 68 MB/s. The level
-# changes no value the crate computes.
 [profile.dev.package.lexlean]
 opt-level = 1
+
+[profile.dev.build-override]
+opt-level = 3
+
+[profile.release.build-override]
+opt-level = 3
 
 # Backtraces keep their file and line, which is all a failing gate needs from
 # debug information. Full variable-level information doubled the size of every

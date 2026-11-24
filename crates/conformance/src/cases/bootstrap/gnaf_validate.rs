@@ -13,7 +13,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
 
-use lexlean::artifact::content_id::Sha256Digest;
+use lexlean::artifact::content_id::Kappa;
 use lexlean::calculus::Value;
 use lexlean::gnaf::{
     self, Action, ActionKind, Boundary, Capacity, Carrier, Charge, ClaimClass, Completeness,
@@ -343,7 +343,7 @@ fn claims() -> Vec<ClaimClass> {
 fn prepared(kind: ActionKind) -> Prepared {
     Prepared {
         kind,
-        artifact: Sha256Digest::of(kind.constructor().as_bytes()),
+        artifact: Kappa::of(kind.constructor().as_bytes()),
     }
 }
 

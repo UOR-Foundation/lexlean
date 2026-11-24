@@ -184,6 +184,14 @@ fn proof_uses(proof: &SemanticProof, local: &str) -> bool {
     }
 }
 
+/// Lean's structural recursion search tries no candidate argument once more
+/// than this many are possible (`maxCombinationSize` of
+/// `Lean.Elab.PreDefinition.Structural.FindRecArg`) and then compiles the
+/// definition by well-founded recursion, which reduction cannot unfold. Every
+/// candidate is a parameter, so a definition with at most this many
+/// parameters is never refused by that limit.
+const LEAN_STRUCTURAL_CANDIDATES: usize = 10;
+
 /// Whether a parameter before the recursive argument is matched in `body`.
 /// With no stated argument, Lean recurses on the first parameter every
 /// recursive call decreases, and a call can decrease only a parameter the body
@@ -416,6 +424,8 @@ enum Spelling {
     },
     /// A function of `LexLeanCollections`.
     Collection(&'static str),
+    /// A function of `LexLeanArrays` (§17.12, *Arrays*).
+    Array(&'static str),
 }
 
 /// The spelling of every primitive, named one by one so that a primitive
@@ -565,6 +575,9 @@ fn spelling(operation: SemanticPrimitive) -> Spelling {
         SemanticPrimitive::GraphReachable => Spelling::Collection("graphReachable"),
         SemanticPrimitive::GraphTopological => Spelling::Collection("graphTopological"),
         SemanticPrimitive::LessThan => Spelling::Collection("lessThan"),
+        SemanticPrimitive::ArrayFromList => Spelling::Array("fromList"),
+        SemanticPrimitive::ArrayToList => Spelling::Array("toList"),
+        SemanticPrimitive::ArraySet => Spelling::Array("set"),
     }
 }
 
@@ -663,6 +676,14 @@ impl Render<'_> {
             // §17.12 (reasoning): likewise for a reasoning failure.
             SemanticType::ReasoningFailure if self.document => "ReasoningFailure".to_owned(),
             SemanticType::ReasoningFailure => "(Prod Bool Bool)".to_owned(),
+            // §17.12 (arrays): Lean's own array, whose value is the list of
+            // its elements and whose runtime indexes in constant time. The
+            // document names it plainly; Lean names it from the root, so that
+            // a document type called `Array` stays legal and captures nothing.
+            SemanticType::Array { element } if self.document => {
+                format!("Array ({})", self.ty(element))
+            }
+            SemanticType::Array { element } => format!("_root_.Array ({})", self.ty(element)),
         }
     }
 
@@ -936,6 +957,14 @@ impl Render<'_> {
                 Spelling::Widening(name) => (name.to_owned(), self.ty(result)),
                 Spelling::Collection(name) => {
                     (format!("LexLeanCollections.{name}"), self.ty(result))
+                }
+                // Rooted, so that no declaration of the document can capture the
+                // namespace and no document name had to be reserved for it.
+                Spelling::Array(name) if self.document => {
+                    (format!("LexLeanArrays.{name}"), self.ty(result))
+                }
+                Spelling::Array(name) => {
+                    (format!("_root_.LexLeanArrays.{name}"), self.ty(result))
                 }
             }
         };
@@ -1326,7 +1355,16 @@ impl Render<'_> {
                 "{pad}simp only [{}]\n",
                 definitions
                     .iter()
-                    .map(|member| self.member(member))
+                    .map(|member| {
+                        // Linking admits a registered law by its Lean name;
+                        // no document member has a dotted name.
+                        member
+                            .module
+                            .is_none()
+                            .then(|| crate::ir::semantic::laws::law_by_lean(&member.name))
+                            .flatten()
+                            .map_or_else(|| self.member(member), law_lean_name)
+                    })
                     .collect::<Vec<_>>()
                     .join(", ")
             ),
@@ -1504,7 +1542,7 @@ impl Render<'_> {
                 // Linking resolved the law; a law it did not resolve never
                 // reaches the backend.
                 let lean = crate::ir::semantic::laws::law(name)
-                    .map_or_else(|_| identifier(name), |law| law.lean.clone());
+                    .map_or_else(|_| identifier(name), law_lean_name);
                 let arguments = type_arguments
                     .iter()
                     .map(|argument| format!(" ({})", self.ty(argument)))
@@ -1590,6 +1628,24 @@ const LINEAR_BRIDGES: &[&str] = &[
     "↓reduceIte",
 ];
 
+/// What `linear_arithmetic` adds when the fixed script leaves a goal open:
+/// the equation of a conditional, which reads an `if` equal to a value as the
+/// disjunction of its branches, each with its condition, and the
+/// propositional simplifications that drop a branch whose condition is
+/// decided (§17.12). A first-match chain of many conditions then becomes
+/// cases `omega` decides rather than nested splits. They are a second
+/// attempt, not part of the first, so a proof the fixed script closes keeps
+/// the proof term, and the axioms, it has always had.
+const LINEAR_CASES: &[&str] = &[
+    "LexLeanLaws.ite_eq_iff",
+    "and_false",
+    "false_and",
+    "or_false",
+    "false_or",
+    "not_false_eq_true",
+    "not_true_eq_false",
+];
+
 /// The fixed-width integer types in the order `linear_arithmetic` names
 /// their order lemmas, each with the projection to its mathematical value.
 const FIXED_WIDTH: &[(&str, &str)] = &[
@@ -1638,10 +1694,19 @@ fn linear_arithmetic(pad: &str, definitions: &[String]) -> String {
     } else {
         format!("{pad}subst_vars\n")
     };
+    let mut cases = lemmas.clone();
+    cases.extend(LINEAR_CASES.iter().map(|lemma| (*lemma).to_owned()));
+    let attempt = |lemmas: &[String], last: &str| {
+        format!(
+            "(try set_option linter.unusedSimpArgs false in simp only [{}] at *\n{pad}     try set_option linter.unusedSimpArgs false in simp only [{}] at *\n{pad}     all_goals (repeat' split)\n{pad}     all_goals omega{last})\n",
+            lemmas.join(", "),
+            bits.join(", ")
+        )
+    };
     format!(
-        "{pad}intros\n{subst}{pad}try set_option linter.unusedSimpArgs false in simp only [{}] at *\n{pad}try set_option linter.unusedSimpArgs false in simp only [{}] at *\n{pad}all_goals (repeat' split)\n{pad}all_goals omega\n",
-        lemmas.join(", "),
-        bits.join(", ")
+        "{pad}intros\n{subst}{pad}first\n{pad}  | {}{pad}  | {}",
+        attempt(&lemmas, &format!("\n{pad}     done")),
+        attempt(&cases, "")
     )
 }
 
@@ -1746,10 +1811,103 @@ fn uses_collections(module: &serde_json::Value) -> bool {
                         .and_then(|operation| {
                             serde_json::from_value::<SemanticPrimitive>(operation.clone()).ok()
                         })
-                        .is_some_and(SemanticPrimitive::language_1_2),
+                        .is_some_and(|operation| operation.language_1_2() && !operation.array()),
                     _ => false,
                 };
                 collection || object.values().any(walk)
+            }
+            serde_json::Value::Null
+            | serde_json::Value::Bool(_)
+            | serde_json::Value::Number(_)
+            | serde_json::Value::String(_) => false,
+        }
+    }
+    walk(module)
+}
+
+/// How generated Lean names a registered law. A law of a module other than
+/// the laws module is named from the root: its namespace is not a reserved
+/// document name, so only the rooted name is safe from capture.
+fn law_lean_name(law: &crate::ir::semantic::laws::Law) -> String {
+    match law.module {
+        Some(_) => format!("_root_.{}", law.lean),
+        None => law.lean.clone(),
+    }
+}
+
+/// The runtime modules that state the laws a module's `law` proofs apply
+/// (§17.12, *Fold laws*): the laws module, unless the law's registry row names
+/// another. A law linking did not resolve never reaches the backend.
+fn law_modules(module: &serde_json::Value) -> std::collections::BTreeSet<String> {
+    fn walk(value: &serde_json::Value, found: &mut std::collections::BTreeSet<String>) {
+        match value {
+            serde_json::Value::Array(items) => items.iter().for_each(|item| walk(item, found)),
+            serde_json::Value::Object(object) => {
+                // A `simplify` that names a registered law by its Lean name
+                // rewrites with it, so it imports the law's module too.
+                if object.get("kind").and_then(serde_json::Value::as_str) == Some("simplify") {
+                    for law in object
+                        .get("definitions")
+                        .and_then(serde_json::Value::as_array)
+                        .into_iter()
+                        .flatten()
+                        .filter(|member| {
+                            member.get("module").is_none_or(serde_json::Value::is_null)
+                        })
+                        .filter_map(|member| member.get("name").and_then(serde_json::Value::as_str))
+                        .filter_map(crate::ir::semantic::laws::law_by_lean)
+                    {
+                        found.insert(
+                            law.module
+                                .clone()
+                                .unwrap_or_else(|| crate::backend::runtime::LAWS.to_owned()),
+                        );
+                    }
+                }
+                if object.get("kind").and_then(serde_json::Value::as_str) == Some("law") {
+                    let declared = object
+                        .get("name")
+                        .and_then(serde_json::Value::as_str)
+                        .and_then(|name| crate::ir::semantic::laws::law(name).ok())
+                        .and_then(|law| law.module.clone());
+                    found.insert(
+                        declared.unwrap_or_else(|| crate::backend::runtime::LAWS.to_owned()),
+                    );
+                }
+                object.values().for_each(|inner| walk(inner, found));
+            }
+            serde_json::Value::Null
+            | serde_json::Value::Bool(_)
+            | serde_json::Value::Number(_)
+            | serde_json::Value::String(_) => {}
+        }
+    }
+    let mut found = std::collections::BTreeSet::new();
+    walk(module, &mut found);
+    found
+}
+
+/// Whether a module needs the arrays runtime (§17.12, *Arrays*): it writes
+/// the array type or applies an array primitive. A module that only measures
+/// or indexes an array another module made names no array construct, and
+/// reaches the instances through that module's public import.
+fn uses_arrays(module: &serde_json::Value) -> bool {
+    fn walk(value: &serde_json::Value) -> bool {
+        match value {
+            serde_json::Value::Array(items) => items.iter().any(walk),
+            serde_json::Value::Object(object) => {
+                let kind = object.get("kind").and_then(serde_json::Value::as_str);
+                let array = match kind {
+                    Some("array") => true,
+                    Some("primitive") => object
+                        .get("operation")
+                        .and_then(|operation| {
+                            serde_json::from_value::<SemanticPrimitive>(operation.clone()).ok()
+                        })
+                        .is_some_and(SemanticPrimitive::array),
+                    _ => false,
+                };
+                array || object.values().any(walk)
             }
             serde_json::Value::Null
             | serde_json::Value::Bool(_)
@@ -1897,7 +2055,9 @@ pub(crate) fn notation_declaration_spans(
     let spans = if tooling {
         crate::surface::tooling::declaration_spans(body)
     } else {
-        crate::surface::semantic::declaration_spans(body)
+        // The linker has read this text to the project's `max_scope_depth`,
+        // and the renderer runs on a stack sized for it (§25.5).
+        crate::surface::semantic::declaration_spans_bounded(body, usize::MAX)
     }
     .ok()?;
     Some(
@@ -2123,7 +2283,7 @@ pub fn render_lean(
     // runtime modules, native modules of the embedded runtime project; a
     // language-1.1 module splices the frozen portable runtime inside its
     // namespace, as its released output did.
-    let language_1_2 = module.spec == "lexlean/semantic-module/2";
+    let language_1_2 = module.spec == "lexlean/semantic-module/3";
     let collections = reasoning
         || uses_collections(
             &serde_json::to_value((&lowered, module.elaboration.all_checks()))
@@ -2134,8 +2294,26 @@ pub fn render_lean(
     });
     // §17.12 (fold laws): `linear_arithmetic` rewrites with the laws
     // module and `law` applies it, so a module with either proof uses it.
+    // A `law` proof imports the module that states its law: the laws module
+    // for a fold law, and the module its registry row names otherwise.
+    let law_modules = law_modules(
+        &serde_json::to_value((&lowered, module.elaboration.all_theorems()))
+            .expect("elaborated declarations serialize"),
+    );
     let laws = elaborated.contains("\"kind\":\"linear_arithmetic\"")
-        || elaborated.contains("\"kind\":\"law\"");
+        || law_modules.contains(crate::backend::runtime::LAWS);
+    // §17.12 (arrays): a module that writes the array type or applies an
+    // array primitive uses the arrays module, which also holds the instances
+    // `length` and `index` resolve on an array.
+    let arrays = law_modules.contains(crate::backend::runtime::ARRAYS)
+        || uses_arrays(
+            &serde_json::to_value((
+                &lowered,
+                module.elaboration.all_checks(),
+                module.elaboration.all_theorems(),
+            ))
+            .expect("elaborated declarations serialize"),
+        );
     // §17.12 (decision regions): a `region_check` proof applies the
     // soundness theorem of the regions module.
     let regions = elaborated.contains("\"kind\":\"region_check\"");
@@ -2147,13 +2325,16 @@ pub fn render_lean(
         text.push_str("meta import Lean.Elab.Tactic.Basic\nmeta import Lean.Meta.Tactic.Refl\n");
     }
     if language_1_2 {
-        use crate::backend::runtime::{COLLECTIONS, LAWS, MODELS, PORTABLE, REASONING, REGIONS};
+        use crate::backend::runtime::{
+            ARRAYS, COLLECTIONS, LAWS, MODELS, PORTABLE, REASONING, REGIONS,
+        };
         for (used, runtime_module) in [
-            (runtime, PORTABLE),
+            (runtime || arrays, PORTABLE),
             (collections, COLLECTIONS),
             (models, MODELS),
             (reasoning, REASONING),
             (laws, LAWS),
+            (arrays, ARRAYS),
             (regions, REGIONS),
         ] {
             if used {
@@ -2370,6 +2551,7 @@ pub fn render_lean(
                         })?;
                         text.push_str(&equations);
                         if mutual.is_some()
+                            || parameters.len() > LEAN_STRUCTURAL_CANDIDATES
                             || (*executable
                                 && matches_earlier_parameter(parameters, recursive_argument, body))
                         {
@@ -2377,7 +2559,10 @@ pub fn render_lean(
                             // construction; Lean must confirm exactly that. So
                             // must an executable definition Lean could recurse
                             // otherwise, since its certificate A reduces the
-                            // definition on the checked argument.
+                            // definition on the checked argument, and a
+                            // definition with more parameters than Lean's
+                            // search considers, which Lean would otherwise
+                            // compile by well-founded recursion.
                             // Only the decreasing parameter is used after `=>`;
                             // naming the others would trip Lean's unused-variable
                             // linter, which fails verification.
@@ -2406,7 +2591,7 @@ pub fn render_lean(
                         // is reducible, so a proposition it names is decidable
                         // exactly when its body is, as a contract predicate
                         // over a finite domain must be.
-                        let attributes = if module.spec == "lexlean/semantic-module/2"
+                        let attributes = if module.spec == "lexlean/semantic-module/3"
                             && *result == SemanticType::Prop
                         {
                             "@[expose, reducible]"
@@ -2502,7 +2687,7 @@ pub fn render_lean(
             "phase lean-backend: semantic lowering produced a comment token",
         ));
     }
-    if module.spec == "lexlean/semantic-module/2" {
+    if module.spec == "lexlean/semantic-module/3" {
         emit_declarations(checked, &text, "semantic-lean-module", &starts, end)
     } else {
         Ok(emit(checked, &text, "semantic-lean-module"))
@@ -2614,7 +2799,7 @@ fn latex_model(
     match declaration {
         SemanticDeclaration::Artifact {
             role,
-            sha256,
+            kappa,
             length,
             schema,
             r#type,
@@ -2643,11 +2828,7 @@ fn latex_model(
                 },
             );
             latex_line(text, "Value type", &render.ty(r#type));
-            latex_line(
-                text,
-                "Content",
-                &format!("{length} bytes, SHA-256 {sha256}"),
-            );
+            latex_line(text, "Content", &format!("{length} bytes, κ-label {kappa}"));
             latex_line(text, "Axiom policy", &latex_policy(axioms));
         }
         SemanticDeclaration::Contract {
@@ -3311,7 +3492,7 @@ pub fn render_latex(
         qualify: None,
         injective: &[],
     };
-    let version_2 = module.spec == "lexlean/semantic-module/2";
+    let version_2 = module.spec == "lexlean/semantic-module/3";
     let mut text = String::from(
         "\\documentclass[11pt]{article}\n\\usepackage[T1]{fontenc}\n\\usepackage{amsmath,amssymb}\n\\begin{document}\n\\section*{Semantic declarations}\n",
     );

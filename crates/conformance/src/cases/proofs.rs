@@ -1,4 +1,4 @@
-//! The `proofs` suite: PF-01..PF-24 and PF-27.
+//! The `proofs` suite: PF-01..PF-24 and PF-26..PF-28.
 //!
 //! Positive forms are asserted against the shared Lean-verified proof
 //! corpus (`support::verified_corpus`): every case first asserts the
@@ -84,6 +84,31 @@ fn conditional_lemma_pair(
 /// The rewrite set the committed fold-law registry gives
 /// `linear_arithmetic` (§17.12, *Fold laws*), read from the file rather than
 /// from the compiler, so that a backend that stopped reading it is caught.
+/// The registry's natural-number laws (PF-28), each its name and Lean name.
+fn registered_nat_laws() -> Vec<(String, String)> {
+    let text = std::fs::read_to_string(
+        support::repo_root()
+            .join("language/runtime-1.2/laws.toml")
+            .as_std_path(),
+    )
+    .expect("the fold-law registry");
+    let registry: toml::Value = toml::from_str(&text).expect("the registry is TOML");
+    registry["law"]
+        .as_array()
+        .expect("the applied laws")
+        .iter()
+        .filter_map(|law| {
+            let name = law["name"].as_str().expect("a law name");
+            name.starts_with("nat_").then(|| {
+                (
+                    name.to_owned(),
+                    law["lean"].as_str().expect("a Lean name").to_owned(),
+                )
+            })
+        })
+        .collect()
+}
+
 fn registered_rewrites() -> Vec<String> {
     let text = std::fs::read_to_string(
         support::repo_root()
@@ -162,10 +187,30 @@ fn linear_script(definitions: &[&str]) -> String {
     } else {
         "  subst_vars\n"
     };
+    let mut cases = lemmas.clone();
+    cases.extend(
+        [
+            "LexLeanLaws.ite_eq_iff",
+            "and_false",
+            "false_and",
+            "or_false",
+            "false_or",
+            "not_false_eq_true",
+            "not_true_eq_false",
+        ]
+        .map(str::to_owned),
+    );
+    let attempt = |lemmas: &[String], last: &str| {
+        format!(
+            "(try set_option linter.unusedSimpArgs false in simp only [{}] at *\n       try set_option linter.unusedSimpArgs false in simp only [{}] at *\n       all_goals (repeat' split)\n       all_goals omega{last})\n",
+            lemmas.join(", "),
+            bits.join(", ")
+        )
+    };
     format!(
-        "  intros\n{subst}  try set_option linter.unusedSimpArgs false in simp only [{}] at *\n  try set_option linter.unusedSimpArgs false in simp only [{}] at *\n  all_goals (repeat' split)\n  all_goals omega\n",
-        lemmas.join(", "),
-        bits.join(", ")
+        "  intros\n{subst}  first\n    | {}    | {}",
+        attempt(&lemmas, "\n       done"),
+        attempt(&cases, "")
     )
 }
 
@@ -1013,6 +1058,135 @@ pub(crate) fn run(id: &str) {
                 assert_eq!(
                     refused_theorems(&wrong, "src/Kernels.lex.tex", &error),
                     ["byte_literal", "requantize_high", "truncating_division"],
+                    "{error}"
+                );
+            }
+        }
+        // §17.12: linear_arithmetic decides a first-match chain of many conditions.
+        "PF-26" => {
+            assert!(
+                !registered_rewrites()
+                    .iter()
+                    .any(|law| law == "LexLeanLaws.ite_eq_iff"),
+                "the equation of a conditional is the second attempt, not a rewrite of the first"
+            );
+            let project = P::copy_example("fold-laws");
+            project.check_ok();
+            let build = support::rendered(&project);
+            let kernels = support::lean_text(&build, "Kernels");
+            assert!(
+                kernels.contains(&format!(
+                    "(band (x) = 14) -> (14 <= x)) := by\n{}",
+                    linear_script(&["band"])
+                )),
+                "the fixed script decides the fourteen-condition chain\n{kernels}"
+            );
+            let _ = support::verify_ok_backed("PF-26", &project);
+            // A false bound on the chain links and is refused by Lean.
+            if support::lean_backed("PF-26") {
+                let wrong = fold_laws_with(
+                    "src/Kernels.lex.tex",
+                    &[(
+                        "statement: (((band x) = 7) -> (x < 8)),",
+                        "statement: (((band x) = 7) -> (x < 7)),",
+                    )],
+                );
+                wrong.check_ok();
+                let _guard = support::env_shared();
+                let error = wrong.verify_fails_with("LLV7002");
+                assert_eq!(
+                    refused_theorems(&wrong, "src/Kernels.lex.tex", &error),
+                    ["band_middle"],
+                    "{error}"
+                );
+            }
+        }
+        // §17.12: natural-number arithmetic laws, applied by `law` and
+        // rewritten with by `simplify`.
+        "PF-28" => {
+            use lexlean::backend::runtime;
+            let modules = runtime::modules().expect("the shipped runtime");
+            let laws = modules
+                .iter()
+                .find(|module| module.name == runtime::LAWS)
+                .expect("the laws module is a runtime module");
+            let arithmetic = registered_nat_laws();
+            assert_eq!(arithmetic.len(), 23, "the natural-number laws");
+            for (name, lean) in &arithmetic {
+                let (_, axioms) = laws
+                    .declarations
+                    .iter()
+                    .find(|(declared, _)| declared == lean)
+                    .unwrap_or_else(|| panic!("`{lean}` is a declaration of the laws module"));
+                assert!(
+                    axioms.iter().all(|axiom| axiom == "propext"),
+                    "`{name}` pins {axioms:?}"
+                );
+            }
+            let project = P::copy_example("fold-laws");
+            project.check_ok();
+            let build = support::rendered(&project);
+            let lean = support::lean_text(&build, "Arithmetic");
+            assert!(
+                lean.contains("import LexLeanRuntime.Laws\n"),
+                "a module whose simplify names a law imports the laws module\n{lean}"
+            );
+            for (name, law) in &arithmetic {
+                assert!(
+                    lean.contains(&format!("  exact @{law} (")),
+                    "`{name}` is applied by a law proof\n{lean}"
+                );
+                // The cancellation names a factor its conclusion lacks, so
+                // its rewrite form is `nat_mul_le_mul_left_iff`.
+                if name != "nat_le_of_mul_le_mul_left" {
+                    assert!(
+                        lean.lines().any(|line| {
+                            line.trim_start().starts_with("simp only [")
+                                && (line.contains(&format!("{law}]"))
+                                    || line.contains(&format!("{law}, ")))
+                        }),
+                        "`{name}` is a rewrite of a simplify proof\n{lean}"
+                    );
+                }
+            }
+            assert!(
+                lean.contains("  simp only [Nat.ble_eq, Nat.le_refl]\n"),
+                "language 1.2 simplify takes the order bridge and its reflexivity\n{lean}"
+            );
+            let file = "src/Arithmetic.lex.tex";
+            fold_laws_rejected(
+                file,
+                "proof: simplify{definitions: [LexLeanLaws.nat_mul_comm]},",
+                "proof: simplify{definitions: [LexLeanLaws.nat_mul_triple]},",
+                "simplify names a forward or missing definition `LexLeanLaws.nat_mul_triple`",
+            );
+            semantic_1_1_rejects(
+                r#"{"axioms":[],"kind":"theorem","name":"law_rewrite","parameters":[],"proof":{"definitions":[{"name":"LexLeanLaws.nat_mul_comm"}],"kind":"simplify"},"statement":{"kind":"eq","left":{"kind":"nat","value":"0"},"right":{"kind":"nat","value":"0"}}}"#,
+                "`simplify with LexLeanLaws.nat_mul_comm` is a language-1.2 construct",
+            );
+            let _ = support::verify_ok_backed("PF-28", &project);
+            // The successor law with the wrong summand links and Lean
+            // refuses both of its instances.
+            if support::lean_backed("PF-28") {
+                let wrong = fold_laws_with(
+                    file,
+                    &[
+                        (
+                            "statement: ((prim multiply a (b + 1) : Nat) = ((prim multiply a b : Nat) + a)),",
+                            "statement: ((prim multiply a (b + 1) : Nat) = ((prim multiply a b : Nat) + b)),",
+                        ),
+                        (
+                            "statement: (((prim multiply a (b + 1) : Nat) + 1) = (((prim multiply a b : Nat) + a) + 1)),",
+                            "statement: (((prim multiply a (b + 1) : Nat) + 1) = (((prim multiply a b : Nat) + b) + 1)),",
+                        ),
+                    ],
+                );
+                wrong.check_ok();
+                let _guard = support::env_shared();
+                let error = wrong.verify_fails_with("LLV7002");
+                assert_eq!(
+                    refused_theorems(&wrong, file, &error),
+                    ["mul_succ_law", "mul_succ_simp"],
                     "{error}"
                 );
             }

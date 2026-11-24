@@ -127,7 +127,7 @@ pub fn run() {
             // Language 1.1 reads the data form only.
             formatted
                 .replace("@1.2.0", "@1.1.0")
-                .replace("lexlean/semantic-module/2", "lexlean/semantic-module/1")
+                .replace("lexlean/semantic-module/3", "lexlean/semantic-module/1")
         } else {
             text
         };
