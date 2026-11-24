@@ -41,6 +41,37 @@ Outside `vv`:
 
 ## Falsifiability records
 
+### Delayed successful CI is not release qualification (RP-14)
+
+The tag workflow waits for a push run only when the initial exact-tree
+release gate refuses and there is a push run to wait for. A provider's
+successful workflow conclusion is not evidence that every required
+obligation ran. After delayed success the workflow must invoke the same
+`.github/release-gate.sh` again before allowing the tag step.
+
+Local verification for [#607](https://github.com/UOR-Foundation/lexlean/pull/607)
+at `844bc0ce` matched the Python test blob
+`dff38f6537cf8273aafc3849e940786c3f304de2`. The command
+`python3 -m unittest discover -s .github/scripts -p 'test_tag_gate_poll.py' -v`
+passed all eight tests (0.090 s) in an isolated fixture containing the
+retrieved wait-step excerpt, with stubbed provider and gate results. The
+positive controls cover an already-qualified receipt and a delayed
+qualified receipt. Negative controls cover apparent provider success
+without qualifying receipts, provider failure/cancellation, a called
+workflow without proof, and unavailable provider responses under a
+test-only shortened polling horizon. The previous unconditional-success
+branch was separately planted in the local shell simulation and accepted
+the false-green outcome; the corrected branch refused it. No real tag,
+release, provider mutation or complete hosted release rehearsal ran.
+
+At `350938fe` the test is invoked by the existing CI honesty job; RP-14
+requires the command and rejects removal or bypass of its step. Equivalent
+source checks against the retrieved workflow passed and refused three
+plants (command removal, continue-on-error, and a false step condition).
+These are source checks, not a compiled RP-14 result. Exact-head compiled
+and hosted acceptance remains required, and a test-only receipt cannot
+authorize a release.
+
 ### browser prover assets can differ, fail to build, or go unpublished (RP-20)
 
 `RP-20` holds the assets a browser prover loads (§7, §30.3).
