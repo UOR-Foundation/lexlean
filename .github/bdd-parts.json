@@ -265,7 +265,8 @@
     "preservation-std": [
       "SP-29",
       "SP-32",
-      "SP-33"
+      "SP-33",
+      "SP-34"
     ],
     "bootstrap-diagnostics": [
       "BS-29"

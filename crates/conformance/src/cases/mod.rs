@@ -77,6 +77,7 @@ mod tooling;
 mod typed_diagnostics;
 mod verification;
 mod wasi;
+mod wide_recursion;
 
 /// The wall time of one case, written to the CI evidence directory when the
 /// environment names one (SPEC.md §22.12) and nowhere else. It is written when

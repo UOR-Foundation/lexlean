@@ -177,6 +177,14 @@ fn proof_uses(proof: &SemanticProof, local: &str) -> bool {
     }
 }
 
+/// Lean's structural recursion search tries no candidate argument once more
+/// than this many are possible (`maxCombinationSize` of
+/// `Lean.Elab.PreDefinition.Structural.FindRecArg`) and then compiles the
+/// definition by well-founded recursion, which reduction cannot unfold. Every
+/// candidate is a parameter, so a definition with at most this many
+/// parameters is never refused by that limit.
+const LEAN_STRUCTURAL_CANDIDATES: usize = 10;
+
 /// Whether a parameter before the recursive argument is matched in `body`.
 /// With no stated argument, Lean recurses on the first parameter every
 /// recursive call decreases, and a call can decrease only a parameter the body
@@ -2461,6 +2469,7 @@ pub fn render_lean(
                         })?;
                         text.push_str(&equations);
                         if mutual.is_some()
+                            || parameters.len() > LEAN_STRUCTURAL_CANDIDATES
                             || (*executable
                                 && matches_earlier_parameter(parameters, recursive_argument, body))
                         {
@@ -2468,7 +2477,10 @@ pub fn render_lean(
                             // construction; Lean must confirm exactly that. So
                             // must an executable definition Lean could recurse
                             // otherwise, since its certificate A reduces the
-                            // definition on the checked argument.
+                            // definition on the checked argument, and a
+                            // definition with more parameters than Lean's
+                            // search considers, which Lean would otherwise
+                            // compile by well-founded recursion.
                             // Only the decreasing parameter is used after `=>`;
                             // naming the others would trip Lean's unused-variable
                             // linter, which fails verification.
