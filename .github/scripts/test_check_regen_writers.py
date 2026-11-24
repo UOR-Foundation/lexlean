@@ -52,8 +52,8 @@ class WriterCollisionTests(unittest.TestCase):
         if unstage_locks:
             self.git("reset", "-q", "--", "bootstrap/lexlean.lock",
                      "stdlib/lexlean.lock", "compiler/lexlean.lock")
-        patch = self.git("diff", "--cached", "--binary")
-        paths = self.git("diff", "--cached", "--name-only", "-z")
+        patch = self.git("diff", "--cached", "--no-renames", "--binary")
+        paths = self.git("diff", "--cached", "--no-renames", "--name-only", "-z")
         (self.parts / (writer + ".patch")).write_bytes(patch)
         (self.parts / (writer + ".files")).write_bytes(paths)
         self.git("reset", "--hard", "-q", "HEAD")
@@ -124,13 +124,23 @@ class WriterCollisionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unsafe"):
             inspect(self.parts)
 
-    def test_patch_metadata_rename_is_understood(self):
+    def test_rename_metadata_refused_and_both_paths_accounted(self):
         (self.repo / "unique.txt").rename(self.repo / "renamed.txt")
         self.git("add", "-A")
-        (self.parts / "records.patch").write_bytes(self.git("diff", "--cached", "--binary"))
-        (self.parts / "records.files").write_bytes(
-            self.git("diff", "--cached", "--name-only", "-z"))
-        self.assertEqual(inspect(self.parts)[1], ("records", 1))
+        patch = self.parts / "records.patch"
+        manifest = self.parts / "records.files"
+        patch.write_bytes(self.git("diff", "--cached", "-M", "--binary"))
+        manifest.write_bytes(self.git("diff", "--cached", "-M", "--name-only", "-z"))
+        self.assertIn(b"rename from ", patch.read_bytes())
+        with self.assertRaisesRegex(ValueError, "unexpected rename/copy"):
+            inspect(self.parts)
+        patch.write_bytes(self.git("diff", "--cached", "--no-renames", "--binary"))
+        manifest.write_bytes(self.git("diff", "--cached", "--no-renames", "--name-only", "-z"))
+        self.assertEqual(inspect(self.parts)[1], ("records", 2))
+        self.git("reset", "--hard", "-q", "HEAD")
+        self.make_writer("oracles", {"unique.txt": "conflicting source edit\n"})
+        with self.assertRaisesRegex(ValueError, "writer collision.*unique.txt"):
+            inspect(self.parts)
 
     def test_filename_containing_newline_is_preserved(self):
         name = "line\nbreak.txt"

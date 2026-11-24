@@ -37,7 +37,7 @@ def paths_from_nul(payload, source):
 
 
 def patch_names(payload, source):
-    """Parse git apply --numstat -z, including binary files and renames."""
+    """Parse git apply --numstat -z for non-rename binary/text patches."""
     if not payload:
         return []
     require(payload.endswith(b"\0"), source + ": truncated numstat output")
@@ -50,13 +50,7 @@ def patch_names(payload, source):
             n == b"-" or (n.isascii() and n.isdigit()) for n in fields[:2]),
             source + ": malformed binary/text numstat row")
         name = fields[2]
-        if not name:
-            # Git's -z rename/copy form is 0<TAB>0<TAB><NUL>from<NUL>to<NUL>.
-            require(i + 2 < len(items) and items[i + 1] and items[i + 2],
-                    source + ": incomplete rename/copy metadata")
-            paths_from_nul(items[i + 1] + b"\0", source + " source")
-            name = items[i + 2]
-            i += 2
+        require(name, source + ": unexpected rename/copy metadata")
         found.append(name)
         i += 1
     paths_from_nul(b"\0".join(found) + b"\0", source)
@@ -82,6 +76,12 @@ def inspect(directory):
         require(manifest.stat().st_size <= MAX_MANIFEST_BYTES,
                 writer + ": oversized file manifest")
         declared = paths_from_nul(manifest.read_bytes(), writer + ".files")
+        # Git apply --numstat can report only the destination of a rename.
+        # Writers must generate delete/add patches instead, exposing both paths.
+        with patch.open("rb") as stream:
+            require(not any(line.startswith((b"rename from ", b"rename to ",
+                                             b"copy from ", b"copy to ")) for line in stream),
+                    writer + ": unexpected rename/copy patch; use --no-renames")
         if patch.stat().st_size == 0:
             # An unchanged writer has a genuinely empty Git patch; git apply
             # reports an error for this expected no-op input.

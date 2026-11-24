@@ -126,9 +126,9 @@ jobs:
           if [ "${{ matrix.writer }}" != production-export ]; then
             git reset -q -- bootstrap/lexlean.lock stdlib/lexlean.lock compiler/lexlean.lock
           fi
-          git diff --cached --binary > "$RUNNER_TEMP/part/${{ matrix.writer }}.patch"
+          git diff --cached --no-renames --binary > "$RUNNER_TEMP/part/${{ matrix.writer }}.patch"
           # Path names are NUL-delimited, including for legal newline filenames.
-          git diff --cached --name-only -z > "$RUNNER_TEMP/part/${{ matrix.writer }}.files"
+          git diff --cached --no-renames --name-only -z > "$RUNNER_TEMP/part/${{ matrix.writer }}.files"
           count=$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.argv[1]).read_bytes().count(b"\0"))' "$RUNNER_TEMP/part/${{ matrix.writer }}.files")
           echo "${{ matrix.writer }}: $count paths" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
