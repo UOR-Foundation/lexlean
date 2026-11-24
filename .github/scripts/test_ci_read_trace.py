@@ -165,6 +165,7 @@ class Record(unittest.TestCase):
         self.assertEqual((rep["state"], rep["usable"], rep["files"]), ("stopped", True, ["SPEC.md"]))
         self.assertEqual(rep["authority"], trace.AUTHORITY)
         self.assertEqual(rep["nonce"], "n1")
+        self.assertIn("resources", rep)
         self.assertFalse(kernel.mounted)
         self.assertEqual(kernel.calls[-2:], ["close", "unbind"])
 
@@ -471,6 +472,7 @@ class KernelRecording(unittest.TestCase):
             self.assertNotIn("before.txt", report["files"])
             self.assertIn("sub", report["dirs"])
             self.assertGreaterEqual(report["counts"]["derived"], 1)
+            self.assertGreater(report["resources"]["max_rss_kib"], 0)
             self.assertNotIn(str(root.resolve()), trace.mount_points(
                 Path("/proc/self/mountinfo").read_text()), "the bind mount outlived the recorder")
 

@@ -393,10 +393,23 @@ def record(root, directory, kernel=None, stopping=None, clock=time.time):
                 errors.append(f"close: {error}")
         if bound:
             kernel.unbind(root)
-        write_atomic(directory / "reads.json", json.dumps(
-            report(inventory, state, errors, prov, started, clock()),
-            indent=1, sort_keys=True) + "\n")
+        final = report(inventory, state, errors, prov, started, clock())
+        final["resources"] = own_resources()
+        write_atomic(directory / "reads.json", json.dumps(final, indent=1, sort_keys=True) + "\n")
     return state
+
+
+def own_resources():
+    """The recorder's own peak memory and CPU time: what tracing cost the job,
+    as far as this process can say (the kernel's per-event work is not in it)."""
+    try:
+        import resource
+    except ImportError:
+        return {}
+    usage = resource.getrusage(resource.RUSAGE_SELF)
+    # ru_maxrss is in KiB on Linux.
+    return {"max_rss_kib": usage.ru_maxrss, "user_seconds": round(usage.ru_utime, 3),
+            "system_seconds": round(usage.ru_stime, 3)}
 
 
 def load_report(directory, nonce):
