@@ -298,7 +298,10 @@ fn plan_decisions() {
                *@*) [[ \"$2\" != *\"head_sha=${STUB_RUNS#*@}&\"* ]] || printf '%s\\n' \"${STUB_RUNS%@*}\" ;;\n\
                *) printf '%s\\n' \"${STUB_RUNS:-}\" ;;\n\
              esac ;;\n\
-           */runs/*/jobs\\?*) printf '%s\\n' \"${STUB_JOBS:-}\" ;;\n\
+           */runs/*/jobs\\?*)\n\
+             fails=\"$(dirname \"$0\")/jobs-fails\"\n\
+             if [ -s \"$fails\" ]; then n=$(cat \"$fails\"); echo $((n - 1)) > \"$fails\"; [ \"$n\" -le 0 ] || exit 1; fi\n\
+             printf '%s\\n' \"${STUB_JOBS:-}\" ;;\n\
            */pulls\\?*) printf '%s\\n' \"${STUB_PULLS:-}\" ;;\n\
            *) exit 2 ;;\n\
          esac\n",
@@ -603,6 +606,23 @@ fn plan_decisions() {
         decide("push", "", "main", &merge_equal, "4242", &green, false),
         nothing
     );
+    // A jobs read that fails once is read again (GitHub answers some listings
+    // with HTTP 502, #603); one that fails every time it is tried is
+    // unreadable, which is the whole gate.
+    let jobs_fails = bin.join("jobs-fails");
+    std::fs::write(&jobs_fails, "1").expect("one failed jobs read");
+    assert_eq!(
+        decide("push", "", "main", &merge_equal, "4242", &green, false),
+        nothing,
+        "§9.4: a jobs read that fails once is tried again"
+    );
+    std::fs::write(&jobs_fails, "3").expect("three failed jobs reads");
+    assert_eq!(
+        decide("push", "", "main", &merge_equal, "4242", &green, false),
+        whole,
+        "§9.4: a jobs listing that cannot be read is the whole gate"
+    );
+    std::fs::remove_file(&jobs_fails).expect("no failed jobs reads");
     // A complete jobs listing can exceed a pipe buffer. Matching the join
     // and required rows must consume it without a producer SIGPIPE.
     let mut large = green.clone();
@@ -778,6 +798,27 @@ fn plan_decisions() {
             && script_text.contains("select(.head.repo.full_name == \\\"$repo\\\")"),
         "§9.4: only a passed pull request or dispatched run of this repository counts, and only this repository's pull request plans a dispatch"
     );
+
+    // GitHub answered every listing of the 70 jobs of a run whose failed job
+    // had been run again with HTTP 502 at 60 or more jobs a page (run
+    // 45316289312, #603): the plan and the release gate read pages of 50,
+    // every page, and make every run and jobs read through the bounded
+    // helper, which tries a failed read three times.
+    assert!(
+        root_file(".github/scripts/ci-provider-read.sh").contains("for attempt in 1 2 3; do"),
+        "§9.4: a failed evidence read is tried three times"
+    );
+    for path in [".github/ci-plan.sh", ".github/release-gate.sh"] {
+        let text = root_file(path);
+        assert!(
+            text.contains("source \"$(dirname \"${BASH_SOURCE[0]}\")/scripts/ci-provider-read.sh\"")
+                && text.contains("ci_provider_read \"repos/$repo/actions/runs/$")
+                && text.contains("/jobs?per_page=50\" --paginate")
+                && !text.contains("/jobs?per_page=100")
+                && !text.contains("gh api \"repos/$repo/actions/"),
+            "§9.4: {path} reads runs and jobs through the bounded helper, jobs in pages of 50, every page"
+        );
+    }
 }
 
 pub(crate) fn run(id: &str) {
