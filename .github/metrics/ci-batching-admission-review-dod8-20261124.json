@@ -1,0 +1,3131 @@
+{
+  "schema": "lexlean/ci-batching-admission-review/1",
+  "scope": "Retrospective review only; unknown is not cheap, urgent or safe to batch by default. Existing whole-gate route is retained unless admitted; no live authority.",
+  "source_head": "e0e303abf2c37225e2e32d82a78d0f8dc7ed6d8c",
+  "selected_cost_minutes": 33998.731,
+  "classification_counts": {
+    "identity": 3,
+    "control_repair": 7,
+    "release": 4,
+    "review_candidate": 3,
+    "unknown": 2,
+    "product_repair": 1,
+    "product_control": 1,
+    "security": 1
+  },
+  "complete_listed_path_inventories": 14,
+  "review": [
+    {
+      "pr": 604,
+      "head": "48f4bc2d9872988a707c5d9b4ef6c517ce50f948",
+      "release": "release/v0.4",
+      "reported_files": 4975,
+      "classification": "identity",
+      "reason": "Runtime laws and generated artifacts; PF-28",
+      "paths": null,
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/604",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 602,
+      "head": "cf549b4372322c1c34c188d2d10780aafbbecfc5",
+      "release": "release/v0.4",
+      "reported_files": 5,
+      "classification": "control_repair",
+      "reason": "Fix post-merge formatting failure and bootstrap scheduling; acceptance workflow",
+      "paths": [
+        ".github/ci-plan.sh",
+        ".github/workflows/ci.yml",
+        "SPEC.md",
+        "crates/conformance/src/cases/repository.rs",
+        "crates/conformance/src/production_export.rs"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/602",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 596,
+      "head": "6c7fba0ded52c53e479f1324ee8d18aaa940c249",
+      "release": "release/v0.4",
+      "reported_files": 35,
+      "classification": "release",
+      "reason": "Version cut 0.4.4 and generated manifests",
+      "paths": null,
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/596",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 566,
+      "head": "84c3434538c7a49bfa64c42efd6a4ee7208975ef",
+      "release": "release/v0.4",
+      "reported_files": 13,
+      "classification": "review_candidate",
+      "reason": "New snapshot CLI, registered CL-26; urgency and independence not proven",
+      "paths": [
+        "CHANGELOG.md",
+        "CONFORMANCE.md",
+        "README.md",
+        "SPEC.md",
+        "VERIFICATION.md",
+        "crates/conformance/src/cases/cli_api.rs",
+        "crates/conformance/src/cases/repository.rs",
+        "crates/conformance/src/cases/wasi.rs",
+        "crates/conformance/tests/conformance.rs",
+        "crates/lexlean/src/cli.rs",
+        "features/suites/cli-api.feature",
+        "model/ids.toml",
+        "xtask/src/spec_links.rs"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/566",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 560,
+      "head": "e9075c2155d7c9c474a7c4829b2f07a6c00998cb",
+      "release": "release/v0.4",
+      "reported_files": 3,
+      "classification": "control_repair",
+      "reason": "Atlas retry recovery and RP-14",
+      "paths": [
+        ".github/workflows/ci.yml",
+        "CHANGELOG.md",
+        "crates/conformance/src/cases/repository.rs"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/560",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 553,
+      "head": "cdb94ebdbcb7e99ceda545d24a8dbde73abd66aa",
+      "release": "release/v0.5",
+      "reported_files": 5644,
+      "classification": "identity",
+      "reason": "New language-1.2 evaluation proof, schema and generated outputs",
+      "paths": null,
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/553",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 543,
+      "head": "1f4edb629b9cbdef3bb686b0df9b8afea78ddc90",
+      "release": "release/v0.4",
+      "reported_files": 6,
+      "classification": "release",
+      "reason": "Automatic release-line forwarding; authority changes",
+      "paths": [
+        ".github/scripts/forward-merge.sh",
+        ".github/workflows/forward.yml",
+        "AGENTS.md",
+        "CHANGELOG.md",
+        "SPEC.md",
+        "crates/conformance/src/cases/repository.rs"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/543",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 557,
+      "head": "7a9b999d18bc94b0845528081965fb2ff607b8a1",
+      "release": "release/v0.4",
+      "reported_files": 2,
+      "classification": "review_candidate",
+      "reason": "Changelog and Rust comment; depends on #550 and #554",
+      "paths": [
+        "CHANGELOG.md",
+        "crates/conformance/src/cases/mod.rs"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/557",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 507,
+      "head": "144aa769d35d609b37556299f3f46ec026208268",
+      "release": "release/v0.4",
+      "reported_files": 4971,
+      "classification": "identity",
+      "reason": "Runtime law and explicit identity-moving regeneration; PF-26",
+      "paths": null,
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/507",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 554,
+      "head": "3ccd3fa2374bf80887769d0af2615e1575dbbfac",
+      "release": "release/v0.4",
+      "reported_files": 2,
+      "classification": "control_repair",
+      "reason": "Host-memory admission repairs repeated runner loss",
+      "paths": [
+        "CHANGELOG.md",
+        "crates/conformance/src/cases/mod.rs"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/554",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 550,
+      "head": "8154aa0bf0aa529763c298a26c97a24389543bb3",
+      "release": "release/v0.4",
+      "reported_files": 5,
+      "classification": "control_repair",
+      "reason": "Host-lane restructure, SPEC and RP-14; measured from #526 gate",
+      "paths": [
+        ".github/scripts/test_host_lanes.py",
+        ".github/workflows/ci.yml",
+        "CHANGELOG.md",
+        "SPEC.md",
+        "crates/conformance/src/cases/repository.rs"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/550",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 545,
+      "head": "78a92dc381ebdd40a729a712233df8eb59808bab",
+      "release": "release/v0.5",
+      "reported_files": 0,
+      "classification": "unknown",
+      "reason": "Reported zero files despite relock/repin and regeneration changes; inventory inconsistent",
+      "paths": null,
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/545",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 441,
+      "head": "4a09ae2b2c7c991afad0af9670c2975203661f8e",
+      "release": "release/v0.5",
+      "reported_files": 0,
+      "classification": "unknown",
+      "reason": "Reported zero files despite native representation change; inventory inconsistent",
+      "paths": null,
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/441",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 540,
+      "head": "bfbf1c0c777b82cb0368adb0d95e7839d6189441",
+      "release": "release/v0.5",
+      "reported_files": 8,
+      "classification": "review_candidate",
+      "reason": "SP-17 scan and registered claim; body explicitly says no identity move; urgency not established",
+      "paths": [
+        "CONFORMANCE.md",
+        "SPEC.md",
+        "VERIFICATION.md",
+        "crates/conformance/src/cases/preservation.rs",
+        "crates/conformance/src/lean_literals.rs",
+        "features/suites/preservation.feature",
+        "model/ids.toml",
+        "spec/src/IdsSP.lex.tex"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/540",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 529,
+      "head": "bca7a7cba2c6b535ab568511163446e70eabf3b6",
+      "release": "release/v0.4",
+      "reported_files": 28,
+      "classification": "product_repair",
+      "reason": "Fix nesting defect #528; base is #503 merge; broad compiler paths",
+      "paths": [
+        "CHANGELOG.md",
+        "CONFORMANCE.md",
+        "SPEC.md",
+        "VERIFICATION.md",
+        "crates/conformance/src/cases/preservation.rs",
+        "crates/conformance/src/cases/semantic_ir.rs",
+        "crates/lexlean/src/api.rs",
+        "crates/lexlean/src/artifact/canonical_json.rs",
+        "crates/lexlean/src/artifact/declaration_id.rs",
+        "crates/lexlean/src/artifact/snapshot.rs",
+        "crates/lexlean/src/backend/semantic.rs",
+        "crates/lexlean/src/config.rs",
+        "crates/lexlean/src/ir/document.rs",
+        "crates/lexlean/src/ir/semantic.rs",
+        "crates/lexlean/src/lib.rs",
+        "crates/lexlean/src/link.rs",
+        "crates/lexlean/src/sdk.rs",
+        "crates/lexlean/src/surface/generic.rs",
+        "crates/lexlean/src/surface/semantic.rs",
+        "features/suites/semantic-ir.feature",
+        "model/ids.toml",
+        "tests/semantic-json-depth/README.md",
+        "tests/semantic-json-depth/list-1000.lex.tex",
+        "tests/semantic-json-depth/list-122.lex.tex",
+        "tests/semantic-json-depth/negative/later-list-1100.lex.tex",
+        "tests/semantic-json-depth/negative/later-list-123.lex.tex",
+        "tests/semantic-json-depth/negative/list-1100.lex.tex",
+        "tests/semantic-json-depth/negative/list-123.lex.tex"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/529",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 526,
+      "head": "81249b2f916342452980a499a6468ecdb2eb17a1",
+      "release": "release/v0.4",
+      "reported_files": 14,
+      "classification": "control_repair",
+      "reason": "Scheduling, evaluator and lowering changes; base is #536 merge",
+      "paths": [
+        ".github/bdd-parts.json",
+        ".github/intel-host-lanes.json",
+        ".github/vv-rows.json",
+        ".github/workflows/ci.yml",
+        "CHANGELOG.md",
+        "SPEC.md",
+        "VERIFICATION.md",
+        "crates/conformance/src/cases/authoring.rs",
+        "crates/conformance/src/cases/repository.rs",
+        "crates/conformance/src/export_custody.rs",
+        "crates/conformance/src/production_export.rs",
+        "crates/lexlean/src/calculus/interp.rs",
+        "crates/lexlean/src/calculus/realization.rs",
+        "xtask/src/main.rs"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/526",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 503,
+      "head": "0fd089b7986bf5771ae5767fd95dc1cd33b23bfa",
+      "release": "release/v0.4",
+      "reported_files": 24,
+      "classification": "product_control",
+      "reason": "WASI support, build inputs and CI contract; base is #518 merge",
+      "paths": [
+        ".github/workflows/ci.yml",
+        "CHANGELOG.md",
+        "CONFORMANCE.md",
+        "README.md",
+        "SPEC.md",
+        "VERIFICATION.md",
+        "crates/conformance/src/cases/cli_api.rs",
+        "crates/conformance/src/cases/mod.rs",
+        "crates/conformance/src/cases/repository.rs",
+        "crates/conformance/src/cases/wasi.rs",
+        "crates/conformance/src/fixtures.rs",
+        "crates/conformance/tests/conformance.rs",
+        "crates/lexlean/Cargo.toml",
+        "crates/lexlean/build.rs",
+        "crates/lexlean/src/api.rs",
+        "crates/lexlean/src/config.rs",
+        "crates/lexlean/src/lib.rs",
+        "crates/lexlean/src/link.rs",
+        "crates/lexlean/src/project.rs",
+        "crates/lexlean/src/verify/lifeline.rs",
+        "crates/lexlean/src/wasi_stack.rs",
+        "features/suites/cli-api.feature",
+        "model/ids.toml",
+        "xtask/src/spec_links.rs"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/503",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 536,
+      "head": "43546c605fa339f7c78dbb343db9bb0a594420f3",
+      "release": "release/v0.4",
+      "reported_files": 2,
+      "classification": "control_repair",
+      "reason": "AU-01 memory repair for observed OOM failures",
+      "paths": [
+        "CHANGELOG.md",
+        "crates/conformance/src/cases/authoring.rs"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/536",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 518,
+      "head": "25d5742a73fad6537373b1de8e5d497af61ebab6",
+      "release": "release/v0.4",
+      "reported_files": 6201,
+      "classification": "security",
+      "reason": "Pinned Lean kernel soundness correction; expedited direct full qualification",
+      "paths": null,
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/518",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 519,
+      "head": "b1cb0a82921541d8018b2db02ab41f7e17424df9",
+      "release": "release/v0.4",
+      "reported_files": 12,
+      "classification": "release",
+      "reason": "Cut/tag/publish and release automation",
+      "paths": [
+        ".github/scripts/await-gate.sh",
+        ".github/scripts/deliver-regenerated.sh",
+        ".github/workflows/cut.yml",
+        ".github/workflows/regenerate.yml",
+        ".github/workflows/tag.yml",
+        "AGENTS.md",
+        "CHANGELOG.md",
+        "README.md",
+        "SPEC.md",
+        "assets/lexlean-logo.png",
+        "assets/lexlean-logo.svg",
+        "xtask/src/bump.rs"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/519",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 535,
+      "head": "835005153c8bca4b27af1389c42c4559ea187f12",
+      "release": "release/v0.4",
+      "reported_files": 5,
+      "classification": "control_repair",
+      "reason": "Intel gate deferral modifies SPEC and release evidence",
+      "paths": [
+        ".github/ci-plan.sh",
+        ".github/workflows/ci.yml",
+        "CHANGELOG.md",
+        "SPEC.md",
+        "crates/conformance/src/cases/repository.rs"
+      ],
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/535",
+      "verified_batch_admission": false
+    },
+    {
+      "pr": 405,
+      "head": "716bc85ec29048d07db0fa8ed4991d0de449a391",
+      "release": "release/v0.5",
+      "reported_files": 6442,
+      "classification": "release",
+      "reason": "Cross-release integration with reported source and generated conflicts",
+      "paths": null,
+      "source": "https://github.com/UOR-Foundation/lexlean/pull/405",
+      "verified_batch_admission": false
+    }
+  ],
+  "dependencies": [
+    {
+      "before": 518,
+      "after": 503,
+      "basis": "503 base SHA equals 518 merge SHA 4727a691"
+    },
+    {
+      "before": 503,
+      "after": 529,
+      "basis": "529 base SHA equals 503 merge SHA 4f4c684d"
+    },
+    {
+      "before": 536,
+      "after": 526,
+      "basis": "526 base SHA equals 536 merge SHA f76a972c"
+    },
+    {
+      "before": 526,
+      "after": 550,
+      "basis": "550 base SHA equals 526 merge SHA a367f4d5"
+    },
+    {
+      "before": 554,
+      "after": 557,
+      "basis": "557 base SHA equals 554 merge SHA 949cb261; body names correction"
+    },
+    {
+      "before": 550,
+      "after": 557,
+      "basis": "557 body explicitly fixes 550 changelog placement"
+    },
+    {
+      "before": 554,
+      "after": 507,
+      "basis": "507 base SHA equals 554 merge SHA 949cb261; body names integration"
+    },
+    {
+      "before": 557,
+      "after": 543,
+      "basis": "543 base SHA equals 557 merge SHA dfc17917"
+    },
+    {
+      "before": 602,
+      "after": 604,
+      "basis": "604 base SHA equals 602 merge SHA 11223e4e"
+    },
+    {
+      "before": 545,
+      "after": 553,
+      "basis": "553 base SHA equals 545 merge SHA 7da6e937"
+    },
+    {
+      "before": 540,
+      "after": 441,
+      "basis": "441 base SHA equals 540 merge SHA 8a8e3018"
+    },
+    {
+      "before": 540,
+      "after": 545,
+      "basis": "545 base SHA equals 540 merge SHA 8a8e3018"
+    },
+    {
+      "before": 405,
+      "after": 540,
+      "basis": "540 base SHA equals 405 merge SHA 6c368291"
+    }
+  ],
+  "scenarios": [
+    {
+      "size": 2,
+      "age_hours": 6,
+      "naive_gate_count": 15,
+      "naive_multi_batches": 7,
+      "approved_multi_batches": 0,
+      "independent_gate_count_if_all_holds": 22,
+      "unapproved_batches": [
+        {
+          "prs": [
+            535,
+            518
+          ],
+          "blockers": [
+            {
+              "pr": 535,
+              "class": "control_repair",
+              "reason": "Intel gate deferral modifies SPEC and release evidence"
+            },
+            {
+              "pr": 518,
+              "class": "security",
+              "reason": "Pinned Lean kernel soundness correction; expedited direct full qualification"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 535,
+              "b": 518,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            536,
+            503
+          ],
+          "blockers": [
+            {
+              "pr": 536,
+              "class": "control_repair",
+              "reason": "AU-01 memory repair for observed OOM failures"
+            },
+            {
+              "pr": 503,
+              "class": "product_control",
+              "reason": "WASI support, build inputs and CI contract; base is #518 merge"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 536,
+              "b": 503,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            526,
+            529
+          ],
+          "blockers": [
+            {
+              "pr": 526,
+              "class": "control_repair",
+              "reason": "Scheduling, evaluator and lowering changes; base is #536 merge"
+            },
+            {
+              "pr": 529,
+              "class": "product_repair",
+              "reason": "Fix nesting defect #528; base is #503 merge; broad compiler paths"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 526,
+              "b": 529,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md",
+                "VERIFICATION.md"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            554,
+            557
+          ],
+          "blockers": [
+            {
+              "pr": 554,
+              "class": "control_repair",
+              "reason": "Host-memory admission repairs repeated runner loss"
+            },
+            {
+              "pr": 557,
+              "class": "review_candidate",
+              "reason": "Changelog and Rust comment; depends on #550 and #554"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 554,
+              "b": 557,
+              "overlap": [
+                "CHANGELOG.md",
+                "crates/conformance/src/cases/mod.rs"
+              ],
+              "known_order": [
+                {
+                  "before": 554,
+                  "after": 557,
+                  "basis": "557 base SHA equals 554 merge SHA 949cb261; body names correction"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            507,
+            543
+          ],
+          "blockers": [
+            {
+              "pr": 507,
+              "class": "identity",
+              "reason": "Runtime law and explicit identity-moving regeneration; PF-26"
+            },
+            {
+              "pr": 543,
+              "class": "release",
+              "reason": "Automatic release-line forwarding; authority changes"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 507,
+              "b": 543,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            602,
+            604
+          ],
+          "blockers": [
+            {
+              "pr": 602,
+              "class": "control_repair",
+              "reason": "Fix post-merge formatting failure and bootstrap scheduling; acceptance workflow"
+            },
+            {
+              "pr": 604,
+              "class": "identity",
+              "reason": "Runtime laws and generated artifacts; PF-28"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 602,
+              "b": 604,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 602,
+                  "after": 604,
+                  "basis": "604 base SHA equals 602 merge SHA 11223e4e"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            441,
+            545
+          ],
+          "blockers": [
+            {
+              "pr": 441,
+              "class": "unknown",
+              "reason": "Reported zero files despite native representation change; inventory inconsistent"
+            },
+            {
+              "pr": 545,
+              "class": "unknown",
+              "reason": "Reported zero files despite relock/repin and regeneration changes; inventory inconsistent"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 441,
+              "b": 545,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "age_hours": 12,
+      "naive_gate_count": 14,
+      "naive_multi_batches": 8,
+      "approved_multi_batches": 0,
+      "independent_gate_count_if_all_holds": 22,
+      "unapproved_batches": [
+        {
+          "prs": [
+            519,
+            535
+          ],
+          "blockers": [
+            {
+              "pr": 519,
+              "class": "release",
+              "reason": "Cut/tag/publish and release automation"
+            },
+            {
+              "pr": 535,
+              "class": "control_repair",
+              "reason": "Intel gate deferral modifies SPEC and release evidence"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 519,
+              "b": 535,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            518,
+            536
+          ],
+          "blockers": [
+            {
+              "pr": 518,
+              "class": "security",
+              "reason": "Pinned Lean kernel soundness correction; expedited direct full qualification"
+            },
+            {
+              "pr": 536,
+              "class": "control_repair",
+              "reason": "AU-01 memory repair for observed OOM failures"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 518,
+              "b": 536,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            503,
+            526
+          ],
+          "blockers": [
+            {
+              "pr": 503,
+              "class": "product_control",
+              "reason": "WASI support, build inputs and CI contract; base is #518 merge"
+            },
+            {
+              "pr": 526,
+              "class": "control_repair",
+              "reason": "Scheduling, evaluator and lowering changes; base is #536 merge"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 503,
+              "b": 526,
+              "overlap": [
+                ".github/workflows/ci.yml",
+                "CHANGELOG.md",
+                "SPEC.md",
+                "VERIFICATION.md",
+                "crates/conformance/src/cases/repository.rs"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            529,
+            550
+          ],
+          "blockers": [
+            {
+              "pr": 529,
+              "class": "product_repair",
+              "reason": "Fix nesting defect #528; base is #503 merge; broad compiler paths"
+            },
+            {
+              "pr": 550,
+              "class": "control_repair",
+              "reason": "Host-lane restructure, SPEC and RP-14; measured from #526 gate"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 529,
+              "b": 550,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            554,
+            557
+          ],
+          "blockers": [
+            {
+              "pr": 554,
+              "class": "control_repair",
+              "reason": "Host-memory admission repairs repeated runner loss"
+            },
+            {
+              "pr": 557,
+              "class": "review_candidate",
+              "reason": "Changelog and Rust comment; depends on #550 and #554"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 554,
+              "b": 557,
+              "overlap": [
+                "CHANGELOG.md",
+                "crates/conformance/src/cases/mod.rs"
+              ],
+              "known_order": [
+                {
+                  "before": 554,
+                  "after": 557,
+                  "basis": "557 base SHA equals 554 merge SHA 949cb261; body names correction"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            507,
+            543
+          ],
+          "blockers": [
+            {
+              "pr": 507,
+              "class": "identity",
+              "reason": "Runtime law and explicit identity-moving regeneration; PF-26"
+            },
+            {
+              "pr": 543,
+              "class": "release",
+              "reason": "Automatic release-line forwarding; authority changes"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 507,
+              "b": 543,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            602,
+            604
+          ],
+          "blockers": [
+            {
+              "pr": 602,
+              "class": "control_repair",
+              "reason": "Fix post-merge formatting failure and bootstrap scheduling; acceptance workflow"
+            },
+            {
+              "pr": 604,
+              "class": "identity",
+              "reason": "Runtime laws and generated artifacts; PF-28"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 602,
+              "b": 604,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 602,
+                  "after": 604,
+                  "basis": "604 base SHA equals 602 merge SHA 11223e4e"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            441,
+            545
+          ],
+          "blockers": [
+            {
+              "pr": 441,
+              "class": "unknown",
+              "reason": "Reported zero files despite native representation change; inventory inconsistent"
+            },
+            {
+              "pr": 545,
+              "class": "unknown",
+              "reason": "Reported zero files despite relock/repin and regeneration changes; inventory inconsistent"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 441,
+              "b": 545,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "age_hours": 24,
+      "naive_gate_count": 13,
+      "naive_multi_batches": 9,
+      "approved_multi_batches": 0,
+      "independent_gate_count_if_all_holds": 22,
+      "unapproved_batches": [
+        {
+          "prs": [
+            519,
+            535
+          ],
+          "blockers": [
+            {
+              "pr": 519,
+              "class": "release",
+              "reason": "Cut/tag/publish and release automation"
+            },
+            {
+              "pr": 535,
+              "class": "control_repair",
+              "reason": "Intel gate deferral modifies SPEC and release evidence"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 519,
+              "b": 535,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            518,
+            536
+          ],
+          "blockers": [
+            {
+              "pr": 518,
+              "class": "security",
+              "reason": "Pinned Lean kernel soundness correction; expedited direct full qualification"
+            },
+            {
+              "pr": 536,
+              "class": "control_repair",
+              "reason": "AU-01 memory repair for observed OOM failures"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 518,
+              "b": 536,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            503,
+            526
+          ],
+          "blockers": [
+            {
+              "pr": 503,
+              "class": "product_control",
+              "reason": "WASI support, build inputs and CI contract; base is #518 merge"
+            },
+            {
+              "pr": 526,
+              "class": "control_repair",
+              "reason": "Scheduling, evaluator and lowering changes; base is #536 merge"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 503,
+              "b": 526,
+              "overlap": [
+                ".github/workflows/ci.yml",
+                "CHANGELOG.md",
+                "SPEC.md",
+                "VERIFICATION.md",
+                "crates/conformance/src/cases/repository.rs"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            529,
+            550
+          ],
+          "blockers": [
+            {
+              "pr": 529,
+              "class": "product_repair",
+              "reason": "Fix nesting defect #528; base is #503 merge; broad compiler paths"
+            },
+            {
+              "pr": 550,
+              "class": "control_repair",
+              "reason": "Host-lane restructure, SPEC and RP-14; measured from #526 gate"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 529,
+              "b": 550,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            554,
+            557
+          ],
+          "blockers": [
+            {
+              "pr": 554,
+              "class": "control_repair",
+              "reason": "Host-memory admission repairs repeated runner loss"
+            },
+            {
+              "pr": 557,
+              "class": "review_candidate",
+              "reason": "Changelog and Rust comment; depends on #550 and #554"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 554,
+              "b": 557,
+              "overlap": [
+                "CHANGELOG.md",
+                "crates/conformance/src/cases/mod.rs"
+              ],
+              "known_order": [
+                {
+                  "before": 554,
+                  "after": 557,
+                  "basis": "557 base SHA equals 554 merge SHA 949cb261; body names correction"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            507,
+            543
+          ],
+          "blockers": [
+            {
+              "pr": 507,
+              "class": "identity",
+              "reason": "Runtime law and explicit identity-moving regeneration; PF-26"
+            },
+            {
+              "pr": 543,
+              "class": "release",
+              "reason": "Automatic release-line forwarding; authority changes"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 507,
+              "b": 543,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            602,
+            604
+          ],
+          "blockers": [
+            {
+              "pr": 602,
+              "class": "control_repair",
+              "reason": "Fix post-merge formatting failure and bootstrap scheduling; acceptance workflow"
+            },
+            {
+              "pr": 604,
+              "class": "identity",
+              "reason": "Runtime laws and generated artifacts; PF-28"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 602,
+              "b": 604,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 602,
+                  "after": 604,
+                  "basis": "604 base SHA equals 602 merge SHA 11223e4e"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            405,
+            540
+          ],
+          "blockers": [
+            {
+              "pr": 405,
+              "class": "release",
+              "reason": "Cross-release integration with reported source and generated conflicts"
+            },
+            {
+              "pr": 540,
+              "class": "review_candidate",
+              "reason": "SP-17 scan and registered claim; body explicitly says no identity move; urgency not established"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 405,
+              "b": 540,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 405,
+                  "after": 540,
+                  "basis": "540 base SHA equals 405 merge SHA 6c368291"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            441,
+            545
+          ],
+          "blockers": [
+            {
+              "pr": 441,
+              "class": "unknown",
+              "reason": "Reported zero files despite native representation change; inventory inconsistent"
+            },
+            {
+              "pr": 545,
+              "class": "unknown",
+              "reason": "Reported zero files despite relock/repin and regeneration changes; inventory inconsistent"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 441,
+              "b": 545,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "size": 3,
+      "age_hours": 6,
+      "naive_gate_count": 14,
+      "naive_multi_batches": 6,
+      "approved_multi_batches": 0,
+      "independent_gate_count_if_all_holds": 22,
+      "unapproved_batches": [
+        {
+          "prs": [
+            535,
+            518,
+            536
+          ],
+          "blockers": [
+            {
+              "pr": 535,
+              "class": "control_repair",
+              "reason": "Intel gate deferral modifies SPEC and release evidence"
+            },
+            {
+              "pr": 518,
+              "class": "security",
+              "reason": "Pinned Lean kernel soundness correction; expedited direct full qualification"
+            },
+            {
+              "pr": 536,
+              "class": "control_repair",
+              "reason": "AU-01 memory repair for observed OOM failures"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 535,
+              "b": 518,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 535,
+              "b": 536,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 518,
+              "b": 536,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            503,
+            526,
+            529
+          ],
+          "blockers": [
+            {
+              "pr": 503,
+              "class": "product_control",
+              "reason": "WASI support, build inputs and CI contract; base is #518 merge"
+            },
+            {
+              "pr": 526,
+              "class": "control_repair",
+              "reason": "Scheduling, evaluator and lowering changes; base is #536 merge"
+            },
+            {
+              "pr": 529,
+              "class": "product_repair",
+              "reason": "Fix nesting defect #528; base is #503 merge; broad compiler paths"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 503,
+              "b": 526,
+              "overlap": [
+                ".github/workflows/ci.yml",
+                "CHANGELOG.md",
+                "SPEC.md",
+                "VERIFICATION.md",
+                "crates/conformance/src/cases/repository.rs"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 503,
+              "b": 529,
+              "overlap": [
+                "CHANGELOG.md",
+                "CONFORMANCE.md",
+                "SPEC.md",
+                "VERIFICATION.md",
+                "crates/lexlean/src/api.rs",
+                "crates/lexlean/src/config.rs",
+                "crates/lexlean/src/lib.rs",
+                "crates/lexlean/src/link.rs",
+                "model/ids.toml"
+              ],
+              "known_order": [
+                {
+                  "before": 503,
+                  "after": 529,
+                  "basis": "529 base SHA equals 503 merge SHA 4f4c684d"
+                }
+              ]
+            },
+            {
+              "a": 526,
+              "b": 529,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md",
+                "VERIFICATION.md"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            554,
+            557
+          ],
+          "blockers": [
+            {
+              "pr": 554,
+              "class": "control_repair",
+              "reason": "Host-memory admission repairs repeated runner loss"
+            },
+            {
+              "pr": 557,
+              "class": "review_candidate",
+              "reason": "Changelog and Rust comment; depends on #550 and #554"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 554,
+              "b": 557,
+              "overlap": [
+                "CHANGELOG.md",
+                "crates/conformance/src/cases/mod.rs"
+              ],
+              "known_order": [
+                {
+                  "before": 554,
+                  "after": 557,
+                  "basis": "557 base SHA equals 554 merge SHA 949cb261; body names correction"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            507,
+            543
+          ],
+          "blockers": [
+            {
+              "pr": 507,
+              "class": "identity",
+              "reason": "Runtime law and explicit identity-moving regeneration; PF-26"
+            },
+            {
+              "pr": 543,
+              "class": "release",
+              "reason": "Automatic release-line forwarding; authority changes"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 507,
+              "b": 543,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            602,
+            604
+          ],
+          "blockers": [
+            {
+              "pr": 602,
+              "class": "control_repair",
+              "reason": "Fix post-merge formatting failure and bootstrap scheduling; acceptance workflow"
+            },
+            {
+              "pr": 604,
+              "class": "identity",
+              "reason": "Runtime laws and generated artifacts; PF-28"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 602,
+              "b": 604,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 602,
+                  "after": 604,
+                  "basis": "604 base SHA equals 602 merge SHA 11223e4e"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            441,
+            545
+          ],
+          "blockers": [
+            {
+              "pr": 441,
+              "class": "unknown",
+              "reason": "Reported zero files despite native representation change; inventory inconsistent"
+            },
+            {
+              "pr": 545,
+              "class": "unknown",
+              "reason": "Reported zero files despite relock/repin and regeneration changes; inventory inconsistent"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 441,
+              "b": 545,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "size": 3,
+      "age_hours": 12,
+      "naive_gate_count": 12,
+      "naive_multi_batches": 6,
+      "approved_multi_batches": 0,
+      "independent_gate_count_if_all_holds": 22,
+      "unapproved_batches": [
+        {
+          "prs": [
+            519,
+            535,
+            518
+          ],
+          "blockers": [
+            {
+              "pr": 519,
+              "class": "release",
+              "reason": "Cut/tag/publish and release automation"
+            },
+            {
+              "pr": 535,
+              "class": "control_repair",
+              "reason": "Intel gate deferral modifies SPEC and release evidence"
+            },
+            {
+              "pr": 518,
+              "class": "security",
+              "reason": "Pinned Lean kernel soundness correction; expedited direct full qualification"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 519,
+              "b": 535,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 519,
+              "b": 518,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 535,
+              "b": 518,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            536,
+            503,
+            526
+          ],
+          "blockers": [
+            {
+              "pr": 536,
+              "class": "control_repair",
+              "reason": "AU-01 memory repair for observed OOM failures"
+            },
+            {
+              "pr": 503,
+              "class": "product_control",
+              "reason": "WASI support, build inputs and CI contract; base is #518 merge"
+            },
+            {
+              "pr": 526,
+              "class": "control_repair",
+              "reason": "Scheduling, evaluator and lowering changes; base is #536 merge"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 536,
+              "b": 503,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 536,
+              "b": 526,
+              "overlap": [
+                "CHANGELOG.md",
+                "crates/conformance/src/cases/authoring.rs"
+              ],
+              "known_order": [
+                {
+                  "before": 536,
+                  "after": 526,
+                  "basis": "526 base SHA equals 536 merge SHA f76a972c"
+                }
+              ]
+            },
+            {
+              "a": 503,
+              "b": 526,
+              "overlap": [
+                ".github/workflows/ci.yml",
+                "CHANGELOG.md",
+                "SPEC.md",
+                "VERIFICATION.md",
+                "crates/conformance/src/cases/repository.rs"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            529,
+            550,
+            554
+          ],
+          "blockers": [
+            {
+              "pr": 529,
+              "class": "product_repair",
+              "reason": "Fix nesting defect #528; base is #503 merge; broad compiler paths"
+            },
+            {
+              "pr": 550,
+              "class": "control_repair",
+              "reason": "Host-lane restructure, SPEC and RP-14; measured from #526 gate"
+            },
+            {
+              "pr": 554,
+              "class": "control_repair",
+              "reason": "Host-memory admission repairs repeated runner loss"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 529,
+              "b": 550,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 529,
+              "b": 554,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 550,
+              "b": 554,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            557,
+            507,
+            543
+          ],
+          "blockers": [
+            {
+              "pr": 557,
+              "class": "review_candidate",
+              "reason": "Changelog and Rust comment; depends on #550 and #554"
+            },
+            {
+              "pr": 507,
+              "class": "identity",
+              "reason": "Runtime law and explicit identity-moving regeneration; PF-26"
+            },
+            {
+              "pr": 543,
+              "class": "release",
+              "reason": "Automatic release-line forwarding; authority changes"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 557,
+              "b": 507,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 557,
+              "b": 543,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": [
+                {
+                  "before": 557,
+                  "after": 543,
+                  "basis": "543 base SHA equals 557 merge SHA dfc17917"
+                }
+              ]
+            },
+            {
+              "a": 507,
+              "b": 543,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            602,
+            604
+          ],
+          "blockers": [
+            {
+              "pr": 602,
+              "class": "control_repair",
+              "reason": "Fix post-merge formatting failure and bootstrap scheduling; acceptance workflow"
+            },
+            {
+              "pr": 604,
+              "class": "identity",
+              "reason": "Runtime laws and generated artifacts; PF-28"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 602,
+              "b": 604,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 602,
+                  "after": 604,
+                  "basis": "604 base SHA equals 602 merge SHA 11223e4e"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            441,
+            545
+          ],
+          "blockers": [
+            {
+              "pr": 441,
+              "class": "unknown",
+              "reason": "Reported zero files despite native representation change; inventory inconsistent"
+            },
+            {
+              "pr": 545,
+              "class": "unknown",
+              "reason": "Reported zero files despite relock/repin and regeneration changes; inventory inconsistent"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 441,
+              "b": 545,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "size": 3,
+      "age_hours": 24,
+      "naive_gate_count": 10,
+      "naive_multi_batches": 7,
+      "approved_multi_batches": 0,
+      "independent_gate_count_if_all_holds": 22,
+      "unapproved_batches": [
+        {
+          "prs": [
+            519,
+            535,
+            518
+          ],
+          "blockers": [
+            {
+              "pr": 519,
+              "class": "release",
+              "reason": "Cut/tag/publish and release automation"
+            },
+            {
+              "pr": 535,
+              "class": "control_repair",
+              "reason": "Intel gate deferral modifies SPEC and release evidence"
+            },
+            {
+              "pr": 518,
+              "class": "security",
+              "reason": "Pinned Lean kernel soundness correction; expedited direct full qualification"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 519,
+              "b": 535,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 519,
+              "b": 518,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 535,
+              "b": 518,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            536,
+            503,
+            526
+          ],
+          "blockers": [
+            {
+              "pr": 536,
+              "class": "control_repair",
+              "reason": "AU-01 memory repair for observed OOM failures"
+            },
+            {
+              "pr": 503,
+              "class": "product_control",
+              "reason": "WASI support, build inputs and CI contract; base is #518 merge"
+            },
+            {
+              "pr": 526,
+              "class": "control_repair",
+              "reason": "Scheduling, evaluator and lowering changes; base is #536 merge"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 536,
+              "b": 503,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 536,
+              "b": 526,
+              "overlap": [
+                "CHANGELOG.md",
+                "crates/conformance/src/cases/authoring.rs"
+              ],
+              "known_order": [
+                {
+                  "before": 536,
+                  "after": 526,
+                  "basis": "526 base SHA equals 536 merge SHA f76a972c"
+                }
+              ]
+            },
+            {
+              "a": 503,
+              "b": 526,
+              "overlap": [
+                ".github/workflows/ci.yml",
+                "CHANGELOG.md",
+                "SPEC.md",
+                "VERIFICATION.md",
+                "crates/conformance/src/cases/repository.rs"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            529,
+            550,
+            554
+          ],
+          "blockers": [
+            {
+              "pr": 529,
+              "class": "product_repair",
+              "reason": "Fix nesting defect #528; base is #503 merge; broad compiler paths"
+            },
+            {
+              "pr": 550,
+              "class": "control_repair",
+              "reason": "Host-lane restructure, SPEC and RP-14; measured from #526 gate"
+            },
+            {
+              "pr": 554,
+              "class": "control_repair",
+              "reason": "Host-memory admission repairs repeated runner loss"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 529,
+              "b": 550,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 529,
+              "b": 554,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 550,
+              "b": 554,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            557,
+            507,
+            543
+          ],
+          "blockers": [
+            {
+              "pr": 557,
+              "class": "review_candidate",
+              "reason": "Changelog and Rust comment; depends on #550 and #554"
+            },
+            {
+              "pr": 507,
+              "class": "identity",
+              "reason": "Runtime law and explicit identity-moving regeneration; PF-26"
+            },
+            {
+              "pr": 543,
+              "class": "release",
+              "reason": "Automatic release-line forwarding; authority changes"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 557,
+              "b": 507,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 557,
+              "b": 543,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": [
+                {
+                  "before": 557,
+                  "after": 543,
+                  "basis": "543 base SHA equals 557 merge SHA dfc17917"
+                }
+              ]
+            },
+            {
+              "a": 507,
+              "b": 543,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            602,
+            604
+          ],
+          "blockers": [
+            {
+              "pr": 602,
+              "class": "control_repair",
+              "reason": "Fix post-merge formatting failure and bootstrap scheduling; acceptance workflow"
+            },
+            {
+              "pr": 604,
+              "class": "identity",
+              "reason": "Runtime laws and generated artifacts; PF-28"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 602,
+              "b": 604,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 602,
+                  "after": 604,
+                  "basis": "604 base SHA equals 602 merge SHA 11223e4e"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            405,
+            540
+          ],
+          "blockers": [
+            {
+              "pr": 405,
+              "class": "release",
+              "reason": "Cross-release integration with reported source and generated conflicts"
+            },
+            {
+              "pr": 540,
+              "class": "review_candidate",
+              "reason": "SP-17 scan and registered claim; body explicitly says no identity move; urgency not established"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 405,
+              "b": 540,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 405,
+                  "after": 540,
+                  "basis": "540 base SHA equals 405 merge SHA 6c368291"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            441,
+            545,
+            553
+          ],
+          "blockers": [
+            {
+              "pr": 441,
+              "class": "unknown",
+              "reason": "Reported zero files despite native representation change; inventory inconsistent"
+            },
+            {
+              "pr": 545,
+              "class": "unknown",
+              "reason": "Reported zero files despite relock/repin and regeneration changes; inventory inconsistent"
+            },
+            {
+              "pr": 553,
+              "class": "identity",
+              "reason": "New language-1.2 evaluation proof, schema and generated outputs"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 441,
+              "b": 545,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 441,
+              "b": 553,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 545,
+              "b": 553,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 545,
+                  "after": 553,
+                  "basis": "553 base SHA equals 545 merge SHA 7da6e937"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "size": 4,
+      "age_hours": 6,
+      "naive_gate_count": 14,
+      "naive_multi_batches": 6,
+      "approved_multi_batches": 0,
+      "independent_gate_count_if_all_holds": 22,
+      "unapproved_batches": [
+        {
+          "prs": [
+            535,
+            518,
+            536
+          ],
+          "blockers": [
+            {
+              "pr": 535,
+              "class": "control_repair",
+              "reason": "Intel gate deferral modifies SPEC and release evidence"
+            },
+            {
+              "pr": 518,
+              "class": "security",
+              "reason": "Pinned Lean kernel soundness correction; expedited direct full qualification"
+            },
+            {
+              "pr": 536,
+              "class": "control_repair",
+              "reason": "AU-01 memory repair for observed OOM failures"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 535,
+              "b": 518,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 535,
+              "b": 536,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 518,
+              "b": 536,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            503,
+            526,
+            529
+          ],
+          "blockers": [
+            {
+              "pr": 503,
+              "class": "product_control",
+              "reason": "WASI support, build inputs and CI contract; base is #518 merge"
+            },
+            {
+              "pr": 526,
+              "class": "control_repair",
+              "reason": "Scheduling, evaluator and lowering changes; base is #536 merge"
+            },
+            {
+              "pr": 529,
+              "class": "product_repair",
+              "reason": "Fix nesting defect #528; base is #503 merge; broad compiler paths"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 503,
+              "b": 526,
+              "overlap": [
+                ".github/workflows/ci.yml",
+                "CHANGELOG.md",
+                "SPEC.md",
+                "VERIFICATION.md",
+                "crates/conformance/src/cases/repository.rs"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 503,
+              "b": 529,
+              "overlap": [
+                "CHANGELOG.md",
+                "CONFORMANCE.md",
+                "SPEC.md",
+                "VERIFICATION.md",
+                "crates/lexlean/src/api.rs",
+                "crates/lexlean/src/config.rs",
+                "crates/lexlean/src/lib.rs",
+                "crates/lexlean/src/link.rs",
+                "model/ids.toml"
+              ],
+              "known_order": [
+                {
+                  "before": 503,
+                  "after": 529,
+                  "basis": "529 base SHA equals 503 merge SHA 4f4c684d"
+                }
+              ]
+            },
+            {
+              "a": 526,
+              "b": 529,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md",
+                "VERIFICATION.md"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            554,
+            557
+          ],
+          "blockers": [
+            {
+              "pr": 554,
+              "class": "control_repair",
+              "reason": "Host-memory admission repairs repeated runner loss"
+            },
+            {
+              "pr": 557,
+              "class": "review_candidate",
+              "reason": "Changelog and Rust comment; depends on #550 and #554"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 554,
+              "b": 557,
+              "overlap": [
+                "CHANGELOG.md",
+                "crates/conformance/src/cases/mod.rs"
+              ],
+              "known_order": [
+                {
+                  "before": 554,
+                  "after": 557,
+                  "basis": "557 base SHA equals 554 merge SHA 949cb261; body names correction"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            507,
+            543
+          ],
+          "blockers": [
+            {
+              "pr": 507,
+              "class": "identity",
+              "reason": "Runtime law and explicit identity-moving regeneration; PF-26"
+            },
+            {
+              "pr": 543,
+              "class": "release",
+              "reason": "Automatic release-line forwarding; authority changes"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 507,
+              "b": 543,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            602,
+            604
+          ],
+          "blockers": [
+            {
+              "pr": 602,
+              "class": "control_repair",
+              "reason": "Fix post-merge formatting failure and bootstrap scheduling; acceptance workflow"
+            },
+            {
+              "pr": 604,
+              "class": "identity",
+              "reason": "Runtime laws and generated artifacts; PF-28"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 602,
+              "b": 604,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 602,
+                  "after": 604,
+                  "basis": "604 base SHA equals 602 merge SHA 11223e4e"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            441,
+            545
+          ],
+          "blockers": [
+            {
+              "pr": 441,
+              "class": "unknown",
+              "reason": "Reported zero files despite native representation change; inventory inconsistent"
+            },
+            {
+              "pr": 545,
+              "class": "unknown",
+              "reason": "Reported zero files despite relock/repin and regeneration changes; inventory inconsistent"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 441,
+              "b": 545,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "size": 4,
+      "age_hours": 12,
+      "naive_gate_count": 11,
+      "naive_multi_batches": 5,
+      "approved_multi_batches": 0,
+      "independent_gate_count_if_all_holds": 22,
+      "unapproved_batches": [
+        {
+          "prs": [
+            519,
+            535,
+            518,
+            536
+          ],
+          "blockers": [
+            {
+              "pr": 519,
+              "class": "release",
+              "reason": "Cut/tag/publish and release automation"
+            },
+            {
+              "pr": 535,
+              "class": "control_repair",
+              "reason": "Intel gate deferral modifies SPEC and release evidence"
+            },
+            {
+              "pr": 518,
+              "class": "security",
+              "reason": "Pinned Lean kernel soundness correction; expedited direct full qualification"
+            },
+            {
+              "pr": 536,
+              "class": "control_repair",
+              "reason": "AU-01 memory repair for observed OOM failures"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 519,
+              "b": 535,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 519,
+              "b": 518,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 519,
+              "b": 536,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 535,
+              "b": 518,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 535,
+              "b": 536,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 518,
+              "b": 536,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            503,
+            526,
+            529,
+            550
+          ],
+          "blockers": [
+            {
+              "pr": 503,
+              "class": "product_control",
+              "reason": "WASI support, build inputs and CI contract; base is #518 merge"
+            },
+            {
+              "pr": 526,
+              "class": "control_repair",
+              "reason": "Scheduling, evaluator and lowering changes; base is #536 merge"
+            },
+            {
+              "pr": 529,
+              "class": "product_repair",
+              "reason": "Fix nesting defect #528; base is #503 merge; broad compiler paths"
+            },
+            {
+              "pr": 550,
+              "class": "control_repair",
+              "reason": "Host-lane restructure, SPEC and RP-14; measured from #526 gate"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 503,
+              "b": 526,
+              "overlap": [
+                ".github/workflows/ci.yml",
+                "CHANGELOG.md",
+                "SPEC.md",
+                "VERIFICATION.md",
+                "crates/conformance/src/cases/repository.rs"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 503,
+              "b": 529,
+              "overlap": [
+                "CHANGELOG.md",
+                "CONFORMANCE.md",
+                "SPEC.md",
+                "VERIFICATION.md",
+                "crates/lexlean/src/api.rs",
+                "crates/lexlean/src/config.rs",
+                "crates/lexlean/src/lib.rs",
+                "crates/lexlean/src/link.rs",
+                "model/ids.toml"
+              ],
+              "known_order": [
+                {
+                  "before": 503,
+                  "after": 529,
+                  "basis": "529 base SHA equals 503 merge SHA 4f4c684d"
+                }
+              ]
+            },
+            {
+              "a": 503,
+              "b": 550,
+              "overlap": [
+                ".github/workflows/ci.yml",
+                "CHANGELOG.md",
+                "SPEC.md",
+                "crates/conformance/src/cases/repository.rs"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 526,
+              "b": 529,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md",
+                "VERIFICATION.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 526,
+              "b": 550,
+              "overlap": [
+                ".github/workflows/ci.yml",
+                "CHANGELOG.md",
+                "SPEC.md",
+                "crates/conformance/src/cases/repository.rs"
+              ],
+              "known_order": [
+                {
+                  "before": 526,
+                  "after": 550,
+                  "basis": "550 base SHA equals 526 merge SHA a367f4d5"
+                }
+              ]
+            },
+            {
+              "a": 529,
+              "b": 550,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            554,
+            557,
+            507,
+            543
+          ],
+          "blockers": [
+            {
+              "pr": 554,
+              "class": "control_repair",
+              "reason": "Host-memory admission repairs repeated runner loss"
+            },
+            {
+              "pr": 557,
+              "class": "review_candidate",
+              "reason": "Changelog and Rust comment; depends on #550 and #554"
+            },
+            {
+              "pr": 507,
+              "class": "identity",
+              "reason": "Runtime law and explicit identity-moving regeneration; PF-26"
+            },
+            {
+              "pr": 543,
+              "class": "release",
+              "reason": "Automatic release-line forwarding; authority changes"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 554,
+              "b": 557,
+              "overlap": [
+                "CHANGELOG.md",
+                "crates/conformance/src/cases/mod.rs"
+              ],
+              "known_order": [
+                {
+                  "before": 554,
+                  "after": 557,
+                  "basis": "557 base SHA equals 554 merge SHA 949cb261; body names correction"
+                }
+              ]
+            },
+            {
+              "a": 554,
+              "b": 507,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 554,
+                  "after": 507,
+                  "basis": "507 base SHA equals 554 merge SHA 949cb261; body names integration"
+                }
+              ]
+            },
+            {
+              "a": 554,
+              "b": 543,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 557,
+              "b": 507,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 557,
+              "b": 543,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": [
+                {
+                  "before": 557,
+                  "after": 543,
+                  "basis": "543 base SHA equals 557 merge SHA dfc17917"
+                }
+              ]
+            },
+            {
+              "a": 507,
+              "b": 543,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            602,
+            604
+          ],
+          "blockers": [
+            {
+              "pr": 602,
+              "class": "control_repair",
+              "reason": "Fix post-merge formatting failure and bootstrap scheduling; acceptance workflow"
+            },
+            {
+              "pr": 604,
+              "class": "identity",
+              "reason": "Runtime laws and generated artifacts; PF-28"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 602,
+              "b": 604,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 602,
+                  "after": 604,
+                  "basis": "604 base SHA equals 602 merge SHA 11223e4e"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            441,
+            545
+          ],
+          "blockers": [
+            {
+              "pr": 441,
+              "class": "unknown",
+              "reason": "Reported zero files despite native representation change; inventory inconsistent"
+            },
+            {
+              "pr": 545,
+              "class": "unknown",
+              "reason": "Reported zero files despite relock/repin and regeneration changes; inventory inconsistent"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 441,
+              "b": 545,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "size": 4,
+      "age_hours": 24,
+      "naive_gate_count": 9,
+      "naive_multi_batches": 6,
+      "approved_multi_batches": 0,
+      "independent_gate_count_if_all_holds": 22,
+      "unapproved_batches": [
+        {
+          "prs": [
+            519,
+            535,
+            518,
+            536
+          ],
+          "blockers": [
+            {
+              "pr": 519,
+              "class": "release",
+              "reason": "Cut/tag/publish and release automation"
+            },
+            {
+              "pr": 535,
+              "class": "control_repair",
+              "reason": "Intel gate deferral modifies SPEC and release evidence"
+            },
+            {
+              "pr": 518,
+              "class": "security",
+              "reason": "Pinned Lean kernel soundness correction; expedited direct full qualification"
+            },
+            {
+              "pr": 536,
+              "class": "control_repair",
+              "reason": "AU-01 memory repair for observed OOM failures"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 519,
+              "b": 535,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 519,
+              "b": 518,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 519,
+              "b": 536,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 535,
+              "b": 518,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 535,
+              "b": 536,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 518,
+              "b": 536,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            503,
+            526,
+            529,
+            550
+          ],
+          "blockers": [
+            {
+              "pr": 503,
+              "class": "product_control",
+              "reason": "WASI support, build inputs and CI contract; base is #518 merge"
+            },
+            {
+              "pr": 526,
+              "class": "control_repair",
+              "reason": "Scheduling, evaluator and lowering changes; base is #536 merge"
+            },
+            {
+              "pr": 529,
+              "class": "product_repair",
+              "reason": "Fix nesting defect #528; base is #503 merge; broad compiler paths"
+            },
+            {
+              "pr": 550,
+              "class": "control_repair",
+              "reason": "Host-lane restructure, SPEC and RP-14; measured from #526 gate"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 503,
+              "b": 526,
+              "overlap": [
+                ".github/workflows/ci.yml",
+                "CHANGELOG.md",
+                "SPEC.md",
+                "VERIFICATION.md",
+                "crates/conformance/src/cases/repository.rs"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 503,
+              "b": 529,
+              "overlap": [
+                "CHANGELOG.md",
+                "CONFORMANCE.md",
+                "SPEC.md",
+                "VERIFICATION.md",
+                "crates/lexlean/src/api.rs",
+                "crates/lexlean/src/config.rs",
+                "crates/lexlean/src/lib.rs",
+                "crates/lexlean/src/link.rs",
+                "model/ids.toml"
+              ],
+              "known_order": [
+                {
+                  "before": 503,
+                  "after": 529,
+                  "basis": "529 base SHA equals 503 merge SHA 4f4c684d"
+                }
+              ]
+            },
+            {
+              "a": 503,
+              "b": 550,
+              "overlap": [
+                ".github/workflows/ci.yml",
+                "CHANGELOG.md",
+                "SPEC.md",
+                "crates/conformance/src/cases/repository.rs"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 526,
+              "b": 529,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md",
+                "VERIFICATION.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 526,
+              "b": 550,
+              "overlap": [
+                ".github/workflows/ci.yml",
+                "CHANGELOG.md",
+                "SPEC.md",
+                "crates/conformance/src/cases/repository.rs"
+              ],
+              "known_order": [
+                {
+                  "before": 526,
+                  "after": 550,
+                  "basis": "550 base SHA equals 526 merge SHA a367f4d5"
+                }
+              ]
+            },
+            {
+              "a": 529,
+              "b": 550,
+              "overlap": [
+                "CHANGELOG.md",
+                "SPEC.md"
+              ],
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            554,
+            557,
+            507,
+            543
+          ],
+          "blockers": [
+            {
+              "pr": 554,
+              "class": "control_repair",
+              "reason": "Host-memory admission repairs repeated runner loss"
+            },
+            {
+              "pr": 557,
+              "class": "review_candidate",
+              "reason": "Changelog and Rust comment; depends on #550 and #554"
+            },
+            {
+              "pr": 507,
+              "class": "identity",
+              "reason": "Runtime law and explicit identity-moving regeneration; PF-26"
+            },
+            {
+              "pr": 543,
+              "class": "release",
+              "reason": "Automatic release-line forwarding; authority changes"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 554,
+              "b": 557,
+              "overlap": [
+                "CHANGELOG.md",
+                "crates/conformance/src/cases/mod.rs"
+              ],
+              "known_order": [
+                {
+                  "before": 554,
+                  "after": 557,
+                  "basis": "557 base SHA equals 554 merge SHA 949cb261; body names correction"
+                }
+              ]
+            },
+            {
+              "a": 554,
+              "b": 507,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 554,
+                  "after": 507,
+                  "basis": "507 base SHA equals 554 merge SHA 949cb261; body names integration"
+                }
+              ]
+            },
+            {
+              "a": 554,
+              "b": 543,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": []
+            },
+            {
+              "a": 557,
+              "b": 507,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 557,
+              "b": 543,
+              "overlap": [
+                "CHANGELOG.md"
+              ],
+              "known_order": [
+                {
+                  "before": 557,
+                  "after": 543,
+                  "basis": "543 base SHA equals 557 merge SHA dfc17917"
+                }
+              ]
+            },
+            {
+              "a": 507,
+              "b": 543,
+              "overlap": null,
+              "known_order": []
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            602,
+            604
+          ],
+          "blockers": [
+            {
+              "pr": 602,
+              "class": "control_repair",
+              "reason": "Fix post-merge formatting failure and bootstrap scheduling; acceptance workflow"
+            },
+            {
+              "pr": 604,
+              "class": "identity",
+              "reason": "Runtime laws and generated artifacts; PF-28"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 602,
+              "b": 604,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 602,
+                  "after": 604,
+                  "basis": "604 base SHA equals 602 merge SHA 11223e4e"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            405,
+            540
+          ],
+          "blockers": [
+            {
+              "pr": 405,
+              "class": "release",
+              "reason": "Cross-release integration with reported source and generated conflicts"
+            },
+            {
+              "pr": 540,
+              "class": "review_candidate",
+              "reason": "SP-17 scan and registered claim; body explicitly says no identity move; urgency not established"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 405,
+              "b": 540,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 405,
+                  "after": 540,
+                  "basis": "540 base SHA equals 405 merge SHA 6c368291"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        },
+        {
+          "prs": [
+            441,
+            545,
+            553
+          ],
+          "blockers": [
+            {
+              "pr": 441,
+              "class": "unknown",
+              "reason": "Reported zero files despite native representation change; inventory inconsistent"
+            },
+            {
+              "pr": 545,
+              "class": "unknown",
+              "reason": "Reported zero files despite relock/repin and regeneration changes; inventory inconsistent"
+            },
+            {
+              "pr": 553,
+              "class": "identity",
+              "reason": "New language-1.2 evaluation proof, schema and generated outputs"
+            }
+          ],
+          "pairs": [
+            {
+              "a": 441,
+              "b": 545,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 441,
+              "b": 553,
+              "overlap": null,
+              "known_order": []
+            },
+            {
+              "a": 545,
+              "b": 553,
+              "overlap": null,
+              "known_order": [
+                {
+                  "before": 545,
+                  "after": 553,
+                  "basis": "553 base SHA equals 545 merge SHA 7da6e937"
+                }
+              ]
+            }
+          ],
+          "disposition": "HOLD_NO_ADMISSION_EVIDENCE"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "PR metadata/body and listed changed paths are historical observations, not a dependency closure. Partial/zero/omitted path listings deliberately remain unknown.",
+    "Known base ancestry is not in itself a blocker to ordered batching; some dependent PRs can share a final gate after review. Shared files do not prove conflict; disjoint files do not prove independence.",
+    "No member has explicit historical nonurgent staging approval or exact composite-tree receipt. The all-hold scenario is a conservative policy boundary, not a cost forecast or a conclusion that batching cannot work."
+  ]
+}
