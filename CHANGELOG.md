@@ -23,7 +23,8 @@ workspace carried at those versions without a tag.
   compiled such a definition by well-founded recursion, so a `reflexivity`
   proof through it failed although both sides evaluate to the same value.
   The backend now writes `termination_by structural` for it, executable or
-  not; a definition with at most ten parameters keeps its bytes.
+  not; a definition with at most ten parameters keeps its bytes. The register
+  is 522.
 - A lexicon entry is source (SPEC.md §13.1 to §13.6): `BS-55`, the module `LexiconEntry`, held
   to `lexicon::entry::parse_entry` on the compiler's own committed lexicon packages, returning
   every diagnostic the oracle raises rather than only the first. By the maintainer's decision
