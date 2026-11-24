@@ -1,0 +1,71 @@
+{
+  "schema": "lexlean/ci-queue-profile-observation/1",
+  "run_id": 45437716141,
+  "head_sha": "603336bf2752ecbfa4d688ccb5d52b3585bfa64b",
+  "terminal": false,
+  "observed_at": "2026-11-24T17:24:47Z",
+  "scope": "independent connector-side calculation, not Python CLI output",
+  "runner_classes": [
+    {
+      "runner_labels": [
+        "ubuntu-24.04"
+      ],
+      "observed_jobs": 55,
+      "started_samples": 55,
+      "unfinished_jobs": 9,
+      "completed_execution_seconds": 74700,
+      "median_created_to_start_seconds": 2,
+      "max_created_to_start_seconds": 644
+    },
+    {
+      "runner_labels": [
+        "macos-15-intel"
+      ],
+      "observed_jobs": 5,
+      "started_samples": 5,
+      "unfinished_jobs": 4,
+      "completed_execution_seconds": 1463,
+      "median_created_to_start_seconds": 255,
+      "max_created_to_start_seconds": 591
+    },
+    {
+      "runner_labels": [
+        "macos-15"
+      ],
+      "observed_jobs": 1,
+      "started_samples": 1,
+      "unfinished_jobs": 1,
+      "completed_execution_seconds": 0,
+      "median_created_to_start_seconds": 714,
+      "max_created_to_start_seconds": 714
+    },
+    {
+      "runner_labels": [
+        "ubuntu-24.04-arm"
+      ],
+      "observed_jobs": 1,
+      "started_samples": 1,
+      "unfinished_jobs": 1,
+      "completed_execution_seconds": 0,
+      "median_created_to_start_seconds": 5,
+      "max_created_to_start_seconds": 5
+    },
+    {
+      "runner_labels": [
+        "windows-2022"
+      ],
+      "observed_jobs": 5,
+      "started_samples": 5,
+      "unfinished_jobs": 3,
+      "completed_execution_seconds": 3481,
+      "median_created_to_start_seconds": 2,
+      "max_created_to_start_seconds": 3
+    }
+  ],
+  "completed_conclusions": {
+    "success": 49
+  },
+  "billed_minutes": null,
+  "causal_contention_seconds": null,
+  "critical_path_seconds": null
+}
