@@ -15,6 +15,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+import ci_attempt_lineage as lineage
+
 RUN_SCHEMA = "lexlean/a4-provider-origin-policy/1"
 OUT_SCHEMA = "lexlean/a4-provider-origin-observation/1"
 REPO_RE = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
@@ -200,8 +202,8 @@ def live_json(url, token):
     require(isinstance(url, str) and
             re.fullmatch(r"https://api\.github\.com/repos/"
                          r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/actions/"
-                         r"(?:runs/[0-9]+(?:/(?:jobs|artifacts)"
-                         r"\?per_page=100&page=[0-9]+)?|runs/[0-9]+)\Z", url)
+                         r"runs/[0-9]+(?:/attempts/[0-9]+)?"
+                         r"(?:/(?:jobs|artifacts)\?per_page=100&page=[0-9]+)?\Z", url)
             is not None, "unexpected GitHub API endpoint")
     require(isinstance(token, str) and 16 <= len(token) <= 1000,
             "read-only GitHub credential absent")
@@ -249,10 +251,10 @@ def fetch_live(policy, token, reader=live_json):
     base = ("https://api.github.com/repos/" + policy["repository"]
             + "/actions/runs/" + str(policy["run_id"]))
     run = reader(base, token)
-    def pages(kind, maximum):
-        records, page = [], 1
+    def pages(kind, maximum, endpoint=base):
+        records, page, expected_total = [], 1, None
         while True:
-            data = reader(base + "/" + kind +
+            data = reader(endpoint + "/" + kind +
                           "?per_page=100&page=" + str(page), token)
             expect(data, ("total_count", kind), kind + " listing")
             total = data["total_count"]
@@ -261,15 +263,54 @@ def fetch_live(policy, token, reader=live_json):
                     isinstance(batch, list) and len(batch) <= 100 and
                     len(records) + len(batch) <= total,
                     "invalid/oversized provider pagination")
+            if expected_total is None:
+                expected_total = total
+            require(total == expected_total, "provider pagination total changed")
             records.extend(batch)
             if len(records) == total:
                 return records
             require(batch and page < (maximum + 99) // 100,
                     "truncated provider pagination")
             page += 1
-    observations = verified_metadata(
-        policy, run, pages("jobs", MAX_JOBS),
-        pages("artifacts", MAX_ARTIFACTS))
+    latest_jobs = pages("jobs", MAX_JOBS)
+    artifacts = pages("artifacts", MAX_ARTIFACTS)
+    observations = verified_metadata(policy, run, latest_jobs, artifacts)
+    # Latest records may be reissued IDs for previous executions. For reruns,
+    # inspect every explicit attempt before assigning an origin job identity.
+    # A single-attempt origin retains its existing metadata-only boundary.
+    observations["attempt_lineage"] = "NOT_APPLICABLE_SINGLE_ATTEMPT"
+    if policy["run_attempt"] > 1:
+        require(policy["run_attempt"] <= 10, "attempt history exceeds audit bound")
+        snapshots = []
+        for number_ in range(1, policy["run_attempt"] + 1):
+            endpoint = base + "/attempts/" + str(number_)
+            attempt = reader(endpoint, token)
+            # Reuse the original policy verifier for run/repo/workflow and
+            # exact expected host roster. Artifacts belong to the whole run;
+            # their upload attempt is deliberately not inferred here.
+            historical_policy = dict(policy, run_attempt=number_, artifact_names=[])
+            rows = pages("jobs", MAX_JOBS, endpoint)
+            verified_metadata(historical_policy, attempt, rows, [])
+            snapshots.append({"run_id": attempt["id"], "head_sha": attempt["head_sha"],
+                              "run_attempt": number_, "total_count": len(rows), "jobs": rows})
+        # Refuse an inconsistent default/latest view, including a retry that
+        # began during collection. Compare complete rows, not just job IDs.
+        require(sorted(latest_jobs, key=lambda j: j["name"]) ==
+                sorted(snapshots[-1]["jobs"], key=lambda j: j["name"]),
+                "latest and explicit attempt disagree")
+        require(reader(base, token) == run, "run changed during attempt collection")
+        try:
+            reconciled = lineage.reconcile(policy["run_id"], policy["head_sha"],
+                                           policy["job_hosts"], snapshots)
+        except (ValueError, KeyError, TypeError) as error:
+            raise Hold("attempt lineage refused: " + str(error)) from error
+        observations["attempt_lineage"] = reconciled
+        for name, job in observations["jobs"].items():
+            original = reconciled["jobs"][name]
+            job["original_execution_job_id"] = original["origin_job_id"]
+            job["original_execution_attempt"] = original["origin_attempt"]
+        # A reissued ID is never sufficient evidence of archive provenance.
+        observations["artifact_producer_binding"] = "NOT_PROVEN_BY_REST"
     # Only this trusted read-only API path claims live observation. STILL no
     # authority to reuse old-HEAD test evidence on current HEAD.
     if reader is live_json:

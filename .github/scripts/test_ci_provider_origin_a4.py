@@ -241,6 +241,59 @@ class OriginMetadataContract(unittest.TestCase):
         with self.assertRaises(a4.Hold):
             case(change)
 
+    def retry_fixture(self):
+        p, r, old, arts = fixture()
+        for job in old:
+            job.update(created_at="2026-11-24T00:00:00Z",
+                       started_at="2026-11-24T00:01:00Z",
+                       completed_at="2026-11-24T00:10:00Z")
+        p["run_attempt"] = 2
+        first = copy.deepcopy(r)
+        r.update(run_attempt=2, conclusion="success")
+        new = copy.deepcopy(old)
+        new[0].update(id=61, run_attempt=2, created_at="2026-11-24T00:11:00Z")
+        new[1].update(id=62, run_attempt=2, created_at="2026-11-24T00:11:00Z",
+                      started_at="2026-11-24T00:12:00Z",
+                      completed_at="2026-11-24T00:22:00Z", conclusion="success")
+        return p, r, first, old, new, arts
+
+    def retry_read(self, mutate=None):
+        p, r, first, old, new, arts = self.retry_fixture()
+        latest = copy.deepcopy(new)
+        if mutate:
+            mutate(r, first, old, new, latest)
+        def reader(url, token):
+            if "/artifacts?" in url:
+                return {"total_count": len(arts), "artifacts": arts}
+            if "/jobs?" in url:
+                rows = old if "/attempts/1/" in url else new if "/attempts/2/" in url else latest
+                return {"total_count": len(rows), "jobs": rows}
+            if url.endswith("/attempts/1"):
+                return first
+            return r
+        return a4.fetch_live(p, "synthetic", reader=reader)
+
+    def test_retry_read_preserves_original_job_id(self):
+        report = self.retry_read()
+        self.assertEqual(report["jobs"]["python"]["original_execution_job_id"], 51)
+        self.assertEqual(report["jobs"]["failed"]["original_execution_job_id"], 62)
+        self.assertEqual(report["attempt_lineage"]["retained_successes"], 1)
+        self.assertEqual(report["attempt_lineage"]["completed_execution_minutes"], 28)
+        self.assertFalse(report["release_or_current_head_authority"])
+        self.assertFalse(report["attempt_lineage"]["provider_authenticity_verified"])
+
+    def test_retry_read_refuses_ambiguous_history(self):
+        cases = (
+            lambda r, first, old, new, latest: first.update(head_sha="b"*40),
+            lambda r, first, old, new, latest: old.pop(),
+            lambda r, first, old, new, latest: new[0].update(id=51),
+            lambda r, first, old, new, latest: latest[0].update(id=99),
+        )
+        for mutate in cases:
+            with self.subTest(mutate=mutate):
+                with self.assertRaises(a4.Hold):
+                    self.retry_read(mutate)
+
 
 if __name__ == "__main__":
     unittest.main()

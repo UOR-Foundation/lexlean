@@ -42,3 +42,7 @@ phase because an origin run must be chosen and approved separately.
 bytes/attestation are verified, with adversarial acceptance in a separate
 approved current-HEAD workflow. The existing SPEC §9.4 exact-head gate,
 native/Lean/Atlas receipts and release-gate.sh remain authoritative.
+
+## Explicit retry-attempt history
+
+For a terminal run with multiple attempts, the read-only provider observer now reads every explicit attempt and its complete job pages (maximum 10 attempts), validates the same declared roster, run, workflow and host policy, and reconciles the origin execution ID. The latest listing must match the last explicit attempt and the run must remain unchanged throughout collection. Pagination totals must remain stable. Unsupported or ambiguous histories fail closed. Caller-declared inventory is still not governed source coverage, original artifact uploader and archive bytes are not verified, and all outputs remain nonqualifying. No production workflow or release policy is modified.
