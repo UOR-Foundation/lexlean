@@ -2938,6 +2938,21 @@ pub(crate) fn run(id: &str) {
             );
             bootstrap_custody_decisions();
             honesty_dependencies(&ci).expect("expensive roots require successful same-run honesty");
+            let tag_test = "python3 -m unittest discover -s .github/scripts -p 'test_tag_gate_poll.py'";
+            assert!(ci.contains(tag_test), "the plant must remove a real command");
+            assert!(
+                honesty_dependencies(&ci.replacen(tag_test, "echo bypass", 1)).is_err(),
+                "RP-14 must refuse removal of the tag gate regression"
+            );
+            let tag_step = "- name: Test the Intel construction and inventory checks";
+            for bypass in ["continue-on-error: true", "if: false"] {
+                let planted = ci.replacen(tag_step, &format!("{tag_step}\n        {bypass}"), 1);
+                assert_ne!(planted, ci, "the plant must change the workflow");
+                assert!(
+                    honesty_dependencies(&planted).is_err(),
+                    "RP-14 must refuse bypassing the tag gate regression"
+                );
+            }
             assert!(
                 honesty_dependencies(&ci.replacen("name: ${{ matrix.part }}", "name: honesty", 1))
                     .is_err(),
@@ -4834,6 +4849,18 @@ fn lane_host_workflow(ci: &str, host: &LaneHost) -> Result<(), String> {
 /// Claim drift must finish successfully before a costly root can start.
 fn honesty_dependencies(ci: &str) -> Result<(), String> {
     let initial = workflow_job(ci, "honesty")?;
+    let checks = initial
+        .split("\n      - ")
+        .find(|step| step.starts_with("name: Test the Intel construction and inventory checks\n"))
+        .ok_or("RP-14: the tag gate regression step is missing")?;
+    if checks.lines().any(|line| {
+        let line = line.trim_start();
+        line.starts_with("continue-on-error:") || line.starts_with("if:")
+    }) || !checks.lines().any(|line| {
+        line.trim() == "python3 -m unittest discover -s .github/scripts -p 'test_tag_gate_poll.py'"
+    }) {
+        return Err("RP-14: honesty must run the tag gate regression without bypass".to_owned());
+    }
     if !initial.contains("name: ${{ matrix.part }}\n")
         || !initial.contains("needs: [plan]\n")
         || !initial.contains(
