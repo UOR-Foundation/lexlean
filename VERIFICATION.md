@@ -21782,3 +21782,37 @@ test result: FAILED. 0 passed; 2 failed
 `RP-19` failed at the first language-1.2 lock, whose `compiler_semantics` line
 carried the planted digit while the default build's carried the tree's. With
 each plant removed, `conformance_rp_10` and `conformance_rp_19` pass.
+
+## The plan and the release gate read a retried run's jobs in pages of 50 (§9.4, #603)
+
+After the single failed job of run 45316289312 (the whole gate on
+`bd80fa37`, PR #619) was run again, GitHub answered every listing of that
+run's 70 jobs with HTTP 502 at 60 or more jobs a page (`attempts/1` still
+listed at 100; 50 and 35 listed every time). `ci-plan.sh` and
+`release-gate.sh` read jobs at `per_page=100`, so the tree the whole gate had
+verified was unreadable: the plan of the merge's push ran the whole gate
+again, and the release gate refused the tree. Both failed closed; neither
+passed anything. Both now read runs and jobs through
+`.github/scripts/ci-provider-read.sh` (three tries of the whole read, never a
+partial response) and read jobs in pages of 50, every page.
+
+The same review found a fail-open in the plan: `for part in $(jq …)` ran no
+iteration when `jq` failed, so the check of every leg passed vacuously.
+Planted on a host without `jq`, with a listing that held no `just vv` leg,
+the plan printed `full=false` and ran nothing; it now reads the legs first and
+counts a failed or empty read as no verified run (`full=true`). The release
+gate likewise refuses a rows file that names no leg.
+
+Observed with the real provider against a local merge of `bd80fa37` into
+`release/v0.5` (tree `2f618ea9`): the old plan printed `Push: the whole
+gate.` and the old release gate `no run of ci.yml was the whole gate`; the new
+plan named run 45316289312 and ran nothing, and the new release gate accepted
+it with all 70 jobs and 55 leg transcripts.
+
+| Planted defect | Refused by |
+| --- | --- |
+| the old `ci-plan.sh` with one failed jobs read (planted with a `gh` stand-in) | `plan_decisions`: `§9.4: a jobs read that fails once is tried again` (left: the whole gate, right: nothing) |
+| a jobs read that fails all three tries counted as a verified tree | `plan_decisions`: `§9.4: a jobs listing that cannot be read is the whole gate` |
+| `per_page=100`, or a direct `gh api` evidence read, in either script (both originals) | `§9.4: … reads runs and jobs through the bounded helper, jobs in pages of 50, every page` |
+| `per_page=100` in `ci-plan.sh` against a stand-in that answers 502 above 50 a page, as the provider did | `test_ci_plan_provider_retry.py`: 5 of 5 cases fail (all pass at 50) |
+| no `jq` on `PATH`, every leg missing from the listing | the planner as #620 first drafted it: `full=false`; now `full=true` (observed, host without `jq`) |

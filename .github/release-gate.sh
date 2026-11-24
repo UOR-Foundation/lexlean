@@ -22,6 +22,9 @@
 # reads the runs, the jobs, and the artifacts (`actions: read`).
 set -euo pipefail
 
+# Bounded, atomic evidence reads, as `.github/ci-plan.sh` makes them.
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/ci-provider-read.sh"
+
 rows_file=${LEXLEAN_CI_ROWS:-.github/vv-rows.json}
 repo=${REPO:?REPO names owner/name}
 sha=${SHA:?SHA names the tagged commit}
@@ -30,6 +33,8 @@ ref=${REF:-}
 release_run=${RELEASE_RUN:-}
 
 parts=$(jq -r '.[].part' "$rows_file")
+# No legs would make `whole_gate_passed` check none and accept any run (#603).
+[ -n "$parts" ] || { echo "release-gate: $rows_file names no leg" >&2; exit 1; }
 
 # These are the four auxiliary §8.3 contexts, not the number of matrix rows.
 # Linux x86-64 is the normative gate; Intel macOS is a static aggregate. Every
@@ -53,10 +58,12 @@ hosts_passed() {
 }
 
 # The jobs of a run as `name<TAB>conclusion<TAB>started<TAB>completed`, or
-# nothing when the run cannot be read.
+# nothing when the run cannot be read. Pages of 50, as `ci-plan.sh` reads
+# them: a retried run's 70-job listing answered HTTP 502 at 60 or more a page
+# (run 45316289312, #603), which refused a tree the whole gate had verified.
 jobs_of() {
-  gh api "repos/$repo/actions/runs/$1/jobs?per_page=100" --paginate \
-    --jq '.jobs[] | "\(.name)\t\(.conclusion)\t\(.started_at)\t\(.completed_at)"' 2>/dev/null || true
+  ci_provider_read "repos/$repo/actions/runs/$1/jobs?per_page=50" --paginate \
+    --jq '.jobs[] | "\(.name)\t\(.conclusion)\t\(.started_at)\t\(.completed_at)"' || true
 }
 
 # Whether a jobs listing is the whole gate, passed.
@@ -93,8 +100,8 @@ done
 
 found=
 for commit in $candidates; do
-  runs=$(gh api "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$commit&status=success&per_page=30" \
-    --jq ".workflow_runs[] | select(.head_repository.full_name == \"$repo\") | \"\(.id)\t\(.event)\t\(.created_at)\t\(.updated_at)\t\(.html_url)\"" 2>/dev/null) || runs=
+  runs=$(ci_provider_read "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$commit&status=success&per_page=30" \
+    --jq ".workflow_runs[] | select(.head_repository.full_name == \"$repo\") | \"\(.id)\t\(.event)\t\(.created_at)\t\(.updated_at)\t\(.html_url)\"") || runs=
   while IFS=$'\t' read -r id event created updated url; do
     [ -n "$id" ] || continue
     jobs=$(jobs_of "$id")

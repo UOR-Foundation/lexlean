@@ -64,6 +64,12 @@ n=0
 [ ! -f "$ROOT/$kind.count" ] || n=$(cat "$ROOT/$kind.count")
 n=$((n+1))
 printf '%s' "$n" > "$ROOT/$kind.count"
+# GitHub answered a retried run's 70-job listing with HTTP 502 at 60 or more
+# jobs a page, every time (run 45316289312, #603): model that provider limit.
+if [ "$kind" = jobs ]; then
+  [[ "$2" =~ per_page=([0-9]+) ]] && [ "${BASH_REMATCH[1]}" -le 50 ] \\
+    || { printf 'HTTP 502\\n' >&2; exit 1; }
+fi
 # Simulate even a valid-looking complete response followed by a transport error.
 printf '%s\\n' "$output"
 if [ "$n" -le "$failures" ]; then
