@@ -84,5 +84,60 @@ class Join(unittest.TestCase):
         self.refuse(value)
 
 
+    def test_invalid_attempt(self):
+        for attempt in ("0", "-1", "2", "²", "01", "", True):
+            with self.subTest(attempt=attempt):
+                value = receipts()
+                value["a"]["attempt"] = attempt
+                self.refuse(value)
+
+    def test_invalid_join_attempt(self):
+        with self.assertRaisesRegex(host_lanes.Invalid, "invalid join attempt"):
+            host_lanes.check_join(receipts(), NAMES, PLAN, BDD, {**HERE, "attempt": "0"})
+
+    def test_positive_retained_attempt(self):
+        self.assertEqual(host_lanes.check_join(receipts(), NAMES, PLAN, BDD, {**HERE, "attempt": "2"}), 5)
+
+    def test_wrong_receipt_lane(self):
+        value = receipts()
+        value["a"]["lane"] = "b"
+        self.refuse(value)
+
+    def test_swapped_lanes(self):
+        value = receipts()
+        value["a"]["executed"], value["b"]["executed"] = value["b"]["executed"], value["a"]["executed"]
+        self.refuse(value)
+
+    def test_producer_absorbs_conformance(self):
+        value = receipts()
+        value["producer"]["executed"] += value["a"]["executed"]
+        value["a"]["executed"] = []
+        self.refuse(value)
+
+    def test_duplicate_conformance_inventory(self):
+        value = receipts()
+        for receipt in value.values():
+            receipt["conformance"] = [*HARNESS, HARNESS[0]]
+        value["producer"]["whole"].append(HARNESS[0])
+        value["a"]["executed"].append(HARNESS[0])
+        self.refuse(value)
+
+    def test_repeated_workspace_name_allowed(self):
+        value = receipts()
+        value["producer"]["whole"].append(HARNESS[0])
+        value["producer"]["executed"].append(HARNESS[0])
+        self.assertEqual(self.check(value), 6)
+
+    def test_missing_workspace_conformance(self):
+        value = receipts()
+        value["producer"]["whole"].remove(HARNESS[0])
+        value["a"]["executed"] = []
+        self.refuse(value)
+
+    def test_plan_drift(self):
+        plan = {"producer": ["honesty"], "lanes": {"a": ["one", "two"], "b": ["two", "rest"]}}
+        with self.assertRaisesRegex(host_lanes.Invalid, "conformance lane plan drift"):
+            host_lanes.check_join(receipts(), NAMES, plan, BDD, HERE)
+
 if __name__ == "__main__":
     unittest.main()
