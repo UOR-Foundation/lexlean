@@ -91,7 +91,7 @@ full_run_of() {
   # below check nothing and accept any run, so it is no verified run (#603).
   parts=$(jq -r '.[].part' "$rows_file") && [ -n "$parts" ] || { ci_reuse_note "$commit: invalid or empty expected rows"; return 1; }
   runs=$(ci_provider_read "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$commit&per_page=30" --paginate \
-    --jq ".workflow_runs[] | select(.status == \"completed\" and .conclusion == \"success\") | select(.head_repository.full_name == \"$repo\") | select(.event == \"pull_request\" or .event == \"workflow_dispatch\") | .id") || { ci_reuse_note "$commit: successful run lookup failed"; return 1; }
+    --jq ".workflow_runs[] | select(.status == \"completed\" and .conclusion == \"success\") | select(.head_sha == \"$commit\") | select(.head_repository.full_name == \"$repo\") | select(.event == \"pull_request\" or .event == \"workflow_dispatch\") | .id") || { ci_reuse_note "$commit: successful run lookup failed"; return 1; }
   [ -n "$runs" ] || { ci_reuse_note "$commit: no eligible successful run returned"; return 1; }
   for id in $runs; do
     # Pages of 50: after a failed job of run 45316289312 was run again,
