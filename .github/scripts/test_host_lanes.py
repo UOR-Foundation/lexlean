@@ -1,9 +1,12 @@
 """Behavioral tests of the host lanes' join (SPEC §8.3), run in honesty."""
 
 import copy
+import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import host_lanes  # noqa: E402
@@ -138,6 +141,72 @@ class Join(unittest.TestCase):
         plan = {"producer": ["honesty"], "lanes": {"a": ["one", "two"], "b": ["two", "rest"]}}
         with self.assertRaisesRegex(host_lanes.Invalid, "conformance lane plan drift"):
             host_lanes.check_join(receipts(), NAMES, plan, BDD, HERE)
+
+
+class ArtifactBoundary(unittest.TestCase):
+    TARGET = "x86_64-pc-windows-msvc"
+
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.root = Path(temp.name)
+        for lane, receipt in receipts().items():
+            path = self.path(lane)
+            path.parent.mkdir()
+            path.write_text(json.dumps(receipt))
+
+    def path(self, lane):
+        return self.root / f"host-{self.TARGET}-{lane}" / "receipt.json"
+
+    def check(self):
+        with patch.object(host_lanes, "lanes", return_value=(BDD, PLAN, NAMES)), \
+                patch.object(host_lanes, "identity", return_value=HERE):
+            return host_lanes.join(self.root, self.TARGET, self.root)
+
+    def refuse(self):
+        with self.assertRaises(host_lanes.Invalid):
+            self.check()
+
+    def test_exact_artifacts_pass(self):
+        self.assertEqual(self.check(), 5)
+
+    def test_swapped_artifact_payloads(self):
+        a, b = self.path("a"), self.path("b")
+        x, y = a.read_text(), b.read_text()
+        a.write_text(y)
+        b.write_text(x)
+        self.refuse()
+
+    def test_duplicate_json_key(self):
+        path = self.path("a")
+        path.write_text(path.read_text().replace('"lane": "a"', '"lane": "b", "lane": "a"'))
+        self.refuse()
+
+    def test_extra_artifact_file(self):
+        (self.path("a").parent / "extra").touch()
+        self.refuse()
+
+    def test_boolean_schema(self):
+        path = self.path("a")
+        path.write_text(path.read_text().replace('"schema": 1', '"schema": true'))
+        self.refuse()
+
+    def test_renamed_artifact(self):
+        self.path("a").parent.rename(self.root / "wrong")
+        self.refuse()
+
+    def test_symlink_receipt(self):
+        path = self.path("a")
+        with tempfile.TemporaryDirectory() as outside:
+            external = Path(outside) / "receipt.json"
+            external.write_text(path.read_text())
+            path.unlink()
+            try:
+                path.symlink_to(external)
+            except OSError as error:
+                self.skipTest(f"symlinks unavailable: {error}")
+            self.refuse()
+
 
 if __name__ == "__main__":
     unittest.main()
