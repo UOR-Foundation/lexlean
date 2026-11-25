@@ -102,7 +102,16 @@ jobs:
             state=$(gh api "repos/$REPO/actions/workflows/ci.yml/runs?head_sha=$COMMIT&event=push&per_page=1" \
               --jq '.workflow_runs[0] | "\(.status) \(.conclusion) \(.html_url)"' 2>/dev/null || true)
             case "$state" in
-              "completed success "*) echo "gate passed: ${state##* }"; exit 0 ;;
+              "completed success "*)
+                # A successful workflow conclusion can include skipped jobs.
+                # Re-run the exact-tree whole-gate validator before tagging.
+                if SHA="$COMMIT" OUT="$RUNNER_TEMP/gate-evidence.txt" .github/release-gate.sh; then
+                  echo "qualified gate passed: ${state##* }"
+                  exit 0
+                fi
+                echo "::error::ci.yml reported success, but no complete exact-tree gate evidence qualified $COMMIT"
+                exit 1
+                ;;
               completed*) echo "::error::the gate of $COMMIT did not pass: $state"; exit 1 ;;
             esac
             sleep 60

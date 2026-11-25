@@ -41,6 +41,146 @@ Outside `vv`:
 
 ## Falsifiability records
 
+### Regression shell execution is not command presence (RP-14, #609/#607)
+
+Independent offline review of the combined tree `96f35dce` found a
+rustfmt mismatch, a writer guard accepting a trailing `|| true`, and an
+honesty step accepting an early `exit 0`. The same review reported the
+build, writer/custody/tag/host-lane tests, three evaluator-budget tests,
+RP-14 and R4/R5 passing on that earlier tree; it is not acceptance of
+this changed tree.
+
+Pin the writer step to its exact single command and explicit Bash shell.
+Pin the small honesty step to its complete ordered five-test shell
+program, explicit Bash and `set -euo pipefail`. Refuse omission of any
+of the five tests, step conditions, ignored errors, early success,
+disabled errexit, appended success masking and shell overrides. The
+structural assertions are intentionally narrow; they are not general
+YAML or shell semantic analysis. An offline JavaScript equivalent of
+the two source guards passed against the actual edited workflow texts
+and refused 11 honesty and 5 writer-step mutations. Full Python
+workflow tests, actual RP-14, rustfmt, build and Clippy on the new
+commit remain to be run before promotion. No hosted gate was started
+for these edits.
+
+A local Bash process also executed the exact five-command program with a
+stub `python3` executable: all five ran and exit 0 was observed when
+all succeeded; independently failing each position with exit 7 produced
+exit 7 and stopped after that position (six experiments). This exercises
+shell failure propagation, not the real test suites or GitHub's runner.
+The formatting changes are source adjustments, not a rustfmt receipt.
+
+
+### Delayed successful CI is not release qualification (RP-14)
+
+The tag workflow waits for a push run only when the initial exact-tree
+release gate refuses and there is a push run to wait for. A provider's
+successful workflow conclusion is not evidence that every required
+obligation ran. After delayed success the workflow must invoke the same
+`.github/release-gate.sh` again before allowing the tag step.
+
+Local verification for [#607](https://github.com/UOR-Foundation/lexlean/pull/607)
+at `844bc0ce` matched the Python test blob
+`dff38f6537cf8273aafc3849e940786c3f304de2`. The command
+`python3 -m unittest discover -s .github/scripts -p 'test_tag_gate_poll.py' -v`
+passed all eight tests (0.090 s) in an isolated fixture containing the
+retrieved wait-step excerpt, with stubbed provider and gate results. The
+positive controls cover an already-qualified receipt and a delayed
+qualified receipt. Negative controls cover apparent provider success
+without qualifying receipts, provider failure/cancellation, a called
+workflow without proof, and unavailable provider responses under a
+test-only shortened polling horizon. The previous unconditional-success
+branch was separately planted in the local shell simulation and accepted
+the false-green outcome; the corrected branch refused it. No real tag,
+release, provider mutation or complete hosted release rehearsal ran.
+
+At `350938fe` the test is invoked by the existing CI honesty job; RP-14
+requires the command and rejects removal or bypass of its step. Equivalent
+source checks against the retrieved workflow passed and refused three
+plants (command removal, continue-on-error, and a false step condition).
+These are source checks, not a compiled RP-14 result. Exact-head compiled
+and hosted acceptance remains required, and a test-only receipt cannot
+authorize a release.
+
+### Early freshness refusal and regeneration ownership (RP-14)
+
+The early `cargo xtask check-freshness` check rejects stale committed inputs,
+locks, and export provenance before costly acceptance work. The original
+implementation's owner evidence is preserved in
+[#478](https://github.com/UOR-Foundation/lexlean/pull/478), and the
+documentation omission was retained in
+[review 5867944910](https://github.com/UOR-Foundation/lexlean/pull/478#pullrequestreview-5867944910)
+and [#489](https://github.com/UOR-Foundation/lexlean/issues/489).
+The owner reported the clean command on WSL at release/v0.4 base
+`7eb816284`: 23 build oracles, 262 recorded inputs, their locks, and 139
+committed export packages current in 2.5 s with Lean removed from PATH.
+The same detector refused these three direct plants (owner-reported):
+
+| Planted defect | Observed refusal |
+| --- | --- |
+| Append a line to `bootstrap/src/TokenAudit.lex.tex` | Recorded oracle input changed; 37 bootstrap packages lost their semantic ID |
+| Replace one stdlib export package's `sources` | Export provenance refused |
+| Alter the stdlib lock's compiler semantics | Input digest changed and `lock --check` refused |
+
+Command: `cargo xtask check-freshness`. The owner separately reported clean
+execution and the individual negative controls. Exact per-plant shell edits,
+stderr, exit numbers and restoration transcript were not included in the
+retained public evidence and are not reconstructed here. This is recorded
+historical owner evidence, not a repeat on this head. Hosted draft run
+[43142198451](https://github.com/UOR-Foundation/lexlean/actions/runs/43142198451)
+confirmed the clean detector on `834522b91`; no hosted stale-slice plant
+was reported. Existing full golden, example, PX and bootstrap checks retain
+authority over newly discovered inputs, completeness and output bytes.
+
+Regeneration ownership: the original local demonstration in
+[#609](https://github.com/UOR-Foundation/lexlean/pull/609) applied two Git
+patches touching separate hunks of the same file; Git accepted both, but
+the new preflight refused the overlapping path. The prior review at
+`7c8a17b7` also detected a working-directory dependency and missing
+negative controls. On a local Git 2.47.3 fixture, `git apply --numstat -z`
+from a nested checkout returned an empty path inventory for a real
+root-level file change. The new isolated scratch-directory invocation
+returned `1<TAB>1<TAB>unique.txt<NUL>` for the same patch. This focused
+reproduction verifies the invocation strategy, not a complete execution of
+the updated Python test modules.
+
+The updated draft adds source checks for bypassing the writer guard,
+removing either rename-source capture flag, and explicitly dropping the
+shared environment guard before replay. The environment checks inspect
+source placement and explicit binding use, not arbitrary Rust lifetimes
+or an observed production race. The caller-inclusive evaluator permit
+pool adds accounting, single-processor waiting and panic-return tests.
+These new tests and real export replay require execution at the resulting
+head before acceptance; no runtime or performance result is asserted here.
+
+Additional local validation of the draft at `d79bbd64` (2026-11-24):
+with Git 2.47.3, the checker blob
+`ed0fb7941da8a1784d3f069ed497f8f6c1f3b3d1` and test blob
+`71de2dcd8c9c1df0f682974f81068a52a1421aa6` were independently matched
+with `git hash-object`. Command from the scripts directory:
+`python -m unittest -v test_check_regen_writers.py`. Of 18 tests, 16
+passed and 2 workflow-dependent tests were skipped in the isolated local
+copy (0.583 s). On the actual retrieved workflow blob
+`9eae7e0c931b36bb1e53b4ffb9249f9b61514a14`, equivalent source assertions
+passed and all four bypass/rename mutations were refused; this was a
+separate source evaluation, not execution of the two skipped Python tests.
+
+For the nested-checkout regression, replaced the scratch-directory Git
+invocation with the previous invocation that inherits the caller's working
+directory. Command:
+`python -B -m unittest -v test_check_regen_writers.WriterCollisionTests.test_inspection_from_nested_checkout_preserves_root_paths`.
+The plant exited 1 with `ValueError: records: patch and declared file inventory disagree`.
+Restoring the original file yielded exit 0 (one test passed), and
+`git hash-object` again matched the checker blob above.
+
+The exact custody test blob `44ac4b9742f95ba82d5f6ede3f54fb37914ba175`
+passed six tests against the retrieved 2,935-byte `take()` function excerpt
+from Rust blob `a889651022f58202dc5a68fd8dab96887a78ef8d`, including the
+explicit early-drop plant. Command: `python -m unittest -v test_export_custody_guard.py`.
+This is source-level evidence, not a Rust compilation or replay. No hosted
+qualification, compiled evaluator test or performance measurement is
+claimed by these local receipts.
+
 ### browser prover assets can differ, fail to build, or go unpublished (RP-20)
 
 `RP-20` holds the assets a browser prover loads (§7, §30.3).
