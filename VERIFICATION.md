@@ -21878,3 +21878,4 @@ design property, not a measured one.
 | a log block that fails its digest | `Delivery.test_tampered_duplicated_and_truncated_blocks_are_refused` |
 | start with no `sudo` or no writable temp; stop with failing `sudo`, `timeout` or Python | `test_ci_read_trace.py` (`Scripts`): status 0 in every case |
 | a test inheriting the job's own `LEXLEAN_READ_TRACE_*` (found by #621's first hosted gate, run 45487283362: the scripts test stopped the honesty job's live recorder and failed) | `Scripts.test_the_job_s_own_recording_is_never_reached` |
+| a directory known by `FAN_ONDIR` in the event mask (found by #621's second hosted gate, run 45520831037: the hosted kernel sent no such flag, so all 45 traces recorded no directory, and the advisory kernel test failed with `'sub' not found in []`) | `Record.test_a_directory_is_known_by_its_descriptor_not_the_event_mask`; on a host, `KernelRecording` |

@@ -30,8 +30,9 @@ def event(mask, fd=7, pid=42, version=trace.FANOTIFY_METADATA_VERSION, extra=b""
 class FakeKernel:
     """Scripted kernel: BUFFERS are returned one per read, PATHS by event fd."""
 
-    def __init__(self, root, buffers=(), paths=None, fail=None, mounted=False):
+    def __init__(self, root, buffers=(), paths=None, fail=None, mounted=False, dirs=()):
         self.root, self.buffers, self.paths = root, list(buffers), paths or {}
+        self.dirs = set(dirs)
         self.fail, self.mounted, self.calls = fail or {}, mounted, []
 
     def _step(self, name):
@@ -68,8 +69,8 @@ class FakeKernel:
         self._step("read")
         return self.buffers.pop(0) if self.buffers else None
 
-    def path_of(self, event_fd):
-        return self.paths[event_fd]
+    def describe(self, event_fd):
+        return self.paths[event_fd], event_fd in self.dirs
 
     def close(self, fd):
         self.calls.append("close")
@@ -122,12 +123,10 @@ class Classify(unittest.TestCase):
 class Inventory(unittest.TestCase):
     def test_files_dirs_git_and_counts(self):
         inv = trace.Inventory("/w/r")
-        for mask, path in ((trace.FAN_OPEN, "/w/r/a.txt"), (trace.FAN_OPEN, "/w/r/a.txt"),
-                           (trace.FAN_OPEN | trace.FAN_ONDIR, "/w/r/crates"),
-                           (trace.FAN_OPEN, "/w/r/.git/index"),
-                           (trace.FAN_OPEN_EXEC, "/w/r/target/debug/t"),
-                           (trace.FAN_OPEN, "/w/r/gone.txt (deleted)")):
-            inv.add(mask, path)
+        for path, is_dir in (("/w/r/a.txt", False), ("/w/r/a.txt", False), ("/w/r/crates", True),
+                             ("/w/r/.git/index", False), ("/w/r/target/debug/t", False),
+                             ("/w/r/gone.txt (deleted)", False)):
+            inv.add(path, is_dir)
         self.assertEqual(sorted(inv.files), ["a.txt", "gone.txt"])
         self.assertEqual(sorted(inv.dirs), ["crates"])
         self.assertEqual(inv.counts["derived"], 1)
@@ -136,8 +135,8 @@ class Inventory(unittest.TestCase):
     def test_the_path_sets_stop_at_the_cap_and_say_so(self):
         inv = trace.Inventory("/w/r", cap=3)
         for index in range(10):
-            inv.add(trace.FAN_OPEN, f"/w/r/f{index}")
-        inv.add(trace.FAN_OPEN, "/w/r/f0")  # already held: not dropped
+            inv.add(f"/w/r/f{index}")
+        inv.add("/w/r/f0")  # already held: not dropped
         self.assertEqual(inv.size(), 3)
         self.assertTrue(inv.capped)
         self.assertEqual(inv.counts["dropped"], 7)
@@ -168,6 +167,14 @@ class Record(unittest.TestCase):
         self.assertIn("resources", rep)
         self.assertFalse(kernel.mounted)
         self.assertEqual(kernel.calls[-2:], ["close", "unbind"])
+
+    def test_a_directory_is_known_by_its_descriptor_not_the_event_mask(self):
+        # The hosted kernel sent directory opens without FAN_ONDIR in the mask.
+        kernel = FakeKernel(self.root, [event(trace.FAN_OPEN, 5) + event(trace.FAN_OPEN, 6)],
+                            {5: self.root + "/crates", 6: self.root + "/SPEC.md"}, dirs={5})
+        self.assertEqual(trace.record(self.root, self.dir, kernel, stop_after(2)), "stopped")
+        rep = self.read_report()
+        self.assertEqual((rep["dirs"], rep["files"]), (["crates"], ["SPEC.md"]))
 
     def test_every_injected_failure_ends_in_an_unusable_report_and_no_mount(self):
         failures = {
@@ -317,7 +324,7 @@ class Delivery(unittest.TestCase):
 
     def test_round_trip_through_a_timestamped_log(self):
         inv = trace.Inventory("/w/r")
-        inv.add(trace.FAN_OPEN, "/w/r/SPEC.md")
+        inv.add("/w/r/SPEC.md")
         trace.write_atomic(self.dir / "reads.json", json.dumps(
             trace.report(inv, "stopped", [], {"nonce": "n1"}, 0, 1)))
         log = "".join(f"2026-11-24T10:00:00.0000000Z {line}\n" for line in self.emitted().splitlines())

@@ -31,6 +31,7 @@ from pathlib import Path
 import secrets
 import select
 import signal
+import stat
 import struct
 import subprocess
 import sys
@@ -165,7 +166,7 @@ class Inventory:
     def size(self):
         return len(self.files) + len(self.dirs) + len(self.git)
 
-    def add(self, mask, path):
+    def add(self, path, is_dir=False):
         self.counts["events"] += 1
         deleted = path.endswith(" (deleted)")
         if deleted:
@@ -174,7 +175,7 @@ class Inventory:
         kind, relative = classify(path, self.root)
         self.counts[kind] += 1
         if kind == "input":
-            target = self.dirs if mask & FAN_ONDIR else self.files
+            target = self.dirs if is_dir else self.files
         elif kind == "git":
             target = self.git
         else:
@@ -318,9 +319,16 @@ class Kernel:
         except (BlockingIOError, InterruptedError):
             return None
 
-    def path_of(self, event_fd):
+    def describe(self, event_fd):
+        """The opened path, and whether it is a directory.
+
+        Asked of the descriptor rather than read from the event mask: on the
+        hosted kernel a descriptor-reporting group's events carried no
+        FAN_ONDIR, and all 45 traces of CI 45520831037 recorded no directory.
+        """
         try:
-            return os.readlink(f"/proc/self/fd/{event_fd}")
+            return (os.readlink(f"/proc/self/fd/{event_fd}"),
+                    stat.S_ISDIR(os.fstat(event_fd).st_mode))
         finally:
             os.close(event_fd)
 
@@ -338,7 +346,7 @@ def drain(kernel, fd, inventory, budget=READS_PER_TURN):
             if mask & FAN_Q_OVERFLOW:
                 inventory.overflow = True
             if event_fd != FAN_NOFD:
-                inventory.add(mask, kernel.path_of(event_fd))
+                inventory.add(*kernel.describe(event_fd))
 
 
 def record(root, directory, kernel=None, stopping=None, clock=time.time):
