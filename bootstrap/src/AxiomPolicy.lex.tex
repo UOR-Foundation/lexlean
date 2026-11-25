@@ -7,14 +7,24 @@ inductive{
   name: Policy,
   type_parameters: [],
   parameters: [],
-  constructors: [{name: None, fields: []}, {name: Allow, fields: [(List Bytes)]}, {name: Exact, fields: [(List Bytes)]}]
+  constructors: [
+    {name: None, fields: []},
+    {name: Allow, fields: [(List Bytes)]},
+    {name: Exact, fields: [(List Bytes)]}
+  ]
 }
 
 inductive{
   name: RuleVerifyPolicy,
   type_parameters: [],
   parameters: [],
-  constructors: [{name: Document, fields: []}, {name: Core, fields: []}, {name: Semantic, fields: []}, {name: Model, fields: [(List Bytes)]}, {name: Runtime, fields: []}]
+  constructors: [
+    {name: Document, fields: []},
+    {name: Core, fields: []},
+    {name: Semantic, fields: []},
+    {name: Model, fields: [(List Bytes)]},
+    {name: Runtime, fields: []}
+  ]
 }
 
 definition{
@@ -29,7 +39,11 @@ definition{
   name: eqListOfBytesEnd,
   parameters: [left : (List Bytes), right : (List Bytes)],
   result: Bool,
-  body: (let walked : (Bool * (List Bytes)) := (prim list_fold (fun (acc : (Bool * (List Bytes))) (lhead : Bytes) => (if (first acc) then (match (second acc) | List.nil => (false, (nil Bytes)) | List.cons rhead rtail => (if (prim equal lhead rhead : Bool) then (true, rtail) else (false, rtail))) else acc)) (true, right) left : (Bool * (List Bytes))); (if (first walked) then (match (second walked) | List.nil => true | List.cons rhead rtail => false) else false)),
+  body: (let walked : (Bool * (List Bytes)) := (prim list_fold (fun (acc : (Bool * (List Bytes))) (lhead : Bytes) => (if (first acc) then (match (second acc)
+    | List.nil => (false, (nil Bytes))
+    | List.cons rhead rtail => (if (prim equal lhead rhead : Bool) then (true, rtail) else (false, rtail))) else acc)) (true, right) left : (Bool * (List Bytes))); (if (first walked) then (match (second walked)
+    | List.nil => true
+    | List.cons rhead rtail => false) else false)),
   executable: true
 }
 
@@ -46,7 +60,9 @@ definition{
   name: dedupListOfBytesEnd,
   parameters: [items : (List Bytes)],
   result: (List Bytes),
-  body: (AxiomOutput::reversed [Bytes] (prim list_fold (fun (acc : (List Bytes)) (x : Bytes) => (match acc | List.nil => (cons x acc) | List.cons last rest => (if (prim equal last x : Bool) then acc else (cons x acc)))) (nil Bytes) items : (List Bytes))),
+  body: (AxiomOutput::reversed [Bytes] (prim list_fold (fun (acc : (List Bytes)) (x : Bytes) => (match acc
+    | List.nil => (cons x acc)
+    | List.cons last rest => (if (prim equal last x : Bool) then acc else (cons x acc)))) (nil Bytes) items : (List Bytes))),
   executable: true
 }
 
@@ -54,7 +70,10 @@ definition{
   name: policyKind,
   parameters: [this2 : Policy],
   result: Bytes,
-  body: (match this2 | Policy.None => (AxiomOutput::text "none") | Policy.Allow got3 => (AxiomOutput::text "allow") | Policy.Exact got4 => (AxiomOutput::text "exact")),
+  body: (match this2
+    | Policy.None => (AxiomOutput::text "none")
+    | Policy.Allow got3 => (AxiomOutput::text "allow")
+    | Policy.Exact got4 => (AxiomOutput::text "exact")),
   executable: true,
   production: {effects: [allocation], targets: [rust-std]}
 }
@@ -63,7 +82,10 @@ definition{
   name: policyAxioms,
   parameters: [this2 : Policy],
   result: (List Bytes),
-  body: (match this2 | Policy.None => (nil Bytes) | Policy.Allow got3 => got3 | Policy.Exact got4 => got4),
+  body: (match this2
+    | Policy.None => (nil Bytes)
+    | Policy.Allow got3 => got3
+    | Policy.Exact got4 => got4),
   executable: true,
   production: {effects: [allocation], targets: [rust-std]}
 }
@@ -72,7 +94,10 @@ definition{
   name: policyPermits,
   parameters: [this2 : Policy, observed : (List Bytes)],
   result: Bool,
-  body: (match this2 | Policy.None => ((AxiomOutput::listLength [Bytes] observed) =? 0) | Policy.Allow got3 => (prim list_fold (fun [got3] (acc2 : Bool) (item2 : Bytes) => (if acc2 then (memListOfBytesEnd got3 item2) else false)) true observed : Bool) | Policy.Exact got4 => (let sorted4 : (List Bytes) := observed; (let sorted5 : (List Bytes) := (prim list_fold (fun (acc : (List Bytes)) (x : Bytes) => (insertsortedListOfBytesEnd acc x)) (nil Bytes) sorted4 : (List Bytes)); (let sorted6 : (List Bytes) := (dedupListOfBytesEnd sorted5); (eqListOfBytesEnd sorted6 got4))))),
+  body: (match this2
+    | Policy.None => ((AxiomOutput::listLength [Bytes] observed) =? 0)
+    | Policy.Allow got3 => (prim list_fold (fun [got3] (acc2 : Bool) (item2 : Bytes) => (if acc2 then (memListOfBytesEnd got3 item2) else false)) true observed : Bool)
+    | Policy.Exact got4 => (let sorted4 : (List Bytes) := observed; (let sorted5 : (List Bytes) := (prim list_fold (fun (acc : (List Bytes)) (x : Bytes) => (insertsortedListOfBytesEnd acc x)) (nil Bytes) sorted4 : (List Bytes)); (let sorted6 : (List Bytes) := (dedupListOfBytesEnd sorted5); (eqListOfBytesEnd sorted6 got4))))),
   axioms: [propext],
   executable: true,
   production: {effects: [allocation, overflow], targets: [rust-std]}
@@ -82,7 +107,12 @@ definition{
   name: ruleToken,
   parameters: [this2 : RuleVerifyPolicy],
   result: Bytes,
-  body: (match this2 | RuleVerifyPolicy.Document => (AxiomOutput::text "document") | RuleVerifyPolicy.Core => (AxiomOutput::text "core") | RuleVerifyPolicy.Semantic => (AxiomOutput::text "semantic") | RuleVerifyPolicy.Model members2 => (AxiomOutput::text "model") | RuleVerifyPolicy.Runtime => (AxiomOutput::text "runtime")),
+  body: (match this2
+    | RuleVerifyPolicy.Document => (AxiomOutput::text "document")
+    | RuleVerifyPolicy.Core => (AxiomOutput::text "core")
+    | RuleVerifyPolicy.Semantic => (AxiomOutput::text "semantic")
+    | RuleVerifyPolicy.Model members2 => (AxiomOutput::text "model")
+    | RuleVerifyPolicy.Runtime => (AxiomOutput::text "runtime")),
   executable: true,
   production: {effects: [allocation], targets: [rust-std]}
 }
