@@ -101,7 +101,7 @@ done
 found=
 for commit in $candidates; do
   runs=$(ci_provider_read "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$commit&per_page=30" --paginate \
-    --jq ".workflow_runs[] | select(.status == \"completed\" and .conclusion == \"success\") | select(.head_repository.full_name == \"$repo\") | \"\(.id)\t\(.event)\t\(.created_at)\t\(.updated_at)\t\(.html_url)\"") || runs=
+    --jq ".workflow_runs[] | select(.status == \"completed\" and .conclusion == \"success\") | select(.head_sha == \"$commit\") | select(.head_repository.full_name == \"$repo\") | \"\(.id)\t\(.event)\t\(.created_at)\t\(.updated_at)\t\(.html_url)\"") || runs=
   while IFS=$'\t' read -r id event created updated url; do
     [ -n "$id" ] || continue
     jobs=$(jobs_of "$id")
