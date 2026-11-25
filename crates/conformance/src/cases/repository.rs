@@ -2975,6 +2975,48 @@ pub(crate) fn run(id: &str) {
             );
             bootstrap_custody_decisions();
             honesty_dependencies(&ci).expect("expensive roots require successful same-run honesty");
+            for script in [
+                "test_check_regen_writers.py",
+                "test_export_custody_guard.py",
+                "test_intel_host_tests.py",
+                "test_host_lanes.py",
+                "test_tag_gate_poll.py",
+            ] {
+                let command =
+                    format!("python3 -m unittest discover -s .github/scripts -p '{script}'");
+                assert!(
+                    ci.contains(&command),
+                    "the plant must remove a real command"
+                );
+                assert!(
+                    regression_honesty(&ci.replacen(&command, "echo bypass", 1)).is_err(),
+                    "RP-14 must refuse removal of {script}"
+                );
+            }
+            let step = "- name: Test the Intel construction and inventory checks";
+            for bypass in ["continue-on-error: true", "if: false"] {
+                let planted = ci.replacen(step, &format!("{step}\n        {bypass}"), 1);
+                assert_ne!(planted, ci, "the plant must change the workflow");
+                assert!(
+                    regression_honesty(&planted).is_err(),
+                    "RP-14 must refuse bypassing the regression checks"
+                );
+            }
+            let first =
+                "python3 -m unittest discover -s .github/scripts -p 'test_check_regen_writers.py'";
+            for bypass in [
+                format!("exit 0\n          {first}"),
+                format!("set +e\n          {first}"),
+                format!("{first} || true"),
+                format!("{first}; exit 0"),
+            ] {
+                let planted = ci.replacen(first, &bypass, 1);
+                assert_ne!(planted, ci, "the plant must change the workflow");
+                assert!(
+                    regression_honesty(&planted).is_err(),
+                    "RP-14 must refuse altered regression shell commands"
+                );
+            }
             assert!(
                 honesty_dependencies(&ci.replacen("name: ${{ matrix.part }}", "name: honesty", 1))
                     .is_err(),
@@ -4868,8 +4910,45 @@ fn lane_host_workflow(ci: &str, host: &LaneHost) -> Result<(), String> {
     Ok(())
 }
 
+/// The regeneration ownership, custody and tag controls must execute in the
+/// existing honesty job before it authorizes costly roots.
+fn regression_honesty(ci: &str) -> Result<(), String> {
+    let initial = workflow_job(ci, "honesty")?;
+    let mut steps = initial.split("\n      - ").filter(|step| {
+        step.starts_with("name: Test the Intel construction and inventory checks\n")
+    });
+    let checks = steps
+        .next()
+        .ok_or("RP-14: the regression step is missing")?;
+    let expected = concat!(
+        "name: Test the Intel construction and inventory checks\n",
+        "        env:\n",
+        "          PYTHONDONTWRITEBYTECODE: \"1\"\n",
+        "        shell: bash\n",
+        "        run: |\n",
+        "          set -euo pipefail\n",
+        "          python3 -m unittest discover -s .github/scripts -p 'test_check_regen_writers.py'\n",
+        "          python3 -m unittest discover -s .github/scripts -p 'test_export_custody_guard.py'\n",
+        "          python3 -m unittest discover -s .github/scripts -p 'test_intel_host_tests.py'\n",
+        "          python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'\n",
+        "          python3 -m unittest discover -s .github/scripts -p 'test_tag_gate_poll.py'",
+    );
+    // Pin this small shell program, not mere command presence: earlier exits,
+    // masked failures, shell overrides and omitted tests must all be refused.
+    if steps.next().is_some()
+        || !checks
+            .lines()
+            .filter(|line| !line.trim().is_empty() && !line.starts_with("      #"))
+            .eq(expected.lines())
+    {
+        return Err("RP-14: regression controls cannot be bypassed".to_owned());
+    }
+    Ok(())
+}
+
 /// Claim drift must finish successfully before a costly root can start.
 fn honesty_dependencies(ci: &str) -> Result<(), String> {
+    regression_honesty(ci)?;
     let initial = workflow_job(ci, "honesty")?;
     if !initial.contains("name: ${{ matrix.part }}\n")
         || !initial.contains("needs: [plan]\n")

@@ -190,9 +190,14 @@ jobs:
       - name: Test the Intel construction and inventory checks
         env:
           PYTHONDONTWRITEBYTECODE: "1"
+        shell: bash
         run: |
+          set -euo pipefail
+          python3 -m unittest discover -s .github/scripts -p 'test_check_regen_writers.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_export_custody_guard.py'
           python3 -m unittest discover -s .github/scripts -p 'test_intel_host_tests.py'
           python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_tag_gate_poll.py'
       # The forward merge runs only on a push to a release line, where a
       # defect surfaces as a missing pull request; its cases run here (#600).
       - name: Test the forward merge of a release line
