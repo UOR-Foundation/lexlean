@@ -33,6 +33,7 @@ pub mod oracle;
 pub mod oracle_corpus;
 pub mod oracle_differential;
 pub mod oracle_seeds;
+pub mod phases;
 pub mod preservation;
 pub mod production_consumer;
 pub mod production_export;

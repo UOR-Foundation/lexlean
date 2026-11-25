@@ -321,6 +321,16 @@ pub fn exported(example: &str) -> &'static Exported {
         HELPDESK => &DESK,
         other => panic!("`{other}` is not an exported example"),
     };
+    if cell.get().is_some() {
+        let now = std::time::Instant::now();
+        crate::phases::record(
+            None,
+            "export-reuse",
+            now,
+            std::time::Duration::ZERO,
+            serde_json::json!({ "example": example }),
+        );
+    }
     cell.get_or_init(|| {
         // In a CI run that exports the bootstrap project once (SPEC.md §9.4),
         // the job's harness takes that export instead of running it again.
@@ -329,11 +339,16 @@ pub fn exported(example: &str) -> &'static Exported {
                 .ok()
                 .filter(|value| !value.is_empty())
             {
-                return crate::export_custody::take(Utf8Path::new(&directory))
-                    .unwrap_or_else(|reason| panic!("§9.4: the run's bootstrap export: {reason}"));
+                return crate::phases::span("export-take", || {
+                    crate::export_custody::take(Utf8Path::new(&directory)).unwrap_or_else(
+                        |reason| panic!("§9.4: the run's bootstrap export: {reason}"),
+                    )
+                });
             }
         }
-        export(example).unwrap_or_else(|reason| panic!("{reason}"))
+        crate::phases::span("export-run", || {
+            export(example).unwrap_or_else(|reason| panic!("{reason}"))
+        })
     })
 }
 

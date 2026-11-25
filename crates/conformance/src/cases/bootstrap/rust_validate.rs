@@ -2666,7 +2666,9 @@ pub(super) fn rustc_differential(
     let mut members = Vec::new();
     // (binary, expected outcomes) in order
     let mut expected: Vec<(String, String, Vec<Json>)> = Vec::new();
+    let (mut packaging, mut harnessing) = (std::time::Duration::ZERO, std::time::Duration::ZERO);
     for (root, low, runs) in roots {
+        let packaged = std::time::Instant::now();
         let manifest = rust_packages::manifest(
             &format!("boot_{}", snake(root)),
             &low.program,
@@ -2675,6 +2677,7 @@ pub(super) fn rustc_differential(
         );
         let package = target::package(&manifest.to_file_bytes().expect("canonical manifest"))
             .unwrap_or_else(|failure| panic!("{root}: {failure:?}"));
+        packaging += packaged.elapsed();
         let name = manifest.name.clone();
         for (path, bytes) in &package.files {
             let file = dir.path().join("p").join(&name).join(path);
@@ -2689,6 +2692,7 @@ pub(super) fn rustc_differential(
         let chunks = harness_chunks(runs, HARNESS_NODES);
         for (number, chunk) in chunks.iter().enumerate() {
             let arguments: Vec<Vec<Value>> = chunk.iter().map(|run| run.0.clone()).collect();
+            let harnessed = std::time::Instant::now();
             let source = rust_harness::render_calls(
                 &low.program,
                 Profile::Std,
@@ -2701,6 +2705,7 @@ pub(super) fn rustc_differential(
                 }],
             )
             .expect("the differential harness");
+            harnessing += harnessed.elapsed();
             let binary = format!("run_{name}_{number}");
             let runner = dir.path().join("h").join(&binary);
             std::fs::create_dir_all(runner.join("src")).expect("harness directory");
@@ -2728,6 +2733,28 @@ pub(super) fn rustc_differential(
         ),
     )
     .expect("workspace manifest");
+    crate::phases::record(
+        None,
+        "render",
+        started,
+        started.elapsed(),
+        serde_json::json!({ "harnesses": expected.len() }),
+    );
+    crate::phases::record(
+        None,
+        "render-package",
+        started,
+        packaging,
+        serde_json::json!({ "roots": roots.len() }),
+    );
+    crate::phases::record(
+        None,
+        "render-harness",
+        started,
+        harnessing,
+        serde_json::json!({ "harnesses": expected.len() }),
+    );
+    let building = std::time::Instant::now();
     let build = cargo_in(
         dir.path(),
         &[
@@ -2738,6 +2765,13 @@ pub(super) fn rustc_differential(
             "--jobs",
             "2",
         ],
+    );
+    crate::phases::record(
+        None,
+        "nested-cargo",
+        building,
+        building.elapsed(),
+        serde_json::json!({ "members": members.len() }),
     );
     assert!(
         build.status.success(),
@@ -2751,14 +2785,18 @@ pub(super) fn rustc_differential(
     );
     let mut total = 0;
     let mut bounds: Vec<(String, std::path::PathBuf)> = Vec::new();
+    let (mut native, mut compared) = (std::time::Duration::ZERO, std::time::Duration::ZERO);
+    let comparing = std::time::Instant::now();
     for (binary, package, outcomes) in &expected {
         let path = dir
             .path()
             .join("target/debug")
             .join(format!("{binary}{}", std::env::consts::EXE_SUFFIX));
+        let running = std::time::Instant::now();
         let ran = std::process::Command::new(&path)
             .output()
             .expect("the differential runs");
+        native += running.elapsed();
         assert!(
             ran.status.success(),
             "{binary}: {}",
@@ -2794,6 +2832,21 @@ pub(super) fn rustc_differential(
         );
         total += outcomes.len();
     }
+    compared += comparing.elapsed().saturating_sub(native);
+    crate::phases::record(
+        None,
+        "native-harness",
+        comparing,
+        native,
+        serde_json::json!({ "binaries": expected.len(), "runs": total }),
+    );
+    crate::phases::record(
+        None,
+        "oracle-compare",
+        comparing,
+        compared,
+        serde_json::json!({ "runs": total }),
+    );
     eprintln!(
         "{id}: {label}: {total} rustc runs agree with the oracle ({:?})",
         started.elapsed()
@@ -2803,9 +2856,11 @@ pub(super) fn rustc_differential(
     // bound; the row keeps the largest need of the corpora. The bounds are
     // taken after every outcome is compared, so a package without a recorded
     // bound never hides a disagreement.
-    for (package, path) in &bounds {
-        crate::stack_bounds::observe(&crate::stack_bounds::subject("bootstrap", package), path);
-    }
+    crate::phases::span("stack-bounds", || {
+        for (package, path) in &bounds {
+            crate::stack_bounds::observe(&crate::stack_bounds::subject("bootstrap", package), path);
+        }
+    });
     total
 }
 

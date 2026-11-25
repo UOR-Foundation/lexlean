@@ -261,8 +261,26 @@ pub fn render_calls(
     calls: &[Calls<'_>],
 ) -> Result<String, String> {
     identifier(library)?;
+    let analysed = std::time::Instant::now();
     let mut literals = Literals::new(program, profile)?;
+    crate::phases::record(
+        None,
+        "harness-literals-setup",
+        analysed,
+        analysed.elapsed(),
+        serde_json::Value::Null,
+    );
+    let analysed = std::time::Instant::now();
     let fallible = rust::fallible_functions(program)?;
+    crate::phases::record(
+        None,
+        "harness-fallible-analysis",
+        analysed,
+        analysed.elapsed(),
+        serde_json::Value::Null,
+    );
+    let (mut checking, mut rendering) = (std::time::Duration::ZERO, std::time::Duration::ZERO);
+    let rows_started = std::time::Instant::now();
     // An ordering argument is written with the core type, which the
     // library uses but does not export.
     let mut out = format!(
@@ -338,13 +356,17 @@ pub fn render_calls(
             .ok_or_else(|| format!("function {} is not declared", call.entry))?;
         let mut rows = Vec::new();
         for arguments in call.arguments {
+            let checked = std::time::Instant::now();
             lexlean::calculus::check::check_arguments(program, call.entry, arguments)?;
+            checking += checked.elapsed();
+            let written = std::time::Instant::now();
             let rendered = arguments
                 .iter()
                 .zip(&function.types)
                 .map(|(argument, ty)| literals.literal(argument, ty))
                 .collect::<Result<Vec<_>, _>>()?;
             rows.push(tuple(&rendered));
+            rendering += written.elapsed();
         }
         let names: Vec<String> = (0..function.types.len())
             .map(|position| format!("a{position}"))
@@ -396,6 +418,20 @@ pub fn render_calls(
         }
     }
     out.push_str("\nfn harness_runs() {\n");
+    crate::phases::record(
+        None,
+        "harness-check-arguments",
+        rows_started,
+        checking,
+        serde_json::Value::Null,
+    );
+    crate::phases::record(
+        None,
+        "harness-render-literals",
+        rows_started,
+        rendering,
+        serde_json::Value::Null,
+    );
     out.push_str(&groups.concat());
     out.push_str("    println!(\"work {}\", work());\n}\n");
     let _ = write!(
