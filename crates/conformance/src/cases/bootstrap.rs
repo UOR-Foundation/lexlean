@@ -12,6 +12,7 @@ use lexlean::calculus::{self as target, interp, Value};
 use lexlean::production::lower::{linked_modules, lower_root, roots, Lowered};
 use serde_json::Value as Json;
 
+mod axiom_policy;
 mod calculus_check;
 mod content_id;
 pub mod perf;
@@ -2699,6 +2700,8 @@ fn case(id: &str) {
         "BS-53" => toml_read::case(),
         "BS-54" => package_ref::case(),
         "BS-55" => lexicon_entry::case(),
+        // §17.23, §22.6: the first member translated, not written, from the Rust.
+        "BS-74" => axiom_policy::case(),
         other => panic!("no bootstrap case is wired for {other}"),
     }
 }

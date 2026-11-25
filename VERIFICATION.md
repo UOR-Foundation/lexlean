@@ -12267,6 +12267,41 @@ The root's signature identity follows #581: the oracle computes
 `LexLeanStd.Sha256::sha256Hex`, and the case encodes the oracle's identity by
 `label()`.
 
+### the axiom policy of a declaration is source (BS-74)
+
+`BS-74` holds the four production roots of `LexLeanBoot.AxiomPolicy`
+(`bootstrap/src/AxiomPolicy.lex.tex`) to `verify::policy`: `policyKind` to `Policy::kind`,
+`policyAxioms` to `Policy::axioms`, `policyPermits` to `Policy::permits`, and `ruleToken` to
+`Rule::token`. None of the roots admits `recursion`.
+
+The module was not written by hand. It is the output of a Rust-to-LexLean translator run over
+the whole of `crates/lexlean/src`, cut to these four roots and the ten declarations they reach,
+with only the roots renamed; the other names (`Policy`, `RuleVerifyPolicy`,
+`memListOfBytesEnd`, `eqListOfBytesEnd`, `insertsortedListOfBytesEnd`, `dedupListOfBytesEnd`)
+are the translator's own. Two steps of the cut are recorded here because they are not in the
+translation itself: each definition states the union of the axioms its callees state, which
+puts `propext` on `insertsortedListOfBytesEnd` and `policyPermits` through
+`AxiomOutput::lessBytes`; and the list helpers over a non-recursive element type are folds, not
+structural recursion, so no root realizes `recursion`. The translator is not part of this
+repository; where it lives is an open decision of the maintainer (#92).
+
+The case holds the roots to the oracle on hand-built vectors that reach every kind and every
+rule, an empty, unsorted, repeated, and byte-ordered axiom set, and both outcomes of each kind of
+policy, including an `exact` policy written out of order or with a repeat, which the oracle
+permits nothing under; on every distinct axiom list the committed `.lex.tex` sources declare, each
+held as an `allow` and an `exact` policy against each of them; and on seeded policies and
+observed sets. Each of the 6 planted defects names the one vector that catches it, and the case
+asserts that the site of each plant occurs once. The row's statement carries no counts.
+
+The case was first compiled and run on the normative host over `release/v0.4` at `fa2280e226`
+(`cargo test -p repo-conformance --test conformance -- conformance_bs_74`). Its corpus is 28
+named vectors and 5 committed axiom lists (70 committed runs), and 300 and 2,000 seeded runs.
+The evaluator agrees with the oracle on 398 runs across the four roots, the rendered packages
+under the pinned rustc on 2,098 runs, and each of the 6 planted defects is detected by its own
+vector. The case then stops at the stack-bound step, `bootstrap/policy_kind is no package of the
+committed exports`, as each bootstrap member does before its regeneration, which produces the
+packages.
+
 ### the lexer of the authoring notation is source (BS-22)
 
 `BS-22` holds the two production roots of `LexLeanBoot.SurfaceLex`
