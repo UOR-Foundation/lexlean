@@ -329,6 +329,100 @@ def run_identity():
     return result
 
 
+CONSTRUCTION_JOB = "Intel test construction and local targets"
+ARTIFACT = re.compile(r"intel-([a-z0-9]+(?:-[a-z0-9]+)*)-a([1-9][0-9]*)\Z")
+DIGEST = re.compile(r"sha256:[0-9a-f]{64}\Z")
+FINISHED = ("success", "failure", "cancelled", "skipped")
+
+
+def artifact_name(role, attempt):
+    """An execution's artifact. A rerun that reuses a name replaces the earlier
+    artifact in place, so the name carries the attempt that made it."""
+    return f"intel-{role}-a{attempt}"
+
+
+def same_run(binding_run, current):
+    return all(binding_run[name] == current[name] for name in ("GITHUB_REPOSITORY", "GITHUB_RUN_ID"))
+
+
+def resolve_lineage(lineage, lanes, current):
+    """Which execution of each Intel role the run's latest attempt accepted,
+    established from the provider's own job and artifact records (§8.3).
+
+    A rerun gives every job a new ID, and a job it did not rerun keeps the
+    start, completion and conclusion of the execution it retained, so an
+    execution is followed back to the attempt that ran it by those, never by
+    ID. The construction's attempt bounds every lane: a lane retained from
+    before the construction was replaced executed another build.
+    """
+    attempt = int(current["GITHUB_RUN_ATTEMPT"])
+    require(set(lineage) == {"repository", "run_id", "attempt", "attempts", "artifacts"}, "malformed lineage")
+    require(lineage["repository"].lower() == current["GITHUB_REPOSITORY"].lower() and lineage["run_id"] == current["GITHUB_RUN_ID"]
+            and lineage["attempt"] == attempt, "lineage of another run or attempt")
+    require([page["attempt"] for page in lineage["attempts"]] == list(range(1, attempt + 1)), "missing or duplicate attempt in lineage")
+    roles = {"construction": CONSTRUCTION_JOB, **{lane: f"Intel conformance ({lane})" for lane in lanes}}
+    identifiers, origin, fresh, previous = set(), {}, {}, {}
+    for page in lineage["attempts"]:
+        number = page["attempt"]
+        for job in page["jobs"]:
+            require(job["run_attempt"] == number, "a job listed under another attempt")
+            require(job["id"] not in identifiers, "a job ID listed twice")
+            identifiers.add(job["id"])
+        for role, name in roles.items():
+            found = [job for job in page["jobs"] if job["name"] == name]
+            require(len(found) == 1, f"attempt {number}: missing or duplicate execution: {role}")
+            job = found[0]
+            require(job["status"] == "completed" and job["conclusion"] in FINISHED and job["started_at"] and job["completed_at"]
+                    and job["started_at"] <= job["completed_at"], f"attempt {number}: unfinished or unknown execution: {role}")
+            before = previous.get(role)
+            moment = (job["started_at"], job["completed_at"], job["conclusion"])
+            if before is not None and moment == (before["started_at"], before["completed_at"], before["conclusion"]):
+                origin[(number, role)] = origin[(number - 1, role)]
+            else:
+                require(before is None or job["started_at"] > before["completed_at"],
+                        f"attempt {number}: an execution neither retained nor new: {role}")
+                origin[(number, role)] = number
+                fresh[(role, number)] = job
+            previous[role] = job
+    require(all(previous[role]["conclusion"] == "success" for role in roles), "the latest attempt did not succeed in every Intel execution")
+    construction = origin[(attempt, "construction")]
+    for lane in lanes:
+        require(origin[(attempt, lane)] >= construction, f"lane {lane} executed before its construction was replaced")
+    names = Counter(item["name"] for item in lineage["artifacts"])
+    selected = {}
+    for item in lineage["artifacts"]:
+        if not item["name"].startswith("intel-"):
+            continue
+        match = ARTIFACT.match(item["name"])
+        require(match is not None and names[item["name"]] == 1, f"foreign or duplicate Intel artifact: {item['name']}")
+        role, made = match.group(1), int(match.group(2))
+        job = fresh.get((role, made))
+        require(job is not None, f"an Intel artifact no execution of this run made: {item['name']}")
+        require(str(item["workflow_run_id"]) == current["GITHUB_RUN_ID"] and job["started_at"] <= item["created_at"] <= job["completed_at"],
+                f"an Intel artifact made outside its execution: {item['name']}")
+        if made == origin[(attempt, role)]:
+            require(item["expired"] is False and DIGEST.match(item["digest"] or "") is not None,
+                    f"expired or undigested artifact: {item['name']}")
+            selected[role] = {"artifact": item["name"], "attempt": made, "id": item["id"], "digest": item["digest"]}
+    require(set(selected) == set(roles), "an accepted execution has no artifact")
+    return selected, sorted(name for name in names if name.startswith("intel-"))
+
+
+def read_lineage(directory, attempt):
+    """The collector's raw provider records: one JSON object per line."""
+    directory = Path(directory)
+
+    def lines(name):
+        path = directory / name
+        require(path.is_file() and not path.is_symlink(), f"missing lineage record: {name}")
+        return [json.loads(line, object_pairs_hook=json_pairs) for line in path.read_text().splitlines() if line.strip()]
+    meta = read_json(directory / "run.json")
+    require(set(meta) == {"repository", "run_id", "attempt"} and str(meta["attempt"]) == str(attempt), "malformed lineage run record")
+    return {"repository": meta["repository"], "run_id": str(meta["run_id"]), "attempt": int(meta["attempt"]),
+            "attempts": [{"attempt": k, "jobs": lines(f"jobs-{k}.jsonl")} for k in range(1, int(attempt) + 1)],
+            "artifacts": lines("artifacts.jsonl")}
+
+
 def native_identity(root, recorder):
     require(platform.system() == "Darwin" and platform.machine() == "x86_64", "Intel macOS native execution required")
     dangerous = [name for name in os.environ if name.startswith(("RUSTFLAGS", "RUSTDOCFLAGS", "CARGO_ENCODED_", "CARGO_PROFILE_", "CARGO_BUILD_", "CARGO_TARGET_", "RUST_TEST_", "DYLD_"))
@@ -605,8 +699,9 @@ def build(root, output):
     construction = {"schema": SCHEMA, "binding": binding, "targets": targets, "conformance": conformance_id,
                     "doc_targets": docs, "filters": filters, "lanes": listed, "archives": transfers,
                     "checks": list(recorder.records)}
+    made = binding["run"]["GITHUB_RUN_ATTEMPT"]
     receipt = {"schema": SCHEMA, "part": "producer", "job": "intel-construction", "binding": binding,
-               "invocations": []}
+               "execution": {"attempt": made, "artifact": artifact_name("construction", made)}, "invocations": []}
     # Preserve setup logs in the same numbered stream. A failed test does not
     # stop later targets/doctests or prevent consumers from receiving the build.
     for target in targets:
@@ -624,14 +719,19 @@ def build(root, output):
     if os.environ.get("GITHUB_OUTPUT"):
         with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
             stream.write("lanes=" + json.dumps(list(filters), separators=(",", ":")) + "\n")
+            stream.write("artifact=" + receipt["execution"]["artifact"] + "\n")
     print("Construction complete. Producer test statuses will be judged by join.")
     return 0
 
 
-def load_construction(root, directory):
+def load_construction(root, directory, attempt):
+    """`attempt` is the construction's own attempt as the caller established
+    it: the artifact a consumer was handed, or the join's lineage."""
     value = read_json(directory / "construction.json")
     require(value["schema"] == SCHEMA, "unknown construction schema")
-    require(value["binding"]["run"] == run_identity() and value["binding"]["producer_job"] == "intel-construction",
+    current, run = run_identity(), value["binding"]["run"]
+    require(set(run) == set(current) and same_run(run, current) and run["GITHUB_RUN_ATTEMPT"] == str(attempt)
+            and int(attempt) <= int(current["GITHUB_RUN_ATTEMPT"]) and value["binding"]["producer_job"] == "intel-construction",
             "foreign run, repository, attempt or construction job")
     require(value["binding"]["source"] == source_identity(root), "source commit, tree, lock or plan differs")
     bdd, lanes = plan(root)
@@ -667,9 +767,12 @@ def load_construction(root, directory):
     return value, conformance[0], harnesses[0]["path"]
 
 
-def execute(root, construction_dir, lane, output):
+def execute(root, construction_dir, lane, output, construction_artifact):
     require(os.environ.get("GITHUB_JOB") == "intel-part", "foreign consumer job")
-    construction, target, harness = load_construction(root, construction_dir)
+    match = ARTIFACT.match(construction_artifact)
+    require(match is not None and match.group(1) == "construction", "not a construction artifact")
+    construction, target, harness = load_construction(root, construction_dir, match.group(2))
+    attempt = run_identity()["GITHUB_RUN_ATTEMPT"]
     require(lane in construction["lanes"], "unknown lane")
     output = new_output(output)
     recorder = Recorder(output)
@@ -693,6 +796,7 @@ def execute(root, construction_dir, lane, output):
         record = recorder.run([binary, "--format=pretty", *filters], Path(target["cwd"]), env, "harness", actual, ignored)
         receipt = {"schema": SCHEMA, "part": lane, "job": "intel-part", "binding": construction["binding"],
                    "construction_sha256": digest(construction_dir / "construction.json"),
+                   "execution": {"attempt": attempt, "artifact": artifact_name(lane, attempt)},
                    "checks": recorder.records[:-1], "invocations": [record]}
         write_json(output / "receipt.json", receipt)
         try:
@@ -703,19 +807,23 @@ def execute(root, construction_dir, lane, output):
     return 0
 
 
-def join(root, artifacts):
+def join(root, artifacts, lineage):
     bdd, lanes = plan(root)
-    expected = {"intel-construction", *("intel-" + lane for lane in lanes["lanes"])}
-    require({p.name for p in artifacts.iterdir()} == expected and all(p.is_dir() and not p.is_symlink() for p in artifacts.iterdir()),
+    selected, listed = resolve_lineage(lineage, lanes["lanes"], run_identity())
+    # Every Intel artifact of the run is downloaded, superseded ones too: what
+    # is not selected is accounted for by the lineage, never by its absence.
+    require(sorted(p.name for p in artifacts.iterdir()) == listed and all(p.is_dir() and not p.is_symlink() for p in artifacts.iterdir()),
             "missing, duplicate or unexpected Intel artifact directories")
-    directory = artifacts / "intel-construction"
-    construction, conformance, harness = load_construction(root, directory)
+    directory = artifacts / selected["construction"]["artifact"]
+    construction, conformance, harness = load_construction(root, directory, selected["construction"]["attempt"])
     fingerprint = digest(directory / "construction.json")
     producer = read_json(directory / "producer.json")
-    receipts = [("producer", directory, producer)] + [(lane, artifacts / ("intel-" + lane), read_json(artifacts / ("intel-" + lane) / "receipt.json")) for lane in lanes["lanes"]]
+    receipts = [("producer", directory, producer)] + [(lane, artifacts / selected[lane]["artifact"], read_json(artifacts / selected[lane]["artifact"] / "receipt.json")) for lane in lanes["lanes"]]
     failures = []
     for part, location, receipt in receipts:
-        require(receipt["schema"] == SCHEMA and receipt["part"] == part and receipt["job"] == ("intel-construction" if part == "producer" else "intel-part") and receipt["binding"] == construction["binding"] and receipt["construction_sha256"] == fingerprint,
+        role = "construction" if part == "producer" else part
+        execution = {"attempt": str(selected[role]["attempt"]), "artifact": selected[role]["artifact"]}
+        require(receipt["schema"] == SCHEMA and receipt["part"] == part and receipt["job"] == ("intel-construction" if part == "producer" else "intel-part") and receipt["binding"] == construction["binding"] and receipt["execution"] == execution and receipt["construction_sha256"] == fingerprint,
                 f"foreign or mismatched receipt: {part}")
         checks = construction["checks"] if part == "producer" else receipt["checks"]
         records = checks + receipt["invocations"]
@@ -760,7 +868,10 @@ def join(root, artifacts):
             files += ["receipt.json"]
         exact_files(location, files)
     require(not failures, "\n".join(failures))
+    retained = sorted(role for role, item in selected.items() if item["attempt"] < lineage["attempt"])
     print(f"Intel host complete: producer and {len(lanes['lanes'])} lanes; {len(conformance['inventory'])} conformance cases inventoried, ignored semantics preserved.")
+    print("Intel executions accepted: " + ", ".join(f"{role} a{item['attempt']} {item['artifact']} {item['digest']}" for role, item in sorted(selected.items()))
+          + (f"; retained from earlier attempts: {', '.join(retained)}" if retained else ""))
     return 0
 
 
@@ -773,17 +884,19 @@ def main():
     execute_parser = commands.add_parser("execute")
     execute_parser.add_argument("--construction", type=Path, required=True)
     execute_parser.add_argument("--lane", required=True)
+    execute_parser.add_argument("--construction-artifact", required=True)
     execute_parser.add_argument("--output", type=Path, required=True)
     join_parser = commands.add_parser("join")
     join_parser.add_argument("--artifacts", type=Path, required=True)
+    join_parser.add_argument("--lineage", type=Path, required=True)
     args = parser.parse_args()
     try:
         root = args.root.resolve()
         if args.operation == "build":
             return build(root, args.output)
         if args.operation == "execute":
-            return execute(root, args.construction.resolve(), args.lane, args.output)
-        return join(root, args.artifacts.resolve())
+            return execute(root, args.construction.resolve(), args.lane, args.output, args.construction_artifact)
+        return join(root, args.artifacts.resolve(), read_lineage(args.lineage, run_identity()["GITHUB_RUN_ATTEMPT"]))
     except (Invalid, OSError, ValueError, KeyError, TypeError, tarfile.TarError, subprocess.CalledProcessError) as error:
         print(f"Intel host tests: {error}", file=sys.stderr)
         return 1

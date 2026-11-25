@@ -2504,6 +2504,22 @@ pub(crate) fn run(id: &str) {
                     "python3 -m unittest discover -s .github/scripts -p 'test_intel_host_tests.py'",
                     "echo factory checks",
                 ),
+                (
+                    "name: intel-${{ matrix.lane }}-a${{ github.run_attempt }}",
+                    "name: intel-${{ matrix.lane }}",
+                ),
+                (
+                    "name: intel-construction-a${{ github.run_attempt }}",
+                    "name: intel-construction",
+                ),
+                (
+                    "name: ${{ needs.intel-construction.outputs.artifact }}",
+                    "name: intel-construction-a1",
+                ),
+                (
+                    "for attempt in $(seq 1 \"$GITHUB_RUN_ATTEMPT\"); do",
+                    "for attempt in \"$GITHUB_RUN_ATTEMPT\"; do",
+                ),
             ] {
                 assert!(
                     ci.contains(from),
@@ -4175,16 +4191,36 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
     for (body, expected) in [
         (&construction, "lanes: ${{ steps.construct.outputs.lanes }}"),
         (&construction, "id: construct"),
-        (&construction, "name: intel-construction"),
+        // Each execution's artifact is named by its attempt, so that a rerun
+        // cannot replace an artifact another execution's receipt names.
+        (
+            &construction,
+            "name: intel-construction-a${{ github.run_attempt }}",
+        ),
+        (
+            &construction,
+            "artifact: ${{ steps.construct.outputs.artifact }}",
+        ),
         (&part, "fail-fast: false"),
         (
             &part,
             "lane: ${{ fromJSON(needs.intel-construction.outputs.lanes) }}",
         ),
-        (&part, "name: intel-construction"),
-        (&part, "name: intel-${{ matrix.lane }}"),
+        (
+            &part,
+            "name: ${{ needs.intel-construction.outputs.artifact }}",
+        ),
+        (&part, "--construction-artifact \"$CONSTRUCTION_ARTIFACT\""),
+        (
+            &part,
+            "name: intel-${{ matrix.lane }}-a${{ github.run_attempt }}",
+        ),
         (&part, "--lane ${{ matrix.lane }}"),
         (&join, "pattern: intel-*"),
+        (&join, "actions: read"),
+        (&join, "source .github/scripts/ci-provider-read.sh"),
+        (&join, "for attempt in $(seq 1 \"$GITHUB_RUN_ATTEMPT\"); do"),
+        (&join, "--lineage \"$RUNNER_TEMP/intel-lineage\""),
         (
             &join,
             "CONSTRUCTION_RESULT: ${{ needs.intel-construction.result }}",

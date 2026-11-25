@@ -71,6 +71,44 @@ to those operations and preserves the original host context and honesty
 prerequisite. These source checks do not inspect the helper's implementation
 shape or stand in for real Intel execution.
 
+#### Attempt-aware Intel custody (#603 DOD-8)
+
+A rerun of failed jobs gives every job of the run a new ID, keeps each job it
+does not rerun at the start, completion and conclusion of the execution it
+retained, and replaces an artifact whose name a rerun reuses (observed on run
+45520831037). The construction therefore binds the attempt that made it, each
+execution's artifact is named by its attempt (`intel-<role>-a<attempt>`), and
+a lane takes the construction named by its job's output, refusing one whose
+bound attempt is not exactly that name's. The join reads every attempt's jobs
+and the run's artifacts whole (#620) and follows each Intel role's accepted
+execution back to the attempt that ran it by those retained times, never by
+job ID. It refuses a run whose latest execution of any role did not succeed;
+a lane that ran before the construction it is joined with (a replaced
+construction invalidates every earlier lane); an Intel artifact that is
+unsuffixed, duplicated, of another run, made outside the execution its name
+claims, or made by no execution; an expired or undigested selected artifact;
+and a receipt whose recorded execution is not the selected one. Superseded
+artifacts are downloaded and accounted for by the lineage, never by absence.
+The policy is #606's prototype (9704525b) applied to the real records.
+
+| Plant in `intel_host_tests.py` | Refused by |
+| --- | --- |
+| A lane retained from before the construction's attempt is accepted | `test_a_replaced_construction_invalidates_every_earlier_lane` |
+| An artifact's creation is not bounded by its execution | `test_a_superseded_or_relabelled_execution_is_never_selected` (`outside`) |
+| A retained job is matched by ID rather than by its execution | `test_a_retained_job_is_known_by_its_execution_not_its_id` |
+| A receipt's recorded execution is not compared with the selected one | `…_never_selected` (`stale-receipt`) |
+| A consumer accepts a construction of an attempt other than the one it was handed | `test_a_consumer_takes_only_the_construction_it_was_handed` |
+| The workflow drops the attempt from an artifact name, the lineage read, or the join's `--lineage` | `RP-14` (planted in its own body, and by hand for `--lineage`) |
+
+Local validation (Windows): the five behavioral plants each failed their test
+and passed when restored; `RP-07`, `RP-13` and `RP-14` pass. The factory
+suite's end-to-end joins need POSIX paths and fail on Windows identically
+before and after this change, so the accepting rerun join
+(`test_a_lane_rerun_alone_is_joined_with_the_executions_it_retained`) is
+evidenced only by the hosted honesty job. No hosted partial rerun has
+exercised this: qualification needs one, from a naturally occurring Intel
+lane failure, and independent adversarial review precedes adoption.
+
 `RP-14` and `RP-18` give the previous-run and release scripts the four exact
 required host contexts. For each host they plant an absent, duplicate,
 foreign-replaced and suffixed context; matching a count of four is no longer
