@@ -17,6 +17,13 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- The standard library has a balanced ordered map (SPEC.md §17.22): `SL-15`, the module
+  `OrdMap`, an AVL tree keyed by `Bytes` and generic in its value, whose lookup, insertion, and
+  removal are logarithmic. `Map` keeps a map as an ascending list, which is quadratic for the
+  tables the compiler builds; `OrdMap` is what those tables need once they are source. Its two
+  roots are held to `BTreeMap` by the evaluator and the rendered packages, with six planted
+  defects, one of them a rotation that keeps every answer right but lets the tree degrade.
+  No new diagnostic code and no change to the language-1.2 surface. The register is 523.
 - A recursive definition with more than ten parameters states its recursive
   argument (`SP-34`, SPEC.md §17.12). Lean's structural search tries no
   candidate once more than ten are possible (`maxCombinationSize`) and
