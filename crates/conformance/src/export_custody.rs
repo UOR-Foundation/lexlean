@@ -409,6 +409,11 @@ pub fn take(directory: &Utf8Path) -> Result<Exported, String> {
     .map_err(|error| format!("{CUSTODY_FILE}: {error}"))?;
     let source = artifact.join(BUNDLE_DIR);
     let digest = bundle_digest(&source);
+    // Waiting and content hashing do not depend on process environment.
+    // From here through replay, identity and toolchain resolution do: share
+    // the same guard as a fresh production export. This excludes tests that
+    // temporarily change PATH, without serializing unrelated verifiers.
+    let _environment = support::env_shared();
     let root = support::repo_root();
     check(&custody, &identity(&root)?, &digest)?;
     let project = P::bootstrap();

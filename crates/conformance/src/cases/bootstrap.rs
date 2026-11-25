@@ -998,7 +998,8 @@ fn readable(value: &Json) -> String {
 /// the corpus's order, whichever thread ran them.
 ///
 /// The runs are independent, so they run on the calling thread and on as
-/// many helpers as the shared budget of [`helpers`] allows, each taking the
+/// many helpers as the caller-inclusive shared budget of [`helpers`] allows,
+/// each taking the
 /// next run in order. When one has found `limit` disagreements no run is
 /// taken after it; every run before the last one taken still finishes, so
 /// the first `limit` disagreements are among those run and the answer is the
@@ -1048,7 +1049,7 @@ fn evaluate(lowered: &Lowered, corpus: &[Run], limit: usize) -> Vec<String> {
     };
     let permits = helpers::take(wanted);
     let mut out = std::thread::scope(|scope| {
-        let spawned: Vec<_> = (0..permits.0)
+        let spawned: Vec<_> = (0..permits.helpers())
             .map(|_| {
                 std::thread::Builder::new()
                     .stack_size(EVALUATOR_STACK)
@@ -1071,41 +1072,137 @@ fn evaluate(lowered: &Lowered, corpus: &[Run], limit: usize) -> Vec<String> {
     out.into_iter().map(|(_, text)| text).collect()
 }
 
-/// The helper threads every [`evaluate`] of this process shares: one fewer
-/// than the host's processors, because the threads that call it, the test
-/// harness's, already run, and a part of the `bdd` recipe may run several
-/// cases at once. Taking never waits: a call takes what is free, and the
-/// calling thread alone runs every run when nothing is.
+/// All concurrent calls to [`evaluate`] share the host's evaluator permits.
+/// A caller reserves its own permit before running any work, then takes up
+/// to the requested number of free helper permits in the same operation.
+/// Only callers with no free permit wait; no caller holds a partial
+/// reservation while waiting. Permits live until the scoped workers join,
+/// including on panic. This bounds this evaluator, not other harness work.
 mod helpers {
-    use std::sync::Mutex;
+    use std::sync::{Condvar, Mutex, OnceLock};
 
-    static FREE: Mutex<Option<usize>> = Mutex::new(None);
-
-    fn budget() -> usize {
-        std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get) - 1
+    struct Budget {
+        free: Mutex<usize>,
+        ready: Condvar,
     }
 
-    /// Helpers taken from the budget, returned when dropped, on a panic too.
-    pub(super) struct Taken(pub(super) usize);
+    impl Budget {
+        fn new(capacity: usize) -> Self {
+            assert!(capacity > 0);
+            Self {
+                free: Mutex::new(capacity),
+                ready: Condvar::new(),
+            }
+        }
 
-    impl Drop for Taken {
-        fn drop(&mut self) {
-            let mut free = FREE
+        fn take(&self, wanted: usize) -> Taken<'_> {
+            let free = self
+                .free
                 .lock()
                 .unwrap_or_else(std::sync::PoisonError::into_inner);
-            *free.get_or_insert_with(budget) += self.0;
+            let mut free = self
+                .ready
+                .wait_while(free, |free| *free == 0)
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            let total = 1 + wanted.min(*free - 1);
+            *free -= total;
+            Taken {
+                budget: self,
+                total,
+            }
         }
     }
 
-    /// Up to `wanted` helpers, as many as are free.
-    pub(super) fn take(wanted: usize) -> Taken {
-        let mut free = FREE
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        let available = free.get_or_insert_with(budget);
-        let taken = wanted.min(*available);
-        *available -= taken;
-        Taken(taken)
+    static BUDGET: OnceLock<Budget> = OnceLock::new();
+
+    /// Caller and helper reservations, returned together after all work.
+    pub(super) struct Taken<'a> {
+        budget: &'a Budget,
+        total: usize,
+    }
+
+    impl Taken<'_> {
+        pub(super) fn helpers(&self) -> usize {
+            self.total - 1
+        }
+    }
+
+    impl Drop for Taken<'_> {
+        fn drop(&mut self) {
+            let mut free = self
+                .budget
+                .free
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            *free += self.total;
+            self.budget.ready.notify_all();
+        }
+    }
+
+    /// Reserve the caller and any immediately available helpers.
+    pub(super) fn take(wanted: usize) -> Taken<'static> {
+        BUDGET
+            .get_or_init(|| {
+                Budget::new(
+                    std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get),
+                )
+            })
+            .take(wanted)
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::Budget;
+        use std::sync::{mpsc, Arc};
+        use std::time::Duration;
+
+        #[test]
+        fn evaluator_budget_counts_concurrent_callers() {
+            let budget = Budget::new(4);
+            let first = budget.take(1);
+            let second = budget.take(usize::MAX);
+            assert_eq!(first.helpers(), 1);
+            assert_eq!(second.helpers(), 1);
+            assert_eq!(first.total + second.total, 4);
+            drop(first);
+            let third = budget.take(usize::MAX);
+            assert_eq!(third.helpers(), 1);
+        }
+
+        #[test]
+        fn evaluator_budget_waits_and_releases_on_single_cpu() {
+            let budget = Arc::new(Budget::new(1));
+            let first = budget.take(usize::MAX);
+            assert_eq!(first.helpers(), 0);
+            let other = Arc::clone(&budget);
+            let (started_tx, started_rx) = mpsc::channel();
+            let (admitted_tx, admitted_rx) = mpsc::channel();
+            let worker = std::thread::spawn(move || {
+                started_tx.send(()).unwrap();
+                let permit = other.take(0);
+                admitted_tx.send(permit.helpers()).unwrap();
+            });
+            started_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+            assert!(matches!(
+                admitted_rx.recv_timeout(Duration::from_millis(100)),
+                Err(mpsc::RecvTimeoutError::Timeout)
+            ));
+            drop(first);
+            assert_eq!(admitted_rx.recv_timeout(Duration::from_secs(5)).unwrap(), 0);
+            worker.join().unwrap();
+            assert_eq!(budget.take(0).helpers(), 0);
+        }
+
+        #[test]
+        fn evaluator_budget_returns_reservations_on_panic() {
+            let budget = Budget::new(4);
+            let failure = std::panic::catch_unwind(|| {
+                let _permit = budget.take(usize::MAX);
+                panic!("planted evaluator panic");
+            });
+            assert!(failure.is_err());
+            assert_eq!(budget.take(usize::MAX).helpers(), 3);
+        }
     }
 }
 
