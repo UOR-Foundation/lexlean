@@ -1,20 +1,20 @@
-spec = "lexlean/lock/2"
+spec = "lexlean/lock/4"
 language = "1.2"
-compiler_semantics = "a1477c2e1fc0392c7e304cf42fb6f7e1fe97fc97ce0f83a9e04ed7c11dd11f65"
-project_config_sha256 = "30e9380b31a91b74c3c02f5882a9070290c6a5c41e1dd3bf56d9c617396343e7"
-lean_toolchain = "leanprover/lean4:v4.32.1"
+compiler_semantics = "blake3:87139f2816ac3abdbc1dbe771396b058f8b46b45cd1366b20831ee5bd4855c6b"
+project_config_kappa = "blake3:73fd9732a169c97d83403d7a75da6c96e1f5311a65c6f3c052e77be85e84b859"
+lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[workspace_file]]
 path = "lake-manifest.json"
-sha256 = "7345e9dad35492030ff80b548c7852ba8fabba24446340cb30b19f8beb2176b3"
+kappa = "blake3:422878c27306866583582d9f8d839c59372f81d6d08bbb2af10fddda9b773d76"
 
 [[workspace_file]]
 path = "lakefile.toml"
-sha256 = "520c1a2d70040d3b2b4801c3857355de024615c763985fba303504c8520203ca"
+kappa = "blake3:556dbfa59f14e30c76ef05df82055ea57804262ae424fa9d551e55e0c9923599"
 
 [[workspace_file]]
 path = "lean-toolchain"
-sha256 = "8e3538e0ab5f81a3ee04927d8838c8c674e0e112838b4b3ce87ec218143276af"
+kappa = "blake3:a97821a267801086f27c546268ed08ab29cf5a2d15de1258094c5f95ace394aa"
 
 [[package]]
 id = "helpdesk.titles"
@@ -22,8 +22,8 @@ version = "1.0.0"
 kind = "path"
 source = "glossary/helpdesk.titles"
 revision = "none"
-tree_sha256 = "7316981daa9a17e234a5c17fda7784ad3fa53079a9e494b01a585b935c2f6916"
-manifest_sha256 = "22711379342bc94c309e893bb8dc52dbe80aaff283a6b4df2785b2714442f7c1"
+tree_kappa = "blake3:10a6bbaaafd390a6ce9e3e47bb945de31009b77bae1bc5db8e148202c9307fb5"
+manifest_kappa = "blake3:78c5bb1450141ebef3feeebe085178fea26543a2940205eb022bb9c356295144"
 imports = ["lexlean.core@1.2.0", "lexlean.std.nat@1.2.0"]
 
 [[package]]
@@ -32,8 +32,8 @@ version = "1.2.0"
 kind = "builtin"
 source = "embedded"
 revision = "compiler-semantics"
-tree_sha256 = "827317cae68c162f3a96c8a8de4e53ab348e7d3724fd2b834fa85ecde1a1b392"
-manifest_sha256 = "271079763d269cc873531f515e56da960cd6321393b9460ff0e617666fa01d71"
+tree_kappa = "blake3:1335378be2ecc63829a21de194b8bb413376cf89a6586c45f65740af5a38dcff"
+manifest_kappa = "blake3:2849b32a5b173ab42d35386a7b3606db9d120c2ae64bec1ddbbf7c3b71089be5"
 imports = []
 
 [[package]]
@@ -42,8 +42,8 @@ version = "1.2.0"
 kind = "builtin"
 source = "embedded"
 revision = "compiler-semantics"
-tree_sha256 = "3bc0fb09d706ffa7d5a1363302ea87c049acc7c7dcafde63c62682620c11be9b"
-manifest_sha256 = "de58de2cf18a7a5a62d8c20649139d6dfe1f7b16b3130c75f150fbac5440a71e"
+tree_kappa = "blake3:7becccdde09615bd0fff4866cbaa12076ccc8b1c8417f7a3776ba42c238684e8"
+manifest_kappa = "blake3:cd851a8327cd69875094fccf04164e5fbb4f5ce866667ea48a36fbd7dec66c2a"
 imports = ["lexlean.core@1.2.0"]
 
 [[package]]
@@ -52,8 +52,8 @@ version = "1.2.0"
 kind = "builtin"
 source = "embedded"
 revision = "compiler-semantics"
-tree_sha256 = "e0db021e01b91d651c43921d66f6b0023c8efbf17cac2ec53192ce5305e4e1ac"
-manifest_sha256 = "6fb446b39e3c1c18a5f10cfa1f7aa2bd431837719eb0eb7489aadf452c9420a7"
+tree_kappa = "blake3:35eb218aadbdb0caf4fc8567e0052fc4c21cced95416a2df4c64bab9e87f7d0d"
+manifest_kappa = "blake3:de03ecbd4fb28dc206fb07a6ce449ec8752ad18303939e9343d77e30a32d018d"
 imports = ["lexlean.core@1.2.0", "lexlean.std.bool@1.2.0"]
 
 [[source_package]]
@@ -62,8 +62,8 @@ version = "1.0.0"
 kind = "path"
 source = "stdlib"
 module_prefix = "LexLeanStd"
-tree_sha256 = "33bb863da69d00e1087f6106b1f8ffb0c5bb622b03978a40e225311233e64c0f"
-manifest_sha256 = "49c12a2f1e3938494d3c5e8fbfbdb005e61ee2c0e88eaf4dc53b119168634c2a"
+tree_kappa = "blake3:80f71f6112cba7c8ba835830cdb1010989aa7e69d55c3a7ddea1ceb58928c208"
+manifest_kappa = "blake3:de3b5448eda5498b6840c2001b4872faa39d80c957691a68e6f0f0125415436d"
 imports = []
 
 [[source_package]]
@@ -72,8 +72,8 @@ version = "1.0.0"
 kind = "path"
 source = "std-models"
 module_prefix = "LexLeanStdModels"
-tree_sha256 = "50c65a4e193eed2693c0cc863dda02363dea6eb0608f71d19c18dd7f9bb10143"
-manifest_sha256 = "b23bdec83131b3e4f0a45197f98f9b7144a208ff5a2692289262e5096a455001"
+tree_kappa = "blake3:9e3471dac594f0cecbc2953885bd32728f92345a1b27ec0ea46c93428e37685a"
+manifest_kappa = "blake3:3c430d83ea0580aefb07d180997aea8934c7f3f868446f7e66acbbe1e567ee94"
 imports = []
 
 [[source_package]]
@@ -82,6 +82,6 @@ version = "1.0.0"
 kind = "path"
 source = "std-reasoning"
 module_prefix = "LexLeanStdReasoning"
-tree_sha256 = "41389013809361357064b363ddea23a2fc4d335b1905ff6729f9be30fd0e529b"
-manifest_sha256 = "76ead6f0bc516e1d9669cf1333e7b75d9e7c19c7f3f8aeb000ca36ad15d432bc"
+tree_kappa = "blake3:895f04b244f70db4c9828b0765470e673d9d43f696a95af9b30932e31d2fabd7"
+manifest_kappa = "blake3:2961ce4b611b2da7412ce4f11539a8f520fbb2db5fe31ee00cccb5e00dd159d2"
 imports = []
