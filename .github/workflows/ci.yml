@@ -176,6 +176,7 @@ jobs:
           python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_provider_read.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_plan_provider_retry.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_relock_identity.py'
       # Stale generated files fail here in minutes, before the expensive
       # roots: every input a committed build oracle records, every lock, and
       # every committed export package must be current (§9.4). No Lean.

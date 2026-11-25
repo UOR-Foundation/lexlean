@@ -43,6 +43,29 @@ Outside `vv`:
 
 Each gate below was made to fail by planting a defect, running the gate's command, recording the failure, and removing the defect. The observed lines are verbatim gate output (paths abbreviated to the repository root). `cargo xtask release-check` requires a `### <gate> can fail` record for every gate and audit named in `repo_model::release::GATES`.
 
+### The compiler-semantics IDs `relock-identity` reads
+
+`relock-identity.sh` read a lock's `compiler_semantics` as bare hex
+(`[0-9a-f]*`). A `blake3:` ID, the form the forward merge of release/v0.4
+brings, therefore read as no ID. Every moved lock was kept back, and the
+regeneration reported "relocked 0 lock(s), kept 275" (run 45581677739) instead
+of failing.
+
+The IDs are now read through `semantics-id.sh`. It accepts 64 lowercase hex
+digits, bare or labelled `blake3:`, and nothing else. The script now stops:
+- when no lock of a language yields an ID;
+- when a relock moves a `compiler_semantics` line whose IDs it cannot read.
+
+| Plant | Refused by |
+| --- | --- |
+| The helper reverted to the bare-hex pattern | `test_relock_identity.py` (5 failures, among them `test_bare_and_blake3_ids_are_read`) |
+| The relocker reads an ID other than through the helper, or drops the unread-ID stop | `test_the_relocker_reads_every_id_through_the_helper` |
+
+Locally, the helper reads every ID of the 347 locks tracked at #624's head
+2266efb8: 342 labelled `blake3:` and 5 bare (the old-schema negative fixtures).
+The relocker itself was not run here: it builds the compiler twice and relocks
+the tree, and a regeneration is its qualification.
+
 ### Intel host partition custody and complete evidence
 
 The three non-Intel auxiliary host legs keep their existing locked,
