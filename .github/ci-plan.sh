@@ -128,7 +128,7 @@ hosts_passed() {
 # skipped, the join of Atlas, the three other supported-host contexts exactly
 # once, and every leg of the rows file.
 linux_passed() {
-  local names=$1 part job
+  local names=$1 part parts job
   printf '%s\n' "$names" | awk -F'\t' '
     $1 == "build and non-Lean tests (x86_64-apple-darwin)" { intel++ }
     $1 == "Intel test construction and local targets" || $1 ~ /^Intel conformance \(/ \
@@ -153,7 +153,10 @@ linux_passed() {
       for (host in expected) if (seen[host] != 1) bad = 1
       exit bad
     }' || return 1
-  for part in $(jq -r '.[].part' "$rows_file"); do
+  # The legs every run must hold. A failed or empty read would make the loop
+  # below check nothing and accept any run, so it is no verified run (#603).
+  parts=$(jq -r '.[].part' "$rows_file") && [ -n "$parts" ] || return 1
+  for part in $parts; do
     job="just vv ($part)"
     [ "$part" != honesty ] || job=honesty
     printf '%s\n' "$names" | grep -xF "$job"$'\tsuccess' >/dev/null || return 1
@@ -167,7 +170,7 @@ linux_passed() {
 # and no job that did not conclude `success`. With MODE `linux`, a run that
 # passed every job but the Intel macOS jobs it skipped counts as well.
 full_run_of() {
-  local commit=$1 mode=${2:-whole} runs id names part job
+  local commit=$1 mode=${2:-whole} runs id names part parts job
   runs=$(gh api "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$commit&status=success&per_page=30" \
     --jq ".workflow_runs[] | select(.head_repository.full_name == \"$repo\") | select(.event == \"pull_request\" or .event == \"workflow_dispatch\") | .id") || return 1
   for id in $runs; do
@@ -180,7 +183,10 @@ full_run_of() {
     if printf '%s\n' "$names" | awk -F'\t' '$2 != "success" { bad = 1 } END { exit bad }' \
       && printf '%s\n' "$names" | grep -xF $'atlas (join)\tsuccess' >/dev/null \
       && printf '%s\n' "$names" | hosts_passed; then
-      for part in $(jq -r '.[].part' "$rows_file"); do
+      # The legs every run must hold. A failed or empty read would make the loop
+      # below check nothing and accept any run, so it is no verified run (#603).
+      parts=$(jq -r '.[].part' "$rows_file") && [ -n "$parts" ] || return 1
+      for part in $parts; do
         job="just vv ($part)"
         [ "$part" != honesty ] || job=honesty
         printf '%s\n' "$names" | grep -xF "$job"$'\tsuccess' >/dev/null || continue 2
