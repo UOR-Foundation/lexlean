@@ -815,6 +815,7 @@ fn plan_decisions() {
                 && text.contains("ci_provider_read \"repos/$repo/actions/runs/$")
                 && text.contains("runs?head_sha=$commit&per_page=30\" --paginate")
                 && text.contains("select(.status == \\\"completed\\\" and .conclusion == \\\"success\\\")")
+                && text.contains("select(.head_sha == \\\"$commit\\\")")
                 && !text.contains("status=success")
                 && text.contains("/jobs?per_page=50\" --paginate")
                 && !text.contains("/jobs?per_page=100")
