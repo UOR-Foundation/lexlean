@@ -2517,8 +2517,8 @@ pub(crate) fn run(id: &str) {
                     "name: intel-construction-a1",
                 ),
                 (
-                    "for attempt in $(seq 1 \"$GITHUB_RUN_ATTEMPT\"); do",
-                    "for attempt in \"$GITHUB_RUN_ATTEMPT\"; do",
+                    "intel_host_tests.py fetch --output",
+                    "intel_host_tests.py join --output",
                 ),
             ] {
                 assert!(
@@ -4141,6 +4141,10 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
                 return Err(format!("RP-14: {key} admits `{forbidden}`"));
             }
         }
+        // The join takes artifacts only by the IDs its resolution accepted.
+        if key == "intel-join" && body.contains("actions/download-artifact") {
+            return Err("RP-14: the Intel join downloads artifacts it has not resolved".to_owned());
+        }
         // A job's evidence upload can run after failure, but its actual
         // operation must not be guarded by a success/skip shortcut.
         for step in body.split("\n      - ") {
@@ -4180,7 +4184,7 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
     for (body, command) in [
         (&construction, "build --output"),
         (&part, "execute --construction"),
-        (&join, "join --artifacts"),
+        (&join, "join --fetched"),
     ] {
         require(
             body,
@@ -4216,11 +4220,12 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
             "name: intel-${{ matrix.lane }}-a${{ github.run_attempt }}",
         ),
         (&part, "--lane ${{ matrix.lane }}"),
-        (&join, "pattern: intel-*"),
         (&join, "actions: read"),
-        (&join, "source .github/scripts/ci-provider-read.sh"),
-        (&join, "for attempt in $(seq 1 \"$GITHUB_RUN_ATTEMPT\"); do"),
-        (&join, "--lineage \"$RUNNER_TEMP/intel-lineage\""),
+        (
+            &join,
+            "intel_host_tests.py fetch --output \"$RUNNER_TEMP/intel-input\"",
+        ),
+        (&join, "join --fetched \"$RUNNER_TEMP/intel-input\""),
         (
             &join,
             "CONSTRUCTION_RESULT: ${{ needs.intel-construction.result }}",

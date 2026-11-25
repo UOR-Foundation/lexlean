@@ -73,41 +73,65 @@ shape or stand in for real Intel execution.
 
 #### Attempt-aware Intel custody (#603 DOD-8)
 
-A rerun of failed jobs gives every job of the run a new ID, keeps each job it
-does not rerun at the start, completion and conclusion of the execution it
-retained, and replaces an artifact whose name a rerun reuses (observed on run
-45520831037). The construction therefore binds the attempt that made it, each
-execution's artifact is named by its attempt (`intel-<role>-a<attempt>`), and
-a lane takes the construction named by its job's output, refusing one whose
-bound attempt is not exactly that name's. The join reads every attempt's jobs
-and the run's artifacts whole (#620) and follows each Intel role's accepted
-execution back to the attempt that ran it by those retained times, never by
-job ID. It refuses a run whose latest execution of any role did not succeed;
-a lane that ran before the construction it is joined with (a replaced
-construction invalidates every earlier lane); an Intel artifact that is
-unsuffixed, duplicated, of another run, made outside the execution its name
-claims, or made by no execution; an expired or undigested selected artifact;
-and a receipt whose recorded execution is not the selected one. Superseded
-artifacts are downloaded and accounted for by the lineage, never by absence.
-The policy is #606's prototype (9704525b) applied to the real records.
+Observed on run 45520831037:
+- A rerun of failed jobs gives every job of the run a new ID.
+- A job the rerun does not repeat keeps every field of the execution it retained except `created_at` and `runner_group_id` (0 became null): runner, labels, times, conclusion and every step record.
+- A rerun that reuses an artifact name replaces the earlier artifact.
 
-| Plant in `intel_host_tests.py` | Refused by |
+Observed on run 45553276269: an artifact's `created_at` equals its upload step's `completed_at`. Observed on artifact 14993496195: the provider digest is the SHA-256 of the ZIP bytes, whose length is `size_in_bytes`.
+
+**What the construction and lanes do.** The construction binds the attempt that made it, and each execution's artifact is named by its attempt (`intel-<role>-a<attempt>`). A lane takes the construction named by its job's output and refuses one whose bound attempt is not exactly that name's.
+
+**What the join's `fetch` reads, before any artifact is downloaded:**
+- the run;
+- each attempt's header;
+- each attempt's jobs;
+- the run's artifacts.
+
+Each listing is read whole (`--paginate --slurp`, retried whole, then refused) and kept whole, with its `total_count`.
+
+**What it requires.**
+
+The provider's run must be this job's own:
+- repository;
+- run;
+- attempt;
+- workflow path;
+- head. For a pull request the head is the event's `pull_request.head.sha`, never the merge ref the job checked out.
+
+Every page must report the same total, and the pages must hold exactly that many distinct positive IDs. Every job and every artifact must be of this run, attempt, head, workflow and repository.
+
+An execution is followed back to the attempt that ran it by its whole record, never by ID. If a record keeps the same times but changes anything else, it is ambiguous and refused. A new execution must start after the attempt began and after the previous execution of the same role completed, and must have a positive duration.
+
+**What it refuses:**
+- a latest execution of any role that did not succeed;
+- a lane that began before the construction it is joined with finished, so a replaced construction invalidates every earlier lane;
+- an Intel artifact that is unsuffixed, duplicated, of another run or repository, made by no new execution, or created outside its execution's single upload step;
+- an accepted artifact whose upload failed, or which is expired or undigested.
+
+**How it fetches.** It downloads exactly the accepted artifacts, by ID, and requires their bytes to match the provider's size and digest. It extracts only regular files with safe paths. Superseded artifacts are explained by the records and never fetched, so an expired one is allowed.
+
+**What the join checks then.** It resolves the same records again. It requires the fetched identities and directories to be exactly the selection, and each receipt's recorded execution to be the selected one. Then come all the earlier receipt, log, inventory and archive checks. RP-14 refuses an Intel join that downloads by name.
+
+| Plant in `intel_host_tests.py` or the workflow | Refused by |
 | --- | --- |
-| A lane retained from before the construction's attempt is accepted | `test_a_replaced_construction_invalidates_every_earlier_lane` |
-| An artifact's creation is not bounded by its execution | `test_a_superseded_or_relabelled_execution_is_never_selected` (`outside`) |
-| A retained job is matched by ID rather than by its execution | `test_a_retained_job_is_known_by_its_execution_not_its_id` |
-| A receipt's recorded execution is not compared with the selected one | `…_never_selected` (`stale-receipt`) |
-| A consumer accepts a construction of an attempt other than the one it was handed | `test_a_consumer_takes_only_the_construction_it_was_handed` |
-| The workflow drops the attempt from an artifact name, the lineage read, or the join's `--lineage` | `RP-14` (planted in its own body, and by hand for `--lineage`) |
+| Retention matched by times alone | `test_malformed_provider_histories_are_refused_by_their_rule` (`carried-runner-changed`, `carried-step-changed`) |
+| Page totals not checked | `…_by_their_rule` (`missing-job-row`, `extra-page-item`) |
+| Job head not checked | `…_by_their_rule` (`foreign-job-head`) |
+| Artifact creation not bounded by its upload step | `…_by_their_rule` (`outside-upload`) |
+| A lane bounded by its construction's attempt, not its completion | `test_a_lane_that_overlaps_its_construction_is_refused_in_one_attempt` |
+| Fetched bytes not compared with the provider's size and digest | `test_fetch_takes_exactly_the_selected_bytes_by_id` (`substituted-bytes`, `short-bytes`) |
+| The join does not compare the fetched identities with the selection | `test_join_refuses_artifacts_that_are_not_the_fetched_selection` (`substituted-id`, `missing-entry`) |
+| The join downloads by name, an artifact name loses its attempt, or the fetch step is not run | `RP-14` |
 
-Local validation (Windows): the five behavioral plants each failed their test
-and passed when restored; `RP-07`, `RP-13` and `RP-14` pass. The factory
-suite's end-to-end joins need POSIX paths and fail on Windows identically
-before and after this change, so the accepting rerun join
-(`test_a_lane_rerun_alone_is_joined_with_the_executions_it_retained`) is
-evidenced only by the hosted honesty job. No hosted partial rerun has
-exercised this: qualification needs one, from a naturally occurring Intel
-lane failure, and independent adversarial review precedes adoption.
+All 26 refusal cases name the rule they expect.
+
+**Local validation (Windows).**
+- Each plant above failed its test and passed when restored.
+- RP-07, RP-13 and RP-14 pass.
+- The factory suite's end-to-end joins assume POSIX paths. They fail on Windows identically before and after this change, at the consumer-environment check, which comes after every custody check. The accepting rerun, the superseded-expired acceptance and the complete join are therefore unproven until the suite runs on POSIX.
+
+No hosted partial rerun has exercised this. Independent review and real hosted qualification precede adoption.
 
 `RP-14` and `RP-18` give the previous-run and release scripts the four exact
 required host contexts. For each host they plant an absent, duplicate,

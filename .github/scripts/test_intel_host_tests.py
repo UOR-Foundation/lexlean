@@ -14,6 +14,7 @@ import tarfile
 import tempfile
 import unittest
 from unittest.mock import patch
+import zipfile
 
 SPEC = importlib.util.spec_from_file_location("intel_host_tests", Path(__file__).with_name("intel_host_tests.py"))
 factory = importlib.util.module_from_spec(SPEC)
@@ -42,8 +43,9 @@ class Fixture:
         factory.write_json(self.root / factory.LANES, self.lanes)
         (self.root / "Cargo.lock").write_text('version = 4\n')
         (self.root / "rust-toolchain.toml").write_text('[toolchain]\nchannel = "1.97.1"\n')
-        self.artifacts = directory / "artifacts"
-        self.artifacts.mkdir()
+        self.fetched = directory / "fetched"
+        self.artifacts = self.fetched / "artifacts"
+        self.artifacts.mkdir(parents=True)
         self.producer = self.artifacts / "intel-construction-a1"
         self.producer.mkdir()
         self.native = {"checkout": str(self.root), "host": factory.HOST, "pin": "1.97.1", "rustc": f"rustc 1.97.1\nhost: {factory.HOST}\nrelease: 1.97.1\n", "cargo": "cargo 1.97.1\n", "sysroot": "/toolchain", "profile": "test", "features": "--workspace --all-features", "locked": True}
@@ -114,35 +116,6 @@ class Fixture:
             factory.write_json(directory / "receipt.json", self.receipts[lane])
         self.lineage = self.history([{role: "success" for role in ("construction", *inventories)}])
 
-    def lane_dir(self, lane, attempt=1):
-        return self.artifacts / f"intel-{lane}-a{attempt}"
-
-    def history(self, attempts, retained=(), artifacts=None):
-        """The provider's records of `attempts`, a list of {role: conclusion},
-        one per attempt. A role in `retained[k]` is carried into attempt k + 1
-        with a new job ID and its earlier execution's times."""
-        names = {"construction": factory.CONSTRUCTION_JOB, **{lane: f"Intel conformance ({lane})" for lane in self.lanes["lanes"]}}
-        pages, previous, made, number = [], {}, [], 900
-        for index, conclusions in enumerate(attempts, 1):
-            jobs = [{"id": number, "name": "plan", "run_attempt": index, "status": "completed", "conclusion": "success", "started_at": "2026-01-01T00:00:00Z", "completed_at": "2026-01-01T00:01:00Z"}]
-            number += 1
-            for role, conclusion in conclusions.items():
-                keep = index > 1 and role in (retained[index - 2] if index - 2 < len(retained) else ())
-                if keep:
-                    before = previous[role]
-                    job = {**before, "id": number, "run_attempt": index}
-                else:
-                    job = {"id": number, "name": names[role], "run_attempt": index, "status": "completed", "conclusion": conclusion,
-                           "started_at": f"2026-01-0{index}T01:00:00Z", "completed_at": f"2026-01-0{index}T02:00:00Z"}
-                    made.append({"id": 5000 + number, "name": f"intel-{role}-a{index}", "digest": "sha256:" + "a" * 64, "expired": False,
-                                 "created_at": f"2026-01-0{index}T01:59:00Z", "workflow_run_id": 100})
-                number += 1
-                previous[role] = job
-                jobs.append(job)
-            pages.append({"attempt": index, "jobs": jobs})
-        return {"repository": "UOR-Foundation/lexlean", "run_id": "100", "attempt": len(attempts), "attempts": pages,
-                "artifacts": made if artifacts is None else artifacts}
-
     def build_output(self):
         return "".join(json.dumps(record) + "\n" for record in self.compiler)
 
@@ -162,21 +135,85 @@ class Fixture:
         records.append(record)
         return record
 
+    def lane_dir(self, lane, attempt=1):
+        return self.artifacts / f"intel-{lane}-a{attempt}"
+
+    HEAD = "c" * 40
+
+    def history(self, attempts, retained=()):
+        """The provider's whole records of `attempts`, a list of {role:
+        conclusion}, one per attempt. A role in `retained[k]` is carried into
+        attempt k + 2 with a new job ID and creation, as GitHub does."""
+        names = {"construction": factory.CONSTRUCTION_JOB, **{lane: f"Intel conformance ({lane})" for lane in self.lanes["lanes"]}}
+        run = {"id": 100, "run_attempt": len(attempts), "head_sha": self.HEAD, "path": factory.WORKFLOW, "workflow_id": 55, "name": "ci",
+               "repository": {"full_name": "UOR-Foundation/lexlean", "id": 7}}
+        pages, previous, made, number = [], {}, [], 900
+        for index, conclusions in enumerate(attempts, 1):
+            day = f"2026-01-{index:02d}"
+            jobs = [self.job(number, "plan", index, "success", f"{day}T00:01:00Z", f"{day}T00:02:00Z")]
+            number += 1
+            for role, conclusion in conclusions.items():
+                if index > 1 and role in (retained[index - 2] if index - 2 < len(retained) else ()):
+                    job = {**copy.deepcopy(previous[role]), "id": number, "run_attempt": index, "created_at": f"{day}T00:00:30Z", "runner_group_id": None}
+                else:
+                    start, end = ("01:00", "02:00") if role == "construction" else ("02:10", "03:00")
+                    job = self.job(number, names[role], index, conclusion, f"{day}T{start}:00Z", f"{day}T{end}:00Z")
+                    made.append({"id": 5000 + number, "name": f"intel-{role}-a{index}", "digest": "sha256:" + "a" * 64, "expired": False,
+                                 "size_in_bytes": 10, "created_at": job["completed_at"],
+                                 "workflow_run": {"id": 100, "head_sha": self.HEAD, "repository_id": 7}})
+                number += 1
+                previous[role] = job
+                jobs.append(job)
+            header = {"id": 100, "run_attempt": index, "head_sha": self.HEAD, "workflow_id": 55, "path": factory.WORKFLOW, "run_started_at": f"{day}T00:00:00Z"}
+            pages.append({"attempt": header, "jobs": self.pages(jobs, "jobs")})
+        made.append({"id": 4000, "name": "acceptance-gate-evidence-rest", "digest": "sha256:" + "b" * 64, "expired": False, "size_in_bytes": 5,
+                     "created_at": "2026-01-01T00:30:00Z", "workflow_run": {"id": 100, "head_sha": self.HEAD, "repository_id": 7}})
+        return {"run": run, "attempts": pages, "artifacts": self.pages(made, "artifacts")}
+
+    @staticmethod
+    def job(identifier, name, attempt, conclusion, started, completed):
+        # The artifact is created as its upload step completes (run 45553276269).
+        steps = [{"number": 1, "name": "Set up job", "status": "completed", "conclusion": "success", "started_at": started, "completed_at": started},
+                 {"number": 2, "name": factory.UPLOAD_STEP, "status": "completed", "conclusion": "success", "started_at": started, "completed_at": completed}]
+        return {"id": identifier, "run_id": 100, "run_attempt": attempt, "head_sha": Fixture.HEAD, "workflow_name": "ci", "name": name,
+                "status": "completed", "conclusion": conclusion, "started_at": started, "completed_at": completed, "created_at": started,
+                "runner_id": 7000 + identifier, "runner_name": f"GitHub Actions {7000 + identifier}", "runner_group_id": 0, "labels": ["macos-15-intel"],
+                "steps": steps}
+
+    @staticmethod
+    def pages(items, key, size=4):
+        return [{"total_count": len(items), key: items[i:i + size]} for i in range(0, len(items), size)] or [{"total_count": 0, key: []}]
+
+    def trusted(self, attempt):
+        return {**self.binding["run"], "GITHUB_REPOSITORY": "UOR-Foundation/lexlean", "GITHUB_RUN_ATTEMPT": str(attempt), "head_sha": self.HEAD}
+
     def save(self, part):
         path = self.producer / "producer.json" if part == "producer" else self.lane_dir(part, int(self.receipts[part]["execution"]["attempt"])) / "receipt.json"
         factory.write_json(path, self.receipts[part])
 
-    def join(self, attempt="1"):
-        run = {**self.binding["run"], "GITHUB_RUN_ATTEMPT": attempt}
-        with patch.object(factory, "run_identity", return_value=run), patch.object(factory, "source_identity", return_value=self.binding["source"]), contextlib.redirect_stdout(io.StringIO()) as printed:
-            result = factory.join(self.root, self.artifacts, self.lineage)
+    def join(self, attempt="1", run=None, source=None, fetched=None):
+        """Join what fetch would have left: the lineage and the selected
+        artifacts' identities beside the artifact directories."""
+        trusted = self.trusted(attempt)
+        factory.write_json(self.fetched / "lineage.json", self.lineage)
+        if fetched is None:
+            try:
+                selected = factory.resolve_lineage(self.lineage, self.lanes["lanes"], trusted)
+                fetched = {item["artifact"]: {"id": item["id"], "digest": item["digest"], "size": item["size"]} for item in selected.values()}
+            except factory.Invalid:
+                fetched = {}
+        factory.write_json(self.fetched / "fetched.json", fetched)
+        identity = run or {**self.binding["run"], "GITHUB_RUN_ATTEMPT": attempt}
+        with patch.object(factory, "run_identity", return_value=identity), patch.object(factory, "source_identity", return_value=source or self.binding["source"]), contextlib.redirect_stdout(io.StringIO()) as printed:
+            result = factory.join(self.root, self.fetched, trusted)
         self.printed = printed.getvalue()
         return result
 
     def rerun_lane(self, lane, attempt=2):
         """Execute `lane` again in `attempt`: its receipt and artifact move to
-        that attempt; the earlier artifact stays, superseded."""
-        shutil.copytree(self.lane_dir(lane), self.lane_dir(lane, attempt))
+        that attempt. Only selected artifacts are fetched, so the earlier one
+        is explained by the lineage and absent here."""
+        shutil.move(str(self.lane_dir(lane)), str(self.lane_dir(lane, attempt)))
         self.receipts[lane] = copy.deepcopy(self.receipts[lane])
         self.receipts[lane]["execution"] = {"attempt": str(attempt), "artifact": f"intel-{lane}-a{attempt}"}
         self.save(lane)
@@ -340,15 +377,14 @@ class FactoryTests(unittest.TestCase):
 
     def test_join_current_source_run_and_attempt_must_match_construction(self):
         fixture = Fixture(self.directory)
-        for field in ("commit", "tree", "run", "attempt"):
+        for field, reason in (("commit", "source commit"), ("tree", "source commit"), ("run", "foreign run"), ("attempt", "the provider's run is not this run")):
             source, run = copy.deepcopy(fixture.binding["source"]), copy.deepcopy(fixture.binding["run"])
             if field in ("commit", "tree"):
                 source[field] = "f" * 40
-            else:
-                run["GITHUB_RUN_ID" if field == "run" else "GITHUB_RUN_ATTEMPT"] = "999"
-            with patch.object(factory, "source_identity", return_value=source), patch.object(factory, "run_identity", return_value=run):
-                with self.subTest(field=field), self.assertRaises(factory.Invalid):
-                    factory.join(fixture.root, fixture.artifacts, fixture.lineage)
+            elif field == "run":
+                run["GITHUB_RUN_ID"] = "999"
+            with self.subTest(field=field), self.assertRaisesRegex(factory.Invalid, reason):
+                fixture.join("999" if field == "attempt" else "1", run=run, source=source)
 
     def test_join_missing_duplicate_and_unexpected_artifact_refused(self):
         for mode in ("missing", "duplicate", "extra"):
@@ -512,7 +548,8 @@ class FactoryTests(unittest.TestCase):
             env = {**fixture.binding["run"], "GITHUB_JOB": "intel-construction", "GITHUB_OUTPUT": str(output_file), "PATH": str(tools) + os.pathsep + os.environ["PATH"]}
             with patch.dict(os.environ, env), patch.object(factory, "source_identity", return_value=fixture.binding["source"]), patch.object(factory.platform, "system", return_value="Darwin"), patch.object(factory.platform, "machine", return_value="x86_64"):
                 self.assertEqual(factory.build(fixture.root, fixture.producer), 0)
-                lanes = json.loads(output_file.read_text().split("=", 1)[1])
+                outputs = dict(line.split("=", 1) for line in output_file.read_text().splitlines())
+                lanes = json.loads(outputs["lanes"])
                 self.assertEqual(set(lanes), set(fixture.lanes["lanes"]))
                 with patch.dict(os.environ, {"GITHUB_JOB": "intel-part"}):
                     for lane in lanes:
@@ -520,104 +557,208 @@ class FactoryTests(unittest.TestCase):
                 with patch.dict(os.environ, {"GITHUB_JOB": "intel-join"}):
                     if fail:
                         with self.assertRaisesRegex(factory.Invalid, "producer: failed invocation"):
-                            factory.join(fixture.root, fixture.artifacts, fixture.lineage)
+                            fixture.join()
                     else:
-                        self.assertEqual(factory.join(fixture.root, fixture.artifacts, fixture.lineage), 0)
-                self.assertIn("artifact=intel-construction-a1\n", output_file.read_text())
+                        self.assertEqual(fixture.join(), 0)
+                self.assertEqual(outputs["artifact"], "intel-construction-a1")
 
     LANES = ("construction", "lower", "print", "validate", "moves")
 
     def outcomes(self, **changed):
         return {role: changed.get(role, "success") for role in self.LANES}
 
+    def rerun_lower(self, fixture, lower="success"):
+        """Attempt 1 loses `lower`; attempt 2 reruns it alone."""
+        fixture.rerun_lane("lower")
+        return fixture.history([self.outcomes(lower="cancelled"), self.outcomes(lower=lower)],
+                               retained=[[r for r in self.LANES if r != "lower"]])
+
+    @staticmethod
+    def items(lineage, attempt=None):
+        if attempt is None:
+            return [a for page in lineage["artifacts"] for a in page["artifacts"]]
+        return [j for page in lineage["attempts"][attempt - 1]["jobs"] for j in page["jobs"]]
+
     def test_a_lane_rerun_alone_is_joined_with_the_executions_it_retained(self):
         fixture = Fixture(self.directory)
-        fixture.rerun_lane("lower")
-        others = [r for r in self.LANES if r != "lower"]
-        fixture.lineage = fixture.history([self.outcomes(lower="cancelled"), self.outcomes()], retained=[others])
+        fixture.lineage = self.rerun_lower(fixture)
         self.assertEqual(fixture.join("2"), 0)
         self.assertIn("lower a2 intel-lower-a2", fixture.printed)
         self.assertIn("retained from earlier attempts: construction, moves, print, validate", fixture.printed)
 
-    def test_lineage_selects_each_role_s_latest_execution_and_lists_every_artifact(self):
+    def test_lineage_selects_each_role_s_latest_execution(self):
         fixture = Fixture(self.directory)
         # Attempt 2 reruns lower and print, and print fails again; attempt 3
         # reruns print alone, so lower is retained twice from attempt 2.
         lineage = fixture.history([self.outcomes(lower="cancelled"), self.outcomes(print="failure"), self.outcomes()],
                                   retained=[["construction", "validate", "moves"], [r for r in self.LANES if r != "print"]])
-        run = {**fixture.binding["run"], "GITHUB_RUN_ATTEMPT": "3"}
-        selected, listed = factory.resolve_lineage(lineage, fixture.lanes["lanes"], run)
+        selected = factory.resolve_lineage(lineage, fixture.lanes["lanes"], fixture.trusted(3))
         self.assertEqual({role: item["attempt"] for role, item in selected.items()},
                          {"construction": 1, "lower": 2, "print": 3, "validate": 1, "moves": 1})
-        self.assertEqual(listed, sorted(["intel-construction-a1", "intel-lower-a1", "intel-print-a1", "intel-validate-a1",
-                                         "intel-moves-a1", "intel-lower-a2", "intel-print-a2", "intel-print-a3"]))
 
-    def test_a_retained_job_is_known_by_its_execution_not_its_id(self):
+    def test_a_superseded_expired_artifact_is_explained_not_required(self):
         fixture = Fixture(self.directory)
-        fixture.rerun_lane("lower")
-        others = [r for r in self.LANES if r != "lower"]
-        lineage = fixture.history([self.outcomes(lower="failure"), self.outcomes()], retained=[others])
-        # The provider names a retained job anew; reusing an ID is not its record.
-        first = next(j for j in lineage["attempts"][0]["jobs"] if j["name"] == factory.CONSTRUCTION_JOB)
-        second = next(j for j in lineage["attempts"][1]["jobs"] if j["name"] == factory.CONSTRUCTION_JOB)
-        second["id"] = first["id"]
+        lineage = self.rerun_lower(fixture)
+        next(a for a in self.items(lineage) if a["name"] == "intel-lower-a1")["expired"] = True
         fixture.lineage = lineage
-        with self.assertRaisesRegex(factory.Invalid, "job ID listed twice"):
-            fixture.join("2")
+        self.assertEqual(fixture.join("2"), 0)
+
+    def test_malformed_provider_histories_are_refused_by_their_rule(self):
+        # The six histories the first implementation accepted (review of #628),
+        # then pagination, identity, interval and origin defects. Each names
+        # its rule, so a later check cannot make it pass.
+        cases = {
+            "duplicate-artifact-id": ("missing, null or duplicate artifact ID",
+                                      lambda l: next(a for a in self.items(l) if a["name"] == "intel-lower-a2").update(
+                                          id=next(a for a in self.items(l) if a["name"] == "intel-construction-a1")["id"])),
+            "foreign-job-run": ("a job of another run", lambda l: next(j for j in self.items(l, 2) if j["name"] == "Intel conformance (lower)").update(run_id=101)),
+            "foreign-job-head": ("a job of another run", lambda l: next(j for j in self.items(l, 2) if j["name"] == "Intel conformance (lower)").update(head_sha="d" * 40)),
+            "carried-runner-changed": ("a retained execution whose record changed",
+                                       lambda l: next(j for j in self.items(l, 2) if j["name"] == factory.CONSTRUCTION_JOB).update(runner_name="another")),
+            "carried-step-changed": ("a retained execution whose record changed",
+                                     lambda l: next(j for j in self.items(l, 2) if j["name"] == "Intel conformance (print)")["steps"][1].update(conclusion="failure")),
+            "missing-job-row": ("truncated attempt 2 job listing", lambda l: l["attempts"][1]["jobs"][0]["jobs"].pop(0)),
+            "null-job-id": ("missing, null or duplicate attempt 2 job ID", lambda l: self.items(l, 2)[0].update(id=None)),
+            "null-artifact-id": ("missing, null or duplicate artifact ID",
+                                 lambda l: next(a for a in self.items(l) if a["name"] == "intel-lower-a2").update(id=None)),
+            "page-totals-differ": ("inconsistent artifact pagination", lambda l: l["artifacts"][0].update(total_count=99)),
+            "extra-page-item": ("truncated artifact listing", lambda l: l["artifacts"][-1]["artifacts"].append({"id": 1, "name": "other"})),
+            "run-head": ("the provider's run is not this run", lambda l: l["run"].update(head_sha="d" * 40)),
+            "run-workflow": ("the provider's run is not this run", lambda l: l["run"].update(path=".github/workflows/other.yml")),
+            "attempt-head": ("attempt 2 is of another run", lambda l: l["attempts"][1]["attempt"].update(head_sha="d" * 40)),
+            "missing-attempt": ("missing or duplicate attempt", lambda l: l["attempts"].pop(0)),
+            "zero-length": ("an execution of no duration",
+                            lambda l: next(j for j in self.items(l, 2) if j["name"] == "Intel conformance (lower)").update(started_at="2026-01-02T03:00:00Z")),
+            "unparsed-time": ("not a provider UTC time",
+                              lambda l: next(j for j in self.items(l, 2) if j["name"] == "Intel conformance (lower)").update(started_at="2026-01-02 02:10:00")),
+            "same-second-origin": ("neither retained nor new",
+                                   lambda l: next(j for j in self.items(l, 2) if j["name"] == "Intel conformance (lower)").update(started_at="2026-01-01T03:00:00Z")),
+            "before-attempt": ("neither retained nor new",
+                               lambda l: next(j for j in self.items(l, 2) if j["name"] == "Intel conformance (lower)").update(started_at="2026-01-01T23:00:00Z")),
+            "outside-upload": ("made outside its upload step",
+                               lambda l: next(a for a in self.items(l) if a["name"] == "intel-lower-a2").update(created_at="2026-01-02T03:00:01Z")),
+            "upload-failed": ("an unfinished, expired or undigested accepted artifact",
+                              lambda l: next(j for j in self.items(l, 2) if j["name"] == "Intel conformance (lower)")["steps"][1].update(conclusion="failure")),
+            "artifact-repository": ("of another run or repository",
+                                    lambda l: next(a for a in self.items(l) if a["name"] == "intel-lower-a2")["workflow_run"].update(repository_id=8)),
+            "unsuffixed": ("not named by its execution", lambda l: next(a for a in self.items(l) if a["name"] == "intel-lower-a1").update(name="intel-lower")),
+            "unmade": ("no execution of this run made", lambda l: next(a for a in self.items(l) if a["name"] == "intel-lower-a1").update(name="intel-print-a2")),
+            "duplicate-name": ("an artifact name listed twice", lambda l: next(a for a in self.items(l) if a["name"] == "intel-lower-a1").update(name="intel-lower-a2")),
+            "expired-selection": ("an unfinished, expired or undigested accepted artifact",
+                                  lambda l: next(a for a in self.items(l) if a["name"] == "intel-lower-a2").update(expired=True)),
+            "undigested-selection": ("an unfinished, expired or undigested accepted artifact",
+                                     lambda l: next(a for a in self.items(l) if a["name"] == "intel-lower-a2").update(digest=None)),
+        }
+        for mode, (reason, damage) in cases.items():
+            base = self.directory / mode
+            base.mkdir()
+            fixture = Fixture(base)
+            lineage = self.rerun_lower(fixture)
+            damage(lineage)
+            with self.subTest(mode=mode), self.assertRaisesRegex(factory.Invalid, reason):
+                factory.resolve_lineage(lineage, fixture.lanes["lanes"], fixture.trusted(2))
 
     def test_a_replaced_construction_invalidates_every_earlier_lane(self):
         fixture = Fixture(self.directory)
         fixture.rerun_lane("lower")
         # The construction ran again in attempt 2; `print` kept its attempt-1 run.
-        fixture.lineage = fixture.history([self.outcomes(lower="failure"), self.outcomes()],
-                                          retained=[["print", "validate", "moves"]])
-        with self.assertRaisesRegex(factory.Invalid, "executed before its construction was replaced"):
-            fixture.join("2")
+        lineage = fixture.history([self.outcomes(lower="failure"), self.outcomes()], retained=[["print", "validate", "moves"]])
+        with self.assertRaisesRegex(factory.Invalid, "lane print began before its construction finished"):
+            factory.resolve_lineage(lineage, fixture.lanes["lanes"], fixture.trusted(2))
 
-    def test_a_superseded_or_relabelled_execution_is_never_selected(self):
-        # Each refusal names its rule, so that a later check cannot make it pass.
-        reasons = {"stale-receipt": "foreign or mismatched receipt: lower", "unsuffixed": "foreign or duplicate Intel artifact",
-                   "duplicate-name": "foreign or duplicate Intel artifact", "outside": "made outside its execution",
-                   "foreign-run": "made outside its execution", "expired": "expired or undigested", "undigested": "expired or undigested",
-                   "unmade": "no execution of this run made", "latest-failed": "did not succeed", "missing-attempt": "missing or duplicate attempt",
-                   "neither": "neither retained nor new"}
-        for mode, reason in reasons.items():
+    def test_a_lane_that_overlaps_its_construction_is_refused_in_one_attempt(self):
+        # The attempt numbers agree; only the times show the lane did not run
+        # against the construction it is joined with.
+        fixture = Fixture(self.directory)
+        lineage = fixture.history([self.outcomes()])
+        lane = next(j for j in self.items(lineage, 1) if j["name"] == "Intel conformance (lower)")
+        lane["started_at"] = lane["steps"][0]["started_at"] = lane["steps"][0]["completed_at"] = lane["steps"][1]["started_at"] = "2026-01-01T01:30:00Z"
+        with self.assertRaisesRegex(factory.Invalid, "lane lower began before its construction finished"):
+            factory.resolve_lineage(lineage, fixture.lanes["lanes"], fixture.trusted(1))
+
+    def test_a_retained_job_is_known_by_its_execution_not_its_id(self):
+        fixture = Fixture(self.directory)
+        lineage = self.rerun_lower(fixture)
+        first = next(j for j in self.items(lineage, 1) if j["name"] == factory.CONSTRUCTION_JOB)
+        next(j for j in self.items(lineage, 2) if j["name"] == factory.CONSTRUCTION_JOB)["id"] = first["id"]
+        with self.assertRaisesRegex(factory.Invalid, "a job ID listed twice"):
+            factory.resolve_lineage(lineage, fixture.lanes["lanes"], fixture.trusted(2))
+
+    def test_join_refuses_artifacts_that_are_not_the_fetched_selection(self):
+        for mode in ("substituted-id", "missing-entry", "extra-directory", "stale-receipt"):
             base = self.directory / mode
             base.mkdir()
             fixture = Fixture(base)
-            fixture.rerun_lane("lower")
-            others = [r for r in self.LANES if r != "lower"]
-            lineage = fixture.history([self.outcomes(lower="failure"), self.outcomes(lower="failure" if mode == "latest-failed" else "success")], retained=[others])
-            lower = next(a for a in lineage["artifacts"] if a["name"] == "intel-lower-a2")
-            if mode == "stale-receipt":
+            fixture.lineage = self.rerun_lower(fixture)
+            selected = factory.resolve_lineage(fixture.lineage, fixture.lanes["lanes"], fixture.trusted(2))
+            fetched = {item["artifact"]: {"id": item["id"], "digest": item["digest"], "size": item["size"]} for item in selected.values()}
+            reason = "the fetched artifacts are not the accepted executions"
+            if mode == "substituted-id":
+                fetched["intel-lower-a2"]["id"] += 1
+            elif mode == "missing-entry":
+                del fetched["intel-print-a1"]
+            elif mode == "extra-directory":
+                shutil.copytree(fixture.lane_dir("print"), fixture.artifacts / "intel-print-a9")
+                reason = "missing, duplicate or unexpected Intel artifact directories"
+            else:
                 fixture.receipts["lower"]["execution"] = {"attempt": "1", "artifact": "intel-lower-a1"}
-                fixture.save("lower")
-                shutil.rmtree(fixture.lane_dir("lower", 2))
-                shutil.copytree(fixture.lane_dir("lower"), fixture.lane_dir("lower", 2))
-            elif mode == "unsuffixed":
-                lineage["artifacts"].append({**lower, "id": 1, "name": "intel-lower"})
-                shutil.copytree(fixture.lane_dir("lower", 2), fixture.artifacts / "intel-lower")
-            elif mode == "duplicate-name":
-                lineage["artifacts"].append({**lower, "id": 2})
-            elif mode == "outside":
-                lower["created_at"] = "2026-01-02T03:00:00Z"
-            elif mode == "foreign-run":
-                lower["workflow_run_id"] = 101
-            elif mode == "expired":
-                lower["expired"] = True
-            elif mode == "undigested":
-                lower["digest"] = None
-            elif mode == "unmade":
-                lineage["artifacts"].append({**lower, "id": 3, "name": "intel-print-a2"})
-                shutil.copytree(fixture.lane_dir("print"), fixture.artifacts / "intel-print-a2")
-            elif mode == "missing-attempt":
-                lineage["attempts"].pop(0)
-            elif mode == "neither":
-                job = next(j for j in lineage["attempts"][1]["jobs"] if j["name"] == "Intel conformance (lower)")
-                job["started_at"] = "2026-01-01T01:30:00Z"
-            fixture.lineage = lineage
+                factory.write_json(fixture.lane_dir("lower", 2) / "receipt.json", fixture.receipts["lower"])
+                reason = "foreign or mismatched receipt: lower"
             with self.subTest(mode=mode), self.assertRaisesRegex(factory.Invalid, reason):
-                fixture.join("2")
+                fixture.join("2", fetched=fetched)
+
+    def zipped(self, directory, extra=None):
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as bundle:
+            for path in sorted(p for p in directory.rglob("*") if p.is_file()):
+                bundle.write(path, path.relative_to(directory).as_posix())
+            for name, info in (extra or {}).items():
+                bundle.writestr(info, name)
+        return buffer.getvalue()
+
+    def test_fetch_takes_exactly_the_selected_bytes_by_id(self):
+        cases = {"accepted": None, "substituted-bytes": "the fetched bytes are not the accepted artifact",
+                 "short-bytes": "the fetched bytes are not the accepted artifact", "link-member": "non-regular archive member",
+                 "escape-member": "unsafe artifact path"}
+        for mode, reason in cases.items():
+            base = self.directory / mode
+            base.mkdir()
+            fixture = Fixture(base)
+            lineage = self.rerun_lower(fixture)
+            archives, requested = {}, []
+            for item in self.items(lineage):
+                directory = fixture.artifacts / item["name"]
+                if directory.is_dir():
+                    extra = None
+                    if item["name"] == "intel-lower-a2" and mode == "link-member":
+                        link = zipfile.ZipInfo("logs/link")
+                        link.external_attr = (stat.S_IFLNK | 0o777) << 16
+                        extra = {"target": link}
+                    elif item["name"] == "intel-lower-a2" and mode == "escape-member":
+                        extra = {"x": zipfile.ZipInfo("../escape")}
+                    data = self.zipped(directory, extra)
+                    archives[item["id"]] = data
+                    item.update(size_in_bytes=len(data), digest="sha256:" + factory.hashlib.sha256(data).hexdigest())
+            lower = next(a for a in self.items(lineage) if a["name"] == "intel-lower-a2")["id"]
+            if mode == "substituted-bytes":
+                archives[lower] = archives[next(a for a in self.items(lineage) if a["name"] == "intel-print-a1")["id"]]
+            elif mode == "short-bytes":
+                archives[lower] = archives[lower][:-1]
+
+            def read(path, binary=False):
+                requested.append(path)
+                return archives[int(path.split("/")[-2])]
+            output = base / "fetched-out"
+            with self.subTest(mode=mode):
+                if reason is None:
+                    factory.fetch(fixture.root, output, fixture.trusted(2), collect=lambda trusted: lineage, read=read)
+                    self.assertEqual(sorted(p.name for p in (output / "artifacts").iterdir()), sorted(f"intel-{r}-a{2 if r == 'lower' else 1}" for r in self.LANES))
+                    self.assertNotIn(f"/artifacts/{next(a for a in self.items(lineage) if a['name'] == 'intel-lower-a1')['id']}/zip", requested,
+                                     "a superseded artifact is never fetched")
+                    self.assertEqual((output / "artifacts/intel-lower-a2/receipt.json").read_bytes(), (fixture.lane_dir("lower", 2) / "receipt.json").read_bytes())
+                else:
+                    with self.assertRaisesRegex(factory.Invalid, reason):
+                        factory.fetch(fixture.root, output, fixture.trusted(2), collect=lambda trusted: lineage, read=read)
 
     def test_a_consumer_takes_only_the_construction_it_was_handed(self):
         fixture = Fixture(self.directory)
@@ -625,11 +766,11 @@ class FactoryTests(unittest.TestCase):
         with patch.object(factory, "run_identity", return_value=later), patch.object(factory, "source_identity", return_value=fixture.binding["source"]):
             factory.load_construction(fixture.root, fixture.producer, "1")
             for attempt in ("2", "3"):
-                with self.subTest(attempt=attempt), self.assertRaises(factory.Invalid):
+                with self.subTest(attempt=attempt), self.assertRaisesRegex(factory.Invalid, "foreign run, repository, attempt"):
                     factory.load_construction(fixture.root, fixture.producer, attempt)
         with patch.dict(os.environ, {"GITHUB_JOB": "intel-part"}):
             for name in ("intel-construction", "intel-lower-a1", "intel-construction-a0"):
-                with self.subTest(name=name), self.assertRaises(factory.Invalid):
+                with self.subTest(name=name), self.assertRaisesRegex(factory.Invalid, "not a construction artifact"):
                     factory.execute(fixture.root, fixture.producer, "lower", self.directory / name, name)
 
     def test_recorder_captures_real_process_failures_and_later_success(self):
