@@ -169,7 +169,8 @@ class ProviderRunIndex(unittest.TestCase):
 
     def exercise(self, script, status='completed', conclusion='success',
                  repository='owner/repo', event='pull_request', bad_job=False,
-                 partial=False):
+                 partial=False, wrong_head=False, missing_head=False,
+                 later_page=False):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             def git(*args):
@@ -195,7 +196,12 @@ class ProviderRunIndex(unittest.TestCase):
                        run(44, 'in_progress', None, 'owner/repo', 'pull_request'),
                        run(45, 'completed', 'success', 'foreign/repo', 'pull_request'),
                        run(42, status, conclusion, repository, event)]
-            (root / 'runs.json').write_text(json.dumps({'workflow_runs': records}))
+            if wrong_head:
+                records[-1]['head_sha'] = 'f' * 40
+            if missing_head:
+                del records[-1]['head_sha']
+            (root / 'runs.json').write_text(json.dumps({'workflow_runs': records[:-1]}))
+            (root / 'page2.json').write_text(json.dumps({'workflow_runs': records[-1:]}))
             names = ['plan', 'honesty', 'just vv (rest)', 'atlas (join)']
             names += [f'build and non-Lean tests ({host})' for host in (
                 'aarch64-unknown-linux-gnu', 'x86_64-apple-darwin',
@@ -218,6 +224,9 @@ case "$2" in
       printf '%s\\n' '{"workflow_runs":[]}' | jq -r "${@: -1}"
     elif [[ "$2" == *"head_sha=$PARENT&"* ]]; then
       jq -r "${@: -1}" "$ROOT/runs.json"
+      if [ "$LATER_PAGE" = 0 ] || [[ " $* " == *" --paginate "* ]]; then
+        jq -r "${@: -1}" "$ROOT/page2.json"
+      fi
       if [ "$PARTIAL" = 1 ]; then exit 1; fi
     else
       printf '%s\\n' '{"workflow_runs":[]}' | jq -r "${@: -1}"
@@ -235,7 +244,8 @@ esac
             out = root / 'out'
             summary = root / 'summary'
             env = dict(os.environ, PATH=f'{bin_dir}:{os.environ["PATH"]}', ROOT=directory,
-                       PARENT=parent, PARTIAL=str(int(partial)), EVENT='push', REPO='owner/repo',
+                       PARENT=parent, PARTIAL=str(int(partial)), LATER_PAGE=str(int(later_page)),
+                       EVENT='push', REPO='owner/repo',
                        SHA=head, OUT=str(out), LEXLEAN_CI_ROWS=str(rows),
                        GITHUB_OUTPUT=str(out), GITHUB_STEP_SUMMARY=str(summary))
             proc = subprocess.run(['bash', str(Path(__file__).resolve().parents[1] / script)],
@@ -263,11 +273,21 @@ esac
         for script in ('ci-plan.sh', 'release-gate.sh'):
             for kwargs in ({'status': 'in_progress'}, {'conclusion': 'failure'},
                            {'conclusion': 'skipped'}, {'conclusion': None},
-                           {'repository': 'foreign/repo'}, {'partial': True}):
+                           {'repository': 'foreign/repo'}, {'partial': True},
+                           {'wrong_head': True}, {'missing_head': True}):
                 with self.subTest(script=script, **kwargs):
                     accepted, queried = self.exercise(script, **kwargs)
                     self.assertFalse(accepted)
                     self.assertEqual(queried, [])
+
+    def test_later_page_is_read_and_partial_page_is_not_evidence(self):
+        for script in ('ci-plan.sh', 'release-gate.sh'):
+            with self.subTest(script=script):
+                accepted, queried = self.exercise(script, later_page=True)
+                self.assertTrue(accepted)
+                self.assertEqual(len(queried), 1)
+                self.assertEqual(self.exercise(script, later_page=True, partial=True),
+                                 (False, []))
 
     def test_planner_still_refuses_push_run(self):
         self.assertEqual(self.exercise('ci-plan.sh', event='push'), (False, []))
