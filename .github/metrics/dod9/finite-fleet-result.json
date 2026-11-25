@@ -1,0 +1,3026 @@
+{
+  "schema": "lexlean/advisory-finite-fleet/1",
+  "authority": false,
+  "checks": 41,
+  "results": [
+    {
+      "profile": "fixture-heavy",
+      "scenario": "unconstrained",
+      "assumptions": {
+        "id": "unconstrained",
+        "linux": 8,
+        "native": 2,
+        "busy": 0
+      },
+      "barrier": {
+        "status": "complete",
+        "elapsed": 68,
+        "runner": 161,
+        "work": 125,
+        "idle": 36,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 5,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 5
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 9,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 9
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 12,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 12
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 4,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": true,
+            "allocated": 0,
+            "start": 12,
+            "end": 16
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 19,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": true,
+            "allocated": 0,
+            "start": 12,
+            "end": 31
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 55,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": true,
+            "allocated": 0,
+            "start": 12,
+            "end": 67
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 67,
+            "start": 67,
+            "end": 68
+          }
+        ]
+      },
+      "dependency": {
+        "status": "complete",
+        "elapsed": 68,
+        "runner": 125,
+        "work": 125,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 5,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 5
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 9,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 9
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 12,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 12
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 4,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 16
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 19,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 31
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 55,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 67
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 67,
+            "start": 67,
+            "end": 68
+          }
+        ]
+      },
+      "balanced": {
+        "status": "complete",
+        "elapsed": 39,
+        "runner": 125,
+        "work": 125,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 5,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 5
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 9,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 9
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 12,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 12
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 26,
+            "tests": [
+              "t2",
+              "t3",
+              "t6"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 38
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 26,
+            "tests": [
+              "t1",
+              "t4",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 38
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 26,
+            "tests": [
+              "t0",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 38
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 38,
+            "start": 38,
+            "end": 39
+          }
+        ]
+      },
+      "reverseArrival": "complete"
+    },
+    {
+      "profile": "fixture-heavy",
+      "scenario": "linux-contention",
+      "assumptions": {
+        "id": "linux-contention",
+        "linux": 3,
+        "native": 2,
+        "busy": 8
+      },
+      "barrier": {
+        "status": "complete",
+        "elapsed": 68,
+        "runner": 141,
+        "work": 125,
+        "idle": 16,
+        "rows": [
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 12,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 12
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 4,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": true,
+            "allocated": 12,
+            "start": 12,
+            "end": 16
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 5,
+            "tests": [
+              "other"
+            ],
+            "allocated": 16,
+            "start": 16,
+            "end": 21
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 9,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 21,
+            "start": 21,
+            "end": 30
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 19,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": true,
+            "allocated": 8,
+            "start": 12,
+            "end": 31
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 55,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": true,
+            "allocated": 0,
+            "start": 12,
+            "end": 67
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 67,
+            "start": 67,
+            "end": 68
+          }
+        ]
+      },
+      "dependency": {
+        "status": "complete",
+        "elapsed": 68,
+        "runner": 125,
+        "work": 125,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 5,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 5
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 12,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 12
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 9,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 5,
+            "start": 5,
+            "end": 14
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 4,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 14,
+            "start": 14,
+            "end": 18
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 19,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 31
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 55,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 67
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 67,
+            "start": 67,
+            "end": 68
+          }
+        ]
+      },
+      "balanced": {
+        "status": "complete",
+        "elapsed": 41,
+        "runner": 125,
+        "work": 125,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 5,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 5
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 12,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 12
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 9,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 5,
+            "start": 5,
+            "end": 14
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 26,
+            "tests": [
+              "t1",
+              "t4",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 38
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 26,
+            "tests": [
+              "t0",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 38
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 26,
+            "tests": [
+              "t2",
+              "t3",
+              "t6"
+            ],
+            "reserve": false,
+            "allocated": 14,
+            "start": 14,
+            "end": 40
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 40,
+            "start": 40,
+            "end": 41
+          }
+        ]
+      },
+      "reverseArrival": "deadlock"
+    },
+    {
+      "profile": "fixture-heavy",
+      "scenario": "single-linux-slot",
+      "assumptions": {
+        "id": "single-linux-slot",
+        "linux": 1,
+        "native": 1,
+        "busy": 0
+      },
+      "barrier": {
+        "status": "complete",
+        "elapsed": 105,
+        "runner": 125,
+        "work": 125,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 12,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 12
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 55,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": true,
+            "allocated": 12,
+            "start": 12,
+            "end": 67
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 19,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": true,
+            "allocated": 67,
+            "start": 67,
+            "end": 86
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 4,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": true,
+            "allocated": 86,
+            "start": 86,
+            "end": 90
+          },
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 5,
+            "tests": [
+              "other"
+            ],
+            "allocated": 90,
+            "start": 90,
+            "end": 95
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 9,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 95,
+            "start": 95,
+            "end": 104
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 104,
+            "start": 104,
+            "end": 105
+          }
+        ]
+      },
+      "dependency": {
+        "status": "complete",
+        "elapsed": 105,
+        "runner": 125,
+        "work": 125,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 12,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 12
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 55,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 67
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 19,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 67,
+            "start": 67,
+            "end": 86
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 4,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 86,
+            "start": 86,
+            "end": 90
+          },
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 5,
+            "tests": [
+              "other"
+            ],
+            "allocated": 90,
+            "start": 90,
+            "end": 95
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 9,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 95,
+            "start": 95,
+            "end": 104
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 104,
+            "start": 104,
+            "end": 105
+          }
+        ]
+      },
+      "balanced": {
+        "status": "complete",
+        "elapsed": 105,
+        "runner": 125,
+        "work": 125,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 12,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 12
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 26,
+            "tests": [
+              "t0",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 38
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 26,
+            "tests": [
+              "t1",
+              "t4",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 38,
+            "start": 38,
+            "end": 64
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 26,
+            "tests": [
+              "t2",
+              "t3",
+              "t6"
+            ],
+            "reserve": false,
+            "allocated": 64,
+            "start": 64,
+            "end": 90
+          },
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 5,
+            "tests": [
+              "other"
+            ],
+            "allocated": 90,
+            "start": 90,
+            "end": 95
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 9,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 95,
+            "start": 95,
+            "end": 104
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 104,
+            "start": 104,
+            "end": 105
+          }
+        ]
+      },
+      "reverseArrival": "deadlock"
+    },
+    {
+      "profile": "fixture-heavy",
+      "scenario": "native-tail",
+      "assumptions": {
+        "id": "native-tail",
+        "linux": 4,
+        "native": 1,
+        "busy": 5,
+        "nativeDuration": 75
+      },
+      "barrier": {
+        "status": "complete",
+        "elapsed": 76,
+        "runner": 211,
+        "work": 180,
+        "idle": 31,
+        "rows": [
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 12,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 12
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 4,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": true,
+            "allocated": 5,
+            "start": 12,
+            "end": 16
+          },
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 5,
+            "tests": [
+              "other"
+            ],
+            "allocated": 12,
+            "start": 12,
+            "end": 17
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 9,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 16,
+            "start": 16,
+            "end": 25
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 19,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": true,
+            "allocated": 0,
+            "start": 12,
+            "end": 31
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 55,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": true,
+            "allocated": 0,
+            "start": 12,
+            "end": 67
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 75,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 75
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 75,
+            "start": 75,
+            "end": 76
+          }
+        ]
+      },
+      "dependency": {
+        "status": "complete",
+        "elapsed": 76,
+        "runner": 180,
+        "work": 180,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 5,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 5
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 9,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 9
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 12,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 12
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 4,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 16
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 19,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 31
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 55,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 67
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 75,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 75
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 75,
+            "start": 75,
+            "end": 76
+          }
+        ]
+      },
+      "balanced": {
+        "status": "complete",
+        "elapsed": 76,
+        "runner": 180,
+        "work": 180,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 5,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 5
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 9,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 9
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 12,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 12
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 26,
+            "tests": [
+              "t2",
+              "t3",
+              "t6"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 38
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 26,
+            "tests": [
+              "t1",
+              "t4",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 38
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 26,
+            "tests": [
+              "t0",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 12,
+            "start": 12,
+            "end": 38
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 75,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 75
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 75,
+            "start": 75,
+            "end": 76
+          }
+        ]
+      },
+      "reverseArrival": "complete"
+    },
+    {
+      "profile": "short-unit",
+      "scenario": "unconstrained",
+      "assumptions": {
+        "id": "unconstrained",
+        "linux": 8,
+        "native": 2,
+        "busy": 0
+      },
+      "barrier": {
+        "status": "complete",
+        "elapsed": 26,
+        "runner": 81,
+        "work": 69,
+        "idle": 12,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 3,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 3
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 4,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 4
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 6,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 6
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 3,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": true,
+            "allocated": 0,
+            "start": 4,
+            "end": 7
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 11,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": true,
+            "allocated": 0,
+            "start": 4,
+            "end": 15
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 21,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": true,
+            "allocated": 0,
+            "start": 4,
+            "end": 25
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 25,
+            "start": 25,
+            "end": 26
+          }
+        ]
+      },
+      "dependency": {
+        "status": "complete",
+        "elapsed": 26,
+        "runner": 69,
+        "work": 69,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 3,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 3
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 4,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 4
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 6,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 6
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 3,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 7
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 11,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 15
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 21,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 25
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 25,
+            "start": 25,
+            "end": 26
+          }
+        ]
+      },
+      "balanced": {
+        "status": "complete",
+        "elapsed": 21,
+        "runner": 69,
+        "work": 69,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 3,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 3
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 4,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 4
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 6,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 6
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 11,
+            "tests": [
+              "t2",
+              "t3",
+              "t6"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 15
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 12,
+            "tests": [
+              "t1",
+              "t4",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 16
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 12,
+            "tests": [
+              "t0",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 16
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 20,
+            "start": 20,
+            "end": 21
+          }
+        ]
+      },
+      "reverseArrival": "complete"
+    },
+    {
+      "profile": "short-unit",
+      "scenario": "linux-contention",
+      "assumptions": {
+        "id": "linux-contention",
+        "linux": 3,
+        "native": 2,
+        "busy": 8
+      },
+      "barrier": {
+        "status": "complete",
+        "elapsed": 26,
+        "runner": 73,
+        "work": 69,
+        "idle": 4,
+        "rows": [
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 4,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 4
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 3,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": true,
+            "allocated": 8,
+            "start": 8,
+            "end": 11
+          },
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 3,
+            "tests": [
+              "other"
+            ],
+            "allocated": 11,
+            "start": 11,
+            "end": 14
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 11,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": true,
+            "allocated": 4,
+            "start": 4,
+            "end": 15
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 6,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 14,
+            "start": 14,
+            "end": 20
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 21,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": true,
+            "allocated": 0,
+            "start": 4,
+            "end": 25
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 25,
+            "start": 25,
+            "end": 26
+          }
+        ]
+      },
+      "dependency": {
+        "status": "complete",
+        "elapsed": 26,
+        "runner": 69,
+        "work": 69,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 3,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 3
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 4,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 4
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 6,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 3,
+            "start": 3,
+            "end": 9
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 3,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 9,
+            "start": 9,
+            "end": 12
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 11,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 8,
+            "start": 8,
+            "end": 19
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 21,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 25
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 25,
+            "start": 25,
+            "end": 26
+          }
+        ]
+      },
+      "balanced": {
+        "status": "complete",
+        "elapsed": 21,
+        "runner": 69,
+        "work": 69,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 3,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 3
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 4,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 4
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 6,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 3,
+            "start": 3,
+            "end": 9
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 12,
+            "tests": [
+              "t0",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 16
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 11,
+            "tests": [
+              "t2",
+              "t3",
+              "t6"
+            ],
+            "reserve": false,
+            "allocated": 9,
+            "start": 9,
+            "end": 20
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 12,
+            "tests": [
+              "t1",
+              "t4",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 8,
+            "start": 8,
+            "end": 20
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 20,
+            "start": 20,
+            "end": 21
+          }
+        ]
+      },
+      "reverseArrival": "deadlock"
+    },
+    {
+      "profile": "short-unit",
+      "scenario": "single-linux-slot",
+      "assumptions": {
+        "id": "single-linux-slot",
+        "linux": 1,
+        "native": 1,
+        "busy": 0
+      },
+      "barrier": {
+        "status": "complete",
+        "elapsed": 49,
+        "runner": 69,
+        "work": 69,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 4,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 4
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 21,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": true,
+            "allocated": 4,
+            "start": 4,
+            "end": 25
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 11,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": true,
+            "allocated": 25,
+            "start": 25,
+            "end": 36
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 3,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": true,
+            "allocated": 36,
+            "start": 36,
+            "end": 39
+          },
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 3,
+            "tests": [
+              "other"
+            ],
+            "allocated": 39,
+            "start": 39,
+            "end": 42
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 6,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 42,
+            "start": 42,
+            "end": 48
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 48,
+            "start": 48,
+            "end": 49
+          }
+        ]
+      },
+      "dependency": {
+        "status": "complete",
+        "elapsed": 49,
+        "runner": 69,
+        "work": 69,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 4,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 4
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 21,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 25
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 11,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 25,
+            "start": 25,
+            "end": 36
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 3,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 36,
+            "start": 36,
+            "end": 39
+          },
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 3,
+            "tests": [
+              "other"
+            ],
+            "allocated": 39,
+            "start": 39,
+            "end": 42
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 6,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 42,
+            "start": 42,
+            "end": 48
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 48,
+            "start": 48,
+            "end": 49
+          }
+        ]
+      },
+      "balanced": {
+        "status": "complete",
+        "elapsed": 49,
+        "runner": 69,
+        "work": 69,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 4,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 4
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 12,
+            "tests": [
+              "t0",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 16
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 20,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 20
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 12,
+            "tests": [
+              "t1",
+              "t4",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 16,
+            "start": 16,
+            "end": 28
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 11,
+            "tests": [
+              "t2",
+              "t3",
+              "t6"
+            ],
+            "reserve": false,
+            "allocated": 28,
+            "start": 28,
+            "end": 39
+          },
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 3,
+            "tests": [
+              "other"
+            ],
+            "allocated": 39,
+            "start": 39,
+            "end": 42
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 6,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 42,
+            "start": 42,
+            "end": 48
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 48,
+            "start": 48,
+            "end": 49
+          }
+        ]
+      },
+      "reverseArrival": "deadlock"
+    },
+    {
+      "profile": "short-unit",
+      "scenario": "native-tail",
+      "assumptions": {
+        "id": "native-tail",
+        "linux": 4,
+        "native": 1,
+        "busy": 5,
+        "nativeDuration": 75
+      },
+      "barrier": {
+        "status": "complete",
+        "elapsed": 76,
+        "runner": 132,
+        "work": 124,
+        "idle": 8,
+        "rows": [
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 4,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 4
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 3,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": true,
+            "allocated": 4,
+            "start": 4,
+            "end": 7
+          },
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 3,
+            "tests": [
+              "other"
+            ],
+            "allocated": 5,
+            "start": 5,
+            "end": 8
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 6,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 7,
+            "start": 7,
+            "end": 13
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 11,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": true,
+            "allocated": 0,
+            "start": 4,
+            "end": 15
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 21,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": true,
+            "allocated": 0,
+            "start": 4,
+            "end": 25
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 75,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 75
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 75,
+            "start": 75,
+            "end": 76
+          }
+        ]
+      },
+      "dependency": {
+        "status": "complete",
+        "elapsed": 76,
+        "runner": 124,
+        "work": 124,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 3,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 3
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 4,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 4
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 6,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 6
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 3,
+            "tests": [
+              "t6",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 5,
+            "start": 5,
+            "end": 8
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 11,
+            "tests": [
+              "t3",
+              "t4",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 15
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 21,
+            "tests": [
+              "t0",
+              "t1",
+              "t2"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 25
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 75,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 75
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 75,
+            "start": 75,
+            "end": 76
+          }
+        ]
+      },
+      "balanced": {
+        "status": "complete",
+        "elapsed": 76,
+        "runner": 124,
+        "work": 124,
+        "idle": 0,
+        "rows": [
+          {
+            "id": "other",
+            "pool": "linux",
+            "deps": [],
+            "work": 3,
+            "tests": [
+              "other"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 3
+          },
+          {
+            "id": "build",
+            "pool": "linux",
+            "deps": [],
+            "work": 4,
+            "tests": [],
+            "allocated": 0,
+            "start": 0,
+            "end": 4
+          },
+          {
+            "id": "repro",
+            "pool": "linux",
+            "deps": [],
+            "work": 6,
+            "tests": [
+              "repro"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 6
+          },
+          {
+            "id": "lane2",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 11,
+            "tests": [
+              "t2",
+              "t3",
+              "t6"
+            ],
+            "reserve": false,
+            "allocated": 5,
+            "start": 5,
+            "end": 16
+          },
+          {
+            "id": "lane1",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 12,
+            "tests": [
+              "t1",
+              "t4",
+              "t7"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 16
+          },
+          {
+            "id": "lane0",
+            "pool": "linux",
+            "deps": [
+              "build"
+            ],
+            "work": 12,
+            "tests": [
+              "t0",
+              "t5"
+            ],
+            "reserve": false,
+            "allocated": 4,
+            "start": 4,
+            "end": 16
+          },
+          {
+            "id": "native",
+            "pool": "native",
+            "deps": [],
+            "work": 75,
+            "tests": [
+              "native"
+            ],
+            "allocated": 0,
+            "start": 0,
+            "end": 75
+          },
+          {
+            "id": "join",
+            "pool": "linux",
+            "deps": [
+              "native",
+              "repro",
+              "other",
+              "lane0",
+              "lane1",
+              "lane2"
+            ],
+            "work": 1,
+            "tests": [],
+            "allocated": 75,
+            "start": 75,
+            "end": 76
+          }
+        ]
+      },
+      "reverseArrival": "complete"
+    }
+  ],
+  "scope": "Synthetic discrete-event scheduling; fixed external reservation, nonpreemptive homogeneous pools, full work durations; no provider policy or actual workload parity asserted."
+}
