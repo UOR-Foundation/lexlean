@@ -3594,7 +3594,7 @@ pub fn files() -> BTreeMap<String, Vec<u8>> {
 }
 
 /// The directories whose every file, at any depth, is generated.
-const GENERATED_DIRECTORIES: [&str; 5] = [
+pub(crate) const GENERATED_DIRECTORIES: [&str; 5] = [
     "compiler/certificates",
     "compiler/fixtures",
     "compiler/gnaf",
