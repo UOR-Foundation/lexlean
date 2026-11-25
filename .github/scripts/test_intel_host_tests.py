@@ -164,7 +164,8 @@ class Fixture:
                 number += 1
                 previous[role] = job
                 jobs.append(job)
-            header = {"id": 100, "run_attempt": index, "head_sha": self.HEAD, "workflow_id": 55, "path": factory.WORKFLOW, "run_started_at": f"{day}T00:00:00Z"}
+            header = {"id": 100, "run_attempt": index, "head_sha": self.HEAD, "workflow_id": 55, "path": factory.WORKFLOW, "run_started_at": f"{day}T00:00:00Z",
+                      "repository": {"full_name": "UOR-Foundation/lexlean", "id": 7}}
             pages.append({"attempt": header, "jobs": self.pages(jobs, "jobs")})
         made.append({"id": 4000, "name": "acceptance-gate-evidence-rest", "digest": "sha256:" + "b" * 64, "expired": False, "size_in_bytes": 5,
                      "created_at": "2026-01-01T00:30:00Z", "workflow_run": {"id": 100, "head_sha": self.HEAD, "repository_id": 7}})
@@ -185,7 +186,7 @@ class Fixture:
         return [{"total_count": len(items), key: items[i:i + size]} for i in range(0, len(items), size)] or [{"total_count": 0, key: []}]
 
     def trusted(self, attempt):
-        return {**self.binding["run"], "GITHUB_REPOSITORY": "UOR-Foundation/lexlean", "GITHUB_RUN_ATTEMPT": str(attempt), "head_sha": self.HEAD}
+        return {**self.binding["run"], "GITHUB_REPOSITORY": "UOR-Foundation/lexlean", "GITHUB_RUN_ATTEMPT": str(attempt), "head_sha": self.HEAD, "repository_id": 7}
 
     def save(self, part):
         path = self.producer / "producer.json" if part == "producer" else self.lane_dir(part, int(self.receipts[part]["execution"]["attempt"])) / "receipt.json"
@@ -648,6 +649,20 @@ class FactoryTests(unittest.TestCase):
                                   lambda l: next(a for a in self.items(l) if a["name"] == "intel-lower-a2").update(expired=True)),
             "undigested-selection": ("an unfinished, expired or undigested accepted artifact",
                                      lambda l: next(a for a in self.items(l) if a["name"] == "intel-lower-a2").update(digest=None)),
+            # The second review of #628: four more accepted histories.
+            "upload-after-job": ("a step outside its job", lambda l: self.upload_after_job(l)),
+            "upload-in-progress": ("an unfinished or unnamed step", lambda l: self.lower2(l)["steps"][1].update(status="in_progress")),
+            "anonymous-runner": ("did not run on an identified macos-15-intel runner", lambda l: self.lower2(l).update(runner_id=None, runner_name="", labels=[])),
+            "other-label": ("did not run on an identified macos-15-intel runner", lambda l: self.lower2(l).update(labels=["macos-15"])),
+            "attempt-repository": ("attempt 2 is of another run, head, workflow or repository",
+                                   lambda l: l["attempts"][1]["attempt"]["repository"].update(full_name="someone/else", id=8)),
+            "run-repository-id": ("the provider's run is not this run", lambda l: l["run"]["repository"].update(id=8)),
+            "steps-renumbered": ("steps out of order or renumbered", lambda l: self.lower2(l)["steps"].reverse()),
+            "step-outside-job": ("a step outside its job", lambda l: self.lower2(l)["steps"][0].update(started_at="2026-01-02T02:00:00Z")),
+            "skipped-history": ("was skipped or never started; recovery from a nonexecution is not supported",
+                                lambda l: next(j for j in self.items(l, 1) if j["name"] == "Intel conformance (lower)").update(conclusion="skipped", started_at=None, completed_at=None)),
+            "never-started-history": ("was skipped or never started; recovery from a nonexecution is not supported",
+                                      lambda l: next(j for j in self.items(l, 1) if j["name"] == "Intel conformance (lower)").update(started_at=None)),
         }
         for mode, (reason, damage) in cases.items():
             base = self.directory / mode
@@ -657,6 +672,26 @@ class FactoryTests(unittest.TestCase):
             damage(lineage)
             with self.subTest(mode=mode), self.assertRaisesRegex(factory.Invalid, reason):
                 factory.resolve_lineage(lineage, fixture.lanes["lanes"], fixture.trusted(2))
+
+    def lower2(self, lineage):
+        return next(j for j in self.items(lineage, 2) if j["name"] == "Intel conformance (lower)")
+
+    def upload_after_job(self, lineage):
+        """The upload and the artifact both after the job ended, consistent
+        with each other and with nothing else."""
+        job = self.lower2(lineage)
+        job["steps"][1].update(started_at="2026-01-02T03:01:00Z", completed_at="2026-01-02T03:02:00Z")
+        next(a for a in self.items(lineage) if a["name"] == "intel-lower-a2")["created_at"] = "2026-01-02T03:02:00Z"
+
+    def test_the_provider_s_real_records_pass_every_execution_check(self):
+        """Run 45553276269 attempt 1 as the provider served it (each record's
+        fields narrowed, pages and totals whole). Its artifacts predate the
+        attempt-suffixed names, so resolution must pass every run, attempt,
+        job, step and runner check on real records and then stop at the
+        first artifact name, and nowhere earlier."""
+        recorded = json.loads(Path(__file__).with_name("intel_lineage_45553276269.json").read_text())
+        with self.assertRaisesRegex(factory.Invalid, "an Intel artifact not named by its execution: intel-"):
+            factory.resolve_lineage(recorded["lineage"], recorded["lanes"], recorded["trusted"])
 
     def test_a_replaced_construction_invalidates_every_earlier_lane(self):
         fixture = Fixture(self.directory)

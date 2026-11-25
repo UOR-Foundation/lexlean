@@ -338,7 +338,8 @@ WORKFLOW = ".github/workflows/ci.yml"
 ARTIFACT = re.compile(r"intel-([a-z0-9]+(?:-[a-z0-9]+)*)-a([1-9][0-9]*)\Z")
 DIGEST = re.compile(r"sha256:([0-9a-f]{64})\Z")
 TIME = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\Z")
-FINISHED = ("success", "failure", "cancelled", "skipped")
+FINISHED = ("success", "failure", "cancelled")
+INTEL_LABEL = "macos-15-intel"
 # A rerun copies a retained job under a new ID with a new `created_at` and,
 # observed on run 45520831037, a `runner_group_id` of null where it was 0.
 # Every other field is the execution's own and must be carried unchanged.
@@ -369,6 +370,8 @@ def instant(text):
 def trusted_run():
     """What this job knows of its own run without asking the provider."""
     current = run_identity()
+    repository_id = os.environ.get("GITHUB_REPOSITORY_ID", "")
+    require(repository_id.isdigit(), "untrusted repository ID")
     event = os.environ.get("GITHUB_EVENT_PATH", "")
     head = os.environ.get("GITHUB_SHA", "")
     if event:
@@ -378,7 +381,7 @@ def trusted_run():
     workflow = os.environ.get("GITHUB_WORKFLOW_REF", "")
     require(re.fullmatch(r"[0-9a-f]{40}", head or "") is not None and workflow.startswith(f"{current['GITHUB_REPOSITORY']}/{WORKFLOW}@"),
             "untrusted run head or workflow")
-    return {**current, "head_sha": head}
+    return {**current, "head_sha": head, "repository_id": int(repository_id)}
 
 
 def complete(pages, key, what):
@@ -393,6 +396,21 @@ def complete(pages, key, what):
     require(all(positive(item.get("id")) for item in items) and len({item["id"] for item in items}) == len(items),
             f"missing, null or duplicate {what} ID")
     return items
+
+
+def check_steps(job, where):
+    """A job's step records: positive, strictly increasing numbers, each
+    finished within the job, so that a step cannot be placed outside it."""
+    steps = job.get("steps")
+    require(isinstance(steps, list) and steps and all(isinstance(step, dict) for step in steps), f"{where}: malformed step records")
+    numbers = [step.get("number") for step in steps]
+    require(all(positive(n) for n in numbers) and numbers == sorted(set(numbers)), f"{where}: steps out of order or renumbered")
+    begun, ended = instant(job["started_at"]), instant(job["completed_at"])
+    for step in steps:
+        require(step.get("status") == "completed" and isinstance(step.get("name"), str) and step["name"], f"{where}: an unfinished or unnamed step")
+        if step.get("conclusion") == "skipped" and step.get("started_at") is None:
+            continue
+        require(begun <= instant(step.get("started_at")) <= instant(step.get("completed_at")) <= ended, f"{where}: a step outside its job")
 
 
 def execution(job):
@@ -419,7 +437,7 @@ def resolve_lineage(lineage, lanes, trusted):
     require(run.get("id") == run_id and run.get("run_attempt") == attempt and run.get("head_sha") == trusted["head_sha"]
             and run.get("path") == WORKFLOW and positive(run.get("workflow_id"))
             and isinstance(run.get("repository"), dict) and str(run["repository"].get("full_name", "")).lower() == trusted["GITHUB_REPOSITORY"].lower()
-            and positive(run["repository"].get("id")), "the provider's run is not this run")
+            and run["repository"].get("id") == trusted["repository_id"], "the provider's run is not this run")
     require([page.get("attempt", {}).get("run_attempt") for page in lineage["attempts"]] == list(range(1, attempt + 1)),
             "missing or duplicate attempt in lineage")
     roles = {"construction": CONSTRUCTION_JOB, **{lane: f"Intel conformance ({lane})" for lane in lanes}}
@@ -427,7 +445,10 @@ def resolve_lineage(lineage, lanes, trusted):
     for page in lineage["attempts"]:
         header, number = page["attempt"], page["attempt"]["run_attempt"]
         require(header.get("id") == run_id and header.get("head_sha") == run["head_sha"] and header.get("workflow_id") == run["workflow_id"]
-                and header.get("path") == WORKFLOW, f"attempt {number} is of another run, head or workflow")
+                and header.get("path") == WORKFLOW and isinstance(header.get("repository"), dict)
+                and header["repository"].get("id") == trusted["repository_id"]
+                and str(header["repository"].get("full_name", "")).lower() == trusted["GITHUB_REPOSITORY"].lower(),
+                f"attempt {number} is of another run, head, workflow or repository")
         begun = instant(header.get("run_started_at"))
         jobs = complete(page["jobs"], "jobs", f"attempt {number} job")
         for job in jobs:
@@ -439,9 +460,15 @@ def resolve_lineage(lineage, lanes, trusted):
             found = [job for job in jobs if job.get("name") == name]
             require(len(found) == 1, f"attempt {number}: missing or duplicate execution: {role}")
             job = found[0]
-            require(job.get("status") == "completed" and job.get("conclusion") in FINISHED, f"attempt {number}: unfinished or unknown execution: {role}")
+            # A role GitHub skipped or never started left no execution. It is
+            # refused, never modelled as evidence: recovering a run whose
+            # history holds one is not supported, and the run is rerun whole.
+            require(job.get("status") == "completed" and job.get("conclusion") != "skipped" and job.get("started_at") is not None,
+                    f"attempt {number}: {role} was skipped or never started; recovery from a nonexecution is not supported")
+            require(job.get("conclusion") in FINISHED, f"attempt {number}: unfinished or unknown execution: {role}")
             started, ended = instant(job.get("started_at")), instant(job.get("completed_at"))
             require(started < ended, f"attempt {number}: an execution of no duration: {role}")
+            check_steps(job, f"attempt {number} {role}")
             before = previous.get(role)
             if before is not None and execution(job) == execution(before):
                 origin[(number, role)] = origin[(number - 1, role)]
@@ -454,6 +481,13 @@ def resolve_lineage(lineage, lanes, trusted):
                 fresh[(role, number)] = job
             previous[role] = job
     require(all(previous[role]["conclusion"] == "success" for role in roles), "the latest attempt did not succeed in every Intel execution")
+    # Retention compares a record with itself; the execution it retains is
+    # validated here, on the native Intel host it claims.
+    for role in roles:
+        job = previous[role]
+        require(positive(job.get("runner_id")) and isinstance(job.get("runner_name"), str) and job["runner_name"].strip()
+                and isinstance(job.get("labels"), list) and INTEL_LABEL in job["labels"],
+                f"{role} did not run on an identified {INTEL_LABEL} runner")
     built = fresh[("construction", origin[(attempt, "construction")])]
     for lane in lanes:
         require(instant(fresh[(lane, origin[(attempt, lane)])]["started_at"]) > instant(built["completed_at"]),
@@ -477,10 +511,10 @@ def resolve_lineage(lineage, lanes, trusted):
         require(len(uploads) == 1, f"no single upload step made {item['name']}")
         upload = uploads[0]
         created = instant(item.get("created_at"))
-        require(instant(upload.get("started_at")) <= created <= instant(upload.get("completed_at")),
+        require(instant(job["started_at"]) <= instant(upload.get("started_at")) <= created <= instant(upload.get("completed_at")) <= instant(job["completed_at"]),
                 f"an Intel artifact made outside its upload step: {item['name']}")
         if made == origin[(attempt, role)]:
-            require(upload.get("conclusion") == "success" and item.get("expired") is False and DIGEST.match(str(item.get("digest"))) is not None
+            require(upload.get("status") == "completed" and upload.get("conclusion") == "success" and item.get("expired") is False and DIGEST.match(str(item.get("digest"))) is not None
                     and positive(item.get("size_in_bytes")), f"an unfinished, expired or undigested accepted artifact: {item['name']}")
             selected[role] = {"artifact": item["name"], "attempt": made, "id": item["id"], "digest": item["digest"],
                               "size": item["size_in_bytes"], "job": job["id"]}

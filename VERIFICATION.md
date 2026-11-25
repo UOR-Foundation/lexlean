@@ -124,7 +124,25 @@ An execution is followed back to the attempt that ran it by its whole record, ne
 | The join does not compare the fetched identities with the selection | `test_join_refuses_artifacts_that_are_not_the_fetched_selection` (`substituted-id`, `missing-entry`) |
 | The join downloads by name, an artifact name loses its attempt, or the fetch step is not run | `RP-14` |
 
-All 26 refusal cases name the rule they expect.
+**The second review of #628 (6062796147) found four more histories accepted.** Each is now refused:
+- **Step placement:** every step of a role's execution must be completed and named, numbered in strictly increasing order, and must lie within its job. An accepted artifact's upload step and creation must satisfy `job.started ≤ upload.started ≤ created ≤ upload.completed ≤ job.completed`, and the upload must be `completed` with `success`.
+- **Runner identity:** the execution each role's latest attempt accepted must name a positive runner ID, a non-empty runner name and the `macos-15-intel` label. Retention compares a record with itself; this check validates the execution it retains.
+- **Repository:** each attempt header's repository, and the run's repository ID, must equal the job's own `GITHUB_REPOSITORY` and `GITHUB_REPOSITORY_ID`.
+
+**Recovery boundary.** A role that GitHub skipped or never started in any attempt (conclusion `skipped`, or no start time) left no execution. It is refused by name ("recovery from a nonexecution is not supported"), never modelled as evidence. Such a run is recovered only by rerunning it whole.
+
+**Real records.** `intel_lineage_45553276269.json` holds run 45553276269 attempt 1 as the provider served it: each record's fields narrowed, pages and totals whole. Its artifacts predate the attempt suffixes, so resolution must pass every run, attempt, job, step and runner check on those records and stop at the first artifact name, and nowhere earlier.
+
+| Plant (second review) | Refused by |
+| --- | --- |
+| Steps not bounded by their job | `upload-after-job`, `step-outside-job` |
+| Step status unchecked | `upload-in-progress` |
+| Accepted runner identity unchecked | `anonymous-runner`, `other-label` |
+| Attempt repository unchecked | `attempt-repository` |
+| Step order unchecked | `steps-renumbered` |
+| Skipped or never-started roles admitted | `skipped-history`, `never-started-history` |
+
+All 37 refusal cases name the rule they expect.
 
 **Local validation (Windows).**
 - Each plant above failed its test and passed when restored.
