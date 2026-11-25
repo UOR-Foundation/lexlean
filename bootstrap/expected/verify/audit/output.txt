@@ -61,6 +61,16 @@
 'LexLeanBoot.AxiomOutput.whiteEnding' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.AxiomOutput.whiteLength' depends on axioms: [propext, Quot.sound]
 'LexLeanBoot.AxiomOutput.zeroStep' does not depend on any axioms
+'LexLeanBoot.AxiomPolicy.Policy' does not depend on any axioms
+'LexLeanBoot.AxiomPolicy.RuleVerifyPolicy' does not depend on any axioms
+'LexLeanBoot.AxiomPolicy.dedupListOfBytesEnd' does not depend on any axioms
+'LexLeanBoot.AxiomPolicy.eqListOfBytesEnd' does not depend on any axioms
+'LexLeanBoot.AxiomPolicy.insertsortedListOfBytesEnd' depends on axioms: [propext]
+'LexLeanBoot.AxiomPolicy.memListOfBytesEnd' does not depend on any axioms
+'LexLeanBoot.AxiomPolicy.policyAxioms' does not depend on any axioms
+'LexLeanBoot.AxiomPolicy.policyKind' does not depend on any axioms
+'LexLeanBoot.AxiomPolicy.policyPermits' depends on axioms: [propext]
+'LexLeanBoot.AxiomPolicy.ruleToken' does not depend on any axioms
 'LexLeanBoot.CalculusCheck.Decimal' does not depend on any axioms
 'LexLeanBoot.CalculusCheck.Expr' does not depend on any axioms
 'LexLeanBoot.CalculusCheck.IntKind' does not depend on any axioms

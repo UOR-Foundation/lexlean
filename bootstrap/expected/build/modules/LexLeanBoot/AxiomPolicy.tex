@@ -1,0 +1,84 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{Policy}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{None}: \texttt{()}.\par
+\noindent Constructor \texttt{Allow}: \texttt{(List (ByteArray))}.\par
+\noindent Constructor \texttt{Exact}: \texttt{(List (ByteArray))}.\par
+\subsection*{\texttt{RuleVerifyPolicy}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{Document}: \texttt{()}.\par
+\noindent Constructor \texttt{Core}: \texttt{()}.\par
+\noindent Constructor \texttt{Semantic}: \texttt{()}.\par
+\noindent Constructor \texttt{Model}: \texttt{(List (ByteArray))}.\par
+\noindent Constructor \texttt{Runtime}: \texttt{()}.\par
+\subsection*{\texttt{memListOfBytesEnd}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (ByteArray)) (item : ByteArray)}.\par
+\noindent Closure 1: binds \texttt{(acc, head)}, captures \texttt{(item)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (acc : Bool) (head : ByteArray) => (if acc then true else (LexLeanRuntime.equal (head) (item) : Bool)))) (false) (items) : Bool)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{eqListOfBytesEnd}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(left : List (ByteArray)) (right : List (ByteArray))}.\par
+\noindent Closure 1: binds \texttt{(acc, lhead)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(let walked : (Prod (Bool) (List (ByteArray))) := (LexLeanCollections.listFold ((fun (acc : (Prod (Bool) (List (ByteArray)))) (lhead : ByteArray) => (if (acc).1 then (match (acc).2 with | List.nil => (false, ([] : List (ByteArray))) | List.cons rhead rtail => (if (LexLeanRuntime.equal (lhead) (rhead) : Bool) then (true, rtail) else (false, rtail))) else acc))) ((true, right)) (left) : (Prod (Bool) (List (ByteArray)))); (if (walked).1 then (match (walked).2 with | List.nil => true | List.cons \_ \_ => false) else false))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{insertsortedListOfBytesEnd}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(sorted : List (ByteArray)) (item : ByteArray)}.\par
+\noindent Closure 1: binds \texttt{(acc, head)}, captures \texttt{(item)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (ByteArray)}.\par
+\noindent Definition: \texttt{(let placed : (Prod (Bool) (List (ByteArray))) := (LexLeanCollections.listFold ((fun (acc : (Prod (Bool) (List (ByteArray)))) (head : ByteArray) => (if (acc).1 then (true, (head :: (acc).2)) else (if LexLeanBoot.AxiomOutput.lessBytes (item) (head) then (true, (head :: (item :: (acc).2))) else (false, (head :: (acc).2)))))) ((false, ([] : List (ByteArray)))) (sorted) : (Prod (Bool) (List (ByteArray)))); LexLeanBoot.AxiomOutput.reversed (ByteArray) ((if (placed).1 then (placed).2 else (item :: (placed).2))))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{dedupListOfBytesEnd}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(items : List (ByteArray))}.\par
+\noindent Closure 1: binds \texttt{(acc, x)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List (ByteArray)}.\par
+\noindent Definition: \texttt{LexLeanBoot.AxiomOutput.reversed (ByteArray) ((LexLeanCollections.listFold ((fun (acc : List (ByteArray)) (x : ByteArray) => (match acc with | List.nil => (x :: acc) | List.cons last \_ => (if (LexLeanRuntime.equal (last) (x) : Bool) then acc else (x :: acc))))) (([] : List (ByteArray))) (items) : List (ByteArray)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{policyKind}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(this2 : Policy)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation}.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(match this2 with | Policy.None => LexLeanBoot.AxiomOutput.text ("none") | Policy.Allow \_ => LexLeanBoot.AxiomOutput.text ("allow") | Policy.Exact \_ => LexLeanBoot.AxiomOutput.text ("exact"))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{policyAxioms}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(this2 : Policy)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation}.\par
+\noindent Type: \texttt{List (ByteArray)}.\par
+\noindent Definition: \texttt{(match this2 with | Policy.None => ([] : List (ByteArray)) | Policy.Allow got3 => got3 | Policy.Exact got4 => got4)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{policyPermits}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(this2 : Policy) (observed : List (ByteArray))}.\par
+\noindent Closure 1: binds \texttt{(acc2, item2)}, captures \texttt{(got3)}.\par
+\noindent Closure 2: binds \texttt{(acc, x)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match this2 with | Policy.None => (Nat.beq (LexLeanBoot.AxiomOutput.listLength (ByteArray) (observed)) (0)) | Policy.Allow got3 => (LexLeanCollections.listFold ((fun (acc2 : Bool) (item2 : ByteArray) => (if acc2 then memListOfBytesEnd (got3) (item2) else false))) (true) (observed) : Bool) | Policy.Exact got4 => (let sorted4 : List (ByteArray) := observed; (let sorted5 : List (ByteArray) := (LexLeanCollections.listFold ((fun (acc : List (ByteArray)) (x : ByteArray) => insertsortedListOfBytesEnd (acc) (x))) (([] : List (ByteArray))) (sorted4) : List (ByteArray)); (let sorted6 : List (ByteArray) := dedupListOfBytesEnd (sorted5); eqListOfBytesEnd (sorted6) (got4)))))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{ruleToken}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(this2 : RuleVerifyPolicy)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation}.\par
+\noindent Type: \texttt{ByteArray}.\par
+\noindent Definition: \texttt{(match this2 with | RuleVerifyPolicy.Document => LexLeanBoot.AxiomOutput.text ("document") | RuleVerifyPolicy.Core => LexLeanBoot.AxiomOutput.text ("core") | RuleVerifyPolicy.Semantic => LexLeanBoot.AxiomOutput.text ("semantic") | RuleVerifyPolicy.Model \_ => LexLeanBoot.AxiomOutput.text ("model") | RuleVerifyPolicy.Runtime => LexLeanBoot.AxiomOutput.text ("runtime"))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

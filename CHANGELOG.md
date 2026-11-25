@@ -17,6 +17,12 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- The axiom policy of a declaration is source (SPEC.md §22.6): `BS-74`, the module
+  `AxiomPolicy`, held to `verify::policy` (`Policy::kind`, `Policy::axioms`,
+  `Policy::permits`, and `Rule::token`) by the evaluator and the rendered packages, with six
+  planted defects. It is the first bootstrap member translated mechanically from the Rust it
+  replaces rather than written by hand (#269, #92). No new diagnostic code and no change to
+  the language-1.2 surface. The register is 523.
 - A recursive definition with more than ten parameters states its recursive
   argument (`SP-34`, SPEC.md §17.12). Lean's structural search tries no
   candidate once more than ten are possible (`maxCombinationSize`) and
