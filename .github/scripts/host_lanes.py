@@ -131,15 +131,20 @@ def execute(root, target, lane, output):
 
 def join(root, target, artifacts):
     bdd, plan, names = lanes(root)
+    artifacts = Path(artifacts)
+    require(artifacts.is_dir() and not artifacts.is_symlink(), "not a regular host artifact directory")
+    paths = {lane: f"host-{target}-{lane}/receipt.json" for lane in names}
+    factory.exact_files(artifacts, list(paths.values()))
     receipts = {}
-    for path in sorted(Path(artifacts).glob("*/receipt.json")):
-        receipt = json.loads(path.read_text())
-        require(receipt.get("schema") == SCHEMA and receipt.get("target") == target,
+    for lane, name in paths.items():
+        path = artifacts / name
+        receipt = factory.read_json(path)
+        require(isinstance(receipt, dict) and type(receipt.get("schema")) is int
+                and receipt["schema"] == SCHEMA and receipt.get("target") == target,
                 f"{path}: a receipt of another host or format")
-        require(receipt["lane"] not in receipts, f"two receipts of lane `{receipt['lane']}`")
-        receipts[receipt["lane"]] = receipt
+        require(receipt.get("lane") == lane, f"{path}: receipt lane differs from artifact name")
+        receipts[lane] = receipt
     return check_join(receipts, names, plan, bdd, identity(root))
-
 
 def check_join(receipts, names, plan, bdd, here):
     """The lanes are this run's and commit's, complete, assigned, and passed."""
