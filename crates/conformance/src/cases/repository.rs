@@ -2981,6 +2981,8 @@ pub(crate) fn run(id: &str) {
                 "test_intel_host_tests.py",
                 "test_host_lanes.py",
                 "test_tag_gate_poll.py",
+                "test_ci_provider_read.py",
+                "test_release_gate_partial_read.py",
             ] {
                 let command =
                     format!("python3 -m unittest discover -s .github/scripts -p '{script}'");
@@ -4931,7 +4933,9 @@ fn regression_honesty(ci: &str) -> Result<(), String> {
         "          python3 -m unittest discover -s .github/scripts -p 'test_export_custody_guard.py'\n",
         "          python3 -m unittest discover -s .github/scripts -p 'test_intel_host_tests.py'\n",
         "          python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'\n",
-        "          python3 -m unittest discover -s .github/scripts -p 'test_tag_gate_poll.py'",
+        "          python3 -m unittest discover -s .github/scripts -p 'test_tag_gate_poll.py'\n",
+        "          python3 -m unittest discover -s .github/scripts -p 'test_ci_provider_read.py'\n",
+        "          python3 -m unittest discover -s .github/scripts -p 'test_release_gate_partial_read.py'",
     );
     // Pin this small shell program, not mere command presence: earlier exits,
     // masked failures, shell overrides and omitted tests must all be refused.

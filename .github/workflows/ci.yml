@@ -198,6 +198,8 @@ jobs:
           python3 -m unittest discover -s .github/scripts -p 'test_intel_host_tests.py'
           python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'
           python3 -m unittest discover -s .github/scripts -p 'test_tag_gate_poll.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_ci_provider_read.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_release_gate_partial_read.py'
       # The forward merge runs only on a push to a release line, where a
       # defect surfaces as a missing pull request; its cases run here (#600).
       - name: Test the forward merge of a release line
