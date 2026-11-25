@@ -164,6 +164,126 @@ fi
                 r, _, runs, jobs = self.check_plan(expected_note=note, **kwargs)
                 self.assertEqual((r['full'], runs, jobs), ('true', 0, 0))
 
+class ProviderRunIndex(unittest.TestCase):
+    """Use real jq on provider-shaped records; the status-filter index is stale."""
+
+    def exercise(self, script, status='completed', conclusion='success',
+                 repository='owner/repo', event='pull_request', bad_job=False,
+                 partial=False):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return subprocess.check_output(['git', '-C', directory, *args],
+                                               stderr=subprocess.DEVNULL).decode().strip()
+            git('init', '-q', '-b', 'main')
+            git('config', 'user.name', 'Test')
+            git('config', 'user.email', 'test@example.invalid')
+            git('commit', '--allow-empty', '-qm', 'base')
+            git('checkout', '-qb', 'feature')
+            git('commit', '--allow-empty', '-qm', 'feature')
+            parent = git('rev-parse', 'HEAD')
+            git('checkout', '-q', 'main')
+            git('merge', '-q', '--no-ff', '-m', 'merge', 'feature')
+            head = git('rev-parse', 'HEAD')
+            stamp = '2026-01-01T00:00:00Z'
+            def run(id_, status_, conclusion_, repo_, event_):
+                return dict(id=id_, status=status_, conclusion=conclusion_,
+                            head_repository={'full_name': repo_}, head_sha=parent,
+                            event=event_, created_at=stamp, updated_at=stamp,
+                            html_url=f'https://github.com/owner/repo/actions/runs/{id_}')
+            records = [run(43, 'completed', 'skipped', 'owner/repo', 'pull_request'),
+                       run(44, 'in_progress', None, 'owner/repo', 'pull_request'),
+                       run(45, 'completed', 'success', 'foreign/repo', 'pull_request'),
+                       run(42, status, conclusion, repository, event)]
+            (root / 'runs.json').write_text(json.dumps({'workflow_runs': records}))
+            names = ['plan', 'honesty', 'just vv (rest)', 'atlas (join)']
+            names += [f'build and non-Lean tests ({host})' for host in (
+                'aarch64-unknown-linux-gnu', 'x86_64-apple-darwin',
+                'aarch64-apple-darwin', 'x86_64-pc-windows-msvc')]
+            jobs = [dict(name=name, conclusion='failure' if bad_job and name == 'honesty'
+                         else 'success', started_at=stamp, completed_at=stamp) for name in names]
+            (root / 'jobs.json').write_text(json.dumps({'jobs': jobs}))
+            rows = root / 'rows.json'
+            rows.write_text(json.dumps([{'part': part} for part in ('honesty', 'rest')]))
+            bin_dir = root / 'bin'
+            bin_dir.mkdir()
+            stub = bin_dir / 'gh'
+            stub.write_text('''#!/usr/bin/env bash
+set -eu
+if [ "$1" = run ]; then exit 1; fi
+[ "$1" = api ]
+case "$2" in
+  */workflows/ci.yml/runs\\?*)
+    if [[ "$2" == *status=success* ]]; then
+      printf '%s\\n' '{"workflow_runs":[]}' | jq -r "${@: -1}"
+    elif [[ "$2" == *"head_sha=$PARENT&"* ]]; then
+      jq -r "${@: -1}" "$ROOT/runs.json"
+      if [ "$PARTIAL" = 1 ]; then exit 1; fi
+    else
+      printf '%s\\n' '{"workflow_runs":[]}' | jq -r "${@: -1}"
+    fi ;;
+  */runs/*/jobs\\?*)
+    printf '%s\\n' "$2" >> "$ROOT/queried"
+    jq -r "${@: -1}" "$ROOT/jobs.json" ;;
+  *) exit 2 ;;
+esac
+''')
+            stub.chmod(0o755)
+            sleep = bin_dir / 'sleep'
+            sleep.write_text('#!/bin/sh\nexit 0\n')
+            sleep.chmod(0o755)
+            out = root / 'out'
+            summary = root / 'summary'
+            env = dict(os.environ, PATH=f'{bin_dir}:{os.environ["PATH"]}', ROOT=directory,
+                       PARENT=parent, PARTIAL=str(int(partial)), EVENT='push', REPO='owner/repo',
+                       SHA=head, OUT=str(out), LEXLEAN_CI_ROWS=str(rows),
+                       GITHUB_OUTPUT=str(out), GITHUB_STEP_SUMMARY=str(summary))
+            proc = subprocess.run(['bash', str(Path(__file__).resolve().parents[1] / script)],
+                                  cwd=directory, env=env, capture_output=True, text=True, timeout=15)
+            queried = (root / 'queried').read_text().splitlines() if (root / 'queried').exists() else []
+            accepted = (proc.returncode == 0 and out.exists() and
+                        ('full=false' in out.read_text() if script == 'ci-plan.sh'
+                         else 'gate run id 42,' in out.read_text()))
+            if script == 'ci-plan.sh':
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+            elif not accepted:
+                self.assertNotEqual(proc.returncode, 0, proc.stdout)
+                self.assertFalse(out.exists())
+            return accepted, queried
+
+    def test_stale_success_index_recovers_both_gates(self):
+        for script in ('ci-plan.sh', 'release-gate.sh'):
+            with self.subTest(script=script):
+                accepted, queried = self.exercise(script)
+                self.assertTrue(accepted)
+                self.assertEqual(len(queried), 1)
+                self.assertIn('/runs/42/jobs?', queried[0])
+
+    def test_unqualified_run_metadata_never_reaches_job_check(self):
+        for script in ('ci-plan.sh', 'release-gate.sh'):
+            for kwargs in ({'status': 'in_progress'}, {'conclusion': 'failure'},
+                           {'conclusion': 'skipped'}, {'conclusion': None},
+                           {'repository': 'foreign/repo'}, {'partial': True}):
+                with self.subTest(script=script, **kwargs):
+                    accepted, queried = self.exercise(script, **kwargs)
+                    self.assertFalse(accepted)
+                    self.assertEqual(queried, [])
+
+    def test_planner_still_refuses_push_run(self):
+        self.assertEqual(self.exercise('ci-plan.sh', event='push'), (False, []))
+
+    def test_release_still_accepts_qualified_push_run(self):
+        accepted, queried = self.exercise('release-gate.sh', event='push')
+        self.assertTrue(accepted)
+        self.assertEqual(len(queried), 1)
+
+    def test_successful_run_header_does_not_override_failed_job(self):
+        for script in ('ci-plan.sh', 'release-gate.sh'):
+            with self.subTest(script=script):
+                accepted, queried = self.exercise(script, bad_job=True)
+                self.assertFalse(accepted)
+                self.assertEqual(len(queried), 1)
+
 
 if __name__ == '__main__':
     unittest.main()
