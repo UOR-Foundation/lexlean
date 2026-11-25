@@ -138,12 +138,12 @@ verified_tree_run() {
     if full_run_of "$commit"; then
       return 0
     fi
-    [ "$depth" -lt 4 ] || return 1
+    [ "$depth" -lt 4 ] || { ci_reuse_note "$commit: ancestry search limit reached"; return 1; }
     # The plan's checkout is shallow; deepen it for the commit it walks.
     git rev-parse --verify --quiet "$commit^2" >/dev/null \
-      || git fetch --quiet --depth=2 origin "$commit" 2>/dev/null || return 1
-    git rev-parse --verify --quiet "$commit^2" >/dev/null || return 1
-    [ "$(git rev-parse "$commit^{tree}")" = "$(git rev-parse "$commit^2^{tree}")" ] || return 1
+      || git fetch --quiet --depth=2 origin "$commit" 2>/dev/null || { ci_reuse_note "$commit: cannot deepen ancestry"; return 1; }
+    git rev-parse --verify --quiet "$commit^2" >/dev/null || { ci_reuse_note "$commit: no second parent available"; return 1; }
+    [ "$(git rev-parse "$commit^{tree}")" = "$(git rev-parse "$commit^2^{tree}")" ] || { ci_reuse_note "$commit: second-parent tree differs"; return 1; }
     commit=$(git rev-parse "$commit^2")
     depth=$((depth + 1))
   done
@@ -153,8 +153,8 @@ verified_tree_run() {
 # parent with the same tree.
 verified_parent_run() {
   local parent
-  parent=$(git rev-parse --verify --quiet 'HEAD^2') || return 1
-  [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "$parent^{tree}")" ] || return 1
+  parent=$(git rev-parse --verify --quiet 'HEAD^2') || { ci_reuse_note 'HEAD: no second parent available'; return 1; }
+  [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "$parent^{tree}")" ] || { ci_reuse_note 'HEAD: second-parent tree differs'; return 1; }
   # HEAD to its parent is the first of the four merges `release-gate.sh`
   # walks from the tagged commit.
   verified_tree_run "$parent" 1
