@@ -8,7 +8,8 @@ import unittest
 
 
 class PlannerProviderRetry(unittest.TestCase):
-    def check_plan(self, fail_runs=0, fail_jobs=0, defect='', changed_tree=False):
+    def check_plan(self, fail_runs=0, fail_jobs=0, defect='', changed_tree=False,
+                   nonmerge=False, expected_note=None):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             def git(*args):
@@ -30,7 +31,8 @@ class PlannerProviderRetry(unittest.TestCase):
                 (root / 'other').write_text('other')
                 git('add', '.')
                 git('commit', '-qm', 'other')
-            git('merge', '-q', '--no-ff', '-m', 'merge', 'feature')
+            if not nonmerge:
+                git('merge', '-q', '--no-ff', '-m', 'merge', 'feature')
             planner = Path(__file__).resolve().parents[1] / 'ci-plan.sh'
             parts = ['honesty', 'rest', 'examples']
             rows = root / 'rows.json'
@@ -43,6 +45,10 @@ class PlannerProviderRetry(unittest.TestCase):
                 jobs.remove('just vv (rest)')
             if defect == 'duplicate':
                 jobs.append(jobs[-1])
+            if defect == 'atlas':
+                jobs.remove('atlas (join)')
+            if defect == 'empty_jobs':
+                jobs.clear()
             listing = '\n'.join(name + '\t' + ('failure' if defect == 'failed' and
                                 name == 'honesty' else 'success') for name in jobs)
             (root / 'jobs').write_text(listing)
@@ -55,7 +61,8 @@ set -eu
 case "$2" in
   */workflows/ci.yml/runs\\?*)
     [[ "$2" == *"head_sha=$PARENT&"* ]] || exit 2
-    kind=runs; failures=$FAIL_RUNS; output=42 ;;
+    kind=runs; failures=$FAIL_RUNS; output=42
+    if [ "$DEFECT" = empty_runs ]; then output=; fi ;;
   */runs/42/jobs\\?*)
     kind=jobs; failures=$FAIL_JOBS; output=$(cat "$ROOT/jobs") ;;
   *) exit 2 ;;
@@ -85,11 +92,15 @@ fi
             summary = root / 'summary'
             env = dict(os.environ, PATH=f'{bin_dir}:{os.environ["PATH"]}', ROOT=directory,
                        PARENT=parent, FAIL_RUNS=str(fail_runs), FAIL_JOBS=str(fail_jobs),
+                       DEFECT=defect,
                        EVENT='push', REPO='owner/repo', LEXLEAN_CI_ROWS=str(rows),
                        GITHUB_OUTPUT=str(out), GITHUB_STEP_SUMMARY=str(summary))
             proc = subprocess.run(['bash', str(planner)], cwd=directory, env=env,
                                   capture_output=True, text=True, timeout=15)
             self.assertEqual(proc.returncode, 0, proc.stderr)
+            if expected_note is not None:
+                self.assertIn(expected_note, proc.stderr)
+            self.assertNotIn('CI reuse:', out.read_text())
             result = dict(line.split('=', 1) for line in out.read_text().splitlines())
             def count(kind):
                 p = root / f'{kind}.count'
@@ -121,6 +132,37 @@ fi
     def test_changed_merge_tree_does_not_query_provider(self):
         r, _, runs, jobs = self.check_plan(changed_tree=True)
         self.assertEqual((r['full'], runs, jobs), ('true', 0, 0))
+
+
+    def test_reuse_diagnostics_preserve_gate_decisions(self):
+        cases = [
+            ({}, 'complete gate accepted', 'false'),
+            ({'fail_runs': 3}, 'successful run lookup failed', 'true'),
+            ({'fail_jobs': 3}, 'job lookup failed', 'true'),
+            ({'defect': 'empty_runs'}, 'no eligible successful run returned', 'true'),
+            ({'defect': 'empty_jobs'}, 'empty or non-success job listing', 'true'),
+            ({'defect': 'failed'}, 'empty or non-success job listing', 'true'),
+            ({'defect': 'atlas'}, 'missing successful Atlas join', 'true'),
+            ({'defect': 'duplicate'}, 'required host contexts absent', 'true'),
+            ({'defect': 'missing'}, 'missing successful required row rest', 'true'),
+        ]
+        for kwargs, note, full in cases:
+            with self.subTest(**kwargs):
+                r, summary, _, _ = self.check_plan(expected_note=note, **kwargs)
+                self.assertEqual(r['full'], full)
+                if full == 'false':
+                    self.assertEqual(r['rows'], '[]')
+                    self.assertIn('run 42', summary)
+                else:
+                    self.assertEqual(len(json.loads(r['rows'])), 3)
+
+    def test_ancestry_refusals_are_diagnostic_and_do_not_query_provider(self):
+        cases = [({'changed_tree': True}, 'HEAD: second-parent tree differs'),
+                 ({'nonmerge': True}, 'HEAD: no second parent available')]
+        for kwargs, note in cases:
+            with self.subTest(**kwargs):
+                r, _, runs, jobs = self.check_plan(expected_note=note, **kwargs)
+                self.assertEqual((r['full'], runs, jobs), ('true', 0, 0))
 
 
 if __name__ == '__main__':
