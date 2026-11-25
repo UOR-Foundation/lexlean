@@ -1,0 +1,1353 @@
+{
+  "schema": "lexlean/advisory-native-host-timing/1",
+  "authority": false,
+  "scope": "Four successful attempt-1 jobs; source REST attempt jobs and decoded logs; elapsed markers, not CPU time. Cargo-to-first-harness includes compilation/startup. Warning-to-completion is output interval, not true per-case duration, because timestamps can reflect buffering/scheduling. No causal claim.",
+  "results": [
+    {
+      "run": 45437716141,
+      "job": 138604050594,
+      "host": "linux-arm64",
+      "head": "603336bf2752ecbfa4d688ccb5d52b3585bfa64b",
+      "attempt": 1,
+      "jobStart": "2026-11-24T16:35:20Z",
+      "jobEnd": "2026-11-24T19:50:50Z",
+      "jobSeconds": 11730,
+      "cargoToFirstHarnessSeconds": 201.588,
+      "firstToConformanceSeconds": 256.774,
+      "conformanceReportedSeconds": 11202.53,
+      "conformanceLogSpanSeconds": 11202.53,
+      "conformanceWarningCount": 52,
+      "markers": [
+        "2026-11-24T16:36:21.9646691Z ##[group]Run cargo test --locked --workspace --all-features --no-fail-fast",
+        "2026-11-24T16:39:43.5527692Z running 236 tests",
+        "2026-11-24T16:44:00.3265160Z running 524 tests",
+        "2026-11-24T19:50:42.8569646Z test result: ok. 524 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11202.53s"
+      ],
+      "warnings": [
+        {
+          "name": "conformance_au_01",
+          "warning": "2026-11-24T16:45:01.6675508Z",
+          "completion": "2026-11-24T16:48:07.5943933Z",
+          "warningToCompletionSeconds": 185.927
+        },
+        {
+          "name": "conformance_au_08",
+          "warning": "2026-11-24T16:45:37.1195886Z",
+          "completion": "2026-11-24T17:06:56.0976218Z",
+          "warningToCompletionSeconds": 1278.978
+        },
+        {
+          "name": "conformance_au_09",
+          "warning": "2026-11-24T16:45:42.6415581Z",
+          "completion": "2026-11-24T16:47:47.5592789Z",
+          "warningToCompletionSeconds": 124.918
+        },
+        {
+          "name": "conformance_au_14",
+          "warning": "2026-11-24T16:47:40.3167279Z",
+          "completion": "2026-11-24T16:47:54.1463267Z",
+          "warningToCompletionSeconds": 13.83
+        },
+        {
+          "name": "conformance_bs_03",
+          "warning": "2026-11-24T16:49:07.5942612Z",
+          "completion": "2026-11-24T16:52:00.8785340Z",
+          "warningToCompletionSeconds": 173.284
+        },
+        {
+          "name": "conformance_bs_04",
+          "warning": "2026-11-24T16:49:09.7870275Z",
+          "completion": "2026-11-24T16:56:28.4014479Z",
+          "warningToCompletionSeconds": 438.614
+        },
+        {
+          "name": "conformance_bs_05",
+          "warning": "2026-11-24T16:49:45.4615167Z",
+          "completion": "2026-11-24T17:20:33.9110332Z",
+          "warningToCompletionSeconds": 1848.45
+        },
+        {
+          "name": "conformance_bs_06",
+          "warning": "2026-11-24T16:53:00.8786332Z",
+          "completion": "2026-11-24T17:45:47.2472222Z",
+          "warningToCompletionSeconds": 3166.369
+        },
+        {
+          "name": "conformance_bs_07",
+          "warning": "2026-11-24T16:57:28.4023811Z",
+          "completion": "2026-11-24T18:54:32.3064562Z",
+          "warningToCompletionSeconds": 7023.904
+        },
+        {
+          "name": "conformance_bs_08",
+          "warning": "2026-11-24T17:07:56.0980314Z",
+          "completion": "2026-11-24T19:05:49.9835734Z",
+          "warningToCompletionSeconds": 7073.885
+        },
+        {
+          "name": "conformance_bs_09",
+          "warning": "2026-11-24T17:21:33.9092623Z",
+          "completion": "2026-11-24T19:07:18.4310842Z",
+          "warningToCompletionSeconds": 6344.522
+        },
+        {
+          "name": "conformance_bs_10",
+          "warning": "2026-11-24T17:46:47.2473053Z",
+          "completion": "2026-11-24T19:07:39.5570781Z",
+          "warningToCompletionSeconds": 4852.31
+        },
+        {
+          "name": "conformance_bs_11",
+          "warning": "2026-11-24T18:55:32.3071158Z",
+          "completion": "2026-11-24T19:08:18.3094801Z",
+          "warningToCompletionSeconds": 766.002
+        },
+        {
+          "name": "conformance_bs_12",
+          "warning": "2026-11-24T19:06:49.9832926Z",
+          "completion": "2026-11-24T19:08:53.8166952Z",
+          "warningToCompletionSeconds": 123.833
+        },
+        {
+          "name": "conformance_bs_13",
+          "warning": "2026-11-24T19:08:18.4316176Z",
+          "completion": "2026-11-24T19:09:40.3761127Z",
+          "warningToCompletionSeconds": 81.945
+        },
+        {
+          "name": "conformance_bs_14",
+          "warning": "2026-11-24T19:08:39.5571921Z",
+          "completion": "2026-11-24T19:10:33.3320955Z",
+          "warningToCompletionSeconds": 113.775
+        },
+        {
+          "name": "conformance_bs_15",
+          "warning": "2026-11-24T19:09:18.3102934Z",
+          "completion": "2026-11-24T19:14:03.5438518Z",
+          "warningToCompletionSeconds": 285.233
+        },
+        {
+          "name": "conformance_bs_16",
+          "warning": "2026-11-24T19:09:53.8169302Z",
+          "completion": "2026-11-24T19:14:27.5184857Z",
+          "warningToCompletionSeconds": 273.702
+        },
+        {
+          "name": "conformance_bs_20",
+          "warning": "2026-11-24T19:10:40.3763125Z",
+          "completion": "2026-11-24T19:15:41.7921428Z",
+          "warningToCompletionSeconds": 301.416
+        },
+        {
+          "name": "conformance_bs_21",
+          "warning": "2026-11-24T19:11:33.3321648Z",
+          "completion": "2026-11-24T19:22:06.8160122Z",
+          "warningToCompletionSeconds": 633.484
+        },
+        {
+          "name": "conformance_bs_22",
+          "warning": "2026-11-24T19:15:03.5440411Z",
+          "completion": "2026-11-24T19:22:56.7996391Z",
+          "warningToCompletionSeconds": 473.255
+        },
+        {
+          "name": "conformance_bs_23",
+          "warning": "2026-11-24T19:15:27.5186257Z",
+          "completion": "2026-11-24T19:29:56.2656491Z",
+          "warningToCompletionSeconds": 868.747
+        },
+        {
+          "name": "conformance_bs_24",
+          "warning": "2026-11-24T19:16:41.7924288Z",
+          "completion": "2026-11-24T19:30:44.4101972Z",
+          "warningToCompletionSeconds": 842.618
+        },
+        {
+          "name": "conformance_bs_25",
+          "warning": "2026-11-24T19:23:06.8164674Z",
+          "completion": "2026-11-24T19:31:05.8883896Z",
+          "warningToCompletionSeconds": 479.072
+        },
+        {
+          "name": "conformance_bs_26",
+          "warning": "2026-11-24T19:23:56.7997610Z",
+          "completion": "2026-11-24T19:31:25.9845413Z",
+          "warningToCompletionSeconds": 449.185
+        },
+        {
+          "name": "conformance_bs_27",
+          "warning": "2026-11-24T19:30:56.2656877Z",
+          "completion": "2026-11-24T19:32:32.0341497Z",
+          "warningToCompletionSeconds": 95.769
+        },
+        {
+          "name": "conformance_bs_28",
+          "warning": "2026-11-24T19:31:44.4104879Z",
+          "completion": "2026-11-24T19:34:20.6532928Z",
+          "warningToCompletionSeconds": 156.243
+        },
+        {
+          "name": "conformance_bs_29",
+          "warning": "2026-11-24T19:32:05.8885166Z",
+          "completion": "2026-11-24T19:34:44.5053713Z",
+          "warningToCompletionSeconds": 158.617
+        },
+        {
+          "name": "conformance_bs_30",
+          "warning": "2026-11-24T19:32:25.9847929Z",
+          "completion": "2026-11-24T19:35:04.9545046Z",
+          "warningToCompletionSeconds": 158.97
+        },
+        {
+          "name": "conformance_bs_31",
+          "warning": "2026-11-24T19:33:32.0342690Z",
+          "completion": "2026-11-24T19:35:27.6371901Z",
+          "warningToCompletionSeconds": 115.603
+        },
+        {
+          "name": "conformance_bs_32",
+          "warning": "2026-11-24T19:35:20.6535233Z",
+          "completion": "2026-11-24T19:36:05.0509242Z",
+          "warningToCompletionSeconds": 44.397
+        },
+        {
+          "name": "conformance_bs_33",
+          "warning": "2026-11-24T19:35:44.5053071Z",
+          "completion": "2026-11-24T19:36:28.6972772Z",
+          "warningToCompletionSeconds": 44.192
+        },
+        {
+          "name": "conformance_bs_34",
+          "warning": "2026-11-24T19:36:04.9545735Z",
+          "completion": "2026-11-24T19:36:50.6505289Z",
+          "warningToCompletionSeconds": 45.696
+        },
+        {
+          "name": "conformance_gn_02",
+          "warning": "2026-11-24T19:37:32.5944393Z",
+          "completion": "2026-11-24T19:37:34.1335162Z",
+          "warningToCompletionSeconds": 1.539
+        },
+        {
+          "name": "conformance_ka_05",
+          "warning": "2026-11-24T19:38:29.9834905Z",
+          "completion": "2026-11-24T19:39:39.4015443Z",
+          "warningToCompletionSeconds": 69.418
+        },
+        {
+          "name": "conformance_ka_08",
+          "warning": "2026-11-24T19:38:57.1385528Z",
+          "completion": "2026-11-24T19:41:26.7745804Z",
+          "warningToCompletionSeconds": 149.636
+        },
+        {
+          "name": "conformance_rb_06",
+          "warning": "2026-11-24T19:41:13.4065039Z",
+          "completion": "2026-11-24T19:41:26.7066142Z",
+          "warningToCompletionSeconds": 13.3
+        },
+        {
+          "name": "conformance_rb_07",
+          "warning": "2026-11-24T19:41:15.9634847Z",
+          "completion": "2026-11-24T19:42:20.2365552Z",
+          "warningToCompletionSeconds": 64.273
+        },
+        {
+          "name": "conformance_rb_12",
+          "warning": "2026-11-24T19:41:25.4925214Z",
+          "completion": "2026-11-24T19:41:33.2612179Z",
+          "warningToCompletionSeconds": 7.769
+        },
+        {
+          "name": "conformance_rb_20",
+          "warning": "2026-11-24T19:42:33.2646043Z",
+          "completion": "2026-11-24T19:43:24.3084742Z",
+          "warningToCompletionSeconds": 51.044
+        },
+        {
+          "name": "conformance_rp_12",
+          "warning": "2026-11-24T19:42:45.0181101Z",
+          "completion": "2026-11-24T19:44:50.1758699Z",
+          "warningToCompletionSeconds": 125.157
+        },
+        {
+          "name": "conformance_rp_15",
+          "warning": "2026-11-24T19:43:20.2325004Z",
+          "completion": "2026-11-24T19:43:37.4675011Z",
+          "warningToCompletionSeconds": 17.235
+        },
+        {
+          "name": "conformance_rp_19",
+          "warning": "2026-11-24T19:43:35.0035003Z",
+          "completion": "2026-11-24T19:45:07.1864694Z",
+          "warningToCompletionSeconds": 92.183
+        },
+        {
+          "name": "conformance_rs_10",
+          "warning": "2026-11-24T19:44:48.4565142Z",
+          "completion": "2026-11-24T19:44:52.3696136Z",
+          "warningToCompletionSeconds": 3.913
+        },
+        {
+          "name": "conformance_sl_02",
+          "warning": "2026-11-24T19:45:58.3235120Z",
+          "completion": "2026-11-24T19:46:13.8636439Z",
+          "warningToCompletionSeconds": 15.54
+        },
+        {
+          "name": "conformance_sl_05",
+          "warning": "2026-11-24T19:46:06.2845361Z",
+          "completion": "2026-11-24T19:46:38.8125200Z",
+          "warningToCompletionSeconds": 32.528
+        },
+        {
+          "name": "conformance_sl_07",
+          "warning": "2026-11-24T19:46:09.5666564Z",
+          "completion": "2026-11-24T19:47:24.5644834Z",
+          "warningToCompletionSeconds": 74.998
+        },
+        {
+          "name": "conformance_sp_02",
+          "warning": "2026-11-24T19:48:24.5644898Z",
+          "completion": "2026-11-24T19:48:42.0845308Z",
+          "warningToCompletionSeconds": 17.52
+        },
+        {
+          "name": "conformance_sp_08",
+          "warning": "2026-11-24T19:48:31.6680976Z",
+          "completion": "2026-11-24T19:50:33.5295196Z",
+          "warningToCompletionSeconds": 121.861
+        },
+        {
+          "name": "conformance_sp_09",
+          "warning": "2026-11-24T19:48:41.3675831Z",
+          "completion": "2026-11-24T19:48:45.9341981Z",
+          "warningToCompletionSeconds": 4.567
+        },
+        {
+          "name": "conformance_sp_11",
+          "warning": "2026-11-24T19:49:40.9124950Z",
+          "completion": "2026-11-24T19:49:58.2775081Z",
+          "warningToCompletionSeconds": 17.365
+        },
+        {
+          "name": "conformance_sp_12",
+          "warning": "2026-11-24T19:49:42.0802853Z",
+          "completion": "2026-11-24T19:49:48.5696038Z",
+          "warningToCompletionSeconds": 6.489
+        }
+      ]
+    },
+    {
+      "run": 45553276269,
+      "job": 139001164804,
+      "host": "linux-arm64",
+      "head": "f15fd26344effebfbe3d34bbfb51471a519cf25b",
+      "attempt": 1,
+      "jobStart": "2026-11-25T05:29:00Z",
+      "jobEnd": "2026-11-25T08:47:05Z",
+      "jobSeconds": 11885,
+      "cargoToFirstHarnessSeconds": 218.198,
+      "firstToConformanceSeconds": 256.439,
+      "conformanceReportedSeconds": 11341,
+      "conformanceLogSpanSeconds": 11340.995,
+      "conformanceWarningCount": 52,
+      "markers": [
+        "2026-11-25T05:30:00.5855955Z ##[group]Run cargo test --locked --workspace --all-features --no-fail-fast",
+        "2026-11-25T05:33:38.7832877Z running 236 tests",
+        "2026-11-25T05:37:55.2224084Z running 524 tests",
+        "2026-11-25T08:46:56.2175229Z test result: ok. 524 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11341.00s"
+      ],
+      "warnings": [
+        {
+          "name": "conformance_au_01",
+          "warning": "2026-11-25T05:38:56.4890202Z",
+          "completion": "2026-11-25T05:42:31.8474004Z",
+          "warningToCompletionSeconds": 215.358
+        },
+        {
+          "name": "conformance_au_08",
+          "warning": "2026-11-25T05:39:33.6194083Z",
+          "completion": "2026-11-25T06:01:02.7458542Z",
+          "warningToCompletionSeconds": 1289.126
+        },
+        {
+          "name": "conformance_au_09",
+          "warning": "2026-11-25T05:39:38.2520492Z",
+          "completion": "2026-11-25T05:41:43.8941722Z",
+          "warningToCompletionSeconds": 125.642
+        },
+        {
+          "name": "conformance_au_14",
+          "warning": "2026-11-25T05:41:38.4104051Z",
+          "completion": "2026-11-25T05:41:50.7794968Z",
+          "warningToCompletionSeconds": 12.369
+        },
+        {
+          "name": "conformance_bs_03",
+          "warning": "2026-11-25T05:43:08.3869720Z",
+          "completion": "2026-11-25T05:46:05.6305019Z",
+          "warningToCompletionSeconds": 177.244
+        },
+        {
+          "name": "conformance_bs_04",
+          "warning": "2026-11-25T05:43:31.8474998Z",
+          "completion": "2026-11-25T05:51:01.4693930Z",
+          "warningToCompletionSeconds": 449.622
+        },
+        {
+          "name": "conformance_bs_05",
+          "warning": "2026-11-25T05:43:47.6763719Z",
+          "completion": "2026-11-25T06:15:26.1982936Z",
+          "warningToCompletionSeconds": 1898.522
+        },
+        {
+          "name": "conformance_bs_06",
+          "warning": "2026-11-25T05:47:05.6306627Z",
+          "completion": "2026-11-25T06:40:04.0420113Z",
+          "warningToCompletionSeconds": 3178.412
+        },
+        {
+          "name": "conformance_bs_07",
+          "warning": "2026-11-25T05:52:01.4695305Z",
+          "completion": "2026-11-25T07:48:33.9956600Z",
+          "warningToCompletionSeconds": 6992.526
+        },
+        {
+          "name": "conformance_bs_08",
+          "warning": "2026-11-25T06:02:02.7466456Z",
+          "completion": "2026-11-25T08:00:57.0944611Z",
+          "warningToCompletionSeconds": 7134.348
+        },
+        {
+          "name": "conformance_bs_09",
+          "warning": "2026-11-25T06:16:26.1984958Z",
+          "completion": "2026-11-25T08:02:31.6904395Z",
+          "warningToCompletionSeconds": 6365.492
+        },
+        {
+          "name": "conformance_bs_10",
+          "warning": "2026-11-25T06:41:04.0422453Z",
+          "completion": "2026-11-25T08:02:53.1778091Z",
+          "warningToCompletionSeconds": 4909.135
+        },
+        {
+          "name": "conformance_bs_11",
+          "warning": "2026-11-25T07:49:33.9974809Z",
+          "completion": "2026-11-25T08:03:32.7858546Z",
+          "warningToCompletionSeconds": 838.788
+        },
+        {
+          "name": "conformance_bs_12",
+          "warning": "2026-11-25T08:01:57.0946084Z",
+          "completion": "2026-11-25T08:04:08.8301013Z",
+          "warningToCompletionSeconds": 131.736
+        },
+        {
+          "name": "conformance_bs_13",
+          "warning": "2026-11-25T08:03:31.6910966Z",
+          "completion": "2026-11-25T08:04:56.2978315Z",
+          "warningToCompletionSeconds": 84.606
+        },
+        {
+          "name": "conformance_bs_14",
+          "warning": "2026-11-25T08:03:53.1780661Z",
+          "completion": "2026-11-25T08:05:50.1238446Z",
+          "warningToCompletionSeconds": 116.945
+        },
+        {
+          "name": "conformance_bs_15",
+          "warning": "2026-11-25T08:04:32.7863216Z",
+          "completion": "2026-11-25T08:09:27.5181345Z",
+          "warningToCompletionSeconds": 294.732
+        },
+        {
+          "name": "conformance_bs_16",
+          "warning": "2026-11-25T08:05:08.8305017Z",
+          "completion": "2026-11-25T08:09:51.9691574Z",
+          "warningToCompletionSeconds": 283.139
+        },
+        {
+          "name": "conformance_bs_20",
+          "warning": "2026-11-25T08:05:56.2975246Z",
+          "completion": "2026-11-25T08:11:06.5713828Z",
+          "warningToCompletionSeconds": 310.274
+        },
+        {
+          "name": "conformance_bs_21",
+          "warning": "2026-11-25T08:06:50.1240015Z",
+          "completion": "2026-11-25T08:17:45.2446094Z",
+          "warningToCompletionSeconds": 655.12
+        },
+        {
+          "name": "conformance_bs_22",
+          "warning": "2026-11-25T08:10:27.5189638Z",
+          "completion": "2026-11-25T08:18:35.8870197Z",
+          "warningToCompletionSeconds": 488.369
+        },
+        {
+          "name": "conformance_bs_23",
+          "warning": "2026-11-25T08:10:51.9685710Z",
+          "completion": "2026-11-25T08:25:42.9280460Z",
+          "warningToCompletionSeconds": 890.96
+        },
+        {
+          "name": "conformance_bs_24",
+          "warning": "2026-11-25T08:12:06.5720442Z",
+          "completion": "2026-11-25T08:26:31.6902976Z",
+          "warningToCompletionSeconds": 865.118
+        },
+        {
+          "name": "conformance_bs_25",
+          "warning": "2026-11-25T08:18:45.2448701Z",
+          "completion": "2026-11-25T08:26:53.8827521Z",
+          "warningToCompletionSeconds": 488.638
+        },
+        {
+          "name": "conformance_bs_26",
+          "warning": "2026-11-25T08:19:35.8871483Z",
+          "completion": "2026-11-25T08:27:13.9187242Z",
+          "warningToCompletionSeconds": 458.031
+        },
+        {
+          "name": "conformance_bs_27",
+          "warning": "2026-11-25T08:26:42.9282436Z",
+          "completion": "2026-11-25T08:28:21.4426992Z",
+          "warningToCompletionSeconds": 98.514
+        },
+        {
+          "name": "conformance_bs_28",
+          "warning": "2026-11-25T08:27:31.6904781Z",
+          "completion": "2026-11-25T08:30:12.4336292Z",
+          "warningToCompletionSeconds": 160.743
+        },
+        {
+          "name": "conformance_bs_29",
+          "warning": "2026-11-25T08:27:53.8830041Z",
+          "completion": "2026-11-25T08:30:36.5568109Z",
+          "warningToCompletionSeconds": 162.673
+        },
+        {
+          "name": "conformance_bs_30",
+          "warning": "2026-11-25T08:28:13.9188611Z",
+          "completion": "2026-11-25T08:30:57.4637213Z",
+          "warningToCompletionSeconds": 163.545
+        },
+        {
+          "name": "conformance_bs_31",
+          "warning": "2026-11-25T08:29:21.4427876Z",
+          "completion": "2026-11-25T08:31:20.0149836Z",
+          "warningToCompletionSeconds": 118.572
+        },
+        {
+          "name": "conformance_bs_32",
+          "warning": "2026-11-25T08:31:12.4336722Z",
+          "completion": "2026-11-25T08:31:58.3579927Z",
+          "warningToCompletionSeconds": 45.924
+        },
+        {
+          "name": "conformance_bs_33",
+          "warning": "2026-11-25T08:31:36.5567678Z",
+          "completion": "2026-11-25T08:32:21.5978343Z",
+          "warningToCompletionSeconds": 45.041
+        },
+        {
+          "name": "conformance_bs_34",
+          "warning": "2026-11-25T08:31:57.4638305Z",
+          "completion": "2026-11-25T08:32:43.6364061Z",
+          "warningToCompletionSeconds": 46.173
+        },
+        {
+          "name": "conformance_gn_02",
+          "warning": "2026-11-25T08:33:25.7376749Z",
+          "completion": "2026-11-25T08:33:29.1959738Z",
+          "warningToCompletionSeconds": 3.458
+        },
+        {
+          "name": "conformance_ka_05",
+          "warning": "2026-11-25T08:34:23.5599763Z",
+          "completion": "2026-11-25T08:35:31.9430252Z",
+          "warningToCompletionSeconds": 68.384
+        },
+        {
+          "name": "conformance_ka_08",
+          "warning": "2026-11-25T08:34:50.9330016Z",
+          "completion": "2026-11-25T08:37:15.4791083Z",
+          "warningToCompletionSeconds": 144.546
+        },
+        {
+          "name": "conformance_rb_06",
+          "warning": "2026-11-25T08:37:10.3209653Z",
+          "completion": "2026-11-25T08:37:28.4861262Z",
+          "warningToCompletionSeconds": 18.166
+        },
+        {
+          "name": "conformance_rb_07",
+          "warning": "2026-11-25T08:37:13.0690050Z",
+          "completion": "2026-11-25T08:38:19.1800619Z",
+          "warningToCompletionSeconds": 66.111
+        },
+        {
+          "name": "conformance_rb_12",
+          "warning": "2026-11-25T08:37:23.6870421Z",
+          "completion": "2026-11-25T08:37:30.4708298Z",
+          "warningToCompletionSeconds": 6.783
+        },
+        {
+          "name": "conformance_rb_20",
+          "warning": "2026-11-25T08:38:31.2949942Z",
+          "completion": "2026-11-25T08:39:21.6049930Z",
+          "warningToCompletionSeconds": 50.31
+        },
+        {
+          "name": "conformance_rp_12",
+          "warning": "2026-11-25T08:38:42.0359696Z",
+          "completion": "2026-11-25T08:40:44.5539527Z",
+          "warningToCompletionSeconds": 122.518
+        },
+        {
+          "name": "conformance_rp_15",
+          "warning": "2026-11-25T08:39:19.1599686Z",
+          "completion": "2026-11-25T08:39:35.8691022Z",
+          "warningToCompletionSeconds": 16.71
+        },
+        {
+          "name": "conformance_rp_19",
+          "warning": "2026-11-25T08:39:33.3499549Z",
+          "completion": "2026-11-25T08:41:18.1069498Z",
+          "warningToCompletionSeconds": 104.757
+        },
+        {
+          "name": "conformance_rs_10",
+          "warning": "2026-11-25T08:40:44.4609915Z",
+          "completion": "2026-11-25T08:40:45.3051102Z",
+          "warningToCompletionSeconds": 0.845
+        },
+        {
+          "name": "conformance_sl_02",
+          "warning": "2026-11-25T08:41:57.4258153Z",
+          "completion": "2026-11-25T08:42:17.1959600Z",
+          "warningToCompletionSeconds": 19.77
+        },
+        {
+          "name": "conformance_sl_05",
+          "warning": "2026-11-25T08:42:06.8049766Z",
+          "completion": "2026-11-25T08:42:36.8279651Z",
+          "warningToCompletionSeconds": 30.023
+        },
+        {
+          "name": "conformance_sl_07",
+          "warning": "2026-11-25T08:42:18.1049860Z",
+          "completion": "2026-11-25T08:43:32.7473293Z",
+          "warningToCompletionSeconds": 74.643
+        },
+        {
+          "name": "conformance_sp_02",
+          "warning": "2026-11-25T08:44:32.7465552Z",
+          "completion": "2026-11-25T08:44:51.4796317Z",
+          "warningToCompletionSeconds": 18.733
+        },
+        {
+          "name": "conformance_sp_08",
+          "warning": "2026-11-25T08:44:38.4409729Z",
+          "completion": "2026-11-25T08:46:40.8464225Z",
+          "warningToCompletionSeconds": 122.406
+        },
+        {
+          "name": "conformance_sp_09",
+          "warning": "2026-11-25T08:44:48.8169817Z",
+          "completion": "2026-11-25T08:44:53.5779820Z",
+          "warningToCompletionSeconds": 4.761
+        },
+        {
+          "name": "conformance_sp_11",
+          "warning": "2026-11-25T08:45:50.0647639Z",
+          "completion": "2026-11-25T08:46:10.8019485Z",
+          "warningToCompletionSeconds": 20.737
+        },
+        {
+          "name": "conformance_sp_12",
+          "warning": "2026-11-25T08:45:51.4809706Z",
+          "completion": "2026-11-25T08:45:59.0564434Z",
+          "warningToCompletionSeconds": 7.576
+        }
+      ]
+    },
+    {
+      "run": 45437716141,
+      "job": 138604050533,
+      "host": "macos-arm64",
+      "head": "603336bf2752ecbfa4d688ccb5d52b3585bfa64b",
+      "attempt": 1,
+      "jobStart": "2026-11-24T16:47:09Z",
+      "jobEnd": "2026-11-24T19:49:46Z",
+      "jobSeconds": 10957,
+      "cargoToFirstHarnessSeconds": 454.35,
+      "firstToConformanceSeconds": 353.052,
+      "conformanceReportedSeconds": 10059.12,
+      "conformanceLogSpanSeconds": 10059.116,
+      "conformanceWarningCount": 53,
+      "markers": [
+        "2026-11-24T16:48:25.7374420Z ##[group]Run cargo test --locked --workspace --all-features --no-fail-fast",
+        "2026-11-24T16:56:00.0876450Z running 236 tests",
+        "2026-11-24T17:01:53.1393880Z running 524 tests",
+        "2026-11-24T19:49:32.2553640Z test result: ok. 524 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10059.12s"
+      ],
+      "warnings": [
+        {
+          "name": "conformance_au_01",
+          "warning": "2026-11-24T17:02:55.1071270Z",
+          "completion": "2026-11-24T17:05:30.2412820Z",
+          "warningToCompletionSeconds": 155.134
+        },
+        {
+          "name": "conformance_au_08",
+          "warning": "2026-11-24T17:03:53.9550520Z",
+          "completion": "2026-11-24T17:23:17.2205940Z",
+          "warningToCompletionSeconds": 1163.265
+        },
+        {
+          "name": "conformance_au_09",
+          "warning": "2026-11-24T17:04:34.0180980Z",
+          "completion": "2026-11-24T17:06:40.0515390Z",
+          "warningToCompletionSeconds": 126.033
+        },
+        {
+          "name": "conformance_bs_03",
+          "warning": "2026-11-24T17:08:35.9382150Z",
+          "completion": "2026-11-24T17:10:52.3328370Z",
+          "warningToCompletionSeconds": 136.394
+        },
+        {
+          "name": "conformance_bs_04",
+          "warning": "2026-11-24T17:08:51.1697200Z",
+          "completion": "2026-11-24T17:15:37.3678880Z",
+          "warningToCompletionSeconds": 406.198
+        },
+        {
+          "name": "conformance_bs_05",
+          "warning": "2026-11-24T17:11:52.4098440Z",
+          "completion": "2026-11-24T17:34:38.6899760Z",
+          "warningToCompletionSeconds": 1366.28
+        },
+        {
+          "name": "conformance_bs_06",
+          "warning": "2026-11-24T17:16:37.4790310Z",
+          "completion": "2026-11-24T17:53:24.1615540Z",
+          "warningToCompletionSeconds": 2206.682
+        },
+        {
+          "name": "conformance_bs_07",
+          "warning": "2026-11-24T17:24:17.3394410Z",
+          "completion": "2026-11-24T18:44:24.5898620Z",
+          "warningToCompletionSeconds": 4807.25
+        },
+        {
+          "name": "conformance_bs_08",
+          "warning": "2026-11-24T17:35:38.8058020Z",
+          "completion": "2026-11-24T18:55:54.9234850Z",
+          "warningToCompletionSeconds": 4816.118
+        },
+        {
+          "name": "conformance_bs_09",
+          "warning": "2026-11-24T17:54:24.2485610Z",
+          "completion": "2026-11-24T18:57:43.9268640Z",
+          "warningToCompletionSeconds": 3799.678
+        },
+        {
+          "name": "conformance_bs_10",
+          "warning": "2026-11-24T18:45:24.7380460Z",
+          "completion": "2026-11-24T18:58:03.0304210Z",
+          "warningToCompletionSeconds": 758.292
+        },
+        {
+          "name": "conformance_bs_11",
+          "warning": "2026-11-24T18:56:55.0069790Z",
+          "completion": "2026-11-24T18:58:39.1494400Z",
+          "warningToCompletionSeconds": 104.143
+        },
+        {
+          "name": "conformance_bs_12",
+          "warning": "2026-11-24T18:58:44.0073470Z",
+          "completion": "2026-11-24T18:59:10.1302360Z",
+          "warningToCompletionSeconds": 26.123
+        },
+        {
+          "name": "conformance_bs_13",
+          "warning": "2026-11-24T18:59:03.1396870Z",
+          "completion": "2026-11-24T18:59:48.8083450Z",
+          "warningToCompletionSeconds": 45.669
+        },
+        {
+          "name": "conformance_bs_14",
+          "warning": "2026-11-24T18:59:39.1514000Z",
+          "completion": "2026-11-24T19:00:35.6996860Z",
+          "warningToCompletionSeconds": 56.548
+        },
+        {
+          "name": "conformance_bs_15",
+          "warning": "2026-11-24T19:00:10.2576570Z",
+          "completion": "2026-11-24T19:03:43.7519010Z",
+          "warningToCompletionSeconds": 213.494
+        },
+        {
+          "name": "conformance_bs_16",
+          "warning": "2026-11-24T19:00:48.8896060Z",
+          "completion": "2026-11-24T19:04:05.0002910Z",
+          "warningToCompletionSeconds": 196.111
+        },
+        {
+          "name": "conformance_bs_20",
+          "warning": "2026-11-24T19:01:35.7488630Z",
+          "completion": "2026-11-24T19:05:10.5893810Z",
+          "warningToCompletionSeconds": 214.841
+        },
+        {
+          "name": "conformance_bs_21",
+          "warning": "2026-11-24T19:04:43.8734730Z",
+          "completion": "2026-11-24T19:11:25.9920760Z",
+          "warningToCompletionSeconds": 402.119
+        },
+        {
+          "name": "conformance_bs_22",
+          "warning": "2026-11-24T19:05:05.0214340Z",
+          "completion": "2026-11-24T19:12:16.1468210Z",
+          "warningToCompletionSeconds": 431.125
+        },
+        {
+          "name": "conformance_bs_23",
+          "warning": "2026-11-24T19:06:10.7359160Z",
+          "completion": "2026-11-24T19:19:02.7052200Z",
+          "warningToCompletionSeconds": 771.97
+        },
+        {
+          "name": "conformance_bs_24",
+          "warning": "2026-11-24T19:12:26.0545660Z",
+          "completion": "2026-11-24T19:19:59.2631310Z",
+          "warningToCompletionSeconds": 453.209
+        },
+        {
+          "name": "conformance_bs_25",
+          "warning": "2026-11-24T19:13:16.2505850Z",
+          "completion": "2026-11-24T19:20:20.4444630Z",
+          "warningToCompletionSeconds": 424.194
+        },
+        {
+          "name": "conformance_bs_26",
+          "warning": "2026-11-24T19:20:02.7581630Z",
+          "completion": "2026-11-24T19:20:37.2218160Z",
+          "warningToCompletionSeconds": 34.463
+        },
+        {
+          "name": "conformance_bs_27",
+          "warning": "2026-11-24T19:20:59.3798400Z",
+          "completion": "2026-11-24T19:21:45.3360330Z",
+          "warningToCompletionSeconds": 45.957
+        },
+        {
+          "name": "conformance_bs_28",
+          "warning": "2026-11-24T19:21:20.4993430Z",
+          "completion": "2026-11-24T19:23:34.9439860Z",
+          "warningToCompletionSeconds": 134.444
+        },
+        {
+          "name": "conformance_bs_29",
+          "warning": "2026-11-24T19:21:37.3320200Z",
+          "completion": "2026-11-24T19:23:55.4362030Z",
+          "warningToCompletionSeconds": 138.104
+        },
+        {
+          "name": "conformance_bs_30",
+          "warning": "2026-11-24T19:22:45.4021910Z",
+          "completion": "2026-11-24T19:24:15.3974650Z",
+          "warningToCompletionSeconds": 89.995
+        },
+        {
+          "name": "conformance_bs_31",
+          "warning": "2026-11-24T19:24:34.9464730Z",
+          "completion": "2026-11-24T19:24:37.1458230Z",
+          "warningToCompletionSeconds": 2.199
+        },
+        {
+          "name": "conformance_bs_32",
+          "warning": "2026-11-24T19:24:55.4457140Z",
+          "completion": "2026-11-24T19:25:15.5656750Z",
+          "warningToCompletionSeconds": 20.12
+        },
+        {
+          "name": "conformance_bs_33",
+          "warning": "2026-11-24T19:25:15.5066170Z",
+          "completion": "2026-11-24T19:25:40.1714480Z",
+          "warningToCompletionSeconds": 24.665
+        },
+        {
+          "name": "conformance_bs_34",
+          "warning": "2026-11-24T19:25:37.1557220Z",
+          "completion": "2026-11-24T19:26:11.9049660Z",
+          "warningToCompletionSeconds": 34.749
+        },
+        {
+          "name": "conformance_gn_02",
+          "warning": "2026-11-24T19:27:21.8762350Z",
+          "completion": "2026-11-24T19:27:29.3427830Z",
+          "warningToCompletionSeconds": 7.466
+        },
+        {
+          "name": "conformance_ka_05",
+          "warning": "2026-11-24T19:28:45.1379730Z",
+          "completion": "2026-11-24T19:30:03.6631820Z",
+          "warningToCompletionSeconds": 78.526
+        },
+        {
+          "name": "conformance_ka_06",
+          "warning": "2026-11-24T19:28:46.0756150Z",
+          "completion": "2026-11-24T19:28:51.6789860Z",
+          "warningToCompletionSeconds": 5.603
+        },
+        {
+          "name": "conformance_ka_08",
+          "warning": "2026-11-24T19:29:51.7399640Z",
+          "completion": "2026-11-24T19:32:25.3655710Z",
+          "warningToCompletionSeconds": 153.626
+        },
+        {
+          "name": "conformance_rb_06",
+          "warning": "2026-11-24T19:33:02.7306950Z",
+          "completion": "2026-11-24T19:33:37.0748500Z",
+          "warningToCompletionSeconds": 34.344
+        },
+        {
+          "name": "conformance_rb_07",
+          "warning": "2026-11-24T19:33:06.7989910Z",
+          "completion": "2026-11-24T19:34:40.3397670Z",
+          "warningToCompletionSeconds": 93.541
+        },
+        {
+          "name": "conformance_rb_12",
+          "warning": "2026-11-24T19:33:48.9893490Z",
+          "completion": "2026-11-24T19:34:17.7100310Z",
+          "warningToCompletionSeconds": 28.721
+        },
+        {
+          "name": "conformance_rb_20",
+          "warning": "2026-11-24T19:35:03.9643980Z",
+          "completion": "2026-11-24T19:35:20.4652940Z",
+          "warningToCompletionSeconds": 16.501
+        },
+        {
+          "name": "conformance_rp_12",
+          "warning": "2026-11-24T19:35:40.4627110Z",
+          "completion": "2026-11-24T19:38:00.6653820Z",
+          "warningToCompletionSeconds": 140.203
+        },
+        {
+          "name": "conformance_rp_15",
+          "warning": "2026-11-24T19:35:43.6232350Z",
+          "completion": "2026-11-24T19:36:02.1967310Z",
+          "warningToCompletionSeconds": 18.573
+        },
+        {
+          "name": "conformance_rp_19",
+          "warning": "2026-11-24T19:36:27.3169680Z",
+          "completion": "2026-11-24T19:40:28.4669030Z",
+          "warningToCompletionSeconds": 241.15
+        },
+        {
+          "name": "conformance_sl_02",
+          "warning": "2026-11-24T19:39:37.1431410Z",
+          "completion": "2026-11-24T19:40:39.2733450Z",
+          "warningToCompletionSeconds": 62.13
+        },
+        {
+          "name": "conformance_sl_05",
+          "warning": "2026-11-24T19:39:41.7602400Z",
+          "completion": "2026-11-24T19:44:39.5701940Z",
+          "warningToCompletionSeconds": 297.81
+        },
+        {
+          "name": "conformance_sl_07",
+          "warning": "2026-11-24T19:41:39.2829220Z",
+          "completion": "2026-11-24T19:43:58.0798810Z",
+          "warningToCompletionSeconds": 138.797
+        },
+        {
+          "name": "conformance_sl_10",
+          "warning": "2026-11-24T19:41:57.0073410Z",
+          "completion": "2026-11-24T19:41:57.1170090Z",
+          "warningToCompletionSeconds": 0.11
+        },
+        {
+          "name": "conformance_sl_14",
+          "warning": "2026-11-24T19:43:18.7510870Z",
+          "completion": "2026-11-24T19:43:50.4034680Z",
+          "warningToCompletionSeconds": 31.652
+        },
+        {
+          "name": "conformance_sp_02",
+          "warning": "2026-11-24T19:45:53.2583570Z",
+          "completion": "2026-11-24T19:46:17.8288270Z",
+          "warningToCompletionSeconds": 24.57
+        },
+        {
+          "name": "conformance_sp_08",
+          "warning": "2026-11-24T19:46:16.2167370Z",
+          "completion": "2026-11-24T19:48:23.1093720Z",
+          "warningToCompletionSeconds": 126.893
+        },
+        {
+          "name": "conformance_sp_09",
+          "warning": "2026-11-24T19:46:19.0629340Z",
+          "completion": "2026-11-24T19:46:27.9147740Z",
+          "warningToCompletionSeconds": 8.852
+        },
+        {
+          "name": "conformance_sp_11",
+          "warning": "2026-11-24T19:47:28.0246290Z",
+          "completion": "2026-11-24T19:47:53.5244460Z",
+          "warningToCompletionSeconds": 25.5
+        },
+        {
+          "name": "conformance_sp_12",
+          "warning": "2026-11-24T19:47:57.6409080Z",
+          "completion": "2026-11-24T19:48:31.7754230Z",
+          "warningToCompletionSeconds": 34.135
+        }
+      ]
+    },
+    {
+      "run": 45553276269,
+      "job": 139001164795,
+      "host": "macos-arm64",
+      "head": "f15fd26344effebfbe3d34bbfb51471a519cf25b",
+      "attempt": 1,
+      "jobStart": "2026-11-25T05:29:01Z",
+      "jobEnd": "2026-11-25T08:15:49Z",
+      "jobSeconds": 10008,
+      "cargoToFirstHarnessSeconds": 388.238,
+      "firstToConformanceSeconds": 270.746,
+      "conformanceReportedSeconds": 9260.1,
+      "conformanceLogSpanSeconds": 9260.157,
+      "conformanceWarningCount": 52,
+      "markers": [
+        "2026-11-25T05:30:14.2192140Z ##[group]Run cargo test --locked --workspace --all-features --no-fail-fast",
+        "2026-11-25T05:36:42.4577370Z running 236 tests",
+        "2026-11-25T05:41:13.2039890Z running 524 tests",
+        "2026-11-25T08:15:33.3604060Z test result: ok. 524 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9260.10s"
+      ],
+      "warnings": [
+        {
+          "name": "conformance_au_01",
+          "warning": "2026-11-25T05:42:15.0864810Z",
+          "completion": "2026-11-25T05:43:53.0325900Z",
+          "warningToCompletionSeconds": 97.946
+        },
+        {
+          "name": "conformance_au_08",
+          "warning": "2026-11-25T05:43:02.1928190Z",
+          "completion": "2026-11-25T05:57:24.5770220Z",
+          "warningToCompletionSeconds": 862.385
+        },
+        {
+          "name": "conformance_au_09",
+          "warning": "2026-11-25T05:43:34.2872530Z",
+          "completion": "2026-11-25T05:44:49.9250400Z",
+          "warningToCompletionSeconds": 75.638
+        },
+        {
+          "name": "conformance_bs_03",
+          "warning": "2026-11-25T05:46:34.6838680Z",
+          "completion": "2026-11-25T05:47:58.8512230Z",
+          "warningToCompletionSeconds": 84.168
+        },
+        {
+          "name": "conformance_bs_04",
+          "warning": "2026-11-25T05:46:45.1815160Z",
+          "completion": "2026-11-25T05:51:21.7555710Z",
+          "warningToCompletionSeconds": 276.574
+        },
+        {
+          "name": "conformance_bs_05",
+          "warning": "2026-11-25T05:48:58.9273450Z",
+          "completion": "2026-11-25T06:06:11.1658720Z",
+          "warningToCompletionSeconds": 1032.238
+        },
+        {
+          "name": "conformance_bs_06",
+          "warning": "2026-11-25T05:52:21.8477100Z",
+          "completion": "2026-11-25T06:23:42.6458340Z",
+          "warningToCompletionSeconds": 1880.798
+        },
+        {
+          "name": "conformance_bs_07",
+          "warning": "2026-11-25T05:58:24.7272280Z",
+          "completion": "2026-11-25T07:15:00.3673170Z",
+          "warningToCompletionSeconds": 4595.64
+        },
+        {
+          "name": "conformance_bs_08",
+          "warning": "2026-11-25T06:07:11.1811020Z",
+          "completion": "2026-11-25T07:23:16.3481230Z",
+          "warningToCompletionSeconds": 4565.167
+        },
+        {
+          "name": "conformance_bs_09",
+          "warning": "2026-11-25T06:24:42.6645150Z",
+          "completion": "2026-11-25T07:24:39.5933760Z",
+          "warningToCompletionSeconds": 3596.929
+        },
+        {
+          "name": "conformance_bs_10",
+          "warning": "2026-11-25T07:16:00.4231920Z",
+          "completion": "2026-11-25T07:24:59.4780680Z",
+          "warningToCompletionSeconds": 539.055
+        },
+        {
+          "name": "conformance_bs_11",
+          "warning": "2026-11-25T07:24:16.3629690Z",
+          "completion": "2026-11-25T07:25:36.7264440Z",
+          "warningToCompletionSeconds": 80.364
+        },
+        {
+          "name": "conformance_bs_12",
+          "warning": "2026-11-25T07:25:39.7509520Z",
+          "completion": "2026-11-25T07:26:09.1905250Z",
+          "warningToCompletionSeconds": 29.44
+        },
+        {
+          "name": "conformance_bs_13",
+          "warning": "2026-11-25T07:25:59.6280120Z",
+          "completion": "2026-11-25T07:26:43.7712560Z",
+          "warningToCompletionSeconds": 44.143
+        },
+        {
+          "name": "conformance_bs_14",
+          "warning": "2026-11-25T07:26:36.7664240Z",
+          "completion": "2026-11-25T07:27:25.7165960Z",
+          "warningToCompletionSeconds": 48.95
+        },
+        {
+          "name": "conformance_bs_15",
+          "warning": "2026-11-25T07:27:09.3083190Z",
+          "completion": "2026-11-25T07:30:48.7081130Z",
+          "warningToCompletionSeconds": 219.4
+        },
+        {
+          "name": "conformance_bs_16",
+          "warning": "2026-11-25T07:27:43.8380540Z",
+          "completion": "2026-11-25T07:31:10.6914290Z",
+          "warningToCompletionSeconds": 206.853
+        },
+        {
+          "name": "conformance_bs_20",
+          "warning": "2026-11-25T07:28:25.8491230Z",
+          "completion": "2026-11-25T07:32:20.4771970Z",
+          "warningToCompletionSeconds": 234.628
+        },
+        {
+          "name": "conformance_bs_21",
+          "warning": "2026-11-25T07:31:48.7266660Z",
+          "completion": "2026-11-25T07:38:46.0841550Z",
+          "warningToCompletionSeconds": 417.358
+        },
+        {
+          "name": "conformance_bs_22",
+          "warning": "2026-11-25T07:32:10.7309450Z",
+          "completion": "2026-11-25T07:39:35.9998280Z",
+          "warningToCompletionSeconds": 445.269
+        },
+        {
+          "name": "conformance_bs_23",
+          "warning": "2026-11-25T07:33:20.5500640Z",
+          "completion": "2026-11-25T07:45:48.1801480Z",
+          "warningToCompletionSeconds": 747.63
+        },
+        {
+          "name": "conformance_bs_24",
+          "warning": "2026-11-25T07:39:46.2358030Z",
+          "completion": "2026-11-25T07:46:33.9118290Z",
+          "warningToCompletionSeconds": 407.676
+        },
+        {
+          "name": "conformance_bs_25",
+          "warning": "2026-11-25T07:40:36.1497780Z",
+          "completion": "2026-11-25T07:46:51.9853940Z",
+          "warningToCompletionSeconds": 375.836
+        },
+        {
+          "name": "conformance_bs_26",
+          "warning": "2026-11-25T07:46:48.3075920Z",
+          "completion": "2026-11-25T07:47:10.0723000Z",
+          "warningToCompletionSeconds": 21.765
+        },
+        {
+          "name": "conformance_bs_27",
+          "warning": "2026-11-25T07:47:34.0503270Z",
+          "completion": "2026-11-25T07:48:21.8933700Z",
+          "warningToCompletionSeconds": 47.843
+        },
+        {
+          "name": "conformance_bs_28",
+          "warning": "2026-11-25T07:47:52.0930200Z",
+          "completion": "2026-11-25T07:50:21.4859510Z",
+          "warningToCompletionSeconds": 149.392
+        },
+        {
+          "name": "conformance_bs_29",
+          "warning": "2026-11-25T07:48:10.0838830Z",
+          "completion": "2026-11-25T07:50:46.0799370Z",
+          "warningToCompletionSeconds": 155.996
+        },
+        {
+          "name": "conformance_bs_30",
+          "warning": "2026-11-25T07:49:21.9647330Z",
+          "completion": "2026-11-25T07:51:05.9364460Z",
+          "warningToCompletionSeconds": 103.972
+        },
+        {
+          "name": "conformance_bs_31",
+          "warning": "2026-11-25T07:51:21.4858460Z",
+          "completion": "2026-11-25T07:51:30.8817120Z",
+          "warningToCompletionSeconds": 9.396
+        },
+        {
+          "name": "conformance_bs_32",
+          "warning": "2026-11-25T07:51:46.1439610Z",
+          "completion": "2026-11-25T07:52:04.9023630Z",
+          "warningToCompletionSeconds": 18.759
+        },
+        {
+          "name": "conformance_bs_33",
+          "warning": "2026-11-25T07:52:06.0635160Z",
+          "completion": "2026-11-25T07:52:25.0006220Z",
+          "warningToCompletionSeconds": 18.937
+        },
+        {
+          "name": "conformance_bs_34",
+          "warning": "2026-11-25T07:52:31.0393540Z",
+          "completion": "2026-11-25T07:52:52.8500110Z",
+          "warningToCompletionSeconds": 21.811
+        },
+        {
+          "name": "conformance_gn_02",
+          "warning": "2026-11-25T07:54:03.6601930Z",
+          "completion": "2026-11-25T07:54:04.4319440Z",
+          "warningToCompletionSeconds": 0.771
+        },
+        {
+          "name": "conformance_ka_05",
+          "warning": "2026-11-25T07:55:17.4438600Z",
+          "completion": "2026-11-25T07:56:10.7338190Z",
+          "warningToCompletionSeconds": 53.29
+        },
+        {
+          "name": "conformance_ka_08",
+          "warning": "2026-11-25T07:56:12.9363600Z",
+          "completion": "2026-11-25T07:58:15.9756320Z",
+          "warningToCompletionSeconds": 123.039
+        },
+        {
+          "name": "conformance_rb_06",
+          "warning": "2026-11-25T07:59:00.3168030Z",
+          "completion": "2026-11-25T07:59:25.9358860Z",
+          "warningToCompletionSeconds": 25.619
+        },
+        {
+          "name": "conformance_rb_07",
+          "warning": "2026-11-25T07:59:04.1166090Z",
+          "completion": "2026-11-25T08:00:31.3389020Z",
+          "warningToCompletionSeconds": 87.222
+        },
+        {
+          "name": "conformance_rb_12",
+          "warning": "2026-11-25T07:59:32.6900080Z",
+          "completion": "2026-11-25T07:59:58.3414530Z",
+          "warningToCompletionSeconds": 25.651
+        },
+        {
+          "name": "conformance_rb_20",
+          "warning": "2026-11-25T08:00:49.3077280Z",
+          "completion": "2026-11-25T08:01:11.5950970Z",
+          "warningToCompletionSeconds": 22.288
+        },
+        {
+          "name": "conformance_rp_12",
+          "warning": "2026-11-25T08:01:29.8295770Z",
+          "completion": "2026-11-25T08:04:13.9378590Z",
+          "warningToCompletionSeconds": 164.108
+        },
+        {
+          "name": "conformance_rp_15",
+          "warning": "2026-11-25T08:01:31.5975610Z",
+          "completion": "2026-11-25T08:01:51.9331770Z",
+          "warningToCompletionSeconds": 20.336
+        },
+        {
+          "name": "conformance_rp_19",
+          "warning": "2026-11-25T08:02:17.4693230Z",
+          "completion": "2026-11-25T08:06:41.0326510Z",
+          "warningToCompletionSeconds": 263.563
+        },
+        {
+          "name": "conformance_sl_02",
+          "warning": "2026-11-25T08:05:41.7765520Z",
+          "completion": "2026-11-25T08:06:51.5574260Z",
+          "warningToCompletionSeconds": 69.781
+        },
+        {
+          "name": "conformance_sl_05",
+          "warning": "2026-11-25T08:05:56.6469300Z",
+          "completion": "2026-11-25T08:10:37.0641990Z",
+          "warningToCompletionSeconds": 280.418
+        },
+        {
+          "name": "conformance_sl_07",
+          "warning": "2026-11-25T08:07:51.6832860Z",
+          "completion": "2026-11-25T08:09:57.9856040Z",
+          "warningToCompletionSeconds": 126.302
+        },
+        {
+          "name": "conformance_sl_10",
+          "warning": "2026-11-25T08:08:14.9445690Z",
+          "completion": "2026-11-25T08:08:19.8369270Z",
+          "warningToCompletionSeconds": 4.892
+        },
+        {
+          "name": "conformance_sl_14",
+          "warning": "2026-11-25T08:09:39.3586590Z",
+          "completion": "2026-11-25T08:09:54.0199860Z",
+          "warningToCompletionSeconds": 14.661
+        },
+        {
+          "name": "conformance_sp_02",
+          "warning": "2026-11-25T08:11:51.7824990Z",
+          "completion": "2026-11-25T08:12:16.9415850Z",
+          "warningToCompletionSeconds": 25.159
+        },
+        {
+          "name": "conformance_sp_08",
+          "warning": "2026-11-25T08:12:15.4265650Z",
+          "completion": "2026-11-25T08:14:18.8614460Z",
+          "warningToCompletionSeconds": 123.435
+        },
+        {
+          "name": "conformance_sp_09",
+          "warning": "2026-11-25T08:12:17.5000960Z",
+          "completion": "2026-11-25T08:12:25.6365990Z",
+          "warningToCompletionSeconds": 8.136
+        },
+        {
+          "name": "conformance_sp_11",
+          "warning": "2026-11-25T08:13:25.7206420Z",
+          "completion": "2026-11-25T08:13:47.4838680Z",
+          "warningToCompletionSeconds": 21.763
+        },
+        {
+          "name": "conformance_sp_12",
+          "warning": "2026-11-25T08:13:52.2050030Z",
+          "completion": "2026-11-25T08:14:32.0121530Z",
+          "warningToCompletionSeconds": 39.807
+        }
+      ]
+    }
+  ]
+}
