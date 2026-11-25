@@ -280,6 +280,9 @@ pub fn render_calls(
         serde_json::Value::Null,
     );
     let (mut checking, mut rendering) = (std::time::Duration::ZERO, std::time::Duration::ZERO);
+    // Each row's size in serialized nodes beside its rendering time, so the
+    // records show how the time grows with the size of a value (#603 DOD-7).
+    let mut sized: Vec<(usize, f64)> = Vec::new();
     let rows_started = std::time::Instant::now();
     // An ordering argument is written with the core type, which the
     // library uses but does not export.
@@ -367,6 +370,12 @@ pub fn render_calls(
                 .collect::<Result<Vec<_>, _>>()?;
             rows.push(tuple(&rendered));
             rendering += written.elapsed();
+            if crate::phases::enabled() {
+                sized.push((
+                    arguments.iter().map(nodes).sum(),
+                    written.elapsed().as_secs_f64() * 1e3,
+                ));
+            }
         }
         let names: Vec<String> = (0..function.types.len())
             .map(|position| format!("a{position}"))
@@ -430,7 +439,7 @@ pub fn render_calls(
         "harness-render-literals",
         rows_started,
         rendering,
-        serde_json::Value::Null,
+        serde_json::json!({ "rows": sized }),
     );
     out.push_str(&groups.concat());
     out.push_str("    println!(\"work {}\", work());\n}\n");
@@ -439,4 +448,17 @@ pub fn render_calls(
         "\nfn main() {{\n    let stack = std::env::var(\"{HARNESS_STACK_ENV}\").ok().and_then(|bytes| bytes.parse().ok()).unwrap_or({HARNESS_STACK});\n    let runner = std::thread::Builder::new().stack_size(stack).spawn(harness_runs).expect(\"the harness thread starts\");\n    if runner.join().is_err() {{\n        std::process::exit(101);\n    }}\n}}\n"
     );
     Ok(out)
+}
+
+/// The number of JSON nodes `value` serializes to: the size its literal is
+/// rendered from.
+fn nodes(value: &Value) -> usize {
+    fn count(json: &serde_json::Value) -> usize {
+        1 + match json {
+            serde_json::Value::Array(items) => items.iter().map(count).sum(),
+            serde_json::Value::Object(fields) => fields.values().map(count).sum(),
+            _ => 0,
+        }
+    }
+    serde_json::to_value(value).map_or(0, |json| count(&json))
 }
