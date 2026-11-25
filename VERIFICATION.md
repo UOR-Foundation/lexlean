@@ -21885,6 +21885,10 @@ early off Linux and were not run here.
 | `fanout` as `select(.part != "honesty")`, every bootstrap leg also in `vv` | harness: `leg bdd-bootstrap-check run 2 times` (ready and other-event runs); `test_outputs_partition_the_rows` fails |
 | `bootstrap` as `startswith("bdd-bootstrap-l")`, 23 bootstrap legs in neither job | harness: `leg bdd-bootstrap-check run 0 times`; `test_outputs_partition_the_rows` fails |
 | a draft planning every row but `examples`, 28 bootstrap legs with `full=false` | harness: `bootstrap legs in a run that is not the whole gate`; `test_outputs_partition_the_rows` fails |
+| a third job reading the bootstrap rows as `${{ fromJson( needs.plan.outputs.bootstrap ) }}` | `RP-14`: `` the rows of `bootstrap` are run by 2 jobs, not one ``; under the earlier exact-text count it passed |
+| `full_run_of` accepting `skipped` jobs as well as `success` | nothing: the skipped `vv-bootstrap` names no leg, so the per-leg check still refuses it (`test_skipped_bootstrap_legs_are_no_verified_run` passes) |
+| `full_run_of` without its per-leg check | `test_recovered_read_does_not_relax_inventory` (`missing`) fails |
+| both of the two above | `test_skipped_bootstrap_legs_are_no_verified_run` fails as well |
 
 Inside `RP-14` the partition is also planted on the committed rows: a
 bootstrap leg left in `fanout`, one run by no job, one run by `vv` instead,
@@ -21892,6 +21896,29 @@ and bootstrap legs in a draft are each refused, as are `vv-bootstrap` without
 the export's need, with another name, with `continue-on-error`, with a status
 function in its condition, reading `fanout`, with a step that differs from
 `vv`'s, and a plan without the `bootstrap` output.
+
+The rows are read by exactly one job however the reader is spelt: GitHub
+accepts expression function names in any case and spaces inside a call, so
+`RP-14` counts readers on each non-comment line with its spaces removed and
+its case folded. An exact-text count let a `fromJson(...)` reader run the
+legs a second time unnoticed (found by an independent review of #630). That
+would have wasted runners without failing open, since every leg must still
+pass.
+
+A skipped `vv-bootstrap` is refused by two predicates of `full_run_of`, each
+of them enough: every listed job must be `success`, and every leg must be
+listed by name. A failed export uploads no bundle, because its upload step
+has no status function. "Re-run failed jobs" then runs the export and the
+skipped `vv-bootstrap` again, and the fetcher takes only this run's newest
+unexpired `bootstrap-export`. An export rerun after the bundle's one-day
+retention is a known limit that this change neither introduces nor
+changes: the fetcher waits until its timeout.
+
+The planner harness (`test_ci_plan_provider_retry.py`) now joins its stub
+directory to `PATH` with `os.pathsep`. With `:` it found no stub on Windows,
+so it failed there on the unchanged base too. It gives 7/7 on Windows (5/5 on
+the base, once the same fix is applied), and the plants above were made
+there.
 
 SPEC.md §9.4 states which jobs start when honesty passes and that the legs do
 not wait for the export to start; both sentences now name `vv-bootstrap`,

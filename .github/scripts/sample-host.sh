@@ -27,8 +27,8 @@ while :; do
     idle=$(top -l 2 -n 0 -s 1 2>/dev/null | awk -F'[ ,%]+' '/CPU usage/ {for (i = 1; i <= NF; i++) if ($i == "idle") v = $(i - 1)} END {print v}')
     cpu=; [ -n "$idle" ] && cpu=$(awk -v i="$idle" 'BEGIN {printf "%d", 100 - i}')
     page=$(sysctl -n hw.pagesize 2>/dev/null || echo 4096)
-    avail=$(vm_stat 2>/dev/null | awk -v p="$page" '/Pages free|Pages inactive|Pages speculative/ {gsub("\.", "", $NF); s += $NF} END {printf "%d", s * p / 1024}')
-    swap=$(sysctl -n vm.swapusage 2>/dev/null | awk '{for (i = 1; i <= NF; i++) if ($i == "used") {v = $(i + 2); sub("M", "", v); printf "%d", v * 1024}}')
+    avail=$(vm_stat 2>/dev/null | awk -v p="$page" '/Pages free|Pages inactive|Pages speculative/ {gsub(/\./, "", $NF); s += $NF} END {printf "%d", s * p / 1024}')
+    swap=$(sysctl -n vm.swapusage 2>/dev/null | awk '{for (i = 1; i <= NF; i++) if ($i == "used") {v = $(i + 2); m = 1; if (v ~ /G$/) m = 1024 * 1024; else if (v ~ /M$/) m = 1024; sub(/[KMG]$/, "", v); printf "%d", v * m}}')
   fi
   top=$( (ps -A -o rss= 2>/dev/null || true) | sort -n | tail -1 | tr -d ' ')
   printf '%s\t%s\t%s\t%s\t%s\n' "$now" "${cpu:-}" "${avail:-}" "${swap:-}" "${top:-}" >> "$out"

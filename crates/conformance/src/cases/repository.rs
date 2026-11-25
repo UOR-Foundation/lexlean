@@ -2645,6 +2645,13 @@ pub(crate) fn run(id: &str) {
                 .is_err(),
                 "the bootstrap legs must refuse a plan that does not expose them"
             );
+            assert!(
+                bootstrap_legs_workflow(&format!(
+                    "{ci}\n  again:\n    strategy:\n      matrix:\n        include: ${{{{ fromJson( needs.plan.outputs.bootstrap ) }}}}\n"
+                ))
+                .is_err(),
+                "the bootstrap legs must refuse a second reader of their rows, however it is spelt"
+            );
             plan_partition_decisions();
             honesty_dependencies(&ci).expect("expensive roots require successful same-run honesty");
             assert!(
@@ -4619,9 +4626,20 @@ fn bootstrap_legs_workflow(ci: &str) -> Result<(), String> {
         )) {
             return Err(format!("RP-14: the plan does not expose `{output}`"));
         }
+        // GitHub reads expression function names in any case and ignores the
+        // spaces inside a call, so a reader is counted however it is spelt.
+        let wanted = format!("fromjson(needs.plan.outputs.{output})");
         let readers = ci
-            .matches(&format!("fromJSON(needs.plan.outputs.{output})"))
-            .count();
+            .lines()
+            .map(|line| {
+                line.chars()
+                    .filter(|c| !c.is_whitespace())
+                    .collect::<String>()
+                    .to_ascii_lowercase()
+            })
+            .filter(|line| !line.starts_with('#'))
+            .map(|line| line.matches(wanted.as_str()).count())
+            .sum::<usize>();
         if readers != 1 {
             return Err(format!(
                 "RP-14: the rows of `{output}` are run by {readers} jobs, not one"

@@ -96,7 +96,7 @@ fi
             sleep.chmod(0o755)
             out = root / 'out'
             summary = root / 'summary'
-            env = dict(os.environ, PATH=f'{bin_dir}:{os.environ["PATH"]}', ROOT=directory,
+            env = dict(os.environ, PATH=f'{bin_dir}{os.pathsep}{os.environ["PATH"]}', ROOT=directory,
                        PARENT=parent, FAIL_RUNS=str(fail_runs), FAIL_JOBS=str(fail_jobs),
                        EVENT=event, DRAFT=draft, REPO='owner/repo', LEXLEAN_CI_ROWS=str(rows),
                        GITHUB_OUTPUT=str(out), GITHUB_STEP_SUMMARY=str(summary))
