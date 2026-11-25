@@ -1,0 +1,636 @@
+{
+  "schema": "lexlean/advisory-b1-historical-sensitivity/1",
+  "authority": false,
+  "checks": 114,
+  "scope": "Historical first attempts; synthetic LPT schedule, dedicated constant post-export lane slots, other jobs frozen; overlap is interval upper bound, not idle time; no estimate of queue policy, actual B1 performance or qualification.",
+  "results": [
+    {
+      "run": 45437716141,
+      "attempt": 1,
+      "head": "603336bf2752ecbfa4d688ccb5d52b3585bfa64b",
+      "jobCount": 70,
+      "conclusions": {
+        "success": 69,
+        "failure": 1
+      },
+      "exportEnd": "2026-11-24T17:09:29Z",
+      "bootstrapJobs": 28,
+      "observedBootstrapAllocatedSeconds": 59194,
+      "overlapUpperBoundSeconds": 56371,
+      "observedLastBootstrapEnd": "2026-11-24T17:24:34.000Z",
+      "otherTail": {
+        "id": 138604050594,
+        "name": "build and non-Lean tests (aarch64-unknown-linux-gnu)",
+        "end": "2026-11-24T19:50:50Z"
+      },
+      "exportToOtherTailSeconds": 9681,
+      "minimumTestedDedicatedCapacityNoOverlapRemoval": 8,
+      "native": [
+        {
+          "name": "build and non-Lean tests (aarch64-unknown-linux-gnu)",
+          "id": 138604050594,
+          "duration": 11730,
+          "end": "2026-11-24T19:50:50Z",
+          "slackToTailSeconds": 0,
+          "conclusion": "success"
+        },
+        {
+          "name": "build and non-Lean tests (aarch64-apple-darwin)",
+          "id": 138604050533,
+          "duration": 10957,
+          "end": "2026-11-24T19:49:46Z",
+          "slackToTailSeconds": 64,
+          "conclusion": "success"
+        },
+        {
+          "name": "build and non-Lean tests (x86_64-apple-darwin)",
+          "id": 138715531156,
+          "duration": 78,
+          "end": "2026-11-24T19:27:14Z",
+          "slackToTailSeconds": 1416,
+          "conclusion": "success"
+        },
+        {
+          "name": "Intel conformance (lower)",
+          "id": 138625637358,
+          "duration": 7768,
+          "end": "2026-11-24T19:25:53Z",
+          "slackToTailSeconds": 1497,
+          "conclusion": "success"
+        },
+        {
+          "name": "Intel conformance (print)",
+          "id": 138625637229,
+          "duration": 6505,
+          "end": "2026-11-24T18:59:14Z",
+          "slackToTailSeconds": 3096,
+          "conclusion": "success"
+        },
+        {
+          "name": "Intel conformance (moves)",
+          "id": 138625637145,
+          "duration": 3661,
+          "end": "2026-11-24T18:11:49Z",
+          "slackToTailSeconds": 5941,
+          "conclusion": "success"
+        },
+        {
+          "name": "Intel conformance (validate)",
+          "id": 138625637254,
+          "duration": 3182,
+          "end": "2026-11-24T18:03:24Z",
+          "slackToTailSeconds": 6446,
+          "conclusion": "success"
+        },
+        {
+          "name": "build and non-Lean tests (x86_64-pc-windows-msvc)",
+          "id": 138655525549,
+          "duration": 64,
+          "end": "2026-11-24T17:52:47Z",
+          "slackToTailSeconds": 7083,
+          "conclusion": "success"
+        },
+        {
+          "name": "Intel test construction and local targets",
+          "id": 138604050268,
+          "duration": 1463,
+          "end": "2026-11-24T17:06:33Z",
+          "slackToTailSeconds": 9857,
+          "conclusion": "success"
+        }
+      ],
+      "scenarios": [
+        {
+          "capacity": 1,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 59194,
+          "bootstrapFinishAfterExportSeconds": 59194,
+          "slackToFixedOtherTailSeconds": -49513,
+          "modeledGateDelaySeconds": 49513
+        },
+        {
+          "capacity": 1,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 31008.5,
+          "bootstrapFinishAfterExportSeconds": 31008.5,
+          "slackToFixedOtherTailSeconds": -21327.5,
+          "modeledGateDelaySeconds": 21327.5
+        },
+        {
+          "capacity": 1,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 2823,
+          "bootstrapFinishAfterExportSeconds": 2823,
+          "slackToFixedOtherTailSeconds": 6858,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 2,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 59194,
+          "bootstrapFinishAfterExportSeconds": 29779,
+          "slackToFixedOtherTailSeconds": -20098,
+          "modeledGateDelaySeconds": 20098
+        },
+        {
+          "capacity": 2,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 31008.5,
+          "bootstrapFinishAfterExportSeconds": 15804.5,
+          "slackToFixedOtherTailSeconds": -6123.5,
+          "modeledGateDelaySeconds": 6123.5
+        },
+        {
+          "capacity": 2,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 2823,
+          "bootstrapFinishAfterExportSeconds": 1430,
+          "slackToFixedOtherTailSeconds": 8251,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 3,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 59194,
+          "bootstrapFinishAfterExportSeconds": 20498,
+          "slackToFixedOtherTailSeconds": -10817,
+          "modeledGateDelaySeconds": 10817
+        },
+        {
+          "capacity": 3,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 31008.5,
+          "bootstrapFinishAfterExportSeconds": 10624.5,
+          "slackToFixedOtherTailSeconds": -943.5,
+          "modeledGateDelaySeconds": 943.5
+        },
+        {
+          "capacity": 3,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 2823,
+          "bootstrapFinishAfterExportSeconds": 955,
+          "slackToFixedOtherTailSeconds": 8726,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 4,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 59194,
+          "bootstrapFinishAfterExportSeconds": 15012,
+          "slackToFixedOtherTailSeconds": -5331,
+          "modeledGateDelaySeconds": 5331
+        },
+        {
+          "capacity": 4,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 31008.5,
+          "bootstrapFinishAfterExportSeconds": 8155.5,
+          "slackToFixedOtherTailSeconds": 1525.5,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 4,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 2823,
+          "bootstrapFinishAfterExportSeconds": 905,
+          "slackToFixedOtherTailSeconds": 8776,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 5,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 59194,
+          "bootstrapFinishAfterExportSeconds": 12635,
+          "slackToFixedOtherTailSeconds": -2954,
+          "modeledGateDelaySeconds": 2954
+        },
+        {
+          "capacity": 5,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 31008.5,
+          "bootstrapFinishAfterExportSeconds": 6542.5,
+          "slackToFixedOtherTailSeconds": 3138.5,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 5,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 2823,
+          "bootstrapFinishAfterExportSeconds": 905,
+          "slackToFixedOtherTailSeconds": 8776,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 8,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 59194,
+          "bootstrapFinishAfterExportSeconds": 8460,
+          "slackToFixedOtherTailSeconds": 1221,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 8,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 31008.5,
+          "bootstrapFinishAfterExportSeconds": 4358.5,
+          "slackToFixedOtherTailSeconds": 5322.5,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 8,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 2823,
+          "bootstrapFinishAfterExportSeconds": 905,
+          "slackToFixedOtherTailSeconds": 8776,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 10,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 59194,
+          "bootstrapFinishAfterExportSeconds": 6357,
+          "slackToFixedOtherTailSeconds": 3324,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 10,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 31008.5,
+          "bootstrapFinishAfterExportSeconds": 3281,
+          "slackToFixedOtherTailSeconds": 6400,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 10,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 2823,
+          "bootstrapFinishAfterExportSeconds": 905,
+          "slackToFixedOtherTailSeconds": 8776,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 14,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 59194,
+          "bootstrapFinishAfterExportSeconds": 4443,
+          "slackToFixedOtherTailSeconds": 5238,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 14,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 31008.5,
+          "bootstrapFinishAfterExportSeconds": 2713,
+          "slackToFixedOtherTailSeconds": 6968,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 14,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 2823,
+          "bootstrapFinishAfterExportSeconds": 905,
+          "slackToFixedOtherTailSeconds": 8776,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 28,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 59194,
+          "bootstrapFinishAfterExportSeconds": 2956,
+          "slackToFixedOtherTailSeconds": 6725,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 28,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 31008.5,
+          "bootstrapFinishAfterExportSeconds": 1930.5,
+          "slackToFixedOtherTailSeconds": 7750.5,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 28,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 2823,
+          "bootstrapFinishAfterExportSeconds": 905,
+          "slackToFixedOtherTailSeconds": 8776,
+          "modeledGateDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "run": 45553276269,
+      "attempt": 1,
+      "head": "f15fd26344effebfbe3d34bbfb51471a519cf25b",
+      "jobCount": 70,
+      "conclusions": {
+        "success": 69,
+        "failure": 1
+      },
+      "exportEnd": "2026-11-25T06:08:05Z",
+      "bootstrapJobs": 28,
+      "observedBootstrapAllocatedSeconds": 58019,
+      "overlapUpperBoundSeconds": 54796,
+      "observedLastBootstrapEnd": "2026-11-25T06:20:33.000Z",
+      "otherTail": {
+        "id": 139001164804,
+        "name": "build and non-Lean tests (aarch64-unknown-linux-gnu)",
+        "end": "2026-11-25T08:47:05Z"
+      },
+      "exportToOtherTailSeconds": 9540,
+      "minimumTestedDedicatedCapacityNoOverlapRemoval": 8,
+      "native": [
+        {
+          "name": "build and non-Lean tests (aarch64-unknown-linux-gnu)",
+          "id": 139001164804,
+          "duration": 11885,
+          "end": "2026-11-25T08:47:05Z",
+          "slackToTailSeconds": 0,
+          "conclusion": "success"
+        },
+        {
+          "name": "build and non-Lean tests (x86_64-apple-darwin)",
+          "id": 139074316249,
+          "duration": 68,
+          "end": "2026-11-25T08:26:25Z",
+          "slackToTailSeconds": 1240,
+          "conclusion": "failure"
+        },
+        {
+          "name": "Intel conformance (lower)",
+          "id": 139020070244,
+          "duration": 6983,
+          "end": "2026-11-25T08:25:15Z",
+          "slackToTailSeconds": 1310,
+          "conclusion": "success"
+        },
+        {
+          "name": "build and non-Lean tests (aarch64-apple-darwin)",
+          "id": 139001164795,
+          "duration": 10008,
+          "end": "2026-11-25T08:15:49Z",
+          "slackToTailSeconds": 1876,
+          "conclusion": "success"
+        },
+        {
+          "name": "Intel conformance (print)",
+          "id": 139020070343,
+          "duration": 6134,
+          "end": "2026-11-25T08:02:10Z",
+          "slackToTailSeconds": 2695,
+          "conclusion": "success"
+        },
+        {
+          "name": "Intel conformance (validate)",
+          "id": 139020070351,
+          "duration": 2428,
+          "end": "2026-11-25T07:54:32Z",
+          "slackToTailSeconds": 3153,
+          "conclusion": "success"
+        },
+        {
+          "name": "Intel conformance (moves)",
+          "id": 139020070256,
+          "duration": 4415,
+          "end": "2026-11-25T07:32:45Z",
+          "slackToTailSeconds": 4460,
+          "conclusion": "success"
+        },
+        {
+          "name": "build and non-Lean tests (x86_64-pc-windows-msvc)",
+          "id": 139030915164,
+          "duration": 66,
+          "end": "2026-11-25T06:46:46Z",
+          "slackToTailSeconds": 7219,
+          "conclusion": "success"
+        },
+        {
+          "name": "Intel test construction and local targets",
+          "id": 139001164772,
+          "duration": 1630,
+          "end": "2026-11-25T06:18:52Z",
+          "slackToTailSeconds": 8893,
+          "conclusion": "success"
+        }
+      ],
+      "scenarios": [
+        {
+          "capacity": 1,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 58019,
+          "bootstrapFinishAfterExportSeconds": 58019,
+          "slackToFixedOtherTailSeconds": -48479,
+          "modeledGateDelaySeconds": 48479
+        },
+        {
+          "capacity": 1,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 30621,
+          "bootstrapFinishAfterExportSeconds": 30621,
+          "slackToFixedOtherTailSeconds": -21081,
+          "modeledGateDelaySeconds": 21081
+        },
+        {
+          "capacity": 1,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 3223,
+          "bootstrapFinishAfterExportSeconds": 3223,
+          "slackToFixedOtherTailSeconds": 6317,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 2,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 58019,
+          "bootstrapFinishAfterExportSeconds": 29161,
+          "slackToFixedOtherTailSeconds": -19621,
+          "modeledGateDelaySeconds": 19621
+        },
+        {
+          "capacity": 2,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 30621,
+          "bootstrapFinishAfterExportSeconds": 15319,
+          "slackToFixedOtherTailSeconds": -5779,
+          "modeledGateDelaySeconds": 5779
+        },
+        {
+          "capacity": 2,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 3223,
+          "bootstrapFinishAfterExportSeconds": 1615,
+          "slackToFixedOtherTailSeconds": 7925,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 3,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 58019,
+          "bootstrapFinishAfterExportSeconds": 19471,
+          "slackToFixedOtherTailSeconds": -9931,
+          "modeledGateDelaySeconds": 9931
+        },
+        {
+          "capacity": 3,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 30621,
+          "bootstrapFinishAfterExportSeconds": 10329,
+          "slackToFixedOtherTailSeconds": -789,
+          "modeledGateDelaySeconds": 789
+        },
+        {
+          "capacity": 3,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 3223,
+          "bootstrapFinishAfterExportSeconds": 1077,
+          "slackToFixedOtherTailSeconds": 8463,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 4,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 58019,
+          "bootstrapFinishAfterExportSeconds": 14708,
+          "slackToFixedOtherTailSeconds": -5168,
+          "modeledGateDelaySeconds": 5168
+        },
+        {
+          "capacity": 4,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 30621,
+          "bootstrapFinishAfterExportSeconds": 7686,
+          "slackToFixedOtherTailSeconds": 1854,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 4,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 3223,
+          "bootstrapFinishAfterExportSeconds": 827,
+          "slackToFixedOtherTailSeconds": 8713,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 5,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 58019,
+          "bootstrapFinishAfterExportSeconds": 11940,
+          "slackToFixedOtherTailSeconds": -2400,
+          "modeledGateDelaySeconds": 2400
+        },
+        {
+          "capacity": 5,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 30621,
+          "bootstrapFinishAfterExportSeconds": 6181.5,
+          "slackToFixedOtherTailSeconds": 3358.5,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 5,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 3223,
+          "bootstrapFinishAfterExportSeconds": 748,
+          "slackToFixedOtherTailSeconds": 8792,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 8,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 58019,
+          "bootstrapFinishAfterExportSeconds": 7486,
+          "slackToFixedOtherTailSeconds": 2054,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 8,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 30621,
+          "bootstrapFinishAfterExportSeconds": 3972.5,
+          "slackToFixedOtherTailSeconds": 5567.5,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 8,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 3223,
+          "bootstrapFinishAfterExportSeconds": 748,
+          "slackToFixedOtherTailSeconds": 8792,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 10,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 58019,
+          "bootstrapFinishAfterExportSeconds": 7110,
+          "slackToFixedOtherTailSeconds": 2430,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 10,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 30621,
+          "bootstrapFinishAfterExportSeconds": 3692,
+          "slackToFixedOtherTailSeconds": 5848,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 10,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 3223,
+          "bootstrapFinishAfterExportSeconds": 748,
+          "slackToFixedOtherTailSeconds": 8792,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 14,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 58019,
+          "bootstrapFinishAfterExportSeconds": 4805,
+          "slackToFixedOtherTailSeconds": 4735,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 14,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 30621,
+          "bootstrapFinishAfterExportSeconds": 2465,
+          "slackToFixedOtherTailSeconds": 7075,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 14,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 3223,
+          "bootstrapFinishAfterExportSeconds": 748,
+          "slackToFixedOtherTailSeconds": 8792,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 28,
+          "removedOverlapFraction": 0,
+          "modeledRunnerSeconds": 58019,
+          "bootstrapFinishAfterExportSeconds": 2915,
+          "slackToFixedOtherTailSeconds": 6625,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 28,
+          "removedOverlapFraction": 0.5,
+          "modeledRunnerSeconds": 30621,
+          "bootstrapFinishAfterExportSeconds": 1742,
+          "slackToFixedOtherTailSeconds": 7798,
+          "modeledGateDelaySeconds": 0
+        },
+        {
+          "capacity": 28,
+          "removedOverlapFraction": 1,
+          "modeledRunnerSeconds": 3223,
+          "bootstrapFinishAfterExportSeconds": 748,
+          "slackToFixedOtherTailSeconds": 8792,
+          "modeledGateDelaySeconds": 0
+        }
+      ]
+    }
+  ]
+}
