@@ -791,7 +791,7 @@ fn plan_decisions() {
     let script_text = root_file(".github/ci-plan.sh");
     assert!(
         script_text.contains(".head_repository.full_name == \\\"$repo\\\"")
-            && script_text.contains("runs?head_sha=$commit&status=success")
+            && script_text.contains("runs?head_sha=$commit&per_page=30")
             && script_text.contains(
                 "select(.event == \\\"pull_request\\\" or .event == \\\"workflow_dispatch\\\")"
             )
@@ -813,6 +813,9 @@ fn plan_decisions() {
         assert!(
             text.contains("source \"$(dirname \"${BASH_SOURCE[0]}\")/scripts/ci-provider-read.sh\"")
                 && text.contains("ci_provider_read \"repos/$repo/actions/runs/$")
+                && text.contains("runs?head_sha=$commit&per_page=30\" --paginate")
+                && text.contains("select(.status == \\\"completed\\\" and .conclusion == \\\"success\\\")")
+                && !text.contains("status=success")
                 && text.contains("/jobs?per_page=50\" --paginate")
                 && !text.contains("/jobs?per_page=100")
                 && !text.contains("gh api \"repos/$repo/actions/"),
