@@ -83,30 +83,45 @@ hosts_passed() {
 # honesty and the `rest` leg, so it is never one: the run must hold the join of
 # Atlas, every exact supported-host context, and every leg of the rows file,
 # and no job that did not conclude `success`.
+ci_reuse_note() { printf 'CI reuse: %s\n' "$*" >&2; }
+
 full_run_of() {
   local commit=$1 runs id names part parts job
   # The legs every run must hold. A failed or empty read would make the loop
   # below check nothing and accept any run, so it is no verified run (#603).
-  parts=$(jq -r '.[].part' "$rows_file") && [ -n "$parts" ] || return 1
+  parts=$(jq -r '.[].part' "$rows_file") && [ -n "$parts" ] || { ci_reuse_note "$commit: invalid or empty expected rows"; return 1; }
   runs=$(ci_provider_read "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$commit&status=success&per_page=30" \
-    --jq ".workflow_runs[] | select(.head_repository.full_name == \"$repo\") | select(.event == \"pull_request\" or .event == \"workflow_dispatch\") | .id") || return 1
+    --jq ".workflow_runs[] | select(.head_repository.full_name == \"$repo\") | select(.event == \"pull_request\" or .event == \"workflow_dispatch\") | .id") || { ci_reuse_note "$commit: successful run lookup failed"; return 1; }
+  [ -n "$runs" ] || { ci_reuse_note "$commit: no eligible successful run returned"; return 1; }
   for id in $runs; do
     # Pages of 50: after a failed job of run 45316289312 was run again,
     # GitHub answered its 70-job listing with HTTP 502 at 60 or more a page
     # every time, so retrying a page of 100 could never read it (#603).
     names=$(ci_provider_read "repos/$repo/actions/runs/$id/jobs?per_page=50" --paginate \
-      --jq '.jobs[] | "\(.name)\t\(.conclusion)"') || continue
-    if printf '%s\n' "$names" | awk -F'\t' '$2 != "success" { bad = 1 } END { exit bad }' \
-      && printf '%s\n' "$names" | grep -xF $'atlas (join)\tsuccess' >/dev/null \
-      && printf '%s\n' "$names" | hosts_passed; then
-      for part in $parts; do
-        job="just vv ($part)"
-        [ "$part" != honesty ] || job=honesty
-        printf '%s\n' "$names" | grep -xF "$job"$'\tsuccess' >/dev/null || continue 2
-      done
-      printf '%s\n' "$id"
-      return 0
+      --jq '.jobs[] | "\(.name)\t\(.conclusion)"') || { ci_reuse_note "run $id: job lookup failed"; continue; }
+    if ! printf '%s\n' "$names" | awk -F'\t' '$2 != "success" { bad = 1 } END { exit bad }'; then
+      ci_reuse_note "run $id: empty or non-success job listing"
+      continue
     fi
+    if ! printf '%s\n' "$names" | grep -xF $'atlas (join)\tsuccess' >/dev/null; then
+      ci_reuse_note "run $id: missing successful Atlas join"
+      continue
+    fi
+    if ! printf '%s\n' "$names" | hosts_passed; then
+      ci_reuse_note "run $id: required host contexts absent, duplicated, foreign or unsuccessful"
+      continue
+    fi
+    for part in $parts; do
+      job="just vv ($part)"
+      [ "$part" != honesty ] || job=honesty
+      if ! printf '%s\n' "$names" | grep -xF "$job"$'\tsuccess' >/dev/null; then
+        ci_reuse_note "run $id: missing successful required row $part"
+        continue 2
+      fi
+    done
+    ci_reuse_note "run $id: complete gate accepted for $commit"
+    printf '%s\n' "$id"
+    return 0
   done
   return 1
 }
