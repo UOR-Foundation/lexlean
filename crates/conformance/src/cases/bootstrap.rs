@@ -917,6 +917,15 @@ fn lower(
     module: &str,
     root: &str,
 ) -> Lowered {
+    crate::phases::span("lower", || lower_unmeasured(checked, project, module, root))
+}
+
+fn lower_unmeasured(
+    checked: &lexlean::link::CheckedProject,
+    project: &P,
+    module: &str,
+    root: &str,
+) -> Lowered {
     let linked = linked_modules(checked);
     let roots = roots(checked).expect("the production roots");
     let root = format!("{module}.{root}");
@@ -991,6 +1000,19 @@ fn readable(value: &Json) -> String {
 /// sequential one. When the cases measure the evaluator's stack (`PD-08`)
 /// every run is on the calling thread, whose stack is the one measured.
 fn evaluate(lowered: &Lowered, corpus: &[Run], limit: usize) -> Vec<String> {
+    let started = Instant::now();
+    let disagreements = evaluate_corpus(lowered, corpus, limit);
+    crate::phases::record(
+        None,
+        "evaluator",
+        started,
+        started.elapsed(),
+        serde_json::json!({ "runs": corpus.len() }),
+    );
+    disagreements
+}
+
+fn evaluate_corpus(lowered: &Lowered, corpus: &[Run], limit: usize) -> Vec<String> {
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     let disagreement = |run: usize| -> Option<String> {
@@ -1636,16 +1658,35 @@ pub fn run(id: &str) {
     // validator at 5 to 10), so together they exceed a 16 GiB host; the
     // cases run one at a time.
     static HEAVY: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    // The wait is recorded apart from the case (#603 DOD-7): a case's own log
+    // times start after it holds the mutex, and the test harness's do not.
+    let waiting = Instant::now();
     let _heavy = HEAVY
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
-    let id = id.to_owned();
-    if let Err(failure) = std::thread::Builder::new()
+    crate::phases::record(
+        Some(id),
+        "heavy-wait",
+        waiting,
+        waiting.elapsed(),
+        serde_json::Value::Null,
+    );
+    let _current = crate::phases::case(id);
+    let running = Instant::now();
+    let owned = id.to_owned();
+    let joined = std::thread::Builder::new()
         .stack_size(EVALUATOR_STACK)
-        .spawn(move || case(&id))
+        .spawn(move || case(&owned))
         .expect("thread")
-        .join()
-    {
+        .join();
+    crate::phases::record(
+        Some(id),
+        "case",
+        running,
+        running.elapsed(),
+        serde_json::json!({ "passed": joined.is_ok() }),
+    );
+    if let Err(failure) = joined {
         std::panic::resume_unwind(failure);
     }
 }

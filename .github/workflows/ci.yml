@@ -1498,6 +1498,17 @@ jobs:
           wait "$sampler" 2>/dev/null || true
           python3 .github/scripts/summarize_host_samples.py "$RUNNER_TEMP/host-resources.tsv" || true
           exit "$status"
+        env:
+          # Evidence only (#603 DOD-7): where the conformance cases spend this
+          # host's time, recorded beside the run; no case reads it.
+          LEXLEAN_CONFORMANCE_PHASES: ${{ runner.temp }}/conformance-phases
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ !cancelled() }}
+        with:
+          name: conformance-phases-${{ matrix.target }}
+          path: ${{ runner.temp }}/conformance-phases
+          if-no-files-found: warn
+          retention-days: 14
 
   # Construct Intel workspace tests once, then keep ordinary tests, every
   # non-conformance harness, and all doctests on their original runner. The

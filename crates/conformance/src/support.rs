@@ -600,6 +600,10 @@ impl P {
     /// source package (§10.5) and the repository's workspace file.
     #[must_use]
     pub fn bootstrap() -> Self {
+        crate::phases::span("fixture-copy", Self::bootstrap_copy)
+    }
+
+    fn bootstrap_copy() -> Self {
         let temp = tempfile::Builder::new()
             .prefix("lexlean-bootstrap-case-")
             .tempdir()
@@ -879,11 +883,13 @@ impl P {
 
     /// Check the entrypoints, expecting success.
     pub fn check_ok(&self) -> lexlean::ProjectResultSet<lexlean::CheckedUnit> {
-        self.engine()
-            .check(CheckRequest {
-                selection: Selection::Entrypoints,
-            })
-            .expect("check succeeds")
+        crate::phases::span("check", || {
+            self.engine()
+                .check(CheckRequest {
+                    selection: Selection::Entrypoints,
+                })
+                .expect("check succeeds")
+        })
     }
 
     /// Check the entrypoints, expecting a failure.
@@ -905,6 +911,10 @@ impl P {
 
     /// Build the entrypoints, expecting success.
     pub fn build_ok(&self) -> lexlean::ProjectResultSet<lexlean::BuiltUnit> {
+        crate::phases::span("build", || self.build_entrypoints())
+    }
+
+    fn build_entrypoints(&self) -> lexlean::ProjectResultSet<lexlean::BuiltUnit> {
         self.engine()
             .build(BuildRequest {
                 selection: Selection::Entrypoints,
@@ -1435,6 +1445,10 @@ pub fn file_set(root: &Utf8Path) -> BTreeSet<String> {
 
 /// The checked project for a fixture, through the internal pipeline.
 pub fn checked_project(project: &P) -> lexlean::link::CheckedProject {
+    crate::phases::span("check-project", || checked_project_locked(project))
+}
+
+fn checked_project_locked(project: &P) -> lexlean::link::CheckedProject {
     let inner =
         lexlean::project::Project::load(&project.root.join("lexlean.toml")).expect("project loads");
     let (lock, packages) = lexlean::lock::read_current_lock(&inner).expect("lock current");

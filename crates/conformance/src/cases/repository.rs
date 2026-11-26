@@ -2436,9 +2436,10 @@ pub(crate) fn run(id: &str) {
                 }
             }
             // Two each on honesty, the bootstrap export, `vv`, `vv-bootstrap`,
-            // and every Atlas job. The advisory read recorder's stop (#603
-            // phase 1) carries it too, once in each job it traces, and in no
-            // other form.
+            // and every Atlas job, and one on the host matrix's upload of its
+            // conformance phases (#603 DOD-7 evidence). The advisory read
+            // recorder's stop (#603 phase 1) carries it too, once in each job
+            // it traces, and in no other form.
             let trace_stops = ci
                 .matches("      - uses: ./.github/actions/read-trace-stop\n        if: ${{ !cancelled() }}\n")
                 .count();
@@ -2449,7 +2450,7 @@ pub(crate) fn run(id: &str) {
             );
             assert_eq!(
                 step_conditions,
-                8 + 2 * atlas_jobs.len() + trace_stops,
+                9 + 2 * atlas_jobs.len() + trace_stops,
                 "the summary step and the evidence upload of every gate job carry it"
             );
             read_trace_workflow(&ci).expect("#603: the advisory read recorder");
