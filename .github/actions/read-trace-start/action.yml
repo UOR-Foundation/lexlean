@@ -1,0 +1,30 @@
+name: Start recording workspace reads
+description: >-
+  Advisory, CI #603 phase 1. Records which workspace files the rest of the job
+  opens (`.github/scripts/ci_read_trace.py`); never decides what runs, and a
+  failure here never fails the job. Use right after checkout.
+inputs:
+  job:
+    description: A label for the traced job (its row and index identify it exactly).
+    required: true
+  row:
+    description: The job's matrix row, as JSON (`toJSON(matrix)`).
+    required: false
+    default: ""
+  job-index:
+    description: The job's index in its matrix.
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Start the read recorder
+      # No -e and no pipefail: the script's status is ignored, and it exits 0.
+      shell: bash --noprofile --norc {0}
+      env:
+        READ_TRACE_JOB: ${{ inputs.job }}
+        READ_TRACE_MATRIX: ${{ inputs.row }}
+        READ_TRACE_JOB_INDEX: ${{ inputs.job-index }}
+      run: |
+        bash --noprofile --norc "$GITHUB_WORKSPACE/.github/scripts/read-trace-start.sh" || true
+        exit 0
