@@ -2774,11 +2774,22 @@ pub(crate) fn run(id: &str) {
                     }
                 }
             }
+            // The advisory read recorder's stop (#603 phase 1) carries it too,
+            // once in each job it traces, and in no other form.
+            let trace_stops = ci
+                .matches("      - uses: ./.github/actions/read-trace-stop\n        if: ${{ !cancelled() }}\n")
+                .count();
+            assert_eq!(
+                trace_stops,
+                ci.matches("read-trace-stop").count(),
+                "every read-trace stop runs unless the job was cancelled"
+            );
             assert_eq!(
                 step_conditions,
-                8 + 2 * atlas_jobs.len(),
+                8 + 2 * atlas_jobs.len() + trace_stops,
                 "the summary step and the evidence upload of every gate job carry it"
             );
+            read_trace_workflow(&ci).expect("#603: the advisory read recorder");
             assert_eq!(
                 full_conditions,
                 atlas_jobs.len() + 2,
@@ -3038,6 +3049,7 @@ pub(crate) fn run(id: &str) {
                 "test_tag_gate_poll.py",
                 "test_ci_provider_read.py",
                 "test_ci_plan_provider_retry.py",
+                "test_ci_read_trace.py",
             ] {
                 let command =
                     format!("python3 -m unittest discover -s .github/scripts -p '{script}'");
@@ -5218,7 +5230,8 @@ fn regression_honesty(ci: &str) -> Result<(), String> {
         "          python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'\n",
         "          python3 -m unittest discover -s .github/scripts -p 'test_tag_gate_poll.py'\n",
         "          python3 -m unittest discover -s .github/scripts -p 'test_ci_provider_read.py'\n",
-        "          python3 -m unittest discover -s .github/scripts -p 'test_ci_plan_provider_retry.py'",
+        "          python3 -m unittest discover -s .github/scripts -p 'test_ci_plan_provider_retry.py'\n",
+        "          python3 -m unittest discover -s .github/scripts -p 'test_ci_read_trace.py'",
     );
     // Pin this small shell program, not mere command presence: earlier exits,
     // masked failures, shell overrides and omitted tests must all be refused.
@@ -5229,6 +5242,97 @@ fn regression_honesty(ci: &str) -> Result<(), String> {
             .eq(expected.lines())
     {
         return Err("RP-14: regression controls cannot be bypassed".to_owned());
+    }
+    Ok(())
+}
+
+/// The advisory read recorder (#603 phase 1) traces exactly the Linux gate
+/// jobs, from right after their checkout to their last step, and can never
+/// gate: its actions end every path with success, they contain no step that
+/// could fail on its own (the report goes to the job log, not an artifact), no
+/// step of the workflow masks a failure, and no native host job is traced,
+/// because a Linux trace is no evidence about another host.
+fn read_trace_workflow(ci: &str) -> Result<(), String> {
+    const START: &str = "      - uses: ./.github/actions/read-trace-start\n";
+    // The exact matrix row and index bind a trace to one job of a matrix,
+    // whose jobs share a job key.
+    const MATRIX: &str =
+        "          row: ${{ toJSON(matrix) }}\n          job-index: ${{ strategy.job-index }}\n";
+    const CHECKOUT: &str =
+        "      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n";
+    let traced = [
+        "honesty",
+        "bootstrap-export",
+        "vv",
+        "atlas-prefix",
+        "atlas-cert4",
+        "atlas-l1",
+        "atlas-census-tail",
+        "atlas-cert4-replay",
+        "atlas-closure",
+        "atlas-l3",
+        "atlas-join",
+    ];
+    for key in traced {
+        let body = workflow_job(ci, key)?;
+        if body.matches(START).count() != 1
+            || !body.contains(&format!("{CHECKOUT}      # Advisory (#603 phase 1)"))
+            || !body.contains(&format!("{START}        with:\n          job: "))
+            || !body.contains(MATRIX)
+        {
+            return Err(format!(
+                "#603: {key} starts the read recorder once, right after checkout"
+            ));
+        }
+        let stop = body
+            .rfind("      - uses: ./.github/actions/read-trace-stop\n")
+            .ok_or(format!("#603: {key} never stops the read recorder"))?;
+        if body[stop..].matches("\n      - ").count() != 0
+            || body.matches("read-trace-stop").count() != 1
+        {
+            return Err(format!(
+                "#603: {key} stops the read recorder once, as its last step"
+            ));
+        }
+    }
+    for key in [
+        "host-matrix",
+        "intel-construction",
+        "intel-part",
+        "windows-part",
+    ] {
+        if workflow_job(ci, key)?.contains("read-trace") {
+            return Err(format!("#603: native host job {key} is traced"));
+        }
+    }
+    if ci.matches(START).count() != traced.len() {
+        return Err("#603: the read recorder traces a job outside the Linux gate".to_owned());
+    }
+    // Composite `shell: bash` means `bash -e -o pipefail`, and any `uses:`
+    // inside the action (an artifact upload, say) can fail on its own, so the
+    // action must be one step that names its shell without -e, runs its script
+    // with its status ignored, and ends in success; the script likewise.
+    for action in ["start", "stop"] {
+        let text = root_file(&format!(".github/actions/read-trace-{action}/action.yml"));
+        let script = root_file(&format!(".github/scripts/read-trace-{action}.sh"));
+        let run = format!(
+            "bash --noprofile --norc \"$GITHUB_WORKSPACE/.github/scripts/read-trace-{action}.sh\" \
+             || true\n        exit 0\n"
+        );
+        if text.contains("set -e")
+            || text.contains("exit 1")
+            || text.contains("uses:")
+            || text.matches("shell:").count() != 1
+            || !text.contains("      shell: bash --noprofile --norc {0}\n")
+            || !text.ends_with(&run)
+            || script.contains("set -e")
+            || script.contains("exit 1")
+            || !script.ends_with("\nexit 0\n")
+        {
+            return Err(format!(
+                "#603: read-trace-{action} can fail the job it traces"
+            ));
+        }
     }
     Ok(())
 }
