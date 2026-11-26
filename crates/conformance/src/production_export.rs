@@ -245,9 +245,6 @@ impl Exported {
 ///
 /// The contract's failure, as text.
 pub fn export(example: &str) -> Result<Exported, String> {
-    if example == BOOTSTRAP && std::env::var_os("LEXLEAN_CI_INDEPENDENT_LANE").is_some() {
-        return Err("§9.4: independent CI lane must not export bootstrap".to_owned());
-    }
     // The export reads the environment (the toolchain, `PATH`), which a case
     // that sets it for a moment must not change under it.
     let _environment = support::env_shared();
@@ -314,10 +311,6 @@ pub fn export(example: &str) -> Result<Exported, String> {
 /// When the example does not export.
 #[must_use]
 pub fn exported(example: &str) -> &'static Exported {
-    assert!(
-        example != BOOTSTRAP || std::env::var_os("LEXLEAN_CI_INDEPENDENT_LANE").is_none(),
-        "§9.4: independent CI lane cannot take or regenerate bootstrap export"
-    );
     static PRODUCTION: OnceLock<Exported> = OnceLock::new();
     static COVERAGE: OnceLock<Exported> = OnceLock::new();
     static STANDARD: OnceLock<Exported> = OnceLock::new();

@@ -131,9 +131,8 @@ jobs:
       rows: ${{ steps.plan.outputs.rows }}
       honesty: ${{ steps.plan.outputs.honesty }}
       fanout: ${{ steps.plan.outputs.fanout }}
-      fanout_fast: ${{ steps.plan.outputs.fanout_fast }}
-      fanout_export: ${{ steps.plan.outputs.fanout_export }}
       intel: ${{ steps.plan.outputs.intel }}
+      bootstrap: ${{ steps.plan.outputs.bootstrap }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -199,6 +198,7 @@ jobs:
           python3 -m unittest discover -s .github/scripts -p 'test_tag_gate_poll.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_provider_read.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_plan_provider_retry.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_summarize_host_samples.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_read_trace.py'
       # The recorder's kernel path needs root (fanotify). Advisory like the
       # recording itself (#603 phase 1): it informs, it never gates.
@@ -243,15 +243,14 @@ jobs:
   # takes it through `.github/scripts/take-bootstrap-export.sh` when one of
   # its cases first needs it, and the harness checks the record against the
   # leg's own run and checkout and replays the bundle before the case reads
-  # it. In a full gate, the legs now wait before acquiring runners for this
-  # producer; a stacked development signal still starts after honesty and
-  # performs a local export if required. The artifact stays same-run only.
-  # The export verifies the bootstrap project through the same `verify`
-  # that the `examples` recipe runs,
-  # so this job is also that project's part of the recipe: it formats, locks,
-  # checks, and builds a clean copy first, and holds the export's verified
-  # directory to the recipe's checks after, and the `examples` leg does not
-  # verify the project again.
+  # it. The `bdd-bootstrap-*` legs, which all take it, start when this job has
+  # passed (`vv-bootstrap`); the other legs start when honesty passes and wait
+  # only at that point; the artifact is read by this run alone. The export
+  # verifies the bootstrap project through the same `verify` that the
+  # `examples` recipe runs, so this job is also that project's part of the
+  # recipe: it formats, locks, checks, and builds a clean copy first, and holds
+  # the export's verified directory to the recipe's checks after, and the
+  # `examples` leg does not verify the project again.
   bootstrap-export:
     name: bootstrap export
     needs: [plan, honesty]
@@ -338,22 +337,22 @@ jobs:
       - uses: ./.github/actions/read-trace-stop
         if: ${{ !cancelled() }}
 
-  vv-fast:
+
+  vv:
     name: just vv (${{ matrix.part }})
-    # Independent rows start immediately after honesty, while export runs.
-    # The stacked-PR rest row follows this same producer-free path.
     needs: [plan, honesty]
-    if: ${{ needs.plan.result == 'success' && needs.honesty.result == 'success' && needs.plan.outputs.fanout_fast != '[]' }}
+    if: ${{ needs.plan.outputs.fanout != '[]' }}
     # A failing leg does not cancel the others: each leg's evidence is complete.
-    # The legs are the rows of `.github/vv-rows.json`, or only its `rest` row
-    # while a ready PR is stacked on a non-release feature branch.
+    # The legs are the rows of `.github/vv-rows.json` but honesty and the
+    # `bdd-bootstrap-*` rows, which `vv-bootstrap` runs, or only its `rest` row
+    # while the pull request is a draft.
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.plan.outputs.fanout_fast) }}
+        include: ${{ fromJSON(needs.plan.outputs.fanout) }}
     runs-on: ubuntu-24.04
-    # Independent rows do not fetch the shared bootstrap artifact.
-    # Retain the existing access permissions to avoid unrelated changes.
+    # `actions: read` lets a leg list and download this run's artifacts: the
+    # bootstrap export, which its fetcher takes when a case needs it.
     permissions:
       contents: read
       actions: read
@@ -362,8 +361,6 @@ jobs:
     # proof coverage into a CI failure mode.
     timeout-minutes: 360
     env:
-      # CI-only contract: fail rather than silently export bootstrap locally.
-      LEXLEAN_CI_INDEPENDENT_LANE: "1"
       # Operational only (SPEC.md §22.12): no artifact records it, and the
       # telemetry directory is CI evidence, uploaded below.
       LEXLEAN_CI_TELEMETRY: ${{ github.workspace }}/ci-evidence
@@ -383,8 +380,20 @@ jobs:
       LEXLEAN_VERIFY_HINTS: ${{ matrix.hints && format('{0}/{1}', github.workspace, matrix.hints) || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Advisory (#603 phase 1): which workspace files this job opens, printed
+      # into this job's log. It never decides what runs and never fails the job.
+      - uses: ./.github/actions/read-trace-start
+        with:
+          job: ${{ matrix.part }}
+          row: ${{ toJSON(matrix) }}
+          job-index: ${{ strategy.job-index }}
       - name: Install the pinned Rust toolchain
         run: bash .github/retry.sh rustup toolchain install
+      # `GN-09` runs each modeled SIMD instruction by the pinned rustc: AVX2 in
+      # process, SIMD128 as a WebAssembly module under the runner's Node.js, and
+      # NEON built for its target (an x86-64 runner cannot execute it).
+      - name: Add the SIMD targets of the pinned Rust
+        run: bash .github/retry.sh rustup target add aarch64-unknown-linux-gnu wasm32-unknown-unknown
       # CL-25 builds the executable for WASI with the pinned toolchain and runs
       # it under the runner's Node (§8.3); the target is added here rather than
       # in rust-toolchain.toml, which the export custody records byte for byte.
@@ -396,9 +405,9 @@ jobs:
       - name: Install elan and the pinned Lean toolchain
         run: |
           set -euo pipefail
-          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          bash .github/retry.sh bash -euo pipefail -c 'curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none'
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-          "$HOME/.elan/bin/elan" toolchain install "$(cat lean-toolchain)"
+          bash .github/retry.sh "$HOME/.elan/bin/elan" toolchain install "$(cat lean-toolchain)"
       - name: Reserve bounded overflow memory for native Atlas
         run: |
           set -euo pipefail
@@ -411,13 +420,22 @@ jobs:
       - name: Run the normative acceptance gate
         shell: bash
         env:
+          # In a run that is the whole gate, the `bootstrap export` job exports
+          # the bootstrap project for every leg (§9.4): the fetcher takes the
+          # run's artifact when a case first asks for it, and the harness
+          # checks its custody record before any case reads it. Otherwise no
+          # job exports it once, and a case exports it itself.
           FULL_GATE: ${{ needs.plan.outputs.full }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           mkdir -p ci-evidence
           take_pid=
-          # No BS conformance cases: no export fetcher is allocated.
+          if [ "$FULL_GATE" = true ]; then
+            export LEXLEAN_BOOTSTRAP_EXPORT="$RUNNER_TEMP/bootstrap-export"
+            .github/scripts/take-bootstrap-export.sh "$LEXLEAN_BOOTSTRAP_EXPORT" > ci-evidence/take-bootstrap-export.txt 2>&1 &
+            take_pid=$!
+          fi
           monitor_resources() {
             while true; do
               date -u +'%Y-%m-%dT%H:%M:%SZ'
@@ -487,20 +505,34 @@ jobs:
           path: ci-evidence
           if-no-files-found: error
           retention-days: 14
+      - uses: ./.github/actions/read-trace-stop
+        if: ${{ !cancelled() }}
 
-  vv:
+  # The `bdd-bootstrap-*` legs of `vv`, started when the bootstrap export has
+  # passed rather than when honesty has (#603). Each of these legs takes the
+  # export, and started with the other legs each held its runner until the
+  # export arrived: over the 28 legs of run 45437716141, 595.0 of 986.6
+  # job-minutes were that wait, 22.5% of the gate's 2,643, against 366.4 of
+  # work before a case first asked and 25.2 after. The export takes about 34
+  # minutes after honesty and the longest of these legs' own work 48 more, far
+  # below the 182 to 196 minutes of the host jobs that set the gate's wall
+  # time, so the wait is spent without delaying the gate. The job has the
+  # name of `vv` because the plan's previous-run check and `release-gate.sh`
+  # look a leg up as `just vv (<part>)`; it has no status function in its
+  # condition, so a failed or skipped export skips every leg here, and a run
+  # with a skipped leg is never the whole gate that passed. The steps are the
+  # steps of `vv`, line for line, which RP-14 holds.
+  vv-bootstrap:
     name: just vv (${{ matrix.part }})
-    # Export consumers start only after the same-run producer has succeeded.
-    # Non-full development runs have no export-dependent rows.
     needs: [plan, honesty, bootstrap-export]
-    if: ${{ needs.plan.outputs.full == 'true' && needs.bootstrap-export.result == 'success' && needs.plan.outputs.fanout_export != '[]' }}
+    if: ${{ needs.plan.outputs.bootstrap != '[]' }}
     # A failing leg does not cancel the others: each leg's evidence is complete.
-    # The legs are the rows of `.github/vv-rows.json`, or only its `rest` row
-    # while a ready PR is stacked on a non-release feature branch.
+    # The legs are the `bdd-bootstrap-*` rows of `.github/vv-rows.json`, which
+    # the plan names only in a run that is the whole gate.
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.plan.outputs.fanout_export) }}
+        include: ${{ fromJSON(needs.plan.outputs.bootstrap) }}
     runs-on: ubuntu-24.04
     # `actions: read` lets a leg list and download this run's artifacts: the
     # bootstrap export, which its fetcher takes when a case needs it.
@@ -1544,7 +1576,20 @@ jobs:
       # fails, so a host with two independent failures reports one, and each
       # further one costs a whole run of the leg. The job fails exactly when a
       # test fails, as before; only what it reports is complete (SPEC.md §8.3).
-      - run: cargo test --locked --workspace --all-features --no-fail-fast
+      # Evidence for #603 DOD-7a, never a gate: the host's CPU and memory every
+      # five seconds while the tests run, summarized after them. The step's
+      # status is cargo's alone; the sampler's cannot reach it.
+      - name: Test the workspace on this host
+        shell: bash
+        run: |
+          bash .github/scripts/sample-host.sh "$RUNNER_TEMP/host-resources.tsv" &
+          sampler=$!
+          status=0
+          cargo test --locked --workspace --all-features --no-fail-fast || status=$?
+          kill "$sampler" 2>/dev/null || true
+          wait "$sampler" 2>/dev/null || true
+          python3 .github/scripts/summarize_host_samples.py "$RUNNER_TEMP/host-resources.tsv" || true
+          exit "$status"
 
   # Construct Intel workspace tests once, then keep ordinary tests, every
   # non-conformance harness, and all doctests on their original runner. The

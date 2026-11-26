@@ -41,16 +41,15 @@
 #
 # Inputs, all from the environment: EVENT, DRAFT, BASE (the base branch of a
 # pull request), HEAD (the head branch of a pull request), REPO, and REF (the
-# branch a dispatch names). The jobs read `full`, `rows` and `intel` from
-# GITHUB_OUTPUT. `LEXLEAN_CI_ROWS` names the legs file
-# when a test runs the script elsewhere.
+# branch a dispatch names). The jobs read `full`, `rows`, the rows' split below
+# and `intel` from GITHUB_OUTPUT. `LEXLEAN_CI_ROWS` names the legs file when a
+# test runs the script elsewhere.
 set -euo pipefail
 
 # A transient provider error must not immediately allocate the full gate.
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/ci-provider-read.sh"
 
 rows_file=${LEXLEAN_CI_ROWS:-.github/vv-rows.json}
-bdd_parts_file=${LEXLEAN_CI_BDD_PARTS:-.github/bdd-parts.json}
 event=${EVENT:?EVENT names the workflow event}
 draft=${DRAFT:-}
 base=${BASE:-}
@@ -60,36 +59,20 @@ head=${HEAD:-}
 out=${GITHUB_OUTPUT:-/dev/stdout}
 summary=${GITHUB_STEP_SUMMARY:-/dev/null}
 
-# full, rows, and whether the Intel macOS jobs run (default: with the whole gate).
+# The planned rows, split by the job that runs them: `honesty`; `fanout`, the
+# legs of `vv`, which start when honesty passes; and `bootstrap`, the legs of
+# `vv-bootstrap`, which start only when the bootstrap export has passed too.
+# Started with the others, the 28 `bdd-bootstrap-*` legs of run 45437716141
+# held their runners 595 of their 986.6 job-minutes waiting for that export
+# (#603), and none of them is on the gate's critical path once it has arrived.
+# The third argument says whether the Intel macOS jobs run (default: with the
+# whole gate).
 emit() {
-  local classified fast export_rows
-  # Classify from the committed BDD case manifest, never from a fixed prefix
-  # list. Any unrecognized verification partition fails the plan closed.
-  classified=$(jq -cn --argjson rows "$2" --slurpfile manifest "$bdd_parts_file" '
-    def uses_export:
-      if .part == "examples" then
-        if .bdd_part == "" then false else error("examples must not run BDD") end
-      elif .part == "rest" then
-        if .bdd_part == "rest" then false else error("rest BDD part mismatch") end
-      else
-        .bdd_part as $part
-        | if .part != ("bdd-" + $part) then error("unrecognized BDD row")
-          else
-            ($manifest[0].parts[$part] // error("unregistered BDD part")) as $ids
-            | if ($ids | type) != "array" then error("BDD part is not an array")
-              else any($ids[]; startswith("BS-")) end
-          end
-      end;
-    [$rows[] | select(.part != "honesty")] as $work
-    | {fast: [$work[] | select(uses_export | not)],
-       export: [$work[] | select(uses_export)]}
-  ') || return 1
-  fast=$(jq -c .fast <<< "$classified") || return 1
-  export_rows=$(jq -c .export <<< "$classified") || return 1
-  printf 'full=%s\nrows=%s\nhonesty=%s\nfanout=%s\nfanout_fast=%s\nfanout_export=%s\nintel=%s\n' "$1" "$2" \
+  printf 'full=%s\nrows=%s\nhonesty=%s\nfanout=%s\nbootstrap=%s\nintel=%s\n' "$1" "$2" \
     "$(jq -c '[.[] | select(.part == "honesty")]' <<< "$2")" \
-    "$(jq -c '[.[] | select(.part != "honesty")]' <<< "$2")" \
-    "$fast" "$export_rows" "${3:-$1}" >> "$out"
+    "$(jq -c '[.[] | select(.part != "honesty" and (.part | startswith("bdd-bootstrap-") | not))]' <<< "$2")" \
+    "$(jq -c '[.[] | select(.part | startswith("bdd-bootstrap-"))]' <<< "$2")" \
+    "${3:-$1}" >> "$out"
 }
 
 # The whole gate; INTEL (default true) says whether its Intel macOS jobs run.
@@ -169,35 +152,58 @@ linux_passed() {
 # honesty and the `rest` leg, so it is never one: the run must hold the join of
 # Atlas, every exact supported-host context, and every leg of the rows file,
 # and no job that did not conclude `success`. With MODE `linux`, a run that
-# passed every job but the Intel macOS jobs it skipped counts as well.
+# passed every job but the Intel macOS jobs it skipped counts as well, and the
+# run's ID is followed by `linux` or `whole`, which says which it was: the
+# provider is read once, so a read that failed is never retried by a second
+# search and taken for a verified run (#633).
+ci_reuse_note() { printf 'CI reuse: %s\n' "$*" >&2; }
+
 full_run_of() {
   local commit=$1 mode=${2:-whole} runs id names part parts job
   # The legs every run must hold. A failed or empty read would make the loop
   # below check nothing and accept any run, so it is no verified run (#603).
-  parts=$(jq -r '.[].part' "$rows_file") && [ -n "$parts" ] || return 1
-  runs=$(ci_provider_read "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$commit&status=success&per_page=30" \
-    --jq ".workflow_runs[] | select(.head_repository.full_name == \"$repo\") | select(.event == \"pull_request\" or .event == \"workflow_dispatch\") | .id") || return 1
+  parts=$(jq -r '.[].part' "$rows_file") && [ -n "$parts" ] || { ci_reuse_note "$commit: invalid or empty expected rows"; return 1; }
+  runs=$(ci_provider_read "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$commit&per_page=30" --paginate \
+    --jq ".workflow_runs[] | select(.status == \"completed\" and .conclusion == \"success\") | select(.head_sha == \"$commit\") | select(.head_repository.full_name == \"$repo\") | select(.event == \"pull_request\" or .event == \"workflow_dispatch\") | .id") || { ci_reuse_note "$commit: successful run lookup failed"; return 1; }
+  [ -n "$runs" ] || { ci_reuse_note "$commit: no eligible successful run returned"; return 1; }
   for id in $runs; do
     # Pages of 50: after a failed job of run 45316289312 was run again,
     # GitHub answered its 70-job listing with HTTP 502 at 60 or more a page
     # every time, so retrying a page of 100 could never read it (#603).
     names=$(ci_provider_read "repos/$repo/actions/runs/$id/jobs?per_page=50" --paginate \
-      --jq '.jobs[] | "\(.name)\t\(.conclusion)"') || continue
+      --jq '.jobs[] | "\(.name)\t\(.conclusion)"') || { ci_reuse_note "run $id: job lookup failed"; continue; }
     if [ "$mode" = linux ] && linux_passed "$names"; then
-      printf '%s\n' "$id"
+      ci_reuse_note "run $id: gate accepted for $commit with its Intel macOS jobs skipped"
+      printf '%s linux\n' "$id"
       return 0
     fi
-    if printf '%s\n' "$names" | awk -F'\t' '$2 != "success" { bad = 1 } END { exit bad }' \
-      && printf '%s\n' "$names" | grep -xF $'atlas (join)\tsuccess' >/dev/null \
-      && printf '%s\n' "$names" | hosts_passed; then
-      for part in $parts; do
-        job="just vv ($part)"
-        [ "$part" != honesty ] || job=honesty
-        printf '%s\n' "$names" | grep -xF "$job"$'\tsuccess' >/dev/null || continue 2
-      done
-      printf '%s\n' "$id"
-      return 0
+    if ! printf '%s\n' "$names" | awk -F'\t' '$2 != "success" { bad = 1 } END { exit bad }'; then
+      ci_reuse_note "run $id: empty or non-success job listing"
+      continue
     fi
+    if ! printf '%s\n' "$names" | grep -xF $'atlas (join)\tsuccess' >/dev/null; then
+      ci_reuse_note "run $id: missing successful Atlas join"
+      continue
+    fi
+    if ! printf '%s\n' "$names" | hosts_passed; then
+      ci_reuse_note "run $id: required host contexts absent, duplicated, foreign or unsuccessful"
+      continue
+    fi
+    for part in $parts; do
+      job="just vv ($part)"
+      [ "$part" != honesty ] || job=honesty
+      if ! printf '%s\n' "$names" | grep -xF "$job"$'\tsuccess' >/dev/null; then
+        ci_reuse_note "run $id: missing successful required row $part"
+        continue 2
+      fi
+    done
+    ci_reuse_note "run $id: complete gate accepted for $commit"
+    if [ "$mode" = linux ]; then
+      printf '%s whole\n' "$id"
+    else
+      printf '%s\n' "$id"
+    fi
+    return 0
   done
   return 1
 }
@@ -214,12 +220,12 @@ verified_tree_run() {
     if full_run_of "$commit" "$mode"; then
       return 0
     fi
-    [ "$depth" -lt 4 ] || return 1
+    [ "$depth" -lt 4 ] || { ci_reuse_note "$commit: ancestry search limit reached"; return 1; }
     # The plan's checkout is shallow; deepen it for the commit it walks.
     git rev-parse --verify --quiet "$commit^2" >/dev/null \
-      || git fetch --quiet --depth=2 origin "$commit" 2>/dev/null || return 1
-    git rev-parse --verify --quiet "$commit^2" >/dev/null || return 1
-    [ "$(git rev-parse "$commit^{tree}")" = "$(git rev-parse "$commit^2^{tree}")" ] || return 1
+      || git fetch --quiet --depth=2 origin "$commit" 2>/dev/null || { ci_reuse_note "$commit: cannot deepen ancestry"; return 1; }
+    git rev-parse --verify --quiet "$commit^2" >/dev/null || { ci_reuse_note "$commit: no second parent available"; return 1; }
+    [ "$(git rev-parse "$commit^{tree}")" = "$(git rev-parse "$commit^2^{tree}")" ] || { ci_reuse_note "$commit: second-parent tree differs"; return 1; }
     commit=$(git rev-parse "$commit^2")
     depth=$((depth + 1))
   done
@@ -229,8 +235,8 @@ verified_tree_run() {
 # parent with the same tree (MODE as for `full_run_of`).
 verified_parent_run() {
   local parent
-  parent=$(git rev-parse --verify --quiet 'HEAD^2') || return 1
-  [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "$parent^{tree}")" ] || return 1
+  parent=$(git rev-parse --verify --quiet 'HEAD^2') || { ci_reuse_note 'HEAD: no second parent available'; return 1; }
+  [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "$parent^{tree}")" ] || { ci_reuse_note 'HEAD: second-parent tree differs'; return 1; }
   # HEAD to its parent is the first of the four merges `release-gate.sh`
   # walks from the tagged commit.
   verified_tree_run "$parent" 1 "${1:-whole}"
@@ -277,10 +283,10 @@ case "$event" in
     pull_request_plan
     ;;
   push)
-    if run=$(verified_parent_run); then
+    if found=$(verified_parent_run linux) && run=${found% *} && [ "${found##* }" = whole ]; then
       emit false '[]'
       printf 'This push merges a head whose tree it equals, and the whole gate passed on that head: run %s of %s. Nothing is run again.\n' "$run" "$repo" >> "$summary"
-    elif run=$(verified_parent_run linux); then
+    elif [ -n "${found:-}" ] && [ "${found##* }" = linux ]; then
       emit false "$(jq -c '[.[] | select(.part == "honesty")]' "$rows_file")" true
       printf 'This push merges a head whose tree it equals, and run %s of %s passed the whole gate on it but the Intel macOS jobs: honesty and the Intel jobs only.\n' "$run" "$repo" >> "$summary"
     else
