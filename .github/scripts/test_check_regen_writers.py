@@ -270,6 +270,51 @@ class WriterCollisionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unlisted files claim the set"):
             self.inspect()
 
+    def identity(self, changes):
+        """A relocked identity on the commit, committed locally as each writer
+        starts from it; the writers' sets are rewritten from its tree."""
+        for path, data in changes.items():
+            (self.repo / path).write_text(data)
+        self.git("add", "-A")
+        self.clear("identity")
+        manifest = patch_set.write("identity", self.parts, self.base, repo=self.repo)
+        self.git("commit", "-qm", "identity")
+        for part in WRITERS:
+            self.clear(part)
+            patch_set.write(part, self.parts, self.base, repo=self.repo)
+        return manifest
+
+    def test_writers_start_from_the_identity_tree(self):
+        identity = self.identity({"unique.txt": "relocked\n"})
+        self.make_writer("records", {"shared.txt": "recorded\n"})
+        self.assertEqual(inspect(self.parts, self.base, repo=self.repo, identity="identity"),
+                         [("production-export", 0), ("records", 1), ("oracles", 0)])
+        manifest = json.loads((self.parts / "records.patchset.json").read_text())
+        self.assertEqual(manifest["start_tree"], identity["tree"])
+        # Without the identity the writers' start tree is not the commit's.
+        with self.assertRaisesRegex(ValueError, "shared start tree"):
+            self.inspect()
+
+    def test_writers_made_without_the_identity_are_refused(self):
+        self.identity({"unique.txt": "relocked\n"})
+        self.git("reset", "-q", "--hard", self.base)
+        self.make_writer("records", {"shared.txt": "recorded on the bare commit\n"})
+        with self.assertRaisesRegex(ValueError, "records: made from tree .* shared start tree"):
+            inspect(self.parts, self.base, repo=self.repo, identity="identity")
+
+    def test_an_identity_that_does_not_give_its_tree_is_refused(self):
+        self.identity({"unique.txt": "relocked\n"})
+        path = self.parts / "identity.patchset.json"
+        manifest = json.loads(path.read_text())
+        manifest["tree"] = manifest["start_tree"]
+        path.write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(ValueError, "identity: the parts give tree"):
+            inspect(self.parts, self.base, repo=self.repo, identity="identity")
+
+    def test_a_missing_identity_is_refused(self):
+        with self.assertRaisesRegex(ValueError, "identity manifest missing"):
+            inspect(self.parts, self.base, repo=self.repo, identity="identity")
+
     def test_without_single_lock_owner_collision_is_detected(self):
         changes = self.lock_changes()
         self.make_writer("production-export", changes)
@@ -278,7 +323,13 @@ class WriterCollisionTests(unittest.TestCase):
             self.inspect()
 
     GUARD = ('run: python3 .github/scripts/check_regen_writers.py '
-             '--parts-dir "$RUNNER_TEMP/parts" --base "$COMMIT"')
+             '--parts-dir "$RUNNER_TEMP/parts" --base "$COMMIT" --identity identity')
+    IDENTITY_CAPTURE = ('python3 .github/scripts/patch_set.py write --name identity '
+                        '--base "$COMMIT" --out "$RUNNER_TEMP/identity"')
+    IDENTITY_START = ('python3 .github/scripts/patch_set.py apply --dir "$RUNNER_TEMP/identity" '
+                      '--name identity --base "$COMMIT"')
+    IDENTITY_APPLY = ('python3 .github/scripts/patch_set.py apply --dir "$RUNNER_TEMP/parts" '
+                      '--name identity --base "$COMMIT"')
     CAPTURE = ('python3 .github/scripts/patch_set.py write --name "${{ matrix.writer }}" '
                '--base "$COMMIT" --out "$RUNNER_TEMP/part"')
     COMBINE = ('python3 .github/scripts/patch_set.py combine --dir "$RUNNER_TEMP/parts" '
@@ -340,7 +391,8 @@ class WriterCollisionTests(unittest.TestCase):
     def check_workflow(cls, source, deliver, tool):
         jobs = cls.jobs(source)
         if set(jobs) != set(regen_lifecycle.HEADERS):
-            raise ValueError("lifecycle: the jobs are not writer, combine, finish, deliver")
+            raise ValueError("lifecycle: the jobs are not identity, writer, combine, finish, "
+                             "deliver")
         if "continue-on-error" in source:
             raise ValueError("lifecycle: no step or job may continue on error (fail closed)")
         for name, (header, steps) in jobs.items():
@@ -360,7 +412,9 @@ class WriterCollisionTests(unittest.TestCase):
         # agree with a weakened step still fails here.
         texts = {name: "".join(p for p in regen_lifecycle.STEPS[name] if isinstance(p, str))
                  for name in regen_lifecycle.STEPS}
-        for job, command in (("writer", cls.CAPTURE), ("combine", cls.GUARD),
+        for job, command in (("identity", cls.IDENTITY_CAPTURE),
+                             ("writer", cls.IDENTITY_START), ("combine", cls.IDENTITY_APPLY),
+                             ("writer", cls.CAPTURE), ("combine", cls.GUARD),
                              ("combine", cls.COMBINE), ("combine", cls.WRITE_COMBINED),
                              ("finish", cls.FINISH), ("finish", cls.RETURN)):
             if texts[job].count(command) != 1 or command + " ||" in texts[job]:
@@ -440,11 +494,23 @@ class WriterCollisionTests(unittest.TestCase):
             (self.GUARD, self.GUARD + " || true", "fail closed"),
             (self.GUARD, self.GUARD + "; exit 0", "fail closed"),
             (self.GUARD, self.GUARD.replace(' --base "$COMMIT"', ""), "fail closed"),
+            (self.GUARD, self.GUARD.replace(" --identity identity", ""), "fail closed"),
+            # The identity every writer starts from, at each of its three uses.
+            (self.IDENTITY_CAPTURE, self.IDENTITY_CAPTURE + " || true", "fail closed"),
+            (self.IDENTITY_START, self.IDENTITY_START + " || true", "fail closed"),
+            (self.IDENTITY_START, "exit 0\n          " + self.IDENTITY_START, "fail closed"),
+            (self.IDENTITY_APPLY, self.IDENTITY_APPLY + " || true", "fail closed"),
+            (self.IDENTITY_APPLY + " | tee -a \"$GITHUB_STEP_SUMMARY\"\n", "", "fail closed"),
+            ("- name: Start from the relocked identity",
+             "- name: Start from the relocked identity\n        if: false", "fail closed"),
+            ("    needs: [identity]\n", "", "fail closed"),
             (name + "\n        shell: bash", name + "\n        shell: bash {0}", "fail closed"),
             # Every later lifecycle boundary, not only the writer guard.
             (self.CAPTURE, self.CAPTURE + " || true", "fail closed"),
             (self.COMBINE, "exit 0\n          " + self.COMBINE, "fail closed"),
             (self.COMBINE, self.COMBINE + " || true", "fail closed"),
+            (self.IDENTITY_CAPTURE, 'git diff --cached --binary > "$RUNNER_TEMP/identity/identity.patch"',
+             "fail closed"),
             (self.WRITE_COMBINED, self.WRITE_COMBINED + " || true", "fail closed"),
             (strict, strict.replace("set -euo pipefail", "set -eu"), "fail closed"),
             (strict, strict.replace("set -euo pipefail", "set +e"), "fail closed"),
@@ -515,7 +581,9 @@ class WriterCollisionTests(unittest.TestCase):
         saved = {name: list(steps) for name, steps in regen_lifecycle.STEPS.items()}
         try:
             for job, command in (("combine", self.COMBINE), ("finish", self.FINISH),
-                                 ("finish", self.RETURN)):
+                                 ("finish", self.RETURN), ("identity", self.IDENTITY_CAPTURE),
+                                 ("writer", self.IDENTITY_START),
+                                 ("combine", self.IDENTITY_APPLY)):
                 with self.subTest(job=job, command=command):
                     regen_lifecycle.STEPS[job] = [
                         p.replace(command, command + " || true") if isinstance(p, str) else p

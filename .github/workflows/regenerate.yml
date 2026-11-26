@@ -59,7 +59,7 @@ jobs:
   # it (`just relock-identity`): the identity-only lock relocks,
   # `LANGUAGE_1_2_SEMANTICS_ID`, and the descriptor pins of the production
   # requests. Every writer starts from this tree; an ID that did not move
-  # returns an empty patch.
+  # returns a set of no parts.
   identity:
     name: relock identity
     if: github.repository == 'UOR-Foundation/LexLean'
@@ -86,13 +86,14 @@ jobs:
         run: just relock-identity
       - name: Capture what it wrote
         shell: bash
+        env:
+          COMMIT: ${{ inputs.ref || github.sha }}
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/identity"
           git add --all
-          git diff --cached --binary > "$RUNNER_TEMP/identity/identity.patch"
-          git diff --cached --name-only | tee "$RUNNER_TEMP/identity/identity.files"
-          echo "identity: $(wc -l < "$RUNNER_TEMP/identity/identity.files") paths" >> "$GITHUB_STEP_SUMMARY"
+          # The relocked identity as a bounded patch set on the commit's tree:
+          # the tree it gives is the start tree of every writer's set.
+          python3 .github/scripts/patch_set.py write --name identity --base "$COMMIT" --out "$RUNNER_TEMP/identity" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: regenerate-part-identity
@@ -131,10 +132,13 @@ jobs:
       # recipes wrote; `combine` applies the identity first.
       - name: Start from the relocked identity
         shell: bash
+        env:
+          COMMIT: ${{ inputs.ref || github.sha }}
         run: |
           set -euo pipefail
-          if [ -s "$RUNNER_TEMP/identity/identity.patch" ]; then
-            git apply --index "$RUNNER_TEMP/identity/identity.patch"
+          # The set is checked whole and applied to the commit's own tree.
+          python3 .github/scripts/patch_set.py apply --dir "$RUNNER_TEMP/identity" --name identity --base "$COMMIT"
+          if ! git diff --cached --quiet; then
             git -c user.name=regenerate -c user.email=regenerate@localhost commit --quiet --no-verify -m identity
           fi
       - name: Install the pinned Rust toolchain
@@ -231,15 +235,18 @@ jobs:
         shell: bash
         env:
           COMMIT: ${{ inputs.ref || github.sha }}
-        run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts" --base "$COMMIT"
+        run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts" --base "$COMMIT" --identity identity
       - name: Apply every part
         shell: bash
         env:
           COMMIT: ${{ inputs.ref || github.sha }}
         run: |
           set -euo pipefail
-          # Each set is checked whole again, applied in turn, and the index is
-          # then each writer's tree on its paths and the commit's elsewhere.
+          # Each set is checked whole again: the identity applied to the
+          # commit's tree, then the writers' sets in turn, after which the
+          # index is each writer's tree on its paths and the identity's
+          # elsewhere.
+          python3 .github/scripts/patch_set.py apply --dir "$RUNNER_TEMP/parts" --name identity --base "$COMMIT" | tee -a "$GITHUB_STEP_SUMMARY"
           python3 .github/scripts/patch_set.py combine --dir "$RUNNER_TEMP/parts" --names production-export,records,oracles --base "$COMMIT" | tee -a "$GITHUB_STEP_SUMMARY"
           python3 .github/scripts/patch_set.py write --name combined --base "$COMMIT" --out "$RUNNER_TEMP/combined" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

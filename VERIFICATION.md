@@ -23278,3 +23278,24 @@ byte-identical to it and which apply in a scratch index to the tree of
 | a raw `git diff`/`git apply` in place of a set in any of the four steps or in `deliver-regenerated.sh`; the guard's `--base` dropped; `--no-renames` dropped from either diff of `patch_set.py` | `test_check_regen_writers.py` (`test_workflow_refuses_weakened_writer_guards`) |
 | at any lifecycle boundary (capture, guard, combine, the `combined` write, `finish`'s apply, the return write, delivery): `\|\| true` or `\|\| :` appended, `exit 0` before or after, `if: false` or `continue-on-error`, the return step's `!cancelled()` dropped, a changed shell, `pipefail` dropped or `set +e`/`trap` added, a step reordered, added or removed, a job's `needs` or `if` changed, the delivery's checksum, coverage, fast-forward or lease check removed, its apply moved after the commit, a forced push | `test_check_regen_writers.py` (`test_workflow_refuses_weakened_writer_guards`, against the exact job headers, step order and step texts of `regen_lifecycle.py` and the ordered delivery lines; `test_a_pin_edited_to_a_masked_command_is_still_refused`). Before this table row the old guard accepted all six of: `finish`'s apply `\|\| true`, its `if: false`, the delivery apply `\|\| true`, `exit 0` before combine, the return write `\|\| true`, `pipefail` dropped from `Apply every part`. In a real run, a masked delivery apply dispatches the gate on the unregenerated commit (`test_a_masked_apply_would_dispatch_the_gate_on_the_unregenerated_commit`) |
 | `test_patch_set.py` removed from the honesty step | `conformance_rp_14` (`regression_honesty`, and its command-removal plant) |
+
+### The identity stage as a patch set (release/v0.5, #624)
+
+On this line every writer starts from the relocked identity (`identity`,
+`just relock-identity`), which passed between jobs as a raw patch. It is now
+the set `identity`, made on the commit's tree; each writer applies it with
+`patch_set.py apply` and commits it locally, so its own set starts from the
+tree the identity gives. `check_regen_writers.py --identity identity` checks
+that set whole on the commit's tree in a scratch index first, and then
+requires every writer's set to start from the identity's tree; `combine`
+applies the identity to the commit's tree, then the writers' sets, and writes
+`combined` against the commit. A CLI rehearsal of identity, three writers,
+guard, combine and finish on a scratch repository gave 34 combined paths: the
+identity's 4, records' 20 and oracles' 10, production-export's three locks
+superseding the identity's on the same paths.
+
+| Planted defect | Refused by |
+| --- | --- |
+| a writer's set made on the commit's tree rather than the identity's | `test_check_regen_writers.py` (`made from tree … shared start tree`) |
+| an identity set whose parts do not give its recorded tree; no identity set | `test_check_regen_writers.py` (`identity: the parts give tree`, `identity manifest missing`) |
+| the guard's `--identity` dropped; the identity's capture, the writers' start, or combine's apply masked, removed, preceded by `exit 0` or skipped; the writers' `needs: [identity]` dropped; a raw identity patch | `test_check_regen_writers.py` (`test_workflow_refuses_weakened_writer_guards`, against `regen_lifecycle.py`) |

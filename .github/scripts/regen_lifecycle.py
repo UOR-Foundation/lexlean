@@ -6,10 +6,18 @@
 # change of a lifecycle step changes this file in the same commit.
 
 HEADERS = {
+    'identity': (
+        '  identity:\n'
+        '    name: relock identity\n'
+        "    if: github.repository == 'UOR-Foundation/LexLean'\n"
+        '    runs-on: ubuntu-24.04\n'
+        '    timeout-minutes: 120\n'
+        '    steps:\n'
+    ),
     'writer': (
         '  writer:\n'
         '    name: write (${{ matrix.writer }})\n'
-        "    if: github.repository == 'UOR-Foundation/LexLean'\n"
+        '    needs: [identity]\n'
         '    strategy:\n'
         '      fail-fast: false\n'
         '      matrix:\n'
@@ -55,8 +63,56 @@ HEADERS = {
 }
 
 STEPS = {
+    'identity': [
+        ('uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n', None),
+        ('name: Install the pinned Rust toolchain\n', None),
+        ('uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2\n', None),
+        ('name: Install elan and the pinned Lean toolchain\n', None),
+        ('name: Relock and repin the moved identity\n', None),
+        (
+            'name: Capture what it wrote\n'
+            '        shell: bash\n'
+            '        env:\n'
+            '          COMMIT: ${{ inputs.ref || github.sha }}\n'
+            '        run: |\n'
+            '          set -euo pipefail\n'
+            '          git add --all\n'
+            "          # The relocked identity as a bounded patch set on the commit's tree:\n"
+            "          # the tree it gives is the start tree of every writer's set.\n"
+            '          python3 .github/scripts/patch_set.py write --name identity --base "$COMMIT" --out "$RUNNER_TEMP/identity" | tee -a "$GITHUB_STEP_SUMMARY"\n'
+        ),
+        (
+            'uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1\n'
+            '        with:\n'
+            '          name: regenerate-part-identity\n'
+            '          path: ${{ runner.temp }}/identity\n'
+            '          if-no-files-found: error\n'
+            '          retention-days: 7\n'
+        ),
+    ],
     'writer': [
         ('uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n', None),
+        (
+            'uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2\n'
+            '        with:\n'
+            '          name: regenerate-part-identity\n'
+            '          path: ${{ runner.temp }}/identity\n'
+            "      # Committed locally, so that this writer's part is only what its own\n"
+            '      # recipes wrote; `combine` applies the identity first.\n'
+        ),
+        (
+            'name: Start from the relocked identity\n'
+            '        shell: bash\n'
+            '        env:\n'
+            '          COMMIT: ${{ inputs.ref || github.sha }}\n'
+            '        run: |\n'
+            '          set -euo pipefail\n'
+            "          # The set is checked whole and applied to the commit's own tree.\n"
+            '          python3 .github/scripts/patch_set.py apply --dir "$RUNNER_TEMP/identity" --name identity --base "$COMMIT"\n'
+            '          if ! git diff --cached --quiet; then\n'
+            '            git -c user.name=regenerate -c user.email=regenerate@localhost commit --quiet --no-verify -m identity\n'
+            '          fi\n'
+        ),
         ('name: Install the pinned Rust toolchain\n', None),
         ('uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2\n', None),
         ('name: Install elan and the pinned Lean toolchain\n', None),
@@ -121,7 +177,7 @@ STEPS = {
             '        shell: bash\n'
             '        env:\n'
             '          COMMIT: ${{ inputs.ref || github.sha }}\n'
-            '        run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts" --base "$COMMIT"\n'
+            '        run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts" --base "$COMMIT" --identity identity\n'
         ),
         (
             'name: Apply every part\n'
@@ -130,8 +186,11 @@ STEPS = {
             '          COMMIT: ${{ inputs.ref || github.sha }}\n'
             '        run: |\n'
             '          set -euo pipefail\n'
-            '          # Each set is checked whole again, applied in turn, and the index is\n'
-            "          # then each writer's tree on its paths and the commit's elsewhere.\n"
+            '          # Each set is checked whole again: the identity applied to the\n'
+            "          # commit's tree, then the writers' sets in turn, after which the\n"
+            "          # index is each writer's tree on its paths and the identity's\n"
+            '          # elsewhere.\n'
+            '          python3 .github/scripts/patch_set.py apply --dir "$RUNNER_TEMP/parts" --name identity --base "$COMMIT" | tee -a "$GITHUB_STEP_SUMMARY"\n'
             '          python3 .github/scripts/patch_set.py combine --dir "$RUNNER_TEMP/parts" --names production-export,records,oracles --base "$COMMIT" | tee -a "$GITHUB_STEP_SUMMARY"\n'
             '          python3 .github/scripts/patch_set.py write --name combined --base "$COMMIT" --out "$RUNNER_TEMP/combined" | tee -a "$GITHUB_STEP_SUMMARY"\n'
         ),
