@@ -1689,8 +1689,8 @@ fn hash_axes() {
             ),
             (
                 "Blake3",
-                "(LexLeanStd.Sha256::rotateRight (prim bit_xor d a1 : UInt32) (16 : UInt32) (16 : UInt32))",
-                "(LexLeanStd.Sha256::rotateRight (prim bit_xor d a1 : UInt32) (8 : UInt32) (24 : UInt32))",
+                "(Sha256::rotateRight (prim bit_xor d a1 : UInt32) (16 : UInt32) (16 : UInt32))",
+                "(Sha256::rotateRight (prim bit_xor d a1 : UInt32) (8 : UInt32) (24 : UInt32))",
                 "labelOn",
             ),
             (

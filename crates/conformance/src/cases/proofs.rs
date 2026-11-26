@@ -81,10 +81,25 @@ fn conditional_lemma_pair(
     )
 }
 
-/// The rewrite set the committed fold-law registry gives
-/// `linear_arithmetic` (§17.12, *Fold laws*), read from the file rather than
-/// from the compiler, so that a backend that stopped reading it is caught.
-/// The registry's natural-number laws (PF-28), each its name and Lean name.
+/// The bitwise natural-number laws `SM-42` registers beside PF-28's
+/// arithmetic ones. They share the `nat_` prefix but are not PF-28's claim,
+/// whose statement names the arithmetic families only, and their theorems
+/// pin `Quot.sound` beside `propext`, which PF-28 refuses of its own laws; a
+/// further `nat_` law that is neither fails PF-28's count rather than
+/// joining either set unexamined.
+const NAT_BITWISE_LAWS: [&str; 8] = [
+    "nat_bit_and",
+    "nat_bit_or",
+    "nat_bit_xor",
+    "nat_bit_shift_right",
+    "nat_bit_shift_left",
+    "nat_or_xor_and",
+    "nat_witt_step",
+    "nat_bit_ext",
+];
+
+/// The registry's natural-number arithmetic laws (PF-28), each its name and
+/// Lean name.
 fn registered_nat_laws() -> Vec<(String, String)> {
     let text = std::fs::read_to_string(
         support::repo_root()
@@ -99,7 +114,7 @@ fn registered_nat_laws() -> Vec<(String, String)> {
         .iter()
         .filter_map(|law| {
             let name = law["name"].as_str().expect("a law name");
-            name.starts_with("nat_").then(|| {
+            (name.starts_with("nat_") && !NAT_BITWISE_LAWS.contains(&name)).then(|| {
                 (
                     name.to_owned(),
                     law["lean"].as_str().expect("a Lean name").to_owned(),
@@ -109,6 +124,9 @@ fn registered_nat_laws() -> Vec<(String, String)> {
         .collect()
 }
 
+/// The rewrite set the committed fold-law registry gives
+/// `linear_arithmetic` (§17.12, *Fold laws*), read from the file rather than
+/// from the compiler, so that a backend that stopped reading it is caught.
 fn registered_rewrites() -> Vec<String> {
     let text = std::fs::read_to_string(
         support::repo_root()
