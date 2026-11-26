@@ -1,0 +1,194 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{OrdMap}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Constructor \texttt{leaf}: \texttt{()}.\par
+\noindent Constructor \texttt{node}: \texttt{(OrdMap (Value), ByteArray, Value, Nat, OrdMap (Value))}.\par
+\subsection*{\texttt{emptyMap}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{OrdMap (Value)}.\par
+\noindent Definition: \texttt{OrdMap.leaf}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{heightOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(map : OrdMap (Value))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match map with | OrdMap.leaf => 0 | OrdMap.node \_ \_ \_ height \_ => height)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{larger}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(a : Nat) (b : Nat)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(if (Nat.blt (a) (b)) then b else a)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{joinNode}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(left : OrdMap (Value)) (key : ByteArray) (value : Value) (right : OrdMap (Value))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{OrdMap (Value)}.\par
+\noindent Definition: \texttt{OrdMap.node (left) (key) (value) ((larger (heightOf (Value) (left)) (heightOf (Value) (right)) + 1)) (right)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{rotateFromLeft}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(left : OrdMap (Value)) (key : ByteArray) (value : Value) (right : OrdMap (Value))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{OrdMap (Value)}.\par
+\noindent Definition: \texttt{(match left with | OrdMap.leaf => joinNode (Value) (left) (key) (value) (right) | OrdMap.node outer lkey lvalue \_ inner => (if (Nat.blt (heightOf (Value) (inner)) ((heightOf (Value) (outer) + 1))) then joinNode (Value) (outer) (lkey) (lvalue) (joinNode (Value) (inner) (key) (value) (right)) else (match inner with | OrdMap.leaf => joinNode (Value) (left) (key) (value) (right) | OrdMap.node innerLeft ikey ivalue \_ innerRight => joinNode (Value) (joinNode (Value) (outer) (lkey) (lvalue) (innerLeft)) (ikey) (ivalue) (joinNode (Value) (innerRight) (key) (value) (right)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{rotateFromRight}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(left : OrdMap (Value)) (key : ByteArray) (value : Value) (right : OrdMap (Value))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{OrdMap (Value)}.\par
+\noindent Definition: \texttt{(match right with | OrdMap.leaf => joinNode (Value) (left) (key) (value) (right) | OrdMap.node inner rkey rvalue \_ outer => (if (Nat.blt (heightOf (Value) (inner)) ((heightOf (Value) (outer) + 1))) then joinNode (Value) (joinNode (Value) (left) (key) (value) (inner)) (rkey) (rvalue) (outer) else (match inner with | OrdMap.leaf => joinNode (Value) (left) (key) (value) (right) | OrdMap.node innerLeft ikey ivalue \_ innerRight => joinNode (Value) (joinNode (Value) (left) (key) (value) (innerLeft)) (ikey) (ivalue) (joinNode (Value) (innerRight) (rkey) (rvalue) (outer)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{balanced}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(left : OrdMap (Value)) (key : ByteArray) (value : Value) (right : OrdMap (Value))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{OrdMap (Value)}.\par
+\noindent Definition: \texttt{(let hl : Nat := heightOf (Value) (left); (let hr : Nat := heightOf (Value) (right); (if (Nat.blt ((hr + 1)) (hl)) then rotateFromLeft (Value) (left) (key) (value) (right) else (if (Nat.blt ((hl + 1)) (hr)) then rotateFromRight (Value) (left) (key) (value) (right) else joinNode (Value) (left) (key) (value) (right)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{mapGet}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(map : OrdMap (Value)) (key : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Option (Value)}.\par
+\noindent Definition: \texttt{(match map with | OrdMap.leaf => Option.none | OrdMap.node left here value \_ right => (if (LexLeanRuntime.equal (key) (here) : Bool) then Option.some (value) else (if LexLeanStd.Order.lessBytes (key) (here) then mapGet (Value) (left) (key) else mapGet (Value) (right) (key))))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{mapInsert}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(map : OrdMap (Value)) (key : ByteArray) (value : Value)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{OrdMap (Value)}.\par
+\noindent Definition: \texttt{(match map with | OrdMap.leaf => OrdMap.node (OrdMap.leaf) (key) (value) (1) (OrdMap.leaf) | OrdMap.node left here held height right => (if (LexLeanRuntime.equal (key) (here) : Bool) then OrdMap.node (left) (key) (value) (height) (right) else (if LexLeanStd.Order.lessBytes (key) (here) then balanced (Value) (mapInsert (Value) (left) (key) (value)) (here) (held) (right) else balanced (Value) (left) (here) (held) (mapInsert (Value) (right) (key) (value)))))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{takeLeast}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(map : OrdMap (Value))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Option ((Prod (ByteArray) (Value)))) (OrdMap (Value)))}.\par
+\noindent Definition: \texttt{(match map with | OrdMap.leaf => (Option.none, OrdMap.leaf) | OrdMap.node left key value \_ right => (match left with | OrdMap.leaf => (Option.some ((key, value)), right) | OrdMap.node \_ \_ \_ \_ \_ => (let taken : (Prod (Option ((Prod (ByteArray) (Value)))) (OrdMap (Value))) := takeLeast (Value) (left); ((taken).1, balanced (Value) ((taken).2) (key) (value) (right)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{joinSides}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(left : OrdMap (Value)) (right : OrdMap (Value))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{OrdMap (Value)}.\par
+\noindent Definition: \texttt{(let taken : (Prod (Option ((Prod (ByteArray) (Value)))) (OrdMap (Value))) := takeLeast (Value) (right); (match (taken).1 with | Option.none => left | Option.some least => balanced (Value) (left) ((least).1) ((least).2) ((taken).2)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{mapRemove}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(map : OrdMap (Value)) (key : ByteArray)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{OrdMap (Value)}.\par
+\noindent Definition: \texttt{(match map with | OrdMap.leaf => OrdMap.leaf | OrdMap.node left here value \_ right => (if (LexLeanRuntime.equal (key) (here) : Bool) then joinSides (Value) (left) (right) else (if LexLeanStd.Order.lessBytes (key) (here) then balanced (Value) (mapRemove (Value) (left) (key)) (here) (value) (right) else balanced (Value) (left) (here) (value) (mapRemove (Value) (right) (key)))))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{entriesInto}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(map : OrdMap (Value)) (rest : List ((Prod (ByteArray) (Value))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (ByteArray) (Value)))}.\par
+\noindent Definition: \texttt{(match map with | OrdMap.leaf => rest | OrdMap.node left key value \_ right => entriesInto (Value) (left) (((key, value) :: entriesInto (Value) (right) (rest))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{mapEntries}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(map : OrdMap (Value))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{List ((Prod (ByteArray) (Value)))}.\par
+\noindent Definition: \texttt{entriesInto (Value) (map) (([] : List ((Prod (ByteArray) (Value)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{mapSize}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(map : OrdMap (Value))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match map with | OrdMap.leaf => 0 | OrdMap.node left \_ \_ \_ right => ((mapSize (Value) (left) + mapSize (Value) (right)) + 1))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{mapFromList}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(entries : List ((Prod (ByteArray) (Value))))}.\par
+\noindent Closure 1: binds \texttt{(map, entry)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{OrdMap (Value)}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (map : OrdMap (Value)) (entry : (Prod (ByteArray) (Value))) => mapInsert (Value) (map) ((entry).1) ((entry).2))) (emptyMap (Value)) (entries) : OrdMap (Value))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{shapeOf}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(map : OrdMap (Value))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (Bool) (Nat))}.\par
+\noindent Definition: \texttt{(match map with | OrdMap.leaf => (true, 0) | OrdMap.node left \_ \_ height right => (let l : (Prod (Bool) (Nat)) := shapeOf (Value) (left); (let r : (Prod (Bool) (Nat)) := shapeOf (Value) (right); (let tall : Nat := (larger ((l).2) ((r).2) + 1); ((if (l).1 then (if (r).1 then (if (LexLeanRuntime.equal (height) (tall) : Bool) then (if (Nat.blt ((l).2) (((r).2 + 2))) then (Nat.blt ((r).2) (((l).2 + 2))) else false) else false) else false) else false), tall)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{ascendingKeys}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(entries : List ((Prod (ByteArray) (Value))))}.\par
+\noindent Closure 1: binds \texttt{(state, entry)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((LexLeanCollections.listFold ((fun (state : (Prod (Bool) (Option (ByteArray)))) (entry : (Prod (ByteArray) (Value))) => (match (state).2 with | Option.none => ((state).1, Option.some ((entry).1)) | Option.some last => ((if (state).1 then LexLeanStd.Order.lessBytes (last) ((entry).1) else false), Option.some ((entry).1))))) ((true, Option.none)) (entries) : (Prod (Bool) (Option (ByteArray))))).1}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{isOrdMap}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type parameters: \texttt{(Value)}.\par
+\noindent Parameters: \texttt{(map : OrdMap (Value))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(if (shapeOf (Value) (map)).1 then ascendingKeys (Value) (mapEntries (Value) (map)) else false)}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{runStep}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(state : (Prod (List (Option (ByteArray))) (OrdMap (ByteArray)))) (op : (Prod (Nat) ((Prod (ByteArray) (ByteArray)))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (List (Option (ByteArray))) (OrdMap (ByteArray)))}.\par
+\noindent Definition: \texttt{(let map : OrdMap (ByteArray) := (state).2; (let key : ByteArray := ((op).2).1; (let before : Option (ByteArray) := mapGet (ByteArray) (map) (key); (let seen : List (Option (ByteArray)) := (before :: (state).1); (if (Nat.beq ((op).1) (0)) then (seen, mapInsert (ByteArray) (map) (key) (((op).2).2)) else (if (Nat.beq ((op).1) (1)) then (seen, mapRemove (ByteArray) (map) (key)) else (seen, map)))))))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{runOps}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(ops : List ((Prod (Nat) ((Prod (ByteArray) (ByteArray))))))}.\par
+\noindent Closure 1: binds \texttt{(state, op)}, captures \texttt{()}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{(Prod (List (Option (ByteArray))) (OrdMap (ByteArray)))}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (state : (Prod (List (Option (ByteArray))) (OrdMap (ByteArray)))) (op : (Prod (Nat) ((Prod (ByteArray) (ByteArray))))) => runStep (state) (op))) ((([] : List (Option (ByteArray))), emptyMap (ByteArray))) (ops) : (Prod (List (Option (ByteArray))) (OrdMap (ByteArray))))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{ordMapRun}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(ops : List ((Prod (Nat) ((Prod (ByteArray) (ByteArray))))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow, recursion}.\par
+\noindent Type: \texttt{(Prod (List (Option (ByteArray))) (List ((Prod (ByteArray) (ByteArray)))))}.\par
+\noindent Definition: \texttt{(let ran : (Prod (List (Option (ByteArray))) (OrdMap (ByteArray))) := runOps (ops); (LexLeanStd.Order.reverseList (Option (ByteArray)) ((ran).1), mapEntries (ByteArray) ((ran).2)))}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\subsection*{\texttt{ordMapBalanced}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(ops : List ((Prod (Nat) ((Prod (ByteArray) (ByteArray))))))}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow, recursion}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{isOrdMap (ByteArray) ((runOps (ops)).2)}.\par
+\noindent Axiom policy: \texttt{exact [propext]}.\par
+\end{document}

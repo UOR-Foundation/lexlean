@@ -132,6 +132,12 @@
     "bootstrap/validate_runtime": {
       "debug": 4259840
     },
+    "stdlib/ord_map_balanced": {
+      "debug": 1572864
+    },
+    "stdlib/ord_map_run": {
+      "debug": 1572864
+    },
     "stdlib/write_json": {
       "debug": 1245184
     },
