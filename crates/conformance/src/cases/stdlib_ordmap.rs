@@ -1,4 +1,4 @@
-//! A balanced ordered map in the standard library (SPEC.md §17.22, `SL-15`):
+//! `SL-15` (SPEC.md §17.22): a balanced ordered map in the standard library,
 //! the `LexLeanStd.OrdMap` module, an AVL tree keyed by `Bytes` in the byte
 //! order of `Order` (`SL-10`), against the `BTreeMap<Vec<u8>, Vec<u8>>` the
 //! compiler (stage 0) keeps its tables in, under the calculus evaluator and
