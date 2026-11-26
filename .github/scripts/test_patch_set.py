@@ -159,14 +159,114 @@ class PatchSetTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "not the start tree"):
             patch_set.apply(self.out, "records", self.base, repo=self.repo)
 
-    def test_a_recorded_tree_the_parts_do_not_give_is_refused(self):
+    def snapshot(self):
+        """The real index entries and every work-tree file, byte for byte:
+        what a refusal must leave exactly as it found it."""
+        files = {}
+        for path in sorted(self.repo.rglob("*")):
+            if ".git" not in path.relative_to(self.repo).parts and path.is_file():
+                files[str(path.relative_to(self.repo))] = path.read_bytes()
+        return self.git("ls-files", "-s", "-z"), files
+
+    def refused_unchanged(self, pattern, call):
+        before = self.snapshot()
+        with self.assertRaisesRegex(ValueError, pattern):
+            call()
+        self.assertEqual(self.snapshot(), before)
+
+    def later_unapplicable_part(self, manifest, name="records"):
+        """Alter a removed line of a later part, which leaves it a valid patch
+        of the same paths, and recompute its recorded size and checksum: only
+        applying it can tell that it does not apply."""
+        rows = [r for r in manifest["parts"][1:]
+                if b"\n-line " in (self.out / r["file"]).read_bytes()]
+        self.assertTrue(rows)
+        row = rows[-1]
+        part = self.out / row["file"]
+        before = patch_set.numstat(part)
+        part.write_bytes(part.read_bytes().replace(b"\n-line ", b"\n-LINE ", 1))
+        self.assertEqual(patch_set.numstat(part), before)
+        row["bytes"] = part.stat().st_size
+        row["sha256"] = patch_set.sha256(part)
+        self.save(manifest, name)
+        patch_set.load(self.out, name, self.base)
+
+    def test_a_recorded_tree_the_parts_do_not_give_is_refused_before_any_change(self):
         manifest, _ = self.written()
-        manifest["tree"] = manifest["start_tree"]
+        for wrong in (manifest["start_tree"],
+                      self.git("mktree", input=b"").decode().strip()):
+            with self.subTest(tree=wrong):
+                manifest["tree"] = wrong
+                self.save(manifest)
+                patch_set.load(self.out, "records", self.base)
+                with self.assertRaisesRegex(ValueError, "the parts give tree"):
+                    patch_set.check_tree(self.out, "records", manifest, repo=self.repo)
+                self.refused_unchanged("the parts give tree", lambda: patch_set.apply(
+                    self.out, "records", self.base, repo=self.repo))
+
+    def test_a_later_part_that_does_not_apply_is_refused_before_any_change(self):
+        manifest, _ = self.written()
+        self.later_unapplicable_part(manifest)
+        self.refused_unchanged("git apply", lambda: patch_set.apply(
+            self.out, "records", self.base, repo=self.repo))
+
+    def test_a_dirty_work_tree_is_refused_before_any_change(self):
+        self.written()
+        (self.repo / "file05.txt").write_text("an edit nobody staged\n")
+        self.refused_unchanged("work tree differs", lambda: patch_set.apply(
+            self.out, "records", self.base, repo=self.repo))
+        self.git("checkout", "--", "file05.txt")
+        (self.repo / "file06.txt").write_text("staged but not committed\n")
+        self.git("add", "file06.txt")
+        self.refused_unchanged("not the start tree", lambda: patch_set.apply(
+            self.out, "records", self.base, repo=self.repo))
+
+    def test_an_untracked_file_where_a_set_adds_one_is_refused_before_any_change(self):
+        self.written()
+        (self.repo / "added.txt").write_text("someone else's file\n")
+        self.refused_unchanged("untracked file stands", lambda: patch_set.apply(
+            self.out, "records", self.base, repo=self.repo))
+
+    def test_a_refusal_on_the_real_checkout_restores_the_start_tree(self):
+        manifest, _ = self.written()
+        self.assertGreater(len(manifest["parts"]), 2)
+        real = patch_set.git
+        applied = []
+
+        def failing(*args, **kwargs):
+            if args[:2] == ("apply", "--index"):
+                applied.append(args)
+                if len(applied) == 2:
+                    raise ValueError("git apply: planted refusal of the second part")
+            return real(*args, **kwargs)
+
+        patch_set.git = failing
+        try:
+            self.refused_unchanged("planted refusal.*restored to the start tree",
+                                   lambda: patch_set.apply(self.out, "records", self.base,
+                                                           repo=self.repo))
+        finally:
+            patch_set.git = real
+        self.assertEqual(len(applied), 2)
+        self.assertEqual(self.git("status", "--porcelain", "--untracked-files=all"), b"")
+
+    def test_a_repeated_manifest_key_is_refused(self):
+        self.written()
+        path = self.out / "records.patchset.json"
+        text = path.read_text()
+        path.write_text(text.replace('"tree": ', '"tree": "%s", "tree": ' % ("0" * 40), 1))
+        with self.assertRaisesRegex(ValueError, "unreadable manifest"):
+            patch_set.load(self.out, "records", self.base)
+
+    def test_a_non_integer_path_count_is_refused(self):
+        (self.repo / "file00.txt").write_text("one path\n")
+        self.git("add", "-A")
+        manifest = self.write()
+        self.assertEqual(manifest["parts"][0]["paths"], 1)
+        manifest["parts"][0]["paths"] = True
         self.save(manifest)
-        with self.assertRaisesRegex(ValueError, "the parts give tree"):
-            patch_set.check_tree(self.out, "records", manifest, repo=self.repo)
-        with self.assertRaisesRegex(ValueError, "applied tree"):
-            patch_set.apply(self.out, "records", self.base, repo=self.repo)
+        with self.assertRaisesRegex(ValueError, "path inventory"):
+            patch_set.load(self.out, "records", self.base)
 
     def test_one_file_diff_at_the_maximum_is_refused(self):
         (self.repo / "file00.txt").write_text("x" * MAXIMUM + "\n")
@@ -210,6 +310,26 @@ class PatchSetTests(unittest.TestCase):
         self.assertEqual(start, self.git("rev-parse", "HEAD^{tree}").decode().strip())
         self.assertEqual(count, 14)
         self.assertEqual((self.repo / "file00.txt").read_text(), "first writer\n")
+
+    def test_combining_with_a_later_set_that_does_not_apply_changes_nothing(self):
+        (self.repo / "file00.txt").write_text("first writer\n")
+        self.git("add", "-A")
+        patch_set.write("production-export", self.out, self.base, TARGET, MAXIMUM, repo=self.repo)
+        self.git("reset", "-q", "--hard", "HEAD")
+        self.change()
+        self.git("reset", "-q", "--", "file00.txt")
+        manifest = patch_set.write("records", self.out, self.base, TARGET, MAXIMUM,
+                                   repo=self.repo)
+        self.git("reset", "-q", "--hard", "HEAD")
+        tree = manifest["tree"]
+        manifest["tree"] = manifest["start_tree"]
+        self.save(manifest)
+        self.refused_unchanged("the parts give tree", lambda: patch_set.combine(
+            self.out, ["production-export", "records"], self.base, repo=self.repo))
+        manifest["tree"] = tree
+        self.later_unapplicable_part(manifest)
+        self.refused_unchanged("git apply", lambda: patch_set.combine(
+            self.out, ["production-export", "records"], self.base, repo=self.repo))
 
     def test_combining_overlapping_sets_is_refused(self):
         (self.repo / "file00.txt").write_text("first writer\n")
