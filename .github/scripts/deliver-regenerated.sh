@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The delivery of `regenerate.yml` (SPEC.md §9.4): the patch its `finish` job
+# The delivery of `regenerate.yml` (SPEC.md §9.4): the patch set its `finish` job
 # returned, committed on the commit it was made from and pushed to the branch
 # that commit heads, then the gate dispatched on that branch.
 #
@@ -52,9 +52,9 @@ if [ "$remote" != "$commit" ]; then
   exit 0
 fi
 
-if [ -s "$dir/regenerated.patch" ]; then
-  git apply --index "$dir/regenerated.patch"
-fi
+# The set is checked whole and applied to the commit's own tree; the index
+# must then hold exactly the tree `finish` recorded.
+python3 .github/scripts/patch_set.py apply --dir "$dir" --name regenerated --base "$commit"
 if git diff --cached --quiet; then
   say "The regenerated tree of \`$commit\` is the committed tree: nothing to deliver."
   # A caller's branch was pushed with the workflow token, which started no

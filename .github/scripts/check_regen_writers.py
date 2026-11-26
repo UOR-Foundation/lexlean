@@ -1,114 +1,37 @@
 #!/usr/bin/env python3
-"""Fail-closed overlap and binary-patch manifest audit for regenerate.yml.
+"""Fail-closed overlap and patch-set audit for regenerate.yml.
 
-Check *all* writer artifacts before applying *any* patch. Per-writer .files
-manifests and git-generated binary patches must name exactly the same paths.
-No writes, network access, shell interpolation, or GitHub API calls.
+Check *all* writer artifacts before applying *any* patch. Each writer returns
+a bounded patch set (`patch_set.py`): its parts must be whole, below Git's
+patch limit, made from the commit being regenerated, and name exactly the
+paths of its `.files` manifest; applied to the start tree every writer shares,
+in a scratch index, they must give the tree the writer recorded. No path may
+belong to two writers. No writes to the checkout, network access, shell
+interpolation, or GitHub API calls.
 """
 import argparse
-import os
-import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
+from patch_set import check_tree, git, load, object_id, patch_names, paths_from_nul
+
 WRITERS = ("production-export", "records", "oracles")
-MAX_MANIFEST_BYTES = 8 * 1024 * 1024
-MAX_PATHS = 100000
+
+__all__ = ["WRITERS", "inspect", "patch_names", "paths_from_nul"]
 
 
-def require(condition, reason):
-    if not condition:
-        raise ValueError(reason)
-
-
-def paths_from_nul(payload, source):
-    if not payload:
-        return []
-    require(payload.endswith(b"\0"), source + ": filenames must be NUL-delimited")
-    items = payload[:-1].split(b"\0")
-    require(len(items) <= MAX_PATHS and len(items) == len(set(items)),
-            source + ": too many or repeated filenames")
-    for item in items:
-        require(item and not item.startswith(b"/") and
-                all(part not in (b"", b".", b"..") for part in item.split(b"/")) and
-                item.split(b"/")[0] != b".git",
-                source + ": unsafe or ambiguous path " + repr(item))
-    return items
-
-
-def patch_names(payload, source):
-    """Parse git apply --numstat -z for non-rename binary/text patches."""
-    if not payload:
-        return []
-    require(payload.endswith(b"\0"), source + ": truncated numstat output")
-    items = payload[:-1].split(b"\0")
-    found = []
-    i = 0
-    while i < len(items):
-        fields = items[i].split(b"\t", 2)
-        require(len(fields) == 3 and all(
-            n == b"-" or (n.isascii() and n.isdigit()) for n in fields[:2]),
-            source + ": malformed binary/text numstat row")
-        name = fields[2]
-        require(name, source + ": unexpected rename/copy metadata")
-        found.append(name)
-        i += 1
-    paths_from_nul(b"\0".join(found) + b"\0", source)
-    return found
-
-
-def regular(path):
-    require(path.is_file() and not path.is_symlink(),
-            "writer artifact missing, directory, or symlink: " + path.name)
-
-
-def inspect(directory):
+def inspect(directory, base, start_tree=None, repo=None):
     directory = Path(directory)
-    require(directory.is_dir() and not directory.is_symlink(),
-            "writer artifact directory unavailable or linked")
+    if start_tree is None:
+        start_tree = git("rev-parse", base + "^{tree}", cwd=repo).decode().strip()
     owners = {}
     rows = []
     for writer in WRITERS:
-        manifest = directory / (writer + ".files")
-        patch = directory / (writer + ".patch")
-        regular(manifest)
-        regular(patch)
-        require(manifest.stat().st_size <= MAX_MANIFEST_BYTES,
-                writer + ": oversized file manifest")
-        declared = paths_from_nul(manifest.read_bytes(), writer + ".files")
-        # Git apply --numstat can report only the destination of a rename.
-        # Writers must generate delete/add patches instead, exposing both paths.
-        with patch.open("rb") as stream:
-            require(not any(line.startswith((b"rename from ", b"rename to ",
-                                             b"copy from ", b"copy to ")) for line in stream),
-                    writer + ": unexpected rename/copy patch; use --no-renames")
-        if patch.stat().st_size == 0:
-            # An unchanged writer has a genuinely empty Git patch; git apply
-            # reports an error for this expected no-op input.
-            actual = []
-        else:
-            try:
-                # Git filters numstat paths relative to a checkout subdirectory.
-                # Inspect from a scratch directory with repository discovery disabled.
-                with tempfile.TemporaryDirectory() as scratch:
-                    env = dict(os.environ)
-                    for key in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE",
-                                "GIT_PREFIX", "GIT_COMMON_DIR"):
-                        env.pop(key, None)
-                    env["GIT_CEILING_DIRECTORIES"] = str(Path(scratch).resolve().parent)
-                    parsed = subprocess.run(
-                        ["git", "apply", "--numstat", "-z", str(patch.resolve())],
-                        cwd=scratch, env=env, check=False, stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE, timeout=30,
-                    )
-            except (OSError, subprocess.TimeoutExpired) as error:
-                raise ValueError(writer + ": cannot inspect patch") from error
-            require(parsed.returncode == 0,
-                    writer + ": invalid binary/text patch path inventory")
-            actual = patch_names(parsed.stdout, writer + ".patch")
-        require(set(declared) == set(actual),
-                writer + ": patch and declared file inventory disagree")
+        manifest, declared = load(directory, writer, base)
+        if manifest["start_tree"] != start_tree:
+            raise ValueError(writer + ": made from tree " + manifest["start_tree"] +
+                             ", not the shared start tree " + start_tree)
+        check_tree(directory, writer, manifest, repo=repo)
         for item in declared:
             if item in owners:
                 raise ValueError(
@@ -123,11 +46,15 @@ def inspect(directory):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--parts-dir", required=True, type=Path)
+    parser.add_argument("--base", required=True)
+    parser.add_argument("--start-tree")
     args = parser.parse_args(argv)
     try:
-        for writer, count in inspect(args.parts_dir):
+        base = object_id(git("rev-parse", "--verify", args.base + "^{commit}")
+                         .decode().strip(), "base")
+        for writer, count in inspect(args.parts_dir, base, args.start_tree):
             print(writer + ": " + str(count) + " distinct paths")
-        print("writer manifests and patch paths disjoint: PASS")
+        print("writer patch sets whole and their paths disjoint: PASS")
         return 0
     except ValueError as error:
         print("HOLD: " + str(error), file=sys.stderr)
