@@ -98,6 +98,27 @@ pub fn claim_order(
     before.into_iter().chain(after).collect()
 }
 
+/// Claim the next item to start: the first in [`claim_order`] under the
+/// boundary `stop_at` that `claimed` (indexed by position) does not hold, or
+/// `None` when every item up to the boundary is claimed.
+///
+/// The choice is made against the boundary as it stands at the claim, under
+/// the caller's lock. A claim numbered against one boundary and resolved in a
+/// list re-partitioned by another could name an item already running and skip
+/// one the failure check still needs.
+pub fn next_claim(
+    ordered: &[usize],
+    positions: &BTreeMap<usize, usize>,
+    stop_at: usize,
+    claimed: &mut [bool],
+) -> Option<usize> {
+    let item = claim_order(ordered, positions, stop_at)
+        .into_iter()
+        .find(|item| positions[item] <= stop_at && !claimed[positions[item]])?;
+    claimed[positions[&item]] = true;
+    Some(item)
+}
+
 /// Run `job` on each of `items`, at most `width` at a time, and hand each
 /// result to `consume` in the order of `items`.
 ///
@@ -191,7 +212,7 @@ where
         .enumerate()
         .map(|(position, item)| (item, position))
         .collect();
-    let claim_index = AtomicUsize::new(0);
+    let claimed = Mutex::new(vec![false; items.len()]);
     /// Where the claimant and consumer meet the memory budget.
     struct MemoryGate {
         budget: u64,
@@ -230,24 +251,22 @@ where
             .map(|_| {
                 let sender = sender.clone();
                 let context = context.clone();
-                let (claim_index, stop_after) = (&claim_index, &stop_after);
+                let (claimed, stop_after) = (&claimed, &stop_after);
                 let gate = gate.as_ref();
                 let (order, position_of, expected_by_item) =
                     (&order, &position_of, &expected_by_item);
                 scope.spawn(move || {
                     let _installed = telemetry::install(context);
                     loop {
-                        let sequence = claim_index.fetch_add(1, Ordering::SeqCst);
-                        let stop_at = stop_after.load(Ordering::SeqCst);
-                        let effective = claim_order(order, position_of, stop_at);
-                        if sequence >= effective.len() {
+                        let claim = {
+                            let mut claimed = claimed.lock().expect("claim lock");
+                            let stop_at = stop_after.load(Ordering::SeqCst);
+                            next_claim(order, position_of, stop_at, &mut claimed)
+                        };
+                        let Some(item) = claim else {
                             break;
-                        }
-                        let item = effective[sequence];
+                        };
                         let position = position_of[&item];
-                        if position > stop_at {
-                            break;
-                        }
                         let expected = expected_by_item[&item];
                         if let Some(gate) = gate {
                             // Claim in one lock window; the expected peak is
@@ -340,7 +359,7 @@ mod tests {
     use std::sync::{mpsc, Mutex};
     use std::time::{Duration, Instant};
 
-    use super::{run_ordered, run_ordered_with, start_order};
+    use super::{next_claim, run_ordered, run_ordered_with, start_order};
     use crate::diagnostic::Diagnostic;
     use crate::error::LexLeanError;
     use crate::verify::operational::Hint;
@@ -761,6 +780,39 @@ mod tests {
             |_, _| Ok(()),
         )
         .expect("the over-budget hint does not fence the stage");
+    }
+
+    /// A claim is the first unclaimed item under the boundary as it stands
+    /// when the claim is made. Claims numbered against one boundary and
+    /// resolved against another ran item 1 twice and item 0 never: with
+    /// start order [2, 0, 1], item 2 then item 1 claimed and failed, so the
+    /// second claim, numbered 1, resolved against [0, 1, 2] to item 1.
+    #[test]
+    fn a_claim_is_never_lost_or_repeated_when_the_boundary_moves() {
+        let positions: BTreeMap<usize, usize> = (0..3).map(|item| (item, item)).collect();
+        let ordered = [2, 0, 1];
+        let mut claimed = vec![false; 3];
+        assert_eq!(
+            next_claim(&ordered, &positions, usize::MAX, &mut claimed),
+            Some(2)
+        );
+        assert_eq!(next_claim(&ordered, &positions, 2, &mut claimed), Some(0));
+        assert_eq!(next_claim(&ordered, &positions, 2, &mut claimed), Some(1));
+        assert_eq!(next_claim(&ordered, &positions, 1, &mut claimed), None);
+
+        let mut claimed = vec![false; 3];
+        claimed[2] = true;
+        claimed[1] = true;
+        assert_eq!(
+            next_claim(&ordered, &positions, 1, &mut claimed),
+            Some(0),
+            "item 0 precedes the failure and is still owed a run"
+        );
+        assert_eq!(next_claim(&ordered, &positions, 1, &mut claimed), None);
+        assert_eq!(
+            next_claim(&ordered, &positions, 0, &mut [false; 3]),
+            Some(0)
+        );
     }
 
     /// A failure still resolves to the least position in item order when
