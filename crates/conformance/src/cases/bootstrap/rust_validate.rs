@@ -2738,7 +2738,10 @@ pub(super) fn rustc_differential(
         "render",
         started,
         started.elapsed(),
-        serde_json::json!({ "harnesses": expected.len() }),
+        serde_json::json!({
+            "harnesses": expected.len(),
+            "tree_sha256": if crate::phases::enabled() { rendered_digest(dir.path()) } else { String::new() },
+        }),
     );
     crate::phases::record(
         None,
@@ -3448,4 +3451,32 @@ mod harness_budget_tests {
             "an oversized run is kept whole"
         );
     }
+}
+
+/// The SHA-256 of every file rendered under `root`, by relative path then
+/// bytes in path order: a change that must leave the generated packages and
+/// harnesses byte-identical is checked against it (#603, #632).
+fn rendered_digest(root: &std::path::Path) -> String {
+    use sha2::{Digest, Sha256};
+    let mut files: Vec<_> = walkdir::WalkDir::new(root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .map(|entry| entry.into_path())
+        .collect();
+    files.sort();
+    let mut hash = Sha256::new();
+    for path in files {
+        let relative = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        hash.update(relative.as_bytes());
+        hash.update([0]);
+        let bytes = std::fs::read(&path).unwrap_or_default();
+        hash.update((bytes.len() as u64).to_le_bytes());
+        hash.update(&bytes);
+    }
+    format!("{:x}", hash.finalize())
 }
