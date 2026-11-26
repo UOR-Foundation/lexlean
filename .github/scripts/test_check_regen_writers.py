@@ -401,17 +401,15 @@ class WriterCollisionTests(unittest.TestCase):
             pinned = regen_lifecycle.STEPS[name]
             if len(steps) != len(pinned):
                 raise ValueError("lifecycle: job " + name + " steps added or removed (fail closed)")
+            # Every step whole, the producers' too: a skipped or altered write
+            # recipe would deliver a tree that was never regenerated.
             for step, pin in zip(steps, pinned):
-                if isinstance(pin, tuple):
-                    if step.split("\n", 1)[0] + "\n" != pin[0]:
-                        raise ValueError("lifecycle: job " + name + " steps reordered (fail closed)")
-                elif step != pin:
+                if step != pin:
                     raise ValueError("lifecycle: job " + name + " step changed: " +
                                      step.split("\n", 1)[0] + " (fail closed)")
         # The pins themselves name the reviewed commands, so a pin edited to
         # agree with a weakened step still fails here.
-        texts = {name: "".join(p for p in regen_lifecycle.STEPS[name] if isinstance(p, str))
-                 for name in regen_lifecycle.STEPS}
+        texts = {name: "".join(regen_lifecycle.STEPS[name]) for name in regen_lifecycle.STEPS}
         for job, command in (("identity", cls.IDENTITY_CAPTURE),
                              ("writer", cls.IDENTITY_START), ("combine", cls.IDENTITY_APPLY),
                              ("writer", cls.CAPTURE), ("combine", cls.GUARD),
@@ -432,6 +430,17 @@ class WriterCollisionTests(unittest.TestCase):
 
     @classmethod
     def check_delivery(cls, deliver):
+        # The pin must itself hold the delivery's shape, so that a pin edited
+        # to agree with a weakened script still fails here; then the script is
+        # the pin, whole: a roster of lines in order cannot see a branch that
+        # skips one or an exit that was removed (review 6077939760).
+        cls.check_delivery_shape(regen_lifecycle.DELIVERY)
+        cls.check_delivery_shape(deliver)
+        if deliver != regen_lifecycle.DELIVERY:
+            raise ValueError("delivery: the script is not the reviewed script (fail closed)")
+
+    @classmethod
+    def check_delivery_shape(cls, deliver):
         lines = deliver.split("\n")
         if lines[0] != "#!/usr/bin/env bash":
             raise ValueError("delivery: not a bash script (fail closed)")
@@ -533,6 +542,17 @@ class WriterCollisionTests(unittest.TestCase):
             (self.RETURN, 'git diff --cached --binary > "$out/regenerated.patch"', "fail closed"),
             ("! -name SHA256SUMS", "-name 'regenerated.*'", "fail closed"),
         )
+        # Every producer of the regenerated tree, skipped: its step is pinned
+        # whole as much as the patch-set steps are (review 6077939760).
+        producers = [name for name in (
+            "Refresh the project locks", "Run the write recipes", "Write the moved counts",
+            "Write the model documents",
+            "Measure the stack bound of each recursive package the record lacks",
+            "Relock and repin the moved identity") if "- name: " + name + "\n" in source]
+        self.assertGreaterEqual(len(producers), 5)
+        workflow_plants += tuple(
+            ("- name: " + name + "\n", "- name: " + name + "\n        if: false\n", "fail closed")
+            for name in producers)
         for old, new, reason in workflow_plants:
             with self.subTest(plant=old, replacement=new):
                 self.assertIn(old, source)
@@ -559,12 +579,20 @@ class WriterCollisionTests(unittest.TestCase):
              '  git push --force origin "HEAD:refs/heads/$branch"'),
             # The set applied only after the commit is made.
             (self.DELIVER + "\n", ""),
+            # Review 6077939760: control flow around lines that all remain.
+            ('  echo "::error::SHA256SUMS does not list exactly the files of the artifact"\n  exit 1\n',
+             '  echo "::error::SHA256SUMS does not list exactly the files of the artifact"\n'),
+            ('if [ "$listed" != "$present" ]; then',
+             'listed=$present\nif [ "$listed" != "$present" ]; then'),
+            (self.DELIVER + "\n", "if false; then\n" + self.DELIVER + "\nfi\n"),
+            ('$(cat "$dir/base-commit.txt"), not $commit"\n  exit 1\n',
+             '$(cat "$dir/base-commit.txt"), not $commit"\n  :\n'),
         )
         for old, new in delivery_plants:
             with self.subTest(delivery=old, replacement=new):
                 self.assertIn(old, deliver)
                 planted = deliver.replace(old, new, 1)
-                if old == self.DELIVER + "\n":
+                if old == self.DELIVER + "\n" and new == "":
                     planted = planted.replace("  git push origin", self.DELIVER + "\n  git push origin", 1)
                 with self.assertRaisesRegex(ValueError, "fail closed|checked patch set"):
                     self.check_workflow(source, planted, tool)
@@ -595,6 +623,21 @@ class WriterCollisionTests(unittest.TestCase):
         finally:
             for name, steps in saved.items():
                 regen_lifecycle.STEPS[name] = steps
+
+    def test_a_delivery_pin_edited_to_a_weakened_script_is_still_refused(self):
+        source, deliver, tool = self.sources()
+        saved = regen_lifecycle.DELIVERY
+        try:
+            for old, new in ((self.DELIVER, self.DELIVER + " || true"),
+                             ("set -euo pipefail", "set -eu"),
+                             (self.DELIVER + "\n", "exit 0\n" + self.DELIVER + "\n")):
+                with self.subTest(old=old, new=new):
+                    planted = deliver.replace(old, new, 1)
+                    regen_lifecycle.DELIVERY = planted
+                    with self.assertRaisesRegex(ValueError, "fail closed"):
+                        self.check_workflow(source, planted, tool)
+        finally:
+            regen_lifecycle.DELIVERY = saved
 
     def test_incomplete_binary_numstat_is_refused(self):
         with self.assertRaisesRegex(ValueError, "truncated"):
@@ -756,6 +799,29 @@ class DeliveryTests(unittest.TestCase):
         self.assertIn("workflow run ci.yml", self.gh_calls())
         with self.assertRaisesRegex(ValueError, "fail closed"):
             WriterCollisionTests.check_delivery(script.replace(command, command + " || true", 1))
+
+    def test_a_skipped_apply_would_dispatch_the_gate_and_is_refused(self):
+        """Review 6077939760, plant 3: the apply line kept but never run. Run
+        for real on the caller's branch, the delivery finds no change and
+        dispatches the gate on the unregenerated commit; the delivery pin
+        refuses the script, so it cannot be the one `deliver` runs."""
+        manifest = self.regenerated()
+        script = (SCRIPTS / "deliver-regenerated.sh").read_text()
+        command = WriterCollisionTests.DELIVER
+        planted = script.replace(command + "\n", "if false; then\n" + command + "\nfi\n", 1)
+        self.assertNotEqual(planted, script)
+        result = self.deliver(planted)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.remote_head(), self.commit)
+        self.assertIn("workflow run ci.yml --repo owner/name --ref feature", self.gh_calls())
+        self.assertNotEqual(manifest["tree"], manifest["start_tree"])
+        with self.assertRaisesRegex(ValueError, "not the reviewed script"):
+            WriterCollisionTests.check_delivery(planted)
+        # The reviewed script, on the same artifact, delivers the regenerated
+        # tree instead.
+        self.calls.unlink()
+        self.assertEqual(self.deliver().returncode, 0)
+        self.assertNotEqual(self.remote_head(), self.commit)
 
 
 if __name__ == "__main__":
