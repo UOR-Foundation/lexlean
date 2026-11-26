@@ -414,11 +414,10 @@ fn plan_decisions() {
         "false".to_owned(),
         vec!["honesty".to_owned(), "rest".to_owned()],
     );
+    let draft = stacked.clone();
     let nothing = ("false".to_owned(), Vec::<String>::new());
-    let draft = nothing.clone();
-    // A draft pull request plans no work; a ready one stacked on another
-    // feature branch runs honesty and `rest`, without qualifying the landing.
-    // A ready pull request into `main`
+    // A draft pull request runs honesty then `rest`, as does a ready one stacked on
+    // a feature branch, which cannot land on a line; a ready one into `main`
     // or a release line, a request, and a push are the whole gate when no run
     // is known. A base the event does not name is not known to be stacked.
     for (what, draft_flag, base, expected) in [
