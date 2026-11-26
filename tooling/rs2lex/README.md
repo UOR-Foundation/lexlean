@@ -65,7 +65,7 @@ It refuses rather than guess. Examples:
 
 ## Where it stands
 
-On `release/v0.4` with `SL-15`, `translate.py` reports 1,234 of 3,616 functions, 12.7 % of the bytes. The
+On `release/v0.4` with `SL-15`, `translate.py` reports 1,375 of 3,616 functions, 14.4 % of the bytes. The
 repository's compiler (0.4.5) accepts the whole module: `check.sh` passes. Every probe function translates, and
 all of the probe's 1,350 cases match Rust's. Over the same rules, a separate harness held the translated functions
 that take and return plain data to the real crate, called through its own tests: 92 functions, identical on

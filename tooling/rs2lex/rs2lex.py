@@ -385,6 +385,11 @@ class Translator(Core):
                 if strict: return k(f'(prim less_than {lo} {hi} : Bool)', BOOL, env)
                 return k(f'(not (prim less_than {hi} {lo} : Bool))', BOOL, env)
             raise Unsupported(f'{op} on {show(t)}')
+        if t == BOOL and op in ('|', '&', '^'):
+            # both operands are already evaluated, in order, so the non-short-circuit form is a choice between values
+            form = {'|': f'(if {a} then true else {b})', '&': f'(if {a} then {b} else false)', '^': f'(if {a} then (not {b}) else {b})'}
+            return k(form[op], BOOL, env)
+        if t == NAT and op in ('|', '&', '^', '<<', '>>'): raise Unsupported(f'the bit operator {op} on an unbounded integer')
         if t == NAT:
             form = {'+': f'({a} + {b})', '-': f'(prim subtract {a} {b} : Nat)', '*': f'(prim multiply {a} {b} : Nat)',
                     '/': f'(prim quotient {a} {b} 0 : Nat)', '%': f'(prim remainder {a} {b} 0 : Nat)'}
@@ -721,6 +726,32 @@ class Translator(Core):
         # lists
         if head in ('List', 'Iter'):
             el = rt[1]
+            if m in ('sum_u64', 'sum_usize') and not args:
+                T.unify(el, NAT, m); A, X = self.fresh('acc'), self.fresh('x')
+                return done(f'(prim list_fold (fun ({A} : Nat) ({X} : Nat) => ({A} + {X})) 0 {r} : Nat)', NAT)
+            if m == 'find_map' and len(args) == 1:
+                # the first element the closure maps to Some, in order
+                out_t = T.var()
+                def pick(acc, x, env2):
+                    body, bt = self.closure_arg(args[0], {**env2, '__found_item': (x, el)}, [(x, el)]); T.unify(bt, ('Option', out_t), 'find_map')
+                    return f'(match {acc} | Option.some {self.fresh("seen")} => {acc} | Option.none => {body})'
+                return done(self.fold(r, el, ('Option', out_t), f'(ctor Option.none [{show(out_t)}])', pick, env), ('Option', out_t))
+            if m == 'fold' and len(args) == 2 and args[1][0] == 'closure':
+                def with_init(vs, env2):
+                    acc_t = vs[0][1]
+                    def step(acc, x, env3):
+                        env3 = {**env3, '__folding_item': (x, el)}
+                        body, bt = self.closure_arg(args[1], env3, [(acc, acc_t), (x, el)]); T.unify(bt, acc_t, 'fold'); return body
+                    return k(self.fold(r, el, acc_t, vs[0][0], step, env2), acc_t, env2)
+                return self.exprs([args[0]], env, ctx, with_init)
+            if m == 'extend' and len(args) == 1:
+                return arg_vals(lambda vs, env2: (T.unify(vs[0][1], ('List', el), 'extend'), self.assign_into(recv, f'(RustStd::appendList [{show(el)}] {r} {vs[0][0]})', rt, env2, lambda env3: k('()', UNIT, env3)))[1])
+            if m == 'starts_with' and len(args) == 1:
+                def prefix(vs, env2):
+                    T.unify(vs[0][1], ('List', el), 'starts_with'); p = vs[0][0]
+                    n = f'(AxiomOutput::listLength [{show(el)}] {p})'
+                    return k(f'(if ({n} <=? (AxiomOutput::listLength [{show(el)}] {r})) then {self.equal(f"(RustStd::takeN [{show(el)}] {r} {n})", p, ("List", el))} else false)', BOOL, env2)
+                return arg_vals(prefix)
             if m in ('join', 'concat') and T.res(el) == BYTES:
                 if m == 'concat': return done(f'(RustStd::joinWith {r} {text("")})', BYTES)
                 return arg_vals(lambda vs, env2: k(f'(RustStd::joinWith {r} {vs[0][0]})', BYTES, env2))
@@ -838,6 +869,20 @@ class Translator(Core):
             b = self.fresh('code')
             return done(f'(match (RustStd::asciiByte {r}) | Option.some {b} => {self.ascii_on(test, b)} | Option.none => false)', BOOL)
         if rt == BYTES and m == 'chars' and not args: return done(f'(RustStd::utf8Chars {r})', ('List', BYTES))
+        if rt == BYTES and m == 'is_control' and not args:
+            # Unicode's Cc: U+0000 to U+001F and U+007F to U+009F, one byte or C2 80 to C2 9F
+            b = self.fresh('code')
+            return done(f'(match (RustStd::asciiByte {r}) | Option.some {b} => (if ({b} <? 32) then true else ({b} =? 127)) | Option.none => (RustStd::isC1Control {r}))', BOOL)
+        if rt == BOOL and m == 'then_some' and len(args) == 1:
+            return arg_vals(lambda vs, env2: k(f'(if {r} then (ctor Option.some [{show(vs[0][1])}] {vs[0][0]}) else (ctor Option.none [{show(vs[0][1])}]))', ('Option', vs[0][1]), env2))
+        if rt == NAT and m == 'is_multiple_of' and len(args) == 1:
+            # Rust: n.is_multiple_of(0) is n == 0
+            return arg_vals(lambda vs, env2: (T.unify(vs[0][1], NAT, m), k(f'(if ({vs[0][0]} =? 0) then ({r} =? 0) else ((prim remainder {r} {vs[0][0]} 0 : Nat) =? 0))', BOOL, env2))[1])
+        if head == 'Result' and m == 'map_or' and len(args) == 2:
+            def mapped(vs, env2):
+                v = self.fresh('ok'); body, bt = self.closure_arg(args[1], {**env2, '__ok_value': (v, rt[1])}, [(v, rt[1])]); T.unify(bt, vs[0][1], 'map_or')
+                return k(f'(match {r} | Result.ok {v} => {body} | Result.error {self.fresh("failure")} => {vs[0][0]})', vs[0][1], env2)
+            return self.exprs([args[0]], env, ctx, mapped)
         if rt == BYTES and m == 'char_indices' and not args: return done(f'(RustStd::charIndices {r})', ('List', ('Prod', NAT, BYTES)))
         if rt == BYTES and m == 'is_whitespace' and not args: return done(f'(RustStd::isWhitespaceChar {r})', BOOL)
         if rt == BYTES and m == 'len_utf8' and not args: return done(f'(prim length {r} : Nat)', NAT)

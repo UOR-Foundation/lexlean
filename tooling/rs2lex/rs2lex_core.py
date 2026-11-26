@@ -1150,6 +1150,7 @@ class Translator:
             if name not in KEYWORDS and name not in self.reserved: return name
     def atom(self, v, t, k, env, base='tmp'):
         if is_atom(v): return k(v, env)
+        if self.T.res(t)[0] == 'Fn': raise Unsupported('a function value bound to a name (LexLean refuses a let-bound function)')
         n = self.fresh(base)
         return f'(let {n} : {self.T.show(t)} := {v}; {k(n, env)})'
     def lit(self, n):
@@ -1664,11 +1665,20 @@ class Translator:
                     if is_atom(a) and is_atom(b) or T.nat(t) in (NAT, BYTES, UINT8, I128): eq = self.equal(a, b, t)
                     else: eq = self.atom(a, t, lambda x, env: self.atom(b, t, lambda y, env: self.equal(x, y, t), env), env)
                     return k(eq if op == '==' else f'(not {eq})', BOOL, env)
+                if t == BOOL and op in ('|', '&', '^'):
+                    # both operands are already evaluated, in order: the non-short-circuit form is a choice between values
+                    form = {'|': f'(if {a} then true else {b})', '&': f'(if {a} then {b} else false)', '^': f'(if {a} then (not {b}) else {b})'}
+                    return k(form[op], BOOL, env)
                 t = T.nat(t)
                 if t == I128:
                     form = {'<': f'(RustStd::i128Lt {a} {b})', '<=': f'(RustStd::i128Le {a} {b})', '>': f'(RustStd::i128Lt {b} {a})', '>=': f'(RustStd::i128Le {b} {a})'}
                     if op not in form: raise Unsupported(f'i128 operator {op}')
                     return k(form[op], BOOL, env)
+                if t != NAT and op in ('<', '<=', '>', '>='):
+                    # any type with an order the translation derives (Bytes by their bytes, tuples, derived Ord)
+                    lo, hi = (a, b) if op in ('<', '<=') else (b, a)
+                    if op in ('<', '>'): return k(self.less(lo, hi, t), BOOL, env)
+                    return k(f'(not {self.less(hi, lo, t)})', BOOL, env)
                 if t != NAT: raise Unsupported(f'{op} on {show(t)}')
                 form = {'<': f'({a} <? {b})', '<=': f'({a} <=? {b})', '>': f'({b} <? {a})', '>=': f'({b} <=? {a})', '+': f'({a} + {b})',
                         '%': f'(prim remainder {a} {b} 0 : Nat)', '/': f'(prim quotient {a} {b} 0 : Nat)', '*': f'(prim multiply {a} {b} : Nat)'}
@@ -1851,7 +1861,9 @@ class Translator:
     def user_fn(self, key):
         fn = self.fns[key]
         if fn['generics']: return fn
-        if self.status.get(key, 'ok') != 'ok' and key not in self.cur_scc and self.fnmut_index(key) is None: raise Unsupported(f'calls `{fn["name"]}`, which did not translate')
+        if self.status.get(key, 'ok') != 'ok' and key not in self.cur_scc and self.fnmut_index(key) is None:
+            self.blocked_by.setdefault(self.key, key)      # so the report can follow the chain to its root
+            raise Unsupported(f'calls `{fn["name"]}`, which did not translate')
         self.calls.add(key); self.call_log.append(key)
         return fn
     def apply_user(self, key, vs, asts, env, k, asts_only=False, ctx=None):
@@ -2328,7 +2340,10 @@ class Translator:
                               'split_once': ('AxiomOutput::splitOnce', ('Option', ('Prod', BYTES, BYTES))), 'rsplit_once': ('AxiomOutput::splitLast', ('Option', ('Prod', BYTES, BYTES))),
                               'starts_with': ('LexLeanStd.Text::startsWith', BOOL), 'ends_with': ('LexLeanStd.Text::endsWith', BOOL),
                               'trim': ('AxiomOutput::trimmed', BYTES), 'trim_end': ('RustStd::trimEnd', BYTES),
-                              'lines': ('LexLeanStd.Text::lines', ('Iter', BYTES)), 'parse': ('RustStd::parseUsize', ('Option', UNIT))}
+                              'lines': ('LexLeanStd.Text::lines', ('Iter', BYTES))}
+                    # `parse()` with its target left to inference: an unsigned integer, the one kind of number here (a
+                    # signed or other target fails to unify, and the function is refused)
+                    if m == 'parse' and not a: return done(f'(RustStd::parseUnsigned {r} 18446744073709551615)', ('Result', NAT, UNIT))
                     if m in simple: return done(f'({simple[m][0]} {" ".join([r] + a)})', simple[m][1])
                     if m == 'splitn': return done(f'(RustStd::splitN {r} {a[0]} {a[1]})', ('Iter', BYTES))
                     if m == 'is_empty': return done(f'((prim length {r} : Nat) =? 0)', BOOL)

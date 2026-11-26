@@ -338,6 +338,15 @@ class Resolver:
             if h == 'cast': return ('cast', walk(e[1]), ty(e[2]))
             if h == 'closure': return ('closure', [(walk(p), ty(t) if t else None) for p, t in e[1]], walk(e[2]), ty(e[3]) if e[3] else None)
             if h == 'item': return e
+            if h == 'macro' and isinstance(e[2], list) and e[2] and isinstance(e[2][0], tuple) and e[2][0][0] == 'str':
+                # a format string's implicit captures (`"{SYNTAX}.{name}"`) name items too: a constant in scope gets its
+                # unique name, as a path would; a lower-case name is a local and stays
+                def capture(m):
+                    n = m.group(1)
+                    found = self.lookup(mp, n) if n[:1].isupper() else None
+                    return '{' + (found['uname'] if found and found['k'] == 'const' else n)
+                fmt = re.sub(r'(?<!\{)\{([A-Za-z_]\w*)(?=[:}])', capture, e[2][0][1])
+                return (h, e[1], [('str', fmt)] + [walk(x) for x in e[2][1:]]) + tuple(e[3:])
             return tuple(walk(x) if isinstance(x, (tuple, list)) else x for x in e)
         k = it['k']
         if k == 'struct': it['fields'] = [(f, ty(t)) for f, t in it['fields']]

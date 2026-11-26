@@ -566,5 +566,13 @@ definition{
   executable: true
 }
 
+definition{
+  name: isC1Control,
+  parameters: [c : Bytes],
+  result: Bool,
+  body: (if ((prim length c : Nat) =? 2) then (match (LexLeanStd.Text::byteAt c 0) | Option.some lead => (if ((prim to_nat lead : Nat) =? 194) then (match (LexLeanStd.Text::byteAt c 1) | Option.some next => (if (127 <? (prim to_nat next : Nat)) then ((prim to_nat next : Nat) <? 160) else false) | Option.none => false) else false) | Option.none => false) else false),
+  executable: true
+}
+
 \end{semanticmodule}
 \end{lexlean}
