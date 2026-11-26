@@ -41,7 +41,7 @@ function replay(docs){
  const push=expected.map(([id,n,name,skips])=>{const x=b.runs.find(x=>x.id===id);need(x&&x.total===n,"push count");const s=tally(x.raw,n,m,true);need(s.allocated===1&&s.skips===skips&&x.skips===skips&&x.raw.find(y=>y.runner>0).name===name&&s.seconds===x.allocated,"push role or allocation");return {id,...s}});
  need(b.reuse_log==="CI reuse: run 45757936558: complete gate accepted for "+h&&b.tag_log==="the workspace version is 0.4.0 on both sides: not a cut","log receipt");
  const total=sum(push,x=>x.seconds);need(total===b.total_allocated_seconds,"push total");
- return {scope:"Pinned sanitized receipt replay only; PR job rows omit individual head, provider authenticity and actual merge ancestry verified separately. Not a billing or causal outcome claim.",pr:computed,push,totalPushSeconds:total,combinedSeconds:p.seconds+re.seconds+total,distinctRows:ids.size};
+ return {scope:"Pinned sanitized receipt replay only; PR job rows omit individual head, provider authenticity and actual merge ancestry verified separately. Not a billing or causal outcome claim.",pr:{...Object.fromEntries(Object.entries(computed).filter(([k])=>k!=="queue_seconds")),bootstrap_queue_seconds:computed.queue_seconds,whole_run_queue_seconds:p.queue},push,totalPushSeconds:total,combinedSeconds:p.seconds+re.seconds+total,distinctRows:ids.size};
 }
 const docs=anchors.map(([name,blob])=>{const bytes=readFileSync(new URL('../'+name,import.meta.url));const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');if(hash!==blob)throw Error('blob mismatch '+name);return JSON.parse(bytes)});
 const tests=[["missing PR row",x=>x[0].raw.pop()],
