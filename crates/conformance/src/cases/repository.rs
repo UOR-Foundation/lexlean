@@ -365,14 +365,10 @@ fn plan_decisions() {
             serde_json::from_str(&value("honesty")).expect("honesty is JSON");
         let fanout: Vec<serde_json::Value> =
             serde_json::from_str(&value("fanout")).expect("fanout is JSON");
-        assert!(honesty.iter().all(|row| row["part"] == "honesty"));
-        assert!(fanout.iter().all(|row| row["part"] != "honesty"));
-        let mut combined = honesty;
-        combined.extend(fanout);
-        assert_eq!(
-            combined, planned,
-            "honesty and fanout partition the planned rows"
-        );
+        let bootstrap: Vec<serde_json::Value> =
+            serde_json::from_str(&value("bootstrap")).expect("bootstrap is JSON");
+        plan_partition(&value("full"), &planned, &honesty, &fanout, &bootstrap)
+            .unwrap_or_else(|refusal| panic!("{refusal}"));
 
         (
             value("full"),
@@ -791,7 +787,7 @@ fn plan_decisions() {
     let script_text = root_file(".github/ci-plan.sh");
     assert!(
         script_text.contains(".head_repository.full_name == \\\"$repo\\\"")
-            && script_text.contains("runs?head_sha=$commit&status=success")
+            && script_text.contains("runs?head_sha=$commit&per_page=30")
             && script_text.contains(
                 "select(.event == \\\"pull_request\\\" or .event == \\\"workflow_dispatch\\\")"
             )
@@ -813,6 +809,10 @@ fn plan_decisions() {
         assert!(
             text.contains("source \"$(dirname \"${BASH_SOURCE[0]}\")/scripts/ci-provider-read.sh\"")
                 && text.contains("ci_provider_read \"repos/$repo/actions/runs/$")
+                && text.contains("runs?head_sha=$commit&per_page=30\" --paginate")
+                && text.contains("select(.status == \\\"completed\\\" and .conclusion == \\\"success\\\")")
+                && text.contains("select(.head_sha == \\\"$commit\\\")")
+                && !text.contains("status=success")
                 && text.contains("/jobs?per_page=50\" --paginate")
                 && !text.contains("/jobs?per_page=100")
                 && !text.contains("gh api \"repos/$repo/actions/"),
@@ -2166,8 +2166,8 @@ pub(crate) fn run(id: &str) {
                     "just --timestamp --timestamp-format '%s%.3f' ${{ matrix.recipes }} 2>&1 | tee ci-evidence/vv.txt"
                 )
                 .count(),
-                2,
-                "every leg runs its recipes through the one gate command"
+                3,
+                "honesty and every leg of `vv` and `vv-bootstrap` run their recipes through the one gate command"
             );
             assert!(
                 ci.contains(&format!(
@@ -2405,6 +2405,7 @@ pub(crate) fn run(id: &str) {
             let mut step_conditions = 0;
             let mut full_conditions = 0;
             let mut rows_conditions = 0;
+            let mut bootstrap_conditions = 0;
             let mut honesty_conditions = 0;
             let mut draft_conditions = 0;
             for (index, line) in jobs
@@ -2418,6 +2419,9 @@ pub(crate) fn run(id: &str) {
                         "        if: ${{ !cancelled() }}" => step_conditions += 1,
                         "    if: ${{ needs.plan.outputs.full == 'true' }}" => full_conditions += 1,
                         "    if: ${{ needs.plan.outputs.fanout != '[]' }}" => rows_conditions += 1,
+                        "    if: ${{ needs.plan.outputs.bootstrap != '[]' }}" => {
+                            bootstrap_conditions += 1
+                        }
                         "    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}" => {
                             draft_conditions += 1
                         }
@@ -2431,8 +2435,10 @@ pub(crate) fn run(id: &str) {
                     }
                 }
             }
-            // The advisory read recorder's stop (#603 phase 1) carries it too,
-            // once in each job it traces, and in no other form.
+            // Two each on honesty, the bootstrap export, `vv`, `vv-bootstrap`,
+            // and every Atlas job. The advisory read recorder's stop (#603
+            // phase 1) carries it too, once in each job it traces, and in no
+            // other form.
             let trace_stops = ci
                 .matches("      - uses: ./.github/actions/read-trace-stop\n        if: ${{ !cancelled() }}\n")
                 .count();
@@ -2443,7 +2449,7 @@ pub(crate) fn run(id: &str) {
             );
             assert_eq!(
                 step_conditions,
-                6 + 2 * atlas_jobs.len() + trace_stops,
+                8 + 2 * atlas_jobs.len() + trace_stops,
                 "the summary step and the evidence upload of every gate job carry it"
             );
             read_trace_workflow(&ci).expect("#603: the advisory read recorder");
@@ -2453,6 +2459,10 @@ pub(crate) fn run(id: &str) {
                 "every Atlas job, the bootstrap export, and the host matrix, and no other job, wait for the plan to name the whole gate"
             );
             assert_eq!(rows_conditions, 1, "the legs run when the plan names a leg");
+            assert_eq!(
+                bootstrap_conditions, 1,
+                "the bootstrap legs run when the plan names one"
+            );
             assert_eq!(honesty_conditions, 1, "honesty follows a successful plan");
             assert_eq!(
                 draft_conditions, 1,
@@ -2597,6 +2607,67 @@ pub(crate) fn run(id: &str) {
                 );
             }
             bootstrap_custody_decisions();
+            bootstrap_legs_workflow(&ci).expect("§9.4: the bootstrap legs follow the export");
+            let boot = job("vv-bootstrap");
+            for (from, to, why) in [
+                (
+                    "    needs: [plan, honesty, bootstrap-export]\n",
+                    "    needs: [plan, honesty]\n",
+                    "the legs without the export's need",
+                ),
+                (
+                    "    name: just vv (${{ matrix.part }})\n",
+                    "    name: just vv bootstrap (${{ matrix.part }})\n",
+                    "another name",
+                ),
+                (
+                    "    runs-on: ubuntu-24.04\n",
+                    "    runs-on: ubuntu-24.04\n    continue-on-error: true\n",
+                    "a leg whose failure the run ignores",
+                ),
+                (
+                    "    if: ${{ needs.plan.outputs.bootstrap != '[]' }}\n",
+                    "    if: ${{ !cancelled() && needs.plan.outputs.bootstrap != '[]' }}\n",
+                    "legs that run after a failed export",
+                ),
+                (
+                    "        include: ${{ fromJSON(needs.plan.outputs.bootstrap) }}\n",
+                    "        include: ${{ fromJSON(needs.plan.outputs.fanout) }}\n",
+                    "the legs of `vv` run twice",
+                ),
+                (
+                    "          FULL_GATE: ${{ needs.plan.outputs.full }}\n",
+                    "          FULL_GATE: false\n",
+                    "a step that differs from `vv`'s",
+                ),
+            ] {
+                assert!(
+                    boot.contains(from),
+                    "the plant must change `vv-bootstrap`: {from}"
+                );
+                let planted = ci.replacen(boot, &boot.replacen(from, to, 1), 1);
+                assert!(
+                    bootstrap_legs_workflow(&planted).is_err(),
+                    "the bootstrap legs must refuse {why}"
+                );
+            }
+            assert!(
+                bootstrap_legs_workflow(&ci.replacen(
+                    "      bootstrap: ${{ steps.plan.outputs.bootstrap }}\n",
+                    "",
+                    1
+                ))
+                .is_err(),
+                "the bootstrap legs must refuse a plan that does not expose them"
+            );
+            assert!(
+                bootstrap_legs_workflow(&format!(
+                    "{ci}\n  again:\n    strategy:\n      matrix:\n        include: ${{{{ fromJson( needs.plan.outputs.bootstrap ) }}}}\n"
+                ))
+                .is_err(),
+                "the bootstrap legs must refuse a second reader of their rows, however it is spelt"
+            );
+            plan_partition_decisions();
             honesty_dependencies(&ci).expect("expensive roots require successful same-run honesty");
             assert!(
                 honesty_dependencies(&ci.replacen(
@@ -2643,6 +2714,13 @@ pub(crate) fn run(id: &str) {
                 vv.contains("    needs: [plan, honesty]\n")
                     && vv.contains("        include: ${{ fromJSON(needs.plan.outputs.fanout) }}\n"),
                 "§9.4: the legs of vv are the rows the plan names"
+            );
+            assert!(
+                job("vv-bootstrap").contains("    needs: [plan, honesty, bootstrap-export]\n")
+                    && job("vv-bootstrap").contains(
+                        "        include: ${{ fromJSON(needs.plan.outputs.bootstrap) }}\n"
+                    ),
+                "§9.4: the bootstrap legs are the rows the plan names for them, after the export"
             );
             // The plan: one job, no recipe, ten minutes, reading the event and
             // the repository and nothing else, through the one script whose
@@ -2706,10 +2784,17 @@ pub(crate) fn run(id: &str) {
             let matrix = job("host-matrix");
             assert_eq!(
                 matrix
-                    .matches("cargo test --locked --workspace --all-features --no-fail-fast\n")
+                    .matches("cargo test --locked --workspace --all-features --no-fail-fast")
                     .count(),
                 1,
                 "the host matrix runs the workspace's tests once, and reports every failing test of the host, not the first binary's"
+            );
+            // The host sampler (#603 DOD-7a) is evidence beside the tests: the
+            // step is exactly this program, so its status is cargo's alone and
+            // no sampler failure, summary failure or added line can mask it.
+            assert!(
+                matrix.contains(HOST_TEST_STEP) && !matrix.contains("continue-on-error"),
+                "the host matrix's test step propagates cargo's status and nothing else"
             );
             // The honesty and reproducibility workflows stay separate.
             let honesty = job("honesty");
@@ -4237,6 +4322,7 @@ const TAKE_EXPORT: &str = ".github/scripts/take-bootstrap-export.sh";
 fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
     let job = workflow_job(ci, "bootstrap-export")?;
     let legs = workflow_job(ci, "vv")?;
+    let bootstrap_legs = workflow_job(ci, "vv-bootstrap")?;
     let require = |body: &str, text: &str, rule: &str| -> Result<(), String> {
         if body.contains(text) {
             Ok(())
@@ -4288,8 +4374,9 @@ fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
         ),
     ] {
         require(&legs, text, rule)?;
+        require(&bootstrap_legs, text, rule)?;
     }
-    for body in [&job, &legs] {
+    for body in [&job, &legs, &bootstrap_legs] {
         for forbidden in [
             "run-id:",
             "github-token:",
@@ -4320,6 +4407,259 @@ fn bootstrap_export_workflow(ci: &str, take: &str) -> Result<(), String> {
     }
     if take.matches("actions/runs/").count() != 2 || take.contains("GITHUB_RUN_ID=") {
         return Err("RP-14: the fetcher reads the run it is in and no other".to_owned());
+    }
+    Ok(())
+}
+
+/// The parts of the leg rows the job `vv-bootstrap` runs: they start only once
+/// the bootstrap export has passed (#603).
+const BOOTSTRAP_LEG_PREFIX: &str = "bdd-bootstrap-";
+
+/// §9.4, #603: the rows `.github/ci-plan.sh` plans, split as it writes them,
+/// with none lost and none run twice. `honesty`, `fanout` (the legs of `vv`)
+/// and `bootstrap` (the legs of `vv-bootstrap`) are each the planned rows of
+/// their kind, in the plan's order, and the plan names a bootstrap leg only in
+/// a run that is the whole gate: no other run exports the bootstrap project,
+/// so a leg planned there would be skipped rather than run.
+fn plan_partition(
+    full: &str,
+    planned: &[serde_json::Value],
+    honesty: &[serde_json::Value],
+    fanout: &[serde_json::Value],
+    bootstrap: &[serde_json::Value],
+) -> Result<(), String> {
+    let part = |row: &serde_json::Value| row["part"].as_str().unwrap_or_default().to_owned();
+    let mut runs: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+    for row in honesty.iter().chain(fanout).chain(bootstrap) {
+        *runs.entry(part(row)).or_default() += 1;
+    }
+    for row in planned {
+        match runs.get(&part(row)).copied().unwrap_or_default() {
+            1 => {}
+            0 => {
+                return Err(format!(
+                    "RP-14: the planned leg `{}` is run by no job",
+                    part(row)
+                ))
+            }
+            n => {
+                return Err(format!(
+                    "RP-14: the planned leg `{}` is run {n} times",
+                    part(row)
+                ))
+            }
+        }
+    }
+    let of_kind = |keep: &dyn Fn(&str) -> bool| -> Vec<serde_json::Value> {
+        planned
+            .iter()
+            .filter(|row| keep(&part(row)))
+            .cloned()
+            .collect()
+    };
+    for (name, rows, expected) in [
+        ("honesty", honesty, of_kind(&|part: &str| part == "honesty")),
+        (
+            "fanout",
+            fanout,
+            of_kind(&|part: &str| part != "honesty" && !part.starts_with(BOOTSTRAP_LEG_PREFIX)),
+        ),
+        (
+            "bootstrap",
+            bootstrap,
+            of_kind(&|part: &str| part.starts_with(BOOTSTRAP_LEG_PREFIX)),
+        ),
+    ] {
+        if rows != expected.as_slice() {
+            return Err(format!(
+                "RP-14: `{name}` is not the planned rows of its kind: {rows:?}"
+            ));
+        }
+    }
+    if full != "true" && !bootstrap.is_empty() {
+        return Err(format!(
+            "RP-14: a run that is not the whole gate names bootstrap legs, which wait for an export it does not make: {bootstrap:?}"
+        ));
+    }
+    Ok(())
+}
+
+/// The partition refuses each way the plan's split can lose, repeat, or
+/// misplace a leg (#603). The plants are made on the rows of the committed
+/// legs file, so they run on every host; `plan_decisions` holds the script's
+/// own outputs to the same check where the script runs.
+fn plan_partition_decisions() {
+    let rows: Vec<serde_json::Value> =
+        serde_json::from_str(&root_file(".github/vv-rows.json")).expect("the legs");
+    let is = |row: &serde_json::Value, kind: &str| {
+        let part = row["part"].as_str().expect("a part");
+        match kind {
+            "honesty" => part == "honesty",
+            "bootstrap" => part.starts_with(BOOTSTRAP_LEG_PREFIX),
+            _ => part != "honesty" && !part.starts_with(BOOTSTRAP_LEG_PREFIX),
+        }
+    };
+    let split = |kind: &str| -> Vec<serde_json::Value> {
+        rows.iter().filter(|row| is(row, kind)).cloned().collect()
+    };
+    let (honesty, fanout, bootstrap) = (split("honesty"), split("fanout"), split("bootstrap"));
+    // `vv-bootstrap` is skipped when the plan names none of its legs, and a
+    // run with a skipped job is never the whole gate that passed: with no
+    // bootstrap leg, no run could pass. So an empty split is the defect here,
+    // not a register that has yet to arm the plants below.
+    assert!(
+        !bootstrap.is_empty(),
+        "RP-14: the legs file names a `{BOOTSTRAP_LEG_PREFIX}*` leg for `vv-bootstrap` to run"
+    );
+    plan_partition("true", &rows, &honesty, &fanout, &bootstrap)
+        .expect("§9.4: the committed legs, split, are the plan");
+    let draft: Vec<serde_json::Value> = rows
+        .iter()
+        .filter(|row| matches!(row["part"].as_str(), Some("honesty" | "rest")))
+        .cloned()
+        .collect();
+    let draft_fanout: Vec<serde_json::Value> = draft
+        .iter()
+        .filter(|row| is(row, "fanout"))
+        .cloned()
+        .collect();
+    plan_partition("false", &draft, &honesty, &draft_fanout, &[])
+        .expect("§9.4: a draft runs honesty and `rest`");
+    let mut duplicated = fanout.clone();
+    duplicated.push(bootstrap[0].clone());
+    let dropped = &bootstrap[1..];
+    let mut draft_with_bootstrap = draft.clone();
+    draft_with_bootstrap.push(bootstrap[0].clone());
+    for (why, full, planned, h, f, b) in [
+        (
+            "a bootstrap leg left in `fanout`",
+            "true",
+            &rows,
+            &honesty,
+            &duplicated,
+            bootstrap.as_slice(),
+        ),
+        (
+            "a bootstrap leg run by no job",
+            "true",
+            &rows,
+            &honesty,
+            &fanout,
+            dropped,
+        ),
+        (
+            "a bootstrap leg run by `vv` instead",
+            "true",
+            &rows,
+            &honesty,
+            &duplicated,
+            dropped,
+        ),
+        (
+            "bootstrap legs in a run that is not the whole gate",
+            "false",
+            &draft_with_bootstrap,
+            &honesty,
+            &draft_fanout,
+            &bootstrap[..1],
+        ),
+    ] {
+        assert!(
+            plan_partition(full, planned, h, f, b).is_err(),
+            "the plan's split must refuse {why}"
+        );
+    }
+}
+
+/// §9.4, #603: the `bdd-bootstrap-*` legs are the job `vv-bootstrap`, which
+/// starts when the export has passed. It is `vv` line for line but for the
+/// lines that name its need, its condition, and its rows, so every check made
+/// of `vv` holds it too. It has the name `vv` has, the context the plan and
+/// the release gate look a leg up by; its condition has no status function,
+/// so a failed or skipped export skips its legs; and each output the plan
+/// splits its rows into is read by exactly one job.
+fn bootstrap_legs_workflow(ci: &str) -> Result<(), String> {
+    let legs = workflow_job(ci, "vv")?;
+    let bootstrap_legs = workflow_job(ci, "vv-bootstrap")?;
+    let plan = workflow_job(ci, "plan")?;
+    let substitutions = [
+        (
+            "    needs: [plan, honesty]",
+            "    needs: [plan, honesty, bootstrap-export]",
+        ),
+        (
+            "    if: ${{ needs.plan.outputs.fanout != '[]' }}",
+            "    if: ${{ needs.plan.outputs.bootstrap != '[]' }}",
+        ),
+        (
+            "        include: ${{ fromJSON(needs.plan.outputs.fanout) }}",
+            "        include: ${{ fromJSON(needs.plan.outputs.bootstrap) }}",
+        ),
+    ];
+    // Comments explain each job in its own words; only what runs must agree.
+    let lines = |body: &str| -> Vec<String> {
+        body.lines()
+            .filter(|line| !line.trim_start().starts_with('#'))
+            .map(str::to_owned)
+            .collect()
+    };
+    let legs_lines = lines(&legs);
+    for (from, _) in substitutions {
+        if legs_lines.iter().filter(|line| *line == from).count() != 1 {
+            return Err(format!("RP-14: `vv` has no one line `{from}`"));
+        }
+    }
+    let expected: Vec<String> = legs_lines
+        .into_iter()
+        .map(|line| {
+            substitutions
+                .iter()
+                .find(|(from, _)| *from == line)
+                .map_or(line, |(_, to)| (*to).to_owned())
+        })
+        .collect();
+    let actual = lines(&bootstrap_legs);
+    if actual != expected {
+        let at = actual
+            .iter()
+            .zip(&expected)
+            .position(|(a, e)| a != e)
+            .unwrap_or(actual.len().min(expected.len()));
+        return Err(format!(
+            "RP-14: `vv-bootstrap` is not `vv` but for its need, condition and rows: line {} is {:?}, not {:?}",
+            at + 1,
+            actual.get(at),
+            expected.get(at)
+        ));
+    }
+    if !legs.starts_with("    name: just vv (${{ matrix.part }})\n") {
+        return Err("RP-14: a leg's context is `just vv (<part>)`".to_owned());
+    }
+    for output in ["fanout", "bootstrap"] {
+        if !plan.contains(&format!(
+            "      {output}: ${{{{ steps.plan.outputs.{output} }}}}\n"
+        )) {
+            return Err(format!("RP-14: the plan does not expose `{output}`"));
+        }
+        // GitHub reads expression function names in any case and ignores the
+        // spaces inside a call, so a reader is counted however it is spelt.
+        let wanted = format!("fromjson(needs.plan.outputs.{output})");
+        let readers = ci
+            .lines()
+            .map(|line| {
+                line.chars()
+                    .filter(|c| !c.is_whitespace())
+                    .collect::<String>()
+                    .to_ascii_lowercase()
+            })
+            .filter(|line| !line.starts_with('#'))
+            .map(|line| line.matches(wanted.as_str()).count())
+            .sum::<usize>();
+        if readers != 1 {
+            return Err(format!(
+                "RP-14: the rows of `{output}` are run by {readers} jobs, not one"
+            ));
+        }
     }
     Ok(())
 }
@@ -4557,6 +4897,22 @@ fn windows_host_workflow(ci: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// The host matrix's one test step (#603 DOD-7a): the workspace's tests beside
+/// a resource sampler whose status cannot reach the step's.
+const HOST_TEST_STEP: &str = concat!(
+    "      - name: Test the workspace on this host\n",
+    "        shell: bash\n",
+    "        run: |\n",
+    "          bash .github/scripts/sample-host.sh \"$RUNNER_TEMP/host-resources.tsv\" &\n",
+    "          sampler=$!\n",
+    "          status=0\n",
+    "          cargo test --locked --workspace --all-features --no-fail-fast || status=$?\n",
+    "          kill \"$sampler\" 2>/dev/null || true\n",
+    "          wait \"$sampler\" 2>/dev/null || true\n",
+    "          python3 .github/scripts/summarize_host_samples.py \"$RUNNER_TEMP/host-resources.tsv\" || true\n",
+    "          exit \"$status\"\n",
+);
+
 /// The advisory read recorder (#603 phase 1) traces exactly the Linux gate
 /// jobs, from right after their checkout to their last step, and can never
 /// gate: its actions end every path with success, they contain no step that
@@ -4575,6 +4931,7 @@ fn read_trace_workflow(ci: &str) -> Result<(), String> {
         "honesty",
         "bootstrap-export",
         "vv",
+        "vv-bootstrap",
         "atlas-prefix",
         "atlas-cert4",
         "atlas-l1",
