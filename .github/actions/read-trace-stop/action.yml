@@ -1,0 +1,13 @@
+name: Stop recording workspace reads
+description: >-
+  Advisory, CI #603 phase 1. Ends the recorder started by `read-trace-start`
+  and prints its report into this job's log. Never fails the job.
+runs:
+  using: composite
+  steps:
+    - name: Stop the read recorder
+      # No -e and no pipefail: the script's status is ignored, and it exits 0.
+      shell: bash --noprofile --norc {0}
+      run: |
+        bash --noprofile --norc "$GITHUB_WORKSPACE/.github/scripts/read-trace-stop.sh" || true
+        exit 0
