@@ -193,3 +193,83 @@ pub fn eager_probe(xs: Vec<usize>, limit: usize) -> (Option<usize>, Vec<usize>, 
     });
     (first, evens, halves, then, seen * 1000000 + kept * 10000 + total * 100 + bumped)
 }
+
+pub fn named_probe(xs: Vec<usize>) -> (usize, usize, Option<usize>, usize, bool, usize) {
+    let mut count = 0;
+    let mut bump = |x: usize| {
+        count += x;
+    };
+    bump(1);
+    for x in xs.iter() {
+        bump(*x);
+    }
+    let pick = |x: usize| -> usize {
+        if x > 3 {
+            return 100;
+        }
+        x
+    };
+    let mut picked = 0;
+    for x in xs.iter() {
+        picked += pick(*x);
+    }
+    let mut looked = 0;
+    let found = xs.iter().copied().find(|x| {
+        looked += 1;
+        *x > 4
+    });
+    let mut steps = 0;
+    let folded = xs.iter().fold(0, |acc, x| {
+        steps += 1;
+        if *x == 0 {
+            return acc;
+        }
+        acc * 2 + *x
+    });
+    let small = xs.iter().all(|x| {
+        if *x > 7 {
+            return false;
+        }
+        *x != 5
+    });
+    let first_big: Result<usize, usize> = xs.first().copied().ok_or(0).and_then(|x| {
+        if x > 5 {
+            return Err(x);
+        }
+        Ok(x + 1)
+    });
+    let coded = match first_big {
+        Ok(v) => v,
+        Err(e) => 1000 + e,
+    };
+    (count, picked, found, folded * 1000 + steps * 100 + looked, small, coded)
+}
+
+pub fn shadow_probe(xs: Vec<usize>, wrapped: Option<Vec<usize>>) -> (usize, Vec<usize>, usize, usize) {
+    let mut v = xs.clone();
+    let mut n = 0;
+    if xs.len() > 1 {
+        let mut v = Vec::new();
+        v.push(9);
+        n = v.len();
+    }
+    let mut total = 0;
+    for x in xs.iter() {
+        let mut total = *x;
+        total += 1;
+        n += total;
+    }
+    total += v.len();
+    v.push(n);
+    let mut wrapped = wrapped;
+    let inner = if let Some(mut wrapped) = wrapped.clone() {
+        wrapped.push(1);
+        wrapped.len()
+    } else {
+        0
+    };
+    n += inner;
+    let n = n + 1;
+    let shown = format!("{n}{total}");
+    (n, v, total + wrapped.map_or(0, |w| w.len()), shown.len())
+}

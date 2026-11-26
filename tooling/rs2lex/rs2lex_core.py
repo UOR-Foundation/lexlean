@@ -1202,6 +1202,12 @@ class Translator:
             if n and n[0] == 'mcall' and n[2] in MUTATORS and self.root_var(n[1]): targets.append(self.root_var(n[1]))
             if n and n[0] == 'assign' and self.root_var(n[1]): targets.append(self.root_var(n[1]))
             if n and n[0] in ('call', 'mcall'): targets += self.mutated_args(n)
+            if n and n[0] == 'call' and n[1][0] == 'path' and len(n[1][1]) == 1 and n[1][1][0] in env and env[n[1][1][0]][0] is None \
+                    and env[n[1][1][0]][1][0] == 'Closure' and n[1][1][0] not in getattr(self, '_closure_walk', ()):
+                name = n[1][1][0]; _, ccl, ccenv = env[name][1]
+                self._closure_walk = getattr(self, '_closure_walk', ()) + (name,)
+                try: targets += self.assigned(ccl[2], ccenv)
+                finally: self._closure_walk = self._closure_walk[:-1]
             for t in targets:
                 if t in env and env[t][0] is not None and t not in out: out.append(t)
         if out:
@@ -1823,7 +1829,7 @@ class Translator:
         raise Unsupported(f'expression {h}')
 
     # -- closures: inlined at each call
-    def inline(self, params, ptypes, body, ret, benv, vs, env, ctx, k):
+    def inline(self, params, ptypes, body, ret, benv, vs, env, ctx, k, export=()):
         if len(params) != len(vs): raise Unsupported('closure arity')
         T = self.T
         if '__fuel' in env: benv = dict(benv); benv['__fuel'] = env['__fuel']
@@ -1832,8 +1838,13 @@ class Translator:
                 rt = ret if ret is not None else T.var()
                 if self.effectful(body):
                     if ctx is None: raise Unsupported('a closure that returns early, in a pure position')
-                    local = Ctx(ret=lambda v, e2: k(v, rt, env), ret_t=rt)
-                    def tail(v, t, e2): T.unify(t, rt, 'closure result'); return k(v, rt, env)
+                    def leave(e2):
+                        if not export: return env
+                        out = dict(env)
+                        for name in export: out[name] = e2[name]
+                        return out
+                    local = Ctx(ret=lambda v, e2: k(v, rt, leave(e2)), ret_t=rt)
+                    def tail(v, t, e2): T.unify(t, rt, 'closure result'); return k(v, rt, leave(e2))
                     return self.block(body, cenv, local, tail) if body[0] == 'block' else self.expr(body, cenv, local, tail)
                 v, t = self.pure_block(body, cenv) if body[0] == 'block' else self.pure(body, cenv)
                 T.unify(t, rt, 'closure result')
@@ -1852,10 +1863,25 @@ class Translator:
         if c[0] == 'path' and len(c[1]) == 1 and c[1][0] in env and env[c[1][0]][0] is None:
             _, cl, cenv = env[c[1][0]][1]; return cl, cenv
         raise Unsupported('a function passed by name')
+    def closure_writes(self, c, cenv):
+        """the captured variables a closure writes."""
+        own = {n[1] for p, _ in c[1] for n in self.walk(p) if n and n[0] in ('pid', 'pat_at')}
+        written = self.assigned(c[2], cenv)
+        if any(w in own for w in written): raise Unsupported('a closure parameter that shadows a variable the closure writes')
+        return written
     def call_closure(self, c, cenv, vs, env, ctx, k):
         ptypes = [self.ty(t, self.owner) if t is not None else None for _, t in c[1]]
         ret = self.ty(c[3], self.owner) if c[3] is not None else None
-        return self.inline([p for p, _ in c[1]], ptypes, c[2], ret, cenv, vs, env, ctx, k)
+        written = self.closure_writes(c, cenv)
+        if written:
+            # it holds those variables by reference: each call reads their current values and its writes stay
+            if ctx is None: raise Unsupported('a mutating closure in a pure position')
+            cenv = dict(cenv)
+            for name in written:
+                if name not in env or env[name][0] is None or self.T.res(env[name][1]) != self.T.res(cenv[name][1]):
+                    raise Unsupported('a closure called where the variable it writes is out of scope')
+                cenv[name] = env[name]
+        return self.inline([p for p, _ in c[1]], ptypes, c[2], ret, cenv, vs, env, ctx, k, export=tuple(written))
     def closure_arg(self, c, env, vs):
         """a closure passed to a combinator, applied at `vs`: (term, type). It must not mutate what it captures."""
         cl, cenv = self.closure_of(c, env)
@@ -2030,6 +2056,9 @@ class Translator:
         params += [(names[c], ('mut', ('lexty', cenv[c][1])) if c in mutated else ('lexty', cenv[c][1])) for c in mutated + read]
         spec = dict(g); spec.update(name=spec_name, lex=f"{g['lex']}K{self.spec_n}", params=params, spec_of=gkey,
                                     body=self.spec_body(g['body'], vname, gkey, spec_name, cl2, cap_args))
+        import unshadow
+        spec['body'] = unshadow.unshadow(spec)       # the closure's names and the callee's, apart
+        if unshadow.written_alias(spec): raise Unsupported('a write through a reference bound by a pattern or a let')
         skey = (None, spec_name); self.fns[skey] = spec; self.spec_of[skey] = gkey
         self.by_name[spec_name] = skey      # so that a call of the copy is seen to write its `&mut` arguments
         # recursive when the copy calls itself: decided from its own body, since `g` alone never translated and the
@@ -2171,12 +2200,13 @@ class Translator:
         return ('block', [('let', ('pid', name), None, scrut, None)], ('match', S, out))
     def combinator_arms(self, head, m, args):
         """the arms of the match an Option or Result combinator stands for, or None."""
+        pres = []
         def body(c, value=None):
-            if c[0] != 'closure': return None
-            if value is None:
-                return c[2] if not c[1] else None
-            if len(c[1]) != 1: return None
-            return ('block', [('let', c[1][0][0], c[1][0][1], value, None)], c[2])
+            # the closure, bound to a name and called: a `return` or `?` inside it leaves the closure
+            if c[0] != 'closure' or len(c[1]) != (0 if value is None else 1): return None
+            self.spec_n += 1; f = f'__fn{self.spec_n}'
+            pres.append(('let', ('pid', f), None, c, None))
+            return ('call', ('path', [f]), [] if value is None else [value])
         v = ('path', ['__held']); held = ('pid', '__held')
         P = lambda ctor, pat=None: ('pctor', [ctor], [] if pat is None else [(0, pat)])
         C = lambda ctor, e: ('call', ('path', [ctor]), [e])
@@ -2205,57 +2235,56 @@ class Translator:
         if m not in table: return None
         arms = table[m]()
         if any(e is None for _, _, e in arms): return None
-        return arms
-    def adapter_loop(self, m, recv, pat, body):
-        """the loop an adapter stands for, as syntax: `recv` the iterator, `pat` the closure's parameter."""
-        flag = ('path', ['__adapted'])
-        stop = lambda value: ('block', [('expr', ('assign', flag, value)), ('expr', ('break', None, None))], None)
-        if m == 'for_each':
-            return ('block', [('expr', ('for', pat, recv, ('block', [('expr', body)], None)))], None)
-        if m in ('any', 'all'):
-            found = ('bool', 'true') if m == 'any' else ('bool', 'false')
-            start = ('bool', 'false') if m == 'any' else ('bool', 'true')
-            test = body if m == 'any' else ('not', body)
-            inner = ('block', [('expr', ('if', test, stop(found), None))], None)
-            return ('block', [('let', ('pid', '__adapted'), None, start, None), ('expr', ('for', pat, recv, inner))], flag)
-        # try_for_each: the first error, or Ok(())
-        ok = ('call', ('path', ['Ok']), [('tuple', [])])
-        failed = (('pctor', ['Err'], [(0, ('pid', '__failure'))]), None, stop(('call', ('path', ['Err']), [('path', ['__failure'])])))
-        inner = ('block', [('expr', ('match', body, [failed, (WILD, None, ('block', [], None))]))], None)
-        return ('block', [('let', ('pid', '__adapted'), None, ok, None), ('expr', ('for', pat, recv, inner))], flag)
+        return pres, arms
+    def adapter_loop(self, m, recv, cl, init=None):
+        """the loop an adapter stands for, as syntax: `recv` the iterator, `cl` its closure, bound to a name and called."""
+        self.spec_n += 1; n = self.spec_n
+        f, it, out, y = f'__fn{n}', f'__each{n}', f'__out{n}', f'__hit{n}'
+        P = lambda name: ('path', [name])
+        call = lambda *xs: ('call', P(f), list(xs))
+        pre = ('let', ('pid', f), None, cl, None)
+        setbreak = lambda value: ('block', [('expr', ('assign', P(out), value)), ('expr', ('break', None, None))], None)
+        some = lambda v: ('call', P('Some'), [v])
+        loop = lambda body: ('expr', ('for', ('pid', it), recv, ('block', [('expr', body)], None)))
+        start = lambda v: ('let', ('pid', out), None, v, None)
+        nothing = (WILD, None, ('block', [], None))
+        if m == 'for_each': return ('block', [pre, loop(call(P(it)))], None)
+        if m == 'any': return ('block', [pre, start(('bool', 'false')), loop(('if', call(P(it)), setbreak(('bool', 'true')), None))], P(out))
+        if m == 'all': return ('block', [pre, start(('bool', 'true')), loop(('if', ('not', call(P(it))), setbreak(('bool', 'false')), None))], P(out))
+        if m == 'find': return ('block', [pre, start(P('None')), loop(('if', call(P(it)), setbreak(some(P(it))), None))], P(out))
+        if m == 'find_map':
+            hit = (('pctor', ['Some'], [(0, ('pid', y))]), None, setbreak(some(P(y))))
+            return ('block', [pre, start(P('None')), loop(('match', call(P(it)), [hit, nothing]))], P(out))
+        if m == 'try_for_each':
+            failed = (('pctor', ['Err'], [(0, ('pid', y))]), None, setbreak(('call', P('Err'), [P(y)])))
+            return ('block', [pre, start(('call', P('Ok'), [('tuple', [])])), loop(('match', call(P(it)), [failed, nothing]))], P(out))
+        if m == 'fold': return ('block', [pre, start(init), loop(('assign', P(out), call(P(out), P(it))))], P(out))
+        push = lambda v: ('block', [('expr', ('mcall', P(out), 'push', [v]))], None)
+        empty = start(('call', ('path', ['Vec', 'new']), []))
+        if m == 'filter': return ('block', [pre, empty, loop(('if', call(P(it)), push(P(it)), None))], P(out))
+        if m == 'filter_map':
+            keep = (('pctor', ['Some'], [(0, ('pid', y))]), None, push(P(y)))
+            return ('block', [pre, empty, loop(('match', call(P(it)), [keep, nothing]))], P(out))
+        raise Unsupported(f'the adapter `{m}` with a closure that has effects')
     def mcall(self, e, env, ctx, k):
         T, show = self.T, self.T.show
         _, recv, m, args = e
-        # `any`, `all`, `for_each`, `try_for_each` whose closure mutates what it captures: the loop it stands for
-        if m in ('any', 'all', 'for_each', 'try_for_each') and len(args) == 1 and args[0][0] == 'closure' and len(args[0][1]) == 1 \
-                and self.assigned(args[0][2], env):
-            if ctx is None: raise Unsupported('a mutating closure in a pure position')
-            return self.expr(self.adapter_loop(m, recv, args[0][1][0][0], args[0][2]), env, ctx, k)
-        # more adapters whose closure mutates what it captures, where running the closure eagerly is what Rust does too:
-        # `find_map` (it stops at the first Some), `filter`/`filter_map` consumed whole by `collect`, and `bool.then`
-        mutating = lambda c: c[0] == 'closure' and self.assigned(c[2], env)
-        if m == 'then' and len(args) == 1 and args[0][0] == 'closure' and not args[0][1] and mutating(args[0]):
-            if ctx is None: raise Unsupported('a mutating closure in a pure position')
-            some = ('block', [], ('call', ('path', ['Some']), [args[0][2]]))
-            return self.expr(('if', recv, some, ('block', [], ('path', ['None']))), env, ctx, k)
-        if m == 'find_map' and len(args) == 1 and len(args[0]) > 1 and args[0][0] == 'closure' and len(args[0][1]) == 1 and mutating(args[0]):
-            if ctx is None: raise Unsupported('a mutating closure in a pure position')
-            self.spec_n += 1; out = f'__found{self.spec_n}'; y = f'__hit{self.spec_n}'
-            hit = (('pctor', ['Some'], [(0, ('pid', y))]), None,
-                   ('block', [('expr', ('assign', ('path', [out]), ('call', ('path', ['Some']), [('path', [y])]))), ('expr', ('break', None, None))], None))
-            body = ('block', [('expr', ('match', args[0][2], [hit, (WILD, None, ('block', [], None))]))], None)
-            return self.expr(('block', [('let', ('pid', out), None, ('path', ['None']), None), ('expr', ('for', args[0][1][0][0], recv, body))], ('path', [out])), env, ctx, k)
-        if m == 'collect' and recv[0] == 'mcall' and recv[2] in ('filter', 'filter_map') and len(recv[3]) == 1 and recv[3][0][0] == 'closure'                 and len(recv[3][0][1]) == 1 and mutating(recv[3][0]):
-            if ctx is None: raise Unsupported('a mutating closure in a pure position')
-            cl = recv[3][0]; self.spec_n += 1; out = f'__kept{self.spec_n}'; it = f'__each{self.spec_n}'; y = f'__hit{self.spec_n}'
-            push = lambda v: ('block', [('expr', ('mcall', ('path', [out]), 'push', [v]))], None)
-            if recv[2] == 'filter':
-                inner = ('block', [('let', cl[1][0][0], None, ('path', [it]), None), ('expr', ('if', cl[2], push(('path', [it])), None))], None)
-                loop = ('for', ('pid', it), recv[1], inner)
-            else:
-                arm = (('pctor', ['Some'], [(0, ('pid', y))]), None, push(('path', [y])))
-                loop = ('for', cl[1][0][0], recv[1], ('block', [('expr', ('match', cl[2], [arm, (WILD, None, ('block', [], None))]))], None))
-            return self.expr(('block', [('let', ('pid', out), None, ('call', ('path', ['Vec', 'new']), []), None), ('expr', loop)], ('path', [out])), env, ctx, k)
+        # An adapter whose closure has effects (it writes what it captures, or returns early) is the loop it stands
+        # for, where running the closure eagerly is what Rust does too: the terminal adapters, and `filter` and
+        # `filter_map` consumed whole by `collect`. The closure is bound to a name and called, so a `return` or `?`
+        # inside it leaves the closure, not the function.
+        eff = lambda c: c[0] == 'closure' and self.effectful(c[2])
+        if ctx is not None:
+            if m in ('any', 'all', 'for_each', 'try_for_each', 'find_map', 'find', 'position') and len(args) == 1 and eff(args[0]) and len(args[0][1]) == 1:
+                return self.expr(self.adapter_loop(m, recv, args[0]), env, ctx, k)
+            if m == 'fold' and len(args) == 2 and eff(args[1]) and len(args[1][1]) == 2:
+                return self.expr(self.adapter_loop(m, recv, args[1], init=args[0]), env, ctx, k)
+            if m == 'collect' and recv[0] == 'mcall' and recv[2] in ('filter', 'filter_map') and len(recv[3]) == 1 and eff(recv[3][0]) and len(recv[3][0][1]) == 1:
+                return self.expr(self.adapter_loop(recv[2], recv[1], recv[3][0]), env, ctx, k)
+            if m == 'then' and len(args) == 1 and eff(args[0]) and not args[0][1]:
+                self.spec_n += 1; f = f'__fn{self.spec_n}'
+                some = ('block', [], ('call', ('path', ['Some']), [('call', ('path', [f]), [])]))
+                return self.expr(('block', [('let', ('pid', f), None, args[0], None)], ('if', recv, some, ('block', [], ('path', ['None'])))), env, ctx, k)
         # a `map` whose closure mutates what it captures, collected: a loop that threads that state
         if m == 'collect' and recv[0] == 'mcall' and recv[2] == 'map' and recv[3][0][0] == 'closure':
             cl = recv[3][0]
@@ -2284,11 +2313,12 @@ class Translator:
             rt = T.res(rt); head = rt[0]
             if r.startswith('(ctor '):                     # a typed name, so that Lean can elaborate a match on it
                 return self.atom(r, rt, lambda n, env2: with_recv(n, rt, env2), env, 'value')
-            if head in ('Option', 'Result') and ctx is not None and any(a[0] == 'closure' and self.assigned(a[2], env) for a in args):
-                arms = self.combinator_arms(head, m, args)
-                if arms is not None:
+            if head in ('Option', 'Result') and ctx is not None and any(a[0] == 'closure' and self.effectful(a[2]) for a in args):
+                made = self.combinator_arms(head, m, args)
+                if made is not None:
+                    pres, arms = made
                     self.spec_n += 1; name = f'__scrutinee{self.spec_n}'
-                    return self.atom(r, rt, lambda n, env2: self.expr(('match', ('path', [name]), arms), {**env2, name: (n, rt)}, ctx, k), env, 'scrutinee')
+                    return self.atom(r, rt, lambda n, env2: self.expr(('block', pres, ('match', ('path', [name]), arms)), {**env2, name: (n, rt)}, ctx, k), env, 'scrutinee')
             hooked = self.hook_method(r, rt, m, args, recv, env, ctx, k)
             if hooked is not None: return hooked
             done = lambda v, t: k(v, t, env)
@@ -2455,6 +2485,10 @@ class Translator:
             lt = self.ty(t, self.owner); n = self.fresh('this' if name == 'self' else name)
             env[name] = (n, lt); params.append((n, lt))
         muts = [name for name, t in f['params'] if t[0] == 'mut']
+        if muts:
+            # a `&mut` parameter leaves the function by name: one the body binds again would leave as the other variable
+            rebound = {n[1] for n in self.walk(f['body']) if n and n[0] in ('pid', 'pat_at') and isinstance(n[1], str)}
+            if any(name in rebound for name in muts): raise Unsupported('a written variable shadowed in a nested scope')
         wrap = (lambda v, env: v) if not muts else (lambda v, env: f'({v}, {self.pack(muts, env)})')
         lex_ret = ret_t if not muts else ('Prod', ret_t, self.pack_type(muts, env))
         fuel_attrs, fuel_param = '', []

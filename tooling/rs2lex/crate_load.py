@@ -401,8 +401,14 @@ def load(root, with_aliases=False):
         fake = {'k': 'struct', 'name': name, 'fields': [('f0', body)], 'owner': None, 'mp': mp, 'uname': name}
         aliases[r.alias_at[(mp, name)]] = (params, r.rewrite(fake)['fields'][0][1])
     for it in items: it['custom_default'] = {r.resolve_type(it['mp'], n) or n for n in c.custom_default} if it['k'] == 'fn' else None
-    if with_aliases: return lift_nested(items), c.skipped, aliases
-    return lift_nested(items), c.skipped
+    items = lift_nested(items)
+    import unshadow
+    for it in items:
+        if it['k'] == 'fn': it['body'] = unshadow.unshadow(it)      # every local binding on a name of its own
+        if it['k'] == 'fn' and unshadow.written_alias(it):
+            it['refuse'] = 'a write through a reference bound by a pattern or a let'
+    if with_aliases: return items, c.skipped, aliases
+    return items, c.skipped
 
 if __name__ == '__main__':
     items, skipped = load(sys.argv[1])

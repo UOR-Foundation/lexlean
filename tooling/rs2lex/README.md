@@ -32,9 +32,14 @@ repository's compiler.
 function. It builds the result and the runtime (`language/runtime-1.2/library`) with the repository's compiler,
 runs it as a Lean program, and compares every line with what Rust's semantics give (`probe/cases.py` writes the
 inputs and the expected lines). A rule is trusted only once a probe function exercises it. The probe has caught
-three silent miscompiles, all fixed or now refused: a recursive call dropped from a specialized function, a format
-string's implicit capture broken by an alias substitution, and a shadowed variable's value leaving its scope as
-the outer variable's.
+five silent miscompiles, each fixed or now refused:
+
+- a recursive call dropped from a specialized function;
+- a format string's implicit capture broken by an alias substitution;
+- a shadowed variable's value leaving its scope as the outer variable's (`unshadow.py` now gives every binding
+  its own name);
+- a named closure's writes to what it captures, lost at each call;
+- a write through a reference bound by a pattern, lost (refused).
 
 ## What it translates
 
@@ -50,7 +55,9 @@ with the rules for the standard library and the crate's own types in `rs2lex.py`
 | `HashMap`, `BTreeMap` with `Bytes`, `Nat`, or `Nat`-tuple keys | `LexLeanStd.OrdMap` (`SL-15`), the key written as order-preserving bytes |
 | other maps | an ascending list of pairs |
 | a closure passed as `FnMut` | the callee copied once per closure, the closure's captures its parameters |
-| a mutating closure in `any`, `all`, `for_each`, `try_for_each`, or an `Option`/`Result` combinator | the loop or the `match` it stands for |
+| a closure with effects (it writes what it captures, or returns early) in a terminal adapter (`any`, `all`, `find`, `find_map`, `fold`, `for_each`, `try_for_each`), in `filter`/`filter_map` before `collect`, or in an `Option`/`Result` combinator | the loop or the `match` it stands for, the closure bound to a name and called |
+| a closure bound to a name | inlined at each call; one that writes a captured variable reads its current value and writes back |
+| shadowed names | renamed apart before translation (`unshadow.py`) |
 | `char` | its UTF-8 bytes; `chars`, `char_indices`, `is_whitespace` (`AxiomOutput::whiteLength`), the `is_ascii_*` tests |
 | slice patterns | list constructor patterns, or a length guard where a rest precedes other elements |
 | derived `Ord` and `PartialEq` | lexicographic comparison and equality, only where the type derives them |
@@ -60,8 +67,8 @@ It refuses rather than guess. Examples:
 - a subtraction on an integer whose type was only defaulted: Rust would make it an `i32`, and here it would be a
   `Nat` that stops at zero;
 - iteration over a hash map, whose order would matter;
-- a variable a nested scope both writes and binds again (`let mut v` inside an `if`, `if let Some(v) = v`): a
-  scope's writes leave it by name, so the inner variable's value would leave as the outer's;
+- a write through a reference bound by a pattern or a `let` (`if let Some(x) = y.as_mut()`, `for x in
+  v.iter_mut()`): the name would be a copy, and the write would not reach the value it refers to;
 - a function value bound by `let`, which the language refuses;
 - a struct ordered by an `Ord` it does not derive;
 - a closure that escapes into a data structure;
@@ -69,9 +76,9 @@ It refuses rather than guess. Examples:
 
 ## Where it stands
 
-On `release/v0.4` with `SL-15`, `translate.py` reports 1,374 of 3,616 functions, 14.3 % of the bytes. The
+On `release/v0.4` with `SL-15`, `translate.py` reports 1,473 of 3,616 functions, 15.8 % of the bytes. The
 repository's compiler (0.4.5) accepts the whole module: `check.sh` passes. Every probe function translates, and
-all of the probe's 1,500 cases match Rust's. Over the same rules, a separate harness held the translated functions
+all of the probe's 1,800 cases match Rust's. Over the same rules, a separate harness held the translated functions
 that take and return plain data to the real crate, called through its own tests: 92 functions, identical on
 12,577 cases. That harness modifies a copy of the crate and is not part of this directory.
 
@@ -90,6 +97,7 @@ largest causes of their own are:
 | `rs2lex_core.py` | the parser, the type store, and the translation of expressions, patterns, and functions |
 | `rs2lex.py` | the rules for the standard library, the crate's types, and the module's declaration order |
 | `interior.py` | `Cell`/`RefCell` as threaded state |
+| `unshadow.py` | every local binding on its own name; the check for writes through bound references |
 | `crate_load.py` | reading a crate: items, `use` resolution, type aliases scoped to their module, derives |
 | `translate.py` | the whole crate to one module, with the report |
 | `extract.py` | one module cut out of a translation, with its axioms stated |

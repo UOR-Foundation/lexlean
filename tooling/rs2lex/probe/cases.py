@@ -118,6 +118,30 @@ for xs, limit in eager_cases:
     then = len(xs) if len(xs) > 2 else None
     code = seen * 1000000 + len(xs) * 10000 + sum(xs) * 100 + (7 if len(xs) > 2 else 0)
     out.append('eager ' + opt_nat(first) + ';' + ','.join(map(str, evens)) + ';' + ','.join(map(str, halves)) + ';' + opt_nat(then) + ';' + str(code))
+# named_probe: named closures that write and that return early; find, fold, all and and_then with such closures
+named_cases = [[rng.randrange(0, 10) for _ in range(rng.randrange(0, 7))] for _ in range(150)]
+for xs in named_cases:
+    count = 1 + sum(xs)
+    picked = sum(100 if x > 3 else x for x in xs)
+    looked, found = 0, None
+    for x in xs:
+        looked += 1
+        if x > 4: found = x; break
+    folded = 0
+    for x in xs:
+        if x != 0: folded = folded * 2 + x
+    small = all(x <= 7 and x != 5 for x in xs)
+    coded = 1000 if not xs else (1000 + xs[0] if xs[0] > 5 else xs[0] + 1)
+    out.append('named ' + ';'.join([str(count), str(picked), opt_nat(found), str(folded * 1000 + len(xs) * 100 + looked), str(small).lower(), str(coded)]))
+# shadow_probe: variables bound again in nested scopes, in an if-let, and by a later let; a format capture after it
+shadow_cases = [([rng.randrange(0, 9) for _ in range(rng.randrange(0, 6))],
+                 rng.choice([None, [], [rng.randrange(0, 9) for _ in range(rng.randrange(1, 4))]])) for _ in range(150)]
+for xs, w in shadow_cases:
+    n = (1 if len(xs) > 1 else 0) + sum(x + 1 for x in xs)
+    v = xs + [n]
+    extra = 0 if w is None else len(w)
+    n2 = n + (0 if w is None else len(w) + 1) + 1
+    out.append('shadow ' + str(n2) + ';' + ','.join(map(str, v)) + ';' + str(len(xs) + extra) + ';' + str(len(str(n2) + str(len(xs)))))
 open('probe_expected.txt', 'w', newline='\n').write('\n'.join(out) + '\n')
 
 def lit(s): return f'"{s}".toUTF8'
@@ -143,6 +167,8 @@ lean.append('def charCases : List ByteArray := ' + lean_list([lean_bytes(s_) for
 lean.append('def aliasCases : List (List Nat) := ' + lean_list([lean_list([str(x) for x in xs]) for xs in alias_cases]))
 lean.append('def eagerCases : List (List Nat × Nat) := ' + lean_list([f'({lean_list([str(x) for x in xs])}, {limit})' for xs, limit in eager_cases]))
 lean.append('def optNat (o : Option Nat) : String := match o with | some v => "S" ++ toString v | none => "N"')
+lean.append('def namedCases : List (List Nat) := ' + lean_list([lean_list([str(x) for x in xs]) for xs in named_cases]))
+lean.append('def shadowCases : List (List Nat × Option (List Nat)) := ' + lean_list([f'({lean_list([str(x) for x in xs])}, {lean_opt_list(w)})' for xs, w in shadow_cases]))
 lean.append('def comboCases : List (List Nat) := ' + lean_list([lean_list([str(x) for x in xs]) for xs in combos]))
 lean += ['',
          'def main : IO Unit := do',
@@ -176,6 +202,12 @@ lean += ['',
          '  for (xs, limit) in eagerCases do',
          '    let r := fEagerProbe xs limit',
          '    IO.println ("eager " ++ optNat r.1 ++ ";" ++ String.intercalate "," (r.2.1.map toString) ++ ";" ++ String.intercalate "," (r.2.2.1.map toString) ++ ";" ++ optNat r.2.2.2.1 ++ ";" ++ toString r.2.2.2.2)',
+         '  for xs in namedCases do',
+         '    let r := fNamedProbe xs',
+         '    IO.println ("named " ++ toString r.1 ++ ";" ++ toString r.2.1 ++ ";" ++ optNat r.2.2.1 ++ ";" ++ toString r.2.2.2.1 ++ ";" ++ (if r.2.2.2.2.1 then "true" else "false") ++ ";" ++ toString r.2.2.2.2.2)',
+         '  for (xs, w) in shadowCases do',
+         '    let r := fShadowProbe xs w',
+         '    IO.println ("shadow " ++ toString r.1 ++ ";" ++ String.intercalate "," (r.2.1.map toString) ++ ";" ++ toString r.2.2.1 ++ ";" ++ toString r.2.2.2)',
          '']
 open('lean/ProbeMain.lean', 'w', newline='\n', encoding='utf-8').write('\n'.join(lean))
 print(len(out), 'cases')
