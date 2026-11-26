@@ -303,6 +303,22 @@
         "rust-std"
       ],
       "version": "1.0.0"
+    },
+    {
+      "name": "ord_map_run",
+      "root": "LexLeanStd.OrdMap.ordMapRun",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "name": "ord_map_balanced",
+      "root": "LexLeanStd.OrdMap.ordMapBalanced",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
     }
   ]
 }
