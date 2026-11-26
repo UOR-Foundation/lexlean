@@ -90,30 +90,45 @@ hosts_passed() {
 # honesty and the `rest` leg, so it is never one: the run must hold the join of
 # Atlas, every exact supported-host context, and every leg of the rows file,
 # and no job that did not conclude `success`.
+ci_reuse_note() { printf 'CI reuse: %s\n' "$*" >&2; }
+
 full_run_of() {
   local commit=$1 runs id names part parts job
   # The legs every run must hold. A failed or empty read would make the loop
   # below check nothing and accept any run, so it is no verified run (#603).
-  parts=$(jq -r '.[].part' "$rows_file") && [ -n "$parts" ] || return 1
-  runs=$(ci_provider_read "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$commit&status=success&per_page=30" \
-    --jq ".workflow_runs[] | select(.head_repository.full_name == \"$repo\") | select(.event == \"pull_request\" or .event == \"workflow_dispatch\") | .id") || return 1
+  parts=$(jq -r '.[].part' "$rows_file") && [ -n "$parts" ] || { ci_reuse_note "$commit: invalid or empty expected rows"; return 1; }
+  runs=$(ci_provider_read "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$commit&per_page=30" --paginate \
+    --jq ".workflow_runs[] | select(.status == \"completed\" and .conclusion == \"success\") | select(.head_sha == \"$commit\") | select(.head_repository.full_name == \"$repo\") | select(.event == \"pull_request\" or .event == \"workflow_dispatch\") | .id") || { ci_reuse_note "$commit: successful run lookup failed"; return 1; }
+  [ -n "$runs" ] || { ci_reuse_note "$commit: no eligible successful run returned"; return 1; }
   for id in $runs; do
     # Pages of 50: after a failed job of run 45316289312 was run again,
     # GitHub answered its 70-job listing with HTTP 502 at 60 or more a page
     # every time, so retrying a page of 100 could never read it (#603).
     names=$(ci_provider_read "repos/$repo/actions/runs/$id/jobs?per_page=50" --paginate \
-      --jq '.jobs[] | "\(.name)\t\(.conclusion)"') || continue
-    if printf '%s\n' "$names" | awk -F'\t' '$2 != "success" { bad = 1 } END { exit bad }' \
-      && printf '%s\n' "$names" | grep -xF $'atlas (join)\tsuccess' >/dev/null \
-      && printf '%s\n' "$names" | hosts_passed; then
-      for part in $parts; do
-        job="just vv ($part)"
-        [ "$part" != honesty ] || job=honesty
-        printf '%s\n' "$names" | grep -xF "$job"$'\tsuccess' >/dev/null || continue 2
-      done
-      printf '%s\n' "$id"
-      return 0
+      --jq '.jobs[] | "\(.name)\t\(.conclusion)"') || { ci_reuse_note "run $id: job lookup failed"; continue; }
+    if ! printf '%s\n' "$names" | awk -F'\t' '$2 != "success" { bad = 1 } END { exit bad }'; then
+      ci_reuse_note "run $id: empty or non-success job listing"
+      continue
     fi
+    if ! printf '%s\n' "$names" | grep -xF $'atlas (join)\tsuccess' >/dev/null; then
+      ci_reuse_note "run $id: missing successful Atlas join"
+      continue
+    fi
+    if ! printf '%s\n' "$names" | hosts_passed; then
+      ci_reuse_note "run $id: required host contexts absent, duplicated, foreign or unsuccessful"
+      continue
+    fi
+    for part in $parts; do
+      job="just vv ($part)"
+      [ "$part" != honesty ] || job=honesty
+      if ! printf '%s\n' "$names" | grep -xF "$job"$'\tsuccess' >/dev/null; then
+        ci_reuse_note "run $id: missing successful required row $part"
+        continue 2
+      fi
+    done
+    ci_reuse_note "run $id: complete gate accepted for $commit"
+    printf '%s\n' "$id"
+    return 0
   done
   return 1
 }
@@ -130,12 +145,12 @@ verified_tree_run() {
     if full_run_of "$commit"; then
       return 0
     fi
-    [ "$depth" -lt 4 ] || return 1
+    [ "$depth" -lt 4 ] || { ci_reuse_note "$commit: ancestry search limit reached"; return 1; }
     # The plan's checkout is shallow; deepen it for the commit it walks.
     git rev-parse --verify --quiet "$commit^2" >/dev/null \
-      || git fetch --quiet --depth=2 origin "$commit" 2>/dev/null || return 1
-    git rev-parse --verify --quiet "$commit^2" >/dev/null || return 1
-    [ "$(git rev-parse "$commit^{tree}")" = "$(git rev-parse "$commit^2^{tree}")" ] || return 1
+      || git fetch --quiet --depth=2 origin "$commit" 2>/dev/null || { ci_reuse_note "$commit: cannot deepen ancestry"; return 1; }
+    git rev-parse --verify --quiet "$commit^2" >/dev/null || { ci_reuse_note "$commit: no second parent available"; return 1; }
+    [ "$(git rev-parse "$commit^{tree}")" = "$(git rev-parse "$commit^2^{tree}")" ] || { ci_reuse_note "$commit: second-parent tree differs"; return 1; }
     commit=$(git rev-parse "$commit^2")
     depth=$((depth + 1))
   done
@@ -145,8 +160,8 @@ verified_tree_run() {
 # parent with the same tree.
 verified_parent_run() {
   local parent
-  parent=$(git rev-parse --verify --quiet 'HEAD^2') || return 1
-  [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "$parent^{tree}")" ] || return 1
+  parent=$(git rev-parse --verify --quiet 'HEAD^2') || { ci_reuse_note 'HEAD: no second parent available'; return 1; }
+  [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "$parent^{tree}")" ] || { ci_reuse_note 'HEAD: second-parent tree differs'; return 1; }
   # HEAD to its parent is the first of the four merges `release-gate.sh`
   # walks from the tagged commit.
   verified_tree_run "$parent" 1
