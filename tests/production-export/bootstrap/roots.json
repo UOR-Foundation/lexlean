@@ -727,6 +727,38 @@
         "rust-std"
       ],
       "version": "1.0.0"
+    },
+    {
+      "name": "policy_kind",
+      "root": "LexLeanBoot.AxiomPolicy.policyKind",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "name": "policy_axioms",
+      "root": "LexLeanBoot.AxiomPolicy.policyAxioms",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "name": "policy_permits",
+      "root": "LexLeanBoot.AxiomPolicy.policyPermits",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "name": "rule_token",
+      "root": "LexLeanBoot.AxiomPolicy.ruleToken",
+      "targets": [
+        "rust-std"
+      ],
+      "version": "1.0.0"
     }
   ]
 }
