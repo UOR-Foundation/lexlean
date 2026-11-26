@@ -10902,7 +10902,7 @@ mod tests {
             format!("{rejected:?}").contains("evaluation proof"),
             "{rejected:?}"
         );
-        parse(&module("lexlean/semantic-module/2"), "1.2")
+        parse(&module("lexlean/semantic-module/3"), "1.2")
             .expect("a language-1.2 theorem may be closed by evaluation");
         // The proof reads and writes as exactly `{"kind":"evaluation"}`.
         assert_eq!(
