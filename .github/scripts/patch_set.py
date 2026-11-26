@@ -20,6 +20,13 @@ are disjoint from every other part's, and together they are exactly
 NAME.files; and no other file of the directory claims the name. Applied to
 its start tree, in a scratch index, the parts give exactly its result tree.
 
+Nothing touches a real index or work tree until all of that holds, and then
+only a clean checkout of the start tree: the index is the start tree, the
+work tree is the index, and no untracked file stands where a set adds one.
+Should Git still refuse a part on the real checkout, the index and work tree
+are put back to the start tree before the refusal is reported, so a refusal
+never leaves a partly applied change behind.
+
 No network access, shell interpolation, or GitHub API calls.
 """
 import argparse
@@ -94,6 +101,14 @@ def sha256(path):
 
 def nul_digest(paths):
     return hashlib.sha256(b"".join(p + b"\0" for p in sorted(paths))).hexdigest()
+
+
+def unique_keys(pairs):
+    """A JSON object whose keys are distinct: `json` keeps the last of a
+    repeated key, so a manifest could otherwise say two things at once."""
+    keys = [key for key, _ in pairs]
+    require(len(keys) == len(set(keys)), "repeated manifest key")
+    return dict(pairs)
 
 
 def regular(path, what):
@@ -264,7 +279,8 @@ def load(directory, name, base):
     require(path.stat().st_size <= MAX_MANIFEST_BYTES and
             files_path.stat().st_size <= MAX_MANIFEST_BYTES, name + ": oversized manifest")
     try:
-        manifest = json.loads(path.read_text(encoding="utf-8"))
+        manifest = json.loads(path.read_text(encoding="utf-8"),
+                              object_pairs_hook=unique_keys)
     except ValueError as error:
         raise ValueError(name + ": unreadable manifest") from error
     require(isinstance(manifest, dict) and set(manifest) == KEYS, name + ": manifest keys")
@@ -297,8 +313,8 @@ def load(directory, name, base):
                 file + ": size")
         require(sha256(part) == row["sha256"], file + ": checksum")
         found = numstat(part)
-        require(len(found) == row["paths"] and nul_digest(found) == row["paths_sha256"],
-                file + ": path inventory")
+        require(found and type(row["paths"]) is int and len(found) == row["paths"] and
+                nul_digest(found) == row["paths_sha256"], file + ": path inventory")
         require(not seen & set(found), file + ": a path another part also writes")
         seen |= set(found)
     extra = sorted(p.name for p in claimed(directory, name) if p.name not in expected)
@@ -307,33 +323,27 @@ def load(directory, name, base):
     return manifest, declared
 
 
+def scratch_env(scratch):
+    """An environment whose Git index is a scratch file: what runs in it never
+    reads or writes the checkout's index or work tree."""
+    return dict(os.environ, GIT_INDEX_FILE=str(Path(scratch) / "index"))
+
+
+def apply_parts(directory, manifest, repo=None, env=None, index_only=True):
+    for row in manifest["parts"]:
+        git("apply", "--cached" if index_only else "--index",
+            str((Path(directory) / row["file"]).resolve()), cwd=repo, env=env)
+
+
 def check_tree(directory, name, manifest, repo=None):
     """The parts applied to the start tree in a scratch index give the tree."""
     with tempfile.TemporaryDirectory() as scratch:
-        env = dict(os.environ, GIT_INDEX_FILE=str(Path(scratch) / "index"))
+        env = scratch_env(scratch)
         git("read-tree", manifest["start_tree"], cwd=repo, env=env)
-        for row in manifest["parts"]:
-            git("apply", "--cached", str((Path(directory) / row["file"]).resolve()),
-                cwd=repo, env=env)
+        apply_parts(directory, manifest, repo=repo, env=env)
         tree = git("write-tree", cwd=repo, env=env).decode().strip()
     require(tree == manifest["tree"], name + ": the parts give tree " + tree +
             ", not " + manifest["tree"])
-
-
-def apply(directory, name, base, repo=None):
-    """Apply a checked set to the index and work tree, which must hold exactly
-    its start tree; afterwards they must hold exactly its result tree."""
-    manifest, declared = load(directory, name, base)
-    current = git("write-tree", cwd=repo).decode().strip()
-    require(current == manifest["start_tree"],
-            name + ": the index holds " + current + ", not the start tree " +
-            manifest["start_tree"])
-    for row in manifest["parts"]:
-        git("apply", "--index", str((Path(directory) / row["file"]).resolve()), cwd=repo)
-    tree = git("write-tree", cwd=repo).decode().strip()
-    require(tree == manifest["tree"], name + ": applied tree " + tree + ", not " +
-            manifest["tree"])
-    return manifest, declared
 
 
 def tree_entries(tree, repo=None):
@@ -347,11 +357,11 @@ def tree_entries(tree, repo=None):
     return out
 
 
-def index_entries(repo=None):
+def index_entries(repo=None, env=None):
     """Each path of the index, with its mode and object; a conflicted index
     is refused."""
     out = {}
-    for row in git("ls-files", "-s", "-z", cwd=repo).split(b"\0"):
+    for row in git("ls-files", "-s", "-z", cwd=repo, env=env).split(b"\0"):
         if row:
             meta, path = row.split(b"\t", 1)
             mode, oid, stage = meta.split(b" ")
@@ -360,10 +370,59 @@ def index_entries(repo=None):
     return out
 
 
+def require_clean(start, declared, repo=None):
+    """The checkout is exactly the start tree, so a refusal part-way can put it
+    back without losing anything: the index is the start tree, the work tree
+    is the index, and nothing untracked stands where a set adds a file."""
+    current = git("write-tree", cwd=repo).decode().strip()
+    require(current == start, "the index holds " + current + ", not the start tree " + start)
+    dirty = git("diff", "--no-renames", "--name-only", "-z", cwd=repo)
+    require(not dirty, "the work tree differs from the index at " +
+            ", ".join(repr(p) for p in dirty.rstrip(b"\0").split(b"\0")[:5]))
+    top = Path(toplevel(repo))
+    tracked = tree_entries(start, repo) if declared else {}
+    stray = [p for p in declared if p not in tracked and
+             os.path.lexists(top / os.fsdecode(p))]
+    require(not stray, "an untracked file stands where a set adds one: " +
+            ", ".join(repr(p) for p in stray[:5]))
+
+
+def apply_in_place(directory, sets, start, expected, repo=None):
+    """Apply prevalidated sets to the real index and work tree; afterwards
+    the index must hold `expected`. Any refusal puts the start tree back."""
+    try:
+        for manifest in sets:
+            apply_parts(directory, manifest, repo=repo, index_only=False)
+        tree = git("write-tree", cwd=repo).decode().strip()
+        require(tree == expected, "applied tree " + tree + ", not " + expected)
+    except ValueError as error:
+        try:
+            git("read-tree", "--reset", "-u", start, cwd=repo)
+        except ValueError as again:
+            raise ValueError(str(error) + "; and the start tree could not be restored: " +
+                             str(again)) from error
+        raise ValueError(str(error) + "; the index and work tree were restored to the "
+                         "start tree " + start) from error
+    return tree
+
+
+def apply(directory, name, base, repo=None):
+    """Apply a checked set to the index and work tree, which must hold exactly
+    its start tree; afterwards they hold exactly its result tree. The whole
+    set is applied in a scratch index first, and the real checkout is touched
+    only once that gives the recorded tree."""
+    manifest, declared = load(directory, name, base)
+    require_clean(manifest["start_tree"], declared, repo)
+    check_tree(directory, name, manifest, repo=repo)
+    apply_in_place(directory, [manifest], manifest["start_tree"], manifest["tree"], repo)
+    return manifest, declared
+
+
 def combine(directory, names, base, repo=None):
     """Apply disjoint sets that share one start tree, in turn, to an index and
     work tree holding it; afterwards each set's paths hold that set's tree and
-    every other path still holds the start tree."""
+    every other path still holds the start tree. Every check runs on a scratch
+    index before the real checkout is touched."""
     loaded, owners = [], {}
     for name in names:
         manifest, declared = load(directory, name, base)
@@ -377,20 +436,24 @@ def combine(directory, names, base, repo=None):
     require(len(starts) <= 1, "the sets do not share one start tree")
     current = git("write-tree", cwd=repo).decode().strip()
     start = starts.pop() if starts else current
-    require(current == start, "the index holds " + current + ", not the start tree " + start)
-    for name, manifest, _ in loaded:
-        for row in manifest["parts"]:
-            git("apply", "--index", str((Path(directory) / row["file"]).resolve()), cwd=repo)
-    index = index_entries(repo)
-    for name, manifest, declared in loaded:
-        if declared:
-            mine = tree_entries(manifest["tree"], repo)
-            require(all(index.get(p) == mine.get(p) for p in declared),
-                    name + ": combined paths differ from its tree")
-    changed = paths_from_nul(git("diff", "--cached", "--no-renames", "--name-only", "-z",
-                                 start, cwd=repo), "combined")
-    require(set(changed) == set(owners), "the combined change is not the union of the sets")
-    return start, git("write-tree", cwd=repo).decode().strip(), len(owners)
+    require_clean(start, list(owners), repo)
+    with tempfile.TemporaryDirectory() as scratch:
+        env = scratch_env(scratch)
+        git("read-tree", start, cwd=repo, env=env)
+        for _, manifest, _ in loaded:
+            apply_parts(directory, manifest, repo=repo, env=env)
+        index = index_entries(repo, env)
+        for name, manifest, declared in loaded:
+            if declared:
+                mine = tree_entries(manifest["tree"], repo)
+                require(all(index.get(p) == mine.get(p) for p in declared),
+                        name + ": combined paths differ from its tree")
+        changed = paths_from_nul(git("diff", "--cached", "--no-renames", "--name-only",
+                                     "-z", start, cwd=repo, env=env), "combined")
+        require(set(changed) == set(owners), "the combined change is not the union of the sets")
+        expected = git("write-tree", cwd=repo, env=env).decode().strip()
+    tree = apply_in_place(directory, [m for _, m, _ in loaded], start, expected, repo)
+    return start, tree, len(owners)
 
 
 def main(argv=None):

@@ -5,7 +5,7 @@
 #
 # The branch is the one a caller names (BRANCH, `cut.yml`), or else the head
 # branch of the one open pull request of this repository whose head is
-# COMMIT. With none, or several, nothing is pushed and the patch stays the
+# COMMIT. With none, or several, nothing is pushed and the patch set stays the
 # run's artifact. The push is a fast-forward of COMMIT: a branch pushed again
 # while the run worked rejects it, and the newer head is left alone. A push
 # with the workflow token starts no `pull_request` run, so `ci.yml` is
@@ -28,7 +28,15 @@ summary=${GITHUB_STEP_SUMMARY:-/dev/null}
 output=${GITHUB_OUTPUT:-/dev/null}
 say() { printf '%s\n' "$1" | tee -a "$summary"; }
 
-(cd "$dir" && sha256sum --check --quiet SHA256SUMS)
+(cd "$dir" && sha256sum --check --strict --quiet SHA256SUMS)
+# `sha256sum --check` reads only what SHA256SUMS lists: every other entry of
+# the artifact is refused, so no file reaches the commit unchecked.
+listed=$(cd "$dir" && sed -E 's/^[0-9a-f]{64}  //' SHA256SUMS | LC_ALL=C sort)
+present=$(cd "$dir" && find . -mindepth 1 -maxdepth 1 ! -name SHA256SUMS -printf '%P\n' | LC_ALL=C sort)
+if [ "$listed" != "$present" ]; then
+  echo "::error::SHA256SUMS does not list exactly the files of the artifact"
+  exit 1
+fi
 if [ "$(cat "$dir/base-commit.txt")" != "$commit" ]; then
   echo "::error::the artifact was made from $(cat "$dir/base-commit.txt"), not $commit"
   exit 1

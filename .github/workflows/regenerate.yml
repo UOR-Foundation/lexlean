@@ -419,10 +419,11 @@ jobs:
           python3 .github/scripts/patch_set.py write --name regenerated --base "$COMMIT" --out "$out"
           git diff --cached --name-only > "$out/regenerated-files.txt"
           echo "$COMMIT" > "$out/base-commit.txt"
-          # Every file of the set and the two lists, so `deliver` refuses an
-          # artifact missing or altering any of them.
-          (cd "$out" && find . -maxdepth 1 -type f \( -name 'regenerated.*' -o -name regenerated-files.txt -o -name base-commit.txt \) -printf '%P\0' \
-            | sort -z | xargs -0 sha256sum > SHA256SUMS)
+          # Every file of the artifact, so `deliver` refuses one missing,
+          # altered, or added. It binds the files to each other, not to their
+          # producer: the run's own artifact store is what this trusts.
+          (cd "$out" && find . -mindepth 1 -maxdepth 1 -type f ! -name SHA256SUMS -printf '%P\0' \
+            | LC_ALL=C sort -z | xargs -0 sha256sum > SHA256SUMS)
           {
             echo "### Regenerated $(wc -l < "$out/regenerated-files.txt") paths on $COMMIT"
             echo

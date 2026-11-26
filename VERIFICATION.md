@@ -15858,7 +15858,13 @@ start tree; giving its recorded tree in a scratch index; no path in two
 writers) before applying any, applies them in turn and requires the index to
 be each writer's tree on its paths and the start tree elsewhere; `finish` and
 `deliver` apply a set only to its start tree and require its recorded tree
-after. Retained-artifact check: the 1,077,735,486-byte patch splits into 9
+after. Nothing of a real checkout changes until the whole set, or all three,
+has given its recorded tree in a scratch index, and only a clean checkout of
+the start tree is accepted; a refusal Git still makes on the real checkout
+puts the start tree back before it is reported (#634, review 6067846933).
+`SHA256SUMS` lists every file of the `regenerated` artifact and `deliver`
+refuses any it does not list; it binds those files to each other, not to their
+producer. Retained-artifact check: the 1,077,735,486-byte patch splits into 9
 parts (123.5 to 128.0 MiB, and 13.1 MiB), whose concatenation is
 byte-identical to it and which apply in a scratch index to the tree of
 2266efb8, the commit it was made from, through `load` and `check_tree`, all
@@ -15870,10 +15876,16 @@ byte-identical to it and which apply in a scratch index to the tree of
 | a part missing, a part row dropped, parts reordered | `test_patch_set.py` (`missing`, `unlisted files claim the set`, `part order`) |
 | one path written by two parts | `test_patch_set.py` (`another part also writes`) |
 | a set of another commit, or applied to another tree | `test_patch_set.py` (`made from`, `not the start tree`) |
-| a recorded tree the parts do not give | `test_patch_set.py`, `test_check_regen_writers.py` (`the parts give tree`, `applied tree`) |
+| a recorded tree the parts do not give (the start tree, or the empty tree), with every checksum recomputed | `test_patch_set.py`, `test_check_regen_writers.py` (`the parts give tree`), refused before the real index or any work-tree file changes |
+| a later part still a valid patch of its paths but not applicable, its size and checksum recomputed, in `apply`, in `combine`, and in a real run of `deliver-regenerated.sh` | `test_patch_set.py`, `test_check_regen_writers.py` (`DeliveryTests`): refused in the scratch index; real index, work tree and remote branch unchanged, no gate dispatched |
+| a work tree that differs from the index, an index that is not the start tree, an untracked file where a set adds one | `test_patch_set.py` (`work tree differs`, `not the start tree`, `untracked file stands`), nothing changed |
+| Git refusing the second part on the real checkout after the preflight passed | `test_patch_set.py` (`restored to the start tree`): index and work tree put back byte for byte |
+| a repeated manifest key; a part's path count `true` in place of `1` | `test_patch_set.py` (`unreadable manifest`, `path inventory`) |
+| a file of the `regenerated` artifact that `SHA256SUMS` does not list; `--strict` dropped from its check | `test_check_regen_writers.py` (`DeliveryTests`, `does not list exactly the files`; the delivery pin) |
 | one file diff at the part maximum; thresholds at Git's limit | `test_patch_set.py` (`reaches the part maximum`, `thresholds`) |
 | an unknown manifest key; an unsafe set name | `test_patch_set.py` (`manifest keys`, `unsafe set name`) |
 | overlapping writer sets combined | `test_patch_set.py`, `test_check_regen_writers.py` (`writer collision`) |
 | a writer made from another start tree; an old single-patch artifact | `test_check_regen_writers.py` (`shared start tree`, `unlisted files claim the set`) |
 | a raw `git diff`/`git apply` in place of a set in any of the four steps or in `deliver-regenerated.sh`; the guard's `--base` dropped; `--no-renames` dropped from either diff of `patch_set.py` | `test_check_regen_writers.py` (`test_workflow_refuses_weakened_writer_guards`) |
+| at any lifecycle boundary (capture, guard, combine, the `combined` write, `finish`'s apply, the return write, delivery): `\|\| true` or `\|\| :` appended, `exit 0` before or after, `if: false` or `continue-on-error`, the return step's `!cancelled()` dropped, a changed shell, `pipefail` dropped or `set +e`/`trap` added, a step reordered, added or removed, a job's `needs` or `if` changed, the delivery's checksum, coverage, fast-forward or lease check removed, its apply moved after the commit, a forced push | `test_check_regen_writers.py` (`test_workflow_refuses_weakened_writer_guards`, against the exact job headers, step order and step texts of `regen_lifecycle.py` and the ordered delivery lines; `test_a_pin_edited_to_a_masked_command_is_still_refused`). Before this table row the old guard accepted all six of: `finish`'s apply `\|\| true`, its `if: false`, the delivery apply `\|\| true`, `exit 0` before combine, the return write `\|\| true`, `pipefail` dropped from `Apply every part`. In a real run, a masked delivery apply dispatches the gate on the unregenerated commit (`test_a_masked_apply_would_dispatch_the_gate_on_the_unregenerated_commit`) |
 | `test_patch_set.py` removed from the honesty step | `conformance_rp_14` (`regression_honesty`, and its command-removal plant) |
