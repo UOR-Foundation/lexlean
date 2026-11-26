@@ -8,7 +8,9 @@ scheduling, not a cache or an alternative acceptance gate. Python 3.9+.
 
 import argparse
 from collections import Counter
+import datetime
 import hashlib
+import io
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -21,6 +23,7 @@ import sys
 import tarfile
 import tempfile
 import threading
+import zipfile
 
 HOST = "x86_64-apple-darwin"
 SCHEMA = 1
@@ -329,6 +332,260 @@ def run_identity():
     return result
 
 
+CONSTRUCTION_JOB = "Intel test construction and local targets"
+UPLOAD_STEP = "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
+WORKFLOW = ".github/workflows/ci.yml"
+ARTIFACT = re.compile(r"intel-([a-z0-9]+(?:-[a-z0-9]+)*)-a([1-9][0-9]*)\Z")
+DIGEST = re.compile(r"sha256:([0-9a-f]{64})\Z")
+TIME = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\Z")
+FINISHED = ("success", "failure", "cancelled")
+INTEL_LABEL = "macos-15-intel"
+# A rerun copies a retained job under a new ID with a new `created_at` and,
+# observed on run 45520831037, a `runner_group_id` of null where it was 0.
+# Every other field is the execution's own and must be carried unchanged.
+EXECUTION = ("name", "head_sha", "run_id", "workflow_name", "status", "conclusion", "started_at", "completed_at",
+             "runner_id", "runner_name", "labels", "steps")
+STEP = ("number", "name", "status", "conclusion", "started_at", "completed_at")
+
+
+def artifact_name(role, attempt):
+    """An execution's artifact. A rerun that reuses a name replaces the earlier
+    artifact in place, so the name carries the attempt that made it."""
+    return f"intel-{role}-a{attempt}"
+
+
+def same_run(binding_run, current):
+    return all(binding_run[name] == current[name] for name in ("GITHUB_REPOSITORY", "GITHUB_RUN_ID"))
+
+
+def positive(value):
+    return type(value) is int and value > 0
+
+
+def instant(text):
+    require(isinstance(text, str) and TIME.match(text) is not None, f"not a provider UTC time: {text!r}")
+    return datetime.datetime.strptime(text, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=datetime.timezone.utc)
+
+
+def trusted_run():
+    """What this job knows of its own run without asking the provider."""
+    current = run_identity()
+    repository_id = os.environ.get("GITHUB_REPOSITORY_ID", "")
+    require(repository_id.isdigit(), "untrusted repository ID")
+    event = os.environ.get("GITHUB_EVENT_PATH", "")
+    head = os.environ.get("GITHUB_SHA", "")
+    if event:
+        payload = read_json(event)
+        # A pull request's run is keyed by its head, not the merge ref checked out.
+        head = payload.get("pull_request", {}).get("head", {}).get("sha", head)
+    workflow = os.environ.get("GITHUB_WORKFLOW_REF", "")
+    require(re.fullmatch(r"[0-9a-f]{40}", head or "") is not None and workflow.startswith(f"{current['GITHUB_REPOSITORY']}/{WORKFLOW}@"),
+            "untrusted run head or workflow")
+    return {**current, "head_sha": head, "repository_id": int(repository_id)}
+
+
+def complete(pages, key, what):
+    """One whole paginated listing: every page reports the same total and the
+    pages hold exactly that many distinct, positive IDs."""
+    require(isinstance(pages, list) and pages, f"no {what} pages")
+    totals = {page.get("total_count") for page in pages}
+    require(len(totals) == 1 and positive(next(iter(totals))) and all(isinstance(page.get(key), list) for page in pages),
+            f"inconsistent {what} pagination")
+    items = [item for page in pages for item in page[key]]
+    require(len(items) == next(iter(totals)), f"truncated {what} listing")
+    require(all(positive(item.get("id")) for item in items) and len({item["id"] for item in items}) == len(items),
+            f"missing, null or duplicate {what} ID")
+    return items
+
+
+def check_steps(job, where):
+    """A job's step records: positive, strictly increasing numbers, each
+    finished within the job, so that a step cannot be placed outside it."""
+    steps = job.get("steps")
+    require(isinstance(steps, list) and steps and all(isinstance(step, dict) for step in steps), f"{where}: malformed step records")
+    numbers = [step.get("number") for step in steps]
+    require(all(positive(n) for n in numbers) and numbers == sorted(set(numbers)), f"{where}: steps out of order or renumbered")
+    begun, ended = instant(job["started_at"]), instant(job["completed_at"])
+    for step in steps:
+        require(step.get("status") == "completed" and isinstance(step.get("name"), str) and step["name"], f"{where}: an unfinished or unnamed step")
+        if step.get("conclusion") == "skipped" and step.get("started_at") is None:
+            continue
+        require(begun <= instant(step.get("started_at")) <= instant(step.get("completed_at")) <= ended, f"{where}: a step outside its job")
+
+
+def execution(job):
+    steps = job.get("steps")
+    require(isinstance(steps, list) and all(isinstance(step, dict) for step in steps), "malformed step records")
+    return tuple(json.dumps(job.get(field), sort_keys=True) for field in EXECUTION[:-1]) + (
+        json.dumps([[step.get(field) for field in STEP] for step in steps]),)
+
+
+def resolve_lineage(lineage, lanes, trusted):
+    """Which execution of each Intel role the run's latest attempt accepted,
+    from the provider's whole job and artifact records (§8.3).
+
+    A rerun gives every job a new ID, and a job it did not rerun keeps every
+    field of the execution it retained but its creation, so an execution is
+    followed back to the attempt that ran it by its whole record, never its ID.
+    The construction bounds every lane: a lane that started before the
+    selected construction finished executed another build.
+    """
+    attempt = int(trusted["GITHUB_RUN_ATTEMPT"])
+    run_id = int(trusted["GITHUB_RUN_ID"])
+    require(set(lineage) == {"run", "attempts", "artifacts"}, "malformed lineage")
+    run = lineage["run"]
+    require(run.get("id") == run_id and run.get("run_attempt") == attempt and run.get("head_sha") == trusted["head_sha"]
+            and run.get("path") == WORKFLOW and positive(run.get("workflow_id"))
+            and isinstance(run.get("repository"), dict) and str(run["repository"].get("full_name", "")).lower() == trusted["GITHUB_REPOSITORY"].lower()
+            and run["repository"].get("id") == trusted["repository_id"], "the provider's run is not this run")
+    require([page.get("attempt", {}).get("run_attempt") for page in lineage["attempts"]] == list(range(1, attempt + 1)),
+            "missing or duplicate attempt in lineage")
+    roles = {"construction": CONSTRUCTION_JOB, **{lane: f"Intel conformance ({lane})" for lane in lanes}}
+    identifiers, origin, fresh, previous = set(), {}, {}, {}
+    for page in lineage["attempts"]:
+        header, number = page["attempt"], page["attempt"]["run_attempt"]
+        require(header.get("id") == run_id and header.get("head_sha") == run["head_sha"] and header.get("workflow_id") == run["workflow_id"]
+                and header.get("path") == WORKFLOW and isinstance(header.get("repository"), dict)
+                and header["repository"].get("id") == trusted["repository_id"]
+                and str(header["repository"].get("full_name", "")).lower() == trusted["GITHUB_REPOSITORY"].lower(),
+                f"attempt {number} is of another run, head, workflow or repository")
+        begun = instant(header.get("run_started_at"))
+        jobs = complete(page["jobs"], "jobs", f"attempt {number} job")
+        for job in jobs:
+            require(job.get("run_attempt") == number and job.get("run_id") == run_id and job.get("head_sha") == run["head_sha"]
+                    and job.get("workflow_name") == run.get("name"), f"attempt {number}: a job of another run, attempt, head or workflow")
+            require(job["id"] not in identifiers, "a job ID listed twice")
+            identifiers.add(job["id"])
+        for role, name in roles.items():
+            found = [job for job in jobs if job.get("name") == name]
+            require(len(found) == 1, f"attempt {number}: missing or duplicate execution: {role}")
+            job = found[0]
+            # A role GitHub skipped or never started left no execution. It is
+            # refused, never modelled as evidence: recovering a run whose
+            # history holds one is not supported, and the run is rerun whole.
+            require(job.get("status") == "completed" and job.get("conclusion") != "skipped" and job.get("started_at") is not None,
+                    f"attempt {number}: {role} was skipped or never started; recovery from a nonexecution is not supported")
+            require(job.get("conclusion") in FINISHED, f"attempt {number}: unfinished or unknown execution: {role}")
+            started, ended = instant(job.get("started_at")), instant(job.get("completed_at"))
+            require(started < ended, f"attempt {number}: an execution of no duration: {role}")
+            check_steps(job, f"attempt {number} {role}")
+            before = previous.get(role)
+            if before is not None and execution(job) == execution(before):
+                origin[(number, role)] = origin[(number - 1, role)]
+            else:
+                require(before is None or (job["started_at"], job["completed_at"]) != (before["started_at"], before["completed_at"]),
+                        f"attempt {number}: a retained execution whose record changed: {role}")
+                require(started >= begun and (before is None or started > instant(before["completed_at"])),
+                        f"attempt {number}: an execution neither retained nor new: {role}")
+                origin[(number, role)] = number
+                fresh[(role, number)] = job
+            previous[role] = job
+    require(all(previous[role]["conclusion"] == "success" for role in roles), "the latest attempt did not succeed in every Intel execution")
+    # Retention compares a record with itself; the execution it retains is
+    # validated here, on the native Intel host it claims.
+    for role in roles:
+        job = previous[role]
+        require(positive(job.get("runner_id")) and isinstance(job.get("runner_name"), str) and job["runner_name"].strip()
+                and isinstance(job.get("labels"), list) and INTEL_LABEL in job["labels"],
+                f"{role} did not run on an identified {INTEL_LABEL} runner")
+    built = fresh[("construction", origin[(attempt, "construction")])]
+    for lane in lanes:
+        require(instant(fresh[(lane, origin[(attempt, lane)])]["started_at"]) > instant(built["completed_at"]),
+                f"lane {lane} began before its construction finished")
+    artifacts = complete(lineage["artifacts"], "artifacts", "artifact")
+    names = Counter(item.get("name") for item in artifacts)
+    require(all(count == 1 for count in names.values()), "an artifact name listed twice")
+    selected = {}
+    for item in artifacts:
+        if not str(item.get("name", "")).startswith("intel-"):
+            continue
+        match = ARTIFACT.match(item["name"])
+        require(match is not None, f"an Intel artifact not named by its execution: {item['name']}")
+        role, made = match.group(1), int(match.group(2))
+        job = fresh.get((role, made))
+        require(job is not None, f"an Intel artifact no execution of this run made: {item['name']}")
+        origin_run = item.get("workflow_run") or {}
+        require(origin_run.get("id") == run_id and origin_run.get("head_sha") == run["head_sha"] and origin_run.get("repository_id") == run["repository"]["id"],
+                f"an Intel artifact of another run or repository: {item['name']}")
+        uploads = [step for step in job["steps"] if step.get("name") == UPLOAD_STEP]
+        require(len(uploads) == 1, f"no single upload step made {item['name']}")
+        upload = uploads[0]
+        created = instant(item.get("created_at"))
+        require(instant(job["started_at"]) <= instant(upload.get("started_at")) <= created <= instant(upload.get("completed_at")) <= instant(job["completed_at"]),
+                f"an Intel artifact made outside its upload step: {item['name']}")
+        if made == origin[(attempt, role)]:
+            require(upload.get("status") == "completed" and upload.get("conclusion") == "success" and item.get("expired") is False and DIGEST.match(str(item.get("digest"))) is not None
+                    and positive(item.get("size_in_bytes")), f"an unfinished, expired or undigested accepted artifact: {item['name']}")
+            selected[role] = {"artifact": item["name"], "attempt": made, "id": item["id"], "digest": item["digest"],
+                              "size": item["size_in_bytes"], "job": job["id"]}
+    require(set(selected) == set(roles), "an accepted execution has no artifact")
+    return selected
+
+
+def provider_read(path, binary=False):
+    """One whole read of `path`, retried whole twice, or refused (#620)."""
+    command = ["gh", "api", path] if binary else ["gh", "api", path, "--paginate", "--slurp"]
+    for attempt in (1, 2, 3):
+        try:
+            done = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120, check=True)
+            return done.stdout if binary else json.loads(done.stdout, object_pairs_hook=json_pairs)
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, ValueError) as error:
+            print(f"provider read failed (attempt {attempt}/3): {path}: {error}", file=sys.stderr)
+    raise Invalid(f"provider read refused: {path}")
+
+
+def collect_lineage(trusted):
+    base = f"repos/{trusted['GITHUB_REPOSITORY']}/actions/runs/{trusted['GITHUB_RUN_ID']}"
+    run = provider_read(base)
+    require(isinstance(run, list) and len(run) == 1, "the run read is not one object")
+    attempts = []
+    for number in range(1, int(trusted["GITHUB_RUN_ATTEMPT"]) + 1):
+        header = provider_read(f"{base}/attempts/{number}")
+        require(isinstance(header, list) and len(header) == 1, "an attempt read is not one object")
+        attempts.append({"attempt": header[0], "jobs": provider_read(f"{base}/attempts/{number}/jobs?per_page=30")})
+    return {"run": run[0], "attempts": attempts, "artifacts": provider_read(f"{base}/artifacts?per_page=100")}
+
+
+def extract_zip(data, destination):
+    """The archive's regular files, refusing links, devices, escapes and
+    duplicates; directories are implied."""
+    with zipfile.ZipFile(io.BytesIO(data)) as bundle:
+        names = [entry.filename for entry in bundle.infolist()]
+        require(len(names) == len(set(names)), "duplicate archive member")
+        for entry in bundle.infolist():
+            if entry.is_dir():
+                continue
+            kind = stat.S_IFMT(entry.external_attr >> 16)
+            require(kind in (0, stat.S_IFREG), f"non-regular archive member: {entry.filename}")
+            relative = safe_relative(entry.filename)
+            target = destination / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            require(not target.exists(), f"duplicate archive member: {entry.filename}")
+            target.write_bytes(bundle.read(entry))
+
+
+def fetch(root, output, trusted=None, collect=collect_lineage, read=provider_read):
+    """Resolve the accepted executions from the provider's records first, then
+    take exactly the selected artifacts by ID and check their bytes against
+    the provider's digest. Superseded artifacts are explained, never fetched."""
+    bdd, lanes = plan(root)
+    trusted = trusted or trusted_run()
+    lineage = collect(trusted)
+    selected = resolve_lineage(lineage, lanes["lanes"], trusted)
+    output = new_output(output)
+    write_json(output / "lineage.json", lineage)
+    fetched = {}
+    for role, item in sorted(selected.items()):
+        data = read(f"repos/{trusted['GITHUB_REPOSITORY']}/actions/artifacts/{item['id']}/zip", binary=True)
+        require(len(data) == item["size"] and "sha256:" + hashlib.sha256(data).hexdigest() == item["digest"],
+                f"the fetched bytes are not the accepted artifact: {item['artifact']}")
+        extract_zip(data, output / "artifacts" / item["artifact"])
+        fetched[item["artifact"]] = {"id": item["id"], "digest": item["digest"], "size": item["size"]}
+    write_json(output / "fetched.json", fetched)
+    print("Intel executions resolved: " + ", ".join(f"{role} a{item['attempt']} #{item['id']}" for role, item in sorted(selected.items())))
+    return 0
+
+
 def native_identity(root, recorder):
     require(platform.system() == "Darwin" and platform.machine() == "x86_64", "Intel macOS native execution required")
     dangerous = [name for name in os.environ if name.startswith(("RUSTFLAGS", "RUSTDOCFLAGS", "CARGO_ENCODED_", "CARGO_PROFILE_", "CARGO_BUILD_", "CARGO_TARGET_", "RUST_TEST_", "DYLD_"))
@@ -605,8 +862,9 @@ def build(root, output):
     construction = {"schema": SCHEMA, "binding": binding, "targets": targets, "conformance": conformance_id,
                     "doc_targets": docs, "filters": filters, "lanes": listed, "archives": transfers,
                     "checks": list(recorder.records)}
+    made = binding["run"]["GITHUB_RUN_ATTEMPT"]
     receipt = {"schema": SCHEMA, "part": "producer", "job": "intel-construction", "binding": binding,
-               "invocations": []}
+               "execution": {"attempt": made, "artifact": artifact_name("construction", made)}, "invocations": []}
     # Preserve setup logs in the same numbered stream. A failed test does not
     # stop later targets/doctests or prevent consumers from receiving the build.
     for target in targets:
@@ -624,14 +882,19 @@ def build(root, output):
     if os.environ.get("GITHUB_OUTPUT"):
         with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
             stream.write("lanes=" + json.dumps(list(filters), separators=(",", ":")) + "\n")
+            stream.write("artifact=" + receipt["execution"]["artifact"] + "\n")
     print("Construction complete. Producer test statuses will be judged by join.")
     return 0
 
 
-def load_construction(root, directory):
+def load_construction(root, directory, attempt):
+    """`attempt` is the construction's own attempt as the caller established
+    it: the artifact a consumer was handed, or the join's lineage."""
     value = read_json(directory / "construction.json")
     require(value["schema"] == SCHEMA, "unknown construction schema")
-    require(value["binding"]["run"] == run_identity() and value["binding"]["producer_job"] == "intel-construction",
+    current, run = run_identity(), value["binding"]["run"]
+    require(set(run) == set(current) and same_run(run, current) and run["GITHUB_RUN_ATTEMPT"] == str(attempt)
+            and int(attempt) <= int(current["GITHUB_RUN_ATTEMPT"]) and value["binding"]["producer_job"] == "intel-construction",
             "foreign run, repository, attempt or construction job")
     require(value["binding"]["source"] == source_identity(root), "source commit, tree, lock or plan differs")
     bdd, lanes = plan(root)
@@ -667,9 +930,12 @@ def load_construction(root, directory):
     return value, conformance[0], harnesses[0]["path"]
 
 
-def execute(root, construction_dir, lane, output):
+def execute(root, construction_dir, lane, output, construction_artifact):
     require(os.environ.get("GITHUB_JOB") == "intel-part", "foreign consumer job")
-    construction, target, harness = load_construction(root, construction_dir)
+    match = ARTIFACT.match(construction_artifact)
+    require(match is not None and match.group(1) == "construction", "not a construction artifact")
+    construction, target, harness = load_construction(root, construction_dir, match.group(2))
+    attempt = run_identity()["GITHUB_RUN_ATTEMPT"]
     require(lane in construction["lanes"], "unknown lane")
     output = new_output(output)
     recorder = Recorder(output)
@@ -693,6 +959,7 @@ def execute(root, construction_dir, lane, output):
         record = recorder.run([binary, "--format=pretty", *filters], Path(target["cwd"]), env, "harness", actual, ignored)
         receipt = {"schema": SCHEMA, "part": lane, "job": "intel-part", "binding": construction["binding"],
                    "construction_sha256": digest(construction_dir / "construction.json"),
+                   "execution": {"attempt": attempt, "artifact": artifact_name(lane, attempt)},
                    "checks": recorder.records[:-1], "invocations": [record]}
         write_json(output / "receipt.json", receipt)
         try:
@@ -703,19 +970,26 @@ def execute(root, construction_dir, lane, output):
     return 0
 
 
-def join(root, artifacts):
+def join(root, fetched, trusted=None):
     bdd, lanes = plan(root)
-    expected = {"intel-construction", *("intel-" + lane for lane in lanes["lanes"])}
-    require({p.name for p in artifacts.iterdir()} == expected and all(p.is_dir() and not p.is_symlink() for p in artifacts.iterdir()),
+    lineage = read_json(fetched / "lineage.json")
+    selected = resolve_lineage(lineage, lanes["lanes"], trusted or trusted_run())
+    require(read_json(fetched / "fetched.json") == {item["artifact"]: {"id": item["id"], "digest": item["digest"], "size": item["size"]} for item in selected.values()},
+            "the fetched artifacts are not the accepted executions")
+    artifacts = fetched / "artifacts"
+    require(sorted(p.name for p in artifacts.iterdir()) == sorted(item["artifact"] for item in selected.values())
+            and all(p.is_dir() and not p.is_symlink() for p in artifacts.iterdir()),
             "missing, duplicate or unexpected Intel artifact directories")
-    directory = artifacts / "intel-construction"
-    construction, conformance, harness = load_construction(root, directory)
+    directory = artifacts / selected["construction"]["artifact"]
+    construction, conformance, harness = load_construction(root, directory, selected["construction"]["attempt"])
     fingerprint = digest(directory / "construction.json")
     producer = read_json(directory / "producer.json")
-    receipts = [("producer", directory, producer)] + [(lane, artifacts / ("intel-" + lane), read_json(artifacts / ("intel-" + lane) / "receipt.json")) for lane in lanes["lanes"]]
+    receipts = [("producer", directory, producer)] + [(lane, artifacts / selected[lane]["artifact"], read_json(artifacts / selected[lane]["artifact"] / "receipt.json")) for lane in lanes["lanes"]]
     failures = []
     for part, location, receipt in receipts:
-        require(receipt["schema"] == SCHEMA and receipt["part"] == part and receipt["job"] == ("intel-construction" if part == "producer" else "intel-part") and receipt["binding"] == construction["binding"] and receipt["construction_sha256"] == fingerprint,
+        role = "construction" if part == "producer" else part
+        execution = {"attempt": str(selected[role]["attempt"]), "artifact": selected[role]["artifact"]}
+        require(receipt["schema"] == SCHEMA and receipt["part"] == part and receipt["job"] == ("intel-construction" if part == "producer" else "intel-part") and receipt["binding"] == construction["binding"] and receipt["execution"] == execution and receipt["construction_sha256"] == fingerprint,
                 f"foreign or mismatched receipt: {part}")
         checks = construction["checks"] if part == "producer" else receipt["checks"]
         records = checks + receipt["invocations"]
@@ -760,7 +1034,10 @@ def join(root, artifacts):
             files += ["receipt.json"]
         exact_files(location, files)
     require(not failures, "\n".join(failures))
+    retained = sorted(role for role, item in selected.items() if item["attempt"] < lineage["run"]["run_attempt"])
     print(f"Intel host complete: producer and {len(lanes['lanes'])} lanes; {len(conformance['inventory'])} conformance cases inventoried, ignored semantics preserved.")
+    print("Intel executions accepted: " + ", ".join(f"{role} a{item['attempt']} {item['artifact']} {item['digest']}" for role, item in sorted(selected.items()))
+          + (f"; retained from earlier attempts: {', '.join(retained)}" if retained else ""))
     return 0
 
 
@@ -773,18 +1050,23 @@ def main():
     execute_parser = commands.add_parser("execute")
     execute_parser.add_argument("--construction", type=Path, required=True)
     execute_parser.add_argument("--lane", required=True)
+    execute_parser.add_argument("--construction-artifact", required=True)
     execute_parser.add_argument("--output", type=Path, required=True)
+    fetch_parser = commands.add_parser("fetch")
+    fetch_parser.add_argument("--output", type=Path, required=True)
     join_parser = commands.add_parser("join")
-    join_parser.add_argument("--artifacts", type=Path, required=True)
+    join_parser.add_argument("--fetched", type=Path, required=True)
     args = parser.parse_args()
     try:
         root = args.root.resolve()
         if args.operation == "build":
             return build(root, args.output)
         if args.operation == "execute":
-            return execute(root, args.construction.resolve(), args.lane, args.output)
-        return join(root, args.artifacts.resolve())
-    except (Invalid, OSError, ValueError, KeyError, TypeError, tarfile.TarError, subprocess.CalledProcessError) as error:
+            return execute(root, args.construction.resolve(), args.lane, args.output, args.construction_artifact)
+        if args.operation == "fetch":
+            return fetch(root, args.output)
+        return join(root, args.fetched.resolve())
+    except (Invalid, OSError, ValueError, KeyError, TypeError, tarfile.TarError, zipfile.BadZipFile, subprocess.CalledProcessError) as error:
         print(f"Intel host tests: {error}", file=sys.stderr)
         return 1
 

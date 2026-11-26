@@ -2525,6 +2525,22 @@ pub(crate) fn run(id: &str) {
                     "python3 -m unittest discover -s .github/scripts -p 'test_intel_host_tests.py'",
                     "echo factory checks",
                 ),
+                (
+                    "name: intel-${{ matrix.lane }}-a${{ github.run_attempt }}",
+                    "name: intel-${{ matrix.lane }}",
+                ),
+                (
+                    "name: intel-construction-a${{ github.run_attempt }}",
+                    "name: intel-construction",
+                ),
+                (
+                    "name: ${{ needs.intel-construction.outputs.artifact }}",
+                    "name: intel-construction-a1",
+                ),
+                (
+                    "intel_host_tests.py fetch --output",
+                    "intel_host_tests.py join --output",
+                ),
             ] {
                 assert!(
                     ci.contains(from),
@@ -4221,6 +4237,10 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
                 return Err(format!("RP-14: {key} admits `{forbidden}`"));
             }
         }
+        // The join takes artifacts only by the IDs its resolution accepted.
+        if key == "intel-join" && body.contains("actions/download-artifact") {
+            return Err("RP-14: the Intel join downloads artifacts it has not resolved".to_owned());
+        }
         // A job's evidence upload can run after failure, but its actual
         // operation must not be guarded by a success/skip shortcut.
         for step in body.split("\n      - ") {
@@ -4260,7 +4280,7 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
     for (body, command) in [
         (&construction, "build --output"),
         (&part, "execute --construction"),
-        (&join, "join --artifacts"),
+        (&join, "join --fetched"),
     ] {
         require(
             body,
@@ -4271,16 +4291,37 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
     for (body, expected) in [
         (&construction, "lanes: ${{ steps.construct.outputs.lanes }}"),
         (&construction, "id: construct"),
-        (&construction, "name: intel-construction"),
+        // Each execution's artifact is named by its attempt, so that a rerun
+        // cannot replace an artifact another execution's receipt names.
+        (
+            &construction,
+            "name: intel-construction-a${{ github.run_attempt }}",
+        ),
+        (
+            &construction,
+            "artifact: ${{ steps.construct.outputs.artifact }}",
+        ),
         (&part, "fail-fast: false"),
         (
             &part,
             "lane: ${{ fromJSON(needs.intel-construction.outputs.lanes) }}",
         ),
-        (&part, "name: intel-construction"),
-        (&part, "name: intel-${{ matrix.lane }}"),
+        (
+            &part,
+            "name: ${{ needs.intel-construction.outputs.artifact }}",
+        ),
+        (&part, "--construction-artifact \"$CONSTRUCTION_ARTIFACT\""),
+        (
+            &part,
+            "name: intel-${{ matrix.lane }}-a${{ github.run_attempt }}",
+        ),
         (&part, "--lane ${{ matrix.lane }}"),
-        (&join, "pattern: intel-*"),
+        (&join, "actions: read"),
+        (
+            &join,
+            "intel_host_tests.py fetch --output \"$RUNNER_TEMP/intel-input\"",
+        ),
+        (&join, "join --fetched \"$RUNNER_TEMP/intel-input\""),
         (
             &join,
             "CONSTRUCTION_RESULT: ${{ needs.intel-construction.result }}",
