@@ -857,22 +857,20 @@ pub fn format_int(p0: i64) -> Str {
 
 #[derive(Clone)]
 pub enum Adt0 {
-    C0(Adt1, Adt7, Adt8),
-    C1(u64, Adt1, Adt1, bool, Adt9, Adt8),
-    C2(Adt11, Adt12, Adt1, Adt17, Adt8),
-    C3,
-    C4(std::rc::Rc<Adt0>, std::rc::Rc<Adt0>),
+    C0,
+    C1(Adt1, Adt6, std::rc::Rc<Adt0>),
 }
 
 #[derive(Clone)]
 pub enum Adt1 {
     C0(Adt2),
     C1(Adt3),
-    C2(Adt4, std::rc::Rc<Adt1>),
-    C3(Adt5, std::rc::Rc<Adt1>, std::rc::Rc<Adt1>),
-    C4(Adt6, u64),
+    C2(std::rc::Rc<Adt1>),
+    C3(Adt4, std::rc::Rc<Adt1>),
+    C4(u64, u64, std::rc::Rc<Adt1>),
     C5,
     C6(std::rc::Rc<Adt1>, std::rc::Rc<Adt1>),
+    C7(Adt5),
 }
 
 #[derive(Clone)]
@@ -880,75 +878,10 @@ pub enum Adt2 {
     C0,
     C1,
     C2,
-    C3,
-    C4,
-    C5,
-    C6,
-    C7,
-    C8,
 }
 
 #[derive(Clone)]
 pub enum Adt3 {
-    C0,
-    C1,
-    C2,
-    C3,
-    C4,
-    C5,
-    C6,
-    C7,
-}
-
-#[derive(Clone)]
-pub enum Adt4 {
-    C0,
-    C1,
-    C2,
-    C3,
-    C4,
-}
-
-#[derive(Clone)]
-pub enum Adt5 {
-    C0,
-    C1,
-}
-
-#[derive(Clone)]
-pub enum Adt6 {
-    C0,
-    C1,
-    C2,
-}
-
-#[derive(Clone)]
-pub enum Adt7 {
-    C0,
-    C1(u64, Adt1, std::rc::Rc<Adt7>),
-}
-
-#[derive(Clone)]
-pub enum Adt8 {
-    C0(Bytes, Option<Adt3>),
-}
-
-#[derive(Clone)]
-pub enum Adt9 {
-    C0,
-    C1(u64, List<Adt10>, bool, std::rc::Rc<Adt9>),
-}
-
-#[derive(Clone)]
-pub enum Adt10 {
-    C0,
-    C1,
-    C2,
-    C3,
-}
-
-#[derive(Clone)]
-pub enum Adt11 {
     C0(u64),
     C1(u64),
     C2(u64),
@@ -962,28 +895,114 @@ pub enum Adt11 {
 }
 
 #[derive(Clone)]
-pub enum Adt12 {
+pub enum Adt4 {
     C0,
-    C1(Adt13, Adt1, std::rc::Rc<Adt12>),
+    C1,
+    C2,
+}
+
+#[derive(Clone)]
+pub enum Adt5 {
+    C0,
+    C1,
+    C2,
+}
+
+#[derive(Clone)]
+pub enum Adt6 {
+    C0(Adt7),
+    C1(Adt8),
+    C2(Adt9, std::rc::Rc<Adt6>),
+    C3(Adt10, std::rc::Rc<Adt6>, std::rc::Rc<Adt6>),
+    C4(Adt11, u64),
+    C5,
+    C6(std::rc::Rc<Adt6>, std::rc::Rc<Adt6>),
+}
+
+#[derive(Clone)]
+pub enum Adt7 {
+    C0,
+    C1,
+    C2,
+    C3,
+    C4,
+    C5,
+    C6,
+    C7,
+    C8,
+}
+
+#[derive(Clone)]
+pub enum Adt8 {
+    C0,
+    C1,
+    C2,
+    C3,
+    C4,
+    C5,
+    C6,
+    C7,
+}
+
+#[derive(Clone)]
+pub enum Adt9 {
+    C0,
+    C1,
+    C2,
+    C3,
+    C4,
+}
+
+#[derive(Clone)]
+pub enum Adt10 {
+    C0,
+    C1,
+}
+
+#[derive(Clone)]
+pub enum Adt11 {
+    C0,
+    C1,
+    C2,
+}
+
+#[derive(Clone)]
+pub enum Adt12 {
+    C0(Adt13, Adt14),
+    C1(Adt15, Adt3, Adt14),
+    C2(Adt16, std::rc::Rc<Adt12>, Adt14),
+    C3(Adt17, std::rc::Rc<Adt12>, bool, Adt14),
+    C4(Adt3, std::rc::Rc<Adt12>, bool, Adt14),
+    C5(Adt19, std::rc::Rc<Adt12>, Adt14),
+    C6(std::rc::Rc<Adt12>, std::rc::Rc<Adt12>, Adt14),
+    C7(std::rc::Rc<Adt12>, std::rc::Rc<Adt12>, std::rc::Rc<Adt12>, Adt14),
+    C8(std::rc::Rc<Adt12>, std::rc::Rc<Adt12>, Adt14),
+    C9(std::rc::Rc<Adt12>),
+    C10(Adt20, Adt3, Adt14),
+    C11(std::rc::Rc<Adt12>, std::rc::Rc<Adt12>),
+    C12,
+    C13(std::rc::Rc<Adt12>, std::rc::Rc<Adt12>),
+    C14(Adt1, bool, Adt6, std::rc::Rc<Adt12>, Adt14, std::rc::Rc<Adt12>),
+    C15(Adt1, std::rc::Rc<Adt12>, std::rc::Rc<Adt12>),
+    C16(Adt3, std::rc::Rc<Adt12>),
 }
 
 #[derive(Clone)]
 pub enum Adt13 {
-    C0(Adt14),
-    C1(Adt11),
-    C2(std::rc::Rc<Adt13>),
-    C3(Adt15, std::rc::Rc<Adt13>),
-    C4(u64, u64, std::rc::Rc<Adt13>),
-    C5,
-    C6(std::rc::Rc<Adt13>, std::rc::Rc<Adt13>),
-    C7(Adt16),
+    C0,
+    C1(bool),
+    C2(u64),
+    C3(bool, u64),
+    C4(Adt8, bool, u64),
+    C5(Bytes),
+    C6(Bytes),
+    C7(Adt5),
+    C8,
 }
 
 #[derive(Clone)]
 pub enum Adt14 {
-    C0,
-    C1,
-    C2,
+    C0(Bytes, Option<Adt8>),
 }
 
 #[derive(Clone)]
@@ -991,6 +1010,8 @@ pub enum Adt15 {
     C0,
     C1,
     C2,
+    C3,
+    C4,
 }
 
 #[derive(Clone)]
@@ -998,49 +1019,31 @@ pub enum Adt16 {
     C0,
     C1,
     C2,
+    C3,
 }
 
 #[derive(Clone)]
 pub enum Adt17 {
-    C0(Adt18, Adt8),
-    C1(Adt19, Adt11, Adt8),
-    C2(Adt20, std::rc::Rc<Adt17>, Adt8),
-    C3(Adt21, std::rc::Rc<Adt17>, bool, Adt8),
-    C4(Adt11, std::rc::Rc<Adt17>, bool, Adt8),
-    C5(Adt23, std::rc::Rc<Adt17>, Adt8),
-    C6(std::rc::Rc<Adt17>, std::rc::Rc<Adt17>, Adt8),
-    C7(std::rc::Rc<Adt17>, std::rc::Rc<Adt17>, std::rc::Rc<Adt17>, Adt8),
-    C8(std::rc::Rc<Adt17>, std::rc::Rc<Adt17>, Adt8),
-    C9(std::rc::Rc<Adt17>),
-    C10(Adt24, Adt11, Adt8),
-    C11(std::rc::Rc<Adt17>, std::rc::Rc<Adt17>),
-    C12,
-    C13(std::rc::Rc<Adt17>, std::rc::Rc<Adt17>),
-    C14(Adt13, bool, Adt1, std::rc::Rc<Adt17>, Adt8, std::rc::Rc<Adt17>),
-    C15(Adt13, std::rc::Rc<Adt17>, std::rc::Rc<Adt17>),
-    C16(Adt11, std::rc::Rc<Adt17>),
+    C0(u64),
+    C1(Adt18),
+    C2(u64, Option<Adt8>),
 }
 
 #[derive(Clone)]
 pub enum Adt18 {
-    C0,
-    C1(bool),
-    C2(u64),
-    C3(bool, u64),
-    C4(Adt3, bool, u64),
-    C5(Bytes),
-    C6(Bytes),
-    C7(Adt16),
-    C8,
+    C0(u64, Option<Adt8>),
 }
 
 #[derive(Clone)]
 pub enum Adt19 {
-    C0,
+    C0(Adt6),
     C1,
-    C2,
-    C3,
-    C4,
+    C2(Adt6, Adt6),
+    C3(Adt6, Adt6),
+    C4(u64, u64),
+    C5(u64, u64),
+    C6,
+    C7(Adt6),
 }
 
 #[derive(Clone)]
@@ -1053,1171 +1056,1598 @@ pub enum Adt20 {
 
 #[derive(Clone)]
 pub enum Adt21 {
-    C0(u64),
-    C1(Adt22),
-    C2(u64, Option<Adt3>),
+    C0(bool, Adt0, Adt12, u64),
 }
 
 #[derive(Clone)]
 pub enum Adt22 {
-    C0(u64, Option<Adt3>),
+    C0(bool, Adt12),
 }
 
 #[derive(Clone)]
 pub enum Adt23 {
-    C0(Adt1),
-    C1,
-    C2(Adt1, Adt1),
-    C3(Adt1, Adt1),
-    C4(u64, u64),
-    C5(u64, u64),
-    C6,
-    C7(Adt1),
+    C0(bool, u64, Adt6, Adt1, Adt12, Adt0),
 }
 
 #[derive(Clone)]
 pub enum Adt24 {
-    C0,
-    C1,
-    C2,
-    C3,
+    C0(u64, Adt0, Adt12, Adt6, Adt6),
 }
 
-#[derive(Clone)]
-pub enum Adt25 {
-    C0(u64, List<(u64, u64)>),
-}
-
-pub fn f0(v0: Adt0) -> R<Adt0> {
-    f1(v0)
-}
-
-pub fn f1(v0: Adt0) -> R<Adt0> {
-    let m1 = v0;
-    match m1 {
-        Adt0::C0(v1, v2, v3) => {
-            Ok(Adt0::C0(v1, v2, v3))
+pub fn f0(v0: u64, v1: Adt0, v2: Adt6, v3: Adt12, v4: u64) -> R<Adt21> {
+    let v5: Adt22 = f1(v3.clone(), v3.clone(), v0, 1u64);
+    let a2 = match v5.clone() {
+        Adt22::C0(h1, _) => {
+            h1
         }
-        Adt0::C1(v4, v5, v6, v7, v8, v9) => {
-            Ok(Adt0::C1(v4, v5, v6, v7, v8, v9))
-        }
-        Adt0::C2(v10, v11, v12, v13, v14) => {
-            Ok(Adt0::C2(v10, v11, v12, f2(v13, List::<(Adt11, Adt25)>::nil())?, v14))
-        }
-        Adt0::C3 => {
-            Ok(Adt0::C3)
-        }
-        Adt0::C4(r2, r3) => {
-            let v15 = (*r2).clone();
-            let v16 = (*r3).clone();
-            Ok(Adt0::C4(std::rc::Rc::new(f1(v15)?), std::rc::Rc::new(f1(v16)?)))
-        }
-    }
-}
-
-pub fn f2(v0: Adt17, v1: List<(Adt11, Adt25)>) -> R<Adt17> {
-    let m4 = v0;
-    match m4 {
-        Adt17::C0(v2, v3) => {
-            Ok(Adt17::C0(v2, v3))
-        }
-        Adt17::C1(v4, v5, v6) => {
-            if f3(v4.clone()) {
-                if f4(v1, v5.clone()) {
-                    Ok(Adt17::C1(Adt19::C0, v5, v6))
-                } else {
-                    Ok(Adt17::C1(v4, v5, v6))
-                }
-            } else {
-                Ok(Adt17::C1(v4, v5, v6))
+    };
+    if if bool_not(a2) {
+        true
+    } else {
+        f2(match v5.clone() {
+            Adt22::C0(_, h3) => {
+                h3
             }
-        }
-        Adt17::C2(v7, r13, v9) => {
-            let v8 = (*r13).clone();
-            Ok(Adt17::C2(v7, std::rc::Rc::new(f2(v8, v1)?), v9))
-        }
-        Adt17::C3(v10, r14, v12, v13) => {
-            let v11 = (*r14).clone();
-            Ok(Adt17::C3(v10, std::rc::Rc::new(f2(v11, v1)?), v12, v13))
-        }
-        Adt17::C4(v14, r15, v16, v17) => {
-            let v15 = (*r15).clone();
-            let v18: List<(Adt11, Adt25)> = f5(v1, v14.clone())?;
-            Ok(Adt17::C4(v14, std::rc::Rc::new(f2(v15, v18)?), v16, v17))
-        }
-        Adt17::C5(v19, r16, v21) => {
-            let v20 = (*r16).clone();
-            Ok(Adt17::C5(v19, std::rc::Rc::new(f2(v20, v1)?), v21))
-        }
-        Adt17::C6(r17, r18, v24) => {
-            let v22 = (*r17).clone();
-            let v23 = (*r18).clone();
-            let v25: List<(Adt11, Adt25)> = f6(v23.clone(), v1.clone(), 0u64)?;
-            Ok(Adt17::C6(std::rc::Rc::new(f2(v22, v25)?), std::rc::Rc::new(f2(v23, v1)?), v24))
-        }
-        Adt17::C7(r19, r20, r21, v29) => {
-            let v26 = (*r19).clone();
-            let v27 = (*r20).clone();
-            let v28 = (*r21).clone();
-            let v30: List<(Adt11, Adt25)> = f6(v27.clone(), v1.clone(), 0u64)?;
-            let v31: List<(Adt11, Adt25)> = f6(v28.clone(), v1.clone(), 0u64)?;
-            Ok(Adt17::C7(std::rc::Rc::new(f2(v26, f7(v30, v31))?), std::rc::Rc::new(f2(v27, v1.clone())?), std::rc::Rc::new(f2(v28, v1)?), v29))
-        }
-        Adt17::C8(r22, r23, v34) => {
-            let v32 = (*r22).clone();
-            let v33 = (*r23).clone();
-            let v35: List<(Adt11, Adt25)> = if f8(v33.clone()) {
-                v1.clone()
-            } else {
-                f6(v33.clone(), v1.clone(), 1u64)?
-            };
-            Ok(Adt17::C8(std::rc::Rc::new(f2(v32, v35)?), std::rc::Rc::new(f2(v33, v1)?), v34))
-        }
-        Adt17::C9(r24) => {
-            let v36 = (*r24).clone();
-            Ok(Adt17::C9(std::rc::Rc::new(f2(v36, v1)?)))
-        }
-        Adt17::C10(v37, v38, v39) => {
-            Ok(Adt17::C10(v37, v38, v39))
-        }
-        Adt17::C11(r25, r26) => {
-            let v40 = (*r25).clone();
-            let v41 = (*r26).clone();
-            let v42: List<(Adt11, Adt25)> = f6(v41.clone(), v1.clone(), 0u64)?;
-            Ok(Adt17::C11(std::rc::Rc::new(f2(v40, v42)?), std::rc::Rc::new(f2(v41, v1)?)))
-        }
-        Adt17::C12 => {
-            Ok(Adt17::C12)
-        }
-        Adt17::C13(r27, r28) => {
-            let v43 = (*r27).clone();
-            let v44 = (*r28).clone();
-            let v45: List<(Adt11, Adt25)> = f6(v44.clone(), v1.clone(), 0u64)?;
-            Ok(Adt17::C13(std::rc::Rc::new(f2(v43, v45)?), std::rc::Rc::new(f2(v44, v1)?)))
-        }
-        Adt17::C14(v46, v47, v48, r29, v50, r30) => {
-            let v49 = (*r29).clone();
-            let v51 = (*r30).clone();
-            let v52: List<(Adt11, Adt25)> = f6(v51.clone(), v1.clone(), 0u64)?;
-            let v53: List<(Adt11, Adt25)> = f9(v46.clone(), v52);
-            Ok(Adt17::C14(v46.clone(), v47, v48, std::rc::Rc::new({
-                let m5 = f10(v46, v49.clone())?;
-                match m5 {
-                    None => {
-                        f2(v49, v53)?
-                    }
-                    Some(v54) => {
-                        if f11(v53, {
-                            let (h6, _) = {
-                                let (_, h7) = v54.clone();
-                                h7
-                            };
-                            h6
-                        }, {
-                            let (h8, _) = v54.clone();
-                            h8
-                        }) {
-                            Adt17::C1(Adt19::C0, {
-                                let (h9, _) = {
-                                    let (_, h10) = v54.clone();
-                                    h10
-                                };
-                                h9
-                            }, {
-                                let (_, h11) = {
-                                    let (_, h12) = v54;
-                                    h12
-                                };
-                                h11
-                            })
-                        } else {
-                            v49
-                        }
-                    }
-                }
-            }), v50, std::rc::Rc::new(f2(v51, v1)?)))
-        }
-        Adt17::C15(v55, r31, r32) => {
-            let v56 = (*r31).clone();
-            let v57 = (*r32).clone();
-            Ok(Adt17::C15(v55, std::rc::Rc::new(f2(v56, v1.clone())?), std::rc::Rc::new(f2(v57, v1)?)))
-        }
-        Adt17::C16(v58, r33) => {
-            let v59 = (*r33).clone();
-            let v60: List<(Adt11, Adt25)> = f6(v59.clone(), List::<(Adt11, Adt25)>::nil(), 0u64)?;
-            let v61: List<(Adt11, Adt25)> = f12(v60, v58.clone());
-            let v62: List<(Adt11, Adt25)> = f12(f7(v1, v61), v58.clone());
-            Ok(Adt17::C16(v58, std::rc::Rc::new(f2(v59, v62)?)))
-        }
-    }
-}
-
-pub fn f3(v0: Adt19) -> bool {
-    let m34 = v0;
-    match m34 {
-        Adt19::C0 => {
-            false
-        }
-        Adt19::C1 => {
-            true
-        }
-        Adt19::C2 => {
-            false
-        }
-        Adt19::C3 => {
-            false
-        }
-        Adt19::C4 => {
-            false
-        }
-    }
-}
-
-pub fn f4(v0: List<(Adt11, Adt25)>, v1: Adt11) -> bool {
-    let m35 = f13(v0, v1);
-    match m35 {
-        None => {
-            true
-        }
-        Some(v2) => {
-            let a37 = match v2.clone() {
-                Adt25::C0(h36, _) => {
-                    h36
-                }
-            };
-            let a38 = 0u64;
-            if nat_eq(a37, a38) {
-                let a41 = {
-                    let a40 = match v2 {
-                        Adt25::C0(_, h39) => {
-                            h39
-                        }
-                    };
-                    length_list(a40)
-                };
-                let a42 = 0u64;
-                nat_eq(a41, a42)
-            } else {
-                false
+        })
+    } {
+        Ok(Adt21::C0(false, v1, v3, v4))
+    } else {
+        let v6: Adt23 = f3(v1.clone(), match v5.clone() {
+            Adt22::C0(_, h4) => {
+                h4
             }
-        }
-    }
-}
-
-pub fn f5(v0: List<(Adt11, Adt25)>, v1: Adt11) -> R<List<(Adt11, Adt25)>> {
-    let v2: Adt25 = f14(v0.clone(), v1.clone());
-    Ok(f15(v0, v1, Adt25::C0({
-        let a44 = match v2.clone() {
-            Adt25::C0(h43, _) => {
-                h43
+        }, 0u64, v4, 0u64)?;
+        let a6 = match v6.clone() {
+            Adt23::C0(h5, _, _, _, _, _) => {
+                h5
             }
         };
-        let a45 = 1u64;
-        nat_add(a44, a45)?
-    }, match v2 {
-        Adt25::C0(_, h46) => {
-            h46
+        if if bool_not(a6) {
+            true
+        } else {
+            let a8 = match v6.clone() {
+                Adt23::C0(_, h7, _, _, _, _) => {
+                    h7
+                }
+            };
+            let a9 = 0u64;
+            nat_eq(a8, a9)
+        } {
+            Ok(Adt21::C0(false, v1, v3, v4))
+        } else {
+            let v7: Adt12 = f4(v3.clone(), v3, Adt24::C0(v0, v1, match v5 {
+                Adt22::C0(_, h10) => {
+                    h10
+                }
+            }, match v6.clone() {
+                Adt23::C0(_, _, h11, _, _, _) => {
+                    h11
+                }
+            }, v2), 1u64)?;
+            Ok(Adt21::C0(true, match v6.clone() {
+                Adt23::C0(_, _, _, _, _, h12) => {
+                    h12
+                }
+            }, Adt12::C11(std::rc::Rc::new(Adt12::C14(Adt1::C1(Adt3::C1({
+                let a13 = v4;
+                let a14 = 1u64;
+                nat_add(a13, a14)?
+            })), false, f5(0u64), std::rc::Rc::new(match v6.clone() {
+                Adt23::C0(_, _, _, _, h15, _) => {
+                    h15
+                }
+            }), f6(0u64), std::rc::Rc::new(Adt12::C12))), std::rc::Rc::new(Adt12::C16(Adt3::C1({
+                let a16 = v4;
+                let a17 = 1u64;
+                nat_add(a16, a17)?
+            }), std::rc::Rc::new(Adt12::C11(std::rc::Rc::new(Adt12::C14(match v6.clone() {
+                Adt23::C0(_, _, _, h18, _, _) => {
+                    h18
+                }
+            }, false, f5(0u64), std::rc::Rc::new(Adt12::C1(Adt15::C0, Adt3::C1({
+                let a19 = v4;
+                let a20 = 1u64;
+                nat_add(a19, a20)?
+            }), f6(0u64))), f6(0u64), std::rc::Rc::new(f7(v7.clone())))), std::rc::Rc::new(f8(v7))))))), {
+                let a24 = {
+                    let a21 = v4;
+                    let a22 = 1u64;
+                    nat_add(a21, a22)?
+                };
+                let a25 = match v6 {
+                    Adt23::C0(_, h23, _, _, _, _) => {
+                        h23
+                    }
+                };
+                nat_add(a24, a25)?
+            }))
         }
-    })))
+    }
 }
 
-pub fn f6(v0: Adt17, v1: List<(Adt11, Adt25)>, v2: u64) -> R<List<(Adt11, Adt25)>> {
-    let m47 = v0;
-    match m47 {
-        Adt17::C0(_, _) => {
-            Ok(v1)
-        }
-        Adt17::C1(_, v6, _) => {
-            f5(v1, v6)
-        }
-        Adt17::C2(_, r54, _) => {
-            let v9 = (*r54).clone();
-            f6(v9, v1, 0u64)
-        }
-        Adt17::C3(_, r55, _, _) => {
-            let v12 = (*r55).clone();
-            f6(v12, v1, 0u64)
-        }
-        Adt17::C4(v15, r56, _, _) => {
-            let v16 = (*r56).clone();
-            let v19: List<(Adt11, Adt25)> = f5(v1, v15)?;
-            f6(v16, v19, 0u64)
-        }
-        Adt17::C5(_, r57, _) => {
-            let v21 = (*r57).clone();
-            f6(v21, v1, 0u64)
-        }
-        Adt17::C6(r58, r59, _) => {
-            let v23 = (*r58).clone();
-            let v24 = (*r59).clone();
-            let v26: List<(Adt11, Adt25)> = f6(v24, v1, 0u64)?;
-            f6(v23, v26, 0u64)
-        }
-        Adt17::C7(r60, r61, r62, _) => {
-            let v27 = (*r60).clone();
-            let v28 = (*r61).clone();
-            let v29 = (*r62).clone();
-            let v31: List<(Adt11, Adt25)> = f6(v28, v1.clone(), 0u64)?;
-            let v32: List<(Adt11, Adt25)> = f6(v29, v1, 0u64)?;
-            f6(v27, f7(v31, v32), 0u64)
-        }
-        Adt17::C8(r63, r64, _) => {
-            let v33 = (*r63).clone();
-            let v34 = (*r64).clone();
-            let v36: List<(Adt11, Adt25)> = if f8(v34.clone()) {
-                v1
+pub fn f1(v0: Adt12, v1: Adt12, v2: u64, v3: u64) -> Adt22 {
+    let m26 = v0;
+    match m26 {
+        Adt12::C0(_, _) => {
+            let a27 = v3;
+            let a28 = 0u64;
+            if nat_eq(a27, a28) {
+                if f9(v1, v2) {
+                    Adt22::C0(false, Adt12::C12)
+                } else {
+                    Adt22::C0(true, Adt12::C12)
+                }
             } else {
-                f6(v34, v1, 1u64)?
-            };
-            f6(v33, v36, 0u64)
+                Adt22::C0(false, Adt12::C12)
+            }
         }
-        Adt17::C9(r65) => {
-            let v37 = (*r65).clone();
-            f6(v37, v1, 0u64)
+        Adt12::C1(_, _, _) => {
+            let a29 = v3;
+            let a30 = 0u64;
+            if nat_eq(a29, a30) {
+                if f9(v1, v2) {
+                    Adt22::C0(false, Adt12::C12)
+                } else {
+                    Adt22::C0(true, Adt12::C12)
+                }
+            } else {
+                Adt22::C0(false, Adt12::C12)
+            }
         }
-        Adt17::C10(_, v39, _) => {
-            f5(v1, v39)
+        Adt12::C2(_, _, _) => {
+            let a31 = v3;
+            let a32 = 0u64;
+            if nat_eq(a31, a32) {
+                if f9(v1, v2) {
+                    Adt22::C0(false, Adt12::C12)
+                } else {
+                    Adt22::C0(true, Adt12::C12)
+                }
+            } else {
+                Adt22::C0(false, Adt12::C12)
+            }
         }
-        Adt17::C11(r66, r67) => {
-            let v41 = (*r66).clone();
-            let v42 = (*r67).clone();
-            let v43: List<(Adt11, Adt25)> = f6(v42, v1, 0u64)?;
-            f6(v41, v43, 0u64)
+        Adt12::C3(v12, r65, _, _) => {
+            let v13 = (*r65).clone();
+            let m33 = v12;
+            match m33 {
+                Adt17::C0(v16) => {
+                    let a34 = v16;
+                    let a35 = v2;
+                    if nat_eq(a34, a35) {
+                        if f9(v13.clone(), v2) {
+                            Adt22::C0(false, Adt12::C12)
+                        } else {
+                            Adt22::C0(true, Adt12::C13(std::rc::Rc::new(v13), std::rc::Rc::new(Adt12::C12)))
+                        }
+                    } else {
+                        if f9(v1, v2) {
+                            Adt22::C0(false, Adt12::C12)
+                        } else {
+                            Adt22::C0(true, Adt12::C12)
+                        }
+                    }
+                }
+                Adt17::C1(_) => {
+                    if f9(v1, v2) {
+                        Adt22::C0(false, Adt12::C12)
+                    } else {
+                        Adt22::C0(true, Adt12::C12)
+                    }
+                }
+                Adt17::C2(_, _) => {
+                    if f9(v1, v2) {
+                        Adt22::C0(false, Adt12::C12)
+                    } else {
+                        Adt22::C0(true, Adt12::C12)
+                    }
+                }
+            }
         }
-        Adt17::C12 => {
-            let a48 = v2;
-            let a49 = 1u64;
+        Adt12::C4(_, _, _, _) => {
+            let a36 = v3;
+            let a37 = 0u64;
+            if nat_eq(a36, a37) {
+                if f9(v1, v2) {
+                    Adt22::C0(false, Adt12::C12)
+                } else {
+                    Adt22::C0(true, Adt12::C12)
+                }
+            } else {
+                Adt22::C0(false, Adt12::C12)
+            }
+        }
+        Adt12::C5(_, _, _) => {
+            let a38 = v3;
+            let a39 = 0u64;
+            if nat_eq(a38, a39) {
+                if f9(v1, v2) {
+                    Adt22::C0(false, Adt12::C12)
+                } else {
+                    Adt22::C0(true, Adt12::C12)
+                }
+            } else {
+                Adt22::C0(false, Adt12::C12)
+            }
+        }
+        Adt12::C6(_, _, _) => {
+            let a40 = v3;
+            let a41 = 0u64;
+            if nat_eq(a40, a41) {
+                if f9(v1, v2) {
+                    Adt22::C0(false, Adt12::C12)
+                } else {
+                    Adt22::C0(true, Adt12::C12)
+                }
+            } else {
+                Adt22::C0(false, Adt12::C12)
+            }
+        }
+        Adt12::C7(_, r66, r67, _) => {
+            let v31 = (*r66).clone();
+            let v32 = (*r67).clone();
+            let v34: Adt22 = f1(v31.clone(), v31, v2, 1u64);
+            let v35: Adt22 = f1(v32.clone(), v32, v2, 1u64);
+            Adt22::C0(if match v34.clone() {
+                Adt22::C0(h42, _) => {
+                    h42
+                }
+            } {
+                match v35.clone() {
+                    Adt22::C0(h43, _) => {
+                        h43
+                    }
+                }
+            } else {
+                false
+            }, f10(match v34 {
+                Adt22::C0(_, h44) => {
+                    h44
+                }
+            }, match v35 {
+                Adt22::C0(_, h45) => {
+                    h45
+                }
+            }))
+        }
+        Adt12::C8(_, r68, _) => {
+            let v37 = (*r68).clone();
+            let v39: Adt22 = f1(v37.clone(), v37, v2, 2u64);
+            Adt22::C0(match v39.clone() {
+                Adt22::C0(h46, _) => {
+                    h46
+                }
+            }, match v39 {
+                Adt22::C0(_, h47) => {
+                    h47
+                }
+            })
+        }
+        Adt12::C9(_) => {
+            let a48 = v3;
+            let a49 = 0u64;
             if nat_eq(a48, a49) {
-                Ok(List::<(Adt11, Adt25)>::nil())
+                if f9(v1, v2) {
+                    Adt22::C0(false, Adt12::C12)
+                } else {
+                    Adt22::C0(true, Adt12::C12)
+                }
+            } else {
+                Adt22::C0(false, Adt12::C12)
+            }
+        }
+        Adt12::C10(_, _, _) => {
+            let a50 = v3;
+            let a51 = 0u64;
+            if nat_eq(a50, a51) {
+                if f9(v1, v2) {
+                    Adt22::C0(false, Adt12::C12)
+                } else {
+                    Adt22::C0(true, Adt12::C12)
+                }
+            } else {
+                Adt22::C0(false, Adt12::C12)
+            }
+        }
+        Adt12::C11(r69, r70) => {
+            let v44 = (*r69).clone();
+            let v45 = (*r70).clone();
+            let v46: Adt22 = f1(v45.clone(), v45, v2, 0u64);
+            Adt22::C0({
+                let a52 = f9(v44, v2);
+                if bool_not(a52) {
+                    match v46.clone() {
+                        Adt22::C0(h53, _) => {
+                            h53
+                        }
+                    }
+                } else {
+                    false
+                }
+            }, match v46 {
+                Adt22::C0(_, h54) => {
+                    h54
+                }
+            })
+        }
+        Adt12::C12 => {
+            Adt22::C0(true, Adt12::C12)
+        }
+        Adt12::C13(_, _) => {
+            let a55 = v3;
+            let a56 = 0u64;
+            if nat_eq(a55, a56) {
+                if f9(v1, v2) {
+                    Adt22::C0(false, Adt12::C12)
+                } else {
+                    Adt22::C0(true, Adt12::C12)
+                }
+            } else {
+                Adt22::C0(false, Adt12::C12)
+            }
+        }
+        Adt12::C14(_, _, _, _, _, _) => {
+            let a57 = v3;
+            let a58 = 0u64;
+            if nat_eq(a57, a58) {
+                if f9(v1, v2) {
+                    Adt22::C0(false, Adt12::C12)
+                } else {
+                    Adt22::C0(true, Adt12::C12)
+                }
+            } else {
+                Adt22::C0(false, Adt12::C12)
+            }
+        }
+        Adt12::C15(_, r71, r72) => {
+            let v56 = (*r71).clone();
+            let v57 = (*r72).clone();
+            let v58: Adt22 = f1(v56.clone(), v56, v2, 1u64);
+            let v59: Adt22 = f1(v57.clone(), v57, v2, 2u64);
+            Adt22::C0(if match v58.clone() {
+                Adt22::C0(h59, _) => {
+                    h59
+                }
+            } {
+                match v59.clone() {
+                    Adt22::C0(h60, _) => {
+                        h60
+                    }
+                }
+            } else {
+                false
+            }, f10(match v58 {
+                Adt22::C0(_, h61) => {
+                    h61
+                }
+            }, match v59 {
+                Adt22::C0(_, h62) => {
+                    h62
+                }
+            }))
+        }
+        Adt12::C16(_, _) => {
+            let a63 = v3;
+            let a64 = 0u64;
+            if nat_eq(a63, a64) {
+                if f9(v1, v2) {
+                    Adt22::C0(false, Adt12::C12)
+                } else {
+                    Adt22::C0(true, Adt12::C12)
+                }
+            } else {
+                Adt22::C0(false, Adt12::C12)
+            }
+        }
+    }
+}
+
+pub fn f2(v0: Adt12) -> bool {
+    let m73 = v0;
+    match m73 {
+        Adt12::C0(_, _) => {
+            false
+        }
+        Adt12::C1(_, _, _) => {
+            false
+        }
+        Adt12::C2(_, _, _) => {
+            false
+        }
+        Adt12::C3(_, _, _, _) => {
+            false
+        }
+        Adt12::C4(_, _, _, _) => {
+            false
+        }
+        Adt12::C5(_, _, _) => {
+            false
+        }
+        Adt12::C6(_, _, _) => {
+            false
+        }
+        Adt12::C7(_, _, _, _) => {
+            false
+        }
+        Adt12::C8(_, _, _) => {
+            false
+        }
+        Adt12::C9(_) => {
+            false
+        }
+        Adt12::C10(_, _, _) => {
+            false
+        }
+        Adt12::C11(_, _) => {
+            false
+        }
+        Adt12::C12 => {
+            true
+        }
+        Adt12::C13(_, _) => {
+            false
+        }
+        Adt12::C14(_, _, _, _, _, _) => {
+            false
+        }
+        Adt12::C15(_, _, _) => {
+            false
+        }
+        Adt12::C16(_, _) => {
+            false
+        }
+    }
+}
+
+pub fn f3(v0: Adt0, v1: Adt12, v2: u64, v3: u64, v4: u64) -> R<Adt23> {
+    let m74 = v0;
+    match m74 {
+        Adt0::C0 => {
+            Ok(Adt23::C0(true, 0u64, Adt6::C5, Adt1::C5, Adt12::C12, Adt0::C0))
+        }
+        Adt0::C1(v5, v6, r83) => {
+            let v7 = (*r83).clone();
+            let v8: bool = f11(v5.clone(), v1.clone(), v2);
+            f12(v5.clone(), v5, v6, f3(v7, v1, {
+                let a75 = v2;
+                let a76 = 1u64;
+                nat_add(a75, a76)?
+            }, v3, if v8 {
+                let a77 = v4;
+                let a78 = 1u64;
+                nat_add(a77, a78)?
+            } else {
+                v4
+            })?, v8, {
+                let a81 = v3;
+                let a82 = {
+                    let a79 = 2u64;
+                    let a80 = v4;
+                    nat_add(a79, a80)?
+                };
+                nat_add(a81, a82)?
+            })
+        }
+    }
+}
+
+pub fn f4(v0: Adt12, v1: Adt12, v2: Adt24, v3: u64) -> R<Adt12> {
+    let m84 = v0;
+    match m84 {
+        Adt12::C0(_, _) => {
+            let a85 = v3;
+            let a86 = 0u64;
+            if nat_eq(a85, a86) {
+                Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                    Adt24::C0(_, _, _, h87, _) => {
+                        h87
+                    }
+                }, match v2 {
+                    Adt24::C0(_, _, _, _, h88) => {
+                        h88
+                    }
+                }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
             } else {
                 Ok(v1)
             }
         }
-        Adt17::C13(r68, r69) => {
-            let v44 = (*r68).clone();
-            let v45 = (*r69).clone();
-            let v46: List<(Adt11, Adt25)> = f6(v45, v1, 0u64)?;
-            f6(v44, v46, 0u64)
-        }
-        Adt17::C14(v47, _, _, r70, _, r71) => {
-            let v50 = (*r70).clone();
-            let v52 = (*r71).clone();
-            let v53: List<(Adt11, Adt25)> = f6(v52, v1, 0u64)?;
-            let v54: List<(Adt11, Adt25)> = f9(v47.clone(), v53);
-            let m50 = f10(v47, v50.clone())?;
-            match m50 {
-                None => {
-                    f6(v50, v54, 0u64)
-                }
-                Some(v55) => {
-                    f16(v54, {
-                        let (h51, _) = {
-                            let (_, h52) = v55;
-                            h52
-                        };
-                        h51
-                    }, {
-                        let (h53, _) = v55;
-                        h53
-                    })
-                }
+        Adt12::C1(_, _, _) => {
+            let a89 = v3;
+            let a90 = 0u64;
+            if nat_eq(a89, a90) {
+                Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                    Adt24::C0(_, _, _, h91, _) => {
+                        h91
+                    }
+                }, match v2 {
+                    Adt24::C0(_, _, _, _, h92) => {
+                        h92
+                    }
+                }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
+            } else {
+                Ok(v1)
             }
         }
-        Adt17::C15(v56, r72, r73) => {
-            let v57 = (*r72).clone();
-            let v58 = (*r73).clone();
-            let v59: List<(Adt11, Adt25)> = f6(v57, v1.clone(), 0u64)?;
-            let v60: List<(Adt11, Adt25)> = f6(v58, v1, 1u64)?;
-            Ok(f7(f9(v56, v59), v60))
-        }
-        Adt17::C16(v61, r74) => {
-            let v62 = (*r74).clone();
-            let v63: List<(Adt11, Adt25)> = f6(v62.clone(), List::<(Adt11, Adt25)>::nil(), 0u64)?;
-            let v64: List<(Adt11, Adt25)> = f12(v63, v61.clone());
-            let v65: List<(Adt11, Adt25)> = f12(f7(v1, v64), v61.clone());
-            let v66: List<(Adt11, Adt25)> = f6(v62, v65, 0u64)?;
-            f5(v66, v61)
-        }
-    }
-}
-
-pub fn f7(p87: List<(Adt11, Adt25)>, p88: List<(Adt11, Adt25)>) -> List<(Adt11, Adt25)> {
-    let m86 = (p87, p88);
-    {
-        let mut m86 = m86;
-        loop {
-            let step = {
-                let (v0, v1) = m86;
-                let m75 = v1;
-                match m75.uncons() {
-                    None => {
-                        Err::<(List<(Adt11, Adt25)>, List<(Adt11, Adt25)>), List<(Adt11, Adt25)>>(v0)
+        Adt12::C2(_, _, _) => {
+            let a93 = v3;
+            let a94 = 0u64;
+            if nat_eq(a93, a94) {
+                Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                    Adt24::C0(_, _, _, h95, _) => {
+                        h95
                     }
-                    Some((v2, v3)) => {
-                        let v4: Adt25 = f14(v0.clone(), {
-                            let (h76, _) = v2.clone();
-                            h76
-                        });
-                        Ok::<(List<(Adt11, Adt25)>, List<(Adt11, Adt25)>), List<(Adt11, Adt25)>>((f15(v0, {
-                            let (h77, _) = v2.clone();
-                            h77
-                        }, Adt25::C0(f17(match v4.clone() {
-                            Adt25::C0(h78, _) => {
-                                h78
-                            }
-                        }, {
-                            let m81 = {
-                                let (_, h80) = v2.clone();
-                                h80
-                            };
-                            match m81 {
-                                Adt25::C0(h79, _) => {
-                                    h79
-                                }
-                            }
-                        }), f18(match v4 {
-                            Adt25::C0(_, h82) => {
-                                h82
-                            }
-                        }, {
-                            let m85 = {
-                                let (_, h84) = v2;
-                                h84
-                            };
-                            match m85 {
-                                Adt25::C0(_, h83) => {
-                                    h83
-                                }
-                            }
-                        }))), v3))
+                }, match v2 {
+                    Adt24::C0(_, _, _, _, h96) => {
+                        h96
                     }
-                }
-            };
-            match step {
-                Ok(next) => { m86 = next; }
-                Err(done) => break done,
+                }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
+            } else {
+                Ok(v1)
             }
         }
-    }
-}
-
-pub fn f8(v0: Adt17) -> bool {
-    let m89 = v0;
-    match m89 {
-        Adt17::C0(_, _) => {
-            false
-        }
-        Adt17::C1(_, _, _) => {
-            false
-        }
-        Adt17::C2(_, _, _) => {
-            false
-        }
-        Adt17::C3(_, _, _, _) => {
-            false
-        }
-        Adt17::C4(_, _, _, _) => {
-            false
-        }
-        Adt17::C5(_, _, _) => {
-            false
-        }
-        Adt17::C6(_, _, _) => {
-            false
-        }
-        Adt17::C7(_, _, _, _) => {
-            false
-        }
-        Adt17::C8(_, _, _) => {
-            false
-        }
-        Adt17::C9(_) => {
-            false
-        }
-        Adt17::C10(_, _, _) => {
-            false
-        }
-        Adt17::C11(_, _) => {
-            false
-        }
-        Adt17::C12 => {
-            true
-        }
-        Adt17::C13(_, _) => {
-            false
-        }
-        Adt17::C14(_, _, _, _, _, _) => {
-            false
-        }
-        Adt17::C15(_, _, _) => {
-            false
-        }
-        Adt17::C16(_, _) => {
-            false
-        }
-    }
-}
-
-pub fn f9(v0: Adt13, v1: List<(Adt11, Adt25)>) -> List<(Adt11, Adt25)> {
-    let m90 = v0;
-    match m90 {
-        Adt13::C0(_) => {
-            v1
-        }
-        Adt13::C1(v3) => {
-            f12(v1, v3)
-        }
-        Adt13::C2(r91) => {
-            let v4 = (*r91).clone();
-            f9(v4, v1)
-        }
-        Adt13::C3(_, r92) => {
-            let v6 = (*r92).clone();
-            f9(v6, v1)
-        }
-        Adt13::C4(_, _, r93) => {
-            let v9 = (*r93).clone();
-            f9(v9, v1)
-        }
-        Adt13::C5 => {
-            v1
-        }
-        Adt13::C6(r94, r95) => {
-            let v10 = (*r94).clone();
-            let v11 = (*r95).clone();
-            let v12: List<(Adt11, Adt25)> = f9(v10, v1);
-            f9(v11, v12)
-        }
-        Adt13::C7(_) => {
-            v1
-        }
-    }
-}
-
-pub fn f10(v0: Adt13, v1: Adt17) -> R<Option<(u64, (Adt11, Adt8))>> {
-    let m96 = v0;
-    match m96 {
-        Adt13::C0(_) => {
-            Ok(None::<(u64, (Adt11, Adt8))>)
-        }
-        Adt13::C1(_) => {
-            Ok(None::<(u64, (Adt11, Adt8))>)
-        }
-        Adt13::C2(r102) => {
-            let v4 = (*r102).clone();
-            let m97 = f19(v1);
+        Adt12::C3(v12, r153, _, v15) => {
+            let v13 = (*r153).clone();
+            let m97 = v12;
             match m97 {
-                None => {
-                    Ok(None::<(u64, (Adt11, Adt8))>)
-                }
-                Some(v5) => {
-                    let a98 = f20(v4.clone())?;
-                    let a99 = 1u64;
-                    if if nat_eq(a98, a99) {
-                        let a100 = 1u64;
-                        let a101 = f21(v4.clone())?;
-                        nat_lt(a100, a101)
+                Adt17::C0(v16) => {
+                    let a99 = v16;
+                    let a100 = match v2.clone() {
+                        Adt24::C0(h98, _, _, _, _) => {
+                            h98
+                        }
+                    };
+                    if nat_eq(a99, a100) {
+                        Ok(Adt12::C5(Adt19::C2(match v2.clone() {
+                            Adt24::C0(_, _, _, h101, _) => {
+                                h101
+                            }
+                        }, match v2.clone() {
+                            Adt24::C0(_, _, _, _, h102) => {
+                                h102
+                            }
+                        }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(f13(match v2.clone() {
+                            Adt24::C0(_, h103, _, _, _) => {
+                                h103
+                            }
+                        }, match v2 {
+                            Adt24::C0(_, _, h104, _, _) => {
+                                h104
+                            }
+                        }, v13, 0u64, v15.clone())?), std::rc::Rc::new(Adt12::C12))), v15))
                     } else {
-                        false
-                    } {
-                        Ok(Some((f22(v4, 0u64)?, v5)))
-                    } else {
-                        Ok(None::<(u64, (Adt11, Adt8))>)
+                        Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                            Adt24::C0(_, _, _, h105, _) => {
+                                h105
+                            }
+                        }, match v2 {
+                            Adt24::C0(_, _, _, _, h106) => {
+                                h106
+                            }
+                        }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
                     }
                 }
-            }
-        }
-        Adt13::C3(_, _) => {
-            Ok(None::<(u64, (Adt11, Adt8))>)
-        }
-        Adt13::C4(_, _, _) => {
-            Ok(None::<(u64, (Adt11, Adt8))>)
-        }
-        Adt13::C5 => {
-            Ok(None::<(u64, (Adt11, Adt8))>)
-        }
-        Adt13::C6(_, _) => {
-            Ok(None::<(u64, (Adt11, Adt8))>)
-        }
-        Adt13::C7(_) => {
-            Ok(None::<(u64, (Adt11, Adt8))>)
-        }
-    }
-}
-
-pub fn f11(v0: List<(Adt11, Adt25)>, v1: Adt11, v2: u64) -> bool {
-    let m103 = f13(v0, v1);
-    match m103 {
-        None => {
-            true
-        }
-        Some(v3) => {
-            let a105 = match v3.clone() {
-                Adt25::C0(h104, _) => {
-                    h104
+                Adt17::C1(_) => {
+                    Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                        Adt24::C0(_, _, _, h107, _) => {
+                            h107
+                        }
+                    }, match v2 {
+                        Adt24::C0(_, _, _, _, h108) => {
+                            h108
+                        }
+                    }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
                 }
-            };
-            let a106 = 0u64;
-            if nat_eq(a105, a106) {
-                let a108 = f23(match v3.clone() {
-                    Adt25::C0(_, h107) => {
-                        h107
-                    }
-                }, v2);
-                let a109 = 0u64;
-                if nat_eq(a108, a109) {
-                    f24(match v3 {
-                        Adt25::C0(_, h110) => {
+                Adt17::C2(_, _) => {
+                    Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                        Adt24::C0(_, _, _, h109, _) => {
+                            h109
+                        }
+                    }, match v2 {
+                        Adt24::C0(_, _, _, _, h110) => {
                             h110
                         }
-                    })
+                    }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
+                }
+            }
+        }
+        Adt12::C4(_, _, _, _) => {
+            let a111 = v3;
+            let a112 = 0u64;
+            if nat_eq(a111, a112) {
+                Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                    Adt24::C0(_, _, _, h113, _) => {
+                        h113
+                    }
+                }, match v2 {
+                    Adt24::C0(_, _, _, _, h114) => {
+                        h114
+                    }
+                }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
+            } else {
+                Ok(v1)
+            }
+        }
+        Adt12::C5(_, _, _) => {
+            let a115 = v3;
+            let a116 = 0u64;
+            if nat_eq(a115, a116) {
+                Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                    Adt24::C0(_, _, _, h117, _) => {
+                        h117
+                    }
+                }, match v2 {
+                    Adt24::C0(_, _, _, _, h118) => {
+                        h118
+                    }
+                }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
+            } else {
+                Ok(v1)
+            }
+        }
+        Adt12::C6(_, _, _) => {
+            let a119 = v3;
+            let a120 = 0u64;
+            if nat_eq(a119, a120) {
+                Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                    Adt24::C0(_, _, _, h121, _) => {
+                        h121
+                    }
+                }, match v2 {
+                    Adt24::C0(_, _, _, _, h122) => {
+                        h122
+                    }
+                }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
+            } else {
+                Ok(v1)
+            }
+        }
+        Adt12::C7(r154, r155, r156, v33) => {
+            let v30 = (*r154).clone();
+            let v31 = (*r155).clone();
+            let v32 = (*r156).clone();
+            Ok(Adt12::C7(std::rc::Rc::new(v30), std::rc::Rc::new(f4(v31.clone(), v31, v2.clone(), 1u64)?), std::rc::Rc::new(f4(v32.clone(), v32, v2, 1u64)?), v33))
+        }
+        Adt12::C8(r157, r158, v36) => {
+            let v34 = (*r157).clone();
+            let v35 = (*r158).clone();
+            Ok(Adt12::C8(std::rc::Rc::new(v34), std::rc::Rc::new(f4(v35.clone(), v35, v2, 2u64)?), v36))
+        }
+        Adt12::C9(_) => {
+            let a123 = v3;
+            let a124 = 0u64;
+            if nat_eq(a123, a124) {
+                Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                    Adt24::C0(_, _, _, h125, _) => {
+                        h125
+                    }
+                }, match v2 {
+                    Adt24::C0(_, _, _, _, h126) => {
+                        h126
+                    }
+                }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
+            } else {
+                Ok(v1)
+            }
+        }
+        Adt12::C10(_, _, _) => {
+            let a127 = v3;
+            let a128 = 0u64;
+            if nat_eq(a127, a128) {
+                Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                    Adt24::C0(_, _, _, h129, _) => {
+                        h129
+                    }
+                }, match v2 {
+                    Adt24::C0(_, _, _, _, h130) => {
+                        h130
+                    }
+                }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
+            } else {
+                Ok(v1)
+            }
+        }
+        Adt12::C11(r159, r160) => {
+            let v41 = (*r159).clone();
+            let v42 = (*r160).clone();
+            let a131 = v3;
+            let a132 = 1u64;
+            if nat_eq(a131, a132) {
+                Ok(Adt12::C11(std::rc::Rc::new(v41), std::rc::Rc::new(f4(v42.clone(), v42, v2, 0u64)?)))
+            } else {
+                Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                    Adt24::C0(_, _, _, h133, _) => {
+                        h133
+                    }
+                }, match v2 {
+                    Adt24::C0(_, _, _, _, h134) => {
+                        h134
+                    }
+                }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
+            }
+        }
+        Adt12::C12 => {
+            let a135 = v3;
+            let a136 = 0u64;
+            if nat_eq(a135, a136) {
+                Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                    Adt24::C0(_, _, _, h137, _) => {
+                        h137
+                    }
+                }, match v2 {
+                    Adt24::C0(_, _, _, _, h138) => {
+                        h138
+                    }
+                }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
+            } else {
+                Ok(v1)
+            }
+        }
+        Adt12::C13(_, _) => {
+            let a139 = v3;
+            let a140 = 0u64;
+            if nat_eq(a139, a140) {
+                Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                    Adt24::C0(_, _, _, h141, _) => {
+                        h141
+                    }
+                }, match v2 {
+                    Adt24::C0(_, _, _, _, h142) => {
+                        h142
+                    }
+                }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
+            } else {
+                Ok(v1)
+            }
+        }
+        Adt12::C14(_, _, _, _, _, _) => {
+            let a143 = v3;
+            let a144 = 0u64;
+            if nat_eq(a143, a144) {
+                Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                    Adt24::C0(_, _, _, h145, _) => {
+                        h145
+                    }
+                }, match v2 {
+                    Adt24::C0(_, _, _, _, h146) => {
+                        h146
+                    }
+                }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
+            } else {
+                Ok(v1)
+            }
+        }
+        Adt12::C15(v51, r161, r162) => {
+            let v52 = (*r161).clone();
+            let v53 = (*r162).clone();
+            let a147 = v3;
+            let a148 = 2u64;
+            if nat_eq(a147, a148) {
+                Ok(Adt12::C15(v51, std::rc::Rc::new(f4(v52.clone(), v52, v2.clone(), 1u64)?), std::rc::Rc::new(f4(v53.clone(), v53, v2, 2u64)?)))
+            } else {
+                Ok(v1)
+            }
+        }
+        Adt12::C16(_, _) => {
+            let a149 = v3;
+            let a150 = 0u64;
+            if nat_eq(a149, a150) {
+                Ok(Adt12::C5(Adt19::C3(match v2.clone() {
+                    Adt24::C0(_, _, _, h151, _) => {
+                        h151
+                    }
+                }, match v2 {
+                    Adt24::C0(_, _, _, _, h152) => {
+                        h152
+                    }
+                }), std::rc::Rc::new(Adt12::C13(std::rc::Rc::new(v1), std::rc::Rc::new(Adt12::C12))), f6(0u64)))
+            } else {
+                Ok(v1)
+            }
+        }
+    }
+}
+
+pub fn f5(_: u64) -> Adt6 {
+    Adt6::C0(Adt7::C0)
+}
+
+pub fn f6(_: u64) -> Adt14 {
+    Adt14::C0({
+        let a163 = Str::lit("expr:call");
+        utf8_encode(a163)
+    }, None::<Adt8>)
+}
+
+pub fn f7(v0: Adt12) -> Adt12 {
+    let m164 = v0;
+    match m164 {
+        Adt12::C0(_, _) => {
+            Adt12::C12
+        }
+        Adt12::C1(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C2(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C3(_, _, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C4(_, _, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C5(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C6(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C7(_, _, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C8(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C9(_) => {
+            Adt12::C12
+        }
+        Adt12::C10(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C11(r165, _) => {
+            (*r165).clone()
+        }
+        Adt12::C12 => {
+            Adt12::C12
+        }
+        Adt12::C13(_, _) => {
+            Adt12::C12
+        }
+        Adt12::C14(_, _, _, _, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C15(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C16(_, _) => {
+            Adt12::C12
+        }
+    }
+}
+
+pub fn f8(v0: Adt12) -> Adt12 {
+    let m166 = v0;
+    match m166 {
+        Adt12::C0(_, _) => {
+            Adt12::C12
+        }
+        Adt12::C1(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C2(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C3(_, _, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C4(_, _, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C5(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C6(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C7(_, _, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C8(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C9(_) => {
+            Adt12::C12
+        }
+        Adt12::C10(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C11(_, r167) => {
+            (*r167).clone()
+        }
+        Adt12::C12 => {
+            Adt12::C12
+        }
+        Adt12::C13(_, _) => {
+            Adt12::C12
+        }
+        Adt12::C14(_, _, _, _, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C15(_, _, _) => {
+            Adt12::C12
+        }
+        Adt12::C16(_, _) => {
+            Adt12::C12
+        }
+    }
+}
+
+pub fn f9(v0: Adt12, v1: u64) -> bool {
+    let m168 = v0;
+    match m168 {
+        Adt12::C0(_, _) => {
+            false
+        }
+        Adt12::C1(_, _, _) => {
+            false
+        }
+        Adt12::C2(_, r172, _) => {
+            let v8 = (*r172).clone();
+            f9(v8, v1)
+        }
+        Adt12::C3(v10, r173, _, _) => {
+            let v11 = (*r173).clone();
+            let m169 = v10;
+            match m169 {
+                Adt17::C0(v14) => {
+                    let a170 = v14;
+                    let a171 = v1;
+                    if nat_eq(a170, a171) {
+                        true
+                    } else {
+                        f9(v11, v1)
+                    }
+                }
+                Adt17::C1(_) => {
+                    f9(v11, v1)
+                }
+                Adt17::C2(_, _) => {
+                    f9(v11, v1)
+                }
+            }
+        }
+        Adt12::C4(_, r174, _, _) => {
+            let v19 = (*r174).clone();
+            f9(v19, v1)
+        }
+        Adt12::C5(_, r175, _) => {
+            let v23 = (*r175).clone();
+            f9(v23, v1)
+        }
+        Adt12::C6(r176, r177, _) => {
+            let v25 = (*r176).clone();
+            let v26 = (*r177).clone();
+            if f9(v25, v1) {
+                true
+            } else {
+                f9(v26, v1)
+            }
+        }
+        Adt12::C7(r178, r179, r180, _) => {
+            let v28 = (*r178).clone();
+            let v29 = (*r179).clone();
+            let v30 = (*r180).clone();
+            if f9(v28, v1) {
+                true
+            } else {
+                if f9(v29, v1) {
+                    true
                 } else {
+                    f9(v30, v1)
+                }
+            }
+        }
+        Adt12::C8(r181, r182, _) => {
+            let v32 = (*r181).clone();
+            let v33 = (*r182).clone();
+            if f9(v32, v1) {
+                true
+            } else {
+                f9(v33, v1)
+            }
+        }
+        Adt12::C9(r183) => {
+            let v35 = (*r183).clone();
+            f9(v35, v1)
+        }
+        Adt12::C10(_, _, _) => {
+            false
+        }
+        Adt12::C11(r184, r185) => {
+            let v39 = (*r184).clone();
+            let v40 = (*r185).clone();
+            if f9(v39, v1) {
+                true
+            } else {
+                f9(v40, v1)
+            }
+        }
+        Adt12::C12 => {
+            false
+        }
+        Adt12::C13(r186, r187) => {
+            let v41 = (*r186).clone();
+            let v42 = (*r187).clone();
+            if f9(v41, v1) {
+                true
+            } else {
+                f9(v42, v1)
+            }
+        }
+        Adt12::C14(_, _, _, r188, _, r189) => {
+            let v46 = (*r188).clone();
+            let v48 = (*r189).clone();
+            if f9(v46, v1) {
+                true
+            } else {
+                f9(v48, v1)
+            }
+        }
+        Adt12::C15(_, r190, r191) => {
+            let v50 = (*r190).clone();
+            let v51 = (*r191).clone();
+            if f9(v50, v1) {
+                true
+            } else {
+                f9(v51, v1)
+            }
+        }
+        Adt12::C16(_, r192) => {
+            let v53 = (*r192).clone();
+            f9(v53, v1)
+        }
+    }
+}
+
+pub fn f10(v0: Adt12, v1: Adt12) -> Adt12 {
+    let m193 = v0;
+    match m193 {
+        Adt12::C0(_, _) => {
+            v1
+        }
+        Adt12::C1(_, _, _) => {
+            v1
+        }
+        Adt12::C2(_, _, _) => {
+            v1
+        }
+        Adt12::C3(_, _, _, _) => {
+            v1
+        }
+        Adt12::C4(_, _, _, _) => {
+            v1
+        }
+        Adt12::C5(_, _, _) => {
+            v1
+        }
+        Adt12::C6(_, _, _) => {
+            v1
+        }
+        Adt12::C7(_, _, _, _) => {
+            v1
+        }
+        Adt12::C8(_, _, _) => {
+            v1
+        }
+        Adt12::C9(_) => {
+            v1
+        }
+        Adt12::C10(_, _, _) => {
+            v1
+        }
+        Adt12::C11(_, _) => {
+            v1
+        }
+        Adt12::C12 => {
+            v1
+        }
+        Adt12::C13(r194, r195) => {
+            let v37 = (*r194).clone();
+            let v38 = (*r195).clone();
+            Adt12::C13(std::rc::Rc::new(v37), std::rc::Rc::new(f10(v38, v1)))
+        }
+        Adt12::C14(_, _, _, _, _, _) => {
+            v1
+        }
+        Adt12::C15(_, _, _) => {
+            v1
+        }
+        Adt12::C16(_, _) => {
+            v1
+        }
+    }
+}
+
+pub fn f11(v0: Adt1, v1: Adt12, v2: u64) -> bool {
+    let m196 = v0;
+    match m196 {
+        Adt1::C0(_) => {
+            false
+        }
+        Adt1::C1(v4) => {
+            let a197 = f14(v1, v2, v4);
+            bool_not(a197)
+        }
+        Adt1::C2(_) => {
+            false
+        }
+        Adt1::C3(_, _) => {
+            false
+        }
+        Adt1::C4(_, _, _) => {
+            false
+        }
+        Adt1::C5 => {
+            false
+        }
+        Adt1::C6(_, _) => {
+            false
+        }
+        Adt1::C7(_) => {
+            false
+        }
+    }
+}
+
+pub fn f12(v0: Adt1, v1: Adt1, v2: Adt6, v3: Adt23, v4: bool, v5: u64) -> R<Adt23> {
+    let m198 = v0;
+    match m198 {
+        Adt1::C0(_) => {
+            Ok(Adt23::C0(false, 0u64, Adt6::C5, Adt1::C5, Adt12::C12, Adt0::C0))
+        }
+        Adt1::C1(_) => {
+            if v4 {
+                Ok(Adt23::C0(match v3.clone() {
+                    Adt23::C0(h199, _, _, _, _, _) => {
+                        h199
+                    }
+                }, {
+                    let a201 = match v3.clone() {
+                        Adt23::C0(_, h200, _, _, _, _) => {
+                            h200
+                        }
+                    };
+                    let a202 = 1u64;
+                    nat_add(a201, a202)?
+                }, {
+                    let a204 = match v3.clone() {
+                        Adt23::C0(_, h203, _, _, _, _) => {
+                            h203
+                        }
+                    };
+                    let a205 = 0u64;
+                    if nat_eq(a204, a205) {
+                        v2.clone()
+                    } else {
+                        Adt6::C3(Adt10::C1, std::rc::Rc::new(v2.clone()), std::rc::Rc::new(match v3.clone() {
+                            Adt23::C0(_, _, h206, _, _, _) => {
+                                h206
+                            }
+                        }))
+                    }
+                }, {
+                    let a208 = match v3.clone() {
+                        Adt23::C0(_, h207, _, _, _, _) => {
+                            h207
+                        }
+                    };
+                    let a209 = 0u64;
+                    if nat_eq(a208, a209) {
+                        v1
+                    } else {
+                        Adt1::C2(std::rc::Rc::new(Adt1::C6(std::rc::Rc::new(v1), std::rc::Rc::new(Adt1::C6(std::rc::Rc::new(match v3.clone() {
+                            Adt23::C0(_, _, _, h210, _, _) => {
+                                h210
+                            }
+                        }), std::rc::Rc::new(Adt1::C5))))))
+                    }
+                }, {
+                    let a212 = match v3.clone() {
+                        Adt23::C0(_, h211, _, _, _, _) => {
+                            h211
+                        }
+                    };
+                    let a213 = 0u64;
+                    if nat_eq(a212, a213) {
+                        Adt12::C1(Adt15::C0, Adt3::C7(v5), f6(0u64))
+                    } else {
+                        Adt12::C6(std::rc::Rc::new(Adt12::C1(Adt15::C0, Adt3::C7(v5), f6(0u64))), std::rc::Rc::new(match v3.clone() {
+                            Adt23::C0(_, _, _, _, h214, _) => {
+                                h214
+                            }
+                        }), f6(0u64))
+                    }
+                }, Adt0::C1(Adt1::C1(Adt3::C7(v5)), v2, std::rc::Rc::new(match v3 {
+                    Adt23::C0(_, _, _, _, _, h215) => {
+                        h215
+                    }
+                }))))
+            } else {
+                Ok(Adt23::C0(match v3.clone() {
+                    Adt23::C0(h216, _, _, _, _, _) => {
+                        h216
+                    }
+                }, match v3.clone() {
+                    Adt23::C0(_, h217, _, _, _, _) => {
+                        h217
+                    }
+                }, match v3.clone() {
+                    Adt23::C0(_, _, h218, _, _, _) => {
+                        h218
+                    }
+                }, match v3.clone() {
+                    Adt23::C0(_, _, _, h219, _, _) => {
+                        h219
+                    }
+                }, match v3.clone() {
+                    Adt23::C0(_, _, _, _, h220, _) => {
+                        h220
+                    }
+                }, Adt0::C1(v1, v2, std::rc::Rc::new(match v3 {
+                    Adt23::C0(_, _, _, _, _, h221) => {
+                        h221
+                    }
+                }))))
+            }
+        }
+        Adt1::C2(_) => {
+            Ok(Adt23::C0(false, 0u64, Adt6::C5, Adt1::C5, Adt12::C12, Adt0::C0))
+        }
+        Adt1::C3(_, _) => {
+            Ok(Adt23::C0(false, 0u64, Adt6::C5, Adt1::C5, Adt12::C12, Adt0::C0))
+        }
+        Adt1::C4(_, _, _) => {
+            Ok(Adt23::C0(false, 0u64, Adt6::C5, Adt1::C5, Adt12::C12, Adt0::C0))
+        }
+        Adt1::C5 => {
+            Ok(Adt23::C0(false, 0u64, Adt6::C5, Adt1::C5, Adt12::C12, Adt0::C0))
+        }
+        Adt1::C6(_, _) => {
+            Ok(Adt23::C0(false, 0u64, Adt6::C5, Adt1::C5, Adt12::C12, Adt0::C0))
+        }
+        Adt1::C7(_) => {
+            Ok(Adt23::C0(false, 0u64, Adt6::C5, Adt1::C5, Adt12::C12, Adt0::C0))
+        }
+    }
+}
+
+pub fn f13(v0: Adt0, v1: Adt12, v2: Adt12, v3: u64, v4: Adt14) -> R<Adt12> {
+    let m222 = v0;
+    match m222 {
+        Adt0::C0 => {
+            Ok(Adt12::C12)
+        }
+        Adt0::C1(v5, _, r225) => {
+            let v7 = (*r225).clone();
+            Ok(f15(f11(v5, v1.clone(), v3), v2.clone(), v3, f13(v7, v1, v2, {
+                let a223 = v3;
+                let a224 = 1u64;
+                nat_add(a223, a224)?
+            }, v4.clone())?, v4))
+        }
+    }
+}
+
+pub fn f14(p230: Adt12, v1: u64, v2: Adt3) -> bool {
+    let m229 = p230;
+    {
+        let mut m229 = m229;
+        loop {
+            let step = {
+                let v0 = m229;
+                let m226 = v0;
+                match m226 {
+                    Adt12::C0(_, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C1(_, _, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C2(_, _, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C3(_, _, _, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C4(_, _, _, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C5(_, _, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C6(_, _, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C7(_, _, _, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C8(_, _, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C9(_) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C10(_, _, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C11(_, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C12 => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C13(r227, r228) => {
+                        let v38 = (*r227).clone();
+                        let v39 = (*r228).clone();
+                        if f16(f17(v38, v1), v2.clone()) {
+                            Ok::<Adt12, bool>(v39)
+                        } else {
+                            Err::<Adt12, bool>(false)
+                        }
+                    }
+                    Adt12::C14(_, _, _, _, _, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C15(_, _, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                    Adt12::C16(_, _) => {
+                        Err::<Adt12, bool>(true)
+                    }
+                }
+            };
+            match step {
+                Ok(next) => { m229 = next; }
+                Err(done) => break done,
+            }
+        }
+    }
+}
+
+pub fn f15(v0: bool, v1: Adt12, v2: u64, v3: Adt12, v4: Adt14) -> Adt12 {
+    if v0 {
+        if f2(v3.clone()) {
+            f17(v1, v2)
+        } else {
+            Adt12::C6(std::rc::Rc::new(f17(v1, v2)), std::rc::Rc::new(v3), v4)
+        }
+    } else {
+        v3
+    }
+}
+
+pub fn f16(v0: Adt12, v1: Adt3) -> bool {
+    let m231 = v0;
+    match m231 {
+        Adt12::C0(_, _) => {
+            false
+        }
+        Adt12::C1(v4, v5, _) => {
+            let m232 = v4;
+            match m232 {
+                Adt15::C0 => {
+                    f18(v5, v1)
+                }
+                Adt15::C1 => {
+                    f18(v5, v1)
+                }
+                Adt15::C2 => {
+                    f18(v5, v1)
+                }
+                Adt15::C3 => {
+                    f18(v5, v1)
+                }
+                Adt15::C4 => {
                     false
                 }
-            } else {
-                false
             }
+        }
+        Adt12::C2(_, _, _) => {
+            false
+        }
+        Adt12::C3(_, _, _, _) => {
+            false
+        }
+        Adt12::C4(_, _, _, _) => {
+            false
+        }
+        Adt12::C5(_, _, _) => {
+            false
+        }
+        Adt12::C6(_, _, _) => {
+            false
+        }
+        Adt12::C7(_, _, _, _) => {
+            false
+        }
+        Adt12::C8(_, _, _) => {
+            false
+        }
+        Adt12::C9(_) => {
+            false
+        }
+        Adt12::C10(_, _, _) => {
+            false
+        }
+        Adt12::C11(_, _) => {
+            false
+        }
+        Adt12::C12 => {
+            false
+        }
+        Adt12::C13(_, _) => {
+            false
+        }
+        Adt12::C14(_, _, _, _, _, _) => {
+            false
+        }
+        Adt12::C15(_, _, _) => {
+            false
+        }
+        Adt12::C16(_, _) => {
+            false
         }
     }
 }
 
-pub fn f12(v0: List<(Adt11, Adt25)>, v1: Adt11) -> List<(Adt11, Adt25)> {
-    let m111 = v0;
-    match m111.uncons() {
-        None => {
-            List::<(Adt11, Adt25)>::nil()
-        }
-        Some((v2, v3)) => {
-            if f25({
-                let (h112, _) = v2.clone();
-                h112
-            }, v1.clone()) {
-                v3
-            } else {
-                List::cons(v2, f12(v3, v1))
-            }
-        }
-    }
-}
-
-pub fn f13(p117: List<(Adt11, Adt25)>, v1: Adt11) -> Option<Adt25> {
-    let m116 = p117;
+pub fn f17(p238: Adt12, p239: u64) -> Adt12 {
+    let m237 = (p238, p239);
     {
-        let mut m116 = m116;
+        let mut m237 = m237;
         loop {
             let step = {
-                let v0 = m116;
-                let m113 = v0;
-                match m113.uncons() {
-                    None => {
-                        Err::<List<(Adt11, Adt25)>, Option<Adt25>>(None::<Adt25>)
+                let (v0, v1) = m237;
+                let m233 = v0;
+                match m233 {
+                    Adt12::C0(_, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
                     }
-                    Some((v2, v3)) => {
-                        if f25({
-                            let (h114, _) = v2;
-                            h114
-                        }, v1.clone()) {
-                            Err::<List<(Adt11, Adt25)>, Option<Adt25>>(Some({
-                                let (_, h115) = v2;
-                                h115
-                            }))
+                    Adt12::C1(_, _, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C2(_, _, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C3(_, _, _, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C4(_, _, _, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C5(_, _, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C6(_, _, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C7(_, _, _, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C8(_, _, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C9(_) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C10(_, _, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C11(_, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C12 => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C13(r235, r236) => {
+                        let v37 = (*r235).clone();
+                        let v38 = (*r236).clone();
+                        let m234 = v1;
+                        if m234 == 0 {
+                            Err::<(Adt12, u64), Adt12>(v37)
                         } else {
-                            Ok::<List<(Adt11, Adt25)>, Option<Adt25>>(v3)
+                            let v39 = m234 - 1;
+                            Ok::<(Adt12, u64), Adt12>((v38, v39))
                         }
                     }
+                    Adt12::C14(_, _, _, _, _, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C15(_, _, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
+                    Adt12::C16(_, _) => {
+                        Err::<(Adt12, u64), Adt12>(Adt12::C12)
+                    }
                 }
             };
             match step {
-                Ok(next) => { m116 = next; }
+                Ok(next) => { m237 = next; }
                 Err(done) => break done,
             }
         }
     }
 }
 
-pub fn f14(v0: List<(Adt11, Adt25)>, v1: Adt11) -> Adt25 {
-    let m118 = f13(v0, v1);
-    match m118 {
-        None => {
-            Adt25::C0(0u64, List::<(u64, u64)>::nil())
-        }
-        Some(v2) => {
-            v2
-        }
-    }
-}
-
-pub fn f15(v0: List<(Adt11, Adt25)>, v1: Adt11, v2: Adt25) -> List<(Adt11, Adt25)> {
-    let m119 = v0;
-    match m119.uncons() {
-        None => {
-            List::cons((v1, v2), List::<(Adt11, Adt25)>::nil())
-        }
-        Some((v3, v4)) => {
-            if f25({
-                let (h120, _) = v3.clone();
-                h120
-            }, v1.clone()) {
-                List::cons((v1, v2), v4)
-            } else {
-                List::cons(v3, f15(v4, v1, v2))
-            }
-        }
-    }
-}
-
-pub fn f16(v0: List<(Adt11, Adt25)>, v1: Adt11, v2: u64) -> R<List<(Adt11, Adt25)>> {
-    let v3: Adt25 = f14(v0.clone(), v1.clone());
-    Ok(f15(v0, v1, Adt25::C0(match v3.clone() {
-        Adt25::C0(h121, _) => {
-            h121
-        }
-    }, f26(match v3.clone() {
-        Adt25::C0(_, h122) => {
-            h122
-        }
-    }, v2, {
-        let a124 = f23(match v3 {
-            Adt25::C0(_, h123) => {
-                h123
-            }
-        }, v2);
-        let a125 = 1u64;
-        nat_add(a124, a125)?
-    }))))
-}
-
-pub fn f17(v0: u64, v1: u64) -> u64 {
-    let a126 = v0;
-    let a127 = v1;
-    if nat_lt(a126, a127) {
-        v1
-    } else {
-        v0
-    }
-}
-
-pub fn f18(p133: List<(u64, u64)>, p134: List<(u64, u64)>) -> List<(u64, u64)> {
-    let m132 = (p133, p134);
-    {
-        let mut m132 = m132;
-        loop {
-            let step = {
-                let (v0, v1) = m132;
-                let m128 = v1;
-                match m128.uncons() {
-                    None => {
-                        Err::<(List<(u64, u64)>, List<(u64, u64)>), List<(u64, u64)>>(v0)
-                    }
-                    Some((v2, v3)) => {
-                        Ok::<(List<(u64, u64)>, List<(u64, u64)>), List<(u64, u64)>>((f26(v0.clone(), {
-                            let (h129, _) = v2;
-                            h129
-                        }, f17({
-                            let (_, h130) = v2;
-                            h130
-                        }, f23(v0, {
-                            let (h131, _) = v2;
-                            h131
-                        }))), v3))
-                    }
-                }
-            };
-            match step {
-                Ok(next) => { m132 = next; }
-                Err(done) => break done,
-            }
-        }
-    }
-}
-
-pub fn f19(v0: Adt17) -> Option<(Adt11, Adt8)> {
-    let m135 = v0;
-    match m135 {
-        Adt17::C0(_, _) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C1(v3, v4, v5) => {
-            let m136 = v3;
-            match m136 {
-                Adt19::C0 => {
-                    None::<(Adt11, Adt8)>
-                }
-                Adt19::C1 => {
-                    Some((v4, v5))
-                }
-                Adt19::C2 => {
-                    None::<(Adt11, Adt8)>
-                }
-                Adt19::C3 => {
-                    None::<(Adt11, Adt8)>
-                }
-                Adt19::C4 => {
-                    None::<(Adt11, Adt8)>
-                }
-            }
-        }
-        Adt17::C2(_, _, _) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C3(_, _, _, _) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C4(_, _, _, _) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C5(_, _, _) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C6(_, _, _) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C7(_, _, _, _) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C8(_, _, _) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C9(_) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C10(_, _, _) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C11(_, _) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C12 => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C13(_, _) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C14(_, _, _, _, _, _) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C15(_, _, _) => {
-            None::<(Adt11, Adt8)>
-        }
-        Adt17::C16(_, _) => {
-            None::<(Adt11, Adt8)>
-        }
-    }
-}
-
-pub fn f20(v0: Adt13) -> R<u64> {
-    let m137 = v0;
-    match m137 {
-        Adt13::C0(_) => {
-            Ok(0u64)
-        }
-        Adt13::C1(_) => {
-            Ok(0u64)
-        }
-        Adt13::C2(_) => {
-            Ok(0u64)
-        }
-        Adt13::C3(_, _) => {
-            Ok(0u64)
-        }
-        Adt13::C4(_, _, _) => {
-            Ok(0u64)
-        }
-        Adt13::C5 => {
-            Ok(0u64)
-        }
-        Adt13::C6(r140, r141) => {
-            let v9 = (*r140).clone();
-            let v10 = (*r141).clone();
-            if f27(v9) {
-                f20(v10)
-            } else {
-                let a138 = 1u64;
-                let a139 = f20(v10)?;
-                nat_add(a138, a139)
-            }
-        }
-        Adt13::C7(_) => {
-            Ok(0u64)
-        }
-    }
-}
-
-pub fn f21(v0: Adt13) -> R<u64> {
-    let m142 = v0;
-    match m142 {
-        Adt13::C0(_) => {
-            Ok(0u64)
-        }
-        Adt13::C1(_) => {
-            Ok(0u64)
-        }
-        Adt13::C2(_) => {
-            Ok(0u64)
-        }
-        Adt13::C3(_, _) => {
-            Ok(0u64)
-        }
-        Adt13::C4(_, _, _) => {
-            Ok(0u64)
-        }
-        Adt13::C5 => {
-            Ok(0u64)
-        }
-        Adt13::C6(_, r145) => {
-            let v10 = (*r145).clone();
-            let a143 = 1u64;
-            let a144 = f21(v10)?;
-            nat_add(a143, a144)
-        }
-        Adt13::C7(_) => {
-            Ok(0u64)
-        }
-    }
-}
-
-pub fn f22(p152: Adt13, p153: u64) -> R<u64> {
-    let m151 = (p152, p153);
-    {
-        let mut m151 = m151;
-        loop {
-            let step = {
-                let (v0, v1) = m151;
-                let m146 = v0;
-                match m146 {
-                    Adt13::C0(_) => {
-                        Err::<(Adt13, u64), R<u64>>(Ok(v1))
-                    }
-                    Adt13::C1(_) => {
-                        Err::<(Adt13, u64), R<u64>>(Ok(v1))
-                    }
-                    Adt13::C2(_) => {
-                        Err::<(Adt13, u64), R<u64>>(Ok(v1))
-                    }
-                    Adt13::C3(_, _) => {
-                        Err::<(Adt13, u64), R<u64>>(Ok(v1))
-                    }
-                    Adt13::C4(_, _, _) => {
-                        Err::<(Adt13, u64), R<u64>>(Ok(v1))
-                    }
-                    Adt13::C5 => {
-                        Err::<(Adt13, u64), R<u64>>(Ok(v1))
-                    }
-                    Adt13::C6(r149, r150) => {
-                        let v10 = (*r149).clone();
-                        let v11 = (*r150).clone();
-                        if f27(v10) {
-                            Ok::<(Adt13, u64), R<u64>>((v11, {
-                                let a147 = v1;
-                                let a148 = 1u64;
-                                nat_add(a147, a148)?
-                            }))
-                        } else {
-                            Err::<(Adt13, u64), R<u64>>(Ok(v1))
-                        }
-                    }
-                    Adt13::C7(_) => {
-                        Err::<(Adt13, u64), R<u64>>(Ok(v1))
-                    }
-                }
-            };
-            match step {
-                Ok(next) => { m151 = next; }
-                Err(done) => break done,
-            }
-        }
-    }
-}
-
-pub fn f23(p160: List<(u64, u64)>, v1: u64) -> u64 {
-    let m159 = p160;
-    {
-        let mut m159 = m159;
-        loop {
-            let step = {
-                let v0 = m159;
-                let m154 = v0;
-                match m154.uncons() {
-                    None => {
-                        Err::<List<(u64, u64)>, u64>(0u64)
-                    }
-                    Some((v2, v3)) => {
-                        let a156 = {
-                            let (h155, _) = v2;
-                            h155
-                        };
-                        let a157 = v1;
-                        if nat_eq(a156, a157) {
-                            let (_, h158) = v2;
-                            Err::<List<(u64, u64)>, u64>(h158)
-                        } else {
-                            Ok::<List<(u64, u64)>, u64>(v3)
-                        }
-                    }
-                }
-            };
-            match step {
-                Ok(next) => { m159 = next; }
-                Err(done) => break done,
-            }
-        }
-    }
-}
-
-pub fn f24(p166: List<(u64, u64)>) -> bool {
-    let m165 = p166;
-    {
-        let mut m165 = m165;
-        loop {
-            let step = {
-                let v0 = m165;
-                let m161 = v0;
-                match m161.uncons() {
-                    None => {
-                        Err::<List<(u64, u64)>, bool>(true)
-                    }
-                    Some((v1, v2)) => {
-                        let a163 = {
-                            let (_, h162) = v1;
-                            h162
-                        };
-                        let a164 = 2u64;
-                        if nat_lt(a163, a164) {
-                            Ok::<List<(u64, u64)>, bool>(v2)
-                        } else {
-                            Err::<List<(u64, u64)>, bool>(false)
-                        }
-                    }
-                }
-            };
-            match step {
-                Ok(next) => { m165 = next; }
-                Err(done) => break done,
-            }
-        }
-    }
-}
-
-pub fn f25(v0: Adt11, v1: Adt11) -> bool {
-    let v2: (u64, u64) = f28(v0);
-    let v3: (u64, u64) = f28(v1);
-    let a169 = {
-        let (h167, _) = v2;
-        h167
-    };
-    let a170 = {
-        let (h168, _) = v3;
-        h168
-    };
-    if nat_eq(a169, a170) {
-        let a173 = {
-            let (_, h171) = v2;
-            h171
-        };
-        let a174 = {
-            let (_, h172) = v3;
-            h172
-        };
-        nat_eq(a173, a174)
+pub fn f18(v0: Adt3, v1: Adt3) -> bool {
+    let a240 = f19(v0.clone());
+    let a241 = f19(v1.clone());
+    if nat_eq(a240, a241) {
+        let a242 = f20(v0);
+        let a243 = f20(v1);
+        nat_eq(a242, a243)
     } else {
         false
     }
 }
 
-pub fn f26(v0: List<(u64, u64)>, v1: u64, v2: u64) -> List<(u64, u64)> {
-    let m175 = v0;
-    match m175.uncons() {
-        None => {
-            List::cons((v1, v2), List::<(u64, u64)>::nil())
+pub fn f19(v0: Adt3) -> u64 {
+    let m244 = v0;
+    match m244 {
+        Adt3::C0(_) => {
+            0u64
         }
-        Some((v3, v4)) => {
-            let a177 = {
-                let (h176, _) = v3;
-                h176
-            };
-            let a178 = v1;
-            if nat_eq(a177, a178) {
-                List::cons((v1, v2), v4)
-            } else {
-                List::cons(v3, f26(v4, v1, v2))
-            }
+        Adt3::C1(_) => {
+            1u64
         }
-    }
-}
-
-pub fn f27(v0: Adt13) -> bool {
-    let m179 = v0;
-    match m179 {
-        Adt13::C0(v1) => {
-            let m180 = v1;
-            match m180 {
-                Adt14::C0 => {
-                    true
-                }
-                Adt14::C1 => {
-                    false
-                }
-                Adt14::C2 => {
-                    false
-                }
-            }
+        Adt3::C2(_) => {
+            2u64
         }
-        Adt13::C1(_) => {
-            false
+        Adt3::C3(_) => {
+            3u64
         }
-        Adt13::C2(_) => {
-            false
+        Adt3::C4(_) => {
+            4u64
         }
-        Adt13::C3(_, _) => {
-            false
+        Adt3::C5(_) => {
+            5u64
         }
-        Adt13::C4(_, _, _) => {
-            false
+        Adt3::C6(_) => {
+            6u64
         }
-        Adt13::C5 => {
-            false
+        Adt3::C7(_) => {
+            7u64
         }
-        Adt13::C6(_, _) => {
-            false
+        Adt3::C8(_) => {
+            8u64
         }
-        Adt13::C7(_) => {
-            false
+        Adt3::C9(_) => {
+            9u64
         }
     }
 }
 
-pub fn f28(v0: Adt11) -> (u64, u64) {
-    let m181 = v0;
-    match m181 {
-        Adt11::C0(v1) => {
-            (0u64, v1)
+pub fn f20(v0: Adt3) -> u64 {
+    let m245 = v0;
+    match m245 {
+        Adt3::C0(v1) => {
+            v1
         }
-        Adt11::C1(v2) => {
-            (1u64, v2)
+        Adt3::C1(v2) => {
+            v2
         }
-        Adt11::C2(v3) => {
-            (2u64, v3)
+        Adt3::C2(v3) => {
+            v3
         }
-        Adt11::C3(v4) => {
-            (3u64, v4)
+        Adt3::C3(v4) => {
+            v4
         }
-        Adt11::C4(v5) => {
-            (4u64, v5)
+        Adt3::C4(v5) => {
+            v5
         }
-        Adt11::C5(v6) => {
-            (5u64, v6)
+        Adt3::C5(v6) => {
+            v6
         }
-        Adt11::C6(v7) => {
-            (6u64, v7)
+        Adt3::C6(v7) => {
+            v7
         }
-        Adt11::C7(v8) => {
-            (7u64, v8)
+        Adt3::C7(v8) => {
+            v8
         }
-        Adt11::C8(v9) => {
-            (8u64, v9)
+        Adt3::C8(v9) => {
+            v9
         }
-        Adt11::C9(_) => {
-            (9u64, 0u64)
+        Adt3::C9(_) => {
+            0u64
         }
     }
 }

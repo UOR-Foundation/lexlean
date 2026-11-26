@@ -1365,7 +1365,7 @@ pub(crate) fn run(id: &str) {
             let model = repo_model::Model::load(&root.join("model").into_std_path_buf())
                 .expect("the model loads");
             let table = spec_table();
-            assert_eq!(table.len(), 523, "§31 has 523 rows");
+            assert_eq!(table.len(), 524, "§31 has 524 rows");
             assert_eq!(model.ids.id.len(), table.len(), "register row count");
             for ((spec_id, spec_suite, spec_statement), row) in
                 table.iter().zip(model.ids.id.iter())
@@ -2626,10 +2626,47 @@ pub(crate) fn run(id: &str) {
                 // The delete of a superseded branch is leased to the head
                 // inspected, and its pull request closes only after it.
                 "--force-with-lease=\"refs/heads/$ref:$sha\" origin \":refs/heads/$ref\"",
+                // Every directory `calculus-write` owns whole takes the next
+                // line's side, for regenerate's `oracles` writer (#600).
+                "compiler/rust/*",
+                // The conflicts are listed whole, by plumbing that never
+                // takes `index.lock`, before the index is written (#600).
+                "git diff-files -z --name-only --diff-filter=U >\"$listing\"",
             ] {
                 assert!(
                     merge.contains(needed),
                     "§9.4: forward-merge.sh has `{needed}`"
+                );
+            }
+            // A porcelain listing read through a pipe while the index is
+            // written is the race of #600.
+            assert!(
+                !merge.contains("< <(git diff "),
+                "§9.4: forward-merge.sh writes the index only after its listing"
+            );
+            for directory in crate::calculus::GENERATED_DIRECTORIES {
+                assert!(
+                    merge.contains(&format!("{directory}/*")),
+                    "§9.4: forward-merge.sh takes the next line's side of `{directory}`, which calculus-write owns"
+                );
+            }
+            // The script's behavioral tests (clean, generated-only and
+            // authored conflicts, index-lock contention) run in honesty.
+            assert!(
+                ci.contains("        run: bash .github/scripts/test-forward-merge.sh\n"),
+                "§9.4: the honesty job runs the forward merge's behavioral tests"
+            );
+            let tests = root_file(".github/scripts/test-forward-merge.sh");
+            for case in [
+                "case_clean\n",
+                "case_generated\n",
+                "case_source\n",
+                "case_lock\n",
+            ] {
+                assert!(
+                    tests.contains(case),
+                    "§9.4: test-forward-merge.sh runs `{}`",
+                    case.trim()
                 );
             }
             for forbidden in [

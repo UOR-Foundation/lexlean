@@ -12267,6 +12267,41 @@ The root's signature identity follows #581: the oracle computes
 `LexLeanStd.Sha256::sha256Hex`, and the case encodes the oracle's identity by
 `label()`.
 
+### the axiom policy of a declaration is source (BS-74)
+
+`BS-74` holds the four production roots of `LexLeanBoot.AxiomPolicy`
+(`bootstrap/src/AxiomPolicy.lex.tex`) to `verify::policy`: `policyKind` to `Policy::kind`,
+`policyAxioms` to `Policy::axioms`, `policyPermits` to `Policy::permits`, and `ruleToken` to
+`Rule::token`. None of the roots admits `recursion`.
+
+The module was not written by hand. It is the output of a Rust-to-LexLean translator run over
+the whole of `crates/lexlean/src`, cut to these four roots and the ten declarations they reach,
+with only the roots renamed; the other names (`Policy`, `RuleVerifyPolicy`,
+`memListOfBytesEnd`, `eqListOfBytesEnd`, `insertsortedListOfBytesEnd`, `dedupListOfBytesEnd`)
+are the translator's own. Two steps of the cut are recorded here because they are not in the
+translation itself: each definition states the union of the axioms its callees state, which
+puts `propext` on `insertsortedListOfBytesEnd` and `policyPermits` through
+`AxiomOutput::lessBytes`; and the list helpers over a non-recursive element type are folds, not
+structural recursion, so no root realizes `recursion`. The translator is not part of this
+repository; where it lives is an open decision of the maintainer (#92).
+
+The case holds the roots to the oracle on hand-built vectors that reach every kind and every
+rule, an empty, unsorted, repeated, and byte-ordered axiom set, and both outcomes of each kind of
+policy, including an `exact` policy written out of order or with a repeat, which the oracle
+permits nothing under; on every distinct axiom list the committed `.lex.tex` sources declare, each
+held as an `allow` and an `exact` policy against each of them; and on seeded policies and
+observed sets. Each of the 6 planted defects names the one vector that catches it, and the case
+asserts that the site of each plant occurs once. The row's statement carries no counts.
+
+The case was first compiled and run on the normative host over `release/v0.4` at `fa2280e226`
+(`cargo test -p repo-conformance --test conformance -- conformance_bs_74`). Its corpus is 28
+named vectors and 5 committed axiom lists (70 committed runs), and 300 and 2,000 seeded runs.
+The evaluator agrees with the oracle on 398 runs across the four roots, the rendered packages
+under the pinned rustc on 2,098 runs, and each of the 6 planted defects is detected by its own
+vector. The case then stops at the stack-bound step, `bootstrap/policy_kind is no package of the
+committed exports`, as each bootstrap member does before its regeneration, which produces the
+packages.
+
 ### the lexer of the authoring notation is source (BS-22)
 
 `BS-22` holds the two production roots of `LexLeanBoot.SurfaceLex`
@@ -15769,6 +15804,56 @@ own; no case's assertion changes. The part runs in the Intel and Windows
 changes, and `check-test-inventory` still requires the parts to be disjoint
 and complete (RP-13).
 
+## The forward merge listed its conflicts while it resolved them (#600, 2026-11-24)
+
+Every `forward.yml` run on `release/v0.4` since run 45087014994 failed
+before it committed or opened a pull request; run 45461480494 (v0.4
+`d553cbf4` into v0.5 `471237b3`, 4,136 conflicted paths) ended 71 s after
+the merge with `fatal: Unable to create '.git/index.lock': File exists`
+(exit 128). The conflict loop read porcelain `git diff --name-only
+--diff-filter=U` through a process substitution and wrote the index once per
+path while that `git diff` was still running. Porcelain `git diff` refreshes
+the index when it finds stat-dirty entries whose content is unchanged, which
+the entries a merge smudges as racily clean are, and takes `index.lock` to do
+it after its last output: once the loop had read all but the last pipe buffer
+of names, the refresh held the lock and the loop's next `git checkout` was
+refused. The lock is the listing's own and is gone when it exits, which is
+why a replay found none. `GIT_OPTIONAL_LOCKS=0` does not suppress the
+refresh (observed with Git 2.55); plumbing `git diff-files` never writes the
+index. Reproduced on this host with 3,000 conflicted paths and 300 stat-dirty
+2 MB files: the original loop failed at path 2,038 with the same message
+and left no lock.
+
+The script now lists the conflicts with `git diff-files -z` into a file,
+read whole before the index is written (a failed listing stops the run
+instead of reading as no conflicts), and restores each side with one
+`git checkout --pathspec-from-file` and one `git rm --pathspec-from-file`.
+The directories `calculus::GENERATED_DIRECTORIES` names
+(`compiler/{certificates,fixtures,gnaf,rust}`, `language/lcnf-1.2/tooling`)
+take the next line's side: `calculus-write`, which regenerate's `oracles`
+writer runs with the pinned Lean, writes every file in them and deletes any
+other. In that run 351 conflicts were under `compiler/rust/`.
+
+`.github/scripts/test-forward-merge.sh` runs the script against a scratch
+origin with `gh` and `cargo` recorded, in the honesty job, and `RP-14`
+requires that step, the plumbing listing, no porcelain listing read through
+a pipe, and a pattern for every generated directory. Its four cases, with
+the defect each was seen to catch (`FORWARD_MERGE=<plant>`):
+
+| Case | Plant | Observed |
+| --- | --- | --- |
+| `clean` | `git checkout HEAD -- .` before `git add --all` (the line's side dropped) | `v0.4's change is not carried` |
+| `generated` | the `compiler/...` pattern removed | `generated-only conflicts are not clean`, opened as a draft; `RP-14`: `forward-merge.sh has compiler/rust/*` |
+| `source` | `draft=()` for an unclean merge | `an authored conflict was not opened as a draft` |
+| `source` | every path generated (`*) return 0`) | reported clean, not a draft, `src/main.rs` and `src/dropped.rs` not named |
+| `lock` | the listing read by `while read … < <(git diff -z …)` while writing | exit 128, `Unable to create '…/index.lock': File exists`; `RP-14`: `forward-merge.sh has git diff-files …` |
+| all | the script as it was at `d553cbf4` | `generated` and `lock` fail as above, the latter with the message of run 45461480494 |
+| (RP-14) | the honesty step removed from `ci.yml` | `the honesty job runs the forward merge's behavioral tests` |
+
+The `lock` case's `git` holds `index.lock` for two seconds after a listing
+(`diff`, `diff-files`) prints, as the refresh does, and fails closed if that
+never happened (`the listing never held index.lock: the case tested
+nothing`).
 ## The release gate reads provider evidence whole or not at all (§30.3, #603; backport of #620)
 
 `release-gate.sh` read a run's jobs as `gh api …/jobs?per_page=100 --paginate … || true`.

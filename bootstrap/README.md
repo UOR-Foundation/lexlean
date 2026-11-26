@@ -95,3 +95,8 @@ of SPEC.md §13.1 and §12.2.
 `src/LexiconEntry.lex.tex` (SPEC.md §17.23, `BS-55`) imports `TomlRead` (`BS-53`), `LexiconLse`
 (`BS-25`), `LexiconLre` (`BS-26`), `LexiconSchema` (`BS-50`), `LseScopes` (`BS-51`), and
 `PrimitiveScan` (`BS-03`): a lexicon entry of SPEC.md §13.1 to §13.6.
+`src/AxiomPolicy.lex.tex` (SPEC.md §17.23, `BS-74`) imports `AxiomOutput`, whose text and list
+helpers it uses: the axiom policy of a declaration and the rule token of SPEC.md §22.6. It is
+the first member translated mechanically from the Rust it is held to
+(`crates/lexlean/src/verify/policy.rs`) rather than written by hand; the names other than its
+four roots are the translator's own.

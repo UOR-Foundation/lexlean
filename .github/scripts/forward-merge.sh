@@ -61,25 +61,51 @@ git rev-parse --verify --quiet MERGE_HEAD >/dev/null || {
 # Only what a writer of §9.2 or `cargo metadata` writes from the merged tree.
 # What a writer reads (an export's `roots.json`, a measured row of
 # `tests/stack-bounds.json`) is authored, and a conflict in it is listed.
+# The directories are `calculus::GENERATED_DIRECTORIES`: `calculus-write`, run
+# by regenerate's `oracles` writer, writes every file in them and deletes any
+# other, so neither side of a conflict there is ever kept.
 generated() {
   case "$1" in
     SPEC.md | model/ids.toml | model/errors.toml | model/ledger.toml | model/authorities.toml \
       | CONFORMANCE.md | ERRORS.md | Cargo.lock | lexlean.lock | */lexlean.lock | */expected/* \
-      | tests/golden/*.txt | tests/production-export/*/packages/*) return 0 ;;
+      | compiler/certificates/* | compiler/fixtures/* | compiler/gnaf/* | compiler/rust/* \
+      | language/lcnf-1.2/tooling/* | tests/golden/*.txt | tests/production-export/*/packages/*) return 0 ;;
     *) return 1 ;;
   esac
 }
+# The conflicted paths are read whole, by plumbing, before the index changes.
+# Porcelain `git diff` refreshes the index when it finds stat-dirty entries (a
+# merge smudges its racily clean ones) and takes `index.lock` to do it after
+# its output; read through a pipe while the loop below wrote the index, that
+# lock refused a `git checkout` mid-loop (#600). `diff-files` never writes it.
+# Into a file, so that a failed listing stops the run rather than reading as
+# a merge without conflicts.
+listing=$(mktemp)
+git diff-files -z --name-only --diff-filter=U >"$listing"
+conflicted=()
+mapfile -t -d '' conflicted <"$listing"
+rm -f -- "$listing"
 unresolved=()
-while IFS= read -r path; do
-  [ -n "$path" ] || continue
+ours=()
+gone=()
+for path in "${conflicted[@]}"; do
   generated "$path" || unresolved+=("$path")
   if git cat-file -e "HEAD:$path" 2>/dev/null; then
-    git checkout --quiet HEAD -- "$path"
+    ours+=("$path")
   else
-    git rm --quiet --cached --ignore-unmatch -- "$path"
-    rm -f -- "$path"
+    gone+=("$path")
   fi
-done < <(git diff --name-only --diff-filter=U)
+done
+# One writer of the index for each side, not one process per path.
+if [ "${#ours[@]}" -gt 0 ]; then
+  printf '%s\0' "${ours[@]}" |
+    git --literal-pathspecs checkout --quiet HEAD --pathspec-from-file=- --pathspec-file-nul
+fi
+if [ "${#gone[@]}" -gt 0 ]; then
+  printf '%s\0' "${gone[@]}" |
+    git --literal-pathspecs rm --quiet --cached --ignore-unmatch --pathspec-from-file=- --pathspec-file-nul
+  rm -f -- "${gone[@]}"
+fi
 
 projections=(SPEC.md model/ids.toml model/errors.toml model/ledger.toml model/authorities.toml)
 if ! git cat-file -e "$source:spec/src" 2>/dev/null; then

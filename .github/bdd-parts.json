@@ -322,6 +322,9 @@
     "bootstrap-lexicon-entry": [
       "BS-55"
     ],
+    "bootstrap-axiom-policy": [
+      "BS-74"
+    ],
     "stdlib": [
       "EX-09",
       "SL-01",
