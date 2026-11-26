@@ -9,12 +9,17 @@ verified by LexLean itself, not beside the prover as handwritten Lean.
 
 ## What is in it
 
-`src/Reflect.lex.tex`: 510 kernel declarations in authoring notation, namespace `LexReflect`.
+`src/Reflect.lex.tex`: 526 kernel declarations in authoring notation, namespace `LexReflect`.
 
 - A checker for refutations of integer inequalities with conditionals, and `soundT`, its soundness theorem.
 - Bridging lemmas from the runtime's operations (comparisons, truncating division and remainder, naturals,
   bytes, pairs) to that checker's language.
 - Fold fusion: `fold_rel1`, `fold_rel2`, `fold_rel3`, their length-indexed forms, and `fold_append`.
+- Booleans: a goal `b = false` refuted from `b = true` (`bfalse_of`, `one_le_zero_false`); `&&` and `!` taken
+  apart (`band_l`, `band_r`, `band_f`, `bnot_t`, `bnot_f`); `Nat.blt`, `Nat.ble` and `Nat.beq` read as inequalities
+  (`nat_blt_t`, `nat_blt_f`, `nat_ble_t`, `nat_ble_f`, `nat_beq_t`, `nat_beq_f`); `if c = true` taken both ways
+  (`bool_cases`, `ite_t`, `ite_f`). These sixteen rest on no axiom at all. With them the kernel path proves the
+  guarantees of a Prism rule app, such as a loan approval's, with no elaborator.
 
 By the axioms `verify` observed: every declaration is on `propext` and `Quot.sound` at most, except `i8_lo` and
 `i8_hi` (the bounds of a signed byte), which also rest on `Classical.choice`. A proof that uses those two
