@@ -21816,3 +21816,212 @@ it with all 70 jobs and 55 leg transcripts.
 | `per_page=100`, or a direct `gh api` evidence read, in either script (both originals) | `§9.4: … reads runs and jobs through the bounded helper, jobs in pages of 50, every page` |
 | `per_page=100` in `ci-plan.sh` against a stand-in that answers 502 above 50 a page, as the provider did | `test_ci_plan_provider_retry.py`: 5 of 5 cases fail (all pass at 50) |
 | no `jq` on `PATH`, every leg missing from the listing | the planner as #620 first drafted it: `full=false`; now `full=true` (observed, host without `jq`) |
+
+## The `bdd-bootstrap-*` legs start after the bootstrap export (§9.4, #603)
+
+In run 45437716141 (#620, all green) the 28 `just vv (bdd-bootstrap-*)` legs
+started when honesty passed, beside the `bootstrap export` job (34 minutes,
+mostly Lean certificate checking), and each leg's fetcher held its runner
+until the export existed. Read from each leg's `take-bootstrap-export.txt` in
+its `acceptance-gate-evidence-bdd-bootstrap-*` artifact and summed over the 28
+legs: 986.6 job-minutes, of which 366.4 were work before a case first asked
+for the export, 595.0 were waiting for it, and 25.2 came after it arrived.
+The wait was 22.5% of the gate's 2,643 job-minutes. The gate's wall time is
+set by the macOS and Linux AArch64 host jobs (about 182 to 196 minutes), and
+the longest of these legs' own work before the export was 48 minutes
+(`bdd-bootstrap-lower`).
+
+`.github/ci-plan.sh` now writes a fifth output, `bootstrap`: the planned rows
+whose part starts with `bdd-bootstrap-`, which leave `fanout`. The job
+`vv-bootstrap` runs them with `needs: [plan, honesty, bootstrap-export]` and
+the steps, permissions, timeout and evidence upload of `vv` line for line,
+under the same `just vv (${{ matrix.part }})` name, so the plan's
+previous-run check and `release-gate.sh`, which look a leg up as
+`just vv (<part>)`, are unchanged. Its condition names no status function, so
+a failed or skipped export skips every leg in it; a skipped job is not
+`success`, and both predicates require every job to be `success` and every
+leg of `.github/vv-rows.json` by name. The fetcher, the custody record and
+its checks are unchanged. A draft or stacked run plans honesty and `rest`
+only, so its `bootstrap` is `[]`, and `vv-bootstrap` is skipped with the
+export, as before.
+
+`RP-14` now holds `vv-bootstrap` to `vv` with every non-comment line equal but
+the three that name its need, its condition and its rows
+(`bootstrap_legs_workflow`); requires the plan to expose `fanout` and
+`bootstrap` and each to be read by exactly one job; requires the plan's
+outputs to partition its rows, every planned leg run by exactly one job, each
+output the planned rows of its kind in the plan's order, and no bootstrap leg
+in a run that is not the whole gate (`plan_partition`, run on the script's own
+outputs by `plan_decisions` on Linux and on plants of the committed rows on
+every host); counts eight step `!cancelled()` conditions besides the Atlas
+jobs' (two each on honesty, the export, `vv` and `vv-bootstrap`), one job
+condition on `bootstrap`, and three uses of the gate command; and requires
+the fetcher's lines and the absence of `continue-on-error`, a run id and a
+token on both leg jobs. `test_ci_plan_provider_retry.py` gains a planned run
+with two bootstrap legs: the outputs partition its rows, a draft plans no
+bootstrap leg, and a listing in which `vv-bootstrap` was skipped as one
+unexpanded job is no verified run.
+
+Each plant below was applied alone to the working tree, the check run, and
+the file restored (`cmp` against the saved copy). Workflow plants were run
+with `cargo test -p repo-conformance --test conformance -- --exact
+conformance_rp_14` on Windows; the planner plants with a copy of
+`test_ci_plan_provider_retry.py` whose `PATH` joins with `os.pathsep` (the
+committed test joins with `:` and fails on Windows, unchanged and planted
+alike) and with a harness that runs the planner on the committed rows for a
+draft, a stacked, a ready and an other-event run and checks the split as
+`plan_partition` does. `plan_decisions` and `release_gate_decisions` return
+early off Linux and were not run here.
+
+| Planted defect | Refused by |
+| --- | --- |
+| `vv-bootstrap` without `bootstrap-export` in `needs` | `RP-14`: `` `vv-bootstrap` is not `vv` but for its need, condition and rows: line 2 is Some("    needs: [plan, honesty]") `` |
+| `vv-bootstrap` named `just vv bootstrap (${{ matrix.part }})` | `RP-14`: the same refusal at line 1 |
+| `continue-on-error: true` on `vv-bootstrap` | `RP-14`: `` ci.yml has no `continue-on-error` ``; inside `RP-14`, `bootstrap_legs_workflow` alone also refuses it |
+| `vv-bootstrap` reading `fanout`, so the legs of `vv` run twice | `RP-14`: the same refusal at line 7 |
+| `if: ${{ !cancelled() && needs.plan.outputs.bootstrap != '[]' }}`, legs after a failed export | `RP-14`: `a condition other than a step's !cancelled() or a job's condition on the plan`; `bootstrap_legs_workflow` alone also refuses it |
+| the fetcher's `if [ "$FULL_GATE" = true ]` removed from `vv-bootstrap` | `RP-14`: `the fetcher fills the directory the harness waits in: missing …` |
+| the plan's `bootstrap` output removed | `RP-14`: `` the plan does not expose `bootstrap` `` |
+| `fanout` as `select(.part != "honesty")`, every bootstrap leg also in `vv` | harness: `leg bdd-bootstrap-check run 2 times` (ready and other-event runs); `test_outputs_partition_the_rows` fails |
+| `bootstrap` as `startswith("bdd-bootstrap-l")`, 23 bootstrap legs in neither job | harness: `leg bdd-bootstrap-check run 0 times`; `test_outputs_partition_the_rows` fails |
+| a draft planning every row but `examples`, 28 bootstrap legs with `full=false` | harness: `bootstrap legs in a run that is not the whole gate`; `test_outputs_partition_the_rows` fails |
+| a third job reading the bootstrap rows as `${{ fromJson( needs.plan.outputs.bootstrap ) }}` | `RP-14`: `` the rows of `bootstrap` are run by 2 jobs, not one ``; under the earlier exact-text count it passed |
+| `full_run_of` accepting `skipped` jobs as well as `success` | nothing: the skipped `vv-bootstrap` names no leg, so the per-leg check still refuses it (`test_skipped_bootstrap_legs_are_no_verified_run` passes) |
+| `full_run_of` without its per-leg check | `test_recovered_read_does_not_relax_inventory` (`missing`) fails |
+| both of the two above | `test_skipped_bootstrap_legs_are_no_verified_run` fails as well |
+
+Inside `RP-14` the partition is also planted on the committed rows: a
+bootstrap leg left in `fanout`, one run by no job, one run by `vv` instead,
+and bootstrap legs in a draft are each refused, as are `vv-bootstrap` without
+the export's need, with another name, with `continue-on-error`, with a status
+function in its condition, reading `fanout`, with a step that differs from
+`vv`'s, and a plan without the `bootstrap` output.
+
+The rows are read by exactly one job however the reader is spelt: GitHub
+accepts expression function names in any case and spaces inside a call, so
+`RP-14` counts readers on each non-comment line with its spaces removed and
+its case folded. An exact-text count let a `fromJson(...)` reader run the
+legs a second time unnoticed (found by an independent review of #630). That
+would have wasted runners without failing open, since every leg must still
+pass.
+
+A skipped `vv-bootstrap` is refused by two predicates of `full_run_of`, each
+of them enough: every listed job must be `success`, and every leg must be
+listed by name. A failed export uploads no bundle, because its upload step
+has no status function. "Re-run failed jobs" then runs the export and the
+skipped `vv-bootstrap` again, and the fetcher takes only this run's newest
+unexpired `bootstrap-export`. An export rerun after the bundle's one-day
+retention is a known limit that this change neither introduces nor
+changes: the fetcher waits until its timeout.
+
+The planner harness (`test_ci_plan_provider_retry.py`) now joins its stub
+directory to `PATH` with `os.pathsep`. With `:` it found no stub on Windows,
+so it failed there on the unchanged base too. It gives 7/7 on Windows (5/5 on
+the base, once the same fix is applied), and the plants above were made
+there.
+
+SPEC.md §9.4 states which jobs start when honesty passes and that the legs do
+not wait for the export to start; both sentences now name `vv-bootstrap`,
+ported to `spec/src/Chapter09.lex.tex` with `cargo xtask spec port` (NS-07),
+which regenerated SPEC.md and the model files. The register is unchanged:
+no row of `model/ids.toml` names the jobs' dependencies.
+
+What this saves is modeled from the run above, not measured: the 595.0
+job-minutes of waiting per whole gate, 22.5% of 2,643, leaving about 2,048.
+The legs now start about 34 minutes after honesty and the longest ends about
+48 minutes later, well before the host jobs that set the wall time, so the
+wall time is modeled unchanged. Runner queueing under the shared pool can
+move both figures. No CI run of this change was made. One effect is not a
+saving: when the export fails, these legs no longer run at all, so a case of
+theirs that does not need the export no longer reports in that run.
+
+Merged after #621, `vv-bootstrap` is also a traced Linux gate job. It starts
+the advisory read recorder right after checkout and stops it as its last step,
+exactly as `vv` does, so the two jobs remain equal line for line.
+`read_trace_workflow` lists it among the traced jobs, and the step-condition
+count is eight plus two per Atlas job plus one per recorder stop. With
+`vv-bootstrap`'s stop step removed, `RP-14` refuses with `#603: vv-bootstrap
+never stops the read recorder`.
+
+## The host matrix samples its own CPU and memory while it tests (evidence, #603 DOD-7a)
+
+DOD-7 needs each host's CPU use and memory pressure during `cargo test`, and no
+job recorded them: only the Linux x86-64 legs sample memory. The host matrix's
+one test step now runs `.github/scripts/sample-host.sh` beside the tests (one
+row every five seconds: CPU busy share, available memory, swap in use, largest
+resident set; `/proc` on Linux, `top`/`vm_stat`/`sysctl` on macOS) and prints
+`summarize_host_samples.py`'s one-line summary to the log and the step summary.
+It decides nothing: the step's status is cargo's alone, and RP-14 pins the step
+as exactly that program. A stubbed `cargo` exiting 101 gave a step exit of 101
+with the sampler stopped.
+
+| Planted defect | Refused by |
+| --- | --- |
+| `exit 0` in place of `exit "$status"` | `conformance_rp_14`: the host matrix's test step propagates cargo's status and nothing else |
+| `|| true` in place of `|| status=$?` | `conformance_rp_14` (same) |
+| `continue-on-error: true` on the step | `conformance_rp_14` (same) |
+| an `exit 0` before the tests | `conformance_rp_14` (same) |
+| a summary that fails on missing or empty samples | `test_summarize_host_samples.py` |
+
+## The Linux gate jobs record the workspace files they open (advisory, #603 phase 1)
+
+A change-scoped gate may skip a job only when a change cannot reach what the
+job reads, and LexLean's cases read arbitrary repository files at run time
+(`root_file`), so the reads are measured. Right after checkout, each of the 12
+Linux gate jobs (`honesty`, `bootstrap-export`, every `vv` and `vv-bootstrap`
+leg, every Atlas job) starts `.github/scripts/ci_read_trace.py`, which bind-mounts the workspace
+onto itself and marks that mount with fanotify; the job's last step stops it
+and prints its report into the job log as one digest-checked block. The report
+lists the files and directories opened, `.git` reads apart, and counts build
+output (`target/`) without listing it.
+
+A report is an observation of one run, not evidence of independence. Each one
+says so (`authority`) and lists what it cannot see: `stat`-only probes, failed
+opens (a dependency on a file's absence), files reached through a symlink that
+leaves the workspace, descriptors opened before the mark, non-file inputs, and
+other control flows. `usable` is false after a queue overflow, at the path cap,
+on any recorder error, or when the recorder never reported. It binds the
+checked-out `HEAD`, tree and dirtiness, the workflow, run and attempt, the
+matrix row and index, the tracked symlinks and their targets, and the digests
+of the recorder's own files at start and at stop. The provider binds the log to
+the exact job ID.
+
+The recording decides nothing, and every failure path is built to cost only the
+trace. `ci.yml` still admits no `continue-on-error`. Each action is one step run
+by `bash` without `-e`, ignores its script's status, and ends in `exit 0`. There
+is no artifact upload, so no upload, quota or retried-attempt name conflict can
+fail the job. The recorder limits its own address space to 1 GiB, makes itself
+the OOM killer's first choice, keeps the kernel queue bounded, caps its path
+sets at 100,000, and reads a bounded amount per loop turn so that a stop is
+always seen. It refuses a workspace that is already a mount point, and unmounts
+on every exit. A per-attempt private directory, a nonce, the recorder's process
+start time (so a recycled PID is never signalled), and atomic writes keep a
+stale or partial file from passing as this run's. A hung recorder is killed and
+its mount removed. Whether fanotify is permitted on hosted runners, and what the
+recording costs, can be measured only there. Until then non-interference is a
+design property, not a measured one.
+
+| Planted defect | Refused by |
+| --- | --- |
+| the stop step removed from `atlas-join` | `conformance_rp_14`: `#603: atlas-join never stops the read recorder` |
+| the recorder started in the native `host-matrix` job | `conformance_rp_14`: `#603: native host job host-matrix is traced` |
+| the recorder started after the toolchain step instead of right after checkout (`vv`) | `conformance_rp_14`: `#603: vv starts the read recorder once, right after checkout` |
+| the matrix row dropped from `atlas-l1`'s start | `conformance_rp_14`: `#603: atlas-l1 starts the read recorder once, right after checkout` |
+| an artifact upload put back in `read-trace-stop` | `conformance_rp_14`: `#603: read-trace-stop can fail the job it traces` |
+| `shell: bash` (that is, `-e -o pipefail`) in `read-trace-start` | `conformance_rp_14`: `#603: read-trace-start can fail the job it traces` |
+| the stop script's status no longer ignored (`|| true` removed) | `conformance_rp_14`: `#603: read-trace-stop can fail the job it traces` |
+| `set -e` in the stop script; the start script's final `exit 0` removed | `conformance_rp_14`: `#603: read-trace-{stop,start} can fail the job it traces` |
+| a start input named `matrix:` (it broke the single-shard Atlas jobs' no-matrix rule) | the existing §9.4 single-shard check in `conformance_rp_14`; the input is `row:` |
+| a truncated, overlong, or wrong-version fanotify event | `test_ci_read_trace.py` (`Parse`; `Record`: the trace fails, not the job) |
+| no unmount on exit | `Record.test_a_clean_recording_is_usable_and_unmounts` |
+| a fault injected at confine, bind, init, mark or read | `Record.test_every_injected_failure_ends_in_an_unusable_report_and_no_mount` |
+| a queue overflow ignored | `Record.test_a_queue_overflow_makes_the_trace_unusable` |
+| no path cap | `Inventory.test_the_path_sets_stop_at_the_cap_and_say_so` |
+| an unbounded read loop per turn | `Record.test_one_turn_reads_a_bounded_amount_so_a_stop_is_seen` |
+| a recycled PID signalled | `Stop.test_a_recycled_pid_is_never_signalled` |
+| a report with another recording's nonce accepted | `Stop.test_a_stale_or_partial_report_is_not_accepted` |
+| a half-written report | `Record.test_a_clean_recording_is_usable_and_unmounts` (atomic write) |
+| a log block that fails its digest | `Delivery.test_tampered_duplicated_and_truncated_blocks_are_refused` |
+| start with no `sudo` or no writable temp; stop with failing `sudo`, `timeout` or Python | `test_ci_read_trace.py` (`Scripts`): status 0 in every case |
+| a test inheriting the job's own `LEXLEAN_READ_TRACE_*` (found by #621's first hosted gate, run 45487283362: the scripts test stopped the honesty job's live recorder and failed) | `Scripts.test_the_job_s_own_recording_is_never_reached` |
+| a directory known by `FAN_ONDIR` in the event mask (found by #621's second hosted gate, run 45520831037: the hosted kernel sent no such flag, so all 45 traces recorded no directory, and the advisory kernel test failed with `'sub' not found in []`) | `Record.test_a_directory_is_known_by_its_descriptor_not_the_event_mask`; on a host, `KernelRecording` |
