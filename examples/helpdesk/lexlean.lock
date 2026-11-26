@@ -62,8 +62,8 @@ version = "1.0.0"
 kind = "path"
 source = "stdlib"
 module_prefix = "LexLeanStd"
-tree_kappa = "blake3:80f71f6112cba7c8ba835830cdb1010989aa7e69d55c3a7ddea1ceb58928c208"
-manifest_kappa = "blake3:de3b5448eda5498b6840c2001b4872faa39d80c957691a68e6f0f0125415436d"
+tree_kappa = "blake3:c00c75a36697f59b19781b02a9c5c5855afafa6a3ee0b56739e11f96a1fe2e44"
+manifest_kappa = "blake3:1a0ee4ee16e15e5e6c1d176c935d64c656afaa6a0b8c70e55ec408746267fbc7"
 imports = []
 
 [[source_package]]
