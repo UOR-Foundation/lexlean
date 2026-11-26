@@ -23222,3 +23222,47 @@ design property, not a measured one.
 | start with no `sudo` or no writable temp; stop with failing `sudo`, `timeout` or Python | `test_ci_read_trace.py` (`Scripts`): status 0 in every case |
 | a test inheriting the job's own `LEXLEAN_READ_TRACE_*` (found by #621's first hosted gate, run 45487283362: the scripts test stopped the honesty job's live recorder and failed) | `Scripts.test_the_job_s_own_recording_is_never_reached` |
 | a directory known by `FAN_ONDIR` in the event mask (found by #621's second hosted gate, run 45520831037: the hosted kernel sent no such flag, so all 45 traces recorded no directory, and the advisory kernel test failed with `'sub' not found in []`) | `Record.test_a_directory_is_known_by_its_descriptor_not_the_event_mask`; on a host, `KernelRecording` |
+
+## Regenerated changes pass between jobs as bounded patch sets (#624, 2026-11-25)
+
+Regeneration 45666573528 of #624 ran every writer to success and stopped in
+`combine`: `HOLD: records: invalid binary/text patch path inventory`. Its
+records artifact (ID 15057858750, 176,164,718 bytes, digest
+`sha256:46ea49c8…526a` as recorded) holds a single `records.patch` of
+1,077,735,486 bytes for 6,849 paths, a whole rewrite of the verification
+records under a moved compiler-semantics ID. Git refuses it outright:
+`git apply --numstat -z records.patch` prints `error: patch too large` and
+exits 128, because `git apply` reads no patch of 1023 MiB (1,072,693,248
+bytes) or more. The same limit stood in front of every later apply of the
+run: `combine`'s, `finish`'s, and `deliver`'s.
+
+Every change now passes as a patch set (`.github/scripts/patch_set.py`):
+parts cut only between whole file diffs, each about 128 MiB and always below
+768 MiB, with a manifest binding the commit regenerated, the tree the change
+starts from and the tree it gives, every part's size and checksum, and every
+part's path inventory as Git reads it. A writer writes its set; `combine`
+checks all three whole (`check_regen_writers.py`: each set's parts present,
+untampered, rename-free, disjoint and exactly its `.files`; made from the one
+start tree; giving its recorded tree in a scratch index; no path in two
+writers) before applying any, applies them in turn and requires the index to
+be each writer's tree on its paths and the start tree elsewhere; `finish` and
+`deliver` apply a set only to its start tree and require its recorded tree
+after. Retained-artifact check: the 1,077,735,486-byte patch splits into 9
+parts (123.5 to 128.0 MiB, and 13.1 MiB), whose concatenation is
+byte-identical to it and which apply in a scratch index to the tree of
+2266efb8, the commit it was made from, through `load` and `check_tree`, all
+6,849 paths accounted for.
+
+| Planted defect | Refused by |
+| --- | --- |
+| a part's byte altered | `test_patch_set.py` (`checksum`) |
+| a part missing, a part row dropped, parts reordered | `test_patch_set.py` (`missing`, `unlisted files claim the set`, `part order`) |
+| one path written by two parts | `test_patch_set.py` (`another part also writes`) |
+| a set of another commit, or applied to another tree | `test_patch_set.py` (`made from`, `not the start tree`) |
+| a recorded tree the parts do not give | `test_patch_set.py`, `test_check_regen_writers.py` (`the parts give tree`, `applied tree`) |
+| one file diff at the part maximum; thresholds at Git's limit | `test_patch_set.py` (`reaches the part maximum`, `thresholds`) |
+| an unknown manifest key; an unsafe set name | `test_patch_set.py` (`manifest keys`, `unsafe set name`) |
+| overlapping writer sets combined | `test_patch_set.py`, `test_check_regen_writers.py` (`writer collision`) |
+| a writer made from another start tree; an old single-patch artifact | `test_check_regen_writers.py` (`shared start tree`, `unlisted files claim the set`) |
+| a raw `git diff`/`git apply` in place of a set in any of the four steps or in `deliver-regenerated.sh`; the guard's `--base` dropped; `--no-renames` dropped from either diff of `patch_set.py` | `test_check_regen_writers.py` (`test_workflow_refuses_weakened_writer_guards`) |
+| `test_patch_set.py` removed from the honesty step | `conformance_rp_14` (`regression_honesty`, and its command-removal plant) |

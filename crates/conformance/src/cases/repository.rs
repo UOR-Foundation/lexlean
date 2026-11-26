@@ -3017,6 +3017,7 @@ pub(crate) fn run(id: &str) {
             honesty_dependencies(&ci).expect("expensive roots require successful same-run honesty");
             for script in [
                 "test_check_regen_writers.py",
+                "test_patch_set.py",
                 "test_export_custody_guard.py",
                 "test_intel_host_tests.py",
                 "test_host_lanes.py",
@@ -5403,6 +5404,7 @@ fn regression_honesty(ci: &str) -> Result<(), String> {
         "        run: |\n",
         "          set -euo pipefail\n",
         "          python3 -m unittest discover -s .github/scripts -p 'test_check_regen_writers.py'\n",
+        "          python3 -m unittest discover -s .github/scripts -p 'test_patch_set.py'\n",
         "          python3 -m unittest discover -s .github/scripts -p 'test_export_custody_guard.py'\n",
         "          python3 -m unittest discover -s .github/scripts -p 'test_intel_host_tests.py'\n",
         "          python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'\n",
