@@ -1,0 +1,351 @@
+{
+  "schema": "lexlean/ci-b1-630-postmerge/1",
+  "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+  "tree": "0fd20b0aa6fe55fffb8b445472161c87c4c88738",
+  "qualified_head": "b5bfe17ca44ecca3f6bf95798c7788e6254c790a",
+  "qualified_ci": 45757936558,
+  "qualified_repro": 45757936468,
+  "scope": "Successful exact-tree production push; skipped placeholders are not independent qualification, unallocated rows are not costed. Not a billed usage receipt.",
+  "reuse_log": "CI reuse: run 45757936558: complete gate accepted for b5bfe17ca44ecca3f6bf95798c7788e6254c790a",
+  "tag_log": "the workspace version is 0.4.0 on both sides: not a cut",
+  "runs": [
+    {
+      "id": 45780833433,
+      "total": 19,
+      "raw": [
+        {
+          "id": 139775596361,
+          "name": "plan",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": 1000188078,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-26T08:09:45Z",
+          "started": "2026-11-26T08:09:47Z",
+          "completed": "2026-11-26T08:10:53Z"
+        },
+        {
+          "id": 139776128611,
+          "name": "Windows tests (${{ matrix.lane }})",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "windows-2022"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:53Z"
+        },
+        {
+          "id": 139776128917,
+          "name": "bootstrap export",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:53Z"
+        },
+        {
+          "id": 139776129103,
+          "name": "Intel test construction and local targets",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "macos-15-intel"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:53Z"
+        },
+        {
+          "id": 139776129310,
+          "name": "matrix.part",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:53Z"
+        },
+        {
+          "id": 139776129469,
+          "name": "atlas (prefix)",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:53Z"
+        },
+        {
+          "id": 139776129519,
+          "name": "build and non-Lean tests (x86_64-pc-windows-msvc)",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:54Z"
+        },
+        {
+          "id": 139776129556,
+          "name": "build and non-Lean tests (${{ matrix.target }})",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:53Z"
+        },
+        {
+          "id": 139776129662,
+          "name": "atlas (cert4)",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:54Z"
+        },
+        {
+          "id": 139776129669,
+          "name": "atlas (${{ matrix.shard }})",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:54Z"
+        },
+        {
+          "id": 139776129993,
+          "name": "just vv (${{ matrix.part }})",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:53Z"
+        },
+        {
+          "id": 139776130032,
+          "name": "atlas (${{ matrix.shard }})",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:54Z"
+        },
+        {
+          "id": 139776130334,
+          "name": "atlas (closure)",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:54Z"
+        },
+        {
+          "id": 139776130444,
+          "name": "just vv (${{ matrix.part }})",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:54Z"
+        },
+        {
+          "id": 139776130858,
+          "name": "Intel conformance (${{ matrix.lane }})",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "macos-15-intel"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:54Z"
+        },
+        {
+          "id": 139776131481,
+          "name": "build and non-Lean tests (x86_64-apple-darwin)",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:54Z"
+        },
+        {
+          "id": 139776131638,
+          "name": "atlas (cert4-replay)",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:54Z"
+        },
+        {
+          "id": 139776132306,
+          "name": "atlas (${{ matrix.shard }})",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:54Z"
+        },
+        {
+          "id": 139776132700,
+          "name": "atlas (join)",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-26T08:10:54Z",
+          "started": "2026-11-26T08:10:54Z",
+          "completed": "2026-11-26T08:10:54Z"
+        }
+      ],
+      "allocated": 66,
+      "skips": 18
+    },
+    {
+      "id": 45780833444,
+      "total": 1,
+      "raw": [
+        {
+          "id": 139775595698,
+          "name": "repro",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": 1000188076,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-26T08:09:45Z",
+          "started": "2026-11-26T08:09:47Z",
+          "completed": "2026-11-26T08:16:22Z"
+        }
+      ],
+      "allocated": 395,
+      "skips": 0
+    },
+    {
+      "id": 45780833387,
+      "total": 1,
+      "raw": [
+        {
+          "id": 139775595800,
+          "name": "tag a cut",
+          "attempt": 1,
+          "head": "11d665cf4a27415dc4d34202d61984dfb841d353",
+          "runner": 1000188077,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-26T08:09:45Z",
+          "started": "2026-11-26T08:09:47Z",
+          "completed": "2026-11-26T08:10:46Z"
+        }
+      ],
+      "allocated": 59,
+      "skips": 0
+    }
+  ],
+  "total_allocated_seconds": 520
+}
