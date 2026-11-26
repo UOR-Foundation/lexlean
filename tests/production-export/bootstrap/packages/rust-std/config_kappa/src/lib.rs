@@ -857,7 +857,7 @@ pub fn format_int(p0: i64) -> Str {
 
 #[derive(Clone)]
 pub enum Adt0 {
-    C0(Bytes, Bytes, Bytes, List<Bytes>, List<Bytes>, Bytes, Bytes, Bytes, List<Adt1>, List<Adt2>, List<Adt3>, Adt4, Option<Adt5>),
+    C0(Bytes, Bytes, Bytes, List<Bytes>, List<Bytes>, Bytes, Bytes, Bytes, List<Adt1>, List<Adt2>, List<Adt3>, std::rc::Rc<Adt4>, Option<Adt5>),
 }
 
 #[derive(Clone)]
@@ -904,7 +904,7 @@ pub enum Adt8 {
 
 #[derive(Clone)]
 pub enum Adt9 {
-    C0(Adt6, u64, List<Adt6>),
+    C0(std::rc::Rc<Adt6>, u64, List<Adt6>),
 }
 
 #[derive(Clone)]
@@ -1254,7 +1254,7 @@ pub fn f2(v0: Adt0) -> R<Bytes> {
         }
     })?), v2), v3), f15(match v0 {
         Adt0::C0(_, _, _, _, _, _, _, _, _, _, _, h17, _) => {
-            h17
+            (*h17).clone()
         }
     })?), v5))
 }
@@ -2666,7 +2666,7 @@ pub fn f76() -> Bytes {
 }
 
 pub fn f77(v0: (u64, List<Adt6>), v1: Adt6) -> R<(u64, List<Adt6>)> {
-    let v2: Adt9 = f93(Fn17::F94, 40u64, Adt9::C0(v1, {
+    let v2: Adt9 = f93(Fn17::F94, 40u64, Adt9::C0(std::rc::Rc::new(v1), {
         let a367 = {
             let (h366, _) = v0.clone();
             h366
@@ -2686,7 +2686,7 @@ pub fn f77(v0: (u64, List<Adt6>), v1: Adt6) -> R<(u64, List<Adt6>)> {
         nat_add(a371, a372)?
     }, List::cons(match v2.clone() {
         Adt9::C0(h373, _, _) => {
-            h373
+            (*h373).clone()
         }
     }, match v2 {
         Adt9::C0(_, _, h374) => {
@@ -3385,11 +3385,11 @@ pub fn f103(v0: Adt9) -> Adt9 {
                 v0
             }
             Some((v1, v2)) => {
-                Adt9::C0(f86(v1, match v0.clone() {
+                Adt9::C0(std::rc::Rc::new(f86(v1, match v0.clone() {
                     Adt9::C0(h569, _, _) => {
-                        h569
+                        (*h569).clone()
                     }
-                }, false), {
+                }, false)), {
                     let a571 = match v0 {
                         Adt9::C0(_, h570, _) => {
                             h570

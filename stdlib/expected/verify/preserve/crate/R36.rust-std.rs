@@ -855,40 +855,75 @@ pub fn format_int(p0: i64) -> Str {
     Str::format_i64(p0)
 }
 
-pub fn f0(v0: List<i64>, v1: List<i64>) -> R<List<i64>> {
-    f1(8u64, v0, v1)
+#[derive(Clone)]
+pub enum Fn0 {
+    F2(Bytes),
 }
 
-pub fn f1(v0: u64, v1: List<i64>, v2: List<i64>) -> R<List<i64>> {
-    let m1 = v1;
-    match m1.uncons() {
-        None => {
-            Ok(List::<i64>::nil())
+impl Fn0 {
+    pub fn apply(&self, p0: Option<Bytes>, p1: Bytes) -> Option<Bytes> {
+        match self {
+            Fn0::F2(k0) => f2(k0.clone(), p0, p1),
         }
-        Some((v3, v4)) => {
-            let m2 = v2;
-            match m2.uncons() {
-                None => {
-                    Ok(List::<i64>::nil())
-                }
-                Some((v5, v6)) => {
-                    let a3 = v0;
-                    let a4 = 0u64;
-                    if nat_eq(a3, a4) {
-                        Ok(List::<i64>::nil())
-                    } else {
-                        Ok(List::cons({
-                            let a5 = v3;
-                            let a6 = v5;
-                            int_mul(a5, a6)?
-                        }, f1({
-                            let a7 = v0;
-                            let a8 = 1u64;
-                            nat_sub(a7, a8)
-                        }, v4, v6)?))
+    }
+}
+
+pub fn f0(v0: List<Bytes>, v1: Bytes) -> Bytes {
+    let m1 = f1(Fn0::F2(v1), None::<Bytes>, v0);
+    match m1 {
+        None => {
+            Bytes::lit(&[])
+        }
+        Some(v2) => {
+            v2
+        }
+    }
+}
+
+pub fn f1(v0: Fn0, p5: Option<Bytes>, p6: List<Bytes>) -> Option<Bytes> {
+    let m4 = (p5, p6);
+    {
+        let mut m4 = m4;
+        loop {
+            let step = {
+                let (v1, v2) = m4;
+                let m2 = v2;
+                match m2.uncons() {
+                    None => {
+                        Err::<(Option<Bytes>, List<Bytes>), Option<Bytes>>(v1)
+                    }
+                    Some((v3, v4)) => {
+                        Ok::<(Option<Bytes>, List<Bytes>), Option<Bytes>>(({
+                            let c3: Fn0 = v0.clone();
+                            c3.apply(v1, v3)
+                        }, v4))
                     }
                 }
+            };
+            match step {
+                Ok(next) => { m4 = next; }
+                Err(done) => break done,
             }
+        }
+    }
+}
+
+pub fn f2(v0: Bytes, v1: Option<Bytes>, v2: Bytes) -> Option<Bytes> {
+    let m7 = v1;
+    match m7 {
+        None => {
+            Some(v2)
+        }
+        Some(v3) => {
+            Some({
+                let a10 = {
+                    let a8 = v3;
+                    let a9 = v0;
+                    append_bytes(a8, a9)
+                };
+                let a11 = v2;
+                append_bytes(a10, a11)
+            })
         }
     }
 }

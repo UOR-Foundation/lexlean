@@ -192,6 +192,7 @@
 'LexLeanLaws.bit_eq_testBit' depends on axioms: [propext, Quot.sound]
 'LexLeanLaws.checkedAdd_fits' depends on axioms: [propext, Quot.sound]
 'LexLeanLaws.checkedAdd_fits.match_1' does not depend on any axioms
+'LexLeanLaws.ite_eq_iff' depends on axioms: [propext]
 'LexLeanLaws.length_list' does not depend on any axioms
 'LexLeanLaws.length_utf8Encode' does not depend on any axioms
 'LexLeanLaws.lessThan_int' depends on axioms: [propext, Quot.sound]
@@ -220,18 +221,43 @@
 'LexLeanLaws.mapEntries_self' does not depend on any axioms
 'LexLeanLaws.mapFold_listFold' does not depend on any axioms
 'LexLeanLaws.mapSize_length' does not depend on any axioms
+'LexLeanLaws.nat_add_mul_div_left' depends on axioms: [propext]
 'LexLeanLaws.nat_bit_and' depends on axioms: [propext, Quot.sound]
 'LexLeanLaws.nat_bit_ext' depends on axioms: [propext, Quot.sound]
 'LexLeanLaws.nat_bit_or' depends on axioms: [propext, Quot.sound]
 'LexLeanLaws.nat_bit_shift_left' depends on axioms: [propext, Quot.sound]
 'LexLeanLaws.nat_bit_shift_right' depends on axioms: [propext]
 'LexLeanLaws.nat_bit_xor' depends on axioms: [propext, Quot.sound]
+'LexLeanLaws.nat_div_add_mod' depends on axioms: [propext]
+'LexLeanLaws.nat_div_div_eq_div_mul' depends on axioms: [propext]
+'LexLeanLaws.nat_le_of_mul_le_mul_left' does not depend on any axioms
+'LexLeanLaws.nat_left_distrib' does not depend on any axioms
+'LexLeanLaws.nat_mod_lt' does not depend on any axioms
+'LexLeanLaws.nat_mod_mul_left_div_self' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_assoc' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_comm' does not depend on any axioms
+'LexLeanLaws.nat_mul_div_cancel_left' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_div_mul_left' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_le_mul' does not depend on any axioms
+'LexLeanLaws.nat_mul_le_mul_left_iff' does not depend on any axioms
+'LexLeanLaws.nat_mul_left_comm' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_lt_mul_of_pos_right' does not depend on any axioms
+'LexLeanLaws.nat_mul_mod_left' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_one' does not depend on any axioms
+'LexLeanLaws.nat_mul_sub' depends on axioms: [propext]
+'LexLeanLaws.nat_mul_succ' does not depend on any axioms
+'LexLeanLaws.nat_mul_zero' does not depend on any axioms
+'LexLeanLaws.nat_one_mul' does not depend on any axioms
 'LexLeanLaws.nat_or_xor_and' depends on axioms: [propext, Quot.sound]
+'LexLeanLaws.nat_right_distrib' depends on axioms: [propext]
 'LexLeanLaws.nat_witt_step' depends on axioms: [propext, Quot.sound]
+'LexLeanLaws.nat_zero_mul' does not depend on any axioms
 'LexLeanLaws.quotient_int' depends on axioms: [propext, Quot.sound]
 'LexLeanLaws.quotient_nat' depends on axioms: [propext, Quot.sound]
+'LexLeanLaws.quotient_nat_pos' does not depend on any axioms
 'LexLeanLaws.remainder_int' depends on axioms: [propext, Quot.sound]
 'LexLeanLaws.remainder_nat' depends on axioms: [propext, Quot.sound]
+'LexLeanLaws.remainder_nat_pos' does not depend on any axioms
 'LexLeanLaws.setElements_self' does not depend on any axioms
 'LexLeanLaws.setFold_listFold' does not depend on any axioms
 'LexLeanLaws.setSize_length' does not depend on any axioms

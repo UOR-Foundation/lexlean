@@ -3,12 +3,12 @@
 # compiler executable (presence only). SPEC.md §28.2, §28.4.
 
 [platform_independent]
-".lexlean/build/6ed2dd3a8d599b277ef71f1a82ec61e199d71f8dc4b061b6ab937baeb519b79c/coverage/LexLeanExample/Main.coverage.json" = "4abf227a0dda00e1aab533e71b3c537a90c029dc0d019ba378bca4be58ab8d50"
-".lexlean/build/6ed2dd3a8d599b277ef71f1a82ec61e199d71f8dc4b061b6ab937baeb519b79c/lexicons/Main.closure.json" = "f26eaf823185618e7499acd5904bcb83c59ce7c93b299fa7d8eb5938857c7ec4"
-".lexlean/build/6ed2dd3a8d599b277ef71f1a82ec61e199d71f8dc4b061b6ab937baeb519b79c/manifest.json" = "ea9afc4ad50e3855e32fcc43e305da4f9ef9a7b7b3e4d92ab1b0c1fe2a622c8e"
-".lexlean/build/6ed2dd3a8d599b277ef71f1a82ec61e199d71f8dc4b061b6ab937baeb519b79c/maps/LexLeanExample/Main.map.json" = "07407086dd9daf87cec62fab719df36bc56f5d1e57b8ca3108da47d9382a8ba4"
-".lexlean/build/6ed2dd3a8d599b277ef71f1a82ec61e199d71f8dc4b061b6ab937baeb519b79c/modules/LexLeanExample/Main.lean" = "c0cd6ef5d1918281517cdee5e4635665498b3e5f758fd3dea5a9d6ae142fd85f"
-".lexlean/build/6ed2dd3a8d599b277ef71f1a82ec61e199d71f8dc4b061b6ab937baeb519b79c/modules/LexLeanExample/Main.tex" = "c8c772b0e613cd25500b569e99fbbb32a14ae446d8db573e9caacbb679030888"
+".lexlean/build/887cab0c3995b4a8a37d352837be4a3bca419a8bbc75f66d59c79044eef3df4e/coverage/LexLeanExample/Main.coverage.json" = "blake3:53e6ce707d03f4dc4cb4ca61e588a755c6263da15e6be05c77ccfeeccd199aca"
+".lexlean/build/887cab0c3995b4a8a37d352837be4a3bca419a8bbc75f66d59c79044eef3df4e/lexicons/Main.closure.json" = "blake3:b76feb6879d472e706590622338673a885dfd0e7b47ac43d5d2f81238ddc8452"
+".lexlean/build/887cab0c3995b4a8a37d352837be4a3bca419a8bbc75f66d59c79044eef3df4e/manifest.json" = "blake3:68e8ee158238bc17d1ac264b694328a361cbd93387483fa75f60e2e8d7326749"
+".lexlean/build/887cab0c3995b4a8a37d352837be4a3bca419a8bbc75f66d59c79044eef3df4e/maps/LexLeanExample/Main.map.json" = "blake3:d44559c424fc41377b6bba5f54f4cbe4936ce7e4ee40811e4aa48e6378d5fca2"
+".lexlean/build/887cab0c3995b4a8a37d352837be4a3bca419a8bbc75f66d59c79044eef3df4e/modules/LexLeanExample/Main.lean" = "blake3:ed2c1b679d9cae703a2d8c81d8572e75d1492912bfa683d567933d0ac32e73b4"
+".lexlean/build/887cab0c3995b4a8a37d352837be4a3bca419a8bbc75f66d59c79044eef3df4e/modules/LexLeanExample/Main.tex" = "blake3:7dfddff3f7f8f1436c64f4765619809872265edafe224c8c565eb07a8793fca3"
 
 [process_bound]
 files = []

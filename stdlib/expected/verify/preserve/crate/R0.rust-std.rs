@@ -872,7 +872,7 @@ pub enum Adt2 {
 
 #[derive(Clone)]
 pub enum Adt3 {
-    C0(Adt0, u64, List<Adt0>),
+    C0(std::rc::Rc<Adt0>, u64, List<Adt0>),
 }
 
 #[derive(Clone)]
@@ -1679,7 +1679,7 @@ pub fn f19(v0: u32, v1: u32) -> u32 {
 }
 
 pub fn f20(v0: (u64, List<Adt0>), v1: Adt0) -> R<(u64, List<Adt0>)> {
-    let v2: Adt3 = f30(Fn5::F31, 40u64, Adt3::C0(v1, {
+    let v2: Adt3 = f30(Fn5::F31, 40u64, Adt3::C0(std::rc::Rc::new(v1), {
         let a243 = {
             let (h242, _) = v0.clone();
             h242
@@ -1699,7 +1699,7 @@ pub fn f20(v0: (u64, List<Adt0>), v1: Adt0) -> R<(u64, List<Adt0>)> {
         nat_add(a247, a248)?
     }, List::cons(match v2.clone() {
         Adt3::C0(h249, _, _) => {
-            h249
+            (*h249).clone()
         }
     }, match v2 {
         Adt3::C0(_, _, h250) => {
@@ -2090,11 +2090,11 @@ pub fn f36(v0: Adt3) -> Adt3 {
                 v0
             }
             Some((v1, v2)) => {
-                Adt3::C0(f29(v1, match v0.clone() {
+                Adt3::C0(std::rc::Rc::new(f29(v1, match v0.clone() {
                     Adt3::C0(h348, _, _) => {
-                        h348
+                        (*h348).clone()
                     }
-                }, false), {
+                }, false)), {
                     let a350 = match v0 {
                         Adt3::C0(_, h349, _) => {
                             h349

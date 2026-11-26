@@ -855,176 +855,117 @@ pub fn format_int(p0: i64) -> Str {
     Str::format_i64(p0)
 }
 
-pub fn f0(v0: List<i64>, v1: List<i64>) -> R<List<i64>> {
-    f1(1u64, 0u64, 0i64, f2(64u64, v0, v1)?)
+#[derive(Clone)]
+pub enum Fn0 {
+    F2(Bytes, u64, Bytes, u64),
 }
 
-pub fn f1(v0: u64, v1: u64, v2: i64, v3: List<i64>) -> R<List<i64>> {
-    let m1 = v3;
-    match m1.uncons() {
-        None => {
-            Ok(List::<i64>::nil())
-        }
-        Some((v4, v5)) => {
-            let a2 = v1;
-            let a3 = 0u64;
-            if nat_eq(a2, a3) {
-                f1(v0, 1u64, v4, v5)
-            } else {
-                Ok(List::cons(f3(v0, f4(v2, v4)?)?, f1(v0, 0u64, 0i64, v5)?))
-            }
+impl Fn0 {
+    pub fn apply(&self, p0: u64) -> R<Option<u64>> {
+        match self {
+            Fn0::F2(k0, k1, k2, k3) => f2(k0.clone(), *k1, k2.clone(), *k3, p0),
         }
     }
 }
 
-pub fn f2(v0: u64, v1: List<i64>, v2: List<i64>) -> R<List<i64>> {
-    let m4 = v1;
-    match m4.uncons() {
-        None => {
-            Ok(List::<i64>::nil())
-        }
-        Some((v3, v4)) => {
-            let m5 = v2;
-            match m5.uncons() {
-                None => {
-                    Ok(List::<i64>::nil())
-                }
-                Some((v5, v6)) => {
-                    let a6 = v0;
-                    let a7 = 0u64;
-                    if nat_eq(a6, a7) {
-                        Ok(List::<i64>::nil())
-                    } else {
-                        Ok(List::cons({
-                            let a8 = v3;
-                            let a9 = v5;
-                            int_mul(a8, a9)?
-                        }, f2({
-                            let a10 = v0;
-                            let a11 = 1u64;
-                            nat_sub(a10, a11)
-                        }, v4, v6)?))
+pub fn f0(v0: Bytes, v1: Bytes) -> R<Option<u64>> {
+    let v2: u64 = {
+        let a1 = v0.clone();
+        length_bytes(a1)
+    };
+    let v3: u64 = {
+        let a2 = v1.clone();
+        length_bytes(a2)
+    };
+    let v4: u64 = {
+        let (h3, _) = f1(Fn0::F2(v1.clone(), v3, v0.clone(), v2), {
+            let a4 = v2;
+            let a5 = 1u64;
+            nat_add(a4, a5)?
+        }, 0u64)?;
+        h3
+    };
+    if f3(v0, v1, v4) {
+        Ok(Some(v4))
+    } else {
+        Ok(None::<u64>)
+    }
+}
+
+pub fn f1(v0: Fn0, p10: u64, p11: u64) -> R<(u64, bool)> {
+    let m9 = (p10, p11);
+    {
+        let mut m9 = m9;
+        loop {
+            let step = {
+                let (v1, v2) = m9;
+                let m6 = v1;
+                if m6 == 0 {
+                    Err::<(u64, u64), R<(u64, bool)>>(Ok((v2, false)))
+                } else {
+                    let v3 = m6 - 1;
+                    let m8 = {
+                        let c7: Fn0 = v0.clone();
+                        c7.apply(v2)?
+                    };
+                    match m8 {
+                        None => {
+                            Err::<(u64, u64), R<(u64, bool)>>(Ok((v2, true)))
+                        }
+                        Some(v4) => {
+                            Ok::<(u64, u64), R<(u64, bool)>>((v3, v4))
+                        }
                     }
                 }
+            };
+            match step {
+                Ok(next) => { m9 = next; }
+                Err(done) => break done,
             }
         }
     }
 }
 
-pub fn f3(v0: u64, v1: i64) -> R<i64> {
-    let a12 = v0;
-    let a13 = 0u64;
-    if nat_eq(a12, a13) {
-        f5(v1)
+pub fn f2(v0: Bytes, v1: u64, v2: Bytes, v3: u64, v4: u64) -> R<Option<u64>> {
+    if f3(v2, v0, v4) {
+        Ok(None::<u64>)
     } else {
-        let a14 = v0;
-        let a15 = 1u64;
-        if nat_eq(a14, a15) {
-            f6(v1)
+        let a14 = {
+            let a12 = v4;
+            let a13 = v1;
+            nat_add(a12, a13)?
+        };
+        let a15 = v3;
+        if nat_lt(a14, a15) {
+            Ok(Some({
+                let a16 = v4;
+                let a17 = 1u64;
+                nat_add(a16, a17)?
+            }))
         } else {
-            Ok(v1)
+            Ok(None::<u64>)
         }
     }
 }
 
-pub fn f4(v0: i64, v1: i64) -> R<i64> {
-    let a17 = v0;
-    let a18 = {
-        let a16 = v1;
-        int_neg(a16)?
-    };
-    int_sub(a17, a18)
-}
-
-pub fn f5(v0: i64) -> R<i64> {
+pub fn f3(v0: Bytes, v1: Bytes, v2: u64) -> bool {
     let m22 = {
-        let a20 = v0;
+        let a19 = v0;
+        let a20 = v2;
         let a21 = {
-            let a19 = 32768i64;
-            int_neg(a19)?
+            let a18 = v1.clone();
+            length_bytes(a18)
         };
-        compare(a20, a21)
+        slice_bytes(a19, a20, a21)
     };
-    if match m22 {
-        Ordering::Less => {
-            true
-        }
-        Ordering::Equal => {
+    match m22 {
+        None => {
             false
         }
-        Ordering::Greater => {
-            false
-        }
-    } {
-        let a23 = 32768i64;
-        int_neg(a23)
-    } else {
-        let m26 = {
-            let a24 = 32767i64;
-            let a25 = v0;
-            compare(a24, a25)
-        };
-        if match m26 {
-            Ordering::Less => {
-                true
-            }
-            Ordering::Equal => {
-                false
-            }
-            Ordering::Greater => {
-                false
-            }
-        } {
-            Ok(32767i64)
-        } else {
-            Ok(v0)
-        }
-    }
-}
-
-pub fn f6(v0: i64) -> R<i64> {
-    let m30 = {
-        let a28 = v0;
-        let a29 = {
-            let a27 = 2147483648i64;
-            int_neg(a27)?
-        };
-        compare(a28, a29)
-    };
-    if match m30 {
-        Ordering::Less => {
-            true
-        }
-        Ordering::Equal => {
-            false
-        }
-        Ordering::Greater => {
-            false
-        }
-    } {
-        f4(v0, 4294967296i64)
-    } else {
-        let m33 = {
-            let a31 = 2147483647i64;
-            let a32 = v0;
-            compare(a31, a32)
-        };
-        if match m33 {
-            Ordering::Less => {
-                true
-            }
-            Ordering::Equal => {
-                false
-            }
-            Ordering::Greater => {
-                false
-            }
-        } {
-            let a34 = v0;
-            let a35 = 4294967296i64;
-            int_sub(a34, a35)
-        } else {
-            Ok(v0)
+        Some(v3) => {
+            let a23 = v3;
+            let a24 = v1;
+            equal(a23, a24)
         }
     }
 }

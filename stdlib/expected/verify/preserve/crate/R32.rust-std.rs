@@ -855,81 +855,39 @@ pub fn format_int(p0: i64) -> Str {
     Str::format_i64(p0)
 }
 
-pub fn f0(v0: List<i64>, v1: List<i64>) -> R<List<i64>> {
-    f1(v0, v1)
-}
-
-pub fn f1(v0: List<i64>, v1: List<i64>) -> R<List<i64>> {
-    let m1 = v0;
-    match m1.uncons() {
-        None => {
-            Ok(List::<i64>::nil())
-        }
-        Some((v2, v3)) => {
-            let m2 = v1;
-            match m2.uncons() {
-                None => {
-                    Ok(List::<i64>::nil())
-                }
-                Some((v4, v5)) => {
-                    Ok(List::cons(f2(f3(v2, v4)?)?, f1(v3, v5)?))
-                }
-            }
-        }
-    }
-}
-
-pub fn f2(v0: i64) -> R<i64> {
-    let m6 = {
-        let a4 = v0;
-        let a5 = {
-            let a3 = 32768i64;
-            int_neg(a3)?
-        };
-        compare(a4, a5)
+pub fn f0(v0: Bytes, v1: Bytes) -> bool {
+    let v2: u64 = {
+        let a1 = v0.clone();
+        length_bytes(a1)
     };
-    if match m6 {
-        Ordering::Less => {
-            true
-        }
-        Ordering::Equal => {
-            false
-        }
-        Ordering::Greater => {
-            false
-        }
-    } {
-        let a7 = 32768i64;
-        int_neg(a7)
-    } else {
+    let v3: u64 = {
+        let a2 = v1.clone();
+        length_bytes(a2)
+    };
+    let a3 = v3;
+    let a4 = v2;
+    if nat_le(a3, a4) {
         let m10 = {
-            let a8 = 32767i64;
-            let a9 = v0;
-            compare(a8, a9)
+            let a7 = v0;
+            let a8 = {
+                let a5 = v2;
+                let a6 = v3;
+                nat_sub(a5, a6)
+            };
+            let a9 = v3;
+            slice_bytes(a7, a8, a9)
         };
-        if match m10 {
-            Ordering::Less => {
-                true
-            }
-            Ordering::Equal => {
+        match m10 {
+            None => {
                 false
             }
-            Ordering::Greater => {
-                false
+            Some(v4) => {
+                let a11 = v4;
+                let a12 = v1;
+                equal(a11, a12)
             }
-        } {
-            Ok(32767i64)
-        } else {
-            Ok(v0)
         }
+    } else {
+        false
     }
-}
-
-pub fn f3(v0: i64, v1: i64) -> R<i64> {
-    let a12 = v0;
-    let a13 = {
-        let a11 = v1;
-        int_neg(a11)?
-    };
-    int_sub(a12, a13)
 }

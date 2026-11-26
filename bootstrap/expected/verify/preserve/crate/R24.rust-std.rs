@@ -879,16 +879,16 @@ pub enum Adt2 {
 
 #[derive(Clone)]
 pub enum Adt3 {
-    C0(Adt4, List<Adt5>),
+    C0(std::rc::Rc<Adt4>, List<Adt5>),
 }
 
 #[derive(Clone)]
 pub enum Adt4 {
     C0(List<Adt2>),
-    C1(Adt2),
-    C2(Adt2),
+    C1(std::rc::Rc<Adt2>),
+    C2(std::rc::Rc<Adt2>),
     C3,
-    C4(Adt2),
+    C4(std::rc::Rc<Adt2>),
     C5,
     C6,
 }
@@ -1021,7 +1021,7 @@ pub fn f0(v0: Bytes, v1: List<Adt0>, v2: List<Adt2>) -> R<Result<Adt3, Adt6>> {
                 let a3 = 2u64;
                 nat_eq(a2, a3)
             }) {
-                Ok(f7(Adt4::C1(f8(v2.clone(), 1u64)), List::cons(f9(v2, 0u64, f3(Str::lit("apply-verb"))), List::<Adt5>::nil())))
+                Ok(f7(Adt4::C1(std::rc::Rc::new(f8(v2.clone(), 1u64))), List::cons(f9(v2, 0u64, f3(Str::lit("apply-verb"))), List::<Adt5>::nil())))
             } else {
                 Ok(v4)
             }
@@ -1035,7 +1035,7 @@ pub fn f0(v0: Bytes, v1: List<Adt0>, v2: List<Adt2>) -> R<Result<Adt3, Adt6>> {
                         let a5 = 5u64;
                         nat_eq(a4, a5)
                     })))) {
-                        Ok(f7(Adt4::C4(f8(v2.clone(), 1u64)), List::cons(f9(v2.clone(), 0u64, f3(Str::lit("use"))), List::cons(f9(v2.clone(), 2u64, f3(Str::lit("as"))), List::cons(f9(v2.clone(), 3u64, f3(Str::lit("the"))), List::cons(f9(v2, 4u64, f3(Str::lit("witness"))), List::<Adt5>::nil()))))))
+                        Ok(f7(Adt4::C4(std::rc::Rc::new(f8(v2.clone(), 1u64))), List::cons(f9(v2.clone(), 0u64, f3(Str::lit("use"))), List::cons(f9(v2.clone(), 2u64, f3(Str::lit("as"))), List::cons(f9(v2.clone(), 3u64, f3(Str::lit("the"))), List::cons(f9(v2, 4u64, f3(Str::lit("witness"))), List::<Adt5>::nil()))))))
                     } else {
                         Ok(v4)
                     }
@@ -1200,7 +1200,7 @@ pub fn f6(v0: List<Adt2>, v1: u64) -> bool {
 }
 
 pub fn f7(v0: Adt4, v1: List<Adt5>) -> Result<Adt3, Adt6> {
-    Ok::<Adt3, Adt6>(Adt3::C0(v0, v1))
+    Ok::<Adt3, Adt6>(Adt3::C0(std::rc::Rc::new(v0), v1))
 }
 
 pub fn f8(v0: List<Adt2>, v1: u64) -> Adt2 {
@@ -1232,7 +1232,7 @@ pub fn f10(v0: List<Adt0>, v1: List<Adt2>, v2: u64, v3: Result<Adt3, Adt6>) -> R
                 let a40 = 5u64;
                 nat_eq(a39, a40)
             }) {
-                f7(Adt4::C2(f8(v1.clone(), 4u64)), {
+                f7(Adt4::C2(std::rc::Rc::new(f8(v1.clone(), 4u64))), {
                     let a41 = v4;
                     let a42 = List::cons(f9(v1, 3u64, f3(Str::lit("with"))), List::<Adt5>::nil());
                     append_list(a41, a42)

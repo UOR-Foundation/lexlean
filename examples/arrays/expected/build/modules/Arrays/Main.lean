@@ -120,7 +120,7 @@ public theorem dot_equals_list (left : _root_.Array (Int8)) (right : _root_.Arra
   simp only [array_length, dot, index_sums, loop_reads_list, zero_plus]
 
 public theorem dot_sample : (dot ((_root_.LexLeanArrays.fromList (((2 : Int8) :: ((-3 : Int8) :: ([] : List (Int8))))) : _root_.Array (Int8))) ((_root_.LexLeanArrays.fromList (((4 : Int8) :: ((5 : Int8) :: ([] : List (Int8))))) : _root_.Array (Int8))) = (-7 : Int)) := by
-  decide
+  decide +kernel
 
 @[expose] public def «at» (values : _root_.Array (Int8)) (position : Nat) : Int8 := (match (LexLeanRuntime.index (values) (position) : Option (Int8)) with | Option.none => (0 : Int8) | Option.some value => value)
 
@@ -146,6 +146,6 @@ public theorem rectify_keeps_length (values : _root_.Array (Int8)) : ((LexLeanRu
   simp only [loop_keeps_length, rectifyAll]
 
 public theorem rectify_sample : ((_root_.LexLeanArrays.toList (rectifyAll ((_root_.LexLeanArrays.fromList (((-3 : Int8) :: ((5 : Int8) :: ((-1 : Int8) :: ([] : List (Int8)))))) : _root_.Array (Int8)))) : List (Int8)) = ((0 : Int8) :: ((5 : Int8) :: ((0 : Int8) :: ([] : List (Int8)))))) := by
-  decide
+  decide +kernel
 
 end Arrays.Main

@@ -899,7 +899,7 @@ pub enum Adt6 {
 
 #[derive(Clone)]
 pub enum Adt7 {
-    C0(Adt8, Option<Adt4>, Option<Adt4>),
+    C0(std::rc::Rc<Adt8>, Option<Adt4>, Option<Adt4>),
 }
 
 #[derive(Clone)]
@@ -909,7 +909,7 @@ pub enum Adt8 {
 
 #[derive(Clone)]
 pub enum Adt9 {
-    C0(Adt8, List<Adt3>, Option<Adt4>),
+    C0(std::rc::Rc<Adt8>, List<Adt3>, Option<Adt4>),
 }
 
 #[derive(Clone)]
@@ -927,26 +927,26 @@ impl Fn0 {
 
 #[derive(Clone)]
 pub enum Fn1 {
-    F5(Adt6, u64),
+    F5(std::rc::Rc<Adt6>, u64),
 }
 
 impl Fn1 {
     pub fn apply(&self, p0: Adt7, p1: u64) -> R<Adt7> {
         match self {
-            Fn1::F5(k0, k1) => f5(k0.clone(), *k1, p0, p1),
+            Fn1::F5(k0, k1) => f5((**k0).clone(), *k1, p0, p1),
         }
     }
 }
 
 #[derive(Clone)]
 pub enum Fn2 {
-    F14(Adt6, u64),
+    F14(std::rc::Rc<Adt6>, u64),
 }
 
 impl Fn2 {
     pub fn apply(&self, p0: (u64, Adt7)) -> R<Option<(u64, Adt7)>> {
         match self {
-            Fn2::F14(k0, k1) => f14(k0.clone(), *k1, p0),
+            Fn2::F14(k0, k1) => f14((**k0).clone(), *k1, p0),
         }
     }
 }
@@ -1016,7 +1016,7 @@ pub fn f0(v0: Bytes, v1: List<Adt0>, v2: List<Adt2>, v3: List<List<Adt3>>, v4: u
             Ok(Ok::<Option<Adt4>, Adt4>(None::<Adt4>))
         }
         Some(v11) => {
-            let v12: Adt7 = f4(Fn1::F5(v9, v11), Adt7::C0(f6(v7, v8), None::<Adt4>, None::<Adt4>), v10)?;
+            let v12: Adt7 = f4(Fn1::F5(std::rc::Rc::new(v9), v11), Adt7::C0(std::rc::Rc::new(f6(v7, v8)), None::<Adt4>, None::<Adt4>), v10)?;
             let m5 = match v12.clone() {
                 Adt7::C0(_, _, h4) => {
                     h4
@@ -1170,7 +1170,7 @@ pub fn f7(v0: Adt6, v1: u64, v2: Adt7, v3: u64) -> R<Adt7> {
                     } else {
                         let v9: Adt7 = {
                             let (_, h31) = {
-                                let (h32, _) = f13(Fn2::F14(v0.clone(), v3), {
+                                let (h32, _) = f13(Fn2::F14(std::rc::Rc::new(v0.clone()), v3), {
                                     let a35 = {
                                         let a33 = v3;
                                         let a34 = v1;
@@ -1178,11 +1178,11 @@ pub fn f7(v0: Adt6, v1: u64, v2: Adt7, v3: u64) -> R<Adt7> {
                                     };
                                     let a36 = 2u64;
                                     nat_add(a35, a36)?
-                                }, (v1, Adt7::C0(match v2 {
+                                }, (v1, Adt7::C0(std::rc::Rc::new(match v2 {
                                     Adt7::C0(h37, _, _) => {
-                                        h37
+                                        (*h37).clone()
                                     }
-                                }, None::<Adt4>, None::<Adt4>)))?;
+                                }), None::<Adt4>, None::<Adt4>)))?;
                                 h32
                             };
                             h31
@@ -1201,22 +1201,22 @@ pub fn f7(v0: Adt6, v1: u64, v2: Adt7, v3: u64) -> R<Adt7> {
                                 };
                                 match m41 {
                                     None => {
-                                        Ok(Adt7::C0(match v9 {
+                                        Ok(Adt7::C0(std::rc::Rc::new(match v9 {
                                             Adt7::C0(h43, _, _) => {
-                                                h43
+                                                (*h43).clone()
                                             }
-                                        }, Some(f15(f16(Str::lit("LLL1004")), f17(f17(f16(Str::lit("`")), match v6 {
+                                        }), Some(f15(f16(Str::lit("LLL1004")), f17(f17(f16(Str::lit("`")), match v6 {
                                             Adt0::C0(_, _, _, _, _, _, _, h44) => {
                                                 h44
                                             }
                                         }), f16(Str::lit("` is not a declared atom in any visible glossary"))), Some(f18(v0, v3)))), None::<Adt4>))
                                     }
                                     Some(_) => {
-                                        Ok(Adt7::C0(match v9 {
+                                        Ok(Adt7::C0(std::rc::Rc::new(match v9 {
                                             Adt7::C0(h42, _, _) => {
-                                                h42
+                                                (*h42).clone()
                                             }
-                                        }, None::<Adt4>, None::<Adt4>))
+                                        }), None::<Adt4>, None::<Adt4>))
                                     }
                                 }
                             }
@@ -1541,7 +1541,7 @@ pub fn f21(v0: Adt6, v1: u64, v2: (u64, Adt7)) -> R<Option<(u64, Adt7)>> {
     }) {
         let v7: Adt9 = f25(v0, match v4.clone() {
             Adt7::C0(h71, _, _) => {
-                h71
+                (*h71).clone()
             }
         }, v3)?;
         let m73 = match v7.clone() {
@@ -1560,21 +1560,21 @@ pub fn f21(v0: Adt6, v1: u64, v2: (u64, Adt7)) -> R<Option<(u64, Adt7)>> {
                         let a79 = v3;
                         let a80 = 1u64;
                         nat_add(a79, a80)?
-                    }, Adt7::C0(match v7 {
+                    }, Adt7::C0(std::rc::Rc::new(match v7 {
                         Adt9::C0(h81, _, _) => {
-                            h81
+                            (*h81).clone()
                         }
-                    }, Some(f15(f16(Str::lit("")), f16(Str::lit("")), None::<Adt5>)), None::<Adt4>))))
+                    }), Some(f15(f16(Str::lit("")), f16(Str::lit("")), None::<Adt5>)), None::<Adt4>))))
                 } else {
                     Ok(Some(({
                         let a82 = v3;
                         let a83 = 1u64;
                         nat_add(a82, a83)?
-                    }, Adt7::C0(match v7 {
+                    }, Adt7::C0(std::rc::Rc::new(match v7 {
                         Adt9::C0(h84, _, _) => {
-                            h84
+                            (*h84).clone()
                         }
-                    }, None::<Adt4>, None::<Adt4>))))
+                    }), None::<Adt4>, None::<Adt4>))))
                 }
             }
             Some(v8) => {
@@ -1582,11 +1582,11 @@ pub fn f21(v0: Adt6, v1: u64, v2: (u64, Adt7)) -> R<Option<(u64, Adt7)>> {
                     let a74 = v3;
                     let a75 = 1u64;
                     nat_add(a74, a75)?
-                }, Adt7::C0(match v7 {
+                }, Adt7::C0(std::rc::Rc::new(match v7 {
                     Adt9::C0(h76, _, _) => {
-                        h76
+                        (*h76).clone()
                     }
-                }, match v4 {
+                }), match v4 {
                     Adt7::C0(_, h77, _) => {
                         h77
                     }
@@ -1689,7 +1689,7 @@ pub fn f25(v0: Adt6, v1: Adt8, v2: u64) -> R<Adt9> {
             h102
         }
     }) {
-        Ok(Adt9::C0(v1, v4, None::<Adt4>))
+        Ok(Adt9::C0(std::rc::Rc::new(v1), v4, None::<Adt4>))
     } else {
         let v5: u64 = {
             let a105 = match v1.clone() {
@@ -1710,7 +1710,7 @@ pub fn f25(v0: Adt6, v1: Adt8, v2: u64) -> R<Adt9> {
         };
         let a109 = v5;
         if nat_lt(a108, a109) {
-            Ok(Adt9::C0(Adt8::C0(match v1.clone() {
+            Ok(Adt9::C0(std::rc::Rc::new(Adt8::C0(match v1.clone() {
                 Adt8::C0(h110, _, _) => {
                     h110
                 }
@@ -1718,13 +1718,13 @@ pub fn f25(v0: Adt6, v1: Adt8, v2: u64) -> R<Adt9> {
                 Adt8::C0(_, _, h111) => {
                     h111
                 }
-            }), List::<Adt3>::nil(), Some(f15(f16(Str::lit("LLS8002")), f17(f17(f17(f17(f16(Str::lit("max_token_lattice_edges exceeded in phase lexical resolution: configured ")), f29(match v0 {
+            })), List::<Adt3>::nil(), Some(f15(f16(Str::lit("LLS8002")), f17(f17(f17(f17(f16(Str::lit("max_token_lattice_edges exceeded in phase lexical resolution: configured ")), f29(match v0 {
                 Adt6::C0(_, _, _, _, _, _, h112) => {
                     h112
                 }
             })), f16(Str::lit(", observed "))), f29(v5)), f16(Str::lit(" distinct lattice edges"))), None::<Adt5>))))
         } else {
-            Ok(Adt9::C0(Adt8::C0(match v1.clone() {
+            Ok(Adt9::C0(std::rc::Rc::new(Adt8::C0(match v1.clone() {
                 Adt8::C0(h113, _, _) => {
                     h113
                 }
@@ -1732,7 +1732,7 @@ pub fn f25(v0: Adt6, v1: Adt8, v2: u64) -> R<Adt9> {
                 Adt8::C0(_, _, h114) => {
                     h114
                 }
-            })), v4, None::<Adt4>))
+            }))), v4, None::<Adt4>))
         }
     }
 }
