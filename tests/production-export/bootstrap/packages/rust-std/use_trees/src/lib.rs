@@ -666,6 +666,7 @@ pub struct Bytes(Rc<[u8]>);
 impl Bytes {
     pub fn lit(octets: &[u8]) -> Bytes { Bytes(Rc::from(octets)) }
     pub fn octets(&self) -> &[u8] { &self.0 }
+    pub fn update(mut a: Bytes, i: u64, byte: u8) -> Option<Bytes> { let at = match usize::try_from(i) { Ok(at) => at, Err(_) => return None, }; if at >= a.0.len() { return None; }; tick(1); match Rc::get_mut(&mut a.0) { Some(cells) => { let slot: &mut [u8] = cells; slot[at] = byte; Some(a) }, None => { tick(a.0.len() as u64); let mut out = Vec::with_capacity(a.0.len()); out.extend_from_slice(&a.0); out[at] = byte; Some(Bytes(Rc::from(out))) }, } }
     pub fn append(a: Bytes, b: Bytes) -> Bytes { tick((a.0.len() + b.0.len()) as u64); let mut out = Vec::with_capacity(a.0.len() + b.0.len()); out.extend_from_slice(&a.0); out.extend_from_slice(&b.0); Bytes(Rc::from(out)) }
     pub fn length(&self) -> u64 { self.0.len() as u64 }
     pub fn index(&self, i: u64) -> Option<u8> { match usize::try_from(i) { Ok(at) => self.0.get(at).copied(), Err(_) => None, } }
@@ -855,6 +856,10 @@ pub fn format_int(p0: i64) -> Str {
     Str::format_i64(p0)
 }
 
+pub fn update_bytes(p0: Bytes, p1: u64, p2: u8) -> Option<Bytes> {
+    Bytes::update(p0, p1, p2)
+}
+
 #[derive(Clone)]
 pub enum Adt0 {
     C0,
@@ -1007,6 +1012,7 @@ pub enum Adt6 {
     C39,
     C40(Adt1),
     C41(std::rc::Rc<Adt0>),
+    C42,
 }
 
 #[derive(Clone)]
@@ -2184,180 +2190,148 @@ pub fn f19(v0: Adt7, v1: Adt5, v2: Adt0) -> R<Result<Adt0, Bytes>> {
     let m200 = v1.clone();
     match m200 {
         Adt5::C0 => {
-            let v3: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C14);
-            let v4: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a201 = f15(v2);
+            let a201 = f15(v2.clone());
             let a202 = 8u64;
             if nat_eq(a201, a202) {
-                Ok(v3)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C14))
             } else {
-                Ok(v4)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C1 => {
-            let v5: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C15(std::rc::Rc::new(f16(v2.clone())), std::rc::Rc::new(Adt0::C14)));
-            let v6: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a203 = f15(v2);
+            let a203 = f15(v2.clone());
             let a204 = 8u64;
             if nat_eq(a203, a204) {
-                Ok(v5)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C15(std::rc::Rc::new(f16(v2)), std::rc::Rc::new(Adt0::C14))))
             } else {
-                Ok(v6)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C2 => {
-            let v7: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C15(std::rc::Rc::new(f16(v2.clone())), std::rc::Rc::new(Adt0::C14)));
-            let v8: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a205 = f15(v2);
+            let a205 = f15(v2.clone());
             let a206 = 9u64;
             if nat_eq(a205, a206) {
-                Ok(v7)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C15(std::rc::Rc::new(f16(v2)), std::rc::Rc::new(Adt0::C14))))
             } else {
-                Ok(v8)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C3 => {
-            let v9: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C15(std::rc::Rc::new(f14(v2.clone())), std::rc::Rc::new(Adt0::C14)));
-            let v10: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a207 = f15(v2);
+            let a207 = f15(v2.clone());
             let a208 = 9u64;
             if nat_eq(a207, a208) {
-                Ok(v9)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C15(std::rc::Rc::new(f14(v2)), std::rc::Rc::new(Adt0::C14))))
             } else {
-                Ok(v10)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C4 => {
-            let v11: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C14);
-            let v12: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a209 = f15(v2);
+            let a209 = f15(v2.clone());
             let a210 = 10u64;
             if nat_eq(a209, a210) {
-                Ok(v11)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C14))
             } else {
-                Ok(v12)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C5 => {
-            let v13: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C15(std::rc::Rc::new(f16(v2.clone())), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v2.clone()), std::rc::Rc::new(Adt0::C14)))));
-            let v14: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a211 = f15(v2);
+            let a211 = f15(v2.clone());
             let a212 = 10u64;
             if nat_eq(a211, a212) {
-                Ok(v13)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C15(std::rc::Rc::new(f16(v2.clone())), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v2), std::rc::Rc::new(Adt0::C14))))))
             } else {
-                Ok(v14)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C6 => {
-            let v15: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C14);
-            let v16: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a213 = f15(v2);
+            let a213 = f15(v2.clone());
             let a214 = 2u64;
             if nat_eq(a213, a214) {
-                Ok(v15)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C14))
             } else {
-                Ok(v16)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C7 => {
-            let v17: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C15(std::rc::Rc::new(Adt0::C2), std::rc::Rc::new(Adt0::C14)));
-            let v18: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a215 = f15(v2);
+            let a215 = f15(v2.clone());
             let a216 = 2u64;
             if nat_eq(a215, a216) {
-                Ok(v17)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C15(std::rc::Rc::new(Adt0::C2), std::rc::Rc::new(Adt0::C14))))
             } else {
-                Ok(v18)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C8 => {
-            let v19: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C15(std::rc::Rc::new(f16(v2.clone())), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(f14(v2.clone())), std::rc::Rc::new(Adt0::C14)))));
-            let v20: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a217 = f15(v2);
+            let a217 = f15(v2.clone());
             let a218 = 11u64;
             if nat_eq(a217, a218) {
-                Ok(v19)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C15(std::rc::Rc::new(f16(v2.clone())), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(f14(v2)), std::rc::Rc::new(Adt0::C14))))))
             } else {
-                Ok(v20)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C9 => {
-            let v21: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C14);
-            let v22: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a219 = f15(v2);
+            let a219 = f15(v2.clone());
             let a220 = 1u64;
             if nat_eq(a219, a220) {
-                Ok(v21)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C14))
             } else {
-                Ok(v22)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C10 => {
-            let v23: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C14);
-            let v24: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a221 = f15(v2);
+            let a221 = f15(v2.clone());
             let a222 = 1u64;
             if nat_eq(a221, a222) {
-                Ok(v23)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C14))
             } else {
-                Ok(v24)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C11 => {
-            let v25: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C14);
-            let v26: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a223 = f15(v2);
+            let a223 = f15(v2.clone());
             let a224 = 0u64;
             if nat_eq(a223, a224) {
-                Ok(v25)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C14))
             } else {
-                Ok(v26)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C12 => {
-            let v27: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C14);
-            let v28: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a225 = f15(v2);
+            let a225 = f15(v2.clone());
             let a226 = 7u64;
             if nat_eq(a225, a226) {
-                Ok(v27)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C14))
             } else {
-                Ok(v28)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C13 => {
-            let v29: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C14);
-            let v30: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a227 = f15(v2);
+            let a227 = f15(v2.clone());
             let a228 = 7u64;
             if nat_eq(a227, a228) {
-                Ok(v29)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C14))
             } else {
-                Ok(v30)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
         Adt5::C14 => {
-            let v31: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(Adt0::C14);
-            let v32: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a229 = f15(v2);
+            let a229 = f15(v2.clone());
             let a230 = 7u64;
             if nat_eq(a229, a230) {
-                Ok(v31)
+                Ok(Ok::<Adt0, Bytes>(Adt0::C14))
             } else {
-                Ok(v32)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
-        Adt5::C15(v33) => {
-            let v34: Result<Adt0, Bytes> = f47(v0, f36(v2.clone()), v33)?;
-            let v35: Result<Adt0, Bytes> = v34;
-            let v36: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2.clone())?))));
-            let a231 = f15(v2);
+        Adt5::C15(v3) => {
+            let v4: Result<Adt0, Bytes> = f47(v0, f36(v2.clone()), v3)?;
+            let a231 = f15(v2.clone());
             let a232 = 12u64;
             if nat_eq(a231, a232) {
-                Ok(v35)
+                Ok(v4)
             } else {
-                Ok(v36)
+                Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("shape ")), f23(f28(v1)?, f23(f13(Str::lit(" does not belong to type ")), f35(v2)?)))))
             }
         }
     }
@@ -2475,331 +2449,281 @@ pub fn f21(v0: Adt7, v1: Adt3, v2: Adt0, v3: u64) -> R<Result<(), Bytes>> {
     let m249 = v1;
     match m249 {
         Adt3::C0 => {
-            let v4: Result<(), Bytes> = Ok::<(), Bytes>(());
-            let v5: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C0)?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a250 = f15(v2);
+            let a250 = f15(v2.clone());
             let a251 = 0u64;
             if nat_eq(a250, a251) {
-                Ok(v4)
+                Ok(Ok::<(), Bytes>(()))
             } else {
-                Ok(v5)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C0)?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C1(v6) => {
-            let v7: Result<(), Bytes> = Ok::<(), Bytes>(());
-            let v8: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C1(v6))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a252 = f15(v2);
+        Adt3::C1(v4) => {
+            let a252 = f15(v2.clone());
             let a253 = 1u64;
             if nat_eq(a252, a253) {
-                Ok(v7)
+                Ok(Ok::<(), Bytes>(()))
             } else {
-                Ok(v8)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C1(v4))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C2(v9) => {
-            let v10: Result<(), Bytes> = f49(v9.clone())?;
-            let v11: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C2(v9))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a254 = f15(v2);
+        Adt3::C2(v5) => {
+            let a254 = f15(v2.clone());
             let a255 = 2u64;
             if nat_eq(a254, a255) {
-                Ok(v10)
+                f49(v5)
             } else {
-                Ok(v11)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C2(v5))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C3(v12) => {
-            let v13: Result<(), Bytes> = f50(v12.clone(), Adt1::C7)?;
-            let v14: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C3(v12))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a256 = f15(v2);
+        Adt3::C3(v6) => {
+            let a256 = f15(v2.clone());
             let a257 = 3u64;
             if nat_eq(a256, a257) {
-                Ok(v13)
+                f50(v6, Adt1::C7)
             } else {
-                Ok(v14)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C3(v6))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C4(v15) => {
-            let v16: Result<(), Bytes> = f50(v15.clone(), Adt1::C0)?;
-            let v17: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C4(v15))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
+        Adt3::C4(v7) => {
             let a258 = f15(v2.clone());
             let a259 = 4u64;
             if if nat_eq(a258, a259) {
-                let a260 = f51(f52(v2));
+                let a260 = f51(f52(v2.clone()));
                 let a261 = 0u64;
                 nat_eq(a260, a261)
             } else {
                 false
             } {
-                Ok(v16)
+                f50(v7, Adt1::C0)
             } else {
-                Ok(v17)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C4(v7))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C5(v18) => {
-            let v19: Result<(), Bytes> = f50(v18.clone(), Adt1::C1)?;
-            let v20: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C5(v18))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
+        Adt3::C5(v8) => {
             let a262 = f15(v2.clone());
             let a263 = 4u64;
             if if nat_eq(a262, a263) {
-                let a264 = f51(f52(v2));
+                let a264 = f51(f52(v2.clone()));
                 let a265 = 1u64;
                 nat_eq(a264, a265)
             } else {
                 false
             } {
-                Ok(v19)
+                f50(v8, Adt1::C1)
             } else {
-                Ok(v20)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C5(v8))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C6(v21) => {
-            let v22: Result<(), Bytes> = f50(v21.clone(), Adt1::C2)?;
-            let v23: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C6(v21))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
+        Adt3::C6(v9) => {
             let a266 = f15(v2.clone());
             let a267 = 4u64;
             if if nat_eq(a266, a267) {
-                let a268 = f51(f52(v2));
+                let a268 = f51(f52(v2.clone()));
                 let a269 = 2u64;
                 nat_eq(a268, a269)
             } else {
                 false
             } {
-                Ok(v22)
+                f50(v9, Adt1::C2)
             } else {
-                Ok(v23)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C6(v9))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C7(v24) => {
-            let v25: Result<(), Bytes> = f50(v24.clone(), Adt1::C3)?;
-            let v26: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C7(v24))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
+        Adt3::C7(v10) => {
             let a270 = f15(v2.clone());
             let a271 = 4u64;
             if if nat_eq(a270, a271) {
-                let a272 = f51(f52(v2));
+                let a272 = f51(f52(v2.clone()));
                 let a273 = 3u64;
                 nat_eq(a272, a273)
             } else {
                 false
             } {
-                Ok(v25)
+                f50(v10, Adt1::C3)
             } else {
-                Ok(v26)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C7(v10))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C8(v27) => {
-            let v28: Result<(), Bytes> = f50(v27.clone(), Adt1::C4)?;
-            let v29: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C8(v27))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
+        Adt3::C8(v11) => {
             let a274 = f15(v2.clone());
             let a275 = 4u64;
             if if nat_eq(a274, a275) {
-                let a276 = f51(f52(v2));
+                let a276 = f51(f52(v2.clone()));
                 let a277 = 4u64;
                 nat_eq(a276, a277)
             } else {
                 false
             } {
-                Ok(v28)
+                f50(v11, Adt1::C4)
             } else {
-                Ok(v29)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C8(v11))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C9(v30) => {
-            let v31: Result<(), Bytes> = f50(v30.clone(), Adt1::C5)?;
-            let v32: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C9(v30))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
+        Adt3::C9(v12) => {
             let a278 = f15(v2.clone());
             let a279 = 4u64;
             if if nat_eq(a278, a279) {
-                let a280 = f51(f52(v2));
+                let a280 = f51(f52(v2.clone()));
                 let a281 = 5u64;
                 nat_eq(a280, a281)
             } else {
                 false
             } {
-                Ok(v31)
+                f50(v12, Adt1::C5)
             } else {
-                Ok(v32)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C9(v12))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C10(v33) => {
-            let v34: Result<(), Bytes> = f50(v33.clone(), Adt1::C6)?;
-            let v35: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C10(v33))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
+        Adt3::C10(v13) => {
             let a282 = f15(v2.clone());
             let a283 = 4u64;
             if if nat_eq(a282, a283) {
-                let a284 = f51(f52(v2));
+                let a284 = f51(f52(v2.clone()));
                 let a285 = 6u64;
                 nat_eq(a284, a285)
             } else {
                 false
             } {
-                Ok(v34)
+                f50(v13, Adt1::C6)
             } else {
-                Ok(v35)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C10(v13))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C11(v36) => {
-            let v37: Result<(), Bytes> = f50(v36.clone(), Adt1::C7)?;
-            let v38: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C11(v36))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
+        Adt3::C11(v14) => {
             let a286 = f15(v2.clone());
             let a287 = 4u64;
             if if nat_eq(a286, a287) {
-                let a288 = f51(f52(v2));
+                let a288 = f51(f52(v2.clone()));
                 let a289 = 7u64;
                 nat_eq(a288, a289)
             } else {
                 false
             } {
-                Ok(v37)
+                f50(v14, Adt1::C7)
             } else {
-                Ok(v38)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C11(v14))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C12(v39) => {
-            let v40: Result<(), Bytes> = Ok::<(), Bytes>(());
-            let v41: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C12(v39))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a290 = f15(v2);
+        Adt3::C12(v15) => {
+            let a290 = f15(v2.clone());
             let a291 = 5u64;
             if nat_eq(a290, a291) {
-                Ok(v40)
+                Ok(Ok::<(), Bytes>(()))
             } else {
-                Ok(v41)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C12(v15))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C13(v42) => {
-            let v43: Result<(), Bytes> = f53(v42.clone())?;
-            let v44: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C13(v42))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a292 = f15(v2);
+        Adt3::C13(v16) => {
+            let a292 = f15(v2.clone());
             let a293 = 6u64;
             if nat_eq(a292, a293) {
-                Ok(v43)
+                f53(v16)
             } else {
-                Ok(v44)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C13(v16))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C14(v45) => {
-            let v46: Result<(), Bytes> = Ok::<(), Bytes>(());
-            let v47: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C14(v45))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a294 = f15(v2);
+        Adt3::C14(v17) => {
+            let a294 = f15(v2.clone());
             let a295 = 7u64;
             if nat_eq(a294, a295) {
-                Ok(v46)
+                Ok(Ok::<(), Bytes>(()))
             } else {
-                Ok(v47)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C14(v17))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
         Adt3::C15 => {
-            let v48: Result<(), Bytes> = Ok::<(), Bytes>(());
-            let v49: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C15)?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a296 = f15(v2);
+            let a296 = f15(v2.clone());
             let a297 = 8u64;
             if nat_eq(a296, a297) {
-                Ok(v48)
+                Ok(Ok::<(), Bytes>(()))
             } else {
-                Ok(v49)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C15)?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
         Adt3::C16(r323) => {
-            let v50 = (*r323).clone();
-            let v51: Result<(), Bytes> = f21(v0, v50.clone(), f16(v2.clone()), 0u64)?;
-            let v52: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C16(std::rc::Rc::new(v50)))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a298 = f15(v2);
+            let v18 = (*r323).clone();
+            let a298 = f15(v2.clone());
             let a299 = 8u64;
             if nat_eq(a298, a299) {
-                Ok(v51)
+                f21(v0, v18, f16(v2), 0u64)
             } else {
-                Ok(v52)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C16(std::rc::Rc::new(v18)))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
         Adt3::C17(r324) => {
-            let v53 = (*r324).clone();
-            let v54: Result<(), Bytes> = f21(v0, v53.clone(), f16(v2.clone()), 0u64)?;
-            let v55: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C17(std::rc::Rc::new(v53)))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a300 = f15(v2);
+            let v19 = (*r324).clone();
+            let a300 = f15(v2.clone());
             let a301 = 9u64;
             if nat_eq(a300, a301) {
-                Ok(v54)
+                f21(v0, v19, f16(v2), 0u64)
             } else {
-                Ok(v55)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C17(std::rc::Rc::new(v19)))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
         Adt3::C18(r325) => {
-            let v56 = (*r325).clone();
-            let v57: Result<(), Bytes> = f21(v0, v56.clone(), f14(v2.clone()), 0u64)?;
-            let v58: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C18(std::rc::Rc::new(v56)))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a302 = f15(v2);
+            let v20 = (*r325).clone();
+            let a302 = f15(v2.clone());
             let a303 = 9u64;
             if nat_eq(a302, a303) {
-                Ok(v57)
+                f21(v0, v20, f14(v2), 0u64)
             } else {
-                Ok(v58)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C18(std::rc::Rc::new(v20)))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
         Adt3::C19(r326) => {
-            let v59 = (*r326).clone();
-            let v60: Result<(), Bytes> = f21(v0, v59.clone(), f16(v2.clone()), 1u64)?;
-            let v61: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C19(std::rc::Rc::new(v59)))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a304 = f15(v2);
+            let v21 = (*r326).clone();
+            let a304 = f15(v2.clone());
             let a305 = 10u64;
             if nat_eq(a304, a305) {
-                Ok(v60)
+                f21(v0, v21, f16(v2), 1u64)
             } else {
-                Ok(v61)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C19(std::rc::Rc::new(v21)))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
         Adt3::C20(r327, r328) => {
-            let v62 = (*r327).clone();
-            let v63 = (*r328).clone();
-            let v64: Result<(), Bytes> = f21(v0.clone(), v62.clone(), f16(v2.clone()), 0u64)?;
-            let v65: Result<(), Bytes> = f21(v0, v63.clone(), f14(v2.clone()), 0u64)?;
-            let v68: Result<(), Bytes> = {
-                let m306 = v64;
-                match m306 {
+            let v22 = (*r327).clone();
+            let v23 = (*r328).clone();
+            let v24: Result<(), Bytes> = f21(v0.clone(), v22.clone(), f16(v2.clone()), 0u64)?;
+            let v25: Result<(), Bytes> = f21(v0, v23.clone(), f14(v2.clone()), 0u64)?;
+            let a306 = f15(v2.clone());
+            let a307 = 11u64;
+            if nat_eq(a306, a307) {
+                let m308 = v24;
+                match m308 {
                     Ok(_) => {
-                        v65
+                        Ok(v25)
                     }
-                    Err(v67) => {
-                        Err::<(), Bytes>(v67)
+                    Err(v27) => {
+                        Ok(Err::<(), Bytes>(v27))
                     }
                 }
-            };
-            let v69: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C20(std::rc::Rc::new(v62), std::rc::Rc::new(v63)))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a307 = f15(v2);
-            let a308 = 11u64;
-            if nat_eq(a307, a308) {
-                Ok(v68)
             } else {
-                Ok(v69)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C20(std::rc::Rc::new(v22), std::rc::Rc::new(v23)))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
-        Adt3::C21(v70, r329) => {
-            let v71 = (*r329).clone();
-            let v77: Result<(), Bytes> = {
-                let m309 = f47(v0.clone(), f36(v2.clone()), v70)?;
-                match m309 {
-                    Ok(v73) => {
-                        let v74: Result<(), Bytes> = f21(v0, v71.clone(), v73.clone(), 2u64)?;
-                        let v75: Result<(), Bytes> = v74;
-                        let v76: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("constructor ")), f23(f24(v70)?, f23(f13(Str::lit(" of ADT ")), f23(f24(f36(v2.clone()))?, f23(f13(Str::lit(" takes ")), f23(f24(f30(v73.clone())?)?, f23(f13(Str::lit(" fields, the literal has ")), f24(f54(v71.clone())?)?))))))));
-                        let a310 = f54(v71.clone())?;
-                        let a311 = f30(v73)?;
-                        if nat_eq(a310, a311) {
-                            v75
+        Adt3::C21(v28, r329) => {
+            let v29 = (*r329).clone();
+            let a309 = f15(v2.clone());
+            let a310 = 12u64;
+            if nat_eq(a309, a310) {
+                let m311 = f47(v0.clone(), f36(v2.clone()), v28)?;
+                match m311 {
+                    Ok(v31) => {
+                        let v32: Result<(), Bytes> = f21(v0, v29.clone(), v31.clone(), 2u64)?;
+                        let a312 = f54(v29.clone())?;
+                        let a313 = f30(v31.clone())?;
+                        if nat_eq(a312, a313) {
+                            Ok(v32)
                         } else {
-                            v76
+                            Ok(Err::<(), Bytes>(f23(f13(Str::lit("constructor ")), f23(f24(v28)?, f23(f13(Str::lit(" of ADT ")), f23(f24(f36(v2))?, f23(f13(Str::lit(" takes ")), f23(f24(f30(v31)?)?, f23(f13(Str::lit(" fields, the literal has ")), f24(f54(v29)?)?)))))))))
                         }
                     }
-                    Err(v72) => {
-                        Err::<(), Bytes>(v72)
+                    Err(v30) => {
+                        Ok(Err::<(), Bytes>(v30))
                     }
                 }
-            };
-            let v78: Result<(), Bytes> = Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C21(v70, std::rc::Rc::new(v71)))?, f23(f13(Str::lit(" does not have type ")), f35(v2.clone())?))));
-            let a312 = f15(v2);
-            let a313 = 12u64;
-            if nat_eq(a312, a313) {
-                Ok(v77)
             } else {
-                Ok(v78)
+                Ok(Err::<(), Bytes>(f23(f13(Str::lit("the literal ")), f23(f48(Adt3::C21(v28, std::rc::Rc::new(v29)))?, f23(f13(Str::lit(" does not have type ")), f35(v2)?)))))
             }
         }
         Adt3::C22(_, _) => {
@@ -2809,9 +2733,9 @@ pub fn f21(v0: Adt7, v1: Adt3, v2: Adt0, v3: u64) -> R<Result<(), Bytes>> {
             Ok(Ok::<(), Bytes>(()))
         }
         Adt3::C24(r330, r331) => {
-            let v81 = (*r330).clone();
-            let v82 = (*r331).clone();
-            let v83: Adt0 = {
+            let v35 = (*r330).clone();
+            let v36 = (*r331).clone();
+            let v37: Adt0 = {
                 let a314 = v3;
                 let a315 = 2u64;
                 if nat_eq(a314, a315) {
@@ -2820,7 +2744,7 @@ pub fn f21(v0: Adt7, v1: Adt3, v2: Adt0, v3: u64) -> R<Result<(), Bytes>> {
                     v2.clone()
                 }
             };
-            let v84: Adt0 = {
+            let v38: Adt0 = {
                 let a316 = v3;
                 let a317 = 2u64;
                 if nat_eq(a316, a317) {
@@ -2829,8 +2753,8 @@ pub fn f21(v0: Adt7, v1: Adt3, v2: Adt0, v3: u64) -> R<Result<(), Bytes>> {
                     v2.clone()
                 }
             };
-            let v85: Result<(), Bytes> = f21(v0.clone(), v81, v83, 0u64)?;
-            let v86: Result<(), Bytes> = f21(v0, v82, v84, v3)?;
+            let v39: Result<(), Bytes> = f21(v0.clone(), v35, v37, 0u64)?;
+            let v40: Result<(), Bytes> = f21(v0, v36, v38, v3)?;
             let a318 = v3;
             let a319 = 0u64;
             if nat_eq(a318, a319) {
@@ -2845,13 +2769,13 @@ pub fn f21(v0: Adt7, v1: Adt3, v2: Adt0, v3: u64) -> R<Result<(), Bytes>> {
                 } {
                     Ok(Ok::<(), Bytes>(()))
                 } else {
-                    let m322 = v85;
+                    let m322 = v39;
                     match m322 {
                         Ok(_) => {
-                            Ok(v86)
+                            Ok(v40)
                         }
-                        Err(v88) => {
-                            Ok(Err::<(), Bytes>(v88))
+                        Err(v42) => {
+                            Ok(Err::<(), Bytes>(v42))
                         }
                     }
                 }
@@ -2980,12 +2904,10 @@ pub fn f24(v0: u64) -> R<Bytes> {
 }
 
 pub fn f25(v0: Adt0, v1: Adt0, v2: Bytes) -> R<Result<(), Bytes>> {
-    let v3: Result<(), Bytes> = Ok::<(), Bytes>(());
-    let v4: Result<(), Bytes> = Err::<(), Bytes>(f23(v2, f23(f13(Str::lit(" has type ")), f23(f35(v0.clone())?, f23(f13(Str::lit(", expected ")), f35(v1.clone())?)))));
-    if f57(v0, v1) {
-        Ok(v3)
+    if f57(v0.clone(), v1.clone()) {
+        Ok(Ok::<(), Bytes>(()))
     } else {
-        Ok(v4)
+        Ok(Err::<(), Bytes>(f23(v2, f23(f13(Str::lit(" has type ")), f23(f35(v0)?, f23(f13(Str::lit(", expected ")), f35(v1)?))))))
     }
 }
 
@@ -3059,12 +2981,10 @@ pub fn f27(v0: List<Adt5>, v1: List<Adt5>) -> Option<Adt5> {
         }
         Some((v2, v3)) => {
             let v4: Option<Adt5> = f27(v3, v1.clone());
-            let v5: Option<Adt5> = v4;
-            let v6: Option<Adt5> = Some(v2.clone());
-            if f43(v1, v2) {
-                v5
+            if f43(v1, v2.clone()) {
+                v4
             } else {
-                v6
+                Some(v2)
             }
         }
     }
@@ -3316,133 +3236,109 @@ pub fn f34(v0: Adt6, v1: Adt0) -> R<Result<Adt0, Bytes>> {
             f59(v0, Adt0::C15(std::rc::Rc::new(Adt0::C3), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C3), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C3), std::rc::Rc::new(Adt0::C14)))))), v1, Adt0::C3)
         }
         Adt6::C14 => {
-            let v4: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1.clone(), Adt0::C8(std::rc::Rc::new(v3.clone())))?;
-            let v5: Result<Adt0, Bytes> = f60(v0, v1)?;
-            let a394 = f15(v3);
+            let a394 = f15(v3.clone());
             let a395 = 4u64;
             if nat_eq(a394, a395) {
-                Ok(v4)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1, Adt0::C8(std::rc::Rc::new(v3)))
             } else {
-                Ok(v5)
+                f60(v0, v1)
             }
         }
         Adt6::C15 => {
-            let v6: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1.clone(), Adt0::C8(std::rc::Rc::new(v3.clone())))?;
-            let v7: Result<Adt0, Bytes> = f60(v0, v1)?;
-            let a396 = f15(v3);
+            let a396 = f15(v3.clone());
             let a397 = 4u64;
             if nat_eq(a396, a397) {
-                Ok(v6)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1, Adt0::C8(std::rc::Rc::new(v3)))
             } else {
-                Ok(v7)
+                f60(v0, v1)
             }
         }
         Adt6::C16 => {
-            let v8: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1.clone(), Adt0::C8(std::rc::Rc::new(v3.clone())))?;
-            let v9: Result<Adt0, Bytes> = f60(v0, v1)?;
-            let a398 = f15(v3);
+            let a398 = f15(v3.clone());
             let a399 = 4u64;
             if nat_eq(a398, a399) {
-                Ok(v8)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1, Adt0::C8(std::rc::Rc::new(v3)))
             } else {
-                Ok(v9)
+                f60(v0, v1)
             }
         }
         Adt6::C17 => {
-            let v12: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)), v1.clone(), Adt0::C8(std::rc::Rc::new(v3.clone())))?;
-            let v13: Result<Adt0, Bytes> = f60(v0, v1)?;
             let a402 = f15(v3.clone());
             let a403 = 4u64;
             if if nat_eq(a402, a403) {
-                f61(f52(v3))
+                f61(f52(v3.clone()))
             } else {
                 false
             } {
-                Ok(v12)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)), v1, Adt0::C8(std::rc::Rc::new(v3)))
             } else {
-                Ok(v13)
+                f60(v0, v1)
             }
         }
         Adt6::C18 => {
-            let v10: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1.clone(), Adt0::C8(std::rc::Rc::new(v3.clone())))?;
-            let v11: Result<Adt0, Bytes> = f60(v0, v1)?;
-            let a400 = f15(v3);
+            let a400 = f15(v3.clone());
             let a401 = 4u64;
             if nat_eq(a400, a401) {
-                Ok(v10)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1, Adt0::C8(std::rc::Rc::new(v3)))
             } else {
-                Ok(v11)
+                f60(v0, v1)
             }
         }
         Adt6::C19 => {
-            let v14: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1.clone(), v3.clone())?;
-            let v15: Result<Adt0, Bytes> = f60(v0, v1)?;
-            let a404 = f15(v3);
+            let a404 = f15(v3.clone());
             let a405 = 4u64;
             if nat_eq(a404, a405) {
-                Ok(v14)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1, v3)
             } else {
-                Ok(v15)
+                f60(v0, v1)
             }
         }
         Adt6::C20 => {
-            let v16: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1.clone(), v3.clone())?;
-            let v17: Result<Adt0, Bytes> = f60(v0, v1)?;
-            let a406 = f15(v3);
+            let a406 = f15(v3.clone());
             let a407 = 4u64;
             if nat_eq(a406, a407) {
-                Ok(v16)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1, v3)
             } else {
-                Ok(v17)
+                f60(v0, v1)
             }
         }
         Adt6::C21 => {
-            let v18: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1.clone(), v3.clone())?;
-            let v19: Result<Adt0, Bytes> = f60(v0, v1)?;
-            let a408 = f15(v3);
+            let a408 = f15(v3.clone());
             let a409 = 4u64;
             if nat_eq(a408, a409) {
-                Ok(v18)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1, v3)
             } else {
-                Ok(v19)
+                f60(v0, v1)
             }
         }
         Adt6::C22 => {
-            let v20: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)), v1.clone(), v3.clone())?;
-            let v21: Result<Adt0, Bytes> = f60(v0, v1)?;
-            let a410 = f15(v3);
+            let a410 = f15(v3.clone());
             let a411 = 4u64;
             if nat_eq(a410, a411) {
-                Ok(v20)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)), v1, v3)
             } else {
-                Ok(v21)
+                f60(v0, v1)
             }
         }
         Adt6::C23 => {
-            let v22: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C4(Adt1::C2)), std::rc::Rc::new(Adt0::C14)))), v1.clone(), Adt0::C8(std::rc::Rc::new(v3.clone())))?;
-            let v23: Result<Adt0, Bytes> = f60(v0, v1)?;
-            let a412 = f15(v3);
+            let a412 = f15(v3.clone());
             let a413 = 4u64;
             if nat_eq(a412, a413) {
-                Ok(v22)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C4(Adt1::C2)), std::rc::Rc::new(Adt0::C14)))), v1, Adt0::C8(std::rc::Rc::new(v3)))
             } else {
-                Ok(v23)
+                f60(v0, v1)
             }
         }
         Adt6::C24 => {
-            let v24: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C4(Adt1::C2)), std::rc::Rc::new(Adt0::C14)))), v1.clone(), Adt0::C8(std::rc::Rc::new(v3.clone())))?;
-            let v25: Result<Adt0, Bytes> = f60(v0, v1)?;
-            let a414 = f15(v3);
+            let a414 = f15(v3.clone());
             let a415 = 4u64;
             if nat_eq(a414, a415) {
-                Ok(v24)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C4(Adt1::C2)), std::rc::Rc::new(Adt0::C14)))), v1, Adt0::C8(std::rc::Rc::new(v3)))
             } else {
-                Ok(v25)
+                f60(v0, v1)
             }
         }
         Adt6::C25 => {
-            let v26: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1.clone(), Adt0::C1)?;
-            let v27: Result<Adt0, Bytes> = f60(v0, v1)?;
             let a416 = f15(v3.clone());
             let a417 = 2u64;
             if if nat_eq(a416, a417) {
@@ -3468,7 +3364,7 @@ pub fn f34(v0: Adt6, v1: Adt0) -> R<Result<Adt0, Bytes>> {
                             if nat_eq(a424, a425) {
                                 true
                             } else {
-                                let a426 = f15(v3);
+                                let a426 = f15(v3.clone());
                                 let a427 = 7u64;
                                 nat_eq(a426, a427)
                             }
@@ -3476,9 +3372,9 @@ pub fn f34(v0: Adt6, v1: Adt0) -> R<Result<Adt0, Bytes>> {
                     }
                 }
             } {
-                Ok(v26)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3), std::rc::Rc::new(Adt0::C14)))), v1, Adt0::C1)
             } else {
-                Ok(v27)
+                f60(v0, v1)
             }
         }
         Adt6::C26 => {
@@ -3491,25 +3387,21 @@ pub fn f34(v0: Adt6, v1: Adt0) -> R<Result<Adt0, Bytes>> {
             f59(v0, Adt0::C15(std::rc::Rc::new(Adt0::C1), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C1), std::rc::Rc::new(Adt0::C14)))), v1, Adt0::C1)
         }
         Adt6::C29 => {
-            let v28: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1.clone(), v3.clone())?;
-            let v29: Result<Adt0, Bytes> = f60(v0, v1)?;
             let a428 = f15(v3.clone());
             let a429 = 10u64;
             if if nat_eq(a428, a429) {
                 true
             } else {
-                let a430 = f15(v3);
+                let a430 = f15(v3.clone());
                 let a431 = 6u64;
                 nat_eq(a430, a431)
             } {
-                Ok(v28)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1, v3)
             } else {
-                Ok(v29)
+                f60(v0, v1)
             }
         }
         Adt6::C30 => {
-            let v30: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)), v1.clone(), Adt0::C2)?;
-            let v31: Result<Adt0, Bytes> = f60(v0, v1)?;
             let a432 = f15(v3.clone());
             let a433 = 10u64;
             if if nat_eq(a432, a433) {
@@ -3520,48 +3412,46 @@ pub fn f34(v0: Adt6, v1: Adt0) -> R<Result<Adt0, Bytes>> {
                 if nat_eq(a434, a435) {
                     true
                 } else {
-                    let a436 = f15(v3);
+                    let a436 = f15(v3.clone());
                     let a437 = 5u64;
                     nat_eq(a436, a437)
                 }
             } {
-                Ok(v30)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3), std::rc::Rc::new(Adt0::C14)), v1, Adt0::C2)
             } else {
-                Ok(v31)
+                f60(v0, v1)
             }
         }
         Adt6::C31 => {
-            let v32: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C2), std::rc::Rc::new(Adt0::C14)))), v1.clone(), Adt0::C8(std::rc::Rc::new(f16(v3.clone()))))?;
-            let v33: Result<Adt0, Bytes> = f59(v0, Adt0::C15(std::rc::Rc::new(Adt0::C6), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C2), std::rc::Rc::new(Adt0::C14)))), v1, Adt0::C8(std::rc::Rc::new(Adt0::C4(Adt1::C0))))?;
+            let v4: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C2), std::rc::Rc::new(Adt0::C14)))), v1.clone(), Adt0::C8(std::rc::Rc::new(f16(v3.clone()))))?;
+            let v5: Result<Adt0, Bytes> = f59(v0, Adt0::C15(std::rc::Rc::new(Adt0::C6), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C2), std::rc::Rc::new(Adt0::C14)))), v1, Adt0::C8(std::rc::Rc::new(Adt0::C4(Adt1::C0))))?;
             let a438 = f15(v3.clone());
             let a439 = 10u64;
             if nat_eq(a438, a439) {
-                Ok(v32)
+                Ok(v4)
             } else {
                 let a440 = f15(v3.clone());
                 let a441 = 6u64;
                 if nat_eq(a440, a441) {
-                    Ok(v33)
+                    Ok(v5)
                 } else {
                     Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("primitive Index of ")), f35(v3)?)))
                 }
             }
         }
         Adt6::C32 => {
-            let v34: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C2), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C2), std::rc::Rc::new(Adt0::C14)))))), v1.clone(), Adt0::C8(std::rc::Rc::new(v3.clone())))?;
-            let v35: Result<Adt0, Bytes> = f60(v0, v1)?;
             let a442 = f15(v3.clone());
             let a443 = 10u64;
             if if nat_eq(a442, a443) {
                 true
             } else {
-                let a444 = f15(v3);
+                let a444 = f15(v3.clone());
                 let a445 = 6u64;
                 nat_eq(a444, a445)
             } {
-                Ok(v34)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C2), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C2), std::rc::Rc::new(Adt0::C14)))))), v1, Adt0::C8(std::rc::Rc::new(v3)))
             } else {
-                Ok(v35)
+                f60(v0, v1)
             }
         }
         Adt6::C33 => {
@@ -3580,66 +3470,61 @@ pub fn f34(v0: Adt6, v1: Adt0) -> R<Result<Adt0, Bytes>> {
             f59(v0, Adt0::C15(std::rc::Rc::new(Adt0::C10(std::rc::Rc::new(Adt0::C5))), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C5), std::rc::Rc::new(Adt0::C14)))), v1, Adt0::C5)
         }
         Adt6::C38 => {
-            let v36: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)), v1.clone(), Adt0::C5)?;
-            let v37: Result<Adt0, Bytes> = f60(v0, v1)?;
             let a446 = f15(v3.clone());
             let a447 = 3u64;
             if if nat_eq(a446, a447) {
                 true
             } else {
-                let a448 = f15(v3);
+                let a448 = f15(v3.clone());
                 let a449 = 4u64;
                 nat_eq(a448, a449)
             } {
-                Ok(v36)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3), std::rc::Rc::new(Adt0::C14)), v1, Adt0::C5)
             } else {
-                Ok(v37)
+                f60(v0, v1)
             }
         }
         Adt6::C39 => {
-            let v38: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)))), v1.clone(), Adt0::C7)?;
-            let v39: Result<Adt0, Bytes> = f60(v0, v1)?;
-            if f62(v3) {
-                Ok(v38)
+            if f62(v3.clone()) {
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(v3), std::rc::Rc::new(Adt0::C14)))), v1, Adt0::C7)
             } else {
-                Ok(v39)
+                f60(v0, v1)
             }
         }
-        Adt6::C40(v40) => {
-            let v41: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(v3.clone()), std::rc::Rc::new(Adt0::C14)), v1.clone(), Adt0::C8(std::rc::Rc::new(Adt0::C4(v40))))?;
-            let v42: Result<Adt0, Bytes> = f60(v0, v1)?;
+        Adt6::C40(v6) => {
             let a450 = f15(v3.clone());
             let a451 = 3u64;
             if if nat_eq(a450, a451) {
                 true
             } else {
-                let a452 = f15(v3);
+                let a452 = f15(v3.clone());
                 let a453 = 4u64;
                 nat_eq(a452, a453)
             } {
-                Ok(v41)
+                f59(v0, Adt0::C15(std::rc::Rc::new(v3), std::rc::Rc::new(Adt0::C14)), v1, Adt0::C8(std::rc::Rc::new(Adt0::C4(v6))))
             } else {
-                Ok(v42)
+                f60(v0, v1)
             }
         }
         Adt6::C41(r458) => {
-            let v43 = (*r458).clone();
-            let v44: u64 = f15(v43.clone());
-            let v45: Result<Adt0, Bytes> = f59(v0.clone(), Adt0::C15(std::rc::Rc::new(Adt0::C5), std::rc::Rc::new(Adt0::C14)), v1.clone(), Adt0::C8(std::rc::Rc::new(v43)))?;
-            let v46: Result<Adt0, Bytes> = f60(v0, v1)?;
-            let a454 = v44;
+            let v7 = (*r458).clone();
+            let v8: u64 = f15(v7.clone());
+            let a454 = v8;
             let a455 = 3u64;
             if if nat_eq(a454, a455) {
                 true
             } else {
-                let a456 = v44;
+                let a456 = v8;
                 let a457 = 4u64;
                 nat_eq(a456, a457)
             } {
-                Ok(v45)
+                f59(v0, Adt0::C15(std::rc::Rc::new(Adt0::C5), std::rc::Rc::new(Adt0::C14)), v1, Adt0::C8(std::rc::Rc::new(v7)))
             } else {
-                Ok(v46)
+                f60(v0, v1)
             }
+        }
+        Adt6::C42 => {
+            f59(v0, Adt0::C15(std::rc::Rc::new(Adt0::C6), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C2), std::rc::Rc::new(Adt0::C15(std::rc::Rc::new(Adt0::C4(Adt1::C0)), std::rc::Rc::new(Adt0::C14)))))), v1, Adt0::C8(std::rc::Rc::new(Adt0::C6)))
         }
     }
 }
@@ -4632,12 +4517,10 @@ pub fn f58(v0: Adt0, v1: u64) -> R<List<Adt5>> {
 }
 
 pub fn f59(v0: Adt6, v1: Adt0, v2: Adt0, v3: Adt0) -> R<Result<Adt0, Bytes>> {
-    let v4: Result<Adt0, Bytes> = Ok::<Adt0, Bytes>(v3);
-    let v5: Result<Adt0, Bytes> = Err::<Adt0, Bytes>(f23(f13(Str::lit("primitive ")), f23(f82(v0)?, f23(f13(Str::lit(" takes ")), f23(f83(v1.clone())?, f23(f13(Str::lit(", received ")), f83(v2.clone())?))))));
-    if f57(v2, v1) {
-        Ok(v4)
+    if f57(v2.clone(), v1.clone()) {
+        Ok(Ok::<Adt0, Bytes>(v3))
     } else {
-        Ok(v5)
+        Ok(Err::<Adt0, Bytes>(f23(f13(Str::lit("primitive ")), f23(f82(v0)?, f23(f13(Str::lit(" takes ")), f23(f83(v1)?, f23(f13(Str::lit(", received ")), f83(v2)?)))))))
     }
 }
 
@@ -5355,6 +5238,9 @@ pub fn f82(v0: Adt6) -> R<Bytes> {
         Adt6::C41(r646) => {
             let v2 = (*r646).clone();
             Ok(f23(f13(Str::lit("ParseDecimal { target: ")), f23(f35(v2)?, f13(Str::lit(" }")))))
+        }
+        Adt6::C42 => {
+            Ok(f13(Str::lit("Update")))
         }
     }
 }

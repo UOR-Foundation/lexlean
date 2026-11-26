@@ -236,7 +236,8 @@ definition{
     | CalculusCheck::Prim.FormatDecimal => false
     | CalculusCheck::Prim.Compare => false
     | CalculusCheck::Prim.Convert d0 => false
-    | CalculusCheck::Prim.ParseDecimal target => ((CalculusCheck::tyTag target) =? 3)),
+    | CalculusCheck::Prim.ParseDecimal target => ((CalculusCheck::tyTag target) =? 3)
+    | CalculusCheck::Prim.Update => false),
   executable: true
 }
 

@@ -666,6 +666,7 @@ pub struct Bytes(Rc<[u8]>);
 impl Bytes {
     pub fn lit(octets: &[u8]) -> Bytes { Bytes(Rc::from(octets)) }
     pub fn octets(&self) -> &[u8] { &self.0 }
+    pub fn update(mut a: Bytes, i: u64, byte: u8) -> Option<Bytes> { let at = match usize::try_from(i) { Ok(at) => at, Err(_) => return None, }; if at >= a.0.len() { return None; }; tick(1); match Rc::get_mut(&mut a.0) { Some(cells) => { let slot: &mut [u8] = cells; slot[at] = byte; Some(a) }, None => { tick(a.0.len() as u64); let mut out = Vec::with_capacity(a.0.len()); out.extend_from_slice(&a.0); out[at] = byte; Some(Bytes(Rc::from(out))) }, } }
     pub fn append(a: Bytes, b: Bytes) -> Bytes { tick((a.0.len() + b.0.len()) as u64); let mut out = Vec::with_capacity(a.0.len() + b.0.len()); out.extend_from_slice(&a.0); out.extend_from_slice(&b.0); Bytes(Rc::from(out)) }
     pub fn length(&self) -> u64 { self.0.len() as u64 }
     pub fn index(&self, i: u64) -> Option<u8> { match usize::try_from(i) { Ok(at) => self.0.get(at).copied(), Err(_) => None, } }
@@ -855,47 +856,16 @@ pub fn format_int(p0: i64) -> Str {
     Str::format_i64(p0)
 }
 
-pub fn f0(v0: Str, v1: Str) -> (Bytes, (Option<Str>, (Ordering, (Option<List<Str>>, (Str, (u64, bool)))))) {
-    let v2: Bytes = {
-        let a1 = v0.clone();
-        utf8_encode(a1)
-    };
-    (v2.clone(), ({
-        let a2 = v2.clone();
-        utf8_decode(a2)
-    }, ({
-        let a3 = v2.clone();
-        let a4 = Bytes::lit(&[0x00, 0xff]);
-        compare_bytes(a3, a4)
-    }, ({
-        let a5 = v0.clone();
-        let a6 = v1.clone();
-        let a7 = 4u32;
-        split_exact(a5, a6, a7)
-    }, ({
-        let a8 = List::cons(v0.clone(), List::cons(Str::lit("x\"y"), List::<Str>::nil()));
-        let a9 = v1.clone();
-        join(a8, a9)
-    }, ({
-        let a10 = v0.clone();
-        length_string(a10)
+pub fn update_bytes(p0: Bytes, p1: u64, p2: u8) -> Option<Bytes> {
+    Bytes::update(p0, p1, p2)
+}
+
+pub fn f0(v0: i64, v1: i8) -> (Str, Str) {
+    ({
+        let a1 = v0;
+        format_int(a1)
     }, {
-        let a11 = v0;
-        let a12 = v1;
-        if equal(a11, a12) {
-            let a17 = {
-                let a13 = v2.clone();
-                let a14 = v2;
-                compare_bytes(a13, a14)
-            };
-            let a18 = {
-                let a15 = Bytes::lit(&[]);
-                let a16 = Bytes::lit(&[0x01]);
-                compare_bytes(a15, a16)
-            };
-            equal(a17, a18)
-        } else {
-            false
-        }
-    }))))))
+        let a2 = v1;
+        format_i8(a2)
+    })
 }

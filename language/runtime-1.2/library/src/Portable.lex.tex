@@ -1746,6 +1746,16 @@ definition LexLeanRuntime.subtract : @4763 := @4775 {
   reducibility: regular{height: 2},
   transparency: semireducible
 }
+definition LexLeanRuntime.update : @4788 := @4806 {
+  all: [LexLeanRuntime.update],
+  class: false,
+  compiled: true,
+  generated: false,
+  inline: noinline,
+  policy: exact{axioms: []},
+  reducibility: regular{height: 9},
+  transparency: semireducible
+}
 definition LexLeanRuntime.utf8Decode : @4777 := @4780 {
   all: [LexLeanRuntime.utf8Decode],
   class: false,
@@ -4165,5 +4175,10 @@ definition LexLeanRuntime.utf8Encode : @4781 := @4784 {
 @4780 := fun (value : @3515) => String.fromUTF8? @1
 @4781 := (value : @261) -> @3515
 @4784 := fun (value : @261) => String.toUTF8 @1
+@4788 := (value : @3515) -> (offset : @59) -> (byte : @3521) -> @262 @3515
+@4806 := fun (value : @3515) =>
+  fun (offset : @59) =>
+  fun (byte : @3521) =>
+  @4409 (@3753 @2 @4423) (@3763 @2 @4423) (@2597 @3515 (ByteArray.set! @3 @2 @1)) (@2584 @3515)
 \end{coremodule}
 \end{lexlean}

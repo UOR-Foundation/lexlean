@@ -34,7 +34,7 @@ const IMPORTED: [&str; 4] = [
 /// Each function the module defines with the theorem that refines it and the
 /// names its statement must be about: a theorem of the right name that runs
 /// another function or another item is refused.
-const LAWS: [(&str, &str, &[&str]); 32] = [
+const LAWS: [(&str, &str, &[&str]); 33] = [
     (
         "append_list",
         "refines_append_list",
@@ -145,6 +145,11 @@ const LAWS: [(&str, &str, &[&str]); 32] = [
     (
         "format_int",
         "refines_format_int",
+        &["runExport", "runItem"],
+    ),
+    (
+        "update_bytes",
+        "refines_update_bytes",
         &["runExport", "runItem"],
     ),
 ];

@@ -1681,6 +1681,7 @@ pub(crate) fn template_of(
         | SemanticPrimitive::Length
         | SemanticPrimitive::Index
         | SemanticPrimitive::Slice
+        | SemanticPrimitive::Update
         | SemanticPrimitive::Utf8Encode
         | SemanticPrimitive::Utf8Decode
         | SemanticPrimitive::CompareBytes
@@ -3564,6 +3565,7 @@ impl Lowerer<'_> {
             }
             SemanticPrimitive::Index => Prim::Index,
             SemanticPrimitive::Slice => Prim::Slice,
+            SemanticPrimitive::Update => Prim::Update,
             SemanticPrimitive::Utf8Encode => Prim::Utf8Encode,
             SemanticPrimitive::Utf8Decode => Prim::Utf8Decode,
             SemanticPrimitive::CompareBytes => Prim::CompareBytes,

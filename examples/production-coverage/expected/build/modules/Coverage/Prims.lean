@@ -19,6 +19,8 @@ namespace Coverage.Prims
 
 @[expose] public def sequences (xs : List (Nat)) (b : ByteArray) (i : Nat) : (Prod (List (Nat)) ((Prod (ByteArray) ((Prod (Nat) ((Prod (Option (Nat)) ((Prod (Option (UInt8)) ((Prod (Option (List (Nat))) ((Prod (Option (ByteArray)) ((Prod (Bool) (Bool)))))))))))))))) := ((LexLeanRuntime.append (xs) ((1 :: ([] : List (Nat)))) : List (Nat)), ((LexLeanRuntime.append (b) (_root_.ByteArray.mk #[(_root_.UInt8.ofNat (nat_lit 10))]) : ByteArray), (((LexLeanRuntime.length (xs) : Nat) + (LexLeanRuntime.length (b) : Nat)), ((LexLeanRuntime.index (xs) (i) : Option (Nat)), ((LexLeanRuntime.index (b) (i) : Option (UInt8)), ((LexLeanRuntime.slice (xs) (i) (2) : Option (List (Nat))), ((LexLeanRuntime.slice (b) (0) (i) : Option (ByteArray)), ((LexLeanRuntime.equal (b) (_root_.ByteArray.mk #[]) : Bool), (LexLeanRuntime.equal ((LexLeanRuntime.equal (i) (3) : Bool)) (true) : Bool)))))))))
 
+@[expose] public def updates (b : ByteArray) (i : Nat) (v : UInt8) : Option (ByteArray) := (LexLeanRuntime.update (b) (i) (v) : Option (ByteArray))
+
 @[expose] public def decimals (s : String) : (Prod (Option (Int)) (Option (UInt32))) := ((LexLeanRuntime.parseDecimal (s) : Option (Int)), (LexLeanRuntime.parseDecimal (s) : Option (UInt32)))
 
 @[expose] public def formats (a : Int) (b : Int8) : (Prod (String) (String)) := ((LexLeanRuntime.formatDecimal (a) : String), (LexLeanRuntime.formatDecimal (b) : String))
