@@ -1,0 +1,438 @@
+{
+  "schema": "lexlean/ci-dod7-arm64-target-baseline/1",
+  "head": "b5bfe17ca44ecca3f6bf95798c7788e6254c790a",
+  "run": 45757936558,
+  "scope": "Hosted completed Cargo test result lines; one run per host, not controlled benchmark. Warnings indicate long-running tests, not individual durations or causal serialization. Resource samples not retrieved. No changes or new dispatch.",
+  "hosts": [
+    {
+      "job": 139702653210,
+      "target": "aarch64-unknown-linux-gnu",
+      "harness": "2026-11-26T05:06:28.8772764Z      Running tests/conformance.rs (target/debug/deps/conformance-b217bf4553c3cb28)",
+      "results": [
+        {
+          "passed": 237,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 14.01
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 1.1
+        },
+        {
+          "passed": 10,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0.43
+        },
+        {
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 4.85
+        },
+        {
+          "passed": 11,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 229.46
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0.71
+        },
+        {
+          "passed": 13,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 1.29
+        },
+        {
+          "passed": 44,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 5.62
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0
+        },
+        {
+          "passed": 5,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 1.21
+        },
+        {
+          "passed": 524,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 10677.21
+        },
+        {
+          "passed": 31,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0.49
+        },
+        {
+          "passed": 21,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0.01
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0
+        }
+      ],
+      "warnings": [
+        "formatter_is_idempotent_on_every_example",
+        "conformance_au_01",
+        "conformance_au_08",
+        "conformance_au_09",
+        "conformance_au_14",
+        "conformance_bs_03",
+        "conformance_bs_04",
+        "conformance_bs_05",
+        "conformance_bs_06",
+        "conformance_bs_07",
+        "conformance_bs_08",
+        "conformance_bs_09",
+        "conformance_bs_10",
+        "conformance_bs_11",
+        "conformance_bs_12",
+        "conformance_bs_13",
+        "conformance_bs_14",
+        "conformance_bs_15",
+        "conformance_bs_16",
+        "conformance_bs_20",
+        "conformance_bs_21",
+        "conformance_bs_22",
+        "conformance_bs_23",
+        "conformance_bs_24",
+        "conformance_bs_25",
+        "conformance_bs_26",
+        "conformance_bs_27",
+        "conformance_bs_28",
+        "conformance_bs_29",
+        "conformance_bs_30",
+        "conformance_bs_31",
+        "conformance_bs_32",
+        "conformance_bs_33",
+        "conformance_bs_34",
+        "conformance_gn_02",
+        "conformance_ka_05",
+        "conformance_ka_08",
+        "conformance_rb_06",
+        "conformance_rb_07",
+        "conformance_rb_12",
+        "conformance_rb_20",
+        "conformance_rp_12",
+        "conformance_rp_15",
+        "conformance_rp_19",
+        "conformance_rs_10",
+        "conformance_sl_02",
+        "conformance_sl_05",
+        "conformance_sl_07",
+        "conformance_sp_02",
+        "conformance_sp_08",
+        "conformance_sp_09",
+        "conformance_sp_11",
+        "conformance_sp_12"
+      ],
+      "warningRows": 53,
+      "totalPassed": 900
+    },
+    {
+      "job": 139702653278,
+      "target": "aarch64-apple-darwin",
+      "harness": "2026-11-26T05:10:53.9622030Z      Running tests/conformance.rs (target/debug/deps/conformance-2c1bcc73e85560b5)",
+      "results": [
+        {
+          "passed": 237,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 15.83
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 1.75
+        },
+        {
+          "passed": 10,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 4.12
+        },
+        {
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 2.04
+        },
+        {
+          "passed": 11,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 296.35
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0.84
+        },
+        {
+          "passed": 13,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 1.16
+        },
+        {
+          "passed": 44,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 6.09
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0
+        },
+        {
+          "passed": 5,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 1.13
+        },
+        {
+          "passed": 524,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 9525.95
+        },
+        {
+          "passed": 31,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0.63
+        },
+        {
+          "passed": 21,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0.07
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0,
+          "seconds": 0
+        }
+      ],
+      "warnings": [
+        "formatter_is_idempotent_on_every_example",
+        "conformance_au_01",
+        "conformance_au_08",
+        "conformance_au_09",
+        "conformance_au_14",
+        "conformance_bs_03",
+        "conformance_bs_04",
+        "conformance_bs_05",
+        "conformance_bs_06",
+        "conformance_bs_07",
+        "conformance_bs_08",
+        "conformance_bs_09",
+        "conformance_bs_10",
+        "conformance_bs_11",
+        "conformance_bs_12",
+        "conformance_bs_13",
+        "conformance_bs_14",
+        "conformance_bs_15",
+        "conformance_bs_16",
+        "conformance_bs_20",
+        "conformance_bs_21",
+        "conformance_bs_22",
+        "conformance_bs_23",
+        "conformance_bs_24",
+        "conformance_bs_25",
+        "conformance_bs_26",
+        "conformance_bs_27",
+        "conformance_bs_28",
+        "conformance_bs_29",
+        "conformance_bs_30",
+        "conformance_bs_31",
+        "conformance_bs_32",
+        "conformance_bs_33",
+        "conformance_bs_34",
+        "conformance_ka_05",
+        "conformance_ka_08",
+        "conformance_rb_06",
+        "conformance_rb_07",
+        "conformance_rb_12",
+        "conformance_rb_20",
+        "conformance_rp_12",
+        "conformance_rp_15",
+        "conformance_rp_19",
+        "conformance_sl_02",
+        "conformance_sl_05",
+        "conformance_sl_07",
+        "conformance_sl_14",
+        "conformance_sp_02",
+        "conformance_sp_08",
+        "conformance_sp_09",
+        "conformance_sp_11",
+        "conformance_sp_12",
+        "conformance_sp_20"
+      ],
+      "warningRows": 53,
+      "totalPassed": 900
+    }
+  ],
+  "overlap": {
+    "both": [
+      "conformance_au_01",
+      "conformance_au_08",
+      "conformance_au_09",
+      "conformance_au_14",
+      "conformance_bs_03",
+      "conformance_bs_04",
+      "conformance_bs_05",
+      "conformance_bs_06",
+      "conformance_bs_07",
+      "conformance_bs_08",
+      "conformance_bs_09",
+      "conformance_bs_10",
+      "conformance_bs_11",
+      "conformance_bs_12",
+      "conformance_bs_13",
+      "conformance_bs_14",
+      "conformance_bs_15",
+      "conformance_bs_16",
+      "conformance_bs_20",
+      "conformance_bs_21",
+      "conformance_bs_22",
+      "conformance_bs_23",
+      "conformance_bs_24",
+      "conformance_bs_25",
+      "conformance_bs_26",
+      "conformance_bs_27",
+      "conformance_bs_28",
+      "conformance_bs_29",
+      "conformance_bs_30",
+      "conformance_bs_31",
+      "conformance_bs_32",
+      "conformance_bs_33",
+      "conformance_bs_34",
+      "conformance_ka_05",
+      "conformance_ka_08",
+      "conformance_rb_06",
+      "conformance_rb_07",
+      "conformance_rb_12",
+      "conformance_rb_20",
+      "conformance_rp_12",
+      "conformance_rp_15",
+      "conformance_rp_19",
+      "conformance_sl_02",
+      "conformance_sl_05",
+      "conformance_sl_07",
+      "conformance_sp_02",
+      "conformance_sp_08",
+      "conformance_sp_09",
+      "conformance_sp_11",
+      "conformance_sp_12",
+      "formatter_is_idempotent_on_every_example"
+    ],
+    "linuxOnly": [
+      "conformance_gn_02",
+      "conformance_rs_10"
+    ],
+    "macOnly": [
+      "conformance_sl_14",
+      "conformance_sp_20"
+    ]
+  },
+  "decision": "Prioritize existing rendering correction and ordinary hosted remeasurement before choosing ARM64 split or nextest; preserve exact test and doctest coverage."
+}
