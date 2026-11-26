@@ -217,6 +217,7 @@ fn enc_prim(operation: &Prim) -> Value {
         Prim::Compare => 39,
         Prim::Convert { target } => return adt(40, vec![enc_kind(*target)]),
         Prim::ParseDecimal { target } => return adt(41, vec![enc_ty(target)]),
+        Prim::Update => 42,
     };
     adt(index, Vec::new())
 }
@@ -1238,6 +1239,7 @@ fn all_prims() -> Vec<Prim> {
         Prim::Join,
         Prim::FormatDecimal,
         Prim::Compare,
+        Prim::Update,
     ];
     out.extend(
         kinds()
@@ -1375,6 +1377,7 @@ fn signature(operation: &Prim, pool: &[Ty], seeded: &mut Seeded) -> Vec<Ty> {
         Prim::Join => vec![list_of(string()), string()],
         Prim::FormatDecimal | Prim::Convert { .. } => vec![seeded.pick(pool).clone()],
         Prim::ParseDecimal { .. } => vec![string()],
+        Prim::Update => vec![bytes(), nat(), Ty::Fixed { width: IntKind::U8 }],
     }
 }
 
@@ -2233,8 +2236,8 @@ const PLANTS: [super::Plant; 12] = [
     },
     super::Plant {
         label: "a shift takes a u64 count",
-        site: "(ctor Ty.TCons (ctor Ty.TFixed (ctor IntKind.U32)) (ctor Ty.TNil))) types (ctor Ty.TOption lead)); (let no104",
-        replacement: "(ctor Ty.TCons (ctor Ty.TFixed (ctor IntKind.U64)) (ctor Ty.TNil))) types (ctor Ty.TOption lead)); (let no104",
+        site: "| Prim.ShiftLeft => (if ((tyTag lead) =? 4) then (exactly operation (ctor Ty.TCons lead (ctor Ty.TCons (ctor Ty.TFixed (ctor IntKind.U32))",
+        replacement: "| Prim.ShiftLeft => (if ((tyTag lead) =? 4) then (exactly operation (ctor Ty.TCons lead (ctor Ty.TCons (ctor Ty.TFixed (ctor IntKind.U64))",
         root: "checkProgram",
     },
     super::Plant {

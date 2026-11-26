@@ -666,6 +666,7 @@ pub struct Bytes(Rc<[u8]>);
 impl Bytes {
     pub fn lit(octets: &[u8]) -> Bytes { Bytes(Rc::from(octets)) }
     pub fn octets(&self) -> &[u8] { &self.0 }
+    pub fn update(mut a: Bytes, i: u64, byte: u8) -> Option<Bytes> { let at = match usize::try_from(i) { Ok(at) => at, Err(_) => return None, }; if at >= a.0.len() { return None; }; tick(1); match Rc::get_mut(&mut a.0) { Some(cells) => { let slot: &mut [u8] = cells; slot[at] = byte; Some(a) }, None => { tick(a.0.len() as u64); let mut out = Vec::with_capacity(a.0.len()); out.extend_from_slice(&a.0); out[at] = byte; Some(Bytes(Rc::from(out))) }, } }
     pub fn append(a: Bytes, b: Bytes) -> Bytes { tick((a.0.len() + b.0.len()) as u64); let mut out = Vec::with_capacity(a.0.len() + b.0.len()); out.extend_from_slice(&a.0); out.extend_from_slice(&b.0); Bytes(Rc::from(out)) }
     pub fn length(&self) -> u64 { self.0.len() as u64 }
     pub fn index(&self, i: u64) -> Option<u8> { match usize::try_from(i) { Ok(at) => self.0.get(at).copied(), Err(_) => None, } }
@@ -855,36 +856,168 @@ pub fn format_int(p0: i64) -> Str {
     Str::format_i64(p0)
 }
 
-#[derive(Clone)]
-pub enum Adt0 {
-    C0(u64, List<Adt0>),
+pub fn update_bytes(p0: Bytes, p1: u64, p2: u8) -> Option<Bytes> {
+    Bytes::update(p0, p1, p2)
 }
 
-pub fn f0(v0: u64) -> R<u64> {
-    f1(Adt0::C0(v0, List::cons(Adt0::C0(1u64, List::<Adt0>::nil()), List::<Adt0>::nil())))
-}
-
-pub fn f1(v0: Adt0) -> R<u64> {
-    let m1 = v0;
-    match m1 {
-        Adt0::C0(_, v2) => {
-            let a2 = 1u64;
-            let a3 = f2(v2)?;
-            nat_add(a2, a3)
-        }
-    }
-}
-
-pub fn f2(v0: List<Adt0>) -> R<u64> {
-    let m4 = v0;
-    match m4.uncons() {
+pub fn f0(v0: Bytes, v1: u64) -> R<Option<i64>> {
+    let m3 = {
+        let a1 = v0;
+        let a2 = v1;
+        index_bytes(a1, a2)
+    };
+    match m3 {
         None => {
-            Ok(0u64)
+            Ok(None::<i64>)
         }
-        Some((v1, v2)) => {
-            let a5 = f1(v1)?;
-            let a6 = f2(v2)?;
-            nat_add(a5, a6)
+        Some(v2) => {
+            Ok(Some({
+                let v3: u8 = v2;
+                let a55 = {
+                    let a27 = {
+                        let a13 = {
+                            let a6 = {
+                                let a4 = v3;
+                                let a5 = 128u8;
+                                fixed_u8::bit_and(a4, a5)
+                            };
+                            let a7 = 128u8;
+                            if equal(a6, a7) {
+                                128i64
+                            } else {
+                                0i64
+                            }
+                        };
+                        let a14 = {
+                            let a12 = {
+                                let a10 = {
+                                    let a8 = v3;
+                                    let a9 = 64u8;
+                                    fixed_u8::bit_and(a8, a9)
+                                };
+                                let a11 = 64u8;
+                                if equal(a10, a11) {
+                                    64i64
+                                } else {
+                                    0i64
+                                }
+                            };
+                            int_neg(a12)?
+                        };
+                        int_sub(a13, a14)?
+                    };
+                    let a28 = {
+                        let a26 = {
+                            let a24 = {
+                                let a17 = {
+                                    let a15 = v3;
+                                    let a16 = 32u8;
+                                    fixed_u8::bit_and(a15, a16)
+                                };
+                                let a18 = 32u8;
+                                if equal(a17, a18) {
+                                    32i64
+                                } else {
+                                    0i64
+                                }
+                            };
+                            let a25 = {
+                                let a23 = {
+                                    let a21 = {
+                                        let a19 = v3;
+                                        let a20 = 16u8;
+                                        fixed_u8::bit_and(a19, a20)
+                                    };
+                                    let a22 = 16u8;
+                                    if equal(a21, a22) {
+                                        16i64
+                                    } else {
+                                        0i64
+                                    }
+                                };
+                                int_neg(a23)?
+                            };
+                            int_sub(a24, a25)?
+                        };
+                        int_neg(a26)?
+                    };
+                    int_sub(a27, a28)?
+                };
+                let a56 = {
+                    let a54 = {
+                        let a52 = {
+                            let a38 = {
+                                let a31 = {
+                                    let a29 = v3;
+                                    let a30 = 8u8;
+                                    fixed_u8::bit_and(a29, a30)
+                                };
+                                let a32 = 8u8;
+                                if equal(a31, a32) {
+                                    8i64
+                                } else {
+                                    0i64
+                                }
+                            };
+                            let a39 = {
+                                let a37 = {
+                                    let a35 = {
+                                        let a33 = v3;
+                                        let a34 = 4u8;
+                                        fixed_u8::bit_and(a33, a34)
+                                    };
+                                    let a36 = 4u8;
+                                    if equal(a35, a36) {
+                                        4i64
+                                    } else {
+                                        0i64
+                                    }
+                                };
+                                int_neg(a37)?
+                            };
+                            int_sub(a38, a39)?
+                        };
+                        let a53 = {
+                            let a51 = {
+                                let a49 = {
+                                    let a42 = {
+                                        let a40 = v3;
+                                        let a41 = 2u8;
+                                        fixed_u8::bit_and(a40, a41)
+                                    };
+                                    let a43 = 2u8;
+                                    if equal(a42, a43) {
+                                        2i64
+                                    } else {
+                                        0i64
+                                    }
+                                };
+                                let a50 = {
+                                    let a48 = {
+                                        let a46 = {
+                                            let a44 = v3;
+                                            let a45 = 1u8;
+                                            fixed_u8::bit_and(a44, a45)
+                                        };
+                                        let a47 = 1u8;
+                                        if equal(a46, a47) {
+                                            1i64
+                                        } else {
+                                            0i64
+                                        }
+                                    };
+                                    int_neg(a48)?
+                                };
+                                int_sub(a49, a50)?
+                            };
+                            int_neg(a51)?
+                        };
+                        int_sub(a52, a53)?
+                    };
+                    int_neg(a54)?
+                };
+                int_sub(a55, a56)?
+            }))
         }
     }
 }

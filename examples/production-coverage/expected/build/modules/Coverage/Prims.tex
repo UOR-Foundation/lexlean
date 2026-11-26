@@ -51,6 +51,14 @@
 \noindent Type: \texttt{(Prod (List (Nat)) ((Prod (ByteArray) ((Prod (Nat) ((Prod (Option (Nat)) ((Prod (Option (UInt8)) ((Prod (Option (List (Nat))) ((Prod (Option (ByteArray)) ((Prod (Bool) (Bool))))))))))))))))}.\par
 \noindent Definition: \texttt{((LexLeanRuntime.append (xs) ((1 :: ([] : List (Nat)))) : List (Nat)), ((LexLeanRuntime.append (b) (ByteArray.mk \#[10]) : ByteArray), (((LexLeanRuntime.length (xs) : Nat) + (LexLeanRuntime.length (b) : Nat)), ((LexLeanRuntime.index (xs) (i) : Option (Nat)), ((LexLeanRuntime.index (b) (i) : Option (UInt8)), ((LexLeanRuntime.slice (xs) (i) (2) : Option (List (Nat))), ((LexLeanRuntime.slice (b) (0) (i) : Option (ByteArray)), ((LexLeanRuntime.equal (b) (ByteArray.mk \#[]) : Bool), (LexLeanRuntime.equal ((LexLeanRuntime.equal (i) (3) : Bool)) (true) : Bool)))))))))}.\par
 \noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{updates}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(b : ByteArray) (i : Nat) (v : UInt8)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation}.\par
+\noindent Type: \texttt{Option (ByteArray)}.\par
+\noindent Definition: \texttt{(LexLeanRuntime.update (b) (i) (v) : Option (ByteArray))}.\par
+\noindent Axiom policy: \texttt{none}.\par
 \subsection*{\texttt{decimals}}
 \noindent Kind: \texttt{definition}.\par
 \noindent Parameters: \texttt{(s : String)}.\par

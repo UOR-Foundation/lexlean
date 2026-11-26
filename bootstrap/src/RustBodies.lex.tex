@@ -175,7 +175,8 @@ definition{
     | CalculusCheck::Prim.FormatDecimal => (prim utf8_encode "format_decimal" : Bytes)
     | CalculusCheck::Prim.Compare => (prim utf8_encode "compare" : Bytes)
     | CalculusCheck::Prim.Convert d0 => (prim utf8_encode "convert" : Bytes)
-    | CalculusCheck::Prim.ParseDecimal d0 => (prim utf8_encode "parse_decimal" : Bytes)),
+    | CalculusCheck::Prim.ParseDecimal d0 => (prim utf8_encode "parse_decimal" : Bytes)
+    | CalculusCheck::Prim.Update => (prim utf8_encode "update" : Bytes)),
   executable: true
 }
 
@@ -249,7 +250,8 @@ definition{
     | CalculusCheck::Prim.FormatDecimal => (kindIntOf head)
     | CalculusCheck::Prim.Compare => (ctor Option.none [RustValidate::IntKind])
     | CalculusCheck::Prim.Convert target => (ctor Option.some [RustValidate::IntKind] (RustLower::kindOf target))
-    | CalculusCheck::Prim.ParseDecimal target => (kindIntOf target)),
+    | CalculusCheck::Prim.ParseDecimal target => (kindIntOf target)
+    | CalculusCheck::Prim.Update => (ctor Option.none [RustValidate::IntKind])),
   executable: true
 }
 
@@ -363,7 +365,8 @@ definition{
       | CalculusCheck::Ty.TAdt u9x0 => 49
       | CalculusCheck::Ty.TFn u9x0 u9x1 => 49
       | CalculusCheck::Ty.TNil => 49
-      | CalculusCheck::Ty.TCons u9x0 u9x1 => 49)),
+      | CalculusCheck::Ty.TCons u9x0 u9x1 => 49)
+    | CalculusCheck::Prim.Update => 50),
   executable: true
 }
 

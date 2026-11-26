@@ -366,6 +366,7 @@ impl Writer<'_, '_> {
             Item::FormatFixed(width) => wide(self, "formatFixed", width),
             Item::ParseInt => plain(self, "parseInt"),
             Item::ParseFixed(width) => wide(self, "parseFixed", width),
+            Item::UpdateBytes => plain(self, "updateBytes"),
         }
     }
 
@@ -526,6 +527,7 @@ impl Writer<'_, '_> {
             Machine::ParseDecimal(_) => "parseDecimal",
             Machine::ParseDecimalInt => "parseDecimalInt",
             Machine::FormatDecimalInt => "formatDecimalInt",
+            Machine::BytesUpdate => "bytesUpdate",
         };
         match machine.width() {
             Some(width) => {

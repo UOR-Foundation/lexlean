@@ -33,6 +33,7 @@
 'Coverage.Prims.pixels' depends on axioms: [propext, Quot.sound]
 'Coverage.Prims.sequences' does not depend on any axioms
 'Coverage.Prims.text' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Coverage.Prims.updates' does not depend on any axioms
 'Coverage.Prims.widenings' depends on axioms: [propext, Quot.sound]
 'Coverage.RecRoots.rewrite' depends on axioms: [propext, Quot.sound]
 'Coverage.RecRoots.roseTotal' does not depend on any axioms
@@ -445,5 +446,6 @@
 'LexLeanRuntime.slice' does not depend on any axioms
 'LexLeanRuntime.splitExact' depends on axioms: [propext, Classical.choice, Quot.sound]
 'LexLeanRuntime.subtract' does not depend on any axioms
+'LexLeanRuntime.update' does not depend on any axioms
 'LexLeanRuntime.utf8Decode' depends on axioms: [propext, Classical.choice, Quot.sound]
 'LexLeanRuntime.utf8Encode' does not depend on any axioms
