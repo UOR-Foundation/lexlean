@@ -434,5 +434,37 @@
       "conformance_sp_20"
     ]
   },
-  "decision": "Prioritize existing rendering correction and ordinary hosted remeasurement before choosing ARM64 split or nextest; preserve exact test and doctest coverage."
+  "decision": "Prioritize existing rendering correction and ordinary hosted remeasurement before choosing ARM64 split or nextest; preserve exact test and doctest coverage.",
+  "resource_summary": {
+    "scope": "Exact qualified host logs; raw TSV was runner-local and no upload step exists. Summary only. Host-wide values, no effective quota/affinity or group RSS, no exact memory peaks, no sampling validity counts per field. CPU busy excludes Linux iowait; host probes differ by OS. Not a controlled cause attribution.",
+    "sampler_blob": "b359e203868e208c84f7558d6a3606b8269410dd",
+    "summarizer_blob": "b5db0af990a28a15aa0af80ac4c38f13bd3a4b7a",
+    "samples": [
+      {
+        "job": 139702653210,
+        "raw_summary_line": "2026-11-26T08:04:31.9942245Z host resources (#603 DOD-7a evidence): cores 4, samples 2220, CPU busy mean 44% p90 94% >=95% in 10% of samples, min available 0.09 GiB, peak swap 3.00 GiB, peak largest RSS 14.78 GiB",
+        "online_cores": 4,
+        "samples": 2220,
+        "cpu_busy_mean_pct": 44,
+        "cpu_busy_p90_pct": 94,
+        "cpu_busy_ge95_sample_pct": 10,
+        "minimum_available_gib": 0.09,
+        "peak_swap_used_gib": 3,
+        "peak_largest_process_rss_gib": 14.78
+      },
+      {
+        "job": 139702653278,
+        "raw_summary_line": "2026-11-26T07:49:49.0924640Z host resources (#603 DOD-7a evidence): cores 3, samples 1591, CPU busy mean 70% p90 100% >=95% in 28% of samples, min available 1.41 GiB, peak swap 0.16 GiB, peak largest RSS 3.87 GiB",
+        "online_cores": 3,
+        "samples": 1591,
+        "cpu_busy_mean_pct": 70,
+        "cpu_busy_p90_pct": 100,
+        "cpu_busy_ge95_sample_pct": 28,
+        "minimum_available_gib": 1.41,
+        "peak_swap_used_gib": 0.16,
+        "peak_largest_process_rss_gib": 3.87
+      }
+    ],
+    "interpretation": "Linux memory pressure is a plausible significant contributor (sampled available memory 0.09 GiB and 3.00 GiB swap used), not proof of swap thrashing. Low host-wide mean CPU cannot justify raising threads. macOS shows different resource profile. Re-measure the already planned rendering change before further tuning."
+  }
 }
