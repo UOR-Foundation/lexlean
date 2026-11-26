@@ -184,6 +184,7 @@ jobs:
           python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_provider_read.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_plan_provider_retry.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_relock_identity.py'
           python3 -m unittest discover -s .github/scripts -p 'test_summarize_host_samples.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_read_trace.py'
       # The recorder's kernel path needs root (fanotify). Advisory like the

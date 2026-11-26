@@ -30,6 +30,7 @@ set -euo pipefail
 
 root=$(git rev-parse --show-toplevel)
 cd "$root"
+source .github/scripts/semantics-id.sh
 
 if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
     echo "relock-identity: the tree has tracked changes; commit or stash them first" >&2
@@ -67,9 +68,13 @@ declare -A head_id
 for language in 1.0 1.1 1.2; do
     head_id[$language]=$(for lock in "${locks[@]}"; do
         if grep -qx "language = \"$language\"" "$lock"; then
-            sed -n 's/^compiler_semantics = "\([0-9a-f]*\)"$/\1/p' "$lock"
+            semantics_ids < "$lock"
         fi
     done | sort | uniq -c | sort -rn | awk 'NR == 1 { print $2 }')
+    if [ -z "${head_id[$language]}" ] && grep -lqx "language = \"$language\"" "${locks[@]}"; then
+        echo "relock-identity: no language-$language lock carries a compiler-semantics ID this step reads" >&2
+        exit 1
+    fi
 done
 
 relocked=0
@@ -91,8 +96,13 @@ for lock in "${locks[@]}"; do
     fi
     changed=$(git diff -U0 -- "$lock" | grep '^[-+]' | grep -v '^\(---\|+++\)' || true)
     language=$(sed -n 's/^language = "\(.*\)"$/\1/p' "$lock")
-    old=$(printf '%s\n' "$changed" | sed -n 's/^-compiler_semantics = "\([0-9a-f]*\)"$/\1/p')
-    new=$(printf '%s\n' "$changed" | sed -n 's/^+compiler_semantics = "\([0-9a-f]*\)"$/\1/p')
+    old=$(printf '%s\n' "$changed" | semantics_ids -)
+    new=$(printf '%s\n' "$changed" | semantics_ids +)
+    # A moved ID this step cannot read is its own defect, not a lock to keep.
+    if printf '%s\n' "$changed" | grep -q '^[-+]compiler_semantics = ' && { [ -z "$old" ] || [ -z "$new" ]; }; then
+        echo "relock-identity: $lock moves a compiler-semantics ID this step does not read" >&2
+        exit 1
+    fi
     if [ "$(printf '%s\n' "$changed" | wc -l)" -eq 2 ] && [ -n "$old" ] && [ -n "$new" ] \
         && [ "$old" = "${head_id[$language]:-}" ]; then
         relocked=$((relocked + 1))
