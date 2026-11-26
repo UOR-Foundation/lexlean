@@ -721,6 +721,27 @@ pub fn run(id: &str) {
         "SL-13" => super::stdlib_json_read::run(id),
         // §17.22: maps and sets (#276).
         "SL-14" => super::stdlib_map::run(id),
+        // §17.22: a stream is a fold, and its result does not depend on where it was cut.
+        "SL-17" => {
+            let project = P::stdlib();
+            project.check_ok();
+            project
+                .engine()
+                .verify(lexlean::VerifyRequest {
+                    selection: lexlean::Selection::Entrypoints,
+                })
+                .expect("the stdlib, Stream among it, verifies");
+            let original = project.read_raw("src/Stream.lex.tex");
+            let planted = original.replacen(
+                "    | List.cons chunk rest => (feedChunks ['State, 'Item] feed (feedAll ['State, 'Item] feed state chunk) rest)),",
+                "    | List.cons chunk rest => (match rest\n      | List.nil => state\n      | List.cons next later => (feedChunks ['State, 'Item] feed (feedAll ['State, 'Item] feed state chunk) rest))),",
+                1,
+            );
+            assert_ne!(original, planted, "the plant must drop the last chunk");
+            project.write_raw("src/Stream.lex.tex", &planted);
+            project.check_ok();
+            project.verify_fails_with("LLV7002");
+        }
         other => panic!("no stdlib case is wired for {other}"),
     }
 }

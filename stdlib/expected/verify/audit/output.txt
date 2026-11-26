@@ -424,6 +424,12 @@
 'LexLeanStd.Sha256.widen' depends on axioms: [propext, Quot.sound]
 'LexLeanStd.Sha256.wordAt' depends on axioms: [propext, Quot.sound]
 'LexLeanStd.Sha256.wordOfNat' depends on axioms: [propext, Quot.sound]
+'LexLeanStd.Stream.appendItems' does not depend on any axioms
+'LexLeanStd.Stream.chunking_invariance' depends on axioms: [propext]
+'LexLeanStd.Stream.feedAll' does not depend on any axioms
+'LexLeanStd.Stream.feedChunks' does not depend on any axioms
+'LexLeanStd.Stream.feed_all_append' depends on axioms: [propext]
+'LexLeanStd.Stream.joinChunks' does not depend on any axioms
 'LexLeanStd.Target.Cost' does not depend on any axioms
 'LexLeanStd.Target.Op' does not depend on any axioms
 'LexLeanStd.Target.add_sat_saturates' depends on axioms: [propext]
