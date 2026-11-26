@@ -1204,6 +1204,13 @@ class Translator:
             if n and n[0] in ('call', 'mcall'): targets += self.mutated_args(n)
             for t in targets:
                 if t in env and env[t][0] is not None and t not in out: out.append(t)
+        if out:
+            # A scope's writes are carried out of it by name. A name it both writes and binds again (`let mut v`
+            # inside, an `if let Some(v) = v`) would carry the inner variable's value out as the outer's, so such a
+            # function is refused, not translated to a different answer.
+            rebound = {n[1] for n in self.walk(body) if n and n[0] in ('pid', 'pat_at') and isinstance(n[1], str)}
+            clash = [t for t in out if t in rebound]
+            if clash: raise Unsupported(f'a written variable shadowed in a nested scope')
         return sorted(out)
 
     # -- state packing
@@ -2004,6 +2011,15 @@ class Translator:
         if any(n and n[0] == 'return' for n in self.walk(cl[2])): raise Unsupported('a closure that returns, passed as FnMut')
         mutated, read = self.captures_of(cl, cenv)
         if any(c not in env or env[c][0] is None for c in mutated + read): raise Unsupported('a closure capturing what the call cannot pass')
+        # one copy per (callee, closure, capture types): the same closure passed at several call sites shares it
+        ckey = (gkey, repr(cl), tuple((c, repr(T.deep(cenv[c][1]))) for c in mutated + read))
+        if not hasattr(self, 'spec_cache'): self.spec_cache = {}
+        if ckey in self.spec_cache:
+            skey, cached_texts, cached_calls = self.spec_cache[ckey]
+            self.spec_texts += cached_texts
+            self.calls |= cached_calls; self.call_log += sorted(cached_calls, key=str)
+            args = [a for i, a in enumerate(e[2]) if i != idx] + [('mutref', ('path', [c])) if c in mutated else ('path', [c]) for c in mutated + read]
+            return self.apply_user(skey, None, args, env, k, asts_only=True, ctx=ctx)
         self.spec_n += 1
         spec_name = f"{g['name']}__k{self.spec_n}"
         names = {c: f'kc{self.spec_n}_{c}' for c in mutated + read}
@@ -2035,6 +2051,7 @@ class Translator:
         for a, v in saved.items(): setattr(self, a, v)
         self.calls |= spec_calls; self.call_log += sorted(spec_calls, key=str)   # the copy's calls are the caller's too
         self.spec_texts += inner + [text_]
+        self.spec_cache[ckey] = (skey, inner + [text_], set(spec_calls))
         outer = [c for c in mutated + read]
         args = [a for i, a in enumerate(e[2]) if i != idx] + [('mutref', ('path', [c])) if c in mutated else ('path', [c]) for c in outer]
         return self.apply_user(skey, None, args, env, k, asts_only=True, ctx=ctx)
@@ -2214,6 +2231,31 @@ class Translator:
                 and self.assigned(args[0][2], env):
             if ctx is None: raise Unsupported('a mutating closure in a pure position')
             return self.expr(self.adapter_loop(m, recv, args[0][1][0][0], args[0][2]), env, ctx, k)
+        # more adapters whose closure mutates what it captures, where running the closure eagerly is what Rust does too:
+        # `find_map` (it stops at the first Some), `filter`/`filter_map` consumed whole by `collect`, and `bool.then`
+        mutating = lambda c: c[0] == 'closure' and self.assigned(c[2], env)
+        if m == 'then' and len(args) == 1 and args[0][0] == 'closure' and not args[0][1] and mutating(args[0]):
+            if ctx is None: raise Unsupported('a mutating closure in a pure position')
+            some = ('block', [], ('call', ('path', ['Some']), [args[0][2]]))
+            return self.expr(('if', recv, some, ('block', [], ('path', ['None']))), env, ctx, k)
+        if m == 'find_map' and len(args) == 1 and len(args[0]) > 1 and args[0][0] == 'closure' and len(args[0][1]) == 1 and mutating(args[0]):
+            if ctx is None: raise Unsupported('a mutating closure in a pure position')
+            self.spec_n += 1; out = f'__found{self.spec_n}'; y = f'__hit{self.spec_n}'
+            hit = (('pctor', ['Some'], [(0, ('pid', y))]), None,
+                   ('block', [('expr', ('assign', ('path', [out]), ('call', ('path', ['Some']), [('path', [y])]))), ('expr', ('break', None, None))], None))
+            body = ('block', [('expr', ('match', args[0][2], [hit, (WILD, None, ('block', [], None))]))], None)
+            return self.expr(('block', [('let', ('pid', out), None, ('path', ['None']), None), ('expr', ('for', args[0][1][0][0], recv, body))], ('path', [out])), env, ctx, k)
+        if m == 'collect' and recv[0] == 'mcall' and recv[2] in ('filter', 'filter_map') and len(recv[3]) == 1 and recv[3][0][0] == 'closure'                 and len(recv[3][0][1]) == 1 and mutating(recv[3][0]):
+            if ctx is None: raise Unsupported('a mutating closure in a pure position')
+            cl = recv[3][0]; self.spec_n += 1; out = f'__kept{self.spec_n}'; it = f'__each{self.spec_n}'; y = f'__hit{self.spec_n}'
+            push = lambda v: ('block', [('expr', ('mcall', ('path', [out]), 'push', [v]))], None)
+            if recv[2] == 'filter':
+                inner = ('block', [('let', cl[1][0][0], None, ('path', [it]), None), ('expr', ('if', cl[2], push(('path', [it])), None))], None)
+                loop = ('for', ('pid', it), recv[1], inner)
+            else:
+                arm = (('pctor', ['Some'], [(0, ('pid', y))]), None, push(('path', [y])))
+                loop = ('for', cl[1][0][0], recv[1], ('block', [('expr', ('match', cl[2], [arm, (WILD, None, ('block', [], None))]))], None))
+            return self.expr(('block', [('let', ('pid', out), None, ('call', ('path', ['Vec', 'new']), []), None), ('expr', loop)], ('path', [out])), env, ctx, k)
         # a `map` whose closure mutates what it captures, collected: a loop that threads that state
         if m == 'collect' and recv[0] == 'mcall' and recv[2] == 'map' and recv[3][0][0] == 'closure':
             cl = recv[3][0]
@@ -2547,6 +2589,7 @@ class Translator:
                     changed = True
         report = [(n, self.status.get(next((k for k in self.fns if k[1] == n), None), st) if st == 'ok' else st) for n, st in report]
         defs = [t for comp, texts, calls in defs if self.status.get(comp[0]) == 'ok' for t in texts]
+        defs = list(dict.fromkeys(defs))             # a shared copy is listed by each caller: once is enough
         derived = [self.T.patch(d) for d in self.derived]
         sizes = {self.tag_of(comp): len(comp) for comp in order if comp[0] in self.rec_keys}
         def resolve(m):

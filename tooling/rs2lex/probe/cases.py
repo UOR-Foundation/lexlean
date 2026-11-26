@@ -105,6 +105,19 @@ for xs in alias_cases:
         log.append(x)
         if x > 3: log.append(x * 2)
     out.append('alias ' + ','.join(map(str, log)) + ';' + str(sum(xs)))
+# eager_probe: find_map stops at the first hit; filter and filter_map collected; bool.then; each closure counts
+eager_cases = [([rng.randrange(0, 10) for _ in range(rng.randrange(0, 7))], rng.randrange(0, 10)) for _ in range(150)]
+def opt_nat(v): return 'N' if v is None else 'S' + str(v)
+for xs, limit in eager_cases:
+    seen, first = 0, None
+    for x in xs:
+        seen += 1
+        if x > limit: first = x * 2; break
+    evens = [x for x in xs if x % 2 == 0]
+    halves = [x // 2 for x in xs if x % 2 == 0]
+    then = len(xs) if len(xs) > 2 else None
+    code = seen * 1000000 + len(xs) * 10000 + sum(xs) * 100 + (7 if len(xs) > 2 else 0)
+    out.append('eager ' + opt_nat(first) + ';' + ','.join(map(str, evens)) + ';' + ','.join(map(str, halves)) + ';' + opt_nat(then) + ';' + str(code))
 open('probe_expected.txt', 'w', newline='\n').write('\n'.join(out) + '\n')
 
 def lit(s): return f'"{s}".toUTF8'
@@ -128,6 +141,8 @@ lean.append('def sliceCases : List (List Nat × Option (List Nat)) := ' + lean_l
 def lean_bytes(s_): return '(ByteArray.mk #[' + ', '.join(str(b) for b in s_.encode()) + '])'
 lean.append('def charCases : List ByteArray := ' + lean_list([lean_bytes(s_) for s_ in char_cases]))
 lean.append('def aliasCases : List (List Nat) := ' + lean_list([lean_list([str(x) for x in xs]) for xs in alias_cases]))
+lean.append('def eagerCases : List (List Nat × Nat) := ' + lean_list([f'({lean_list([str(x) for x in xs])}, {limit})' for xs, limit in eager_cases]))
+lean.append('def optNat (o : Option Nat) : String := match o with | some v => "S" ++ toString v | none => "N"')
 lean.append('def comboCases : List (List Nat) := ' + lean_list([lean_list([str(x) for x in xs]) for xs in combos]))
 lean += ['',
          'def main : IO Unit := do',
@@ -158,6 +173,9 @@ lean += ['',
          '  for xs in aliasCases do',
          '    let r := fAliasProbe xs',
          '    IO.println ("alias " ++ String.intercalate "," (r.1.map toString) ++ ";" ++ toString r.2)',
+         '  for (xs, limit) in eagerCases do',
+         '    let r := fEagerProbe xs limit',
+         '    IO.println ("eager " ++ optNat r.1 ++ ";" ++ String.intercalate "," (r.2.1.map toString) ++ ";" ++ String.intercalate "," (r.2.2.1.map toString) ++ ";" ++ optNat r.2.2.2.1 ++ ";" ++ toString r.2.2.2.2)',
          '']
 open('lean/ProbeMain.lean', 'w', newline='\n', encoding='utf-8').write('\n'.join(lean))
 print(len(out), 'cases')

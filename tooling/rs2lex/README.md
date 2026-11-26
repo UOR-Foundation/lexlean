@@ -32,8 +32,9 @@ repository's compiler.
 function. It builds the result and the runtime (`language/runtime-1.2/library`) with the repository's compiler,
 runs it as a Lean program, and compares every line with what Rust's semantics give (`probe/cases.py` writes the
 inputs and the expected lines). A rule is trusted only once a probe function exercises it. The probe has caught
-two silent miscompiles, both fixed: a recursive call dropped from a specialized function, and a format string's
-implicit capture broken by an alias substitution.
+three silent miscompiles, all fixed or now refused: a recursive call dropped from a specialized function, a format
+string's implicit capture broken by an alias substitution, and a shadowed variable's value leaving its scope as
+the outer variable's.
 
 ## What it translates
 
@@ -59,15 +60,18 @@ It refuses rather than guess. Examples:
 - a subtraction on an integer whose type was only defaulted: Rust would make it an `i32`, and here it would be a
   `Nat` that stops at zero;
 - iteration over a hash map, whose order would matter;
+- a variable a nested scope both writes and binds again (`let mut v` inside an `if`, `if let Some(v) = v`): a
+  scope's writes leave it by name, so the inner variable's value would leave as the outer's;
+- a function value bound by `let`, which the language refuses;
 - a struct ordered by an `Ord` it does not derive;
 - a closure that escapes into a data structure;
 - a trait object other than `dyn std::error::Error`, which is the message it displays.
 
 ## Where it stands
 
-On `release/v0.4` with `SL-15`, `translate.py` reports 1,375 of 3,616 functions, 14.4 % of the bytes. The
+On `release/v0.4` with `SL-15`, `translate.py` reports 1,374 of 3,616 functions, 14.3 % of the bytes. The
 repository's compiler (0.4.5) accepts the whole module: `check.sh` passes. Every probe function translates, and
-all of the probe's 1,350 cases match Rust's. Over the same rules, a separate harness held the translated functions
+all of the probe's 1,500 cases match Rust's. Over the same rules, a separate harness held the translated functions
 that take and return plain data to the real crate, called through its own tests: 92 functions, identical on
 12,577 cases. That harness modifies a copy of the crate and is not part of this directory.
 

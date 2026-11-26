@@ -169,3 +169,27 @@ pub fn alias_probe(xs: Vec<usize>) -> (Vec<usize>, usize) {
     let log = counter.log.borrow().clone();
     (log, total)
 }
+
+pub fn eager_probe(xs: Vec<usize>, limit: usize) -> (Option<usize>, Vec<usize>, Vec<usize>, Option<usize>, usize) {
+    let mut seen = 0;
+    let first = xs.iter().find_map(|x| {
+        seen += 1;
+        if *x > limit { Some(*x * 2) } else { None }
+    });
+    let mut kept = 0;
+    let evens: Vec<usize> = xs.iter().copied().filter(|x| {
+        kept += 1;
+        x % 2 == 0
+    }).collect();
+    let mut total = 0;
+    let halves: Vec<usize> = xs.iter().filter_map(|x| {
+        total += *x;
+        if *x % 2 == 0 { Some(*x / 2) } else { None }
+    }).collect();
+    let mut bumped = 0;
+    let then = (xs.len() > 2).then(|| {
+        bumped += 7;
+        xs.len()
+    });
+    (first, evens, halves, then, seen * 1000000 + kept * 10000 + total * 100 + bumped)
+}
