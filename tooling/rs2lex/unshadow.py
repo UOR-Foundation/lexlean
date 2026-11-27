@@ -169,7 +169,8 @@ def written_alias(f):
         # a name rustc gave no type for here (one this pass made up) keeps the answer its syntax gives
         # a closure's own parameters are left to the translator, which makes one the caller's place where it is
         # given a place, and refuses the call where it is not (call_closure)
-        closure_params = {n[1] for c in _walk(f['body']) if c and c[0] == 'closure' for p, _ in c[1] for n in _walk(p)
+        closure_params = {n[1] for c in _walk(f['body']) if c and c[0] == 'closure' and len(c) > 1 and isinstance(c[1], list)
+                          for p in c[1] if isinstance(p, tuple) and len(p) == 2 for n in _walk(p[0])
                           if n and n[0] in BINDERS and isinstance(n[1], str)}
         bound = (bound - set(f['plain'])) | (set(f['mut_refs']) - params - exempt - closure_params)
     if not bound: return None

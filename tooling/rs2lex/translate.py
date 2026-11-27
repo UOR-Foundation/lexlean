@@ -170,6 +170,12 @@ def main(argv):
     rows, text, elapsed, tr = run(root, thir_dump=dump, thir_root=argv[4] if len(argv) > 4 else '.')
     open(os.path.join(out_dir, 'Crate.lex.tex'), 'w', encoding='utf-8', newline='\n').write(text)
     s = summary(rows, tr, elapsed, text)                    # first: it adds each refused row's root
+    # what the behaviour harness needs of each translated function (behaviour/gen.py)
+    fns = [{'key': f'{k[0]}::{k[1]}' if k[0] else k[1], 'owner': k[0], 'name': f['name'], 'orig_name': f.get('orig_name', f['name']),
+            'file': f['file'], 'mp': list(f['mp']), 'lex': f['lex'], 'fuel': k in tr.rec_keys, 'params': f['params'], 'ret': f['ret'],
+            'generics': bool(f['generics']), 'nested': bool(f.get('lifted_from')), 'bytes': f.get('bytes', 0)}
+           for k, f in tr.fns.items() if tr.status.get(k) == 'ok' and 'lex' in f and k[1] == f['name']]
+    json.dump(fns, open(os.path.join(out_dir, 'fns.json'), 'w', encoding='utf-8'))
     json.dump(rows, open(os.path.join(out_dir, 'report.json'), 'w', encoding='utf-8'), indent=0)
     open(os.path.join(out_dir, 'summary.txt'), 'w', encoding='utf-8', newline='\n').write(s)
     print(s.splitlines()[0])
