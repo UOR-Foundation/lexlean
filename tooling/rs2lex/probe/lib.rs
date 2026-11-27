@@ -827,3 +827,15 @@ pub fn closure_mut_probe(xs: Vec<usize>) -> Vec<usize> {
     push(&mut v, xs.len());
     v
 }
+
+/// characters collected into a String, slices of exactly two (the remainder dropped), and a set kept by a test.
+pub fn chunk_probe(name: String, xs: Vec<usize>, keep: Vec<String>) -> (String, Vec<usize>, Vec<String>) {
+    let tail = format!("_y{}", name.chars().skip(2).collect::<String>());
+    let pairs: Vec<usize> = xs.chunks_exact(2).map(|c| c[0] * 10 + c[1]).collect();
+    let mut set: BTreeSet<String> = BTreeSet::new();
+    for w in name.split('a') {
+        set.insert(w.to_string());
+    }
+    set.retain(|w| keep.contains(w));
+    (tail, pairs, set.into_iter().collect())
+}

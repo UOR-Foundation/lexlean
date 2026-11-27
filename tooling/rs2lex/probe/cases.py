@@ -305,6 +305,11 @@ for xs in free_cases:
     out.append('free ' + ','.join(sorted(o)))
 for xs in free_cases:
     out.append('cmut ' + ','.join(map(str, xs + [1, len(xs)])))
+chunk_cases = [(rng.choice(['', 'a', 'abc', 'banana', 'xaéay', 'aaa']), [rng.randrange(0, 9) for _ in range(rng.randrange(0, 7))], [rng.choice(['', 'b', 'n', 'bn', 'x', 'y']) for _ in range(rng.randrange(0, 4))]) for _ in range(100)]
+for t, xs, keep in chunk_cases:
+    pairs = [xs[i] * 10 + xs[i + 1] for i in range(0, len(xs) - 1, 2)]
+    kept = sorted({w for w in t.split('a') if w in keep}, key=lambda w: w.encode())
+    out.append('chunk ' + hx('_y' + t[2:]) + ';' + ','.join(map(str, pairs)) + ';' + ','.join(hx(w) for w in kept))
 # writeback_probe: writes through a `&mut` to an element, on every way out of the body
 writeback_cases = [([rng.randrange(0, 9) for _ in range(rng.randrange(0, 7))], rng.randrange(0, 9)) for _ in range(200)]
 for xs, _ in writeback_cases:
@@ -468,6 +473,9 @@ lean += ['',
          '    IO.println ("free " ++ String.intercalate "," ((fFreeProbe xs).map fun b => String.fromUTF8! b))',
          '  for xs in freeCases do',
          '    IO.println ("cmut " ++ String.intercalate "," ((fClosureMutProbe xs).map toString))',
+         '  for (t, xs, keep) in chunkCases do',
+         '    let r := fChunkProbe t xs keep',
+         '    IO.println ("chunk " ++ hx r.1 ++ ";" ++ String.intercalate "," (r.2.1.map toString) ++ ";" ++ String.intercalate "," (r.2.2.map hx))',
          '  for (xs, _) in writebackCases do',
          '    let r := fFoldProbe xs',
          '    IO.println ("fold " ++ toString r.1 ++ ";" ++ toString r.2.1 ++ ";" ++ toString r.2.2)',
@@ -485,6 +493,7 @@ lean.insert(at, 'def setCases : List (List ByteArray × List Nat) := ' + lean_li
 lean.insert(at, 'def getmutCases : List (List ByteArray × List Nat × Nat) := ' + lean_list([f'({lean_list([lean_bytes(w) for w in ws])}, {lean_list([str(x) for x in xs])}, {a})' for ws, xs, a in getmut_cases]))
 lean.insert(at, 'def miscCases : List (ByteArray × Bool × ByteArray) := ' + lean_list([f'({lean_bytes(t)}, {str(b).lower()}, {lean_bytes(c)})' for t, b, c in misc_cases]))
 lean.insert(at, 'def freeCases : List (List Nat) := ' + lean_list([lean_list([str(x) for x in xs]) for xs in free_cases]))
+lean.insert(at, 'def chunkCases : List (ByteArray × List Nat × List ByteArray) := ' + lean_list([f'({lean_bytes(t)}, {lean_list([str(x) for x in xs])}, {lean_list([lean_bytes(w) for w in k])})' for t, xs, k in chunk_cases]))
 lean.insert(at, 'def writebackCases : List (List Nat × Nat) := ' + lean_list([f'({lean_list([str(x) for x in xs])}, {stop})' for xs, stop in writeback_cases]))
 if typed_cases:
     lean[-1:] = ['  for xs in typedCases do',

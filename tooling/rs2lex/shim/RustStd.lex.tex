@@ -672,6 +672,15 @@ definition{
 }
 
 definition{
+  name: chunksExact,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item), size : Nat],
+  result: (List (List 'Item)),
+  body: (if (size =? 0) then (nil (List 'Item)) else (AxiomOutput::reversed [(List 'Item)] (second (first (prim iterate_until (fun [size] (state : ((List 'Item) * (List (List 'Item)))) => (if ((AxiomOutput::listLength ['Item] (first state)) <? size) then (ctor Option.none [((List 'Item) * (List (List 'Item)))]) else (ctor Option.some [((List 'Item) * (List (List 'Item)))] ((dropN ['Item] (first state) size), (cons (takeN ['Item] (first state) size) (second state)))))) ((AxiomOutput::listLength ['Item] items) + 1) (items, (nil (List 'Item))) : (((List 'Item) * (List (List 'Item))) * Bool)))))),
+  executable: true
+}
+
+definition{
   name: charCode,
   parameters: [c : Bytes],
   result: Nat,

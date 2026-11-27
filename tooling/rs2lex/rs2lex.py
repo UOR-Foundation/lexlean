@@ -760,7 +760,8 @@ class Translator(Core):
                 res = arg_vals(strs)
                 if res is not None: return res
         # lists
-        if head in ('List', 'Iter'):
+        # a set kept by a test is its list filtered: still without repeats, and its order is not seen (set_in_order)
+        if head in ('List', 'Iter') or (head == 'Set' and m == 'retain'):
             el = rt[1]
             if m in ('sum_u64', 'sum_usize') and not args:
                 T.unify(el, NAT, m); A, X = self.fresh('acc'), self.fresh('x')
@@ -819,6 +820,14 @@ class Translator(Core):
                     return done(f'(prim list_fold (fun ({A} : Nat) ({X} : Nat) => ({A} + {X})) 0 {r} : Nat)', NAT)
                 pick = '(if (acc <=? x) then x else acc)' if m == 'max' else '(if (acc <=? x) then acc else x)'
                 return done(f'(prim list_fold (fun (best : (Option Nat)) (x : Nat) => (match best | Option.some acc => (ctor Option.some [Nat] {pick}) | Option.none => (ctor Option.some [Nat] x))) (ctor Option.none [Nat]) {r} : (Option Nat))', ('Option', NAT))
+            if m == 'collect_String' and not args and T.res(el) == BYTES:
+                # characters or strings collected into a String: their concatenation, in order
+                A, X = self.fresh('acc'), self.fresh('piece')
+                return done(f'(prim list_fold (fun ({A} : Bytes) ({X} : Bytes) => (AxiomOutput::cat {A} {X})) {text("")} {r} : Bytes)', BYTES)
+            if m == 'chunks_exact' and len(args) == 1:
+                # the slices of exactly n items, in order; the remainder short of n is not one
+                return self.expr(args[0], env, ctx, lambda nv, nt, env2: (T.unify(nt, NAT, 'chunk size'),
+                    done(f'(RustStd::chunksExact [{show(el)}] {r} {nv})', ('List', ('List', el))))[1])
             if m in ('position', 'filter', 'filter_map', 'flat_map', 'retain', 'any', 'all'):
                 if m == 'position':
                     acc_t = ('Prod', NAT, ('Option', NAT))
