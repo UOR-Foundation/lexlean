@@ -293,7 +293,7 @@ impl<'a> Lean<'a> {
                 body,
             } => format!(
                 "(let {} : {} := {}; {})",
-                name(binder),
+                crate::backend::semantic::let_bound(name(binder)),
                 self.ty(ty),
                 self.term(value),
                 self.term(body)
