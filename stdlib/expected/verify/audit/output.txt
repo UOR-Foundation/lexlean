@@ -403,6 +403,30 @@
 'LexLeanStd.Numeral.parseDecimal' depends on axioms: [propext, Quot.sound]
 'LexLeanStd.Numeral.parseHex' depends on axioms: [propext, Quot.sound]
 'LexLeanStd.Numeral.pick' does not depend on any axioms
+'LexLeanStd.OrdMap.OrdMap' does not depend on any axioms
+'LexLeanStd.OrdMap.ascendingKeys' depends on axioms: [propext]
+'LexLeanStd.OrdMap.balanced' does not depend on any axioms
+'LexLeanStd.OrdMap.emptyMap' does not depend on any axioms
+'LexLeanStd.OrdMap.entriesInto' does not depend on any axioms
+'LexLeanStd.OrdMap.heightOf' does not depend on any axioms
+'LexLeanStd.OrdMap.isOrdMap' depends on axioms: [propext]
+'LexLeanStd.OrdMap.joinNode' does not depend on any axioms
+'LexLeanStd.OrdMap.joinSides' does not depend on any axioms
+'LexLeanStd.OrdMap.larger' does not depend on any axioms
+'LexLeanStd.OrdMap.mapEntries' does not depend on any axioms
+'LexLeanStd.OrdMap.mapFromList' depends on axioms: [propext]
+'LexLeanStd.OrdMap.mapGet' depends on axioms: [propext]
+'LexLeanStd.OrdMap.mapInsert' depends on axioms: [propext]
+'LexLeanStd.OrdMap.mapRemove' depends on axioms: [propext]
+'LexLeanStd.OrdMap.mapSize' does not depend on any axioms
+'LexLeanStd.OrdMap.ordMapBalanced' depends on axioms: [propext]
+'LexLeanStd.OrdMap.ordMapRun' depends on axioms: [propext]
+'LexLeanStd.OrdMap.rotateFromLeft' does not depend on any axioms
+'LexLeanStd.OrdMap.rotateFromRight' does not depend on any axioms
+'LexLeanStd.OrdMap.runOps' depends on axioms: [propext]
+'LexLeanStd.OrdMap.runStep' depends on axioms: [propext]
+'LexLeanStd.OrdMap.shapeOf' does not depend on any axioms
+'LexLeanStd.OrdMap.takeLeast' does not depend on any axioms
 'LexLeanStd.Order.ascendStep' depends on axioms: [propext]
 'LexLeanStd.Order.dedupStep' does not depend on any axioms
 'LexLeanStd.Order.insertSorted' depends on axioms: [propext]
