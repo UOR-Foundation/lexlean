@@ -763,3 +763,67 @@ pub fn tag_probe(b: bool) -> String {
 pub fn fold_probe(xs: Vec<u64>) -> (u64, u64, u64) {
     (xs.iter().copied().fold(1, u64::saturating_add), xs.iter().copied().fold(0, u64::max), xs.iter().copied().fold(99, u64::min))
 }
+
+pub enum Bound {
+    Var(String),
+    Bind(String, Box<Bound>),
+    Pair(Box<Bound>, Box<Bound>),
+}
+
+fn build_bound(xs: &[usize], depth: usize) -> Bound {
+    match xs {
+        [] => Bound::Var(format!("v{}", depth % 3)),
+        [x, rest @ ..] => {
+            let name = format!("v{}", (x / 3) % 3);
+            if x % 3 == 0 {
+                Bound::Bind(name, Box::new(build_bound(rest, depth + 1)))
+            } else if x % 3 == 1 {
+                Bound::Pair(Box::new(Bound::Var(name)), Box::new(build_bound(rest, depth + 1)))
+            } else {
+                Bound::Pair(Box::new(build_bound(rest, depth + 1)), Box::new(Bound::Var(name)))
+            }
+        }
+    }
+}
+
+fn free_in(t: &Bound, bound: &mut BTreeSet<String>, out: &mut BTreeSet<String>) {
+    let scoped = |name: &String, inner: &Bound, bound: &mut BTreeSet<String>, out: &mut BTreeSet<String>| {
+        let added = bound.insert(name.clone());
+        free_in(inner, bound, out);
+        if added {
+            bound.remove(name);
+        }
+    };
+    match t {
+        Bound::Var(n) => {
+            if !bound.contains(n) {
+                out.insert(n.clone());
+            }
+        }
+        Bound::Bind(n, body) => scoped(n, body, bound, out),
+        Bound::Pair(a, b) => {
+            free_in(a, bound, out);
+            free_in(b, bound, out);
+        }
+    }
+}
+
+/// a local closure whose `&mut` parameters are the caller's sets, called with them, inside a recursion.
+pub fn free_probe(xs: Vec<usize>) -> Vec<String> {
+    let mut bound = BTreeSet::new();
+    let mut out = BTreeSet::new();
+    free_in(&build_bound(&xs, 0), &mut bound, &mut out);
+    out.into_iter().collect()
+}
+
+/// a local closure's `&mut` parameter given `&mut v`: the writes reach `v` (the translator before this probe gave
+/// back `v` unchanged).
+pub fn closure_mut_probe(xs: Vec<usize>) -> Vec<usize> {
+    let mut v = xs.clone();
+    let push = |t: &mut Vec<usize>, x: usize| {
+        t.push(x);
+    };
+    push(&mut v, 1);
+    push(&mut v, xs.len());
+    v
+}

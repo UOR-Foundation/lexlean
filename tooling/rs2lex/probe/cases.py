@@ -285,6 +285,26 @@ for w in search_cases:
     hit = w in ['a', 'abc', 'b', 'do', 'fun', 'z']
     out.append('search ' + ('true' if hit else 'false') + ';' + ('false' if hit else 'true'))
 out.append('tag ' + hx('core::eq')); out.append('tag ' + hx('core::exists-unique'))
+# free_probe: a closure's &mut parameters standing for the caller's sets
+def build_bound(xs, depth):
+    if not xs: return ('var', f'v{depth % 3}')
+    x, rest = xs[0], xs[1:]; name = f'v{(x // 3) % 3}'
+    if x % 3 == 0: return ('bind', name, build_bound(rest, depth + 1))
+    if x % 3 == 1: return ('pair', ('var', name), build_bound(rest, depth + 1))
+    return ('pair', build_bound(rest, depth + 1), ('var', name))
+def free_of(t, bound, out):
+    if t[0] == 'var':
+        if t[1] not in bound: out.add(t[1])
+    elif t[0] == 'bind':
+        added = t[1] not in bound; bound.add(t[1]); free_of(t[2], bound, out)
+        if added: bound.discard(t[1])
+    else: free_of(t[1], bound, out); free_of(t[2], bound, out)
+free_cases = [[rng.randrange(0, 12) for _ in range(rng.randrange(0, 7))] for _ in range(200)]
+for xs in free_cases:
+    o = set(); free_of(build_bound(xs, 0), set(), o)
+    out.append('free ' + ','.join(sorted(o)))
+for xs in free_cases:
+    out.append('cmut ' + ','.join(map(str, xs + [1, len(xs)])))
 # writeback_probe: writes through a `&mut` to an element, on every way out of the body
 writeback_cases = [([rng.randrange(0, 9) for _ in range(rng.randrange(0, 7))], rng.randrange(0, 9)) for _ in range(200)]
 for xs, _ in writeback_cases:
@@ -444,6 +464,10 @@ lean += ['',
          '    IO.println ("search " ++ (if r.1 then "true" else "false") ++ ";" ++ (if r.2 then "true" else "false"))',
          '  for b in [true, false] do',
          '    IO.println ("tag " ++ hx (fTagProbe b))',
+         '  for xs in freeCases do',
+         '    IO.println ("free " ++ String.intercalate "," ((fFreeProbe xs).map fun b => String.fromUTF8! b))',
+         '  for xs in freeCases do',
+         '    IO.println ("cmut " ++ String.intercalate "," ((fClosureMutProbe xs).map toString))',
          '  for (xs, _) in writebackCases do',
          '    let r := fFoldProbe xs',
          '    IO.println ("fold " ++ toString r.1 ++ ";" ++ toString r.2.1 ++ ";" ++ toString r.2.2)',
@@ -460,6 +484,7 @@ lean.insert(at, 'def loopCases : List (List Nat × Nat × List ByteArray) := ' +
 lean.insert(at, 'def setCases : List (List ByteArray × List Nat) := ' + lean_list([f'({lean_list([lean_bytes(w) for w in ws])}, {lean_list([str(x) for x in xs])})' for ws, xs in set_cases]))
 lean.insert(at, 'def getmutCases : List (List ByteArray × List Nat × Nat) := ' + lean_list([f'({lean_list([lean_bytes(w) for w in ws])}, {lean_list([str(x) for x in xs])}, {a})' for ws, xs, a in getmut_cases]))
 lean.insert(at, 'def miscCases : List (ByteArray × Bool × ByteArray) := ' + lean_list([f'({lean_bytes(t)}, {str(b).lower()}, {lean_bytes(c)})' for t, b, c in misc_cases]))
+lean.insert(at, 'def freeCases : List (List Nat) := ' + lean_list([lean_list([str(x) for x in xs]) for xs in free_cases]))
 lean.insert(at, 'def writebackCases : List (List Nat × Nat) := ' + lean_list([f'({lean_list([str(x) for x in xs])}, {stop})' for xs, stop in writeback_cases]))
 if typed_cases:
     lean[-1:] = ['  for xs in typedCases do',

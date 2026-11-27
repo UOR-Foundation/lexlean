@@ -167,7 +167,11 @@ def written_alias(f):
         # rustc's own answer, where the body came from its tree: a name is another name for a place exactly when
         # its type is a mutable reference or holds one, however it was bound
         # a name rustc gave no type for here (one this pass made up) keeps the answer its syntax gives
-        bound = (bound - set(f['plain'])) | (set(f['mut_refs']) - params - exempt)
+        # a closure's own parameters are left to the translator, which makes one the caller's place where it is
+        # given a place, and refuses the call where it is not (call_closure)
+        closure_params = {n[1] for c in _walk(f['body']) if c and c[0] == 'closure' for p, _ in c[1] for n in _walk(p)
+                          if n and n[0] in BINDERS and isinstance(n[1], str)}
+        bound = (bound - set(f['plain'])) | (set(f['mut_refs']) - params - exempt - closure_params)
     if not bound: return None
     for n in _walk(f['body']):
         if not n: continue

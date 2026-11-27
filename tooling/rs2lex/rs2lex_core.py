@@ -1524,6 +1524,37 @@ class Translator:
         el = self.T.res(self.T.res(t)[1])
         if el[0] == 'Var': raise Unsupported('iteration over a set of an undetermined type')
         return self.sort_list(r, el), ('List', el)
+    def by_place(self, cl, cenv, args, env):
+        """a local closure called with a `&mut` argument: its parameter is that place, by name. The body is the
+        closure's with the place written for the parameter, so its writes are writes to a variable it captures, which
+        each call reads and writes back (call_closure). The parameter is `&mut` by its annotation, or by an argument
+        written `&mut place`; the place must be a variable of this function, or a field of one."""
+        params = cl[1]
+        if len(params) != len(args): return None
+        subst, keep, rest = {}, [], []
+        for (p, t), a in zip(params, args):
+            place = a
+            while place[0] in ('mutref', 'deref'): place = place[1]      # rustc reborrows: `&mut *&mut v`
+            root = place
+            while root[0] == 'field': root = root[1]
+            is_var = root[0] == 'path' and len(root[1]) == 1 and root[1][0] in env and env[root[1][0]][0] is not None
+            if p[0] == 'pid' and is_var and (a[0] == 'mutref' or (t is not None and t[0] == 'mut')):
+                subst[p[1]] = place
+            else: keep.append((p, t)); rest.append(a)
+        if not subst: return None
+        def put(e):
+            if isinstance(e, list): return [put(x) for x in e]
+            if not isinstance(e, tuple) or not e: return e
+            if e[0] == 'path' and isinstance(e[1], list) and len(e[1]) == 1 and e[1][0] in subst: return subst[e[1][0]]
+            return tuple(put(x) if isinstance(x, (tuple, list)) else x for x in e)
+        cenv = dict(cenv)
+        for place in subst.values():
+            root = place
+            while root[0] == 'field': root = root[1]
+            cenv.setdefault(root[1][0], env[root[1][0]])
+        return ('closure', keep, put(cl[2]), cl[3]), cenv, rest
+    def written_names(self, body):
+        return {self.root_var(n[1]) for n in self.walk(body) if n and ((n[0] == 'mcall' and n[2] in MUTATORS) or n[0] == 'assign')} - {None}
     def method_path(self, a):
         if not (a[0] == 'path' and len(a[1]) == 2 and (a[1][0] in NAT_KINDS or a[1][0] in ('i128', 'u128'))
                 and a[1][1] in ('saturating_add', 'saturating_mul', 'wrapping_add', 'max', 'min', 'checked_add')): return None
@@ -1986,6 +2017,11 @@ class Translator:
         if any(w in own for w in written): raise Unsupported('a closure parameter that shadows a variable the closure writes')
         return written
     def call_closure(self, c, cenv, vs, env, ctx, k):
+        # a `&mut` parameter given a value, not a place (by_place takes those): the closure would write a copy
+        mut_refs = self.fns[self.key].get('mut_refs') or set() if getattr(self, 'key', None) in getattr(self, 'fns', {}) else set()
+        for p, t in c[1]:
+            if p[0] == 'pid' and ((t is not None and t[0] == 'mut') or p[1] in mut_refs) and p[1] in self.written_names(c[2]):
+                raise Unsupported("a closure's &mut parameter given a value, not a place")
         ptypes = [self.ty(t, self.owner) if t is not None else None for _, t in c[1]]
         ret = self.ty(c[3], self.owner) if c[3] is not None else None
         written = self.closure_writes(c, cenv)
@@ -2233,6 +2269,11 @@ class Translator:
         if name == 'BTreeSet::new': t = T.var(); return k(f'(nil {show(t)})', ('Set', t), env)
         if name == 'BTreeMap::new':
             a, b = T.var(), T.var(); return k(T.empty_map(a, b), ('Map', a, b), env)
+        if len(segs) == 1 and name in env and env[name][0] is None and env[name][1][0] == 'Closure':
+            made = self.by_place(env[name][1][1], env[name][1][2], e[2], env)
+            if made is not None:
+                cl, cenv, rest = made
+                return self.exprs(rest, env, ctx, lambda vs, env2: self.call_closure(cl, cenv, vs, env2, ctx, k))
         def applied(vs, env):
             hooked = self.hook_call(segs, vs, e, env, ctx, k)
             if hooked is not None: return hooked
