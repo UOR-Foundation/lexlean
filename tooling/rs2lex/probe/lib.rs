@@ -687,3 +687,46 @@ pub fn misc_probe(s: String, b: bool, c: String) -> (Vec<String>, Vec<String>, V
     let m: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
     (by_colons, by_aa, by_comma, u64::from(b), u32::from(first), format!("{b}"), set.len() + m.len())
 }
+
+fn half(x: usize) -> Option<usize> {
+    if x % 2 == 0 {
+        Some(x / 2)
+    } else {
+        None
+    }
+}
+
+/// closures with their own exits in positions with no function to return from: `?` in filter_map, a loop and a
+/// `return` in map, and a `return` in any.
+pub fn closure_exit_probe(rows: Vec<Vec<usize>>) -> (Vec<usize>, Vec<usize>, bool) {
+    let halves: Vec<usize> = rows
+        .iter()
+        .filter_map(|row| {
+            let first = row.first()?;
+            let h = half(*first)?;
+            Some(h + row.len())
+        })
+        .collect();
+    let capped: Vec<usize> = rows
+        .iter()
+        .map(|row| {
+            let mut total = 0;
+            for x in row {
+                total += x;
+                if total > 12 {
+                    return 12;
+                }
+            }
+            total
+        })
+        .collect();
+    let any_big = rows.iter().any(|row| {
+        for x in row {
+            if *x > 7 {
+                return true;
+            }
+        }
+        false
+    });
+    (halves, capped, any_big)
+}

@@ -1901,6 +1901,7 @@ class Translator:
             if ctx is None: raise Unsupported('? in a pure position')
             def on(v, t, env):
                 t = T.res(t); R = T.res(ctx.ret_t); n = self.fresh('got')
+                if t[0] == 'Option' and R[0] == 'Var': T.unify(R, ('Option', T.var()), '? on an Option'); R = T.res(R)   # a closure's result, not yet fixed
                 if t[0] == 'Option' and R[0] == 'Option':
                     return f'(match {v} | Option.some {n} => {k(n, t[1], env)} | Option.none => {ctx.ret(f"(ctor Option.none [{show(R[1])}])", env)})'
                 if t[0] == 'Result' and R[0] in ('Result', 'Var'):
@@ -1935,7 +1936,9 @@ class Translator:
             if i == len(vs):
                 rt = ret if ret is not None else T.var()
                 if self.effectful(body):
-                    if ctx is None: raise Unsupported('a closure that returns early, in a pure position')
+                    # its `return`, `?` and loops are its own: it carries its own context even where the caller has
+                    # none. Only a write to a captured variable needs the caller's, to reach the caller's state
+                    if ctx is None and self.assigned(body, benv): raise Unsupported('a closure that writes what it captures, in a pure position')
                     def leave(e2):
                         if not export: return env
                         out = dict(env)

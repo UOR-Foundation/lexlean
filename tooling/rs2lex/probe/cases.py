@@ -267,6 +267,18 @@ def rsplit(t, p):
 for t, b, c in misc_cases:
     first = c[0] if c else 'x'
     out.append('misc ' + '|'.join(hx(x) for x in rsplit(t, '::')) + ';' + '|'.join(hx(x) for x in rsplit(t, 'aa')) + ';' + '|'.join(hx(x) for x in rsplit(t, ',')) + ';' + str(int(b)) + ';' + str(ord(first)) + ';' + ('true' if b else 'false') + ';' + str(len({t, c})))
+# closure_exit_probe: closures that leave themselves early
+for rows in nested_cases:
+    halves = [r[0] // 2 + len(r) for r in rows if r and r[0] % 2 == 0]
+    capped = []
+    for r in rows:
+        t = 0
+        for x in r:
+            t += x
+            if t > 12: t = 12; break
+        capped.append(t)
+    big = any(x > 7 for r in rows for x in r)
+    out.append('cexit ' + ','.join(map(str, halves)) + ';' + ','.join(map(str, capped)) + ';' + ('true' if big else 'false'))
 # writeback_probe: writes through a `&mut` to an element, on every way out of the body
 writeback_cases = [([rng.randrange(0, 9) for _ in range(rng.randrange(0, 7))], rng.randrange(0, 9)) for _ in range(200)]
 for xs, stop in writeback_cases:
@@ -416,6 +428,9 @@ lean += ['',
          '  for (t, b, c) in miscCases do',
          '    let r := fMiscProbe t b c',
          '    IO.println ("misc " ++ String.intercalate "|" (r.1.map hx) ++ ";" ++ String.intercalate "|" (r.2.1.map hx) ++ ";" ++ String.intercalate "|" (r.2.2.1.map hx) ++ ";" ++ toString r.2.2.2.1 ++ ";" ++ toString r.2.2.2.2.1 ++ ";" ++ String.fromUTF8! r.2.2.2.2.2.1 ++ ";" ++ toString r.2.2.2.2.2.2)',
+         '  for rows in nestedCases do',
+         '    let r := fClosureExitProbe rows',
+         '    IO.println ("cexit " ++ String.intercalate "," (r.1.map toString) ++ ";" ++ String.intercalate "," (r.2.1.map toString) ++ ";" ++ (if r.2.2 then "true" else "false"))',
          '  for (xs, stop) in writebackCases do',
          '    let r := fWritebackProbe xs stop',
          '    IO.println ("writeback " ++ String.intercalate "," (r.1.map toString) ++ ";" ++ String.intercalate "|" (r.2.1.map fun row => String.intercalate "," (row.map toString)) ++ ";" ++ toString r.2.2.1 ++ ";" ++ String.intercalate "," (r.2.2.2.1.map toString) ++ ";" ++ toString r.2.2.2.2)',

@@ -144,6 +144,12 @@ def summary(rows, tr, elapsed, text):
         while k in tr.blocked_by and k not in seen:
             seen.add(k); k = tr.blocked_by[k]
         return k
+    # each refused function's root, by its report key, so that a later reading can weigh roots over any subset
+    keyed = {(f'{k[0]}::{k[1]}' if k[0] else k[1]): k for k in tr.fns}
+    for r in rows:
+        k = keyed.get(r['key'])
+        if k is not None and r['status'] != 'ok':
+            rk = root(k); r['root'] = f'{rk[0]}::{rk[1]}' if rk[0] else rk[1]
     blame, blame_n = collections.Counter(), collections.Counter()
     for k in tr.fns:
         st = status.get(k)
@@ -163,8 +169,8 @@ def main(argv):
     dump = argv[3] if len(argv) > 3 else None              # rustc's dump of the same crate, and where rustc ran
     rows, text, elapsed, tr = run(root, thir_dump=dump, thir_root=argv[4] if len(argv) > 4 else '.')
     open(os.path.join(out_dir, 'Crate.lex.tex'), 'w', encoding='utf-8', newline='\n').write(text)
+    s = summary(rows, tr, elapsed, text)                    # first: it adds each refused row's root
     json.dump(rows, open(os.path.join(out_dir, 'report.json'), 'w', encoding='utf-8'), indent=0)
-    s = summary(rows, tr, elapsed, text)
     open(os.path.join(out_dir, 'summary.txt'), 'w', encoding='utf-8', newline='\n').write(s)
     print(s.splitlines()[0])
     if dump:
