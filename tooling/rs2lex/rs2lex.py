@@ -247,6 +247,7 @@ class Translator(Core):
         t = self.T.res(t)
         if t[0] == 'Fixed': return self.fixed_text(v, t)
         if t == I128: return f'(RustStd::i128Text {v})'
+        if t == BOOL: return f'(if {v} then {text("true")} else {text("false")})'
         if t[0] == 'Named' and (t[1], 'fmt_display') in self.fns: return self.fmt_call((t[1], 'fmt_display'), v)
         return super().display(v, t)
     def debug_value(self, v, t):
@@ -466,7 +467,11 @@ class Translator(Core):
         if name in ('u64::try_from', 'u32::try_from', 'usize::try_from', 'u16::try_from') and len(vs) == 1:
             T.unify(vs[0][1], NAT, name)
             return k(f'(ctor Result.ok [Nat, Unit] {a[0]})', ('Result', NAT, UNIT), env)
-        if name in ('u64::from', 'usize::from', 'u32::from') and len(vs) == 1:
+        if name in ('u64::from', 'usize::from', 'u32::from', 'u16::from', 'u8::from') and len(vs) == 1:
+            given = T.res(vs[0][1])
+            if given == BOOL: return k(f'(if {a[0]} then 1 else 0)', NAT, env)        # true is 1, false 0
+            if given == UINT8: return k(f'(prim to_nat {a[0]} : Nat)', NAT, env)
+            if given == BYTES and name in ('u32::from', 'u64::from'): return k(f'(RustStd::charCode {a[0]})', NAT, env)   # a char's code point
             T.unify(vs[0][1], NAT, name); return k(a[0], NAT, env)
         if name in ('String::new', 'String::with_capacity'): return k(text(''), BYTES, env)
         if name in ('std::ptr::from_ref', 'ptr::from_ref', 'std::ptr::from_mut', 'ptr::from_mut'): return k('()', ('Ptr',), env)
@@ -476,6 +481,8 @@ class Translator(Core):
         if name in ('HashMap::new', 'HashMap::with_capacity', 'BTreeMap::new'):
             x, y = T.var(), T.var(); return k(T.empty_map(x, y), ('Map', x, y), env)
         if name in ('HashSet::new', 'HashSet::with_capacity', 'BTreeSet::new'): t = T.var(); return k(f'(nil {show(t)})', ('Set', t), env)
+        if name in ('BTreeSet::from', 'BTreeSet::from_iter') and len(vs) == 1:
+            el = T.var(); T.unify(vs[0][1], ('List', el), name); return k(self.dedup(a[0], el), ('Set', el), env)
         if len(segs) == 2 and segs[1] == 'default' and not vs and segs[0] in self.structs:
             custom = next((it.get('custom_default') for it in self.items if it['k'] == 'fn' and it.get('custom_default') is not None), set())
             def plain(n, seen=()):
@@ -743,8 +750,13 @@ class Translator(Core):
                 if m == 'replace': return k(f'(RustStd::replaceAll {r} {a[0]} {a[1]})', BYTES, env2)
                 if m == 'repeat': return k(f'(RustStd::repeatBytes {r} {a[0]})', BYTES, env2)
                 if m == 'split' and T.res(vs[0][1]) == BYTES: return k(f'(RustStd::splitStr {r} {a[0]})', ('List', BYTES), env2)
+                if m == 'rsplit' and T.res(vs[0][1]) == BYTES:
+                    # from the right end, cut by cut: a pattern that overlaps itself cuts elsewhere than split does
+                    # (`"a:::b".rsplit("::")` is `b`, `a:`); an empty pattern is refused
+                    if args[0][0] in ('str', 'chr') and not args[0][1]: raise Unsupported('rsplit by an empty pattern')
+                    return k(f'(RustStd::rsplitStr {r} {a[0]})', ('List', BYTES), env2)
                 return None
-            if m in ('contains', 'find', 'replace', 'repeat', 'split'):
+            if m in ('contains', 'find', 'replace', 'repeat', 'split', 'rsplit'):
                 res = arg_vals(strs)
                 if res is not None: return res
         # lists

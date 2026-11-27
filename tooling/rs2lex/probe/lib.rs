@@ -675,3 +675,15 @@ pub fn getmut_probe(ws: Vec<String>, xs: Vec<usize>, at: usize) -> (Vec<(String,
     }
     (m.into_iter().collect(), v, 0)
 }
+
+/// rsplit by patterns that overlap themselves and do not, a bool and a char as numbers, a bool shown, a set from an
+/// array, and standard types named by their full path.
+pub fn misc_probe(s: String, b: bool, c: String) -> (Vec<String>, Vec<String>, Vec<String>, u64, u32, String, usize) {
+    let by_colons: Vec<String> = s.rsplit("::").map(|p| p.to_string()).collect();
+    let by_aa: Vec<String> = s.rsplit("aa").map(|p| p.to_string()).collect();
+    let by_comma: Vec<String> = s.rsplit(",").map(|p| p.to_string()).collect();
+    let first = c.chars().next().unwrap_or('x');
+    let set = std::collections::BTreeSet::from([s.clone(), c.clone(), s.clone()]);
+    let m: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+    (by_colons, by_aa, by_comma, u64::from(b), u32::from(first), format!("{b}"), set.len() + m.len())
+}

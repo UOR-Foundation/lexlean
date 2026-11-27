@@ -256,6 +256,17 @@ for ws, xs, at in getmut_cases:
         if v[at] > 50: hit = 1
         else: v[at] += 1
     out.append('getmut ' + ','.join(f'{hx(k)}={n}' for k, n in sorted(d.items(), key=lambda kv: kv[0].encode())) + ';' + ','.join(map(str, v)) + ';' + str(hit))
+# misc_probe: rsplit, conversions, a bool shown, a set from an array
+misc_cases = [(t, rng.random() < 0.5, rng.choice(['', 'q', '\u00e9t', '\U0001F600'])) for t in ['', 'a', 'a::b', 'a:::b', '::', 'a::::b::c', 'aaa', 'aaaa', 'baaab', 'x,y,,z', ',', 'aa::aa,aa'] for _ in range(3)]
+def rsplit(t, p):
+    out, rest = [], t
+    while True:
+        i = rest.rfind(p)
+        if i < 0: out.append(rest); return out
+        out.append(rest[i + len(p):]); rest = rest[:i]
+for t, b, c in misc_cases:
+    first = c[0] if c else 'x'
+    out.append('misc ' + '|'.join(hx(x) for x in rsplit(t, '::')) + ';' + '|'.join(hx(x) for x in rsplit(t, 'aa')) + ';' + '|'.join(hx(x) for x in rsplit(t, ',')) + ';' + str(int(b)) + ';' + str(ord(first)) + ';' + ('true' if b else 'false') + ';' + str(len({t, c})))
 # writeback_probe: writes through a `&mut` to an element, on every way out of the body
 writeback_cases = [([rng.randrange(0, 9) for _ in range(rng.randrange(0, 7))], rng.randrange(0, 9)) for _ in range(200)]
 for xs, stop in writeback_cases:
@@ -402,6 +413,9 @@ lean += ['',
          '  for (ws, xs, pos) in getmutCases do',
          '    let r := fGetmutProbe ws xs pos',
          '    IO.println ("getmut " ++ String.intercalate "," (r.1.map fun e => hx e.1 ++ "=" ++ toString e.2) ++ ";" ++ String.intercalate "," (r.2.1.map toString) ++ ";" ++ toString r.2.2)',
+         '  for (t, b, c) in miscCases do',
+         '    let r := fMiscProbe t b c',
+         '    IO.println ("misc " ++ String.intercalate "|" (r.1.map hx) ++ ";" ++ String.intercalate "|" (r.2.1.map hx) ++ ";" ++ String.intercalate "|" (r.2.2.1.map hx) ++ ";" ++ toString r.2.2.2.1 ++ ";" ++ toString r.2.2.2.2.1 ++ ";" ++ String.fromUTF8! r.2.2.2.2.2.1 ++ ";" ++ toString r.2.2.2.2.2.2)',
          '  for (xs, stop) in writebackCases do',
          '    let r := fWritebackProbe xs stop',
          '    IO.println ("writeback " ++ String.intercalate "," (r.1.map toString) ++ ";" ++ String.intercalate "|" (r.2.1.map fun row => String.intercalate "," (row.map toString)) ++ ";" ++ toString r.2.2.1 ++ ";" ++ String.intercalate "," (r.2.2.2.1.map toString) ++ ";" ++ toString r.2.2.2.2)',
@@ -414,6 +428,7 @@ lean.insert(at, 'def hexCases : List (Nat × ByteArray) := ' + lean_list([f'({n}
 lean.insert(at, 'def loopCases : List (List Nat × Nat × List ByteArray) := ' + lean_list([f'({lean_list([str(x) for x in xs])}, {d}, {lean_list([lean_bytes(n) for n in ns])})' for xs, d, ns in loop_cases]))
 lean.insert(at, 'def setCases : List (List ByteArray × List Nat) := ' + lean_list([f'({lean_list([lean_bytes(w) for w in ws])}, {lean_list([str(x) for x in xs])})' for ws, xs in set_cases]))
 lean.insert(at, 'def getmutCases : List (List ByteArray × List Nat × Nat) := ' + lean_list([f'({lean_list([lean_bytes(w) for w in ws])}, {lean_list([str(x) for x in xs])}, {a})' for ws, xs, a in getmut_cases]))
+lean.insert(at, 'def miscCases : List (ByteArray × Bool × ByteArray) := ' + lean_list([f'({lean_bytes(t)}, {str(b).lower()}, {lean_bytes(c)})' for t, b, c in misc_cases]))
 lean.insert(at, 'def writebackCases : List (List Nat × Nat) := ' + lean_list([f'({lean_list([str(x) for x in xs])}, {stop})' for xs, stop in writeback_cases]))
 if typed_cases:
     lean[-1:] = ['  for xs in typedCases do',

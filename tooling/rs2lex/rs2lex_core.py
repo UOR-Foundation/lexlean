@@ -799,6 +799,8 @@ class Types:
 KEYWORDS = set('let if match fun forall nil cons first second not apply ctor record project prim ref checked then else with true false'.split())
 KEYWORDS |= set('id ite dite cond absurd flip default decide panic toString repr max min compare pure bind map seq fst snd get set modify and or xor sorry rfl trivial show have at by do from in open end section namespace instance class structure inductive def theorem lemma example variable universe mutual where deriving return for unless mut try catch finally break continue this Type Prop Sort some none ok error unit private public protected noncomputable partial unsafe opaque abbrev attribute export local scoped macro syntax notation infix prefix postfix calc suffices obtain Id Option List Nat String Bool Unit Int Array ByteArray Except Prod Sum'.split())   # Lean names a binder must not shadow
 MUTATORS = {'write_str', 'write_char', 'push', 'push_str', 'insert', 'sort', 'next', 'pop', 'truncate', 'extend', 'remove', 'retain', 'clear', 'dedup', 'sort_unstable', 'sort_by', 'sort_by_key', 'sort_unstable_by', 'extend_from_slice', 'append', 'swap', 'reverse', 'take', 'insert_str', 'push_back', 'push_front', 'pop_front', 'pop_back', 'drain'}
+FRESH_ITERATORS = {'chars', 'bytes', 'char_indices', 'iter', 'into_iter', 'lines', 'split', 'split_whitespace', 'rev', 'skip',
+                   'take', 'peekable', 'enumerate', 'map', 'filter', 'zip', 'chain', 'rsplit', 'splitn', 'windows', 'chunks'}
 IDENTITY = {'__entries', 'to_owned', 'clone', 'cloned', 'copied', 'to_string', 'into', 'into_iter', 'iter', 'as_str', 'as_ref', 'to_vec'}
 EXTERN_TYPES = {'Diagnostic': BYTES}
 PTR = ('Ptr',)
@@ -2065,6 +2067,9 @@ class Translator:
         # a temporary (a literal, a constant): Rust drops its final value after the call, so the write-back is dropped too
         if lhs[0] in ('struct', 'str', 'bstr', 'array', 'arrayrep', 'macro', 'tuple', 'int', 'bool', 'chr', 'byte'): return k(env)
         if lhs[0] == 'path' and lhs[1] and lhs[1][0] not in env and (lhs[1][0] in self.consts or lhs[1][0].isupper()): return k(env)
+        if lhs[0] == 'mcall' and lhs[2] in FRESH_ITERATORS:
+            # `s.chars().next()`: the iterator is a temporary the statement drops, and its advance with it
+            return k(env)
         if lhs[0] == 'call' and lhs[1][0] == 'path':
             # `f(&mut make())`: the value `make()` returns is a temporary, dropped after the call, unless it is a
             # reference to something that lives on
@@ -2197,7 +2202,10 @@ class Translator:
         T, show = self.T, self.T.show
         f = e[1]
         if f[0] != 'path': raise Unsupported('call of a value')
-        segs = [s for s in f[1] if s not in ('super', 'crate')]; name = '::'.join(segs)
+        segs = [s for s in f[1] if s not in ('super', 'crate')]
+        # a standard type named by its full path (`std::collections::BTreeMap::new`) is the type named alone
+        if len(segs) > 2 and segs[0] in ('std', 'core', 'alloc') and segs[-2][:1].isupper(): segs = segs[-2:]
+        name = '::'.join(segs)
         gkey = self.callee_key(segs)
         if gkey is not None and gkey[0] is None and self.fnmut_index(gkey) is not None and self.fnmut_index(gkey) < len(e[2]):
             found = self.closure_ast(e[2][self.fnmut_index(gkey)], env)

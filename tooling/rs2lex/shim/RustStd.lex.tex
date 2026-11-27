@@ -655,6 +655,23 @@ definition{
 }
 
 definition{
+  name: rfindStr,
+  parameters: [subject : Bytes, pattern : Bytes],
+  result: (Option Nat),
+  body: (let width : Nat := (prim length pattern : Nat); (if ((prim length subject : Nat) <? width) then (ctor Option.none [Nat]) else (prim list_fold (fun [pattern, subject, width] (acc : (Option Nat)) (at : Nat) => (if (prim equal (LexLeanStd.Text::sliceOr subject at width) pattern : Bool) then (ctor Option.some [Nat] at) else acc)) (ctor Option.none [Nat]) (range 0 ((prim subtract (prim length subject : Nat) width : Nat) + 1)) : (Option Nat)))),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: rsplitStr,
+  parameters: [subject : Bytes, pattern : Bytes],
+  result: (List Bytes),
+  body: (let width : Nat := (prim length pattern : Nat); (let final : (Bytes * (List Bytes)) := (first (prim iterate_until (fun [pattern, width] (state : (Bytes * (List Bytes))) => (let rest : Bytes := (first state); (match (rfindStr rest pattern) | Option.some at => (ctor Option.some [(Bytes * (List Bytes))] ((LexLeanStd.Text::sliceOr rest 0 at), (cons (LexLeanStd.Text::sliceOr rest (at + width) (prim subtract (prim length rest : Nat) (at + width) : Nat)) (second state)))) | Option.none => (ctor Option.none [(Bytes * (List Bytes))])))) ((prim length subject : Nat) + 1) (subject, (nil Bytes)) : ((Bytes * (List Bytes)) * Bool))); (appendList [Bytes] (AxiomOutput::reversed [Bytes] (second final)) (cons (first final) (nil Bytes))))),
+  executable: true
+}
+
+definition{
   name: charCode,
   parameters: [c : Bytes],
   result: Nat,
