@@ -9,10 +9,15 @@
 # request's branch as a fast-forward, dispatches `ci.yml` there (a push with
 # the workflow token starts no `pull_request` run), and deletes the
 # `regenerate/` branch: the landing needs no patch handled by hand. Otherwise
-# the patch is the run's artifact, as before:
+# the patch set is the run's artifact, as before:
 #
-#   gh run download <run> --name regenerated-<commit>
-#   git apply --index regenerated.patch
+#   gh run download <run> --name regenerated-<commit> --dir regenerated
+#   python3 .github/scripts/patch_set.py apply --dir regenerated --name regenerated --base <commit>
+#
+# Every change passes between jobs as a bounded patch set
+# (`.github/scripts/patch_set.py`): parts cut between whole file diffs, each
+# below Git's 1023 MiB patch limit, bound to the commit and to the trees
+# before and after, and checked whole before any part is applied (#624).
 #
 # A push to `regenerate/**` starts it from any commit, because GitHub
 # dispatches only a workflow its default branch carries. `cut.yml` calls it on
@@ -117,20 +122,20 @@ jobs:
           just --timestamp --timestamp-format '%s%.3f' $recipes
       - name: Capture what the recipes wrote
         shell: bash
+        env:
+          COMMIT: ${{ inputs.ref || github.sha }}
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/part"
           git add --all
           # Every writer refreshes the locks, because its recipes read them; one
           # writer reports them, or `combine` sees three parts write one path.
           if [ "${{ matrix.writer }}" != production-export ]; then
             git reset -q -- bootstrap/lexlean.lock stdlib/lexlean.lock compiler/lexlean.lock
           fi
-          git diff --cached --no-renames --binary > "$RUNNER_TEMP/part/${{ matrix.writer }}.patch"
-          # Path names are NUL-delimited, including for legal newline filenames.
-          git diff --cached --no-renames --name-only -z > "$RUNNER_TEMP/part/${{ matrix.writer }}.files"
-          count=$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.argv[1]).read_bytes().count(b"\0"))' "$RUNNER_TEMP/part/${{ matrix.writer }}.files")
-          echo "${{ matrix.writer }}: $count paths" >> "$GITHUB_STEP_SUMMARY"
+          # The staged change as a bounded patch set: no renames, so every
+          # path a part touches is named; NUL-delimited paths, including
+          # legal newline filenames.
+          python3 .github/scripts/patch_set.py write --name "${{ matrix.writer }}" --base "$COMMIT" --out "$RUNNER_TEMP/part" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: regenerate-part-${{ matrix.writer }}
@@ -157,24 +162,25 @@ jobs:
           merge-multiple: true
       - name: Exercise writer ownership regression controls
         run: python3 -m unittest discover -s .github/scripts -p 'test_check_regen_writers.py' -v
+      - name: Exercise the bounded patch-set controls
+        run: python3 -m unittest discover -s .github/scripts -p 'test_patch_set.py' -v
       - name: Exercise transferred-export environment guard checks
         run: python3 -m unittest discover -s .github/scripts -p 'test_export_custody_guard.py' -v
       - name: Reject overlapping or unaccounted writer paths
         shell: bash
-        run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts"
+        env:
+          COMMIT: ${{ inputs.ref || github.sha }}
+        run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts" --base "$COMMIT"
       - name: Apply every part
         shell: bash
+        env:
+          COMMIT: ${{ inputs.ref || github.sha }}
         run: |
           set -euo pipefail
-          for part in production-export records oracles; do
-            # A writer that changed nothing returns an empty patch.
-            if [ -s "$RUNNER_TEMP/parts/$part.patch" ]; then
-              git apply --index "$RUNNER_TEMP/parts/$part.patch"
-            fi
-          done
-          mkdir -p "$RUNNER_TEMP/combined"
-          git diff --cached --binary > "$RUNNER_TEMP/combined/combined.patch"
-          echo "combined: $(git diff --cached --name-only | wc -l) paths" >> "$GITHUB_STEP_SUMMARY"
+          # Each set is checked whole again, applied in turn, and the index is
+          # then each writer's tree on its paths and the commit's elsewhere.
+          python3 .github/scripts/patch_set.py combine --dir "$RUNNER_TEMP/parts" --names production-export,records,oracles --base "$COMMIT" | tee -a "$GITHUB_STEP_SUMMARY"
+          python3 .github/scripts/patch_set.py write --name combined --base "$COMMIT" --out "$RUNNER_TEMP/combined" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: regenerate-combined
@@ -220,11 +226,9 @@ jobs:
           path: ${{ runner.temp }}/combined
       - name: Apply the regenerated tree
         shell: bash
-        run: |
-          set -euo pipefail
-          if [ -s "$RUNNER_TEMP/combined/combined.patch" ]; then
-            git apply --index "$RUNNER_TEMP/combined/combined.patch"
-          fi
+        env:
+          COMMIT: ${{ inputs.ref || github.sha }}
+        run: python3 .github/scripts/patch_set.py apply --dir "$RUNNER_TEMP/combined" --name combined --base "$COMMIT"
       - name: Write the moved counts
         shell: bash
         run: |
@@ -412,10 +416,14 @@ jobs:
           out="$RUNNER_TEMP/regenerated"
           mkdir -p "$out"
           git add --all
-          git diff --cached --binary > "$out/regenerated.patch"
+          python3 .github/scripts/patch_set.py write --name regenerated --base "$COMMIT" --out "$out"
           git diff --cached --name-only > "$out/regenerated-files.txt"
           echo "$COMMIT" > "$out/base-commit.txt"
-          (cd "$out" && sha256sum regenerated.patch regenerated-files.txt base-commit.txt > SHA256SUMS)
+          # Every file of the artifact, so `deliver` refuses one missing,
+          # altered, or added. It binds the files to each other, not to their
+          # producer: the run's own artifact store is what this trusts.
+          (cd "$out" && find . -mindepth 1 -maxdepth 1 -type f ! -name SHA256SUMS -printf '%P\0' \
+            | LC_ALL=C sort -z | xargs -0 sha256sum > SHA256SUMS)
           {
             echo "### Regenerated $(wc -l < "$out/regenerated-files.txt") paths on $COMMIT"
             echo
@@ -426,8 +434,8 @@ jobs:
               echo '```'
             fi
             echo '```bash'
-            echo "gh run download $GITHUB_RUN_ID --repo $GITHUB_REPOSITORY --name regenerated-$COMMIT"
-            echo "git apply --index regenerated.patch"
+            echo "gh run download $GITHUB_RUN_ID --repo $GITHUB_REPOSITORY --name regenerated-$COMMIT --dir regenerated"
+            echo "python3 .github/scripts/patch_set.py apply --dir regenerated --name regenerated --base $COMMIT"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
