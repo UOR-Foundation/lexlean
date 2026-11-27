@@ -32,10 +32,15 @@ def root(a):
 
 def infer(items):
     fns = [i for i in items if i['k'] == 'fn']
-    by_name = collections.defaultdict(list)
-    for f in fns: by_name[f['name']].append(f)
-    def mut_positions(name):
-        return {i for f in by_name.get(name, []) for i, (_, t) in enumerate(f['params']) if t[0] == 'mut'}
+    # a call by a bare name is of a free function, whose name is its own; `Type::function` is that type's; a method
+    # call names no type here, so it is any type's method of that name. A free function and a method that share a
+    # name are not each other's callee.
+    free, typed, methods = {}, {}, collections.defaultdict(list)
+    for f in fns:
+        if f['owner'] is None: free[f['name']] = [f]
+        else: typed[(f['owner'], f['name'])] = [f]; methods[f['name']].append(f)
+    def mut_positions(found):
+        return {i for f in found for i, (_, t) in enumerate(f['params']) if t[0] == 'mut'}
     upgraded = 0
     changed = True
     while changed:
@@ -46,12 +51,14 @@ def infer(items):
             for n in walk(f['body']):
                 if n[0] == 'mcall' and n[2] in MUTATING: roots.add(root(n[1]))
                 elif n[0] == 'assign': roots.add(root(n[1]))
-                if n[0] == 'call' and n[1][0] == 'path' and len(n[1][1]) == 1:
-                    for i in mut_positions(n[1][1][0]):
+                if n[0] == 'call' and n[1][0] == 'path' and len(n[1][1]) in (1, 2):
+                    segs = [f['owner'] if x == 'Self' else x for x in n[1][1]]
+                    found = free.get(segs[0], []) if len(segs) == 1 else typed.get((segs[0], segs[1]), [])
+                    for i in mut_positions(found):
                         if i < len(n[2]): roots.add(root(n[2][i]))
                 if n[0] == 'mcall':
                     asts = [n[1]] + list(n[3])
-                    for i in mut_positions(n[2]):
+                    for i in mut_positions(methods.get(n[2], [])):
                         if i < len(asts): roots.add(root(asts[i]))
             hit = refs & roots
             if hit:

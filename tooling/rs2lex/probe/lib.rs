@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 pub fn run_nat(ops: Vec<(usize, usize, String)>) -> (Vec<Option<String>>, Vec<(usize, String)>) {
     let mut table: BTreeMap<usize, String> = BTreeMap::new();
@@ -431,4 +432,37 @@ pub fn writeback_probe(xs: Vec<usize>, stop: usize) -> (Vec<usize>, Vec<Vec<usiz
     let mut w = xs.clone();
     let hit = early(&mut w, stop);
     (v, rows, seen, w, hit)
+}
+
+/// a map extended by a hash map given whole: the hash map's order cannot be seen, since its keys are distinct and
+/// the insertions commute; a later value replaces the one held.
+pub fn extend_probe(ps: Vec<(String, usize)>, more: Vec<(String, usize)>) -> Vec<(String, usize)> {
+    let mut base: BTreeMap<String, usize> = BTreeMap::new();
+    for (k, v) in ps {
+        base.insert(k, v);
+    }
+    let mut extra: HashMap<String, usize> = HashMap::new();
+    for (k, v) in more {
+        extra.insert(k, v);
+    }
+    base.extend(extra);
+    base.into_iter().collect()
+}
+
+/// a collected `map` whose closure writes what it captures, inside another: each is a loop with a list of its own.
+pub fn nested_collect_probe(rows: Vec<Vec<usize>>) -> (Vec<Vec<usize>>, usize) {
+    let mut count = 0;
+    let out: Vec<Vec<usize>> = rows
+        .iter()
+        .map(|row| {
+            count += 1;
+            row.iter()
+                .map(|x| {
+                    count += *x;
+                    *x + count
+                })
+                .collect()
+        })
+        .collect();
+    (out, count)
 }

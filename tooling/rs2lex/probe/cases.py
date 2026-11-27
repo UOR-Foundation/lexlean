@@ -183,6 +183,20 @@ def shown(sh):
 display_cases = [[rng.randrange(0, 12) for _ in range(rng.randrange(0, 9))] for _ in range(150)]
 for codes in display_cases:
     out.append('display ' + hx(shown(shape_of(codes, 0))))
+# extend_probe: a map extended by a hash map given whole
+for pairs, more, _ in map_cases:
+    d = dict(pairs); d.update(dict(more))
+    out.append('extend ' + ','.join(f'{hx(k)}={v}' for k, v in sorted(d.items(), key=lambda kv: kv[0].encode())))
+# nested_collect_probe: a collected map that writes a capture, inside another
+nested_cases = [[[rng.randrange(0, 9) for _ in range(rng.randrange(0, 4))] for _ in range(rng.randrange(0, 4))] for _ in range(150)]
+for rows in nested_cases:
+    count, made = 0, []
+    for row in rows:
+        count += 1; got = []
+        for x in row:
+            count += x; got.append(x + count)
+        made.append(got)
+    out.append('nested ' + '|'.join(','.join(map(str, r)) for r in made) + ';' + str(count))
 # writeback_probe: writes through a `&mut` to an element, on every way out of the body
 writeback_cases = [([rng.randrange(0, 9) for _ in range(rng.randrange(0, 7))], rng.randrange(0, 9)) for _ in range(200)]
 for xs, stop in writeback_cases:
@@ -296,11 +310,17 @@ lean += ['',
          '    IO.println ("write " ++ hx r.1 ++ ";" ++ (if r.2 then "true" else "false"))',
          '  for xs in displayCases do',
          '    IO.println ("display " ++ hx (fDisplayProbe xs))',
+         '  for (ps, more, _) in mapCases do',
+         '    IO.println ("extend " ++ String.intercalate "," ((fExtendProbe ps more).map fun e => hx e.1 ++ "=" ++ toString e.2))',
+         '  for rows in nestedCases do',
+         '    let r := fNestedCollectProbe rows',
+         '    IO.println ("nested " ++ String.intercalate "|" (r.1.map fun row => String.intercalate "," (row.map toString)) ++ ";" ++ toString r.2)',
          '  for (xs, stop) in writebackCases do',
          '    let r := fWritebackProbe xs stop',
          '    IO.println ("writeback " ++ String.intercalate "," (r.1.map toString) ++ ";" ++ String.intercalate "|" (r.2.1.map fun row => String.intercalate "," (row.map toString)) ++ ";" ++ toString r.2.2.1 ++ ";" ++ String.intercalate "," (r.2.2.2.1.map toString) ++ ";" ++ toString r.2.2.2.2)',
          '']
 at = next(i for i, line in enumerate(lean) if line.startswith('def shadowCases'))
+lean.insert(at, 'def nestedCases : List (List (List Nat)) := ' + lean_list([lean_list([lean_list([str(x) for x in row]) for row in rows]) for rows in nested_cases]))
 lean.insert(at, 'def writebackCases : List (List Nat × Nat) := ' + lean_list([f'({lean_list([str(x) for x in xs])}, {stop})' for xs, stop in writeback_cases]))
 if typed_cases:
     lean[-1:] = ['  for xs in typedCases do',

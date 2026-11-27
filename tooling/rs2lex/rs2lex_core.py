@@ -8,7 +8,7 @@ Rules added over round two, each general rather than per function:
   * BTreeSet is a list without duplicates under derived equality; iterating one is refused (its order would matter),
   * constants are inlined; `uN::MAX` and `iN::MIN/MAX` are literals.
 """
-import re, sys, json, itertools
+import os, re, sys, json, itertools
 
 class Unsupported(Exception): pass
 
@@ -790,7 +790,7 @@ class Types:
 KEYWORDS = set('let if match fun forall nil cons first second not apply ctor record project prim ref checked then else with true false'.split())
 KEYWORDS |= set('id ite dite cond absurd flip default decide panic toString repr max min compare pure bind map seq fst snd get set modify and or xor sorry rfl trivial show have at by do from in open end section namespace instance class structure inductive def theorem lemma example variable universe mutual where deriving return for unless mut try catch finally break continue this Type Prop Sort some none ok error unit private public protected noncomputable partial unsafe opaque abbrev attribute export local scoped macro syntax notation infix prefix postfix calc suffices obtain Id Option List Nat String Bool Unit Int Array ByteArray Except Prod Sum'.split())   # Lean names a binder must not shadow
 MUTATORS = {'write_str', 'write_char', 'push', 'push_str', 'insert', 'sort', 'next', 'pop', 'truncate', 'extend', 'remove', 'retain', 'clear', 'dedup', 'sort_unstable', 'sort_by', 'sort_by_key', 'sort_unstable_by', 'extend_from_slice', 'append', 'swap', 'reverse', 'take', 'insert_str', 'push_back', 'push_front', 'pop_front', 'pop_back', 'drain'}
-IDENTITY = {'to_owned', 'clone', 'cloned', 'copied', 'to_string', 'into', 'into_iter', 'iter', 'as_str', 'as_ref', 'to_vec'}
+IDENTITY = {'__entries', 'to_owned', 'clone', 'cloned', 'copied', 'to_string', 'into', 'into_iter', 'iter', 'as_str', 'as_ref', 'to_vec'}
 EXTERN_TYPES = {'Diagnostic': BYTES}
 PTR = ('Ptr',)
 EXTERN_FNS = {'is_closed_lean_name': ('AxiomOutput::isClosedLeanName', [BYTES], BOOL)}
@@ -2307,20 +2307,22 @@ class Translator:
                 if ctx is None: raise Unsupported('a mutating map in a pure position')
                 if len(cl[1]) != 1: raise Unsupported('map closure arity')
                 pat = cl[1][0][0]
-                ok_arm = (('pctor', ['Ok'], [(0, ('pid', '__y'))]), None, ('block', [('expr', ('mcall', ('path', ['__out']), 'push', [('path', ['__y'])]))], None))
-                err_arm = (('pctor', ['Err'], [(0, ('pid', '__e'))]), None, ('return', ('call', ('path', ['Err']), [('path', ['__e'])])))
-                blk = ('block', [('let', ('pid', '__out'), None, ('call', ('path', ['Vec', 'new']), []), None),
+                # names of this collect alone: one collect inside another must not push to the outer one's list
+                self.spec_n += 1; out_n, y_n, e_n = f'__out{self.spec_n}', f'__y{self.spec_n}', f'__e{self.spec_n}'
+                ok_arm = (('pctor', ['Ok'], [(0, ('pid', y_n))]), None, ('block', [('expr', ('mcall', ('path', [out_n]), 'push', [('path', [y_n])]))], None))
+                err_arm = (('pctor', ['Err'], [(0, ('pid', e_n))]), None, ('return', ('call', ('path', ['Err']), [('path', [e_n])])))
+                blk = ('block', [('let', ('pid', out_n), None, ('call', ('path', ['Vec', 'new']), []), None),
                                  ('expr', ('for', pat, recv[1], ('block', [('expr', ('match', cl[2], [ok_arm, err_arm]))], None)))],
-                       ('call', ('path', ['Ok']), [('path', ['__out'])]))
+                       ('call', ('path', ['Ok']), [('path', [out_n])]))
                 rt = T.var()
                 local = Ctx(ret=lambda v, e2: k(v, rt, e2), ret_t=rt)
                 try:
                     return self.block(blk, env, local, lambda v, t, e2: (T.unify(t, rt, 'collect'), k(v, rt, e2))[1])
                 except Unsupported:
                     # the elements are not Results: collect them into a list
-                    plain = ('block', [('let', ('pid', '__out'), None, ('call', ('path', ['Vec', 'new']), []), None),
-                                       ('expr', ('for', pat, recv[1], ('block', [('expr', ('mcall', ('path', ['__out']), 'push', [cl[2]]))], None)))],
-                             ('path', ['__out']))
+                    plain = ('block', [('let', ('pid', out_n), None, ('call', ('path', ['Vec', 'new']), []), None),
+                                       ('expr', ('for', pat, recv[1], ('block', [('expr', ('mcall', ('path', [out_n]), 'push', [cl[2]]))], None)))],
+                             ('path', [out_n]))
                     rt2 = T.var()
                     local2 = Ctx(ret=lambda v, e2: k(v, rt2, e2), ret_t=rt2)
                     return self.block(plain, env, local2, lambda v, t, e2: (T.unify(t, rt2, 'collect'), k(v, rt2, e2))[1])
@@ -2338,7 +2340,8 @@ class Translator:
                 # one insertion per entry, in the iterator's order: a later entry replaces an earlier one
                 self.spec_n += 1; a, b = f'__key{self.spec_n}', f'__value{self.spec_n}'
                 put = ('block', [('expr', ('mcall', recv, 'insert', [('path', [a]), ('path', [b])]))], None)
-                return self.expr(('block', [('expr', ('for', ('ptuple', [('pid', a), ('pid', b)]), args[0], put))], None), env, ctx, k)
+                # the entries of a map given whole, in any order: its keys are distinct, so the insertions commute
+                return self.expr(('block', [('expr', ('for', ('ptuple', [('pid', a), ('pid', b)]), ('mcall', args[0], '__entries', []), put))], None), env, ctx, k)
             hooked = self.hook_method(r, rt, m, args, recv, env, ctx, k)
             if hooked is not None: return hooked
             done = lambda v, t: k(v, t, env)
@@ -2597,6 +2600,10 @@ class Translator:
                     texts.append(self.function(self.fns[key])); self.comp_calls |= self.calls; self.key_calls[key] = set(self.calls)
                     texts.extend(self.spec_texts); self.spec_texts = []
                 except Unsupported as x:
+                    if os.environ.get('RS2LEX_TRACE') and os.environ['RS2LEX_TRACE'] in f'{key[0]}::{key[1]}':
+                        # where a refusal was raised, for the one who asks: RS2LEX_TRACE=name
+                        import traceback; print(f'-- {key}: {x}', file=sys.stderr)
+                        traceback.print_tb(x.__traceback__, limit=-14, file=sys.stderr)
                     if self.status.get(key) == 'ok' and key in set(self.spec_of.values()): continue   # translated as its copies
                     failure = failure or f'{key[1]}: {x}'
                     self.status[key] = f'UNSUPPORTED: {x}'

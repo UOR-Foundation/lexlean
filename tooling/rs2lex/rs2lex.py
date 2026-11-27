@@ -955,8 +955,9 @@ class Translator(Core):
             KV = f'({show(kt)} * {V})'
             A, E = self.fresh('acc'), self.fresh('entry')
             entries = raw_entries if rep == 'tree' else f'(AxiomOutput::reversed [{KV}] (prim list_fold (fun ({A} : (List {KV})) ({E} : (Bytes * {KV})) => (cons (second {E}) {A})) (nil {KV}) {raw_entries} : (List {KV})))'
-            if m in ('iter', 'into_iter'):
-                if self.hash_receiver(recv, env): raise Unsupported('iteration over a hash map (its order would matter)')
+            if m in ('iter', 'into_iter', '__entries'):
+                # `__entries` is the translator's own (a map extended by a map): there the order cannot be seen
+                if m != '__entries' and self.hash_receiver(recv, env): raise Unsupported('iteration over a hash map (its order would matter)')
                 return done(entries, ('List', ('Prod', kt, vt)))
             if m in ('keys', 'values', 'into_keys', 'into_values'):
                 if self.hash_receiver(recv, env): raise Unsupported('iteration over a hash map (its order would matter)')
@@ -968,8 +969,8 @@ class Translator(Core):
             raise Unsupported(f'method `{m}` on a map')
         if head == 'Map':
             kt, vt = rt[1], rt[2]
-            if m == 'iter' or m == 'into_iter':
-                if self.hash_receiver(recv, env): raise Unsupported('iteration over a hash map (its order would matter)')
+            if m in ('iter', 'into_iter', '__entries'):
+                if m != '__entries' and self.hash_receiver(recv, env): raise Unsupported('iteration over a hash map (its order would matter)')
                 return done(r, ('List', ('Prod', kt, vt)))
             if m in ('keys', 'values', 'into_keys', 'into_values'):
                 if self.hash_receiver(recv, env): raise Unsupported('iteration over a hash map (its order would matter)')
