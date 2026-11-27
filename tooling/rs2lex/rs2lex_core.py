@@ -1516,6 +1516,12 @@ class Translator:
         blk = ('block', [('let', ('pid', m), ('lexty', w), ('call', ('path', ['BTreeMap', 'new']), []), None),
                          ('expr', ('for', ('ptuple', [('pid', a), ('pid', b)]), ('path', [src]), put))], ('path', [m]))
         return self.atom(v, t, lambda name, env2: self.block(blk, {**env2, src: (name, t)}, ctx, lambda v2, t2, env3: k(v2, env3)), env, 'pairs')
+    def set_in_order(self, r, t):
+        """a set's items in the order a BTreeSet gives them, its element type's own: the translation holds a set as
+        a list without repeats, in the order the items came, so it is sorted here by the derived order."""
+        el = self.T.res(self.T.res(t)[1])
+        if el[0] == 'Var': raise Unsupported('iteration over a set of an undetermined type')
+        return self.sort_list(r, el), ('List', el)
     def breaks(self, e):
         """whether `e`, a loop's body, holds a `break` of that loop (one of a loop inside it is not)."""
         if isinstance(e, list): return any(self.breaks(x) for x in e)
@@ -1563,7 +1569,7 @@ class Translator:
         if e[0] == 'for':
             item_t = self.T.var(); item = self.fresh('item')
             def with_iter(it, t, env):
-                if self.T.res(t)[0] == 'Set': raise Unsupported('iteration over a set (its order would matter)')
+                if self.T.res(t)[0] == 'Set': it, t = self.set_in_order(it, t)
                 self.T.unify(t, ('List', item_t), 'for iterator')
                 def step(acc, x, env2):
                     inside = self.unpack(s, vs, env2, lambda env3: self.bind(e[1], x, item_t, env3, lambda env4: self.block(body, env4, inner, end)))
@@ -2046,6 +2052,12 @@ class Translator:
                     new = f'(record {bt[1]} {{{body}}})'
             else: raise Unsupported(f'assignment to a field of {show(bt)}')
             return self.assign_into(lhs[1], new, bt, env, k)
+        if lhs[0] == 'index' and T.res(self.pure(lhs[1], env)[1])[0] == 'Map':
+            # `m[k] = v` is no Rust (a map has no IndexMut); writeback.py writes it for the value it put back at k
+            key = lhs[2][1] if lhs[2][0] in ('ref', 'mutref') else lhs[2]
+            def nowhere(v2, env2): raise Unsupported('a return from a map write')
+            put = ('mcall', lhs[1], 'insert', [('mcall', key, 'clone', []), ('__value', v, t)])
+            return self.expr(put, env, Ctx(ret=nowhere, ret_t=T.var()), lambda v2, t2, env2: k(env2))
         if lhs[0] == 'index':
             xs_v, xs_t = self.pure(lhs[1], env); i_v, i_t = self.pure(lhs[2], env); T.unify(i_t, NAT, 'index')
             el = T.var(); T.unify(xs_t, ('List', el), 'indexed assignment'); T.unify(el, t, 'indexed assignment')
@@ -2499,7 +2511,7 @@ class Translator:
                         l, f = self.fresh('collected'), self.fresh('failure')
                         return done(f'(match {folded} | Result.ok {l} => (ctor Result.ok [(List {show(a)}), {show(er)}] (AxiomOutput::reversed [{show(a)}] {l})) | Result.error {f} => (ctor Result.error [(List {show(a)}), {show(er)}] {f}))', acc_t)
                     return done(r, ('List', el))
-            if head == 'Set' and m in ('iter', 'into_iter'): raise Unsupported('iteration over a set (its order would matter)')
+            if head == 'Set' and m in ('iter', 'into_iter'): return done(*self.set_in_order(r, rt))
             if m in IDENTITY and not args: return done(r, rt)
             if head == 'Bytes' and m == 'starts_with' and args[0] == ('path', ['char', 'is_whitespace']):
                 return done(f'(AxiomOutput::startsWhite {r})', BOOL)

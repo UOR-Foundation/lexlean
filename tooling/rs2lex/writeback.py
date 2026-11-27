@@ -48,7 +48,7 @@ def _written(name, body):
 
 
 class Pass:
-    def __init__(self): self.n = 0; self.k = 0; self.released = set()
+    def __init__(self): self.n = 0; self.released = set()
 
     def fresh(self, what):
         return f'__wb{self.n}_{what}'
@@ -63,9 +63,12 @@ class Pass:
         if h == 'try': raise Skip
         if h == 'labelled': raise Skip
         if h == 'return':
+            # the element is put back first: in Rust the write is already in place when the returned value is made,
+            # which may read it. A returned value that itself writes is not reordered
             if len(e) > 1 and e[1] is not None:
-                self.k += 1; r = f'__wbr{self.k}'
-                return ('block', [('let', ('pid', r), None, self.exits(e[1], back, in_loop), None)] + list(back), ('return', ('path', [r])))
+                if any(n and (n[0] == 'assign' or (n[0] == 'mcall' and isinstance(n[2], str) and n[2] in WRITERS)) for n in _walk(e[1])):
+                    raise Skip
+                return ('block', list(back), ('return', e[1]))
             return ('block', list(back), e)
         if h in ('break', 'continue'):
             if in_loop: return e
@@ -114,6 +117,25 @@ class Pass:
                             then = ('block', [at, read] + stmts + [('let', ('pid', r), None, tail, None)] + back, ('path', [r]))
                         self.released.add(x)
                         return ('if', ('not', ('mcall', xs, 'is_empty', [])), then, e[4])
+            if e[0] == 'iflet' and len(e) == 5 and e[3][0] == 'block':
+                pat, scrut = e[1], e[2]
+                some = pat[0] == 'pctor' and pat[1] == ['Some'] and len(pat[2]) == 1 and pat[2][0][1][0] == 'pid'
+                if some and scrut[0] == 'mcall' and scrut[2] == 'get_mut' and len(scrut[3]) == 1 and _place(_bare(scrut[1])):
+                    x = pat[2][0][1][1]; xs = _bare(scrut[1]); key = _bare(scrut[3][0])
+                    if (_place(key) or key[0] == 'int') and _written(x, e[3]):
+                        # `if let Some(x) = m.get_mut(k)`: the value at k read, changed, and put back at k (a map's
+                        # insert, a list's index; the translator picks by the type)
+                        self.n += 1
+                        back = [('expr', ('assign', ('index', xs, key), ('path', [x])))]
+                        stmts = self.exits(list(e[3][1]), back, False)
+                        tail = self.exits(e[3][2], back, False) if e[3][2] is not None else None
+                        if tail is None: then = ('block', stmts + back, None)
+                        else:
+                            r = self.fresh('t')
+                            then = ('block', stmts + [('let', ('pid', r), None, tail, None)] + back, ('path', [r]))
+                        self.released.add(x)
+                        found = ('mcall', ('mcall', xs, 'get', [scrut[3][0]]), 'cloned', [])
+                        return ('iflet', ('pctor', ['Some'], [(0, ('pid', x))]), found, then, e[4])
         except Skip:
             pass
         return e

@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
@@ -626,4 +627,51 @@ pub fn loop_probe(xs: Vec<usize>, depth: usize, names: Vec<String>) -> (Vec<usiz
         Ok(m) => (binders, leaf, same, m.into_iter().collect(), String::new()),
         Err(e) => (binders, leaf, same, Vec::new(), e),
     }
+}
+
+/// a set iterated: in its own order, whatever the order of insertion, for strings, numbers and pairs, by `for` and
+/// by `iter()`.
+pub fn set_probe(ws: Vec<String>, xs: Vec<usize>) -> (Vec<String>, Vec<usize>, Vec<(usize, String)>) {
+    let mut words: BTreeSet<String> = BTreeSet::new();
+    for w in ws.iter() {
+        words.insert(w.clone());
+    }
+    let mut seen: Vec<String> = Vec::new();
+    for w in &words {
+        seen.push(w.clone());
+    }
+    let mut nums: BTreeSet<usize> = BTreeSet::new();
+    for x in xs.iter() {
+        nums.insert(*x);
+    }
+    let mut pairs: BTreeSet<(usize, String)> = BTreeSet::new();
+    for (x, w) in xs.iter().zip(ws.iter()) {
+        pairs.insert((*x, w.clone()));
+    }
+    (seen, nums.iter().copied().collect(), pairs.into_iter().collect())
+}
+
+/// `if let Some(x) = m.get_mut(k)` on a map and on a list, with a key that is there and one that is not, and an
+/// early `return` after a write.
+pub fn getmut_probe(ws: Vec<String>, xs: Vec<usize>, at: usize) -> (Vec<(String, usize)>, Vec<usize>, usize) {
+    let mut m: BTreeMap<String, usize> = BTreeMap::new();
+    for w in ws.iter() {
+        if w.len() > 1 {
+            m.insert(w.clone(), 0);
+        }
+    }
+    for w in ws.iter() {
+        if let Some(n) = m.get_mut(w) {
+            *n += w.len();
+        }
+    }
+    let mut v = xs.clone();
+    if let Some(y) = v.get_mut(at) {
+        *y = *y * 10;
+        if *y > 50 {
+            return (m.into_iter().collect(), v, 1);
+        }
+        *y += 1;
+    }
+    (m.into_iter().collect(), v, 0)
 }
