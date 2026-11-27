@@ -5,6 +5,24 @@ use crate::support::{self, P};
 
 const THEOREM_XOR: &str = "theorem{\n  name: bitOfXor,\n  parameters: [a : Nat, b : Nat, k : Nat],\n  statement: ((prim remainder (prim shift_right (prim bit_xor a b : Nat) k : Nat) 2 0 : Nat) = (prim bit_xor (prim remainder (prim shift_right a k : Nat) 2 0 : Nat) (prim remainder (prim shift_right b k : Nat) 2 0 : Nat) : Nat)),\n  proof: law{name: nat_bit_xor, arguments: [a, b, k]},\n  axioms: [Quot.sound, propext]\n}\n";
 
+/// One theorem applying each bitwise law but `nat_bit_xor` (whose theorem is
+/// [`THEOREM_XOR`]), with `nat_bit_ext` discharged by a premise that names its
+/// bit variable; each statement is the law's Lean conclusion at its arguments.
+const THEOREMS_BITS: &str = "theorem{\n  name: bitOfAnd,\n  parameters: [a : Nat, b : Nat, k : Nat],\n  statement: ((prim remainder (prim shift_right (prim bit_and a b : Nat) k : Nat) 2 0 : Nat) = (prim bit_and (prim remainder (prim shift_right a k : Nat) 2 0 : Nat) (prim remainder (prim shift_right b k : Nat) 2 0 : Nat) : Nat)),\n  proof: law{name: nat_bit_and, arguments: [a, b, k]},\n  axioms: [Quot.sound, propext]\n}\n\ntheorem{\n  name: bitOfOr,\n  parameters: [a : Nat, b : Nat, k : Nat],\n  statement: ((prim remainder (prim shift_right (prim bit_or a b : Nat) k : Nat) 2 0 : Nat) = (prim bit_or (prim remainder (prim shift_right a k : Nat) 2 0 : Nat) (prim remainder (prim shift_right b k : Nat) 2 0 : Nat) : Nat)),\n  proof: law{name: nat_bit_or, arguments: [a, b, k]},\n  axioms: [Quot.sound, propext]\n}\n\ntheorem{\n  name: bitOfShiftRight,\n  parameters: [a : Nat, m : Nat, k : Nat],\n  statement: ((prim remainder (prim shift_right (prim shift_right a m : Nat) k : Nat) 2 0 : Nat) = (prim remainder (prim shift_right a (m + k) : Nat) 2 0 : Nat)),\n  proof: law{name: nat_bit_shift_right, arguments: [a, m, k]},\n  axioms: [propext]\n}\n\ntheorem{\n  name: bitOfShiftLeft,\n  parameters: [a : Nat, m : Nat, k : Nat],\n  statement: ((prim remainder (prim shift_right (prim shift_left a m : Nat) (m + k) : Nat) 2 0 : Nat) = (prim remainder (prim shift_right a k : Nat) 2 0 : Nat)),\n  proof: law{name: nat_bit_shift_left, arguments: [a, m, k]},\n  axioms: [Quot.sound, propext]\n}\n\ntheorem{\n  name: orOfXorAnd,\n  parameters: [a : Nat, b : Nat],\n  statement: ((prim bit_or a b : Nat) = (prim bit_xor (prim bit_xor a b : Nat) (prim bit_and a b : Nat) : Nat)),\n  proof: law{name: nat_or_xor_and, arguments: [a, b]},\n  axioms: [Quot.sound, propext]\n}\n\ntheorem{\n  name: wittStep,\n  parameters: [y : Nat],\n  statement: ((prim bit_xor y (prim bit_or (prim shift_left y 1 : Nat) (prim shift_left y 2 : Nat) : Nat) : Nat) = (prim bit_xor (prim bit_xor (prim bit_xor y (prim shift_left y 1 : Nat) : Nat) (prim shift_left y 2 : Nat) : Nat) (prim shift_left (prim bit_and y (prim shift_left y 1 : Nat) : Nat) 1 : Nat) : Nat)),\n  proof: law{name: nat_witt_step, arguments: [y]},\n  axioms: [Quot.sound, propext]\n}\n\ntheorem{\n  name: bitsOfFive,\n  parameters: [k : Nat],\n  statement: ((prim remainder (prim shift_right 5 k : Nat) 2 0 : Nat) = (prim remainder (prim shift_right 5 k : Nat) 2 0 : Nat)),\n  proof: reflexivity{},\n  axioms: []\n}\n\ntheorem{\n  name: extOfFive,\n  parameters: [],\n  statement: (5 = 5),\n  proof: law{name: nat_bit_ext, arguments: [5, 5], premises: [bitsOfFive]},\n  axioms: [Quot.sound, propext]\n}\n";
+
+/// The exact axioms each bitwise law pins, sorted: the shift through a shift
+/// is arithmetic on the amounts alone and needs no quotient soundness.
+const BIT_LAW_AXIOMS: [(&str, &[&str]); 8] = [
+    ("nat_bit_and", &["Quot.sound", "propext"]),
+    ("nat_bit_or", &["Quot.sound", "propext"]),
+    ("nat_bit_xor", &["Quot.sound", "propext"]),
+    ("nat_bit_shift_right", &["propext"]),
+    ("nat_bit_shift_left", &["Quot.sound", "propext"]),
+    ("nat_or_xor_and", &["Quot.sound", "propext"]),
+    ("nat_witt_step", &["Quot.sound", "propext"]),
+    ("nat_bit_ext", &["Quot.sound", "propext"]),
+];
+
 fn source(extra: &str, production: bool) -> String {
     let production = if production {
         "definition{\n  name: probe,\n  parameters: [y : Nat],\n  result: Nat,\n  body: (prim bit_xor y y : Nat),\n  axioms: [propext],\n  executable: true,\n  production: {effects: [], targets: [rust-core]}\n}\n\n"
@@ -126,10 +144,42 @@ pub fn run() {
         assert!(shown.contains(message), "{what}: {shown}");
     }
 
+    // Each registered bitwise law is a declaration of the runtime's laws
+    // module pinning exactly the axioms of its row in [`BIT_LAW_AXIOMS`], the policy its
+    // theorems are held to; the registry holds no other bitwise law.
+    let families = crate::cases::proofs::registered_nat_families();
+    let modules = lexlean::backend::runtime::modules().expect("the shipped runtime");
+    let laws = modules
+        .iter()
+        .find(|module| module.name == lexlean::backend::runtime::LAWS)
+        .expect("the laws module is a runtime module");
+    for name in crate::cases::proofs::NAT_BITWISE_LAWS {
+        let (_, lean) = families
+            .iter()
+            .find(|(registered, _)| registered == name)
+            .unwrap_or_else(|| panic!("`{name}` is registered"));
+        let (_, axioms) = laws
+            .declarations
+            .iter()
+            .find(|(declared, _)| declared == lean)
+            .unwrap_or_else(|| panic!("`{lean}` is a declaration of the laws module"));
+        let (_, policy) = BIT_LAW_AXIOMS
+            .iter()
+            .find(|(law, _)| *law == name)
+            .unwrap_or_else(|| panic!("`{name}` has a policy row"));
+        let mut axioms = axioms.clone();
+        axioms.sort();
+        assert_eq!(axioms, *policy, "`{name}` pins {axioms:?}");
+        assert!(
+            name == "nat_bit_xor" || THEOREMS_BITS.contains(&format!("law{{name: {name},")),
+            "`{name}` is applied by a theorem"
+        );
+    }
+
     // The registered laws and the evaluation of the step verify under the
     // exact axioms their policies state, and a false bit equation is refused.
     let evaluated = format!(
-        "{THEOREM_XOR}\ntheorem{{\n  name: stepOne,\n  parameters: [],\n  statement: ((step 1) = 7),\n  proof: reflexivity{{}},\n  axioms: [propext]\n}}\n\n"
+        "{THEOREM_XOR}\n{THEOREMS_BITS}\ntheorem{{\n  name: stepOne,\n  parameters: [],\n  statement: ((step 1) = 7),\n  proof: reflexivity{{}},\n  axioms: [propext]\n}}\n\n"
     );
     let evaluated = project_of(&source(&evaluated, false), "1.2");
     support::verify_ok_backed("SM-42", &evaluated);

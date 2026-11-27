@@ -81,13 +81,40 @@ fn conditional_lemma_pair(
     )
 }
 
-/// The bitwise natural-number laws `SM-42` registers beside PF-28's
-/// arithmetic ones. They share the `nat_` prefix but are not PF-28's claim,
+/// The natural-number arithmetic laws PF-28 claims, closed: the families its
+/// statement names (multiply, quotient, remainder and truncated subtraction).
+const NAT_ARITHMETIC_LAWS: [&str; 23] = [
+    "nat_mul_comm",
+    "nat_mul_assoc",
+    "nat_mul_left_comm",
+    "nat_left_distrib",
+    "nat_right_distrib",
+    "nat_mul_sub",
+    "nat_mul_one",
+    "nat_one_mul",
+    "nat_mul_zero",
+    "nat_zero_mul",
+    "nat_mul_succ",
+    "nat_mul_le_mul",
+    "nat_mul_lt_mul_of_pos_right",
+    "nat_le_of_mul_le_mul_left",
+    "nat_mul_le_mul_left_iff",
+    "nat_mul_div_cancel_left",
+    "nat_div_div_eq_div_mul",
+    "nat_mul_div_mul_left",
+    "nat_div_add_mod",
+    "nat_mul_mod_left",
+    "nat_mod_mul_left_div_self",
+    "nat_add_mul_div_left",
+    "nat_mod_lt",
+];
+
+/// The bitwise natural-number laws, closed: `SM-42` claims them, not PF-28,
 /// whose statement names the arithmetic families only, and their theorems
-/// pin `Quot.sound` beside `propext`, which PF-28 refuses of its own laws; a
-/// further `nat_` law that is neither fails PF-28's count rather than
-/// joining either set unexamined.
-const NAT_BITWISE_LAWS: [&str; 8] = [
+/// pin `Quot.sound` beside `propext`, which PF-28 refuses of its own laws.
+/// Both lists are closed so that a `nat_` law the registry gains, or one it
+/// loses, fails here instead of joining either family unexamined.
+pub(crate) const NAT_BITWISE_LAWS: [&str; 8] = [
     "nat_bit_and",
     "nat_bit_or",
     "nat_bit_xor",
@@ -98,9 +125,9 @@ const NAT_BITWISE_LAWS: [&str; 8] = [
     "nat_bit_ext",
 ];
 
-/// The registry's natural-number arithmetic laws (PF-28), each its name and
-/// Lean name.
-fn registered_nat_laws() -> Vec<(String, String)> {
+/// Every `nat_` law of the registry, each its name and Lean name, held to the
+/// two closed families: their union exactly and disjoint.
+pub(crate) fn registered_nat_families() -> Vec<(String, String)> {
     let text = std::fs::read_to_string(
         support::repo_root()
             .join("language/runtime-1.2/laws.toml")
@@ -108,19 +135,53 @@ fn registered_nat_laws() -> Vec<(String, String)> {
     )
     .expect("the fold-law registry");
     let registry: toml::Value = toml::from_str(&text).expect("the registry is TOML");
-    registry["law"]
+    let laws: Vec<(String, String)> = registry["law"]
         .as_array()
         .expect("the applied laws")
         .iter()
         .filter_map(|law| {
             let name = law["name"].as_str().expect("a law name");
-            (name.starts_with("nat_") && !NAT_BITWISE_LAWS.contains(&name)).then(|| {
+            name.starts_with("nat_").then(|| {
                 (
                     name.to_owned(),
                     law["lean"].as_str().expect("a Lean name").to_owned(),
                 )
             })
         })
+        .collect();
+    let overlap: Vec<&str> = NAT_ARITHMETIC_LAWS
+        .iter()
+        .filter(|name| NAT_BITWISE_LAWS.contains(name))
+        .copied()
+        .collect();
+    assert!(overlap.is_empty(), "the families overlap: {overlap:?}");
+    let registered: std::collections::BTreeSet<&str> =
+        laws.iter().map(|(name, _)| name.as_str()).collect();
+    assert_eq!(
+        registered.len(),
+        laws.len(),
+        "a `nat_` law is registered twice"
+    );
+    let claimed: std::collections::BTreeSet<&str> = NAT_ARITHMETIC_LAWS
+        .iter()
+        .chain(&NAT_BITWISE_LAWS)
+        .copied()
+        .collect();
+    let extra: Vec<&&str> = registered.difference(&claimed).collect();
+    let missing: Vec<&&str> = claimed.difference(&registered).collect();
+    assert!(
+        extra.is_empty() && missing.is_empty(),
+        "the registry's `nat_` laws are the two families exactly: extra {extra:?}, missing {missing:?}"
+    );
+    laws
+}
+
+/// The registry's natural-number arithmetic laws (PF-28), each its name and
+/// Lean name.
+fn registered_nat_laws() -> Vec<(String, String)> {
+    registered_nat_families()
+        .into_iter()
+        .filter(|(name, _)| NAT_ARITHMETIC_LAWS.contains(&name.as_str()))
         .collect()
 }
 
