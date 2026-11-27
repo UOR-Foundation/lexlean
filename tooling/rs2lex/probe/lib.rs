@@ -573,3 +573,57 @@ pub fn hex_probe(n: usize, s: String) -> String {
     let codes: Vec<String> = s.chars().map(|c| format!("\\u{:04x}", c as u32)).collect();
     format!("{:04X}|{:04x}|{n:02x}|{:x}|{n:03}|{}", n, n, n, codes.join(""))
 }
+
+pub enum Nest {
+    Pi { binders: Vec<usize>, body: Box<Nest> },
+    Leaf(usize),
+}
+
+fn nest(xs: &[usize], depth: usize) -> Nest {
+    if depth == 0 {
+        return Nest::Leaf(xs.len());
+    }
+    Nest::Pi { binders: xs.iter().map(|x| x + depth).collect(), body: Box::new(nest(xs, depth - 1)) }
+}
+
+fn flatten(ty: Nest) -> (Vec<usize>, usize) {
+    let mut binders = Vec::new();
+    let mut probe = ty;
+    loop {
+        match probe {
+            Nest::Pi { binders: group, body } => {
+                binders.extend(group);
+                probe = *body;
+            }
+            Nest::Leaf(n) => return (binders, n),
+        }
+    }
+}
+
+#[derive(Default)]
+pub struct Seen {
+    pub seen: Vec<usize>,
+}
+
+fn noted(a: usize, b: usize, seen: &mut Seen) -> bool {
+    seen.seen.push(a);
+    seen.seen.len() == 1 && a == b
+}
+
+fn zipped(ps: &[String], args: &[usize]) -> Result<BTreeMap<String, usize>, String> {
+    if ps.len() != args.len() {
+        return Err(format!("{} and {}", ps.len(), args.len()));
+    }
+    Ok(ps.iter().cloned().zip(args.iter().cloned()).collect())
+}
+
+/// a `loop` left only by `return`, a write into a temporary the call drops (`&mut Seen::default()`), and
+/// `Ok(pairs.collect())` into a map.
+pub fn loop_probe(xs: Vec<usize>, depth: usize, names: Vec<String>) -> (Vec<usize>, usize, bool, Vec<(String, usize)>, String) {
+    let (binders, leaf) = flatten(nest(&xs, depth));
+    let same = noted(depth, depth, &mut Seen::default());
+    match zipped(&names, &xs) {
+        Ok(m) => (binders, leaf, same, m.into_iter().collect(), String::new()),
+        Err(e) => (binders, leaf, same, Vec::new(), e),
+    }
+}

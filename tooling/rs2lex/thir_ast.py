@@ -519,7 +519,10 @@ class Body:
                 stmts.append(('expr', self.expr_in(k.field('expr'))))
         tail = h.field('expr')
         last = self.expr_in(tail) if tail is not None and tail.find('Expr') is not None else None
-        if last is not None and (last[0] in ('for', 'loop', 'while', 'assign') or (last[0] == 'if' and last[3] is None)
+        # a `loop` left only by `return` has type `!`, which rustc turns into the block's own type (NeverToAny): it
+        # stays the block's value. One of type `()` is a statement
+        never = last is not None and last[0] == 'loop' and tail.find('Expr').value('ty', '').strip() != '()'
+        if last is not None and not never and (last[0] in ('for', 'loop', 'while', 'assign') or (last[0] == 'if' and last[3] is None)
                                  or (last[0] == 'iflet' and last[4] is None)):
             stmts.append(('expr', last)); last = None
         return ('block', stmts, last)

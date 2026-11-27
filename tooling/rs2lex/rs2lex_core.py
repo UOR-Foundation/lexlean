@@ -1485,13 +1485,44 @@ class Translator:
         inserted in the list's order, so that a later entry replaces an earlier one of its key, as Rust's `collect`
         does. None where the two types are not that pair; k(the map, env) otherwise."""
         w, g = self.T.res(want), self.T.res(t)
-        if w[0] != 'Map' or g[0] != 'List' or ctx is None: return None
+        if ctx is None and w[0] in ('Map', 'Result', 'Option'):
+            # an argument is translated with no function to return from; the loop made here has no `return` in it
+            def nowhere(v2, env2): raise Unsupported('a return from a collected map')
+            ctx = Ctx(ret=nowhere, ret_t=self.T.var())
+        if ctx is not None and w[0] == g[0] and w[0] in ('Result', 'Option'):
+            wi, gi = self.T.res(w[1]), self.T.res(g[1])
+            if wi[0] == 'Map' and gi[0] in ('List', 'Iter', 'Var'):
+                # `Ok(pairs.collect())`: the same, under the constructor, with the wanted type written out
+                show = self.T.show
+                if w[0] == 'Result': self.T.unify(g[2], w[2], "a collected map's error")
+                inner_t = ('List', ('Prod', wi[1], wi[2]))
+                if gi[0] == 'Var': self.T.unify(gi, inner_t, 'collected map')
+                a, b = self.fresh('pairs'), self.fresh('failure')
+                def whole(name, env2):
+                    def ok(v2, env3):
+                        if w[0] == 'Result': return f'(ctor Result.ok [{show(wi)}, {show(w[2])}] {v2})'
+                        return f'(ctor Option.some [{show(wi)}] {v2})'
+                    made = self.pairs_as_map(a, gi if gi[0] != 'Var' else inner_t, wi, env2, ctx, ok)
+                    if w[0] == 'Result':
+                        return k(f'(match {name} | Result.ok {a} => {made} | Result.error {b} => (ctor Result.error [{show(wi)}, {show(w[2])}] {b}))', env2)
+                    return k(f'(match {name} | Option.some {a} => {made} | Option.none => (ctor Option.none [{show(wi)}]))', env2)
+                return self.atom(v, t, whole, env, 'wrapped')
+        if w[0] == 'Map' and g[0] == 'Var' and ctx is not None:
+            self.T.unify(g, ('List', ('Prod', w[1], w[2])), 'collected map'); g = self.T.res(g)   # not yet fixed: the pairs
+        if w[0] != 'Map' or g[0] not in ('List', 'Iter') or ctx is None: return None
         self.spec_n += 1; n = self.spec_n
         src, m, a, b = f'__pairs{n}', f'__map{n}', f'__key{n}', f'__value{n}'
         put = ('block', [('expr', ('mcall', ('path', [m]), 'insert', [('path', [a]), ('path', [b])]))], None)
         blk = ('block', [('let', ('pid', m), ('lexty', w), ('call', ('path', ['BTreeMap', 'new']), []), None),
                          ('expr', ('for', ('ptuple', [('pid', a), ('pid', b)]), ('path', [src]), put))], ('path', [m]))
         return self.atom(v, t, lambda name, env2: self.block(blk, {**env2, src: (name, t)}, ctx, lambda v2, t2, env3: k(v2, env3)), env, 'pairs')
+    def breaks(self, e):
+        """whether `e`, a loop's body, holds a `break` of that loop (one of a loop inside it is not)."""
+        if isinstance(e, list): return any(self.breaks(x) for x in e)
+        if not isinstance(e, tuple) or not e: return False
+        if e[0] == 'break': return True
+        if e[0] in ('loop', 'while', 'whilelet', 'for', 'closure', 'labelled'): return e[0] == 'labelled'
+        return any(self.breaks(x) for x in e if isinstance(x, (tuple, list)))
     def unreachable(self, v, t, env): raise Unsupported('a diverging block fell through')
     def exits(self, e):
         return any(n and isinstance(n[0], str) and n[0] in ('return', 'try', 'break', 'continue') for n in self.walk(e))
@@ -1851,6 +1882,11 @@ class Translator:
         if h == 'opaque': raise Unsupported(e[1])
         if h in ('loop', 'while', 'whilelet', 'for'):
             if ctx is None: raise Unsupported('loop in a pure position')
+            if h == 'loop' and not self.breaks(e[-1]):
+                # a `loop` nothing breaks out of is left only by `return`: its own value has any type (`!` in
+                # Rust), and what stands after it is reached only when the fuel runs out
+                v0, t0 = self.deferred()
+                return self.loop(e, env, ctx, lambda env2: k(v0, t0, env2))
             return self.loop(e, env, ctx, lambda env2: k('()', UNIT, env2))
         if h == 'labelled': raise Unsupported('labelled loop or block')
         if h == 'try':
@@ -2017,6 +2053,12 @@ class Translator:
         # a temporary (a literal, a constant): Rust drops its final value after the call, so the write-back is dropped too
         if lhs[0] in ('struct', 'str', 'bstr', 'array', 'arrayrep', 'macro', 'tuple', 'int', 'bool', 'chr', 'byte'): return k(env)
         if lhs[0] == 'path' and lhs[1] and lhs[1][0] not in env and (lhs[1][0] in self.consts or lhs[1][0].isupper()): return k(env)
+        if lhs[0] == 'call' and lhs[1][0] == 'path':
+            # `f(&mut make())`: the value `make()` returns is a temporary, dropped after the call, unless it is a
+            # reference to something that lives on
+            key = self.callee_key(lhs[1][1])
+            owned = self.fns[key]['ret'][0] not in ('ref', 'mut') if key is not None else lhs[1][1][-1] in ('default', 'new', 'with_capacity')
+            if owned: return k(env)
         what = lhs[0] + (f' .{lhs[2]}()' if lhs[0] == 'mcall' else f' {lhs[1][0]}' if lhs[0] == 'path' and lhs[1] and lhs[1][0] not in env else '')
         raise Unsupported(f'assignment target ({what})')
     def tup_make(self, parts):
@@ -2657,7 +2699,11 @@ class Translator:
                         self.blocked_by[key] = bad
                         raise Unsupported(f'calls `{bad[1]}`, which did not translate')
                     self.spec_texts = []
-                    texts.append(self.function(self.fns[key])); self.comp_calls |= self.calls; self.key_calls[key] = set(self.calls)
+                    made = self.function(self.fns[key])
+                    # what follows a branch is written into each of its arms, so a long run of early exits can
+                    # multiply; past this size the module would not be accepted (the compiler bounds a file)
+                    if len(made) > 4_000_000: raise Unsupported('a translation too large to keep (its branches copy what follows them)')
+                    texts.append(made); self.comp_calls |= self.calls; self.key_calls[key] = set(self.calls)
                     texts.extend(self.spec_texts); self.spec_texts = []
                 except Unsupported as x:
                     if os.environ.get('RS2LEX_TRACE') and os.environ['RS2LEX_TRACE'] in f'{key[0]}::{key[1]}':
