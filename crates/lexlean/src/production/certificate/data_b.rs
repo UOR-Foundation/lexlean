@@ -56,6 +56,13 @@ pub const SOUNDNESS_MODULE: &str = "LexLeanPreservation.RustSound";
 
 const RUST: &str = "LexLeanPreservation.Rust";
 
+/// Rows by name: each with its type and its value.
+type Named = Vec<(String, K, K)>;
+
+/// The right side of a step of `findFunction`, from the item's fields, the
+/// rest of the items, and the identifier sought.
+type StepRight<'r, 'g, 'a> = dyn Fn(&mut Aligner<'g, 'a>, &[K], K, K) -> K + 'r;
+
 /// The rows a certificate B module declares, in the order it declares them.
 struct Rows {
     functions: Vec<(String, K, K)>,
@@ -214,7 +221,7 @@ impl<'g, 'a> Aligner<'g, 'a> {
             .position(|ty| self.uninh(&self.empty.clone(), ty));
         let proof = self.exists_intro(statement, fn_term, |this, at| {
             let (found, rest) = this.conjuncts(at)?;
-            let refl = this.refl_of(found)?;
+            let refl = this.row(&format!("look{index}"));
             let (left, right) = this.disjuncts(rest)?;
             let choice = match empty_parameter {
                 None => {
@@ -389,7 +396,7 @@ impl<'g, 'a> Aligner<'g, 'a> {
         let witnesses = [params, result, lets, tail, gamma];
         self.nested_exists(statement, &witnesses, &mut |this, innermost| {
             let (found, rest) = this.conjuncts(innermost)?;
-            let first = this.refl_of(found)?;
+            let first = this.found_in_crate(index, found)?;
             let (ctx_eq, corr) = this.conjuncts(rest)?;
             let second = this.refl_of(ctx_eq)?;
             let last = this.and_intro(ctx_eq, corr, second, derivation.proof);
@@ -469,6 +476,648 @@ impl<'g, 'a> Aligner<'g, 'a> {
             let tail_pair = this.and_intro(member, uninhabited, proof, second);
             Ok(this.and_intro(valid, rest, first, tail_pair))
         })
+    }
+
+    /// `n + d` at `Nat`, as the library writes an addition.
+    fn nat_add(&mut self, n: K, d: K) -> K {
+        let nat = self.w.b.konst("Nat");
+        let zero = [CoreLevel::Zero, CoreLevel::Zero, CoreLevel::Zero];
+        let add = self.w.b.konst_at("HAdd.hAdd", zero.to_vec());
+        let inst = {
+            let head = self.w.b.konst_at("instHAdd", vec![CoreLevel::Zero]);
+            let add_nat = self.w.b.konst("instAddNat");
+            self.w.b.apps(head, &[nat, add_nat])
+        };
+        self.w.b.apps(add, &[nat, nat, nat, inst, n, d])
+    }
+
+    /// `LexLeanRuntime.index list position` over the program's functions.
+    fn function_index(&mut self, list: K, position: K) -> K {
+        let function_ty = self.w.ts("Function");
+        let list_function = self.w.b.list_ty(function_ty);
+        let index_head = self.w.b.konst("LexLeanRuntime.index");
+        let indexable = {
+            let head = self.w.b.konst("LexLeanRuntime.instIndexableList");
+            self.w.b.app(head, function_ty)
+        };
+        self.w.b.apps(
+            index_head,
+            &[list_function, function_ty, indexable, list, position],
+        )
+    }
+
+    /// The rows that look every function up in a constant number of kernel
+    /// steps (SPEC.md §17.17, *Lookups*): `idx<k>` states
+    /// `∀ m, index functions (m + k) = index T_k m`, where `T_k` is the
+    /// suffix of the program's function list from `k`, each from the one
+    /// before by `Nat.succ_add` and one step of the lookup; `look<k>` is
+    /// `idx<k> 0`, the lookup of function `k`. Evaluating the lookup instead
+    /// walks `k` cells of the list, once for each function and again at each
+    /// call, so the certificate's checking grew with the square of the
+    /// number of functions.
+    fn lookup_rows(&mut self) -> Result<(Named, Named), String> {
+        let nat = self.w.b.konst("Nat");
+        let function_ty = self.w.ts("Function");
+        let option_function = {
+            let option = self.w.b.konst0("Option");
+            self.w.b.app(option, function_ty)
+        };
+        let functions = {
+            let head = self.w.ts("Program.functions");
+            self.w.b.app(head, self.p)
+        };
+        let mut terms = Vec::new();
+        for function in &self.program.functions {
+            terms.push(self.w.function_term(function)?);
+        }
+        // Each suffix is a definition, `tl<k> := f_k :: tl<k+1>`: a row whose
+        // statement held the suffix as a term would make the kernel infer its
+        // type again in every row, which grows with the square of the
+        // program's size.
+        let suffixes: Vec<K> = (0..=terms.len())
+            .map(|k| self.row(&format!("tl{k}")))
+            .collect();
+        let list_function = self.w.b.list_ty(function_ty);
+        let mut definitions = Vec::new();
+        {
+            let nil = self.w.b.konst0("List.nil");
+            let empty = self.w.b.app(nil, function_ty);
+            definitions.push((format!("tl{}", terms.len()), list_function, empty));
+            let cons = self.w.b.konst0("List.cons");
+            for k in (0..terms.len()).rev() {
+                let value = self
+                    .w
+                    .b
+                    .apps(cons, &[function_ty, terms[k], suffixes[k + 1]]);
+                definitions.push((format!("tl{k}"), list_function, value));
+            }
+        }
+        let eq = self.w.b.konst1("Eq");
+        let succ = self.w.b.konst("Nat.succ");
+        let one = vec![CoreLevel::Succ(Box::new(CoreLevel::Zero))];
+        let mut rows = Vec::new();
+        for (k, &suffix) in suffixes.iter().enumerate().take(terms.len()) {
+            let m = self.w.b.free();
+            let d = self.w.nat_u(k as u64);
+            let position = self.nat_add(m, d);
+            let left = self.function_index(functions, position);
+            let right = self.function_index(suffix, m);
+            let equation = self.w.b.apps(eq, &[option_function, left, right]);
+            let statement = self
+                .w
+                .b
+                .pi_over("m", CoreBinderInfo::Explicit, nat, m, equation);
+            let body = if k == 0 {
+                // `m + 0` is `m`, and the functions are their own suffix.
+                let refl = self.w.b.konst_at("Eq.refl", one.clone());
+                let at = self.function_index(functions, m);
+                self.w.b.apps(refl, &[option_function, at])
+            } else {
+                let before = self.w.nat_u(k as u64 - 1);
+                let succ_m = self.w.b.app(succ, m);
+                // `Nat.succ_add m (k-1) : succ m + (k-1) = succ (m + (k-1))`.
+                let moved = self.nat_add(succ_m, before);
+                let inner = self.nat_add(m, before);
+                let stepped = self.w.b.app(succ, inner);
+                let succ_add = {
+                    let head = self.w.b.konst("Nat.succ_add");
+                    self.w.b.apps(head, &[m, before])
+                };
+                let i = self.w.b.free();
+                let lookup = {
+                    let at = self.function_index(functions, i);
+                    self.w.b.lam_over("i", CoreBinderInfo::Explicit, nat, i, at)
+                };
+                let congr = {
+                    let head = self
+                        .w
+                        .b
+                        .konst_at("congrArg", vec![one[0].clone(), one[0].clone()]);
+                    self.w.b.apps(
+                        head,
+                        &[nat, option_function, moved, stepped, lookup, succ_add],
+                    )
+                };
+                let at_moved = self.function_index(functions, moved);
+                let at_stepped = self.function_index(functions, stepped);
+                let symm = {
+                    let head = self.w.b.konst_at("Eq.symm", one.clone());
+                    self.w
+                        .b
+                        .apps(head, &[option_function, at_moved, at_stepped, congr])
+                };
+                let previous = self.row(&format!("idx{}", k - 1));
+                let shifted = self.w.b.app(previous, succ_m);
+                let reached = self.function_index(suffixes[k - 1], succ_m);
+                let trans = self.w.b.konst_at("Eq.trans", one.clone());
+                self.w.b.apps(
+                    trans,
+                    &[
+                        option_function,
+                        at_stepped,
+                        at_moved,
+                        reached,
+                        symm,
+                        shifted,
+                    ],
+                )
+            };
+            let proof = self
+                .w
+                .b
+                .lam_over("m", CoreBinderInfo::Explicit, nat, m, body);
+            rows.push((format!("idx{k}"), statement, proof));
+        }
+        for (k, term) in terms.iter().enumerate() {
+            let d = self.w.nat_u(k as u64);
+            let left = self.function_index(functions, d);
+            let some = self.w.b.konst0("Option.some");
+            let found = self.w.b.apps(some, &[function_ty, *term]);
+            let statement = self.w.b.apps(eq, &[option_function, left, found]);
+            let zero = self.w.nat_u(0);
+            let chain = self.row(&format!("idx{k}"));
+            let proof = self.w.b.app(chain, zero);
+            rows.push((format!("look{k}"), statement, proof));
+        }
+        Ok((definitions, rows))
+    }
+
+    /// `LexLeanTarget.RustSemantics.<name>`.
+    fn semantics(&mut self, name: &str) -> K {
+        self.w
+            .b
+            .konst(&format!("LexLeanTarget.RustSemantics.{name}"))
+    }
+
+    /// `Option (List Parameter × RustType × Block)`, what `findFunction`
+    /// answers.
+    fn found_ty(&mut self) -> K {
+        let parameters = {
+            let parameter = self.w.rs("Parameter");
+            self.w.b.list_ty(parameter)
+        };
+        let rty = self.w.rs("RustType");
+        let block = self.w.rs("Block");
+        let prod = self.w.b.konst00("Prod");
+        let inner = self.w.b.apps(prod, &[rty, block]);
+        let pair = self.w.b.apps(prod, &[parameters, inner]);
+        let option = self.w.b.konst0("Option");
+        self.w.b.app(option, pair)
+    }
+
+    /// `Eq.trans` at `α`: `a = b → b = c → a = c`.
+    fn trans(&mut self, alpha: K, a: K, b: K, c: K, first: K, second: K) -> K {
+        let one = vec![CoreLevel::Succ(Box::new(CoreLevel::Zero))];
+        let head = self.w.b.konst_at("Eq.trans", one);
+        self.w.b.apps(head, &[alpha, a, b, c, first, second])
+    }
+
+    fn eq_refl(&mut self, alpha: K, a: K) -> K {
+        let one = vec![CoreLevel::Succ(Box::new(CoreLevel::Zero))];
+        let head = self.w.b.konst_at("Eq.refl", one);
+        self.w.b.apps(head, &[alpha, a])
+    }
+
+    /// `n ≤ m` at `Nat`.
+    fn nat_le(&mut self, n: K, m: K) -> K {
+        let nat = self.w.b.konst("Nat");
+        let le = self.w.b.konst0("LE.le");
+        let inst = self.w.b.konst("instLENat");
+        self.w.b.apps(le, &[nat, inst, n, m])
+    }
+
+    /// A proof of `n ≤ m` for literals, which the kernel decides by
+    /// evaluating `Nat.ble`.
+    fn le_literal(&mut self, n: u64, m: u64) -> K {
+        let n = self.w.nat_u(n);
+        let m = self.w.nat_u(m);
+        let tru = self.w.b.konst("Bool.true");
+        let boolean = self.w.b.konst("Bool");
+        let refl = self.eq_refl(boolean, tru);
+        let head = self.w.b.konst("Nat.le_of_ble_eq_true");
+        self.w.b.apps(head, &[n, m, refl])
+    }
+
+    /// A proof of `low ≤ w` from `hw : high ≤ w`, for literals `low ≤ high`.
+    fn le_down(&mut self, low: u64, high: u64, w: K, hw: K) -> K {
+        if low == high {
+            return hw;
+        }
+        let below = self.le_literal(low, high);
+        let low_term = self.w.nat_u(low);
+        let high_term = self.w.nat_u(high);
+        let head = self.w.b.konst("Nat.le_trans");
+        self.w.b.apps(head, &[low_term, high_term, w, below, hw])
+    }
+
+    /// The crate's items and, for each item, the least bound past every
+    /// function the items before it name.
+    fn item_bounds(&self) -> Vec<u64> {
+        let mut bounds = Vec::new();
+        let mut bound = 0;
+        for item in &self.krate().items {
+            bounds.push(bound);
+            if let ItemDef::Function {
+                name: crate::calculus::rust::ast::Ident::Function(index),
+                ..
+            } = item
+            {
+                bound = bound.max(index + 1);
+            }
+        }
+        bounds.push(bound);
+        bounds
+    }
+
+    /// The position of function `index`'s item in the crate.
+    fn item_of(&self, index: u64) -> Result<usize, String> {
+        self.krate()
+            .items
+            .iter()
+            .position(|item| {
+                matches!(item, ItemDef::Function {
+                    name: crate::calculus::rust::ast::Ident::Function(found),
+                    ..
+                } if *found == index)
+            })
+            .ok_or_else(|| format!("the crate does not render function {index}"))
+    }
+
+    /// The rows that find each function's item in a constant number of kernel
+    /// steps (SPEC.md §17.17, *Lookups*). `it<i>` is the suffix of the
+    /// crate's items from `i`; `fnd<i>` states that every function at or
+    /// past the bound of the items before `i` is found in `it<i>` as in the
+    /// whole crate, each from the one before by one step of `findFunction`:
+    /// the generic `stepE`, `stepA`, and `stepF`, and, past a function the
+    /// crate names, `iteF` at the refuted comparison. `fal<f>` is the
+    /// fallibility of function `f` the calls state, from `fnd` at its item.
+    fn find_rows(&mut self) -> Result<(Named, Named), String> {
+        let nat = self.w.b.konst("Nat");
+        let boolean = self.w.b.konst("Bool");
+        let tru = self.w.b.konst("Bool.true");
+        let fls = self.w.b.konst("Bool.false");
+        let item_ty = self.w.rs("ItemDef");
+        let items_ty = self.w.b.list_ty(item_ty);
+        let ident_ty = self.w.rs("Ident");
+        let rty = self.w.rs("RustType");
+        let block = self.w.rs("Block");
+        let parameters_ty = {
+            let parameter = self.w.rs("Parameter");
+            self.w.b.list_ty(parameter)
+        };
+        let found_ty = self.found_ty();
+        let eq = self.w.b.konst1("Eq");
+        let cons = self.w.b.konst0("List.cons");
+        let find = self.semantics("findFunction");
+        let same = self.semantics("sameIdent");
+        let decide = self.w.b.konst("instDecidableEqBool");
+        let one = vec![CoreLevel::Succ(Box::new(CoreLevel::Zero))];
+        let ite = self.w.b.konst_at("ite", one.clone());
+        let krate = self.krate().clone();
+        let mut items = Vec::new();
+        for item in &krate.items {
+            items.push(self.w.rs_item_def(item));
+        }
+        let suffixes: Vec<K> = (0..=items.len())
+            .map(|i| self.row(&format!("it{i}")))
+            .collect();
+        let mut definitions = Vec::new();
+        {
+            let nil = self.w.b.konst0("List.nil");
+            let empty = self.w.b.app(nil, item_ty);
+            definitions.push((format!("it{}", items.len()), items_ty, empty));
+            for i in (0..items.len()).rev() {
+                let value = self.w.b.apps(cons, &[item_ty, items[i], suffixes[i + 1]]);
+                definitions.push((format!("it{i}"), items_ty, value));
+            }
+        }
+        let mut rows = Vec::new();
+        // `ite (c = true) a b` at what `findFunction` answers.
+        let branch = |this: &mut Self, c: K, a: K, b: K| -> K {
+            let is_true = this.w.b.apps(eq, &[boolean, c, tru]);
+            let decided = this.w.b.apps(decide, &[c, tru]);
+            this.w.b.apps(ite, &[found_ty, is_true, decided, a, b])
+        };
+        // stepE, stepA, stepF: one step of `findFunction` past an item.
+        let step = |this: &mut Self,
+                    name: &str,
+                    ctor: &str,
+                    binders: &[(&str, K)],
+                    right: &StepRight<'_, 'g, 'a>|
+         -> (String, K, K) {
+            let frees: Vec<K> = binders.iter().map(|_| this.w.b.free()).collect();
+            let rest = this.w.b.free();
+            let w = this.w.b.free();
+            let head = this.w.rs(ctor);
+            let item = this.w.b.apps(head, &frees);
+            let list = this.w.b.apps(cons, &[item_ty, item, rest]);
+            let left = this.w.b.apps(find, &[list, w]);
+            let rhs = right(this, &frees, rest, w);
+            let mut statement = this.w.b.apps(eq, &[found_ty, left, rhs]);
+            let mut proof = this.eq_refl(found_ty, left);
+            let mut all: Vec<(&str, K, K)> = binders
+                .iter()
+                .zip(&frees)
+                .map(|((name, ty), free)| (*name, *ty, *free))
+                .collect();
+            all.push(("rest", items_ty, rest));
+            all.push(("w", ident_ty, w));
+            for (name, ty, free) in all.into_iter().rev() {
+                statement = this
+                    .w
+                    .b
+                    .pi_over(name, CoreBinderInfo::Explicit, ty, free, statement);
+                proof = this
+                    .w
+                    .b
+                    .lam_over(name, CoreBinderInfo::Explicit, ty, free, proof);
+            }
+            (name.to_owned(), statement, proof)
+        };
+        let skip =
+            |this: &mut Self, _: &[K], rest: K, w: K| -> K { this.w.b.apps(find, &[rest, w]) };
+        let variants_ty = {
+            let variant = self.w.rs("Variant");
+            self.w.b.list_ty(variant)
+        };
+        let types_ty = self.w.b.list_ty(rty);
+        let dispatches_ty = {
+            let dispatch = self.w.rs("Dispatch");
+            self.w.b.list_ty(dispatch)
+        };
+        rows.push(step(
+            self,
+            "stepE",
+            "ItemDef.enum",
+            &[("t", rty), ("vs", variants_ty)],
+            &skip,
+        ));
+        rows.push(step(
+            self,
+            "stepA",
+            "ItemDef.apply",
+            &[
+                ("n", nat),
+                ("ps", types_ty),
+                ("r", rty),
+                ("fl", boolean),
+                ("ds", dispatches_ty),
+            ],
+            &skip,
+        ));
+        let prod_mk = self.w.b.konst00("Prod.mk");
+        let some = self.w.b.konst0("Option.some");
+        let pair_ty = {
+            let prod = self.w.b.konst00("Prod");
+            self.w.b.apps(prod, &[rty, block])
+        };
+        let hit = |this: &mut Self, fields: &[K], w: K| -> K {
+            let inner = this.w.b.apps(prod_mk, &[rty, block, fields[2], fields[3]]);
+            let pair = this
+                .w
+                .b
+                .apps(prod_mk, &[parameters_ty, pair_ty, fields[1], inner]);
+            let held = {
+                let (_, args) = this.w.b.spine(found_ty);
+                args[0]
+            };
+            let _ = w;
+            this.w.b.apps(some, &[held, pair])
+        };
+        let found_step = |this: &mut Self, fields: &[K], rest: K, w: K| -> K {
+            let c = this.w.b.apps(same, &[fields[0], w]);
+            let a = hit(this, fields, w);
+            let b = this.w.b.apps(find, &[rest, w]);
+            branch(this, c, a, b)
+        };
+        rows.push(step(
+            self,
+            "stepF",
+            "ItemDef.function",
+            &[
+                ("name", ident_ty),
+                ("ps", parameters_ty),
+                ("r", rty),
+                ("b", block),
+            ],
+            &found_step,
+        ));
+        // iteF : ∀ a b, ite (false = true) a b = b.
+        {
+            let a = self.w.b.free();
+            let b = self.w.b.free();
+            let left = branch(self, fls, a, b);
+            let statement = self.w.b.apps(eq, &[found_ty, left, b]);
+            let proof = self.eq_refl(found_ty, b);
+            let statement = self
+                .w
+                .b
+                .pi_over("b", CoreBinderInfo::Explicit, found_ty, b, statement);
+            let statement = self
+                .w
+                .b
+                .pi_over("a", CoreBinderInfo::Explicit, found_ty, a, statement);
+            let proof = self
+                .w
+                .b
+                .lam_over("b", CoreBinderInfo::Explicit, found_ty, b, proof);
+            let proof = self
+                .w
+                .b
+                .lam_over("a", CoreBinderInfo::Explicit, found_ty, a, proof);
+            rows.push(("iteF".to_owned(), statement, proof));
+        }
+        let fn_ident = self.rust_const("fnIdent");
+        let crate_items = {
+            let head = self.w.rs("Crate.items");
+            self.w.b.app(head, self.c)
+        };
+        let bounds = self.item_bounds();
+        let fnd_statement = |this: &mut Self, i: usize, w: K, hw: K| -> (K, K, K) {
+            let x = this.w.b.app(fn_ident, w);
+            let whole = this.w.b.apps(find, &[crate_items, x]);
+            let part = this.w.b.apps(find, &[suffixes[i], x]);
+            let equation = this.w.b.apps(eq, &[found_ty, whole, part]);
+            let bound = this.w.nat_u(bounds[i]);
+            let guard = this.nat_le(bound, w);
+            let inner = this
+                .w
+                .b
+                .pi_over("hw", CoreBinderInfo::Explicit, guard, hw, equation);
+            let statement = this
+                .w
+                .b
+                .pi_over("w", CoreBinderInfo::Explicit, nat, w, inner);
+            (statement, guard, x)
+        };
+        for i in 0..=items.len() {
+            let w = self.w.b.free();
+            let hw = self.w.b.free();
+            let (statement, guard, x) = fnd_statement(self, i, w, hw);
+            let whole = self.w.b.apps(find, &[crate_items, x]);
+            let body = if i == 0 {
+                self.eq_refl(found_ty, whole)
+            } else {
+                let before = i - 1;
+                let previous = {
+                    let head = self.row(&format!("fnd{before}"));
+                    let lowered = self.le_down(bounds[before], bounds[i], w, hw);
+                    self.w.b.apps(head, &[w, lowered])
+                };
+                let from = self.w.b.apps(find, &[suffixes[before], x]);
+                let to = self.w.b.apps(find, &[suffixes[i], x]);
+                let (head, fields) = self.w.b.spine(items[before]);
+                let _ = head;
+                let stepped = match &krate.items[before] {
+                    ItemDef::Enum { .. } => {
+                        let lemma = self.row("stepE");
+                        let mut args = fields.clone();
+                        args.extend([suffixes[i], x]);
+                        self.w.b.apps(lemma, &args)
+                    }
+                    ItemDef::Apply { .. } => {
+                        let lemma = self.row("stepA");
+                        let mut args = fields.clone();
+                        args.extend([suffixes[i], x]);
+                        self.w.b.apps(lemma, &args)
+                    }
+                    ItemDef::Function { name, .. } => {
+                        let lemma = self.row("stepF");
+                        let mut args = fields.clone();
+                        args.extend([suffixes[i], x]);
+                        let unfolded = self.w.b.apps(lemma, &args);
+                        let c = self.w.b.apps(same, &[fields[0], x]);
+                        let a = hit(self, &fields, x);
+                        let compared = branch(self, c, a, to);
+                        let refuted = branch(self, fls, a, to);
+                        // `sameIdent name (fnIdent w) = false`.
+                        let differs = match name {
+                            crate::calculus::rust::ast::Ident::Function(j) => {
+                                let j_term = self.w.nat_u(*j);
+                                let is_true = self.w.b.apps(eq, &[boolean, c, tru]);
+                                let h = self.w.b.free();
+                                let equal = {
+                                    let head = self.w.b.konst("Nat.eq_of_beq_eq_true");
+                                    self.w.b.apps(head, &[j_term, w, h])
+                                };
+                                let below = self.le_down(j + 1, bounds[i], w, hw);
+                                let distinct = {
+                                    let head = self.w.b.konst("Nat.ne_of_lt");
+                                    self.w.b.apps(head, &[j_term, w, below, equal])
+                                };
+                                let refute = self.w.b.lam_over(
+                                    "h",
+                                    CoreBinderInfo::Explicit,
+                                    is_true,
+                                    h,
+                                    distinct,
+                                );
+                                let head = self.w.b.konst("Bool.of_not_eq_true");
+                                self.w.b.apps(head, &[c, refute])
+                            }
+                            _ => self.eq_refl(boolean, fls),
+                        };
+                        let rewrite = {
+                            let cv = self.w.b.free();
+                            let body = branch(self, cv, a, to);
+                            let motive =
+                                self.w
+                                    .b
+                                    .lam_over("c", CoreBinderInfo::Explicit, boolean, cv, body);
+                            let head = self
+                                .w
+                                .b
+                                .konst_at("congrArg", vec![one[0].clone(), one[0].clone()]);
+                            self.w
+                                .b
+                                .apps(head, &[boolean, found_ty, c, fls, motive, differs])
+                        };
+                        let reduced = {
+                            let head = self.row("iteF");
+                            self.w.b.apps(head, &[a, to])
+                        };
+                        let tail = self.trans(found_ty, compared, refuted, to, rewrite, reduced);
+                        self.trans(found_ty, from, compared, to, unfolded, tail)
+                    }
+                };
+                self.trans(found_ty, whole, from, to, previous, stepped)
+            };
+            let inner = self
+                .w
+                .b
+                .lam_over("hw", CoreBinderInfo::Explicit, guard, hw, body);
+            let proof = self
+                .w
+                .b
+                .lam_over("w", CoreBinderInfo::Explicit, nat, w, inner);
+            rows.push((format!("fnd{i}"), statement, proof));
+        }
+        // fal<f> : fnFallible krate f = some F.
+        let fallible = self.rust_const("fnFallible");
+        let option_bool = {
+            let option = self.w.b.konst0("Option");
+            self.w.b.app(option, boolean)
+        };
+        for index in 0..self.program.functions.len() as u64 {
+            let position = self.item_of(index)?;
+            let f = self.w.nat_u(index);
+            let left = self.w.b.apps(fallible, &[self.c, f]);
+            let flag = self.w.boolean(self.fallible_fn(index));
+            let answer = self.w.b.apps(some, &[boolean, flag]);
+            let statement = self.w.b.apps(eq, &[option_bool, left, answer]);
+            let unfolded = self.unfold(left)?;
+            let (map_head, map_args) = self.w.b.spine(unfolded);
+            if map_args.len() != 4 {
+                return Err("fnFallible is not an Option.map of a lookup".to_owned());
+            }
+            let mapped = self.w.b.apps(map_head, &map_args[..3]);
+            let x = self.w.b.app(fn_ident, f);
+            let whole = self.w.b.apps(find, &[crate_items, x]);
+            let part = self.w.b.apps(find, &[suffixes[position], x]);
+            let guard = self.le_literal(bounds[position], index);
+            let chained = {
+                let head = self.row(&format!("fnd{position}"));
+                self.w.b.apps(head, &[f, guard])
+            };
+            let congr = {
+                let head = self
+                    .w
+                    .b
+                    .konst_at("congrArg", vec![one[0].clone(), one[0].clone()]);
+                self.w
+                    .b
+                    .apps(head, &[found_ty, option_bool, whole, part, mapped, chained])
+            };
+            let mapped_part = self.w.b.app(mapped, part);
+            let evaluated = self.eq_refl(option_bool, answer);
+            let proof = self.trans(option_bool, left, mapped_part, answer, congr, evaluated);
+            rows.push((format!("fal{index}"), statement, proof));
+        }
+        Ok((definitions, rows))
+    }
+
+    /// FunOK0's `findFunction (Crate.items krate) (fnIdent f) = some …`, from
+    /// `fnd` at the function's item and one evaluation of the lookup there.
+    fn found_in_crate(&mut self, index: u64, found: K) -> Result<K, String> {
+        let (_, parts) = self.w.b.spine(found);
+        let [alpha, whole, answer] = parts[..] else {
+            return Err("the crate lookup is not an equation".to_owned());
+        };
+        let position = self.item_of(index)?;
+        let bounds = self.item_bounds();
+        let find = self.semantics("findFunction");
+        let fn_ident = self.rust_const("fnIdent");
+        let f = self.w.nat_u(index);
+        let x = self.w.b.app(fn_ident, f);
+        let suffix = self.row(&format!("it{position}"));
+        let part = self.w.b.apps(find, &[suffix, x]);
+        let guard = self.le_literal(bounds[position], index);
+        let chained = {
+            let head = self.row(&format!("fnd{position}"));
+            self.w.b.apps(head, &[f, guard])
+        };
+        let evaluated = self.eq_refl(alpha, answer);
+        Ok(self.trans(alpha, whole, part, answer, chained, evaluated))
     }
 
     /// `crate_ok`'s value: the case analysis on the function index that
@@ -719,6 +1368,8 @@ fn build(
             "{LIMIT}the program and crate terms are at least {weighed} bytes, beyond the {max_bytes} bytes of max_file_bytes"
         ));
     }
+    let (suffixes, lookups) = aligner.lookup_rows()?;
+    let (item_suffixes, finds) = aligner.find_rows()?;
     let mut rows = Rows {
         functions: Vec::new(),
     };
@@ -757,6 +1408,18 @@ fn build(
     aligner
         .w
         .push_row("flags", definition, flags_ty, flags_value)?;
+    for (name, ty, value) in suffixes {
+        aligner.w.push_row(&name, definition, ty, value)?;
+    }
+    for (name, ty, value) in item_suffixes {
+        aligner.w.push_row(&name, definition, ty, value)?;
+    }
+    for (name, statement, proof) in finds {
+        aligner.w.push_row(&name, theorem, statement, proof)?;
+    }
+    for (name, statement, proof) in lookups {
+        aligner.w.push_row(&name, theorem, statement, proof)?;
+    }
     for (name, statement, proof) in rows.functions {
         aligner.w.push_row(&name, theorem, statement, proof)?;
     }

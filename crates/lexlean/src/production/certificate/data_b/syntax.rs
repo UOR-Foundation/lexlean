@@ -637,7 +637,7 @@ impl Writer<'_, '_> {
         self.rs_list("Parameter", &items)
     }
 
-    fn rs_item_def(&mut self, definition: &ItemDef) -> Term {
+    pub(super) fn rs_item_def(&mut self, definition: &ItemDef) -> Term {
         match definition {
             ItemDef::Enum {
                 name,

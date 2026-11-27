@@ -17,6 +17,22 @@ workspace carried at those versions without a tag.
 
 ## Unreleased
 
+- Certificate B looks every function up in a constant number of kernel steps
+  (SPEC.md §17.17, *Lookups*, `SP-16`). A function's theorem and each call it
+  derives stated `index (Program.functions p) f` and `findFunction` of its item
+  by `Eq.refl`, so the kernel walked the program and the crate to `f` once per
+  function and again per call, and checking a certificate grew with the square
+  of its function count. The certificate now states each lookup once, by rows
+  between `flags` and `fun0`: the suffixes of the function list and of the
+  crate's items as definitions (`tl<k>`, `it<i>`), the index chain `idx<k>`
+  (by `Nat.succ_add`) and each lookup `look<k>`, the steps of `findFunction`
+  (`stepE`, `stepA`, `stepF`, `iteF`), its chain `fnd<i>` (by `Nat.ne_of_lt`
+  past each function), and each function's fallibility `fal<f>`; `fun<n>`,
+  `callOps`, and `callF` take them in place of the evaluations. Every lemma they
+  apply is in `Init` and depends on no axiom, and no other row's statement
+  changes. On a production root of 588 functions, the certificate's Lean phase
+  went from 126 s to 57 s, its function theorems from 74 s to 22 s.
+
 ## 0.4.5
 
 - Natural-number arithmetic laws (`PF-28`, SPEC.md §17.12, *Fold laws*, rule 7).
