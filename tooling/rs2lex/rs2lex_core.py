@@ -2557,12 +2557,19 @@ class Translator:
         # is read by its syntax as before: taken for a function without calls, its own recursion would go unseen
         if exact is not None and (f['owner'], f['name']) in exact:
             return {k for k in exact[(f['owner'], f['name'])] if k in self.fns and not self.fns[k]['generics']}
+        # that function's method calls are left out: a method call names no type, so it would be tied to every
+        # method of the name, and one false group fails whole. Its calls by path are exact, and enough to see its
+        # own recursion; a recursion left unseen is refused, not mistranslated
+        refused_before = exact is not None
         out = set()
         for n in self.walk(f['body']):
             if n and n[0] == 'call' and n[1][0] == 'path':
                 segs = [s for s in n[1][1] if s not in ('super', 'crate')]
                 if len(segs) == 1 and (None, segs[0]) in self.fns: out.add((None, segs[0]))
-            if n and n[0] == 'mcall':
+                if refused_before and len(segs) == 2:
+                    typed = (f['owner'] if segs[0] == 'Self' else segs[0], segs[1])
+                    if typed in self.fns: out.add(typed)
+            if n and n[0] == 'mcall' and not refused_before:
                 for key in self.fns:
                     if key[1] == n[2] and key[0] is not None: out.add(key)
         return {k for k in out if not self.fns[k]['generics']}
