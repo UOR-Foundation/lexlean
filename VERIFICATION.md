@@ -15457,6 +15457,44 @@ the crates and vectors those evaluators are given is unchanged, as are the
 verify records move the mutant draws of `BS-12` (-4), `BS-13` (+2) and
 `BS-14` (+5).
 
+## A balanced ordered map is source (`SL-15`)
+
+`SL-15` holds the two production roots of `LexLeanStd.OrdMap`
+(`stdlib/src/OrdMap.lex.tex`), an AVL tree keyed by `Bytes`, to the
+`BTreeMap<Vec<u8>, Vec<u8>>` the compiler keeps its tables in. `Map` (`SL-14`)
+keeps a map as an ascending list, so each operation walks it; the compiler's
+own tables, the hash-consed kernel terms of a certificate among them, hold
+entries by the hundred thousand, and translated onto `Map` they would cost a
+quadratic walk. `OrdMap` is the structure they need once they are source: a
+lookup, an insertion, or a removal descends one path and rebalances it.
+
+`ordMapRun` applies a sequence of insertions, removals, and lookups and
+returns what the map holds at each operation's key before it acts and the
+entries left at the end; its oracle is the same sequence on a `BTreeMap`.
+`ordMapBalanced` applies the sequence and checks the tree it leaves (each
+stored height right, the sides of every node within one in height, the keys
+strictly ascending); its oracle is `true`, so a defect that keeps every answer
+right but lets the tree degrade is caught. Three of the six plants are of that
+kind: a left-heavy node never rotated, a left-right zigzag rotated once rather
+than twice, and a stored height one too many.
+
+The case was first compiled and run on the normative host (WSL Ubuntu, Rust
+1.97.1) over `release/v0.4` at `9ed24d4e3a`
+(`cargo test -p repo-conformance --test conformance -- conformance_sl_15`).
+Its corpus is 16 named sequences, among them forty ascending and forty
+descending insertions, forty insertions then forty removals, and both
+zigzags, and seeded sequences of up to 32 operations over keys that repeat and
+are prefixes of one another. The evaluator agrees with the oracle on 300 runs
+of each root, the rendered packages under the pinned rustc on 600 runs of
+each, and each of the 6 planted defects is detected by its own sequence. The
+rustc corpus is smaller than a `Map` member's 2,000 runs because each run is a
+literal of the harness rustc compiles: at 2,000 sequences of up to 48
+operations, rustc ran out of the 13 GiB host's memory. The case then stops at
+the stack-bound step, `stdlib/ord_map_balanced is no package of the committed
+exports`, as each new member does before its regeneration, which produces the
+two packages, measures their stack bounds, and moves the package counts of the
+bootstrap cases.
+
 ## PR394 after actual393 landing: observed producer results (2026-11-05)
 
 The integration retains contributor d80997cf050ac70319a9517fff6a93f98e227712 (including d34/1170/0a36 history) and actual accepted393 landing55be5514cf4fe377c186059260d7666c7c9c2304, whose tested/reviewed/landed tree is3065516167862533e0594427c28be8fe74406aae. Only the exact admitted TokenAudit/PERFORMANCE source was adopted; source-compatible original frozen CLI/xtask and archived selected905 inputs/errors were reused. Physical review393 remained detached atc613 with its original raw index/logical0328 tree. No new identity, model, blanket-lock, fixture or calculus wave was run.

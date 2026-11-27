@@ -682,6 +682,8 @@ pub fn run(id: &str) {
         "SL-13" => super::stdlib_json_read::run(id),
         // §17.22: maps and sets (#276).
         "SL-14" => super::stdlib_map::run(id),
+        // §17.22: a balanced ordered map, so the compiler's tables cost what a tree costs.
+        "SL-15" => super::stdlib_ordmap::run(id),
         other => panic!("no stdlib case is wired for {other}"),
     }
 }

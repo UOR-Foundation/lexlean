@@ -72,6 +72,7 @@ mod stdlib_json_read;
 mod stdlib_map;
 mod stdlib_numeral;
 mod stdlib_order;
+mod stdlib_ordmap;
 mod stdlib_sha256;
 mod tooling;
 mod typed_diagnostics;

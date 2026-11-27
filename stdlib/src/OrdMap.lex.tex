@@ -1,0 +1,265 @@
+\begin{lexlean}{OrdMap}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Order}
+\title{Natural number addition}
+\begin{semanticmodule}
+inductive{
+  name: OrdMap,
+  type_parameters: [Value],
+  parameters: [],
+  constructors: [
+    {name: leaf, fields: []},
+    {name: node, fields: [(OrdMap 'Value), Bytes, 'Value, Nat, (OrdMap 'Value)]}
+  ]
+}
+
+definition{
+  name: emptyMap,
+  type_parameters: [Value],
+  parameters: [],
+  result: (OrdMap 'Value),
+  body: (ctor OrdMap.leaf ['Value]),
+  executable: true
+}
+
+definition{
+  name: heightOf,
+  type_parameters: [Value],
+  parameters: [map : (OrdMap 'Value)],
+  result: Nat,
+  body: (match map | OrdMap.leaf => 0 | OrdMap.node left key value height right => height),
+  executable: true
+}
+
+definition{
+  name: larger,
+  parameters: [a : Nat, b : Nat],
+  result: Nat,
+  body: (if (a <? b) then b else a),
+  executable: true
+}
+
+definition{
+  name: joinNode,
+  type_parameters: [Value],
+  parameters: [left : (OrdMap 'Value), key : Bytes, value : 'Value, right : (OrdMap 'Value)],
+  result: (OrdMap 'Value),
+  body: (ctor OrdMap.node ['Value] left key value ((larger (heightOf ['Value] left) (heightOf ['Value] right)) + 1) right),
+  executable: true
+}
+
+definition{
+  name: rotateFromLeft,
+  type_parameters: [Value],
+  parameters: [left : (OrdMap 'Value), key : Bytes, value : 'Value, right : (OrdMap 'Value)],
+  result: (OrdMap 'Value),
+  body: (match left
+    | OrdMap.leaf => (joinNode ['Value] left key value right)
+    | OrdMap.node outer lkey lvalue lheight inner => (if ((heightOf ['Value] inner) <? ((heightOf ['Value] outer) + 1)) then (joinNode ['Value] outer lkey lvalue (joinNode ['Value] inner key value right)) else (match inner
+      | OrdMap.leaf => (joinNode ['Value] left key value right)
+      | OrdMap.node innerLeft ikey ivalue iheight innerRight => (joinNode ['Value] (joinNode ['Value] outer lkey lvalue innerLeft) ikey ivalue (joinNode ['Value] innerRight key value right))))),
+  executable: true
+}
+
+definition{
+  name: rotateFromRight,
+  type_parameters: [Value],
+  parameters: [left : (OrdMap 'Value), key : Bytes, value : 'Value, right : (OrdMap 'Value)],
+  result: (OrdMap 'Value),
+  body: (match right
+    | OrdMap.leaf => (joinNode ['Value] left key value right)
+    | OrdMap.node inner rkey rvalue rheight outer => (if ((heightOf ['Value] inner) <? ((heightOf ['Value] outer) + 1)) then (joinNode ['Value] (joinNode ['Value] left key value inner) rkey rvalue outer) else (match inner
+      | OrdMap.leaf => (joinNode ['Value] left key value right)
+      | OrdMap.node innerLeft ikey ivalue iheight innerRight => (joinNode ['Value] (joinNode ['Value] left key value innerLeft) ikey ivalue (joinNode ['Value] innerRight rkey rvalue outer))))),
+  executable: true
+}
+
+definition{
+  name: balanced,
+  type_parameters: [Value],
+  parameters: [left : (OrdMap 'Value), key : Bytes, value : 'Value, right : (OrdMap 'Value)],
+  result: (OrdMap 'Value),
+  body: (let hl : Nat := (heightOf ['Value] left); (let hr : Nat := (heightOf ['Value] right); (if ((hr + 1) <? hl) then (rotateFromLeft ['Value] left key value right) else (if ((hl + 1) <? hr) then (rotateFromRight ['Value] left key value right) else (joinNode ['Value] left key value right))))),
+  executable: true
+}
+
+definition{
+  name: mapGet,
+  type_parameters: [Value],
+  parameters: [map : (OrdMap 'Value), key : Bytes],
+  result: (Option 'Value),
+  body: (match map
+    | OrdMap.leaf => (ctor Option.none ['Value])
+    | OrdMap.node left here value height right => (if (prim equal key here : Bool) then (ctor Option.some ['Value] value) else (if (Order::lessBytes key here) then (mapGet ['Value] left key) else (mapGet ['Value] right key)))),
+  axioms: [propext],
+  executable: true,
+  recursive_argument: map
+}
+
+definition{
+  name: mapInsert,
+  type_parameters: [Value],
+  parameters: [map : (OrdMap 'Value), key : Bytes, value : 'Value],
+  result: (OrdMap 'Value),
+  body: (match map
+    | OrdMap.leaf => (ctor OrdMap.node ['Value] (ctor OrdMap.leaf ['Value]) key value 1 (ctor OrdMap.leaf ['Value]))
+    | OrdMap.node left here held height right => (if (prim equal key here : Bool) then (ctor OrdMap.node ['Value] left key value height right) else (if (Order::lessBytes key here) then (balanced ['Value] (mapInsert ['Value] left key value) here held right) else (balanced ['Value] left here held (mapInsert ['Value] right key value))))),
+  axioms: [propext],
+  executable: true,
+  recursive_argument: map
+}
+
+definition{
+  name: takeLeast,
+  type_parameters: [Value],
+  parameters: [map : (OrdMap 'Value)],
+  result: ((Option (Bytes * 'Value)) * (OrdMap 'Value)),
+  body: (match map
+    | OrdMap.leaf => ((ctor Option.none [(Bytes * 'Value)]), (ctor OrdMap.leaf ['Value]))
+    | OrdMap.node left key value height right => (match left
+      | OrdMap.leaf => ((ctor Option.some [(Bytes * 'Value)] (key, value)), right)
+      | OrdMap.node ll lk lv lh lr => (let taken : ((Option (Bytes * 'Value)) * (OrdMap 'Value)) := (takeLeast ['Value] left); ((first taken), (balanced ['Value] (second taken) key value right))))),
+  executable: true,
+  recursive_argument: map
+}
+
+definition{
+  name: joinSides,
+  type_parameters: [Value],
+  parameters: [left : (OrdMap 'Value), right : (OrdMap 'Value)],
+  result: (OrdMap 'Value),
+  body: (let taken : ((Option (Bytes * 'Value)) * (OrdMap 'Value)) := (takeLeast ['Value] right); (match (first taken)
+    | Option.none => left
+    | Option.some least => (balanced ['Value] left (first least) (second least) (second taken)))),
+  executable: true
+}
+
+definition{
+  name: mapRemove,
+  type_parameters: [Value],
+  parameters: [map : (OrdMap 'Value), key : Bytes],
+  result: (OrdMap 'Value),
+  body: (match map
+    | OrdMap.leaf => (ctor OrdMap.leaf ['Value])
+    | OrdMap.node left here value height right => (if (prim equal key here : Bool) then (joinSides ['Value] left right) else (if (Order::lessBytes key here) then (balanced ['Value] (mapRemove ['Value] left key) here value right) else (balanced ['Value] left here value (mapRemove ['Value] right key))))),
+  axioms: [propext],
+  executable: true,
+  recursive_argument: map
+}
+
+definition{
+  name: entriesInto,
+  type_parameters: [Value],
+  parameters: [map : (OrdMap 'Value), rest : (List (Bytes * 'Value))],
+  result: (List (Bytes * 'Value)),
+  body: (match map
+    | OrdMap.leaf => rest
+    | OrdMap.node left key value height right => (entriesInto ['Value] left (cons (key, value) (entriesInto ['Value] right rest)))),
+  executable: true,
+  recursive_argument: map
+}
+
+definition{
+  name: mapEntries,
+  type_parameters: [Value],
+  parameters: [map : (OrdMap 'Value)],
+  result: (List (Bytes * 'Value)),
+  body: (entriesInto ['Value] map (nil (Bytes * 'Value))),
+  executable: true
+}
+
+definition{
+  name: mapSize,
+  type_parameters: [Value],
+  parameters: [map : (OrdMap 'Value)],
+  result: Nat,
+  body: (match map
+    | OrdMap.leaf => 0
+    | OrdMap.node left key value height right => (((mapSize ['Value] left) + (mapSize ['Value] right)) + 1)),
+  executable: true,
+  recursive_argument: map
+}
+
+definition{
+  name: mapFromList,
+  type_parameters: [Value],
+  parameters: [entries : (List (Bytes * 'Value))],
+  result: (OrdMap 'Value),
+  body: (prim list_fold (fun (map : (OrdMap 'Value)) (entry : (Bytes * 'Value)) => (mapInsert ['Value] map (first entry) (second entry))) (emptyMap ['Value]) entries : (OrdMap 'Value)),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: shapeOf,
+  type_parameters: [Value],
+  parameters: [map : (OrdMap 'Value)],
+  result: (Bool * Nat),
+  body: (match map
+    | OrdMap.leaf => (true, 0)
+    | OrdMap.node left key value height right => (let l : (Bool * Nat) := (shapeOf ['Value] left); (let r : (Bool * Nat) := (shapeOf ['Value] right); (let tall : Nat := ((larger (second l) (second r)) + 1); ((if (first l) then (if (first r) then (if (prim equal height tall : Bool) then (if ((second l) <? ((second r) + 2)) then ((second r) <? ((second l) + 2)) else false) else false) else false) else false), tall))))),
+  executable: true,
+  recursive_argument: map
+}
+
+definition{
+  name: ascendingKeys,
+  type_parameters: [Value],
+  parameters: [entries : (List (Bytes * 'Value))],
+  result: Bool,
+  body: (first (prim list_fold (fun (state : (Bool * (Option Bytes))) (entry : (Bytes * 'Value)) => (match (second state)
+    | Option.none => ((first state), (ctor Option.some [Bytes] (first entry)))
+    | Option.some last => ((if (first state) then (Order::lessBytes last (first entry)) else false), (ctor Option.some [Bytes] (first entry))))) (true, (ctor Option.none [Bytes])) entries : (Bool * (Option Bytes)))),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: isOrdMap,
+  type_parameters: [Value],
+  parameters: [map : (OrdMap 'Value)],
+  result: Bool,
+  body: (if (first (shapeOf ['Value] map)) then (ascendingKeys ['Value] (mapEntries ['Value] map)) else false),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: runStep,
+  parameters: [state : ((List (Option Bytes)) * (OrdMap Bytes)), op : (Nat * (Bytes * Bytes))],
+  result: ((List (Option Bytes)) * (OrdMap Bytes)),
+  body: (let map : (OrdMap Bytes) := (second state); (let key : Bytes := (first (second op)); (let before : (Option Bytes) := (mapGet [Bytes] map key); (let seen : (List (Option Bytes)) := (cons before (first state)); (if ((first op) =? 0) then (seen, (mapInsert [Bytes] map key (second (second op)))) else (if ((first op) =? 1) then (seen, (mapRemove [Bytes] map key)) else (seen, map))))))),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: runOps,
+  parameters: [ops : (List (Nat * (Bytes * Bytes)))],
+  result: ((List (Option Bytes)) * (OrdMap Bytes)),
+  body: (prim list_fold (fun (state : ((List (Option Bytes)) * (OrdMap Bytes))) (op : (Nat * (Bytes * Bytes))) => (runStep state op)) ((nil (Option Bytes)), (emptyMap [Bytes])) ops : ((List (Option Bytes)) * (OrdMap Bytes))),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: ordMapRun,
+  parameters: [ops : (List (Nat * (Bytes * Bytes)))],
+  result: ((List (Option Bytes)) * (List (Bytes * Bytes))),
+  body: (let ran : ((List (Option Bytes)) * (OrdMap Bytes)) := (runOps ops); ((Order::reverseList [(Option Bytes)] (first ran)), (mapEntries [Bytes] (second ran)))),
+  axioms: [propext],
+  executable: true,
+  production: {effects: [allocation, overflow, recursion], targets: [rust-std]}
+}
+
+definition{
+  name: ordMapBalanced,
+  parameters: [ops : (List (Nat * (Bytes * Bytes)))],
+  result: Bool,
+  body: (isOrdMap [Bytes] (second (runOps ops))),
+  axioms: [propext],
+  executable: true,
+  production: {effects: [allocation, overflow, recursion], targets: [rust-std]}
+}
+\end{semanticmodule}
+\end{lexlean}
