@@ -279,8 +279,16 @@ for rows in nested_cases:
         capped.append(t)
     big = any(x > 7 for r in rows for x in r)
     out.append('cexit ' + ','.join(map(str, halves)) + ';' + ','.join(map(str, capped)) + ';' + ('true' if big else 'false'))
+# search_probe: a binary search on a sorted constant
+search_cases = ['', 'a', 'ab', 'abc', 'b', 'c', 'do', 'fun', 'z', 'zz', 'A']
+for w in search_cases:
+    hit = w in ['a', 'abc', 'b', 'do', 'fun', 'z']
+    out.append('search ' + ('true' if hit else 'false') + ';' + ('false' if hit else 'true'))
+out.append('tag ' + hx('core::eq')); out.append('tag ' + hx('core::exists-unique'))
 # writeback_probe: writes through a `&mut` to an element, on every way out of the body
 writeback_cases = [([rng.randrange(0, 9) for _ in range(rng.randrange(0, 7))], rng.randrange(0, 9)) for _ in range(200)]
+for xs, _ in writeback_cases:
+    out.append('fold ' + str(1 + sum(xs)) + ';' + str(max([0] + xs)) + ';' + str(min([99] + xs)))
 for xs, stop in writeback_cases:
     v, seen = list(xs), 0
     for i, x in enumerate(v):
@@ -431,6 +439,14 @@ lean += ['',
          '  for rows in nestedCases do',
          '    let r := fClosureExitProbe rows',
          '    IO.println ("cexit " ++ String.intercalate "," (r.1.map toString) ++ ";" ++ String.intercalate "," (r.2.1.map toString) ++ ";" ++ (if r.2.2 then "true" else "false"))',
+         '  for w in [' + ', '.join(lean_bytes(w) for w in search_cases) + '] do',
+         '    let r := fSearchProbe w',
+         '    IO.println ("search " ++ (if r.1 then "true" else "false") ++ ";" ++ (if r.2 then "true" else "false"))',
+         '  for b in [true, false] do',
+         '    IO.println ("tag " ++ hx (fTagProbe b))',
+         '  for (xs, _) in writebackCases do',
+         '    let r := fFoldProbe xs',
+         '    IO.println ("fold " ++ toString r.1 ++ ";" ++ toString r.2.1 ++ ";" ++ toString r.2.2)',
          '  for (xs, stop) in writebackCases do',
          '    let r := fWritebackProbe xs stop',
          '    IO.println ("writeback " ++ String.intercalate "," (r.1.map toString) ++ ";" ++ String.intercalate "|" (r.2.1.map fun row => String.intercalate "," (row.map toString)) ++ ";" ++ toString r.2.2.1 ++ ";" ++ String.intercalate "," (r.2.2.2.1.map toString) ++ ";" ++ toString r.2.2.2.2)',

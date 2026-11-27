@@ -730,3 +730,36 @@ pub fn closure_exit_probe(rows: Vec<Vec<usize>>) -> (Vec<usize>, Vec<usize>, boo
     });
     (halves, capped, any_big)
 }
+
+pub const SORTED_WORDS: &[&str] = &["a", "abc", "b", "do", "fun", "z"];
+
+/// a binary search on a constant, literal and sorted: whether it finds the item, either way round.
+pub fn search_probe(w: String) -> (bool, bool) {
+    (SORTED_WORDS.binary_search(&w.as_str()).is_ok(), SORTED_WORDS.binary_search(&w.as_str()).is_err())
+}
+
+#[derive(Clone, Copy)]
+pub enum Tagged {
+    Eq,
+    ExistsUnique,
+}
+
+impl Tagged {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Eq => "eq",
+            Self::ExistsUnique => "exists-unique",
+        }
+    }
+}
+
+/// a method of the crate's own type named as a standard one (`as_str`) is the crate's.
+pub fn tag_probe(b: bool) -> String {
+    let t = if b { Tagged::Eq } else { Tagged::ExistsUnique };
+    format!("core::{}", t.as_str())
+}
+
+/// a number type's method named as a function, folded.
+pub fn fold_probe(xs: Vec<u64>) -> (u64, u64, u64) {
+    (xs.iter().copied().fold(1, u64::saturating_add), xs.iter().copied().fold(0, u64::max), xs.iter().copied().fold(99, u64::min))
+}

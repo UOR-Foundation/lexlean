@@ -1524,6 +1524,21 @@ class Translator:
         el = self.T.res(self.T.res(t)[1])
         if el[0] == 'Var': raise Unsupported('iteration over a set of an undetermined type')
         return self.sort_list(r, el), ('List', el)
+    def method_path(self, a):
+        if not (a[0] == 'path' and len(a[1]) == 2 and (a[1][0] in NAT_KINDS or a[1][0] in ('i128', 'u128'))
+                and a[1][1] in ('saturating_add', 'saturating_mul', 'wrapping_add', 'max', 'min', 'checked_add')): return None
+        self.spec_n += 1; x, y = f'__lhs{self.spec_n}', f'__rhs{self.spec_n}'
+        return ('closure', [(('pid', x), None), (('pid', y), None)], ('mcall', ('path', [x]), a[1][1], [('path', [y])]), None)
+    def sorted_literal(self, e):
+        """the items of a constant slice of string or number literals in strictly ascending order, or None."""
+        while e[0] in ('ref', 'mutref', 'deref'): e = e[1]
+        if e[0] != 'path' or len(e[1]) != 1 or e[1][0] not in self.consts: return None
+        v = self.consts[e[1][0]].get('value')
+        while v is not None and v[0] in ('ref', 'mutref'): v = v[1]
+        if v is None or v[0] != 'array' or not all(x[0] in ('str', 'int') for x in v[1]): return None
+        keys = [x[1].encode() if x[0] == 'str' else x[1] for x in v[1]]
+        if len({type(x) for x in keys}) > 1 or any(a >= b for a, b in zip(keys, keys[1:])): return None
+        return keys
     def breaks(self, e):
         """whether `e`, a loop's body, holds a `break` of that loop (one of a loop inside it is not)."""
         if isinstance(e, list): return any(self.breaks(x) for x in e)
@@ -2389,6 +2404,18 @@ class Translator:
     def mcall(self, e, env, ctx, k):
         T, show = self.T, self.T.show
         _, recv, m, args = e
+        if any(self.method_path(a) for a in args):
+            # `fold(0, u64::saturating_add)`: a number type's two-argument method named as a function is the closure
+            # that calls it
+            return self.mcall(('mcall', recv, m, [self.method_path(a) or a for a in args]), env, ctx, k)
+        if m in ('is_ok', 'is_err') and not args and recv[0] == 'mcall' and recv[2] == 'binary_search' and len(recv[3]) == 1:
+            # whether a binary search finds the item is whether the slice holds it, but only on a sorted slice, and
+            # Rust says nothing of the answer on any other: taken only for a constant whose items are seen here,
+            # literal and strictly sorted
+            items = self.sorted_literal(recv[1])
+            if items is None: raise Unsupported('binary_search on a slice not known to be sorted')
+            found = ('mcall', recv[1], 'contains', [recv[3][0]])
+            return self.expr(found if m == 'is_ok' else ('not', found), env, ctx, k)
         # An adapter whose closure has effects (it writes what it captures, or returns early) is the loop it stands
         # for, where running the closure eagerly is what Rust does too: the terminal adapters, and `filter` and
         # `filter_map` consumed whole by `collect`. The closure is bound to a name and called, so a `return` or `?`
@@ -2523,7 +2550,9 @@ class Translator:
                         return done(f'(match {folded} | Result.ok {l} => (ctor Result.ok [(List {show(a)}), {show(er)}] (AxiomOutput::reversed [{show(a)}] {l})) | Result.error {f} => (ctor Result.error [(List {show(a)}), {show(er)}] {f}))', acc_t)
                     return done(r, ('List', el))
             if head == 'Set' and m in ('iter', 'into_iter'): return done(*self.set_in_order(r, rt))
-            if m in IDENTITY and not args: return done(r, rt)
+            # a method the crate defines on its own type is that method, though the standard one of its name is
+            # the identity (`CoreRef::as_str` is no `String::as_str`)
+            if m in IDENTITY and not args and not (head == 'Named' and (rt[1], m) in self.fns): return done(r, rt)
             if head == 'Bytes' and m == 'starts_with' and args[0] == ('path', ['char', 'is_whitespace']):
                 return done(f'(AxiomOutput::startsWhite {r})', BOOL)
             if head == 'Bytes' and m == 'split' and args[0][0] == 'chr':
