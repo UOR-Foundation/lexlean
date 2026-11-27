@@ -1,0 +1,700 @@
+\begin{lexlean}{RustStd}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{AxiomOutput}
+\importmodule{LexLeanStd.Text}
+\importmodule{LexLeanStd.Numeral}
+\title{Natural number addition}
+\begin{semanticmodule}
+definition{
+  name: trimEnd,
+  parameters: [subject : Bytes],
+  result: Bytes,
+  body: (LexLeanStd.Text::sliceOr subject 0 (AxiomOutput::dropWhiteEnd subject 0)),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: parseUsize,
+  parameters: [raw : Bytes],
+  result: (Option Unit),
+  body: (if (AxiomOutput::isWord raw) then (ctor Option.some [Unit] ()) else (ctor Option.none [Unit])),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: headOf,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item)],
+  result: (Option 'Item),
+  body: (match items
+    | List.nil => (ctor Option.none ['Item])
+    | List.cons head tail => (ctor Option.some ['Item] head)),
+  executable: true
+}
+
+definition{
+  name: tailOf,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item)],
+  result: (List 'Item),
+  body: (match items | List.nil => (nil 'Item) | List.cons head tail => tail),
+  executable: true
+}
+
+definition{
+  name: push,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item), item : 'Item],
+  result: (List 'Item),
+  body: (AxiomOutput::reversed ['Item] (cons item (AxiomOutput::reversed ['Item] items))),
+  executable: true
+}
+
+definition{
+  name: contains,
+  parameters: [items : (List Bytes), wanted : Bytes],
+  result: Bool,
+  body: (prim list_fold (fun [wanted] (found : Bool) (item : Bytes) => (if found then true else (prim equal item wanted : Bool))) false items : Bool),
+  executable: true
+}
+
+definition{
+  name: getAt,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item), index : Nat],
+  result: (Option 'Item),
+  body: (second (prim list_fold (fun [index] (state : (Nat * (Option 'Item))) (item : 'Item) => (if ((first state) =? index) then (((first state) + 1), (ctor Option.some ['Item] item)) else (((first state) + 1), (second state)))) (0, (ctor Option.none ['Item])) items : (Nat * (Option 'Item)))),
+  executable: true
+}
+
+definition{
+  name: zip,
+  type_parameters: [Left, Right],
+  parameters: [left : (List 'Left), right : (List 'Right)],
+  result: (List ('Left * 'Right)),
+  body: (match left
+    | List.nil => (nil ('Left * 'Right))
+    | List.cons head tail => (match right
+      | List.nil => (nil ('Left * 'Right))
+      | List.cons other others => (cons (head, other) (zip ['Left, 'Right] tail others)))),
+  executable: true,
+  recursive_argument: left
+}
+
+definition{
+  name: insertSorted,
+  parameters: [item : Bytes, sorted : (List Bytes)],
+  result: (List Bytes),
+  body: (match sorted
+    | List.nil => (cons item (nil Bytes))
+    | List.cons head tail => (if (AxiomOutput::lessBytes item head) then (cons item (cons head tail)) else (cons head (insertSorted item tail)))),
+  axioms: [propext],
+  executable: true,
+  recursive_argument: sorted
+}
+
+definition{
+  name: sortBytes,
+  parameters: [items : (List Bytes)],
+  result: (List Bytes),
+  body: (prim list_fold (fun (sorted : (List Bytes)) (item : Bytes) => (insertSorted item sorted)) (nil Bytes) items : (List Bytes)),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: mapInsert,
+  type_parameters: [Value],
+  parameters: [entries : (List (Bytes * 'Value)), key : Bytes, value : 'Value],
+  result: ((Option 'Value) * (List (Bytes * 'Value))),
+  body: (match entries
+    | List.nil => ((ctor Option.none ['Value]), (cons (key, value) (nil (Bytes * 'Value))))
+    | List.cons head tail => (if (prim equal key (first head) : Bool) then ((ctor Option.some ['Value] (second head)), (cons (key, value) tail)) else (if (AxiomOutput::lessBytes key (first head)) then ((ctor Option.none ['Value]), (cons (key, value) (cons head tail))) else (let below : ((Option 'Value) * (List (Bytes * 'Value))) := (mapInsert ['Value] tail key value); ((first below), (cons head (second below))))))),
+  axioms: [propext],
+  executable: true,
+  recursive_argument: entries
+}
+
+definition{
+  name: splitStep,
+  parameters: [limit : Nat, delimiter : Bytes, state : ((List Bytes) * Bytes)],
+  result: (Option ((List Bytes) * Bytes)),
+  body: (if (((AxiomOutput::listLength [Bytes] (first state)) + 1) <? limit) then (match (AxiomOutput::splitOnce (second state) delimiter)
+    | Option.some parts => (ctor Option.some [((List Bytes) * Bytes)] ((cons (first parts) (first state)), (second parts)))
+    | Option.none => (ctor Option.none [((List Bytes) * Bytes)])) else (ctor Option.none [((List Bytes) * Bytes)])),
+  executable: true
+}
+
+definition{
+  name: splitN,
+  parameters: [subject : Bytes, limit : Nat, delimiter : Bytes],
+  result: (List Bytes),
+  body: (let last : ((List Bytes) * Bytes) := (first (prim iterate_until (fun [delimiter, limit] (state : ((List Bytes) * Bytes)) => (splitStep limit delimiter state)) limit ((nil Bytes), subject) : (((List Bytes) * Bytes) * Bool))); (AxiomOutput::reversed [Bytes] (cons (second last) (first last)))),
+  executable: true
+}
+
+structure{
+  name: I128,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: negative, type: Bool}, {name: digits, type: Bytes}]
+}
+
+definition{
+  name: i128Big,
+  parameters: [negative : Bool, digits : Bytes],
+  result: I128,
+  body: (record I128 {negative := (if (prim equal digits (AxiomOutput::text "0") : Bool) then false else negative), digits := digits}),
+  executable: true
+}
+
+definition{
+  name: i128Of,
+  parameters: [negative : Bool, magnitude : Nat],
+  result: I128,
+  body: (i128Big negative (AxiomOutput::decimal magnitude)),
+  executable: true
+}
+
+definition{
+  name: i128Abs,
+  parameters: [value : I128],
+  result: I128,
+  body: (record I128 {negative := false, digits := (project value digits)}),
+  executable: true
+}
+
+definition{
+  name: magnitudeLe,
+  parameters: [left : Bytes, right : Bytes],
+  result: Bool,
+  body: (if ((prim length left : Nat) <? (prim length right : Nat)) then true else (if ((prim length right : Nat) <? (prim length left : Nat)) then false else (not (prim equal (prim compare_bytes left right : Ordering) (prim compare_bytes 0x01 0x00 : Ordering) : Bool)))),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: i128Le,
+  parameters: [left : I128, right : I128],
+  result: Bool,
+  body: (if (project left negative) then (if (project right negative) then (magnitudeLe (project right digits) (project left digits)) else true) else (if (project right negative) then false else (magnitudeLe (project left digits) (project right digits)))),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: i128Lt,
+  parameters: [left : I128, right : I128],
+  result: Bool,
+  body: (not (i128Le right left)),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: i128Eq,
+  parameters: [left : I128, right : I128],
+  result: Bool,
+  body: (if (i128Le left right) then (i128Le right left) else false),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: bytesOf,
+  parameters: [subject : Bytes],
+  result: (List UInt8),
+  body: (AxiomOutput::reversed [UInt8] (second (first (prim iterate_until (fun [subject] (state : (Nat * (List UInt8))) => (match (LexLeanStd.Text::byteAt subject (first state))
+    | Option.some byte => (ctor Option.some [(Nat * (List UInt8))] (((first state) + 1), (cons byte (second state))))
+    | Option.none => (ctor Option.none [(Nat * (List UInt8))]))) (prim length subject : Nat) (0, (nil UInt8)) : ((Nat * (List UInt8)) * Bool))))),
+  executable: true
+}
+
+definition{
+  name: parseI128,
+  parameters: [text : Bytes],
+  result: (Result I128 Unit),
+  body: (let negative : Bool := (LexLeanStd.Text::startsWith text (AxiomOutput::text "-")); (let unsigned : Bytes := (if (if negative then true else (LexLeanStd.Text::startsWith text (AxiomOutput::text "+"))) then (LexLeanStd.Text::sliceOr text 1 (prim subtract (prim length text : Nat) 1 : Nat)) else text); (if ((prim length unsigned : Nat) =? 0) then (ctor Result.error [I128, Unit] ()) else (if (AxiomOutput::allDigits unsigned) then (let stripped : Bytes := (AxiomOutput::significant unsigned); (let digits : Bytes := (if ((prim length stripped : Nat) =? 0) then (AxiomOutput::text "0") else stripped); (if (magnitudeLe digits (if negative then (AxiomOutput::text "170141183460469231731687303715884105728") else (AxiomOutput::text "170141183460469231731687303715884105727"))) then (ctor Result.ok [I128, Unit] (i128Big negative digits)) else (ctor Result.error [I128, Unit] ())))) else (ctor Result.error [I128, Unit] ()))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: range,
+  parameters: [low : Nat, high : Nat],
+  result: (List Nat),
+  body: (AxiomOutput::reversed [Nat] (second (first (prim iterate_until (fun [high] (state : (Nat * (List Nat))) => (if ((first state) <? high) then (ctor Option.some [(Nat * (List Nat))] (((first state) + 1), (cons (first state) (second state)))) else (ctor Option.none [(Nat * (List Nat))]))) (prim subtract high low : Nat) (low, (nil Nat)) : ((Nat * (List Nat)) * Bool))))),
+  executable: true
+}
+
+definition{
+  name: takeN,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item), count : Nat],
+  result: (List 'Item),
+  body: (AxiomOutput::reversed ['Item] (second (prim list_fold (fun [count] (state : (Nat * (List 'Item))) (item : 'Item) => (if ((first state) <? count) then (((first state) + 1), (cons item (second state))) else state)) (0, (nil 'Item)) items : (Nat * (List 'Item))))),
+  executable: true
+}
+
+definition{
+  name: dropN,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item), count : Nat],
+  result: (List 'Item),
+  body: (AxiomOutput::reversed ['Item] (second (prim list_fold (fun [count] (state : (Nat * (List 'Item))) (item : 'Item) => (if ((first state) <? count) then (((first state) + 1), (second state)) else ((first state), (cons item (second state))))) (0, (nil 'Item)) items : (Nat * (List 'Item))))),
+  executable: true
+}
+
+definition{
+  name: splitAt,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item), count : Nat],
+  result: ((List 'Item) * (List 'Item)),
+  body: ((takeN ['Item] items count), (dropN ['Item] items count)),
+  executable: true
+}
+
+definition{
+  name: lastOf,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item)],
+  result: (Option 'Item),
+  body: (headOf ['Item] (AxiomOutput::reversed ['Item] items)),
+  executable: true
+}
+
+definition{
+  name: dropLast,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item)],
+  result: (List 'Item),
+  body: (AxiomOutput::reversed ['Item] (tailOf ['Item] (AxiomOutput::reversed ['Item] items))),
+  executable: true
+}
+
+definition{
+  name: appendList,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item), more : (List 'Item)],
+  result: (List 'Item),
+  body: (prim list_fold (fun (acc : (List 'Item)) (item : 'Item) => (cons item acc)) more (AxiomOutput::reversed ['Item] items) : (List 'Item)),
+  executable: true
+}
+
+definition{
+  name: concat,
+  type_parameters: [Item],
+  parameters: [lists : (List (List 'Item))],
+  result: (List 'Item),
+  body: (prim list_fold (fun (acc : (List 'Item)) (items : (List 'Item)) => (appendList ['Item] acc items)) (nil 'Item) lists : (List 'Item)),
+  executable: true
+}
+
+definition{
+  name: enumerate,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item)],
+  result: (List (Nat * 'Item)),
+  body: (AxiomOutput::reversed [(Nat * 'Item)] (second (prim list_fold (fun (state : (Nat * (List (Nat * 'Item)))) (item : 'Item) => (((first state) + 1), (cons ((first state), item) (second state)))) (0, (nil (Nat * 'Item))) items : (Nat * (List (Nat * 'Item)))))),
+  executable: true
+}
+
+definition{
+  name: unicodeEscape,
+  parameters: [code : Nat],
+  result: Bytes,
+  body: (AxiomOutput::cat (AxiomOutput::cat (AxiomOutput::text "\\u{") (LexLeanStd.Numeral::hexNat code)) (AxiomOutput::text "}")),
+  executable: true
+}
+
+definition{
+  name: escapeAt,
+  parameters: [subject : Bytes, position : Nat],
+  result: (Nat * Bytes),
+  body: (let byte : Nat := (match (LexLeanStd.Text::byteAt subject position)
+    | Option.some b => (prim to_nat b : Nat)
+    | Option.none => 0); (let next : Nat := (match (LexLeanStd.Text::byteAt subject (position + 1))
+    | Option.some b => (prim to_nat b : Nat)
+    | Option.none => 0); (if (byte =? 34) then (1, (AxiomOutput::text "\\\"")) else (if (byte =? 92) then (1, (AxiomOutput::text "\\\\")) else (if (byte =? 10) then (1, (AxiomOutput::text "\\n")) else (if (byte =? 13) then (1, (AxiomOutput::text "\\r")) else (if (byte =? 9) then (1, (AxiomOutput::text "\\t")) else (if (byte =? 0) then (1, (AxiomOutput::text "\\0")) else (if (byte <? 32) then (1, (unicodeEscape byte)) else (if (byte =? 127) then (1, (unicodeEscape byte)) else (if (if (byte =? 194) then (if (128 <=? next) then (next <=? 159) else false) else false) then (2, (unicodeEscape next)) else (1, (LexLeanStd.Text::sliceOr subject position 1))))))))))))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: debugStr,
+  parameters: [subject : Bytes],
+  result: Bytes,
+  body: (AxiomOutput::cat (AxiomOutput::cat (AxiomOutput::text "\"") (second (first (prim iterate_until (fun [subject] (state : (Nat * Bytes)) => (if ((first state) <? (prim length subject : Nat)) then (let piece : (Nat * Bytes) := (escapeAt subject (first state)); (ctor Option.some [(Nat * Bytes)] (((first state) + (first piece)), (AxiomOutput::cat (second state) (second piece))))) else (ctor Option.none [(Nat * Bytes)]))) (prim length subject : Nat) (0, 0x) : ((Nat * Bytes) * Bool))))) (AxiomOutput::text "\"")),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: i128Neg,
+  parameters: [value : I128],
+  result: I128,
+  body: (i128Big (not (project value negative)) (project value digits)),
+  executable: true
+}
+
+definition{
+  name: natsOf,
+  parameters: [subject : Bytes],
+  result: (List Nat),
+  body: (AxiomOutput::reversed [Nat] (prim list_fold (fun (acc : (List Nat)) (byte : UInt8) => (cons (prim to_nat byte : Nat) acc)) (nil Nat) (bytesOf subject) : (List Nat))),
+  executable: true
+}
+
+definition{
+  name: joinWith,
+  parameters: [items : (List Bytes), separator : Bytes],
+  result: Bytes,
+  body: (second (prim list_fold (fun [separator] (state : (Bool * Bytes)) (item : Bytes) => (if (first state) then (false, item) else (false, (AxiomOutput::cat (AxiomOutput::cat (second state) separator) item)))) (true, 0x) items : (Bool * Bytes))),
+  executable: true
+}
+
+definition{
+  name: splitStrStep,
+  parameters: [separator : Bytes, state : (Bytes * (List Bytes))],
+  result: (Option (Bytes * (List Bytes))),
+  body: (match (LexLeanStd.Text::find (first state) separator)
+    | Option.some at => (ctor Option.some [(Bytes * (List Bytes))] ((LexLeanStd.Text::sliceOr (first state) (at + (prim length separator : Nat)) (prim subtract (prim length (first state) : Nat) (at + (prim length separator : Nat)) : Nat)), (cons (LexLeanStd.Text::sliceOr (first state) 0 at) (second state))))
+    | Option.none => (ctor Option.none [(Bytes * (List Bytes))])),
+  executable: true
+}
+
+definition{
+  name: splitStr,
+  parameters: [subject : Bytes, separator : Bytes],
+  result: (List Bytes),
+  body: (let last : (Bytes * (List Bytes)) := (first (prim iterate_until (fun [separator] (state : (Bytes * (List Bytes))) => (splitStrStep separator state)) ((prim length subject : Nat) + 1) (subject, (nil Bytes)) : ((Bytes * (List Bytes)) * Bool))); (AxiomOutput::reversed [Bytes] (cons (first last) (second last)))),
+  executable: true
+}
+
+definition{
+  name: replaceAll,
+  parameters: [subject : Bytes, from : Bytes, to : Bytes],
+  result: Bytes,
+  body: (joinWith (splitStr subject from) to),
+  executable: true
+}
+
+definition{
+  name: repeatItem,
+  type_parameters: [Item],
+  parameters: [item : 'Item, count : Nat],
+  result: (List 'Item),
+  body: (second (first (prim iterate_until (fun [count, item] (state : (Nat * (List 'Item))) => (if ((first state) <? count) then (ctor Option.some [(Nat * (List 'Item))] (((first state) + 1), (cons item (second state)))) else (ctor Option.none [(Nat * (List 'Item))]))) count (0, (nil 'Item)) : ((Nat * (List 'Item)) * Bool)))),
+  executable: true
+}
+
+definition{
+  name: repeatBytes,
+  parameters: [subject : Bytes, count : Nat],
+  result: Bytes,
+  body: (joinWith (repeatItem [Bytes] subject count) 0x),
+  executable: true
+}
+
+definition{
+  name: unzip,
+  type_parameters: [Left, Right],
+  parameters: [pairs : (List ('Left * 'Right))],
+  result: ((List 'Left) * (List 'Right)),
+  body: (let both : ((List 'Left) * (List 'Right)) := (prim list_fold (fun (acc : ((List 'Left) * (List 'Right))) (pair : ('Left * 'Right)) => ((cons (first pair) (first acc)), (cons (second pair) (second acc)))) ((nil 'Left), (nil 'Right)) pairs : ((List 'Left) * (List 'Right))); ((AxiomOutput::reversed ['Left] (first both)), (AxiomOutput::reversed ['Right] (second both)))),
+  executable: true
+}
+
+definition{
+  name: splitFirst,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item)],
+  result: (Option ('Item * (List 'Item))),
+  body: (match items | List.nil => (ctor Option.none [('Item * (List 'Item))]) | List.cons head tail => (ctor Option.some [('Item * (List 'Item))] (head, tail))),
+  executable: true
+}
+
+definition{
+  name: splitLast,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item)],
+  result: (Option ('Item * (List 'Item))),
+  body: (match (AxiomOutput::reversed ['Item] items) | List.nil => (ctor Option.none [('Item * (List 'Item))]) | List.cons head tail => (ctor Option.some [('Item * (List 'Item))] (head, (AxiomOutput::reversed ['Item] tail)))),
+  executable: true
+}
+
+definition{
+  name: windows,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item), size : Nat],
+  result: (List (List 'Item)),
+  body: (AxiomOutput::reversed [(List 'Item)] (prim list_fold (fun [items, size] (acc : (List (List 'Item))) (start : Nat) => (cons (takeN ['Item] (dropN ['Item] items start) size) acc)) (nil (List 'Item)) (range 0 (prim subtract ((AxiomOutput::listLength ['Item] items) + 1) size : Nat)) : (List (List 'Item)))),
+  executable: true
+}
+
+definition{
+  name: insertAt,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item), index : Nat, item : 'Item],
+  result: (List 'Item),
+  body: (appendList ['Item] (takeN ['Item] items index) (cons item (dropN ['Item] items index))),
+  executable: true
+}
+
+definition{
+  name: removeAt,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item), index : Nat],
+  result: (List 'Item),
+  body: (appendList ['Item] (takeN ['Item] items index) (dropN ['Item] items (index + 1))),
+  executable: true
+}
+
+definition{
+  name: setAt,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item), index : Nat, item : 'Item],
+  result: (List 'Item),
+  body: (appendList ['Item] (takeN ['Item] items index) (cons item (dropN ['Item] items (index + 1)))),
+  executable: true
+}
+
+definition{
+  name: parseUnsigned,
+  parameters: [text : Bytes, maximum : Nat],
+  result: (Result Nat Unit),
+  body: (let unsigned : Bytes := (if (LexLeanStd.Text::startsWith text (AxiomOutput::text "+")) then (LexLeanStd.Text::sliceOr text 1 (prim subtract (prim length text : Nat) 1 : Nat)) else text); (if ((prim length unsigned : Nat) =? 0) then (ctor Result.error [Nat, Unit] ()) else (if (AxiomOutput::allDigits unsigned) then (let stripped : Bytes := (AxiomOutput::significant unsigned); (let digits : Bytes := (if ((prim length stripped : Nat) =? 0) then (AxiomOutput::text "0") else stripped); (if (magnitudeLe digits (AxiomOutput::decimal maximum)) then (ctor Result.ok [Nat, Unit] (prim list_fold (fun (acc : Nat) (byte : UInt8) => ((prim multiply acc 10 : Nat) + (LexLeanStd.Numeral::decimalValue byte))) 0 (bytesOf digits) : Nat)) else (ctor Result.error [Nat, Unit] ())))) else (ctor Result.error [Nat, Unit] ())))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: natToInt64,
+  parameters: [value : Nat],
+  result: Int64,
+  body: (match (prim utf8_decode (AxiomOutput::decimal value) : (Option String)) | Option.some digits => (match (prim parse_decimal digits : (Option Int64)) | Option.some wide => wide | Option.none => (0 : Int64)) | Option.none => (0 : Int64)),
+  executable: true
+}
+
+definition{
+  name: natToInt32,
+  parameters: [value : Nat],
+  result: Int32,
+  body: (match (prim utf8_decode (AxiomOutput::decimal value) : (Option String)) | Option.some digits => (match (prim parse_decimal digits : (Option Int32)) | Option.some wide => wide | Option.none => (0 : Int32)) | Option.none => (0 : Int32)),
+  executable: true
+}
+
+definition{
+  name: natToInt16,
+  parameters: [value : Nat],
+  result: Int16,
+  body: (match (prim utf8_decode (AxiomOutput::decimal value) : (Option String)) | Option.some digits => (match (prim parse_decimal digits : (Option Int16)) | Option.some wide => wide | Option.none => (0 : Int16)) | Option.none => (0 : Int16)),
+  executable: true
+}
+
+definition{
+  name: natToInt8,
+  parameters: [value : Nat],
+  result: Int8,
+  body: (match (prim utf8_decode (AxiomOutput::decimal value) : (Option String)) | Option.some digits => (match (prim parse_decimal digits : (Option Int8)) | Option.some wide => wide | Option.none => (0 : Int8)) | Option.none => (0 : Int8)),
+  executable: true
+}
+
+definition{
+  name: natOfDecimal,
+  parameters: [digits : Bytes],
+  result: Nat,
+  body: (match (parseUnsigned digits 18446744073709551615) | Result.ok value => value | Result.error failure => 0),
+  executable: true
+}
+
+definition{
+  name: parseInt64,
+  parameters: [text : Bytes],
+  result: (Result Int64 Unit),
+  body: (match (prim utf8_decode text : (Option String)) | Option.some decoded => (match (prim parse_decimal decoded : (Option Int64)) | Option.some value => (ctor Result.ok [Int64, Unit] value) | Option.none => (ctor Result.error [Int64, Unit] ())) | Option.none => (ctor Result.error [Int64, Unit] ())),
+  executable: true
+}
+
+definition{
+  name: parseInt32,
+  parameters: [text : Bytes],
+  result: (Result Int32 Unit),
+  body: (match (prim utf8_decode text : (Option String)) | Option.some decoded => (match (prim parse_decimal decoded : (Option Int32)) | Option.some value => (ctor Result.ok [Int32, Unit] value) | Option.none => (ctor Result.error [Int32, Unit] ())) | Option.none => (ctor Result.error [Int32, Unit] ())),
+  executable: true
+}
+definition{
+  name: natKey,
+  parameters: [number : Nat],
+  result: Bytes,
+  body: (prim append (AxiomOutput::digit number 10000000000000000000) (prim append (AxiomOutput::digit number 1000000000000000000) (prim append (AxiomOutput::digit number 100000000000000000) (prim append (AxiomOutput::digit number 10000000000000000) (prim append (AxiomOutput::digit number 1000000000000000) (prim append (AxiomOutput::digit number 100000000000000) (prim append (AxiomOutput::digit number 10000000000000) (prim append (AxiomOutput::digit number 1000000000000) (prim append (AxiomOutput::digit number 100000000000) (prim append (AxiomOutput::digit number 10000000000) (prim append (AxiomOutput::digit number 1000000000) (prim append (AxiomOutput::digit number 100000000) (prim append (AxiomOutput::digit number 10000000) (prim append (AxiomOutput::digit number 1000000) (prim append (AxiomOutput::digit number 100000) (prim append (AxiomOutput::digit number 10000) (prim append (AxiomOutput::digit number 1000) (prim append (AxiomOutput::digit number 100) (prim append (AxiomOutput::digit number 10) (AxiomOutput::digit number 1) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes) : Bytes),
+  executable: true
+}
+
+definition{
+  name: utf8Chars,
+  parameters: [subject : Bytes],
+  result: (List Bytes),
+  body: (AxiomOutput::reversed [Bytes] (second (first (prim iterate_until (fun [subject] (state : (Nat * (List Bytes))) => (match (LexLeanStd.Text::byteAt subject (first state)) | Option.some byte => (let lead : Nat := (prim to_nat byte : Nat); (let width : Nat := (if (lead <? 128) then 1 else (if (lead <? 224) then 2 else (if (lead <? 240) then 3 else 4))); (ctor Option.some [(Nat * (List Bytes))] (((first state) + width), (cons (LexLeanStd.Text::sliceOr subject (first state) width) (second state)))))) | Option.none => (ctor Option.none [(Nat * (List Bytes))]))) (prim length subject : Nat) (0, (nil Bytes)) : ((Nat * (List Bytes)) * Bool))))),
+  executable: true
+}
+
+definition{
+  name: charIndices,
+  parameters: [subject : Bytes],
+  result: (List (Nat * Bytes)),
+  body: (AxiomOutput::reversed [(Nat * Bytes)] (second (first (prim iterate_until (fun [subject] (state : (Nat * (List (Nat * Bytes)))) => (match (LexLeanStd.Text::byteAt subject (first state)) | Option.some byte => (let lead : Nat := (prim to_nat byte : Nat); (let width : Nat := (if (lead <? 128) then 1 else (if (lead <? 224) then 2 else (if (lead <? 240) then 3 else 4))); (ctor Option.some [(Nat * (List (Nat * Bytes)))] (((first state) + width), (cons ((first state), (LexLeanStd.Text::sliceOr subject (first state) width)) (second state)))))) | Option.none => (ctor Option.none [(Nat * (List (Nat * Bytes)))]))) (prim length subject : Nat) (0, (nil (Nat * Bytes))) : ((Nat * (List (Nat * Bytes))) * Bool))))),
+  executable: true
+}
+
+definition{
+  name: asciiByte,
+  parameters: [c : Bytes],
+  result: (Option Nat),
+  body: (if ((prim length c : Nat) =? 1) then (match (LexLeanStd.Text::byteAt c 0) | Option.some byte => (if ((prim to_nat byte : Nat) <? 128) then (ctor Option.some [Nat] (prim to_nat byte : Nat)) else (ctor Option.none [Nat])) | Option.none => (ctor Option.none [Nat])) else (ctor Option.none [Nat])),
+  executable: true
+}
+
+definition{
+  name: isWhitespaceChar,
+  parameters: [c : Bytes],
+  result: Bool,
+  body: (if ((prim length c : Nat) =? 0) then false else ((AxiomOutput::whiteLength c 0) =? (prim length c : Nat))),
+  axioms: [Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: i128Wide,
+  parameters: [negative : Bool, magnitude : Nat],
+  result: I128,
+  body: (let made : Bytes := (second (first (prim iterate_until (fun (state : (Nat * Bytes)) => (if ((first state) =? 0) then (ctor Option.none [(Nat * Bytes)]) else (ctor Option.some [(Nat * Bytes)] ((prim quotient (first state) 10 0 : Nat), (prim append (AxiomOutput::digit (first state) 1) (second state) : Bytes))))) 80 (magnitude, (AxiomOutput::text "")) : ((Nat * Bytes) * Bool)))); (i128Big negative (if ((prim length made : Nat) =? 0) then (AxiomOutput::text "0") else made))),
+  executable: true
+}
+
+definition{
+  name: i128Text,
+  parameters: [value : I128],
+  result: Bytes,
+  body: (if (project value negative) then (AxiomOutput::cat (AxiomOutput::text "-") (project value digits)) else (project value digits)),
+  executable: true
+}
+
+definition{
+  name: i128Mag,
+  parameters: [value : I128],
+  result: Nat,
+  body: (prim list_fold (fun (acc : Nat) (byte : UInt8) => ((prim multiply acc 10 : Nat) + (prim subtract (prim to_nat byte : Nat) 48 : Nat))) 0 (bytesOf (project value digits)) : Nat),
+  executable: true
+}
+
+definition{
+  name: i128Add,
+  parameters: [left : I128, right : I128],
+  result: I128,
+  body: (let a : Nat := (i128Mag left); (let b : Nat := (i128Mag right); (if (if (project left negative) then (project right negative) else (not (project right negative))) then (i128Wide (project left negative) (a + b)) else (if (b <=? a) then (i128Wide (project left negative) (prim subtract a b : Nat)) else (i128Wide (project right negative) (prim subtract b a : Nat)))))),
+  executable: true
+}
+
+definition{
+  name: i128Sub,
+  parameters: [left : I128, right : I128],
+  result: I128,
+  body: (i128Add left (i128Neg right)),
+  executable: true
+}
+
+definition{
+  name: i128Mul,
+  parameters: [left : I128, right : I128],
+  result: I128,
+  body: (i128Wide (if (project left negative) then (not (project right negative)) else (project right negative)) (prim multiply (i128Mag left) (i128Mag right) : Nat)),
+  executable: true
+}
+
+definition{
+  name: i128Div,
+  parameters: [left : I128, right : I128],
+  result: I128,
+  body: (i128Wide (if (project left negative) then (not (project right negative)) else (project right negative)) (prim quotient (i128Mag left) (i128Mag right) 0 : Nat)),
+  executable: true
+}
+
+definition{
+  name: i128Rem,
+  parameters: [left : I128, right : I128],
+  result: I128,
+  body: (i128Wide (project left negative) (prim remainder (i128Mag left) (i128Mag right) 0 : Nat)),
+  executable: true
+}
+
+definition{
+  name: i128RemEuclid,
+  parameters: [left : I128, right : I128],
+  result: I128,
+  body: (let b : Nat := (i128Mag right); (let r : Nat := (prim remainder (i128Mag left) b 0 : Nat); (if (project left negative) then (if (r =? 0) then (i128Wide false 0) else (i128Wide false (prim subtract b r : Nat))) else (i128Wide false r)))),
+  executable: true
+}
+
+definition{
+  name: i128Shl,
+  parameters: [value : I128, bits : Nat],
+  result: I128,
+  body: (i128Wide (project value negative) (prim multiply (i128Mag value) (prim list_fold (fun (acc : Nat) (step : Nat) => (prim multiply acc 2 : Nat)) 1 (range 0 bits) : Nat) : Nat)),
+  executable: true
+}
+
+definition{
+  name: radixText,
+  parameters: [number : Nat, digits : Bytes, width : Nat],
+  result: Bytes,
+  body: (let made : Bytes := (second (first (prim iterate_until (fun [digits] (state : (Nat * Bytes)) => (if ((first state) =? 0) then (ctor Option.none [(Nat * Bytes)]) else (ctor Option.some [(Nat * Bytes)] ((prim quotient (first state) (prim length digits : Nat) 0 : Nat), (prim append (LexLeanStd.Text::sliceOr digits (prim remainder (first state) (prim length digits : Nat) 0 : Nat) 1) (second state) : Bytes))))) 130 (number, (AxiomOutput::text "")) : ((Nat * Bytes) * Bool)))); (let shown : Bytes := (if ((prim length made : Nat) =? 0) then (LexLeanStd.Text::sliceOr digits 0 1) else made); (prim list_fold (fun [digits] (acc : Bytes) (step : Nat) => (prim append (LexLeanStd.Text::sliceOr digits 0 1) acc : Bytes)) shown (range (prim length shown : Nat) width) : Bytes))),
+  executable: true
+}
+
+definition{
+  name: rfindStr,
+  parameters: [subject : Bytes, pattern : Bytes],
+  result: (Option Nat),
+  body: (let width : Nat := (prim length pattern : Nat); (if ((prim length subject : Nat) <? width) then (ctor Option.none [Nat]) else (prim list_fold (fun [pattern, subject, width] (acc : (Option Nat)) (at : Nat) => (if (prim equal (LexLeanStd.Text::sliceOr subject at width) pattern : Bool) then (ctor Option.some [Nat] at) else acc)) (ctor Option.none [Nat]) (range 0 ((prim subtract (prim length subject : Nat) width : Nat) + 1)) : (Option Nat)))),
+  axioms: [propext],
+  executable: true
+}
+
+definition{
+  name: rsplitStr,
+  parameters: [subject : Bytes, pattern : Bytes],
+  result: (List Bytes),
+  body: (let width : Nat := (prim length pattern : Nat); (let final : (Bytes * (List Bytes)) := (first (prim iterate_until (fun [pattern, width] (state : (Bytes * (List Bytes))) => (let rest : Bytes := (first state); (match (rfindStr rest pattern) | Option.some at => (ctor Option.some [(Bytes * (List Bytes))] ((LexLeanStd.Text::sliceOr rest 0 at), (cons (LexLeanStd.Text::sliceOr rest (at + width) (prim subtract (prim length rest : Nat) (at + width) : Nat)) (second state)))) | Option.none => (ctor Option.none [(Bytes * (List Bytes))])))) ((prim length subject : Nat) + 1) (subject, (nil Bytes)) : ((Bytes * (List Bytes)) * Bool))); (appendList [Bytes] (AxiomOutput::reversed [Bytes] (second final)) (cons (first final) (nil Bytes))))),
+  executable: true
+}
+
+definition{
+  name: chunksExact,
+  type_parameters: [Item],
+  parameters: [items : (List 'Item), size : Nat],
+  result: (List (List 'Item)),
+  body: (if (size =? 0) then (nil (List 'Item)) else (AxiomOutput::reversed [(List 'Item)] (second (first (prim iterate_until (fun [size] (state : ((List 'Item) * (List (List 'Item)))) => (if ((AxiomOutput::listLength ['Item] (first state)) <? size) then (ctor Option.none [((List 'Item) * (List (List 'Item)))]) else (ctor Option.some [((List 'Item) * (List (List 'Item)))] ((dropN ['Item] (first state) size), (cons (takeN ['Item] (first state) size) (second state)))))) ((AxiomOutput::listLength ['Item] items) + 1) (items, (nil (List 'Item))) : (((List 'Item) * (List (List 'Item))) * Bool)))))),
+  executable: true
+}
+
+definition{
+  name: charCode,
+  parameters: [c : Bytes],
+  result: Nat,
+  body: (prim list_fold (fun (acc : Nat) (byte : UInt8) => (let n : Nat := (prim to_nat byte : Nat); (if (n <? 128) then n else (if (n <? 192) then ((prim multiply acc 64 : Nat) + (prim subtract n 128 : Nat)) else (if (n <? 224) then (prim subtract n 192 : Nat) else (if (n <? 240) then (prim subtract n 224 : Nat) else (prim subtract n 240 : Nat))))))) 0 (bytesOf c) : Nat),
+  executable: true
+}
+
+definition{
+  name: isC1Control,
+  parameters: [c : Bytes],
+  result: Bool,
+  body: (if ((prim length c : Nat) =? 2) then (match (LexLeanStd.Text::byteAt c 0) | Option.some lead => (if ((prim to_nat lead : Nat) =? 194) then (match (LexLeanStd.Text::byteAt c 1) | Option.some next => (if (127 <? (prim to_nat next : Nat)) then ((prim to_nat next : Nat) <? 160) else false) | Option.none => false) else false) | Option.none => false) else false),
+  executable: true
+}
+
+\end{semanticmodule}
+\end{lexlean}
