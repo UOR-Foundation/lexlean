@@ -223,6 +223,10 @@ for na, x, nb, y, bits in wide_cases:
     a, b = (-x if na else x), (-y if nb else y)
     q = abs(a) // abs(b) * (-1 if (a < 0) != (b < 0) else 1)
     out.append('wide ' + hx(';'.join(map(str, [a + b, a - b, a * b, q, a - q * b, a % abs(b), (1 << bits) - a]))))
+# hex_probe: hexadecimal and zero-padded numbers
+hex_cases = [(n, t) for n, (t, _) in zip([0, 1, 9, 10, 15, 16, 255, 256, 4095, 4096, 65535, 65536, 1048576, 3735928559, 2**40 + 11], range_cases + range_cases)]
+for n, t in hex_cases:
+    out.append('hex ' + hx(f'{n:04X}|{n:04x}|{n:02x}|{n:x}|{n:03}|' + ''.join(f'\\u{ord(c):04x}' for c in t)))
 # writeback_probe: writes through a `&mut` to an element, on every way out of the body
 writeback_cases = [([rng.randrange(0, 9) for _ in range(rng.randrange(0, 7))], rng.randrange(0, 9)) for _ in range(200)]
 for xs, stop in writeback_cases:
@@ -358,6 +362,8 @@ lean += ['',
          '    IO.println ("range " ++ js r.1 ++ ";" ++ js r.2.1 ++ ";" ++ js r.2.2.1 ++ ";" ++ js r.2.2.2)',
          '  for (na, x, nb, y, bits) in wideCases do',
          '    IO.println ("wide " ++ hx (fWideProbe na x nb y bits))',
+         '  for (n, t) in hexCases do',
+         '    IO.println ("hex " ++ hx (fHexProbe n t))',
          '  for (xs, stop) in writebackCases do',
          '    let r := fWritebackProbe xs stop',
          '    IO.println ("writeback " ++ String.intercalate "," (r.1.map toString) ++ ";" ++ String.intercalate "|" (r.2.1.map fun row => String.intercalate "," (row.map toString)) ++ ";" ++ toString r.2.2.1 ++ ";" ++ String.intercalate "," (r.2.2.2.1.map toString) ++ ";" ++ toString r.2.2.2.2)',
@@ -366,6 +372,7 @@ at = next(i for i, line in enumerate(lean) if line.startswith('def shadowCases')
 lean.insert(at, 'def nestedCases : List (List (List Nat)) := ' + lean_list([lean_list([lean_list([str(x) for x in row]) for row in rows]) for rows in nested_cases]))
 lean.insert(at, 'def rangeCases : List (ByteArray × Nat) := ' + lean_list([f'({lean_bytes(t)}, {k})' for t, k in range_cases]))
 lean.insert(at, 'def wideCases : List (Bool × Nat × Bool × Nat × Nat) := ' + lean_list([f'({str(na).lower()}, {x}, {str(nb).lower()}, {y}, {bits})' for na, x, nb, y, bits in wide_cases]))
+lean.insert(at, 'def hexCases : List (Nat × ByteArray) := ' + lean_list([f'({n}, {lean_bytes(t)})' for n, t in hex_cases]))
 lean.insert(at, 'def writebackCases : List (List Nat × Nat) := ' + lean_list([f'({lean_list([str(x) for x in xs])}, {stop})' for xs, stop in writeback_cases]))
 if typed_cases:
     lean[-1:] = ['  for xs in typedCases do',

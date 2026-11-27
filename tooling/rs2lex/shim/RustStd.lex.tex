@@ -647,6 +647,14 @@ definition{
 }
 
 definition{
+  name: radixText,
+  parameters: [number : Nat, digits : Bytes, width : Nat],
+  result: Bytes,
+  body: (let made : Bytes := (second (first (prim iterate_until (fun [digits] (state : (Nat * Bytes)) => (if ((first state) =? 0) then (ctor Option.none [(Nat * Bytes)]) else (ctor Option.some [(Nat * Bytes)] ((prim quotient (first state) (prim length digits : Nat) 0 : Nat), (prim append (LexLeanStd.Text::sliceOr digits (prim remainder (first state) (prim length digits : Nat) 0 : Nat) 1) (second state) : Bytes))))) 130 (number, (AxiomOutput::text "")) : ((Nat * Bytes) * Bool)))); (let shown : Bytes := (if ((prim length made : Nat) =? 0) then (LexLeanStd.Text::sliceOr digits 0 1) else made); (prim list_fold (fun [digits] (acc : Bytes) (step : Nat) => (prim append (LexLeanStd.Text::sliceOr digits 0 1) acc : Bytes)) shown (range (prim length shown : Nat) width) : Bytes))),
+  executable: true
+}
+
+definition{
   name: charCode,
   parameters: [c : Bytes],
   result: Nat,

@@ -1782,8 +1782,11 @@ class Translator:
             if e[1] == 'code': return k(text(e[2][0][1]), BYTES, env)
             if e[1] != 'format': raise Unsupported(f'macro {e[1]}!')
             fmt = e[2][0][1].replace('{{', '').replace('}}', '')
-            if re.search(r'\{[^}]*:[^?}][^}]*\}|\{\d+\}', fmt): raise Unsupported('a format spec beyond {} and {:?}')
-            pieces = [p.replace('', '{').replace('', '}') if p else p for p in re.split(r'\{(\w*)(:\?)?\}', fmt)]
+            # beyond `{}` and `{:?}`: a number in hexadecimal, and one padded with zeros to a width (`{:04x}`, `{:03}`)
+            SPEC = r':\?|:0\d+[xX]?|:[xX]'
+            if re.search(r'\{\d+\}', fmt) or any(not re.fullmatch(SPEC, spec) for spec in re.findall(r'\{[^}:]*(:[^}]*)\}', fmt)):
+                raise Unsupported('a format spec beyond {} and {:?}')
+            pieces = [p.replace('', '{').replace('', '}') if p else p for p in re.split(r'\{(\w*)(' + SPEC + r')?\}', fmt)]
             pos = list(e[2][1:]); parts = []
             if sum(1 for i in range(1, len(pieces), 3) if not pieces[i]) != len(pos): raise Unsupported('format arguments do not match the format string')
             for i in range(0, len(pieces), 3):
@@ -1796,6 +1799,11 @@ class Translator:
                     t = T.nat(t)
                     if mode is None: out.append(('s', ast[1]))
                     elif mode == ':?': out.append(self.debug_value(v, t))
+                    elif mode:
+                        if t == UINT8: v, t = f'(prim to_nat {v} : Nat)', NAT
+                        if t != NAT: raise Unsupported(f'the format spec {{{mode}}} on {show(t)}')
+                        digits = '0123456789ABCDEF' if mode.endswith('X') else '0123456789abcdef' if mode.endswith('x') else '0123456789'
+                        out.append(f'(RustStd::radixText {v} {text(digits)} {int(mode.strip(":xX") or 0)})')
                     elif t == NAT: out.append(f'(AxiomOutput::decimal {v})')
                     elif t == BYTES: out.append(v)
                     else: out.append(self.display(v, t))

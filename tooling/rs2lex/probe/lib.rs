@@ -567,3 +567,9 @@ pub fn wide_probe(na: bool, x: u64, nb: bool, y: u64, bits: u32) -> String {
     let modulus = 1_i128 << bits;
     format!("{};{};{};{};{};{};{}", a + b, a - b, a * b, a / b, a % b, a.rem_euclid(b), modulus - a)
 }
+
+/// numbers in hexadecimal of either case and padded with zeros to a width, and a code point so written.
+pub fn hex_probe(n: usize, s: String) -> String {
+    let codes: Vec<String> = s.chars().map(|c| format!("\\u{:04x}", c as u32)).collect();
+    format!("{:04X}|{:04x}|{n:02x}|{:x}|{n:03}|{}", n, n, n, codes.join(""))
+}
