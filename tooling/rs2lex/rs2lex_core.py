@@ -798,6 +798,17 @@ class Types:
 
 KEYWORDS = set('let if match fun forall nil cons first second not apply ctor record project prim ref checked then else with true false'.split())
 KEYWORDS |= set('id ite dite cond absurd flip default decide panic toString repr max min compare pure bind map seq fst snd get set modify and or xor sorry rfl trivial show have at by do from in open end section namespace instance class structure inductive def theorem lemma example variable universe mutual where deriving return for unless mut try catch finally break continue this Type Prop Sort some none ok error unit private public protected noncomputable partial unsafe opaque abbrev attribute export local scoped macro syntax notation infix prefix postfix calc suffices obtain Id Option List Nat String Bool Unit Int Array ByteArray Except Prod Sum'.split())   # Lean names a binder must not shadow
+# and every word Lean reserves, from the compiler's own list of them: a binder may be none of these
+def _lean_reserved():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'crates', 'lexlean', 'src', 'backend', 'lean_tokens.rs')
+    try: text = open(path, encoding='utf-8').read()
+    except OSError: return set()
+    block = text[text.index('LEAN_RESERVED_TOKENS'):]
+    block = block[:block.index('];')]
+    return {w for w in re.findall(r'"([^"]+)"', block) if re.fullmatch(r'[A-Za-z_][A-Za-z_0-9]*', w)}
+KEYWORDS |= _lean_reserved()
+# and the words LexLean refuses as any name (legal_name in crates/lexlean/src/ir/semantic.rs)
+KEYWORDS |= {'axiom', 'opaque', 'partial', 'unsafe', 'noncomputable', 'termination_by', 'sorry', 'admit'}
 MUTATORS = {'write_str', 'write_char', 'push', 'push_str', 'insert', 'sort', 'next', 'pop', 'truncate', 'extend', 'remove', 'retain', 'clear', 'dedup', 'sort_unstable', 'sort_by', 'sort_by_key', 'sort_unstable_by', 'extend_from_slice', 'append', 'swap', 'reverse', 'take', 'insert_str', 'push_back', 'push_front', 'pop_front', 'pop_back', 'drain'}
 FRESH_ITERATORS = {'chars', 'bytes', 'char_indices', 'iter', 'into_iter', 'lines', 'split', 'split_whitespace', 'rev', 'skip',
                    'take', 'peekable', 'enumerate', 'map', 'filter', 'zip', 'chain', 'rsplit', 'splitn', 'windows', 'chunks'}
