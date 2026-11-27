@@ -2663,6 +2663,7 @@ pub fn plant_renderings(renderings: &[Rendering]) -> Vec<(RustPlanted, Vec<(Stri
                         .as_ref()
                         .expect("certificate B is data"),
                     &rendering.certificate.module,
+                    &rendering.program,
                     &mutated,
                 )
                 .expect("the derivation is restated over the mutated crate"),

@@ -1509,14 +1509,78 @@ pub fn crates_module(module: &str, crates: &[&Crate]) -> Result<(CoreModule, Str
     Ok((data, text))
 }
 
+/// The crate's own rows of certificate B for `program` and `krate`: the
+/// program, the crate, the crate items' suffixes, the steps of
+/// `findFunction`, its chain, and each function's fallibility (SPEC.md
+/// §17.17, *Lookups*). They state facts of the crate alone, decided from it.
+fn crate_rows(program: &Program, krate: &Crate, module: &str) -> Result<CoreModule, String> {
+    let modules = BTreeMap::new();
+    let layout = Layout {
+        functions: Vec::new(),
+        adts: Vec::new(),
+    };
+    let mut generator = Gen {
+        source: Source { modules: &modules },
+        layout: &layout,
+        program,
+        instances: BTreeMap::new(),
+        lambdas: BTreeMap::new(),
+        templates: BTreeMap::new(),
+        adts: BTreeMap::new(),
+        subjects: BTreeMap::new(),
+        found: BTreeMap::new(),
+        nested: BTreeMap::new(),
+        limit: u64::MAX,
+        module: module.to_owned(),
+    };
+    let writer = Writer::new(&mut generator, module);
+    let mut aligner = Aligner::new(writer, program, krate, u64::MAX, module)?;
+    let program_value = aligner.w.program_value()?;
+    let crate_value = aligner.w.rs_crate(krate);
+    let (item_suffixes, finds) = aligner.find_rows()?;
+    let program_ty = aligner.w.ts("Program");
+    let crate_ty = aligner.w.rs("Crate");
+    let definition = RowKind::Definition { compiled: false };
+    aligner
+        .w
+        .push_row("program", definition, program_ty, program_value)?;
+    aligner
+        .w
+        .push_row("krate", definition, crate_ty, crate_value)?;
+    for (name, ty, value) in item_suffixes {
+        aligner.w.push_row(&name, definition, ty, value)?;
+    }
+    for (name, statement, proof) in finds {
+        aligner
+            .w
+            .push_row(&name, RowKind::Theorem, statement, proof)?;
+    }
+    aligner.w.finish(vec![SOUNDNESS_MODULE.to_owned()])
+}
+
 /// A certificate B module restated over another crate: every row as it is,
-/// but the term of `krate`. The theorems then claim the derivations about a
-/// crate they were not written for, which the kernel refuses.
+/// but the crate's own rows, the term of `krate` and the rows decided from it
+/// alone (its items' suffixes, the `findFunction` chain, and the
+/// fallibilities), which are stated again over `krate`. The derivations
+/// `fun<n>` then claim facts of a crate they were not written for, which the
+/// kernel refuses at the derivation of the function whose rendering changed.
 ///
 /// # Errors
 ///
-/// A module that does not validate.
-pub fn restated_over(data: &CoreModule, module: &str, krate: &Crate) -> Result<CoreModule, String> {
+/// A module that does not validate, or a crate whose own rows cannot be
+/// stated for `program`.
+pub fn restated_over(
+    data: &CoreModule,
+    module: &str,
+    program: &Program,
+    krate: &Crate,
+) -> Result<CoreModule, String> {
+    let fresh = crate_rows(program, krate, module)?;
+    let own_rows: BTreeMap<&str, &crate::ir::core::CoreDeclaration> = fresh
+        .declarations
+        .iter()
+        .map(|row| (row.name.as_str(), row))
+        .collect();
     let program = Program {
         spec: String::new(),
         adts: Vec::new(),
@@ -1547,11 +1611,26 @@ pub fn restated_over(data: &CoreModule, module: &str, krate: &Crate) -> Result<C
         let Some(root) = row.r#type else {
             return Err(format!("the row `{}` states no type", row.name));
         };
-        let ty = writer.b.import(data, root);
-        let value = match row.value {
-            Some(_) if row.name == own => writer.rs_crate(krate),
-            Some(value) => writer.b.import(data, value),
-            None => return Err(format!("the row `{}` has no value", row.name)),
+        let (ty, value) = match own_rows.get(row.name.as_str()) {
+            Some(fresh_row) if row.name != own => {
+                let (Some(fresh_ty), Some(fresh_value)) = (fresh_row.r#type, fresh_row.value)
+                else {
+                    return Err(format!("the row `{}` is not stated again", row.name));
+                };
+                (
+                    writer.b.import(&fresh, fresh_ty),
+                    writer.b.import(&fresh, fresh_value),
+                )
+            }
+            _ => {
+                let ty = writer.b.import(data, root);
+                let value = match row.value {
+                    Some(_) if row.name == own => writer.rs_crate(krate),
+                    Some(value) => writer.b.import(data, value),
+                    None => return Err(format!("the row `{}` has no value", row.name)),
+                };
+                (ty, value)
+            }
         };
         let kind = match row.kind {
             crate::ir::core::CoreDeclKind::Theorem => RowKind::Theorem,

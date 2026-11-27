@@ -4395,10 +4395,10 @@ pub fn run(id: &str) {
                         // crate, the flags, a theorem per function, the assembly,
                         // and the root; and, between the flags and the first
                         // function, the lookups (SPEC.md §17.17, *Lookups*): the
-                        // function list's suffixes, last first, the index chain
-                        // and each function's lookup, the crate items' suffixes,
-                        // last first, the steps of `findFunction`, its chain,
-                        // and each function's fallibility.
+                        // function list's suffixes, last first, the crate items'
+                        // suffixes, last first, the steps of `findFunction`, its
+                        // chain, each function's fallibility, then the index
+                        // chain and each function's lookup.
                         let mut expected: Vec<String> = ["program", "krate", "flags"]
                             .iter()
                             .map(|row| format!("{module_b}.{row}"))
@@ -4406,8 +4406,6 @@ pub fn run(id: &str) {
                         let functions = lowered.program.functions.len();
                         let items = krate.items.len();
                         expected.extend((0..=functions).rev().map(|k| format!("{module_b}.tl{k}")));
-                        expected.extend((0..functions).map(|k| format!("{module_b}.idx{k}")));
-                        expected.extend((0..functions).map(|k| format!("{module_b}.look{k}")));
                         expected.extend((0..=items).rev().map(|i| format!("{module_b}.it{i}")));
                         expected.extend(
                             ["stepE", "stepA", "stepF", "iteF"]
@@ -4416,6 +4414,8 @@ pub fn run(id: &str) {
                         );
                         expected.extend((0..=items).map(|i| format!("{module_b}.fnd{i}")));
                         expected.extend((0..functions).map(|k| format!("{module_b}.fal{k}")));
+                        expected.extend((0..functions).map(|k| format!("{module_b}.idx{k}")));
+                        expected.extend((0..functions).map(|k| format!("{module_b}.look{k}")));
                         expected.extend(
                             (0..lowered.program.functions.len())
                                 .map(|function| format!("{module_b}.fun{function}")),

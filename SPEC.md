@@ -6687,8 +6687,9 @@ past a function `j`, `sameIdent` refuted by `Nat.ne_of_lt` at `j < w`; and
 `fal<f>`, the fallibility a call of `f` states, `Option.map` of `fnd` at `f`'s
 item. `fun<n>` proves its two lookups by `look<n>` and by `fnd` at its item with
 one evaluation there, and `callOps` and `callF` take `look<f>` and `fal<f>` as
-their side conditions. Every lemma these rows apply is in Lean's `Init` and
-depends on no axiom; no other row's statement changes.
+their side conditions. The rows come in the order `tl`, `it`, `stepE`, `stepA`,
+`stepF`, `iteF`, `fnd`, `fal`, `idx`, `look`. Every lemma these rows apply is in
+Lean's `Init` and depends on no axiom; no other row's statement changes.
 
 **A function rendered as a loop** (`SP-20`). The renderer writes a function whose
 self calls are all tail calls as a loop (§17.16), so the crate no longer holds
