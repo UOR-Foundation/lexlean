@@ -104,3 +104,23 @@ largest causes of their own are:
 | `workspace.sh`, `check.sh`, `probe.sh` | the workspace, the check, and the probe |
 | `shim/` | `RustStd` and `AxiomOutput`, the modules the translation imports beside the standard library |
 | `probe/` | the probe crate and its cases |
+
+## The front end from rustc's typed tree
+
+`thir.py` and `thir_ast.py` read a function's body from the tree rustc itself builds (`-Zunpretty=thir-tree`, on the
+pinned stable compiler with `RUSTC_BOOTSTRAP=1`), where every name is resolved and every expression typed, instead of
+from this folder's own parser. The body rustc gives replaces the parsed one where it converts; where it does not, the
+parsed body stays, and `thir.json` in the output folder says how many came from each and why not.
+
+    cargo rustc -q -p lexlean --lib --profile dev -- -Zunpretty=thir-tree | gzip > DUMP.gz     # in the workspace root
+    python tooling/rs2lex/translate.py crates/lexlean/src OUT_DIR DUMP.gz WORKSPACE_ROOT
+    RS2LEX_THIR=1 bash tooling/rs2lex/probe.sh OUT_DIR                                         # the probe, the same way
+
+Three things rustc's tree does not carry are read again from the source at the spans the tree records, and put on the
+body's names by the ids rustc resolved them to: the call of a standard-library macro (the tree holds its expansion),
+a function named on its type (`Type::function`; the tree names the impl block), and any expression or pattern the
+converter has no rule for. A piece in which one name stands for two variables is not read again; the body is refused.
+
+On the compiler crate the two front ends translate the same share today (1,506 of 3,616 functions from rustc's tree
+against 1,505 from the parser), and the output of both is accepted whole by the compiler. The typed tree is the base
+for what the parser cannot do: rules that need a type the source does not write.

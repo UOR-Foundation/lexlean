@@ -1445,6 +1445,8 @@ class Translator:
                         if want[0] == 'Set' and self.T.res(t)[0] in ('List', 'Iter'):
                             self.T.unify(want[1], self.T.res(t)[1], 'collected set'); v, t = self.dedup(v, want[1]), want
                         self.T.unify(t, want, 'let annotation')
+                    # with or without a written type: rustc's tree carries no `fn(..)` annotation to refuse by
+                    if self.T.res(t)[0] == 'Fn': raise Unsupported('a function value bound to a name (LexLean refuses a let-bound function)')
                     if els is None: return self.bind(pat, v, t, env, rest)
                     other = lambda env: self.block(els, env, ctx, self.unreachable)
                     return self.atom(v, t, lambda n, env: self.compile([(n, t)], [([a], None, [], rest) for a in self.alts(pat)] + [([WILD], None, [], other)], env), env, 'scrutinee')

@@ -395,6 +395,7 @@ def lift_nested(items):
 def load(root, with_aliases=False):
     c = Crate(root)
     r = Resolver(c)
+    load.resolver = r                # for a body that comes later, from rustc's tree (thir_ast)
     items = [r.rewrite(it) for it in c.entries]
     aliases = {}
     for mp, name, params, body in c.aliases:

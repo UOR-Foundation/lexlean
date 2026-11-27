@@ -41,12 +41,30 @@ def _translator(items, aliases):
     return tr
 
 
-def run(root, module='Crate', thir_dump=None):
+def local_const(e):
+    if isinstance(e, list): return any(local_const(x) for x in e)
+    if not isinstance(e, tuple) or not e: return False
+    if e[0] == 'let' and len(e) == 5 and isinstance(e[1], tuple) and e[1][:1] == ('pid',) and e[1][1][:1].isupper(): return True
+    return any(local_const(x) for x in e if isinstance(x, (tuple, list)))
+
+
+def renamed_calls(e, names):
+    if isinstance(e, list): return [renamed_calls(x, names) for x in e]
+    if not isinstance(e, tuple) or not e: return e
+    if e[0] == 'path' and isinstance(e[1], list) and len(e[1]) == 1 and e[1][0] in names: return ('path', [names[e[1][0]]])
+    return tuple(renamed_calls(x, names) if isinstance(x, (tuple, list)) else x for x in e)
+
+
+def run(root, module='Crate', thir_dump=None, thir_root='.'):
     """(rows, text, seconds, translator) for the crate at `root`. With `thir_dump`, the dump rustc made of the same
     crate (see thir.py), a function's body is taken from rustc's typed tree where thir_ast converts it, and from the
-    source parser where it does not; `run.thir` then holds how many came from each, and why not."""
+    source parser where it does not; `run.thir` then holds how many came from each, and why not. `thir_root` is the
+    folder rustc ran in, which the file names in its spans are relative to."""
     t0 = time.time()
-    converted = thir_ast.convert(thir_dump) if thir_dump else {}
+    converted = {}
+    if thir_dump:
+        first = crate_load.load(root, with_aliases=True)[0]
+        converted = thir_ast.convert(thir_dump, items=first, src_root=thir_root, resolver=crate_load.load.resolver)
     run.thir = collections.Counter()
     def load():
         items, skipped, aliases = crate_load.load(root, with_aliases=True)
@@ -64,7 +82,12 @@ def run(root, module='Crate', thir_dump=None):
             params, body = got[0]
             names = [p[1] if p[0] == 'pid' else None for p in params]
             if names != [n for n, _ in it['params']]: run.thir['parameters that are patterns'] += 1; continue
-            it['body'] = body; it['body'] = unshadow.entries(it); it.pop('refuse', None)
+            # an item declared in the body is no part of rustc's tree of it: a constant stays with the source's
+            # body, and a nested function, which the loader lifted out, is called by the name it was lifted to
+            if local_const(it['body']): run.thir['a constant declared in the body'] += 1; continue
+            nested = {x['name'][len(it['name']) + 1:]: x['name'] for x in items if x.get('lifted_from') == it['name']}
+            it['body'] = renamed_calls(body, nested) if nested else body
+            it['body'] = unshadow.entries(it); it.pop('refuse', None)
             if unshadow.written_alias(it): it['refuse'] = 'a write through a reference bound by a pattern or a let'
             run.thir['from rustc'] += 1
         return items, skipped, aliases
@@ -131,12 +154,16 @@ def main(argv):
     root = argv[1] if len(argv) > 1 else os.path.join(repo, 'crates', 'lexlean', 'src')
     out_dir = argv[2] if len(argv) > 2 else os.path.join(repo, 'target', 'rs2lex')
     os.makedirs(out_dir, exist_ok=True)
-    rows, text, elapsed, tr = run(root)
+    dump = argv[3] if len(argv) > 3 else None              # rustc's dump of the same crate, and where rustc ran
+    rows, text, elapsed, tr = run(root, thir_dump=dump, thir_root=argv[4] if len(argv) > 4 else '.')
     open(os.path.join(out_dir, 'Crate.lex.tex'), 'w', encoding='utf-8', newline='\n').write(text)
     json.dump(rows, open(os.path.join(out_dir, 'report.json'), 'w', encoding='utf-8'), indent=0)
     s = summary(rows, tr, elapsed, text)
     open(os.path.join(out_dir, 'summary.txt'), 'w', encoding='utf-8', newline='\n').write(s)
     print(s.splitlines()[0])
+    if dump:
+        json.dump(dict(run.thir), open(os.path.join(out_dir, 'thir.json'), 'w', encoding='utf-8'), indent=0)
+        print('bodies from rustc:', run.thir['from rustc'], 'of', sum(run.thir.values()))
 
 
 if __name__ == '__main__':
