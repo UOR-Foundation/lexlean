@@ -100,6 +100,60 @@ pub(crate) fn string_literal(value: &str) -> String {
     output
 }
 
+/// The type a constructor applied to `type_arguments` makes, as the checker
+/// gives it (`constructor_signature`): `Option`, `Result` and `List` among the
+/// built-ins, and otherwise its owner applied to them. None when it takes no
+/// type arguments, since Lean then has nothing to infer.
+fn constructed_type(
+    constructor: &MemberRef,
+    type_arguments: &[SemanticType],
+) -> Option<SemanticType> {
+    if type_arguments.is_empty() {
+        return None;
+    }
+    let (owner, _) = constructor.name.rsplit_once('.')?;
+    if constructor.module.is_none() {
+        match (owner, type_arguments) {
+            ("Option", [value]) => {
+                return Some(SemanticType::Option {
+                    value: Box::new(value.clone()),
+                })
+            }
+            ("Result", [ok, error]) => {
+                return Some(SemanticType::Result {
+                    ok: Box::new(ok.clone()),
+                    error: Box::new(error.clone()),
+                })
+            }
+            ("List", [element]) => {
+                return Some(SemanticType::List {
+                    element: Box::new(element.clone()),
+                })
+            }
+            _ => {}
+        }
+    }
+    Some(SemanticType::Named {
+        member: MemberRef {
+            module: constructor.module.clone(),
+            name: owner.to_owned(),
+        },
+        arguments: type_arguments.to_vec(),
+    })
+}
+
+/// A name bound by `let`, as written there. `rec` is no token of the
+/// toolchain (`lean_tokens`), so Lean reads it as an identifier anywhere else,
+/// but right after `let` it is the keyword of `let rec`; in guillemets it is
+/// the name in that place too.
+pub(crate) fn let_bound(spelled: String) -> String {
+    if spelled == "rec" {
+        "«rec»".to_owned()
+    } else {
+        spelled
+    }
+}
+
 /// The Lean spelling of a binder: its identifier when its scope mentions
 /// it, otherwise `_name`, which the unused-variable linter exempts.
 fn bound_name(name: &str, used: bool) -> String {
@@ -1051,7 +1105,7 @@ impl Render<'_> {
             }
             SemanticTerm::Constructor {
                 constructor,
-                type_arguments: _,
+                type_arguments,
                 arguments,
             } => {
                 if let (false, Some(pattern)) = (self.document, violation_pattern(constructor)) {
@@ -1063,7 +1117,12 @@ impl Render<'_> {
                     out.push_str(&self.term(argument));
                     out.push(')');
                 }
-                out
+                // Lean infers a constructor's type arguments from where the value goes; where nothing says (the
+                // scrutinee of a `match`), it cannot, so the type the source states is written with the value.
+                match constructed_type(constructor, type_arguments) {
+                    Some(ty) => format!("({out} : {})", self.ty(&ty)),
+                    None => out,
+                }
             }
             SemanticTerm::InstanceValue { resolved, .. } => self.member(resolved),
             SemanticTerm::Project { value, field } => {
@@ -1158,7 +1217,7 @@ impl Render<'_> {
                 body,
             } => format!(
                 "(let {} : {} := {}; {})",
-                bound_name(&binder.name, term_uses(body, &binder.name)),
+                let_bound(bound_name(&binder.name, term_uses(body, &binder.name))),
                 self.ty(&binder.r#type),
                 self.term(value),
                 self.term(body)
@@ -3728,6 +3787,81 @@ mod byte_literal_tests {
             render(false, &term),
             "(let __byte0 : Nat := 9; (__byte0, (let __byte0 : _root_.UInt8 := _root_.UInt8.ofNat (nat_lit 0); _root_.ByteArray.mk #[__byte0, __byte0, __byte0, __byte0])))"
         );
+    }
+}
+
+#[cfg(test)]
+mod elaboration_tests {
+    //! Terms the checker accepts must reach Lean in a form Lean elaborates without an expected type to lean on.
+    use super::{MemberRef, Render, SemanticParameter, SemanticTerm, SemanticType};
+
+    fn render(term: &SemanticTerm) -> String {
+        let imports = std::collections::BTreeMap::new();
+        Render {
+            prefix: "ElaborationFixture",
+            lean_imports: &imports,
+            hypotheses: std::collections::BTreeMap::new(),
+            document: false,
+            qualify: None,
+        }
+        .term(term)
+    }
+
+    fn builtin(name: &str) -> MemberRef {
+        MemberRef {
+            module: None,
+            name: name.to_owned(),
+        }
+    }
+
+    #[test]
+    fn a_let_bound_rec_is_the_name_not_let_rec() {
+        let term = SemanticTerm::Let {
+            binder: SemanticParameter {
+                name: "rec".to_owned(),
+                r#type: SemanticType::Nat,
+            },
+            value: Box::new(SemanticTerm::Nat {
+                value: "1".to_owned(),
+            }),
+            body: Box::new(SemanticTerm::Var {
+                name: "rec".to_owned(),
+            }),
+        };
+        assert_eq!(render(&term), "(let «rec» : Nat := 1; rec)");
+    }
+
+    #[test]
+    fn a_constructor_with_type_arguments_carries_its_type() {
+        let term = SemanticTerm::Constructor {
+            constructor: builtin("Result.error"),
+            type_arguments: vec![SemanticType::Unit, SemanticType::Nat],
+            arguments: vec![SemanticTerm::Nat {
+                value: "3".to_owned(),
+            }],
+        };
+        assert_eq!(render(&term), "(Except.error (3) : Except (Nat) (Unit))");
+        let none = SemanticTerm::Constructor {
+            constructor: builtin("Option.none"),
+            type_arguments: vec![SemanticType::Bool],
+            arguments: Vec::new(),
+        };
+        assert_eq!(render(&none), "(Option.none : Option (Bool))");
+    }
+
+    #[test]
+    fn a_constructor_without_type_arguments_is_written_as_before() {
+        let term = SemanticTerm::Constructor {
+            constructor: MemberRef {
+                module: None,
+                name: "Shape.leaf".to_owned(),
+            },
+            type_arguments: Vec::new(),
+            arguments: vec![SemanticTerm::Nat {
+                value: "2".to_owned(),
+            }],
+        };
+        assert_eq!(render(&term), "Shape.leaf (2)");
     }
 }
 
