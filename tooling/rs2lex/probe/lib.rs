@@ -516,3 +516,27 @@ pub fn convert_probe(n: usize) -> (usize, usize, String) {
         Err(f) => (0, f.code, f.reason),
     }
 }
+
+pub const LARGE: u64 = 1 << 32;
+
+fn labelled(message: impl std::fmt::Display) -> String {
+    format!("label: {message}")
+}
+
+/// a shift of two literals, in a constant and in an expression, and a parameter written `impl Display`, given a
+/// string by one call and a number by another.
+pub fn shift_probe(n: u64) -> (u64, String, String) {
+    (n + (48 << 10) + LARGE, labelled("x"), labelled(n))
+}
+
+fn lengths(ps: &[(String, usize)]) -> BTreeMap<String, usize> {
+    ps.iter().map(|p| (p.0.clone(), p.0.len())).collect()
+}
+
+/// pairs collected into a map, as a function's result and under a `let` with the map's type: a later pair replaces
+/// an earlier one of its key.
+pub fn collect_map_probe(ps: Vec<(String, usize)>) -> (Vec<(String, usize)>, usize) {
+    let m: BTreeMap<String, usize> = ps.iter().map(|p| (p.0.clone(), p.1 + 1)).collect();
+    let n = lengths(&ps).len();
+    (m.into_iter().collect(), n)
+}

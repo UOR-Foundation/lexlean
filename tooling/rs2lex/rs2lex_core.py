@@ -197,6 +197,11 @@ class Parser:
                 params.append(('self', ('path', 'Self', []))); self.opt(','); continue
             pat = self.pattern()
             self.eat(':'); t = self.type()
+            if t == ('opaque', 'impl Trait type') or t == ('ref', ('opaque', 'impl Trait type')):
+                # `x: impl Display` is a type parameter without a name: the function is generic in it, and is
+                # translated at each call for the type the call gives
+                g = f'ImplArg{len(params)}'; gen.append(g)
+                t = ('path', g, []) if t[0] == 'opaque' else ('ref', ('path', g, []))
             if pat[0] == 'pid': params.append((pat[1], t))
             else:
                 synthetic = f'arg{len(params)}'; params.append((synthetic, t))
@@ -1439,9 +1444,11 @@ class Translator:
                     env2 = dict(env); env2[pat[1]] = (None, ('Closure', init, env))
                     if self.effectful(init[2]): self.eff_closures.add(pat[1])
                     return rest(env2)
-                def bound(v, t, env):
-                    if ty is not None:
+                def bound(v, t, env, settled=False):
+                    if ty is not None and not settled:
                         want = self.ty(ty, self.owner)
+                        made = self.pairs_as_map(v, t, want, env, ctx, lambda v2, env2: bound(v2, want, env2, True))
+                        if made is not None: return made
                         if want[0] == 'Set' and self.T.res(t)[0] in ('List', 'Iter'):
                             self.T.unify(want[1], self.T.res(t)[1], 'collected set'); v, t = self.dedup(v, want[1]), want
                         self.T.unify(t, want, 'let annotation')
@@ -1469,6 +1476,18 @@ class Translator:
             if e[0] == 'labelled': raise Unsupported('labelled loop or block')
             return self.expr(e, env, ctx, lambda v, t, env: rest(env))
         return go(0, env)
+    def pairs_as_map(self, v, t, want, env, ctx, k):
+        """a list of pairs given where a map is wanted (`pairs.collect()` into a map): the map of its entries,
+        inserted in the list's order, so that a later entry replaces an earlier one of its key, as Rust's `collect`
+        does. None where the two types are not that pair; k(the map, env) otherwise."""
+        w, g = self.T.res(want), self.T.res(t)
+        if w[0] != 'Map' or g[0] != 'List' or ctx is None: return None
+        self.spec_n += 1; n = self.spec_n
+        src, m, a, b = f'__pairs{n}', f'__map{n}', f'__key{n}', f'__value{n}'
+        put = ('block', [('expr', ('mcall', ('path', [m]), 'insert', [('path', [a]), ('path', [b])]))], None)
+        blk = ('block', [('let', ('pid', m), ('lexty', w), ('call', ('path', ['BTreeMap', 'new']), []), None),
+                         ('expr', ('for', ('ptuple', [('pid', a), ('pid', b)]), ('path', [src]), put))], ('path', [m]))
+        return self.atom(v, t, lambda name, env2: self.block(blk, {**env2, src: (name, t)}, ctx, lambda v2, t2, env3: k(v2, env3)), env, 'pairs')
     def unreachable(self, v, t, env): raise Unsupported('a diverging block fell through')
     def exits(self, e):
         return any(n and isinstance(n[0], str) and n[0] in ('return', 'try', 'break', 'continue') for n in self.walk(e))
@@ -1669,6 +1688,11 @@ class Translator:
                 if t == I128 and target == I128: return k(v, I128, env)
                 raise Unsupported(f'cast {show(t)} as {show(target)}')
             return self.expr(e[1], env, ctx, cast)
+        if h == 'bin' and e[1] == '<<' and e[2][0] == 'int' and e[3][0] == 'int':
+            # a shift of two literals is a literal: rustc has already refused one that does not fit its type
+            try: a, b = int_value(str(e[2][1])), int_value(str(e[3][1]))
+            except ValueError: raise Unsupported('operator <<')
+            if b < 64 and a << b < 2 ** 64: return self.expr(('int', a << b), env, ctx, k)
         if h == 'bin':
             op = e[1]
             if op in ('&&', '||'):
@@ -2526,8 +2550,12 @@ class Translator:
             fuel = self.fresh('fuel'); pred = self.fresh('fuel')
             env['__fuel'] = (pred, NAT); fuel_param = [(fuel, NAT)]
             fuel_attrs += f',\n  recursive_argument: {fuel}'
-        def tail(v, t, env): self.T.unify(t, ret_t, 'result'); return wrap(v, env)
-        body = self.block(f['body'], env, Ctx(ret=wrap, ret_t=ret_t), tail)
+        whole = Ctx(ret=wrap, ret_t=ret_t)
+        def tail(v, t, env):
+            made = self.pairs_as_map(v, t, ret_t, env, whole, lambda v2, env2: wrap(v2, env2))
+            if made is not None: return made
+            self.T.unify(t, ret_t, 'result'); return wrap(v, env)
+        body = self.block(f['body'], env, whole, tail)
         if fuel_param:
             body = f'(match {fuel_param[0][0]} | Nat.zero => {self.default(lex_ret)} | Nat.succ {env["__fuel"][0]} => {body})'
         all_params = fuel_param + params
