@@ -809,6 +809,8 @@ def _lean_reserved():
 KEYWORDS |= _lean_reserved()
 # and the words LexLean refuses as any name (legal_name in crates/lexlean/src/ir/semantic.rs)
 KEYWORDS |= {'axiom', 'opaque', 'partial', 'unsafe', 'noncomputable', 'termination_by', 'sorry', 'admit'}
+# and `rec`, which LexLean accepts as a binder but which Lean reads in `let rec : T := ..` as a recursive let
+KEYWORDS |= {'rec'}
 MUTATORS = {'write_str', 'write_char', 'push', 'push_str', 'insert', 'sort', 'next', 'pop', 'truncate', 'extend', 'remove', 'retain', 'clear', 'dedup', 'sort_unstable', 'sort_by', 'sort_by_key', 'sort_unstable_by', 'extend_from_slice', 'append', 'swap', 'reverse', 'take', 'insert_str', 'push_back', 'push_front', 'pop_front', 'pop_back', 'drain'}
 FRESH_ITERATORS = {'chars', 'bytes', 'char_indices', 'iter', 'into_iter', 'lines', 'split', 'split_whitespace', 'rev', 'skip',
                    'take', 'peekable', 'enumerate', 'map', 'filter', 'zip', 'chain', 'rsplit', 'splitn', 'windows', 'chunks'}
@@ -1973,7 +1975,9 @@ class Translator:
                     else: T.unify(t[2], R[2], '? error type')
                     return f'(match {v} | Result.ok {n} => {k(n, t[1], env)} | Result.error {f} => {ctx.ret(f"(ctor Result.error [{show(R[1])}, {show(R[2])}] {raised})", env)})'
                 raise Unsupported(f'? on {show(t)} in a function returning {show(R)}')
-            return self.expr(e[1], env, ctx, on)
+            # the value matched on is first bound by a typed let: Lean is given a constructor's type arguments only
+            # there (it reads `match Except.error e with | Except.ok _` as a pattern of an unknown type)
+            return self.expr(e[1], env, ctx, lambda v, t, env2: self.atom(v, t, lambda n, env3: on(n, t, env3), env2, 'tried'))
         if h == 'assign':
             lhs = e[1]
             return self.expr(e[2], env, ctx, lambda v, t, env: self.assign_into(lhs, v, t, env, lambda env2: k('()', UNIT, env2)))
