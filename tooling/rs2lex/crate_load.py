@@ -403,10 +403,11 @@ def load(root, with_aliases=False):
         aliases[r.alias_at[(mp, name)]] = (params, r.rewrite(fake)['fields'][0][1])
     for it in items: it['custom_default'] = {r.resolve_type(it['mp'], n) or n for n in c.custom_default} if it['k'] == 'fn' else None
     items = lift_nested(items)
-    import unshadow
+    import unshadow, writeback
     for it in items:
         if it['k'] == 'fn': it['body'] = unshadow.entries(it)       # the map entry API, as what it does
         if it['k'] == 'fn': it['body'] = unshadow.unshadow(it)      # every local binding on a name of its own
+        if it['k'] == 'fn': it['body'] = writeback.writeback(it)[0]  # a `&mut` to an element, as the element
         if it['k'] == 'fn' and unshadow.written_alias(it):
             it['refuse'] = 'a write through a reference bound by a pattern or a let'
     if with_aliases: return items, c.skipped, aliases

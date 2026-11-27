@@ -150,7 +150,7 @@ def written_alias(f):
     """a name bound to a mutable reference into another value (`if let Some(x) = y.as_mut()`, `for x in v.iter_mut()`,
     `let x = &mut y.z`) and then written, or None. The translation binds such a name to a copy, so the write would
     not reach the value it refers to. Run after `unshadow`: every name is one binding."""
-    bound = set(); params = {name for name, _ in f['params']}
+    bound = set(); exempt = set(); params = {name for name, _ in f['params']}
     def binders(p):
         return {n[1] for n in _walk(p) if n and n[0] in BINDERS and isinstance(n[1], str) and not n[1][:1].isupper()}
     for n in _walk(f['body']):
@@ -158,10 +158,16 @@ def written_alias(f):
         if n[0] == 'let' and len(n) == 5 and n[3] is not None and n[3][0] != 'closure' and _borrows(n[3]):
             # a `let` naming a place inside a parameter is `interior`'s: it makes the name that place, or refuses
             if _root(n[3]) not in params: bound |= binders(n[1])
+            else: exempt |= binders(n[1])
         elif n[0] in ('iflet', 'whilelet') and _borrows(n[2]): bound |= binders(n[1])
         elif n[0] == 'for' and _borrows(n[2]): bound |= binders(n[1])
         elif n[0] == 'match' and _borrows(n[1]):
             for arm in n[2]: bound |= binders(arm[0])
+    if f.get('mut_refs') is not None:
+        # rustc's own answer, where the body came from its tree: a name is another name for a place exactly when
+        # its type is a mutable reference or holds one, however it was bound
+        # a name rustc gave no type for here (one this pass made up) keeps the answer its syntax gives
+        bound = (bound - set(f['plain'])) | (set(f['mut_refs']) - params - exempt)
     if not bound: return None
     for n in _walk(f['body']):
         if not n: continue

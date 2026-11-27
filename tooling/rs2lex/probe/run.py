@@ -15,10 +15,12 @@ os.makedirs(os.path.join(out, 'lean'), exist_ok=True)
 dump = sys.argv[2] if len(sys.argv) > 2 else None        # rustc's typed tree of lib.rs: bodies come from it where they convert
 rows, text, _, _ = translate.run(HERE, module='Probe', thir_dump=dump)
 if dump: print('bodies:', dict(translate.run.thir))
-failed = [r for r in rows if r['status'] != 'ok']
+# `typed_*` needs a type the source does not write: it is the typed front end's alone, and cases.py leaves its cases
+# out of a run without the dump
+failed = [r for r in rows if r['status'] != 'ok' and not (dump is None and r['key'].startswith('typed_'))]
 for r in rows:
     print(f"{r['key']}: {r['status'][:100]}")
 if failed:
     sys.exit(f'{len(failed)} probe functions did not translate')
 open(os.path.join(out, 'Probe.lex.tex'), 'w', encoding='utf-8', newline='\n').write(text)
-subprocess.run([sys.executable, os.path.join(HERE, 'cases.py')], cwd=out, check=True)
+subprocess.run([sys.executable, os.path.join(HERE, 'cases.py')] + (['typed'] if dump else []), cwd=out, check=True)

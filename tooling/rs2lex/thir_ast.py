@@ -120,10 +120,13 @@ def type_ast(text):
     return ('path', name, args)
 
 
+MUT_REF = re.compile(r"&(?:'\{erased\} |'\w+ )?mut ")
+
+
 class Names:
     """the crate's items as the loader names them, found by the path rustc prints (`krate::module::Item`)."""
     def __init__(self, items, resolver=None):
-        self.at = {}; self.bare = {}; self.resolver = resolver
+        self.at = {}; self.bare = {}; self.resolver = resolver; self.held = None
         self.modules = {tuple(it['mp']) for it in items}
         for it in items:
             if it['k'] not in ('struct', 'enum', 'const') and not (it['k'] == 'fn' and not it['owner']): continue
@@ -141,6 +144,36 @@ class Names:
             same = self.bare.get((is_type, segs[-1]), [])
             if len(same) == 1 and len(segs) <= 2: hit = same[0]
         return hit
+
+    def holders(self):
+        """the crate's types that hold a mutable reference, in a field or in a field's type (`Sink<'a>` over
+        `&'a mut String`): a value of one is another name for a place, as the reference itself is."""
+        if self.held is None:
+            def has(t, held):
+                if isinstance(t, list): return any(has(x, held) for x in t)
+                if not isinstance(t, tuple) or not t: return False
+                if t[0] == 'mut': return True
+                if t[0] == 'path' and isinstance(t[1], str) and t[1] in held: return True
+                return any(has(x, held) for x in t[1:] if isinstance(x, (tuple, list)))
+            types = [it for (is_type, _, _), it in self.at.items() if is_type]
+            held, grew = set(), True
+            while grew:
+                grew = False
+                for it in types:
+                    if it['name'] in held: continue
+                    fields = it['fields'] if it['k'] == 'struct' else [f for _, fs in it['variants'] for f in fs]
+                    if any(has(t, held) for _, t in fields): held.add(it['name']); grew = True
+            self.held = held
+        return self.held
+
+    def holds_mut(self, text):
+        """whether a type, as rustc prints it, is a mutable reference or holds one."""
+        if MUT_REF.search(text): return True
+        for token in re.findall(r'[A-Za-z_][\w:]*', text):
+            if token.split('::')[0] in ('std', 'core', 'alloc'):
+                if re.search(r'Mut|Entry|Drain|Guard', token.split('::')[-1]): return True     # IterMut, Entry, RefMut ..
+            elif self.type_name(token) in self.holders(): return True
+        return False
 
     def home(self, path):
         """the module a body at `path` is written in: the longest module the path begins with."""
@@ -260,6 +293,7 @@ class Sources:
 
 CLOSURE = re.compile(r'DefId\(\d+:\d+ ~ \w+\[\w+\]::([^)]*)\)')
 BINDS = re.compile(r'name: "(\w+)",?\s+mode: .{0,60}?,?\s+var: (LocalVarId\(HirId\(DefId\([^)]*\)\.\d+\)\))')
+BOUND_AS = re.compile(r'name: "\w+",?\s+mode: .{0,60}?,?\s+var: LocalVarId\(HirId\(DefId\([^)]*\)\.(\d+)\)\),?\s+ty: (.*?),?\s+(?:is_primary|subpattern):')
 USES = re.compile(r'(?<![\w])(?:id|var_hir_id): LocalVarId\(HirId\(DefId\([^)]*\)\.(\d+)\)\)')
 
 
@@ -315,6 +349,12 @@ class Body:
             if inner is None: raise Unhandled(kind)
             node = inner; kind, holder = thir.kind_of(node)
         return node, kind, holder
+
+    def lines_of(self, node):
+        out, todo = [], [node]
+        while todo:
+            n = todo.pop(); todo.extend(reversed(n.kids)); out.append(n.text)
+        return out
 
     def lines(self, node):
         """every line of a tree, and of the bodies of the closures written in it."""
@@ -788,7 +828,14 @@ def convert(dump_path, want=None, items=None, src_root=None, resolver=None):
             body = Body(tree, family, crate=names, src=sources, home=names.home(path) if names is not None else None)
             try:
                 params = body.params()
-                out[path] = (params, body.body())
+                converted = body.body()
+                # the names rustc types as a mutable reference, or as a value holding one: these, and only these,
+                # are other names for a place; a write through one must reach the place
+                whole = ' '.join(x.strip() for t in family.values() for x in body.lines_of(t))
+                typed = {body.names[m.group(1)] for m in BOUND_AS.finditer(whole) if m.group(1) in body.names}
+                muts = {body.names[m.group(1)] for m in BOUND_AS.finditer(whole)
+                        if m.group(1) in body.names and (names.holds_mut(m.group(2)) if names is not None else MUT_REF.search(m.group(2)))}
+                out[path] = (params, converted, (muts, typed - muts))
             except Unhandled as x:
                 out[path] = str(x)
             except (AttributeError, KeyError, IndexError, ValueError, TypeError) as x:

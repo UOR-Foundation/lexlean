@@ -364,3 +364,71 @@ fn shape_of(codes: &[usize], depth: usize) -> Shape {
 pub fn display_probe(codes: Vec<usize>) -> String {
     shape_of(&codes, 0).to_string()
 }
+
+fn grow(v: &mut Vec<usize>) -> Vec<usize> {
+    v.push(v.len());
+    v.clone()
+}
+
+/// `w` is made by a call that borrows `v` mutably, and is a value of its own: its type says so, where its syntax
+/// does not. A write to it is no write to `v`. Only the front end from rustc's tree knows the type, so only it
+/// translates this function (probe/run.py).
+pub fn typed_probe(xs: Vec<usize>) -> (usize, Vec<usize>, Vec<usize>) {
+    let mut v = xs;
+    let mut w = grow(&mut v);
+    w.push(7);
+    let n = w.len() + v.len();
+    (n, v, w)
+}
+
+fn early(v: &mut Vec<usize>, limit: usize) -> usize {
+    for x in v.iter_mut() {
+        if *x > limit {
+            *x = limit;
+            return 1;
+        }
+        *x += 10;
+    }
+    0
+}
+
+/// writes through a `&mut` to an element (writeback.py): a `for` over `&mut v` and over `iter_mut()`, with a `break`,
+/// a `continue` and a `return` leaving the body after a write, and `last_mut()` in an `if let`, with and without the
+/// element there.
+pub fn writeback_probe(xs: Vec<usize>, stop: usize) -> (Vec<usize>, Vec<Vec<usize>>, usize, Vec<usize>, usize) {
+    let mut v = xs.clone();
+    let mut rows: Vec<Vec<usize>> = Vec::new();
+    let mut seen = 0;
+    for x in &mut v {
+        if *x == stop {
+            *x = 100;
+            break;
+        }
+        if *x % 2 == 0 {
+            *x += 1;
+            continue;
+        }
+        *x = *x * 2;
+        seen += 1;
+    }
+    for x in xs.iter() {
+        if *x > 5 {
+            rows.push(Vec::new());
+        }
+        if let Some(last) = rows.last_mut() {
+            last.push(*x);
+            if *x == 3 {
+                continue;
+            }
+            last.push(0);
+        } else {
+            seen += 100;
+        }
+    }
+    for row in rows.iter_mut() {
+        row.push(seen);
+    }
+    let mut w = xs.clone();
+    let hit = early(&mut w, stop);
+    (v, rows, seen, w, hit)
+}

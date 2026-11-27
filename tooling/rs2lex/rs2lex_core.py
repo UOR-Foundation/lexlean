@@ -2067,6 +2067,7 @@ class Translator:
                                     body=self.spec_body(g['body'], vname, gkey, spec_name, cl2, cap_args))
         import unshadow
         spec['body'] = unshadow.unshadow(spec)       # the closure's names and the callee's, apart
+        spec.pop('mut_refs', None); spec.pop('plain', None)      # rustc typed the callee's names, not this copy's
         if unshadow.written_alias(spec): raise Unsupported('a write through a reference bound by a pattern or a let')
         skey = (None, spec_name); self.fns[skey] = spec; self.spec_of[skey] = gkey
         self.by_name[spec_name] = skey      # so that a call of the copy is seen to write its `&mut` arguments

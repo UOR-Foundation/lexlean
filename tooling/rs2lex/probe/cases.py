@@ -2,6 +2,7 @@
 (lean/ProbeMain.lean) and as the outcomes a BTreeMap gives (probe_expected.txt). Keys reach both ends of u64 and are
 decimal prefixes of one another (1, 10, 100, 19), where a wrong padding would reorder them."""
 import random
+import sys
 
 rng = random.Random(0x0B1E)
 NATS = [0, 1, 2, 9, 10, 11, 19, 100, 101, 999, 1000, 10**19, 10**19 + 3, 2**63, 2**64 - 1]
@@ -182,6 +183,33 @@ def shown(sh):
 display_cases = [[rng.randrange(0, 12) for _ in range(rng.randrange(0, 9))] for _ in range(150)]
 for codes in display_cases:
     out.append('display ' + hx(shown(shape_of(codes, 0))))
+# writeback_probe: writes through a `&mut` to an element, on every way out of the body
+writeback_cases = [([rng.randrange(0, 9) for _ in range(rng.randrange(0, 7))], rng.randrange(0, 9)) for _ in range(200)]
+for xs, stop in writeback_cases:
+    v, seen = list(xs), 0
+    for i, x in enumerate(v):
+        if x == stop: v[i] = 100; break
+        if x % 2 == 0: v[i] = x + 1; continue
+        v[i] = x * 2; seen += 1
+    rows = []
+    for x in xs:
+        if x > 5: rows.append([])
+        if rows:
+            rows[-1].append(x)
+            if x == 3: continue
+            rows[-1].append(0)
+        else: seen += 100
+    for row in rows: row.append(seen)
+    w, hit = list(xs), 0
+    for i, x in enumerate(w):
+        if x > stop: w[i] = stop; hit = 1; break
+        w[i] = x + 10
+    out.append('writeback ' + ','.join(map(str, v)) + ';' + '|'.join(','.join(map(str, r)) for r in rows) + ';' + str(seen) + ';' + ','.join(map(str, w)) + ';' + str(hit))
+# typed_probe: a value made by a call that borrows mutably, then written (only with the typed front end: `typed`)
+typed_cases = [[rng.randrange(0, 9) for _ in range(rng.randrange(0, 6))] for _ in range(100)] if 'typed' in sys.argv else []
+for xs in typed_cases:
+    v = xs + [len(xs)]
+    out.append('typed ' + str(2 * len(v) + 1) + ';' + ','.join(map(str, v)) + ';' + ','.join(map(str, v + [7])))
 open('probe_expected.txt', 'w', newline='\n').write('\n'.join(out) + '\n')
 
 def lit(s): return f'"{s}".toUTF8'
@@ -268,6 +296,18 @@ lean += ['',
          '    IO.println ("write " ++ hx r.1 ++ ";" ++ (if r.2 then "true" else "false"))',
          '  for xs in displayCases do',
          '    IO.println ("display " ++ hx (fDisplayProbe xs))',
+         '  for (xs, stop) in writebackCases do',
+         '    let r := fWritebackProbe xs stop',
+         '    IO.println ("writeback " ++ String.intercalate "," (r.1.map toString) ++ ";" ++ String.intercalate "|" (r.2.1.map fun row => String.intercalate "," (row.map toString)) ++ ";" ++ toString r.2.2.1 ++ ";" ++ String.intercalate "," (r.2.2.2.1.map toString) ++ ";" ++ toString r.2.2.2.2)',
          '']
+at = next(i for i, line in enumerate(lean) if line.startswith('def shadowCases'))
+lean.insert(at, 'def writebackCases : List (List Nat × Nat) := ' + lean_list([f'({lean_list([str(x) for x in xs])}, {stop})' for xs, stop in writeback_cases]))
+if typed_cases:
+    lean[-1:] = ['  for xs in typedCases do',
+                 '    let r := fTypedProbe xs',
+                 '    IO.println ("typed " ++ toString r.1 ++ ";" ++ String.intercalate "," (r.2.1.map toString) ++ ";" ++ String.intercalate "," (r.2.2.map toString))',
+                 '']
+    at = next(i for i, line in enumerate(lean) if line.startswith('def shadowCases'))
+    lean.insert(at, 'def typedCases : List (List Nat) := ' + lean_list([lean_list([str(x) for x in xs]) for xs in typed_cases]))
 open('lean/ProbeMain.lean', 'w', newline='\n', encoding='utf-8').write('\n'.join(lean))
 print(len(out), 'cases')

@@ -124,3 +124,8 @@ converter has no rule for. A piece in which one name stands for two variables is
 On the compiler crate the two front ends translate the same share today (1,506 of 3,616 functions from rustc's tree
 against 1,505 from the parser), and the output of both is accepted whole by the compiler. The typed tree is the base
 for what the parser cannot do: rules that need a type the source does not write.
+
+Two rules rest on rustc's types. A name is another name for a place exactly when its type is a mutable reference or
+holds one (`unshadow.written_alias`, where the body came from rustc's tree): the syntactic guess stays only for a name
+rustc gave no type. And `writeback.py`, for both front ends, reads `for x in &mut xs`, `xs.iter_mut()` and
+`if let Some(x) = xs.last_mut()` as an element taken, changed, and written back on every way out of the body.

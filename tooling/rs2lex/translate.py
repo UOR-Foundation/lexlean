@@ -18,6 +18,7 @@ sys.setrecursionlimit(20000)
 import crate_load      # noqa: E402
 import thir_ast        # noqa: E402
 import unshadow        # noqa: E402
+import writeback       # noqa: E402
 import rs2lex          # noqa: E402
 
 IMPORTS = ['AxiomOutput', 'RustStd', 'LexLeanStd.Text', 'LexLeanStd.OrdMap']
@@ -79,7 +80,7 @@ def run(root, module='Crate', thir_dump=None, thir_root='.'):
             got = by_place.get((tuple(it['mp']), 'fmt' if name in ('fmt_display', 'fmt_debug') else name), [])
             if len(got) != 1: run.thir['no single body in the dump'] += 1; continue
             if isinstance(got[0], str): run.thir[got[0]] += 1; continue
-            params, body = got[0]
+            params, body, muts = got[0]
             names = [p[1] if p[0] == 'pid' else None for p in params]
             if names != [n for n, _ in it['params']]: run.thir['parameters that are patterns'] += 1; continue
             # an item declared in the body is no part of rustc's tree of it: a constant stays with the source's
@@ -88,6 +89,11 @@ def run(root, module='Crate', thir_dump=None, thir_root='.'):
             nested = {x['name'][len(it['name']) + 1:]: x['name'] for x in items if x.get('lifted_from') == it['name']}
             it['body'] = renamed_calls(body, nested) if nested else body
             it['body'] = unshadow.entries(it); it.pop('refuse', None)
+            it['body'], released = writeback.writeback(it)
+            guess = unshadow.written_alias(it)
+            it['mut_refs'], it['plain'] = muts[0] - released, muts[1]
+            if guess and not unshadow.written_alias(it): run.thir['[an alias by its syntax, not by its type]'] += 1
+            if not guess and unshadow.written_alias(it): run.thir['[an alias by its type, not by its syntax]'] += 1
             if unshadow.written_alias(it): it['refuse'] = 'a write through a reference bound by a pattern or a let'
             run.thir['from rustc'] += 1
         return items, skipped, aliases
