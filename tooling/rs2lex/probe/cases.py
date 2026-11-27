@@ -211,6 +211,11 @@ for pairs, _, _ in map_cases:
     d = {}
     for k, v in pairs: d[k] = v + 1
     out.append('collectmap ' + ','.join(f'{hx(k)}={v}' for k, v in sorted(d.items(), key=lambda kv: kv[0].encode())) + ';' + str(len(d)))
+# range_probe: code points, ranges as iterators, an iterator of one item
+range_cases = [(t, k) for k, t in enumerate(['', 'a', 'Az09 ~', '\u00e9', 'x\u00e9y', '\u20ac', '\u4e2d\u6587', '\U0001F600', 'a\U0001F600\u00e9\u20ac', '\x7f\u0080\u07ff\u0800\uffff\U00010000\U0010ffff'])]
+for t, k in range_cases:
+    js = lambda xs: ','.join(map(str, xs))
+    out.append('range ' + js([ord(c) for c in t]) + ';' + js(reversed(range(k))) + ';' + js(list(range(1, k + 1)) + [99]) + ';' + js([x for x in range(k) if x % 2 == 0]))
 # writeback_probe: writes through a `&mut` to an element, on every way out of the body
 writeback_cases = [([rng.randrange(0, 9) for _ in range(rng.randrange(0, 7))], rng.randrange(0, 9)) for _ in range(200)]
 for xs, stop in writeback_cases:
@@ -340,12 +345,17 @@ lean += ['',
          '  for (ps, _, _) in mapCases do',
          '    let r := fCollectMapProbe ps',
          '    IO.println ("collectmap " ++ String.intercalate "," (r.1.map fun e => hx e.1 ++ "=" ++ toString e.2) ++ ";" ++ toString r.2)',
+         '  for (t, k) in rangeCases do',
+         '    let r := fRangeProbe t k',
+         '    let js := fun (xs : List Nat) => String.intercalate "," (xs.map toString)',
+         '    IO.println ("range " ++ js r.1 ++ ";" ++ js r.2.1 ++ ";" ++ js r.2.2.1 ++ ";" ++ js r.2.2.2)',
          '  for (xs, stop) in writebackCases do',
          '    let r := fWritebackProbe xs stop',
          '    IO.println ("writeback " ++ String.intercalate "," (r.1.map toString) ++ ";" ++ String.intercalate "|" (r.2.1.map fun row => String.intercalate "," (row.map toString)) ++ ";" ++ toString r.2.2.1 ++ ";" ++ String.intercalate "," (r.2.2.2.1.map toString) ++ ";" ++ toString r.2.2.2.2)',
          '']
 at = next(i for i, line in enumerate(lean) if line.startswith('def shadowCases'))
 lean.insert(at, 'def nestedCases : List (List (List Nat)) := ' + lean_list([lean_list([lean_list([str(x) for x in row]) for row in rows]) for rows in nested_cases]))
+lean.insert(at, 'def rangeCases : List (ByteArray × Nat) := ' + lean_list([f'({lean_bytes(t)}, {k})' for t, k in range_cases]))
 lean.insert(at, 'def writebackCases : List (List Nat × Nat) := ' + lean_list([f'({lean_list([str(x) for x in xs])}, {stop})' for xs, stop in writeback_cases]))
 if typed_cases:
     lean[-1:] = ['  for xs in typedCases do',

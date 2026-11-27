@@ -358,7 +358,11 @@ class Translator(Core):
             return self.exprs([e[2], e[3]], env, ctx, lambda vs, env2: self.binary(e[1], vs, env2, k))
         if h == 'cast':
             target = self.ty(e[2], self.owner)
-            return self.expr(e[1], env, ctx, lambda v, t, env2: self.cast(v, t, target, env2, k))
+            def cast(v, t, env2):
+                # a `char` cast to u8 or u16 keeps only its low bits; the natural the translation would give is whole
+                if self.T.res(t) == BYTES and e[2] in (('path', 'u8', []), ('path', 'u16', [])): raise Unsupported('a char cast to a narrow integer')
+                return self.cast(v, t, target, env2, k)
+            return self.expr(e[1], env, ctx, cast)
         return None
     def panic_default(self, checked, t):
         """the value of a checked operation; its failure is a panic in Rust, which the translation does not preserve."""
@@ -421,6 +425,8 @@ class Translator(Core):
         if t[0] == 'Fixed' and target[0] == 'Fixed':
             return k(self.panic_default(f'(prim checked_convert {v} : (Option {target[1]}))', target), target, env)
         if t == UINT8 and target == NAT: return k(f'(prim to_nat {v} : Nat)', NAT, env)
+        # text cast to a number is a `char` (Rust casts no string): its code point
+        if t == BYTES and target == NAT: return k(f'(RustStd::charCode {v})', NAT, env)
         raise Unsupported(f'cast {show(t)} as {show(target)}')
     def unsupported(self, why): raise Unsupported(why)
 

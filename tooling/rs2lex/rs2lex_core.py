@@ -1863,6 +1863,8 @@ class Translator:
         if h == 'assign':
             lhs = e[1]
             return self.expr(e[2], env, ctx, lambda v, t, env: self.assign_into(lhs, v, t, env, lambda env2: k('()', UNIT, env2)))
+        if h == 'call' and e[1][0] == 'path' and e[1][1][-2:] == ['iter', 'once'] and len(e[2]) == 1:
+            return self.expr(('array', [e[2][0]]), env, ctx, k)       # an iterator of one item is the list of it
         if h == 'call': return self.call(e, env, ctx, k)
         if h == 'mcall': return self.mcall(e, env, ctx, k)
         if h == 'closure': raise Unsupported('a closure used as a value')
@@ -2515,12 +2517,12 @@ class Translator:
         if recv[0] == 'range':
             def ranged(vs, env):
                 (lo, lt), (hi, ht) = vs; T.unify(lt, ht, 'range bounds'); t = T.res(lt)
-                if m == 'map':
-                    T.unify(t, NAT, 'range'); hi2 = f'({hi} + 1)' if recv[3] else hi
-                    return with_recv(f'(RustStd::range {lo} {hi2})', ('List', NAT), env)
                 if m == 'contains':
                     return self.expr(args[0], env, ctx, lambda x, xt, env: (T.unify(xt, lt, 'range contains'), k(self.within(lo, hi, x, T.nat(lt), recv[3]), BOOL, env))[1])
-                raise Unsupported(f'method `{m}` on a range')
+                # any other method is an iterator's: a range of naturals with both its ends is the list of them
+                T.unify(t, NAT, 'range'); hi2 = f'({hi} + 1)' if recv[3] else hi
+                return with_recv(f'(RustStd::range {lo} {hi2})', ('List', NAT), env)
+            if recv[1] is None or recv[2] is None: raise Unsupported(f'method `{m}` on a range without an end')
             return self.exprs([recv[1], recv[2]], env, ctx, ranged)
         return self.expr(recv, env, ctx, with_recv)
     def within(self, lo, hi, x, t, inclusive):

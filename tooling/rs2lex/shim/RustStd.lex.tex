@@ -567,6 +567,14 @@ definition{
 }
 
 definition{
+  name: charCode,
+  parameters: [c : Bytes],
+  result: Nat,
+  body: (prim list_fold (fun (acc : Nat) (byte : UInt8) => (let n : Nat := (prim to_nat byte : Nat); (if (n <? 128) then n else (if (n <? 192) then ((prim multiply acc 64 : Nat) + (prim subtract n 128 : Nat)) else (if (n <? 224) then (prim subtract n 192 : Nat) else (if (n <? 240) then (prim subtract n 224 : Nat) else (prim subtract n 240 : Nat))))))) 0 (bytesOf c) : Nat),
+  executable: true
+}
+
+definition{
   name: isC1Control,
   parameters: [c : Bytes],
   result: Bool,

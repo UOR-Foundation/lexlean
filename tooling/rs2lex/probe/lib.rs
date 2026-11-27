@@ -540,3 +540,13 @@ pub fn collect_map_probe(ps: Vec<(String, usize)>) -> (Vec<(String, usize)>, usi
     let n = lengths(&ps).len();
     (m.into_iter().collect(), n)
 }
+
+/// a `char` cast to its code point (one to four bytes of UTF-8), a range used as an iterator (`rev`, `filter`,
+/// `chain`), and an iterator of one item.
+pub fn range_probe(s: String, n: usize) -> (Vec<u32>, Vec<usize>, Vec<usize>, Vec<usize>) {
+    let codes: Vec<u32> = s.chars().map(|c| c as u32).collect();
+    let down: Vec<usize> = (0..n).rev().collect();
+    let tail: Vec<usize> = (1..=n).chain(std::iter::once(99)).collect();
+    let evens: Vec<usize> = (0..n).filter(|x| x % 2 == 0).collect();
+    (codes, down, tail, evens)
+}
