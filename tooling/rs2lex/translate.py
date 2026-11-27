@@ -16,6 +16,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.setrecursionlimit(20000)
 import crate_load      # noqa: E402
+import thir_ast        # noqa: E402
+import unshadow        # noqa: E402
 import rs2lex          # noqa: E402
 
 IMPORTS = ['AxiomOutput', 'RustStd', 'LexLeanStd.Text', 'LexLeanStd.OrdMap']
@@ -39,17 +41,41 @@ def _translator(items, aliases):
     return tr
 
 
-def run(root, module='Crate'):
-    """(rows, text, seconds, translator) for the crate at `root`."""
+def run(root, module='Crate', thir_dump=None):
+    """(rows, text, seconds, translator) for the crate at `root`. With `thir_dump`, the dump rustc made of the same
+    crate (see thir.py), a function's body is taken from rustc's typed tree where thir_ast converts it, and from the
+    source parser where it does not; `run.thir` then holds how many came from each, and why not."""
     t0 = time.time()
-    items, skipped, aliases = crate_load.load(root, with_aliases=True)
+    converted = thir_ast.convert(thir_dump) if thir_dump else {}
+    run.thir = collections.Counter()
+    def load():
+        items, skipped, aliases = crate_load.load(root, with_aliases=True)
+        if not converted: return items, skipped, aliases
+        by_place = collections.defaultdict(list)
+        for path, got in converted.items():
+            segs = [x for x in path.split('::') if not x.startswith('{')]
+            by_place[(tuple(segs[:-1]), segs[-1])].append(got)
+        for it in items:
+            if it['k'] != 'fn' or it.get('lifted_from'): continue
+            name = it.get('orig_name', it['name'])
+            got = by_place.get((tuple(it['mp']), 'fmt' if name in ('fmt_display', 'fmt_debug') else name), [])
+            if len(got) != 1: run.thir['no single body in the dump'] += 1; continue
+            if isinstance(got[0], str): run.thir[got[0]] += 1; continue
+            params, body = got[0]
+            names = [p[1] if p[0] == 'pid' else None for p in params]
+            if names != [n for n, _ in it['params']]: run.thir['parameters that are patterns'] += 1; continue
+            it['body'] = body; it['body'] = unshadow.entries(it); it.pop('refuse', None)
+            if unshadow.written_alias(it): it['refuse'] = 'a write through a reference bound by a pattern or a let'
+            run.thir['from rustc'] += 1
+        return items, skipped, aliases
+    items, skipped, aliases = load()
     tr = _translator(items, aliases)
     tr.module(module, IMPORTS)
     exact = dict(tr.key_calls)
     for k in tr.fns:
         if k not in exact and tr.status.get(k) == 'ok':
             exact[k] = set()
-    items, skipped, aliases = crate_load.load(root, with_aliases=True)
+    items, skipped, aliases = load()
     tr = _translator(items, aliases)
     tr.exact_deps = exact
     text, _report = tr.module(module, IMPORTS)

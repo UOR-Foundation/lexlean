@@ -12,7 +12,9 @@ import translate  # noqa: E402
 
 out = os.path.abspath(sys.argv[1])
 os.makedirs(os.path.join(out, 'lean'), exist_ok=True)
-rows, text, _, _ = translate.run(HERE, module='Probe')
+dump = sys.argv[2] if len(sys.argv) > 2 else None        # rustc's typed tree of lib.rs: bodies come from it where they convert
+rows, text, _, _ = translate.run(HERE, module='Probe', thir_dump=dump)
+if dump: print('bodies:', dict(translate.run.thir))
 failed = [r for r in rows if r['status'] != 'ok']
 for r in rows:
     print(f"{r['key']}: {r['status'][:100]}")

@@ -10,7 +10,13 @@ out="${1:-$repo/target/rs2lex-probe}"; mkdir -p "$out"; out="$(cd "$out" && pwd)
 lexlean="${LEXLEAN:-$repo/target/release/lexlean}"
 toolchain="$(cat "$repo/bootstrap/lean-toolchain")"
 
-python3 "$here/probe/run.py" "$out"
+# RS2LEX_THIR=1: take the bodies from rustc's typed tree (thir.py) where they convert
+dump=""
+if [ -n "${RS2LEX_THIR:-}" ]; then
+  RUSTC_BOOTSTRAP=1 rustc --edition 2021 --crate-type lib -Zunpretty=thir-tree "$here/probe/lib.rs" > "$out/probe.thir" 2>/dev/null
+  dump="$out/probe.thir"
+fi
+python3 "$here/probe/run.py" "$out" $dump
 
 # the probe module, with the shim and the repository's standard library
 ws="$out/workspace"
