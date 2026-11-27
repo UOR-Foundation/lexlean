@@ -310,6 +310,7 @@ for t, xs, keep in chunk_cases:
     pairs = [xs[i] * 10 + xs[i + 1] for i in range(0, len(xs) - 1, 2)]
     kept = sorted({w for w in t.split('a') if w in keep}, key=lambda w: w.encode())
     out.append('chunk ' + hx('_y' + t[2:]) + ';' + ','.join(map(str, pairs)) + ';' + ','.join(hx(w) for w in kept))
+for n in convert_cases: out.append('into ' + (f'{n};0;' if 0 < n <= 3 else '0;7;' + hx('zero' if n == 0 else f'big {n}')))
 # writeback_probe: writes through a `&mut` to an element, on every way out of the body
 writeback_cases = [([rng.randrange(0, 9) for _ in range(rng.randrange(0, 7))], rng.randrange(0, 9)) for _ in range(200)]
 for xs, _ in writeback_cases:
@@ -476,6 +477,9 @@ lean += ['',
          '  for (t, xs, keep) in chunkCases do',
          '    let r := fChunkProbe t xs keep',
          '    IO.println ("chunk " ++ hx r.1 ++ ";" ++ String.intercalate "," (r.2.1.map toString) ++ ";" ++ String.intercalate "," (r.2.2.map hx))',
+         '  for n in [' + ', '.join(str(n) for n in convert_cases) + '] do',
+         '    let r := fIntoProbe n',
+         '    IO.println ("into " ++ toString r.1 ++ ";" ++ toString r.2.1 ++ ";" ++ hx r.2.2)',
          '  for (xs, _) in writebackCases do',
          '    let r := fFoldProbe xs',
          '    IO.println ("fold " ++ toString r.1 ++ ";" ++ toString r.2.1 ++ ";" ++ toString r.2.2)',

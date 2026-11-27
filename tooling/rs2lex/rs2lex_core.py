@@ -1568,6 +1568,22 @@ class Translator:
         return ('closure', keep, put(cl[2]), cl[3]), cenv, rest
     def written_names(self, body):
         return {self.root_var(n[1]) for n in self.walk(body) if n and ((n[0] == 'mcall' and n[2] in MUTATORS) or n[0] == 'assign')} - {None}
+    def err_into(self, e, want):
+        """`Err(x.into())` where the error type is known (a `return`, a function's last value): `E::from(x)` of the
+        crate's one `From` impl for E. Elsewhere `into` stays the identity it is between equal types."""
+        w = self.T.res(want)
+        if not (e[0] == 'call' and e[1] == ('path', ['Err']) and len(e[2]) == 1 and e[2][0][0] == 'mcall'
+                and e[2][0][2] == 'into' and not e[2][0][3] and w[0] == 'Result'): return e
+        err = self.T.res(w[2])
+        if err[0] != 'Named' or (err[1], 'from') not in self.fns: return e
+        return ('call', ('path', ['Err']), [('call', ('path', [err[1], 'from']), [e[2][0][1]])])
+    def tail_err_into(self, body, want):
+        if body[0] != 'block' or body[2] is None: return body
+        last = body[2]
+        if last[0] == 'call': return ('block', body[1], self.err_into(last, want))
+        if last[0] in ('if',) and last[3] is not None:
+            return ('block', body[1], ('if', last[1], self.tail_err_into(last[2], want), self.tail_err_into(last[3], want)) + tuple(last[4:]))
+        return body
     def method_path(self, a):
         if not (a[0] == 'path' and len(a[1]) == 2 and (a[1][0] in NAT_KINDS or a[1][0] in ('i128', 'u128'))
                 and a[1][1] in ('saturating_add', 'saturating_mul', 'wrapping_add', 'max', 'min', 'checked_add')): return None
@@ -1935,7 +1951,7 @@ class Translator:
             if ctx is None: raise Unsupported('return in a pure position')
             def out(v, t, env): T.unify(t, ctx.ret_t, 'return'); return ctx.ret(v, env)
             if e[1] is None: return out('()', UNIT, env)
-            return self.expr(e[1], env, ctx, out)
+            return self.expr(self.err_into(e[1], ctx.ret_t), env, ctx, out)
         if h == 'continue':
             if len(e) > 1 and e[1]: raise Unsupported('labelled continue')
             if ctx is None or ctx.fall is None: raise Unsupported('continue outside a loop')
@@ -2717,6 +2733,7 @@ class Translator:
             env['__fuel'] = (pred, NAT); fuel_param = [(fuel, NAT)]
             fuel_attrs += f',\n  recursive_argument: {fuel}'
         whole = Ctx(ret=wrap, ret_t=ret_t)
+        f = dict(f); f['body'] = self.tail_err_into(f['body'], ret_t)
         def tail(v, t, env):
             made = self.pairs_as_map(v, t, ret_t, env, whole, lambda v2, env2: wrap(v2, env2))
             if made is not None: return made

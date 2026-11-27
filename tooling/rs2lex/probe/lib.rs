@@ -839,3 +839,22 @@ pub fn chunk_probe(name: String, xs: Vec<usize>, keep: Vec<String>) -> (String, 
     set.retain(|w| keep.contains(w));
     (tail, pairs, set.into_iter().collect())
 }
+
+fn checked(n: usize) -> Result<usize, Failure> {
+    if n > 3 {
+        return Err(format!("big {n}").into());
+    }
+    if n == 0 {
+        Err("zero".to_string().into())
+    } else {
+        Ok(n)
+    }
+}
+
+/// `Err(x.into())` in a return and as a function's last value: the error goes through the crate's `From` impl.
+pub fn into_probe(n: usize) -> (usize, usize, String) {
+    match checked(n) {
+        Ok(v) => (v, 0, String::new()),
+        Err(f) => (0, f.code, f.reason),
+    }
+}
