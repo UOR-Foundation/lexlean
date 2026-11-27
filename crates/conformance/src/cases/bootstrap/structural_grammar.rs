@@ -34,8 +34,11 @@ const MODULE: &str = "LexLeanBoot.StructuralGrammar";
 const SOURCE: &str = "bootstrap/src/StructuralGrammar.lex.tex";
 const ROOTS: [(&str, &[&str]); 1] = [("parseModule", &["allocation", "overflow"])];
 
-/// The most a part of a certificate of the root may be, as the row states.
-const CERTIFICATE_BUDGET: u64 = 3_145_728;
+/// The most a part of a certificate of the root may be, as the row states:
+/// with certificate B's lookup rows (SPEC.md §17.17, *Lookups*),
+/// `parseModule`'s certificate B measured 3,699,517 bytes, past the default;
+/// the row's bound is that size rounded up to a 64 KiB multiple.
+const CERTIFICATE_BUDGET: u64 = 3_735_552;
 /// The limit every vector that does not name its own runs under: the
 /// `max_scope_depth` of the committed projects.
 const DEPTH: u64 = 1_024;

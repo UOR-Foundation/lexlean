@@ -31,10 +31,10 @@ const SOURCE: &str = "src/CoreRead.lex.tex";
 const ROOTS: [(&str, &[&str]); 1] = [("readCoreModule", &["allocation", "overflow"])];
 
 /// The most a part of a certificate of a root may be, as the row states:
-/// `readCoreModule`'s certificate B measured 6,006,217 bytes, past the
-/// default; the row's bound
+/// `readCoreModule`'s certificate B measured 7,632,366 bytes with its lookup
+/// rows (SPEC.md §17.17, *Lookups*), past the default; the row's bound
 /// is that size rounded up to a 64 KiB multiple.
-const CERTIFICATE_BUDGET: u64 = 6_029_312;
+const CERTIFICATE_BUDGET: u64 = 7_667_712;
 /// Committed core modules of at most this many bytes of notation are read under
 /// the evaluator (one in `EVALUATOR_EVERY`), and under rustc those at most the
 /// second bound.
