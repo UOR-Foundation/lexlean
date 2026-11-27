@@ -216,6 +216,13 @@ range_cases = [(t, k) for k, t in enumerate(['', 'a', 'Az09 ~', '\u00e9', 'x\u00
 for t, k in range_cases:
     js = lambda xs: ','.join(map(str, xs))
     out.append('range ' + js([ord(c) for c in t]) + ';' + js(reversed(range(k))) + ';' + js(list(range(1, k + 1)) + [99]) + ';' + js([x for x in range(k) if x % 2 == 0]))
+# wide_probe: i128 arithmetic of either sign
+def some_u64(): return rng.choice([0, 1, 2, 3, 7, 10, 255, 2**32, 2**63 - 1, 2**63, 2**64 - 1, rng.randrange(0, 1000), rng.randrange(0, 2**64)])
+wide_cases = [(rng.random() < 0.5, some_u64(), rng.random() < 0.5, max(1, some_u64()), rng.choice([0, 1, 8, 31, 32, 63, 64, 100, 126])) for _ in range(300)]
+for na, x, nb, y, bits in wide_cases:
+    a, b = (-x if na else x), (-y if nb else y)
+    q = abs(a) // abs(b) * (-1 if (a < 0) != (b < 0) else 1)
+    out.append('wide ' + hx(';'.join(map(str, [a + b, a - b, a * b, q, a - q * b, a % abs(b), (1 << bits) - a]))))
 # writeback_probe: writes through a `&mut` to an element, on every way out of the body
 writeback_cases = [([rng.randrange(0, 9) for _ in range(rng.randrange(0, 7))], rng.randrange(0, 9)) for _ in range(200)]
 for xs, stop in writeback_cases:
@@ -349,6 +356,8 @@ lean += ['',
          '    let r := fRangeProbe t k',
          '    let js := fun (xs : List Nat) => String.intercalate "," (xs.map toString)',
          '    IO.println ("range " ++ js r.1 ++ ";" ++ js r.2.1 ++ ";" ++ js r.2.2.1 ++ ";" ++ js r.2.2.2)',
+         '  for (na, x, nb, y, bits) in wideCases do',
+         '    IO.println ("wide " ++ hx (fWideProbe na x nb y bits))',
          '  for (xs, stop) in writebackCases do',
          '    let r := fWritebackProbe xs stop',
          '    IO.println ("writeback " ++ String.intercalate "," (r.1.map toString) ++ ";" ++ String.intercalate "|" (r.2.1.map fun row => String.intercalate "," (row.map toString)) ++ ";" ++ toString r.2.2.1 ++ ";" ++ String.intercalate "," (r.2.2.2.1.map toString) ++ ";" ++ toString r.2.2.2.2)',
@@ -356,6 +365,7 @@ lean += ['',
 at = next(i for i, line in enumerate(lean) if line.startswith('def shadowCases'))
 lean.insert(at, 'def nestedCases : List (List (List Nat)) := ' + lean_list([lean_list([lean_list([str(x) for x in row]) for row in rows]) for rows in nested_cases]))
 lean.insert(at, 'def rangeCases : List (ByteArray × Nat) := ' + lean_list([f'({lean_bytes(t)}, {k})' for t, k in range_cases]))
+lean.insert(at, 'def wideCases : List (Bool × Nat × Bool × Nat × Nat) := ' + lean_list([f'({str(na).lower()}, {x}, {str(nb).lower()}, {y}, {bits})' for na, x, nb, y, bits in wide_cases]))
 lean.insert(at, 'def writebackCases : List (List Nat × Nat) := ' + lean_list([f'({lean_list([str(x) for x in xs])}, {stop})' for xs, stop in writeback_cases]))
 if typed_cases:
     lean[-1:] = ['  for xs in typedCases do',

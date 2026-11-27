@@ -550,3 +550,20 @@ pub fn range_probe(s: String, n: usize) -> (Vec<u32>, Vec<usize>, Vec<usize>, Ve
     let evens: Vec<usize> = (0..n).filter(|x| x % 2 == 0).collect();
     (codes, down, tail, evens)
 }
+
+fn signed(negative: bool, magnitude: u64) -> i128 {
+    if negative {
+        -(magnitude as i128)
+    } else {
+        magnitude as i128
+    }
+}
+
+/// arithmetic on i128, of either sign: sum, difference, product, quotient and remainder (both toward zero), the
+/// Euclidean remainder, a shift, and the text of each.
+pub fn wide_probe(na: bool, x: u64, nb: bool, y: u64, bits: u32) -> String {
+    let a = signed(na, x);
+    let b = signed(nb, y);
+    let modulus = 1_i128 << bits;
+    format!("{};{};{};{};{};{};{}", a + b, a - b, a * b, a / b, a % b, a.rem_euclid(b), modulus - a)
+}

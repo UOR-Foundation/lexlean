@@ -435,7 +435,11 @@ class Body:
         ty = node.value('ty', '')
         if kind == 'VarRef': return ('path', [self.name_of(h.value('id', ''))])
         if kind == 'UpvarRef': return ('path', [self.name_of(h.value('var_hir_id', ''))])
-        if kind == 'Literal': return self.literal(h.text)
+        if kind == 'Literal':
+            lit = self.literal(h.text)
+            # rustc has typed every literal: one of type i128 is said to be, written with the suffix or not
+            if lit[0] == 'int' and ty.strip() == 'i128': return ('cast', lit, ('path', 'i128', []))
+            return lit
         if kind == 'Binary':
             return ('bin', BIN[h.value('op')], self.expr_in(h.field('lhs')), self.expr_in(h.field('rhs')))
         if kind == 'LogicalOp':

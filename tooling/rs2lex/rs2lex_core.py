@@ -507,7 +507,11 @@ class Parser:
         return ('labelled', label, node) if label else node
     def primary(self, ns):
         k, v = self.peek()
-        if k == 'int': self.eat(); return ('int', int_value(v))
+        if k == 'int':
+            self.eat()
+            # a literal written as i128 is one: the suffix is its type, which nothing else may say
+            if v.endswith('i128'): return ('cast', ('int', int_value(v)), ('path', 'i128', []))
+            return ('int', int_value(v))
         if k == 'str': self.eat(); return ('str', unescape(v[1:-1]))
         if k == 'bstr': self.eat(); return ('bstr', unescape(v[2:-1]))
         if k == 'chr': self.eat(); return ('chr', unescape(v[1:-1]))
@@ -1159,7 +1163,7 @@ class Translator:
         n = self.fresh(base)
         return f'(let {n} : {self.T.show(t)} := {v}; {k(n, env)})'
     def lit(self, n):
-        t = self.T.var(); return f'\u00a6{t[1]}|{n}\u00a6', t
+        t = self.T.var(); return f'¦{t[1]}|{n}¦', t
 
     # -- effect analysis
     def walk(self, e):
@@ -2454,6 +2458,8 @@ class Translator:
             if head == 'Bytes' and m == 'bytes': return done(f'(RustStd::bytesOf {r})', ('List', UINT8))
             if head == 'UInt8' and m == 'is_ascii_digit': return done(f'(AxiomOutput::inRange {r} (48 : UInt8) (57 : UInt8))', BOOL)
             if head == 'I128' and m == 'unsigned_abs': return done(f'(RustStd::i128Abs {r})', I128)
+            if head == 'I128' and m == 'rem_euclid' and len(args) == 1:
+                return self.expr(args[0], env, ctx, lambda b, bt, env2: (T.unify(bt, I128, 'rem_euclid'), k(f'(RustStd::i128RemEuclid {r} {b})', I128, env2))[1])
             if head == 'Bytes' and m == 'parse_i128': return done(f'(RustStd::parseI128 {r})', ('Result', I128, UNIT))
             def with_args(vs, env):
                 done = lambda v, t: k(v, t, env)

@@ -246,6 +246,7 @@ class Translator(Core):
     def display(self, v, t):
         t = self.T.res(t)
         if t[0] == 'Fixed': return self.fixed_text(v, t)
+        if t == I128: return f'(RustStd::i128Text {v})'
         if t[0] == 'Named' and (t[1], 'fmt_display') in self.fns: return self.fmt_call((t[1], 'fmt_display'), v)
         return super().display(v, t)
     def debug_value(self, v, t):
@@ -354,7 +355,8 @@ class Translator(Core):
                     return k(self.panic_default(f'(prim checked_negate {v} : (Option {t[1]}))', t), t, env2)
                 T.unify(t, I128, 'negation'); return k(f'(RustStd::i128Neg {v})', I128, env2)
             return self.expr(e[1], env, ctx, negated)
-        if h == 'bin' and e[1] in ('+', '-', '*', '/', '%', '<', '<=', '>', '>=', '==', '!='):
+        literal_shift = h == 'bin' and e[1] == '<<' and e[2][0] == 'int' and e[3][0] == 'int'      # folded by the core
+        if h == 'bin' and e[1] in ('+', '-', '*', '/', '%', '<', '<=', '>', '>=', '==', '!=', '<<') and not literal_shift:
             return self.exprs([e[2], e[3]], env, ctx, lambda vs, env2: self.binary(e[1], vs, env2, k))
         if h == 'cast':
             target = self.ty(e[2], self.owner)
@@ -378,6 +380,10 @@ class Translator(Core):
         import re as _re
         if T.res(ta) == NAT and T.res(tb) == UINT8 and _re.fullmatch(r'\((\d+) : UInt8\)', b): b, tb = _re.fullmatch(r'\((\d+) : UInt8\)', b).group(1), NAT
         if T.res(tb) == NAT and T.res(ta) == UINT8 and _re.fullmatch(r'\((\d+) : UInt8\)', a): a, ta = _re.fullmatch(r'\((\d+) : UInt8\)', a).group(1), NAT
+        if op == '<<' and T.res(ta) == I128:
+            # a 128-bit shift: the value times a power of two. Rust panics where that leaves the type (as it does
+            # for the other i128 operations below); the translation gives the whole number
+            T.unify(tb, NAT, 'shift amount'); return k(f'(RustStd::i128Shl {a} {b})', I128, env)
         T.unify(ta, tb, f'operands of {op}')
         # an integer whose type nothing has fixed is an i32 in Rust and may go below zero; as a Nat a subtraction would
         # stop at zero instead, so it is refused rather than translated to a different answer
@@ -398,6 +404,9 @@ class Translator(Core):
             # any other type with an order the translation derives (Bytes by their bytes, tuples, derived Ord)
             if strict: return k(self.less(lo, hi, t), BOOL, env)
             return k(f'(not {self.less(hi, lo, t)})', BOOL, env)
+        if t == I128 and op in ('+', '-', '*', '/', '%'):
+            name = {'+': 'i128Add', '-': 'i128Sub', '*': 'i128Mul', '/': 'i128Div', '%': 'i128Rem'}[op]
+            return k(f'(RustStd::{name} {a} {b})', I128, env)
         if t == BOOL and op in ('|', '&', '^'):
             # both operands are already evaluated, in order, so the non-short-circuit form is a choice between values
             form = {'|': f'(if {a} then true else {b})', '&': f'(if {a} then {b} else false)', '^': f'(if {a} then (not {b}) else {b})'}

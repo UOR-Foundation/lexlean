@@ -567,6 +567,86 @@ definition{
 }
 
 definition{
+  name: i128Wide,
+  parameters: [negative : Bool, magnitude : Nat],
+  result: I128,
+  body: (let made : Bytes := (second (first (prim iterate_until (fun (state : (Nat * Bytes)) => (if ((first state) =? 0) then (ctor Option.none [(Nat * Bytes)]) else (ctor Option.some [(Nat * Bytes)] ((prim quotient (first state) 10 0 : Nat), (prim append (AxiomOutput::digit (first state) 1) (second state) : Bytes))))) 80 (magnitude, (AxiomOutput::text "")) : ((Nat * Bytes) * Bool)))); (i128Big negative (if ((prim length made : Nat) =? 0) then (AxiomOutput::text "0") else made))),
+  executable: true
+}
+
+definition{
+  name: i128Text,
+  parameters: [value : I128],
+  result: Bytes,
+  body: (if (project value negative) then (AxiomOutput::cat (AxiomOutput::text "-") (project value digits)) else (project value digits)),
+  executable: true
+}
+
+definition{
+  name: i128Mag,
+  parameters: [value : I128],
+  result: Nat,
+  body: (prim list_fold (fun (acc : Nat) (byte : UInt8) => ((prim multiply acc 10 : Nat) + (prim subtract (prim to_nat byte : Nat) 48 : Nat))) 0 (bytesOf (project value digits)) : Nat),
+  executable: true
+}
+
+definition{
+  name: i128Add,
+  parameters: [left : I128, right : I128],
+  result: I128,
+  body: (let a : Nat := (i128Mag left); (let b : Nat := (i128Mag right); (if (if (project left negative) then (project right negative) else (not (project right negative))) then (i128Wide (project left negative) (a + b)) else (if (b <=? a) then (i128Wide (project left negative) (prim subtract a b : Nat)) else (i128Wide (project right negative) (prim subtract b a : Nat)))))),
+  executable: true
+}
+
+definition{
+  name: i128Sub,
+  parameters: [left : I128, right : I128],
+  result: I128,
+  body: (i128Add left (i128Neg right)),
+  executable: true
+}
+
+definition{
+  name: i128Mul,
+  parameters: [left : I128, right : I128],
+  result: I128,
+  body: (i128Wide (if (project left negative) then (not (project right negative)) else (project right negative)) (prim multiply (i128Mag left) (i128Mag right) : Nat)),
+  executable: true
+}
+
+definition{
+  name: i128Div,
+  parameters: [left : I128, right : I128],
+  result: I128,
+  body: (i128Wide (if (project left negative) then (not (project right negative)) else (project right negative)) (prim quotient (i128Mag left) (i128Mag right) 0 : Nat)),
+  executable: true
+}
+
+definition{
+  name: i128Rem,
+  parameters: [left : I128, right : I128],
+  result: I128,
+  body: (i128Wide (project left negative) (prim remainder (i128Mag left) (i128Mag right) 0 : Nat)),
+  executable: true
+}
+
+definition{
+  name: i128RemEuclid,
+  parameters: [left : I128, right : I128],
+  result: I128,
+  body: (let b : Nat := (i128Mag right); (let r : Nat := (prim remainder (i128Mag left) b 0 : Nat); (if (project left negative) then (if (r =? 0) then (i128Wide false 0) else (i128Wide false (prim subtract b r : Nat))) else (i128Wide false r)))),
+  executable: true
+}
+
+definition{
+  name: i128Shl,
+  parameters: [value : I128, bits : Nat],
+  result: I128,
+  body: (i128Wide (project value negative) (prim multiply (i128Mag value) (prim list_fold (fun (acc : Nat) (step : Nat) => (prim multiply acc 2 : Nat)) 1 (range 0 bits) : Nat) : Nat)),
+  executable: true
+}
+
+definition{
   name: charCode,
   parameters: [c : Bytes],
   result: Nat,
