@@ -1,0 +1,2018 @@
+{
+  "schema": "lexlean/advisory-b2-observed-composite/1",
+  "authority": false,
+  "scope": "Observed one qualified combined PR gate and same-head independent reproducibility, two member/candidate draft checks. Not whole-lifecycle costs; earlier drafts, regeneration, postmerge, developer preflight and hypothetical independent runs excluded. No causal saved runner-minutes claim or generalized batching authority.",
+  "member_heads": {
+    "607": "d3d63f6a2e22a145db08c51927fb13d02e631296",
+    "609": "a5e846de239113ca591f949eb75764d40096f7e9"
+  },
+  "merged": "fa2280e226649e7d8fccacbad981f12faf88b602",
+  "tree": "e736f044c95fdade9b7c995faf27c406ec77505e",
+  "base": "d553cbf42f4d51673f6e4040da2337dda4627c09",
+  "runs": [
+    {
+      "id": 45490646681,
+      "head": "a5e846de239113ca591f949eb75764d40096f7e9",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "path": ".github/workflows/ci.yml",
+      "event": "pull_request",
+      "created": "2026-11-24T21:23:42Z",
+      "updated": "2026-11-25T00:44:13Z",
+      "metrics": {
+        "count": 89,
+        "success": 86,
+        "skipped": 3,
+        "allocated": 86,
+        "allocated_seconds": 111638,
+        "wall_seconds": 12031,
+        "queue_seconds": 3429
+      },
+      "raw": [
+        {
+          "id": 138787742928,
+          "name": "plan",
+          "attempt": 1,
+          "runner": 1000182577,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:23:43Z",
+          "started": "2026-11-24T21:23:45Z",
+          "completed": "2026-11-24T21:24:19Z"
+        },
+        {
+          "id": 138788102640,
+          "name": "honesty",
+          "attempt": 1,
+          "runner": 1000182579,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:24:19Z",
+          "started": "2026-11-24T21:24:22Z",
+          "completed": "2026-11-24T21:28:20Z"
+        },
+        {
+          "id": 138790487035,
+          "name": "build and non-Lean tests (aarch64-unknown-linux-gnu)",
+          "attempt": 1,
+          "runner": 1000182588,
+          "labels": [
+            "ubuntu-24.04-arm"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:25Z",
+          "completed": "2026-11-25T00:44:13Z"
+        },
+        {
+          "id": 138790487068,
+          "name": "bootstrap export",
+          "attempt": 1,
+          "runner": 1000182591,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T22:22:53Z"
+        },
+        {
+          "id": 138790487080,
+          "name": "atlas (prefix)",
+          "attempt": 1,
+          "runner": 1000182592,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T21:59:23Z"
+        },
+        {
+          "id": 138790487239,
+          "name": "Windows tests (print)",
+          "attempt": 1,
+          "runner": 1000182585,
+          "labels": [
+            "windows-2022"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T22:14:09Z"
+        },
+        {
+          "id": 138790487300,
+          "name": "Windows tests (producer)",
+          "attempt": 1,
+          "runner": 1000182584,
+          "labels": [
+            "windows-2022"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T21:43:04Z"
+        },
+        {
+          "id": 138790487312,
+          "name": "Windows tests (validate)",
+          "attempt": 1,
+          "runner": 1000182586,
+          "labels": [
+            "windows-2022"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T22:25:58Z"
+        },
+        {
+          "id": 138790487348,
+          "name": "Windows tests (moves)",
+          "attempt": 1,
+          "runner": 1000182587,
+          "labels": [
+            "windows-2022"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T23:19:04Z"
+        },
+        {
+          "id": 138790487349,
+          "name": "Windows tests (lower)",
+          "attempt": 1,
+          "runner": 1000182595,
+          "labels": [
+            "windows-2022"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:22Z",
+          "completed": "2026-11-24T23:48:35Z"
+        },
+        {
+          "id": 138790487517,
+          "name": "macOS arm64 tests (lower)",
+          "attempt": 1,
+          "runner": 1000182590,
+          "labels": [
+            "macos-15"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T23:35:31Z"
+        },
+        {
+          "id": 138790487536,
+          "name": "macOS arm64 tests (moves)",
+          "attempt": 1,
+          "runner": 1000182589,
+          "labels": [
+            "macos-15"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T22:37:30Z"
+        },
+        {
+          "id": 138790487566,
+          "name": "macOS arm64 tests (producer)",
+          "attempt": 1,
+          "runner": 1000182612,
+          "labels": [
+            "macos-15"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:33:25Z",
+          "completed": "2026-11-24T21:46:48Z"
+        },
+        {
+          "id": 138790487571,
+          "name": "macOS arm64 tests (validate)",
+          "attempt": 1,
+          "runner": 1000182596,
+          "labels": [
+            "macos-15"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T22:34:51Z"
+        },
+        {
+          "id": 138790487644,
+          "name": "macOS arm64 tests (print)",
+          "attempt": 1,
+          "runner": 1000182665,
+          "labels": [
+            "macos-15"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:46:50Z",
+          "completed": "2026-11-24T22:30:12Z"
+        },
+        {
+          "id": 138790487645,
+          "name": "just vv (bdd-preservation-prims)",
+          "attempt": 1,
+          "runner": 1000182593,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T21:33:13Z"
+        },
+        {
+          "id": 138790487700,
+          "name": "just vv (bdd-language-models)",
+          "attempt": 1,
+          "runner": 1000182600,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T21:41:04Z"
+        },
+        {
+          "id": 138790487707,
+          "name": "just vv (rest)",
+          "attempt": 1,
+          "runner": 1000182599,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T22:11:30Z"
+        },
+        {
+          "id": 138790487738,
+          "name": "just vv (bdd-production)",
+          "attempt": 1,
+          "runner": 1000182601,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T22:05:16Z"
+        },
+        {
+          "id": 138790487744,
+          "name": "just vv (bdd-preservation-runtime)",
+          "attempt": 1,
+          "runner": 1000182603,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T21:36:59Z"
+        },
+        {
+          "id": 138790487751,
+          "name": "just vv (bdd-verification)",
+          "attempt": 1,
+          "runner": 1000182594,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T21:55:13Z"
+        },
+        {
+          "id": 138790487759,
+          "name": "just vv (bdd-stdlib)",
+          "attempt": 1,
+          "runner": 1000182606,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T21:43:47Z"
+        },
+        {
+          "id": 138790487761,
+          "name": "just vv (bdd-preservation-support)",
+          "attempt": 1,
+          "runner": 1000182604,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T21:40:27Z"
+        },
+        {
+          "id": 138790487789,
+          "name": "just vv (bdd-preservation-std)",
+          "attempt": 1,
+          "runner": 1000182602,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T21:35:21Z"
+        },
+        {
+          "id": 138790487813,
+          "name": "just vv (examples)",
+          "attempt": 1,
+          "runner": 1000182597,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T22:07:05Z"
+        },
+        {
+          "id": 138790487858,
+          "name": "just vv (bdd-preservation-lists)",
+          "attempt": 1,
+          "runner": 1000182598,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T21:44:24Z"
+        },
+        {
+          "id": 138790487993,
+          "name": "just vv (bdd-preservation)",
+          "attempt": 1,
+          "runner": 1000182605,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T22:04:51Z"
+        },
+        {
+          "id": 138790488208,
+          "name": "just vv (bdd-wasi)",
+          "attempt": 1,
+          "runner": 1000182607,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:23Z",
+          "completed": "2026-11-24T21:40:36Z"
+        },
+        {
+          "id": 138790489366,
+          "name": "Intel test construction and local targets",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "macos-15-intel"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:21Z",
+          "completed": "2026-11-24T21:28:20Z"
+        },
+        {
+          "id": 138790491712,
+          "name": "Intel conformance (${{ matrix.lane }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "macos-15-intel"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:21Z",
+          "completed": "2026-11-24T21:28:21Z"
+        },
+        {
+          "id": 138790493742,
+          "name": "build and non-Lean tests (x86_64-apple-darwin)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:28:21Z",
+          "started": "2026-11-24T21:28:21Z",
+          "completed": "2026-11-24T21:28:21Z"
+        },
+        {
+          "id": 138808378528,
+          "name": "atlas (census-d)",
+          "attempt": 1,
+          "runner": 1000182677,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:59:24Z",
+          "started": "2026-11-24T21:59:26Z",
+          "completed": "2026-11-24T22:07:59Z"
+        },
+        {
+          "id": 138808378535,
+          "name": "atlas (census-b)",
+          "attempt": 1,
+          "runner": 1000182675,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:59:24Z",
+          "started": "2026-11-24T21:59:26Z",
+          "completed": "2026-11-24T22:08:12Z"
+        },
+        {
+          "id": 138808378555,
+          "name": "atlas (cert4)",
+          "attempt": 1,
+          "runner": 1000182678,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:59:24Z",
+          "started": "2026-11-24T21:59:26Z",
+          "completed": "2026-11-24T22:02:41Z"
+        },
+        {
+          "id": 138808378588,
+          "name": "atlas (census-c)",
+          "attempt": 1,
+          "runner": 1000182679,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:59:24Z",
+          "started": "2026-11-24T21:59:26Z",
+          "completed": "2026-11-24T22:16:46Z"
+        },
+        {
+          "id": 138808378622,
+          "name": "atlas (census-a)",
+          "attempt": 1,
+          "runner": 1000182676,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:59:24Z",
+          "started": "2026-11-24T21:59:26Z",
+          "completed": "2026-11-24T22:09:35Z"
+        },
+        {
+          "id": 138810269177,
+          "name": "atlas (cert4-replay)",
+          "attempt": 1,
+          "runner": 1000182688,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:02:42Z",
+          "started": "2026-11-24T22:02:44Z",
+          "completed": "2026-11-24T22:06:12Z"
+        },
+        {
+          "id": 138814274379,
+          "name": "atlas (closure)",
+          "attempt": 1,
+          "runner": 1000182720,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:09:36Z",
+          "started": "2026-11-24T22:09:39Z",
+          "completed": "2026-11-24T22:15:18Z"
+        },
+        {
+          "id": 138817538105,
+          "name": "atlas (pairs-b)",
+          "attempt": 1,
+          "runner": 1000182725,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:15:19Z",
+          "started": "2026-11-24T22:15:21Z",
+          "completed": "2026-11-24T22:27:41Z"
+        },
+        {
+          "id": 138817538117,
+          "name": "atlas (pairs-d)",
+          "attempt": 1,
+          "runner": 1000182724,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:15:19Z",
+          "started": "2026-11-24T22:15:21Z",
+          "completed": "2026-11-24T22:27:10Z"
+        },
+        {
+          "id": 138817538244,
+          "name": "atlas (pairs-a)",
+          "attempt": 1,
+          "runner": 1000182726,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:15:19Z",
+          "started": "2026-11-24T22:15:21Z",
+          "completed": "2026-11-24T22:28:34Z"
+        },
+        {
+          "id": 138817538413,
+          "name": "atlas (orbit)",
+          "attempt": 1,
+          "runner": 1000182727,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:15:19Z",
+          "started": "2026-11-24T22:15:21Z",
+          "completed": "2026-11-24T22:24:22Z"
+        },
+        {
+          "id": 138817538706,
+          "name": "atlas (pairs-c)",
+          "attempt": 1,
+          "runner": 1000182728,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:15:19Z",
+          "started": "2026-11-24T22:15:21Z",
+          "completed": "2026-11-24T22:27:11Z"
+        },
+        {
+          "id": 138821786871,
+          "name": "just vv (bdd-bootstrap-gnaf)",
+          "attempt": 1,
+          "runner": 1000182737,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:29:46Z"
+        },
+        {
+          "id": 138821786872,
+          "name": "just vv (bdd-bootstrap-lexicon-lre)",
+          "attempt": 1,
+          "runner": 1000182738,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:29:13Z"
+        },
+        {
+          "id": 138821786925,
+          "name": "just vv (bdd-bootstrap-structural-grammar)",
+          "attempt": 1,
+          "runner": 1000182744,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:39:17Z"
+        },
+        {
+          "id": 138821786942,
+          "name": "just vv (bdd-bootstrap-project-text)",
+          "attempt": 1,
+          "runner": 1000182739,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:28:36Z"
+        },
+        {
+          "id": 138821786976,
+          "name": "just vv (bdd-bootstrap-check)",
+          "attempt": 1,
+          "runner": 1000182736,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:31:38Z"
+        },
+        {
+          "id": 138821786984,
+          "name": "just vv (bdd-bootstrap-tooling-latex)",
+          "attempt": 1,
+          "runner": 1000182745,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:31:39Z"
+        },
+        {
+          "id": 138821786989,
+          "name": "just vv (bdd-bootstrap-lower)",
+          "attempt": 1,
+          "runner": 1000182747,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:46:46Z"
+        },
+        {
+          "id": 138821787000,
+          "name": "just vv (bdd-bootstrap-surface-generic)",
+          "attempt": 1,
+          "runner": 1000182742,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:30:12Z"
+        },
+        {
+          "id": 138821787034,
+          "name": "just vv (bdd-bootstrap-lexicon-lse)",
+          "attempt": 1,
+          "runner": 1000182758,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:57Z",
+          "completed": "2026-11-24T22:30:03Z"
+        },
+        {
+          "id": 138821787036,
+          "name": "just vv (bdd-bootstrap-assemble)",
+          "attempt": 1,
+          "runner": 1000182740,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:30:06Z"
+        },
+        {
+          "id": 138821787040,
+          "name": "just vv (bdd-bootstrap-moves)",
+          "attempt": 1,
+          "runner": 1000182750,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:32:51Z"
+        },
+        {
+          "id": 138821787059,
+          "name": "just vv (bdd-bootstrap-surface-lex)",
+          "attempt": 1,
+          "runner": 1000182755,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:32:03Z"
+        },
+        {
+          "id": 138821787068,
+          "name": "just vv (bdd-bootstrap-bodies)",
+          "attempt": 1,
+          "runner": 1000182741,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:30:36Z"
+        },
+        {
+          "id": 138821787086,
+          "name": "just vv (bdd-bootstrap-validate)",
+          "attempt": 1,
+          "runner": 1000182752,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:37:02Z"
+        },
+        {
+          "id": 138821787094,
+          "name": "just vv (bdd-bootstrap-runtime)",
+          "attempt": 1,
+          "runner": 1000182748,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:31:24Z"
+        },
+        {
+          "id": 138821787115,
+          "name": "just vv (bdd-bootstrap-print)",
+          "attempt": 1,
+          "runner": 1000182760,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:38:38Z"
+        },
+        {
+          "id": 138821787128,
+          "name": "just vv (bdd-bootstrap-succeed)",
+          "attempt": 1,
+          "runner": 1000182764,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:30:05Z"
+        },
+        {
+          "id": 138821787259,
+          "name": "just vv (bdd-bootstrap-surface-tooling)",
+          "attempt": 1,
+          "runner": 1000182751,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:57Z",
+          "completed": "2026-11-24T22:29:50Z"
+        },
+        {
+          "id": 138821787288,
+          "name": "just vv (bdd-bootstrap-grammar-proof)",
+          "attempt": 1,
+          "runner": 1000182743,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:55Z",
+          "completed": "2026-11-24T22:29:23Z"
+        },
+        {
+          "id": 138821787292,
+          "name": "just vv (bdd-bootstrap-toml-read)",
+          "attempt": 1,
+          "runner": 1000182774,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:26:24Z",
+          "completed": "2026-11-24T22:32:23Z"
+        },
+        {
+          "id": 138821787339,
+          "name": "just vv (bdd-bootstrap-terms)",
+          "attempt": 1,
+          "runner": 1000182756,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:57Z",
+          "completed": "2026-11-24T22:29:31Z"
+        },
+        {
+          "id": 138821787368,
+          "name": "just vv (bdd-bootstrap-core-read)",
+          "attempt": 1,
+          "runner": 1000182746,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:35:45Z"
+        },
+        {
+          "id": 138821787369,
+          "name": "just vv (bdd-bootstrap-package)",
+          "attempt": 1,
+          "runner": 1000182765,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:34:04Z"
+        },
+        {
+          "id": 138821787380,
+          "name": "just vv (bdd-bootstrap-proposition-terms)",
+          "attempt": 1,
+          "runner": 1000182762,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:34:04Z"
+        },
+        {
+          "id": 138821787381,
+          "name": "just vv (bdd-bootstrap-loops)",
+          "attempt": 1,
+          "runner": 1000182780,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:27:43Z",
+          "completed": "2026-11-24T22:33:56Z"
+        },
+        {
+          "id": 138821787384,
+          "name": "just vv (bdd-bootstrap-lock-text)",
+          "attempt": 1,
+          "runner": 1000182777,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:27:28Z",
+          "completed": "2026-11-24T22:34:53Z"
+        },
+        {
+          "id": 138821787427,
+          "name": "just vv (bdd-bootstrap-package-ref)",
+          "attempt": 1,
+          "runner": 1000182759,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:28:59Z"
+        },
+        {
+          "id": 138821787434,
+          "name": "just vv (bdd-bootstrap-lse-types)",
+          "attempt": 1,
+          "runner": 1000182771,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:24:24Z",
+          "completed": "2026-11-24T22:30:17Z"
+        },
+        {
+          "id": 138821787435,
+          "name": "just vv (bdd-bootstrap-manifest-text)",
+          "attempt": 1,
+          "runner": 1000182761,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:29:36Z"
+        },
+        {
+          "id": 138821787444,
+          "name": "just vv (bdd-bootstrap-core-json)",
+          "attempt": 1,
+          "runner": 1000182754,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:45:21Z"
+        },
+        {
+          "id": 138821787448,
+          "name": "just vv (bdd-bootstrap-lexicon-schema)",
+          "attempt": 1,
+          "runner": 1000182770,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:29:21Z"
+        },
+        {
+          "id": 138821787465,
+          "name": "just vv (bdd-compiler)",
+          "attempt": 1,
+          "runner": 1000182779,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:27:30Z",
+          "completed": "2026-11-24T22:47:09Z"
+        },
+        {
+          "id": 138821787469,
+          "name": "just vv (bdd-bootstrap-surface-module)",
+          "attempt": 1,
+          "runner": 1000182763,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:57Z",
+          "completed": "2026-11-24T22:29:49Z"
+        },
+        {
+          "id": 138821787477,
+          "name": "just vv (bdd-bootstrap-cli-output)",
+          "attempt": 1,
+          "runner": 1000182749,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:28:46Z"
+        },
+        {
+          "id": 138821787493,
+          "name": "just vv (bdd-bootstrap-semantic-read)",
+          "attempt": 1,
+          "runner": 1000182766,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:57Z",
+          "completed": "2026-11-24T22:56:05Z"
+        },
+        {
+          "id": 138821787500,
+          "name": "just vv (bdd-bootstrap-lse-scopes)",
+          "attempt": 1,
+          "runner": 1000182778,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:27:30Z",
+          "completed": "2026-11-24T22:34:32Z"
+        },
+        {
+          "id": 138821787514,
+          "name": "just vv (bdd-bootstrap-core-print)",
+          "attempt": 1,
+          "runner": 1000182768,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:47:41Z"
+        },
+        {
+          "id": 138821787516,
+          "name": "just vv (bdd-bootstrap-grammar-math)",
+          "attempt": 1,
+          "runner": 1000182767,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:30:28Z"
+        },
+        {
+          "id": 138821787526,
+          "name": "just vv (bdd-bootstrap-diagnostics)",
+          "attempt": 1,
+          "runner": 1000182753,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:30:08Z"
+        },
+        {
+          "id": 138821787537,
+          "name": "just vv (bdd-bootstrap-content-id)",
+          "attempt": 1,
+          "runner": 1000182757,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:28:24Z"
+        },
+        {
+          "id": 138821787557,
+          "name": "just vv (bdd-bootstrap-surface-doc)",
+          "attempt": 1,
+          "runner": 1000182781,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:28:26Z",
+          "completed": "2026-11-24T22:37:30Z"
+        },
+        {
+          "id": 138821787580,
+          "name": "just vv (bdd-bootstrap-semantic-print)",
+          "attempt": 1,
+          "runner": 1000182772,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:24:38Z",
+          "completed": "2026-11-24T23:38:39Z"
+        },
+        {
+          "id": 138821787653,
+          "name": "just vv (bdd-bootstrap-lexicon-entry)",
+          "attempt": 1,
+          "runner": 1000182769,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:22:54Z",
+          "started": "2026-11-24T22:22:56Z",
+          "completed": "2026-11-24T22:27:26Z"
+        },
+        {
+          "id": 138824907516,
+          "name": "atlas (join)",
+          "attempt": 1,
+          "runner": 1000182783,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T22:28:35Z",
+          "started": "2026-11-24T22:28:43Z",
+          "completed": "2026-11-24T22:30:38Z"
+        },
+        {
+          "id": 138859276997,
+          "name": "build and non-Lean tests (aarch64-apple-darwin)",
+          "attempt": 1,
+          "runner": 1000182918,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T23:35:32Z",
+          "started": "2026-11-24T23:35:34Z",
+          "completed": "2026-11-24T23:36:05Z"
+        },
+        {
+          "id": 138865361086,
+          "name": "build and non-Lean tests (x86_64-pc-windows-msvc)",
+          "attempt": 1,
+          "runner": 1000182920,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T23:48:35Z",
+          "started": "2026-11-24T23:48:37Z",
+          "completed": "2026-11-24T23:49:17Z"
+        }
+      ]
+    },
+    {
+      "id": 45490646770,
+      "head": "a5e846de239113ca591f949eb75764d40096f7e9",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "path": ".github/workflows/reproducibility.yml",
+      "event": "pull_request",
+      "created": "2026-11-24T21:23:42Z",
+      "updated": "2026-11-24T21:29:20Z",
+      "metrics": {
+        "count": 1,
+        "success": 1,
+        "skipped": 0,
+        "allocated": 1,
+        "allocated_seconds": 334,
+        "wall_seconds": 337,
+        "queue_seconds": 2
+      },
+      "raw": [
+        {
+          "id": 138787742569,
+          "name": "repro",
+          "attempt": 1,
+          "runner": 1000182578,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "success",
+          "created": "2026-11-24T21:23:43Z",
+          "started": "2026-11-24T21:23:45Z",
+          "completed": "2026-11-24T21:29:19Z"
+        }
+      ]
+    },
+    {
+      "id": 45487823728,
+      "head": "a5e846de239113ca591f949eb75764d40096f7e9",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "skipped",
+      "path": ".github/workflows/ci.yml",
+      "event": "pull_request",
+      "created": "2026-11-24T21:07:16Z",
+      "updated": "2026-11-24T21:07:18Z",
+      "metrics": {
+        "count": 21,
+        "success": 0,
+        "skipped": 21,
+        "allocated": 0,
+        "allocated_seconds": 0,
+        "wall_seconds": 2,
+        "queue_seconds": 0
+      },
+      "raw": [
+        {
+          "id": 138777805439,
+          "name": "plan",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:17Z",
+          "started": "2026-11-24T21:07:17Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777807865,
+          "name": "Intel test construction and local targets",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "macos-15-intel"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:17Z",
+          "started": "2026-11-24T21:07:17Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777808093,
+          "name": "build and non-Lean tests (${{ matrix.target }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:17Z",
+          "started": "2026-11-24T21:07:17Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777808266,
+          "name": "macOS arm64 tests (${{ matrix.lane }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "macos-15"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:17Z",
+          "started": "2026-11-24T21:07:17Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777808425,
+          "name": "bootstrap export",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:17Z",
+          "started": "2026-11-24T21:07:17Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777808500,
+          "name": "just vv (${{ matrix.part }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:17Z",
+          "started": "2026-11-24T21:07:17Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777809187,
+          "name": "Windows tests (${{ matrix.lane }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "windows-2022"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:17Z",
+          "started": "2026-11-24T21:07:17Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777809211,
+          "name": "atlas (prefix)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:17Z",
+          "started": "2026-11-24T21:07:17Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777809454,
+          "name": "matrix.part",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:17Z",
+          "started": "2026-11-24T21:07:17Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777810472,
+          "name": "Intel conformance (${{ matrix.lane }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "macos-15-intel"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:17Z",
+          "started": "2026-11-24T21:07:17Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777811031,
+          "name": "just vv (${{ matrix.part }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:18Z",
+          "started": "2026-11-24T21:07:18Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777811228,
+          "name": "atlas (${{ matrix.shard }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:18Z",
+          "started": "2026-11-24T21:07:18Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777811263,
+          "name": "atlas (cert4)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:18Z",
+          "started": "2026-11-24T21:07:18Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777811399,
+          "name": "build and non-Lean tests (x86_64-pc-windows-msvc)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:18Z",
+          "started": "2026-11-24T21:07:18Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777811559,
+          "name": "build and non-Lean tests (aarch64-apple-darwin)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:18Z",
+          "started": "2026-11-24T21:07:18Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777811819,
+          "name": "atlas (${{ matrix.shard }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:18Z",
+          "started": "2026-11-24T21:07:18Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777813088,
+          "name": "build and non-Lean tests (x86_64-apple-darwin)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:18Z",
+          "started": "2026-11-24T21:07:18Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777814216,
+          "name": "atlas (closure)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:18Z",
+          "started": "2026-11-24T21:07:18Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777814333,
+          "name": "atlas (cert4-replay)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:18Z",
+          "started": "2026-11-24T21:07:18Z",
+          "completed": "2026-11-24T21:07:17Z"
+        },
+        {
+          "id": 138777814735,
+          "name": "atlas (join)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:18Z",
+          "started": "2026-11-24T21:07:18Z",
+          "completed": "2026-11-24T21:07:18Z"
+        },
+        {
+          "id": 138777815049,
+          "name": "atlas (${{ matrix.shard }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:18Z",
+          "started": "2026-11-24T21:07:18Z",
+          "completed": "2026-11-24T21:07:17Z"
+        }
+      ]
+    },
+    {
+      "id": 45487823719,
+      "head": "a5e846de239113ca591f949eb75764d40096f7e9",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "skipped",
+      "path": ".github/workflows/reproducibility.yml",
+      "event": "pull_request",
+      "created": "2026-11-24T21:07:16Z",
+      "updated": "2026-11-24T21:07:17Z",
+      "metrics": {
+        "count": 1,
+        "success": 0,
+        "skipped": 1,
+        "allocated": 0,
+        "allocated_seconds": 0,
+        "wall_seconds": 1,
+        "queue_seconds": 0
+      },
+      "raw": [
+        {
+          "id": 138777805733,
+          "name": "repro",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T21:07:17Z",
+          "started": "2026-11-24T21:07:17Z",
+          "completed": "2026-11-24T21:07:17Z"
+        }
+      ]
+    },
+    {
+      "id": 45472745946,
+      "head": "d3d63f6a2e22a145db08c51927fb13d02e631296",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "skipped",
+      "path": ".github/workflows/ci.yml",
+      "event": "pull_request",
+      "created": "2026-11-24T19:40:45Z",
+      "updated": "2026-11-24T19:40:49Z",
+      "metrics": {
+        "count": 21,
+        "success": 0,
+        "skipped": 21,
+        "allocated": 0,
+        "allocated_seconds": 0,
+        "wall_seconds": 4,
+        "queue_seconds": 0
+      },
+      "raw": [
+        {
+          "id": 138724784736,
+          "name": "plan",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:47Z",
+          "started": "2026-11-24T19:40:47Z",
+          "completed": "2026-11-24T19:40:46Z"
+        },
+        {
+          "id": 138724789453,
+          "name": "matrix.part",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:47Z",
+          "started": "2026-11-24T19:40:47Z",
+          "completed": "2026-11-24T19:40:47Z"
+        },
+        {
+          "id": 138724792687,
+          "name": "build and non-Lean tests (${{ matrix.target }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:47Z"
+        },
+        {
+          "id": 138724792827,
+          "name": "atlas (prefix)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:47Z"
+        },
+        {
+          "id": 138724792973,
+          "name": "macOS arm64 tests (${{ matrix.lane }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "macos-15"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:47Z"
+        },
+        {
+          "id": 138724793041,
+          "name": "bootstrap export",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:47Z"
+        },
+        {
+          "id": 138724793525,
+          "name": "Intel test construction and local targets",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "macos-15-intel"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:47Z"
+        },
+        {
+          "id": 138724793598,
+          "name": "Windows tests (${{ matrix.lane }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "windows-2022"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:47Z"
+        },
+        {
+          "id": 138724794512,
+          "name": "just vv (${{ matrix.part }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:47Z"
+        },
+        {
+          "id": 138724796249,
+          "name": "atlas (${{ matrix.shard }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:48Z"
+        },
+        {
+          "id": 138724796409,
+          "name": "just vv (${{ matrix.part }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:48Z"
+        },
+        {
+          "id": 138724796506,
+          "name": "build and non-Lean tests (x86_64-pc-windows-msvc)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:48Z"
+        },
+        {
+          "id": 138724796687,
+          "name": "atlas (cert4)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:48Z"
+        },
+        {
+          "id": 138724796746,
+          "name": "Intel conformance (${{ matrix.lane }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "macos-15-intel"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:48Z"
+        },
+        {
+          "id": 138724796958,
+          "name": "atlas (${{ matrix.shard }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:48Z"
+        },
+        {
+          "id": 138724797605,
+          "name": "build and non-Lean tests (aarch64-apple-darwin)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:48Z"
+        },
+        {
+          "id": 138724799667,
+          "name": "atlas (closure)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:48Z"
+        },
+        {
+          "id": 138724799786,
+          "name": "build and non-Lean tests (x86_64-apple-darwin)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:48Z"
+        },
+        {
+          "id": 138724801785,
+          "name": "atlas (cert4-replay)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:48Z",
+          "started": "2026-11-24T19:40:48Z",
+          "completed": "2026-11-24T19:40:48Z"
+        },
+        {
+          "id": 138724805397,
+          "name": "atlas (${{ matrix.shard }})",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:49Z",
+          "started": "2026-11-24T19:40:49Z",
+          "completed": "2026-11-24T19:40:48Z"
+        },
+        {
+          "id": 138724808090,
+          "name": "atlas (join)",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:49Z",
+          "started": "2026-11-24T19:40:49Z",
+          "completed": "2026-11-24T19:40:49Z"
+        }
+      ]
+    },
+    {
+      "id": 45472746014,
+      "head": "d3d63f6a2e22a145db08c51927fb13d02e631296",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "skipped",
+      "path": ".github/workflows/reproducibility.yml",
+      "event": "pull_request",
+      "created": "2026-11-24T19:40:46Z",
+      "updated": "2026-11-24T19:40:47Z",
+      "metrics": {
+        "count": 1,
+        "success": 0,
+        "skipped": 1,
+        "allocated": 0,
+        "allocated_seconds": 0,
+        "wall_seconds": 0,
+        "queue_seconds": 0
+      },
+      "raw": [
+        {
+          "id": 138724864276,
+          "name": "repro",
+          "attempt": 1,
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "status": "completed",
+          "conclusion": "skipped",
+          "created": "2026-11-24T19:40:54Z",
+          "started": "2026-11-24T19:40:54Z",
+          "completed": "2026-11-24T19:40:46Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "authority": false,
+  "repo": "UOR-Foundation/lexlean",
+  "run": 45662532311,
+  "attempt": 1,
+  "job": 139375892890,
+  "workflowHead": "52650abb1027504af04eaa3932f1591a99d676b6",
+  "sourceHead": "471237b3c00b6b6a78f8867de190c7cd9eaf4d3c",
+  "sourceTree": "f7d2a53de569d4c18d7b148bbf5eeb52526e386c",
+  "captureBlob": "42041e824c4e8f308a24a34cc31e5d07de305ff5",
+  "artifact": {
+    "id": 15048597803,
+    "bytes": 120467,
+    "sha256": "0ed2c9ed1fa6047352a60f8d51148e4d49f0393ae2250a51cc1b1df9f22e9685",
+    "expires": "2026-12-25T17:56:05Z",
+    "metadataSha256": "21612f450d38668b37601420d8473032e4eab9e1754d41f9a5f24bfc60778765",
+    "completeSha256": "dc466c45781d1764d1ab13e5c0c26e16a0455143f7c8d7172441aa59cf1ead86"
+  },
+  "host": {
+    "label": "ubuntu-24.04",
+    "affinity": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "cpuMax": null,
+    "memoryMax": null,
+    "memTotalKiB": 16366488,
+    "rustc": "1.97.1",
+    "cargo": "1.97.1",
+    "effectiveCgroupLimits": "unknown, not unlimited"
+  },
+  "workload": {
+    "part": "preservation-std",
+    "cases": [
+      "conformance_sp_29",
+      "conformance_sp_32",
+      "conformance_sp_33"
+    ],
+    "regime": "warm shared target"
+  },
+  "jobSeconds": 2532,
+  "setupSecondsBeforeCapture": 149,
+  "captureStepSeconds": 2378,
+  "rows": [
+    {
+      "label": "01-pair1-threadsNone",
+      "threads": null,
+      "wallSeconds": 269.1859394159999,
+      "userCpuSeconds": 808.7452070000002,
+      "systemCpuSeconds": 33.787351,
+      "peakSampledGroupRssKiB": 1221988,
+      "logSha256": "d8b5f33da9683474b4d28782f7125c10e9caf08797d1f44dee0361496c3026c5",
+      "receiptSha256": "85f055692c18a0b63d63675b486e1721b20e8cb9d625b903d64752dfa6336abf",
+      "samples": 1256
+    },
+    {
+      "label": "02-pair1-threads2",
+      "threads": 2,
+      "wallSeconds": 370.57454797700007,
+      "userCpuSeconds": 704.4008610000001,
+      "systemCpuSeconds": 32.37543000000001,
+      "peakSampledGroupRssKiB": 1148928,
+      "logSha256": "45b76ee591f204fe7c8aedf39841d3178d9fe2b2327d410872e4a6906bf14e48",
+      "receiptSha256": "a291aab6d2f4e7c24bfc24ec5dac3aabd1bada212b4e2b2c1c962da3a3a9342b",
+      "samples": 1763
+    },
+    {
+      "label": "03-pair2-threads2",
+      "threads": 2,
+      "wallSeconds": 369.6758767939998,
+      "userCpuSeconds": 701.885808,
+      "systemCpuSeconds": 32.50997299999999,
+      "peakSampledGroupRssKiB": 1135824,
+      "logSha256": "e9fad79cb4cbf5c9259195fb96831fa4766881b0a7ef27433785cd1288fc34e5",
+      "receiptSha256": "bb648fba75bf8b65f7349a3e577a70b5c69f00f1ad600be1ff82cbf6df1d8e7e",
+      "samples": 1758
+    },
+    {
+      "label": "04-pair2-threadsNone",
+      "threads": null,
+      "wallSeconds": 267.9141399330001,
+      "userCpuSeconds": 817.5283379999996,
+      "systemCpuSeconds": 35.355537999999996,
+      "peakSampledGroupRssKiB": 1248596,
+      "logSha256": "842873667d5c5a6cac481a5673090d71b5a647db1aed32a1e52002aafc3ff668",
+      "receiptSha256": "99cf799a84648111a0649d63b1bca2a8a95b4368f198cd6c760e7d8c83d7c9b5",
+      "samples": 1249
+    },
+    {
+      "label": "05-pair3-threadsNone",
+      "threads": null,
+      "wallSeconds": 269.17120862,
+      "userCpuSeconds": 818.1798719999997,
+      "systemCpuSeconds": 35.39860200000001,
+      "peakSampledGroupRssKiB": 1238884,
+      "logSha256": "2b60aecd1253f6dd06369494af8c43fdd696f1f4f4d4110bc7dd65b5b9b868b4",
+      "receiptSha256": "ff65885f10b7dfb07f7f5e5b9f40313f886247017bf753c3b277cecf75831607",
+      "samples": 1254
+    },
+    {
+      "label": "06-pair3-threads2",
+      "threads": 2,
+      "wallSeconds": 376.60885555000004,
+      "userCpuSeconds": 716.0778190000001,
+      "systemCpuSeconds": 33.022328000000016,
+      "peakSampledGroupRssKiB": 1138280,
+      "logSha256": "1bf34ab1c97edfd2f790e05fa67c4702a29a858d2e420ebbdefcecaf3e6e46e7",
+      "receiptSha256": "5973f029ecd183d8b053703ea77cc2d441c05451f0cc9c8d6560ad12f49469b6",
+      "samples": 1791
+    },
+    {
+      "label": "warmup",
+      "threads": null,
+      "wallSeconds": 452.92320781700005,
+      "userCpuSeconds": 1350.793084,
+      "systemCpuSeconds": 57.145882,
+      "peakSampledGroupRssKiB": 4880888,
+      "logSha256": "a1dd2d512c388c4b57ab28b8ff94cd887dd44c9f569ca8f4bb5c9e980dc64a5c",
+      "receiptSha256": "717fadfb1123a5da618d4c4b01648dddd50c7d0c1a0dc603588f82ac3d795d4d",
+      "samples": 2131
+    }
+  ],
+  "validation": "Independent Python ZIP hash, 16 unique entries, metadata and completion, 7/7 log SHA matches, exact named ok case counts and aggregate totals [3,0,0] per trial; no Rust execution by reviewer. Compact transcription of verified data, not full raw samples or normative evidence.",
+  "limitations": [
+    "single host and workload, three paired warm trials",
+    "default thread count inferred from affinity, not measured directly",
+    "null cgroup limits mean unobserved",
+    "RSS sampled summed process-group proxy",
+    "no cold/nextest/native/proof parity"
+  ],
+  "decision": "Keep Cargo default for this workload; no general thread cap adoption."
+}

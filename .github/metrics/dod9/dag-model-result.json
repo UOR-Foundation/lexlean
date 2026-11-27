@@ -1,0 +1,633 @@
+{
+  "schema": "lexlean/advisory-dag-model/1",
+  "authority": false,
+  "testsPassed": 28,
+  "results": [
+    {
+      "profile": "shared-fixture-heavy",
+      "fixture": {
+        "name": "shared-fixture-heavy",
+        "setup": 12,
+        "setupOther": 5,
+        "tests": [
+          [
+            "a",
+            22
+          ],
+          [
+            "b",
+            18
+          ],
+          [
+            "c",
+            15
+          ],
+          [
+            "d",
+            8
+          ],
+          [
+            "e",
+            7
+          ],
+          [
+            "f",
+            4
+          ],
+          [
+            "g",
+            3
+          ],
+          [
+            "h",
+            1
+          ]
+        ],
+        "repro": 9
+      },
+      "barrier": {
+        "makespan": 68,
+        "runnerMinutes": 141,
+        "rows": {
+          "build": {
+            "start": 0,
+            "end": 12,
+            "allocated": 0,
+            "minutes": 12,
+            "id": "build",
+            "tests": []
+          },
+          "repro": {
+            "start": 0,
+            "end": 9,
+            "allocated": 0,
+            "minutes": 9,
+            "id": "repro",
+            "tests": [
+              "repro"
+            ]
+          },
+          "other": {
+            "start": 0,
+            "end": 5,
+            "allocated": 0,
+            "minutes": 5,
+            "id": "other",
+            "tests": [
+              "other"
+            ]
+          },
+          "lane0": {
+            "start": 12,
+            "end": 67,
+            "allocated": 0,
+            "minutes": 67,
+            "id": "lane0",
+            "tests": [
+              "a",
+              "b",
+              "c"
+            ]
+          },
+          "lane1": {
+            "start": 12,
+            "end": 31,
+            "allocated": 0,
+            "minutes": 31,
+            "id": "lane1",
+            "tests": [
+              "d",
+              "e",
+              "f"
+            ]
+          },
+          "lane2": {
+            "start": 12,
+            "end": 16,
+            "allocated": 0,
+            "minutes": 16,
+            "id": "lane2",
+            "tests": [
+              "g",
+              "h"
+            ]
+          },
+          "join": {
+            "start": 67,
+            "end": 68,
+            "allocated": 67,
+            "minutes": 1,
+            "id": "join",
+            "tests": []
+          }
+        }
+      },
+      "dependencyReady": {
+        "makespan": 68,
+        "runnerMinutes": 105,
+        "rows": {
+          "build": {
+            "start": 0,
+            "end": 12,
+            "allocated": 0,
+            "minutes": 12,
+            "id": "build",
+            "tests": []
+          },
+          "repro": {
+            "start": 0,
+            "end": 9,
+            "allocated": 0,
+            "minutes": 9,
+            "id": "repro",
+            "tests": [
+              "repro"
+            ]
+          },
+          "other": {
+            "start": 0,
+            "end": 5,
+            "allocated": 0,
+            "minutes": 5,
+            "id": "other",
+            "tests": [
+              "other"
+            ]
+          },
+          "lane0": {
+            "start": 12,
+            "end": 67,
+            "allocated": 12,
+            "minutes": 55,
+            "id": "lane0",
+            "tests": [
+              "a",
+              "b",
+              "c"
+            ]
+          },
+          "lane1": {
+            "start": 12,
+            "end": 31,
+            "allocated": 12,
+            "minutes": 19,
+            "id": "lane1",
+            "tests": [
+              "d",
+              "e",
+              "f"
+            ]
+          },
+          "lane2": {
+            "start": 12,
+            "end": 16,
+            "allocated": 12,
+            "minutes": 4,
+            "id": "lane2",
+            "tests": [
+              "g",
+              "h"
+            ]
+          },
+          "join": {
+            "start": 67,
+            "end": 68,
+            "allocated": 67,
+            "minutes": 1,
+            "id": "join",
+            "tests": []
+          }
+        }
+      },
+      "balanced": {
+        "makespan": 39,
+        "runnerMinutes": 105,
+        "rows": {
+          "build": {
+            "start": 0,
+            "end": 12,
+            "allocated": 0,
+            "minutes": 12,
+            "id": "build",
+            "tests": []
+          },
+          "repro": {
+            "start": 0,
+            "end": 9,
+            "allocated": 0,
+            "minutes": 9,
+            "id": "repro",
+            "tests": [
+              "repro"
+            ]
+          },
+          "other": {
+            "start": 0,
+            "end": 5,
+            "allocated": 0,
+            "minutes": 5,
+            "id": "other",
+            "tests": [
+              "other"
+            ]
+          },
+          "lane0": {
+            "start": 12,
+            "end": 38,
+            "allocated": 12,
+            "minutes": 26,
+            "id": "lane0",
+            "tests": [
+              "a",
+              "f"
+            ]
+          },
+          "lane1": {
+            "start": 12,
+            "end": 38,
+            "allocated": 12,
+            "minutes": 26,
+            "id": "lane1",
+            "tests": [
+              "b",
+              "e",
+              "h"
+            ]
+          },
+          "lane2": {
+            "start": 12,
+            "end": 38,
+            "allocated": 12,
+            "minutes": 26,
+            "id": "lane2",
+            "tests": [
+              "c",
+              "d",
+              "g"
+            ]
+          },
+          "join": {
+            "start": 38,
+            "end": 39,
+            "allocated": 38,
+            "minutes": 1,
+            "id": "join",
+            "tests": []
+          }
+        }
+      },
+      "recovery": {
+        "firstAttemptAssumedAllocatedMinutes": 105,
+        "fullRerunAdditionalMinutes": 105,
+        "selectiveAdditionalMinutes": 27,
+        "retainedJobs": 5,
+        "rerunJobs": 2,
+        "latestFailureDetector": "lane1",
+        "selected": [
+          [
+            "build",
+            1
+          ],
+          [
+            "repro",
+            1
+          ],
+          [
+            "other",
+            1
+          ],
+          [
+            "lane0",
+            1
+          ],
+          [
+            "lane1",
+            2
+          ],
+          [
+            "lane2",
+            1
+          ],
+          [
+            "join",
+            2
+          ]
+        ]
+      },
+      "scope": "synthetic minutes, unlimited runners, assumed full allocation on first attempt, no actual execution or provider authority"
+    },
+    {
+      "profile": "short-unit-heavy",
+      "fixture": {
+        "name": "short-unit-heavy",
+        "setup": 4,
+        "setupOther": 3,
+        "tests": [
+          [
+            "a",
+            9
+          ],
+          [
+            "b",
+            7
+          ],
+          [
+            "c",
+            5
+          ],
+          [
+            "d",
+            4
+          ],
+          [
+            "e",
+            4
+          ],
+          [
+            "f",
+            3
+          ],
+          [
+            "g",
+            2
+          ],
+          [
+            "h",
+            1
+          ]
+        ],
+        "repro": 6
+      },
+      "barrier": {
+        "makespan": 26,
+        "runnerMinutes": 61,
+        "rows": {
+          "build": {
+            "start": 0,
+            "end": 4,
+            "allocated": 0,
+            "minutes": 4,
+            "id": "build",
+            "tests": []
+          },
+          "repro": {
+            "start": 0,
+            "end": 6,
+            "allocated": 0,
+            "minutes": 6,
+            "id": "repro",
+            "tests": [
+              "repro"
+            ]
+          },
+          "other": {
+            "start": 0,
+            "end": 3,
+            "allocated": 0,
+            "minutes": 3,
+            "id": "other",
+            "tests": [
+              "other"
+            ]
+          },
+          "lane0": {
+            "start": 4,
+            "end": 25,
+            "allocated": 0,
+            "minutes": 25,
+            "id": "lane0",
+            "tests": [
+              "a",
+              "b",
+              "c"
+            ]
+          },
+          "lane1": {
+            "start": 4,
+            "end": 15,
+            "allocated": 0,
+            "minutes": 15,
+            "id": "lane1",
+            "tests": [
+              "d",
+              "e",
+              "f"
+            ]
+          },
+          "lane2": {
+            "start": 4,
+            "end": 7,
+            "allocated": 0,
+            "minutes": 7,
+            "id": "lane2",
+            "tests": [
+              "g",
+              "h"
+            ]
+          },
+          "join": {
+            "start": 25,
+            "end": 26,
+            "allocated": 25,
+            "minutes": 1,
+            "id": "join",
+            "tests": []
+          }
+        }
+      },
+      "dependencyReady": {
+        "makespan": 26,
+        "runnerMinutes": 49,
+        "rows": {
+          "build": {
+            "start": 0,
+            "end": 4,
+            "allocated": 0,
+            "minutes": 4,
+            "id": "build",
+            "tests": []
+          },
+          "repro": {
+            "start": 0,
+            "end": 6,
+            "allocated": 0,
+            "minutes": 6,
+            "id": "repro",
+            "tests": [
+              "repro"
+            ]
+          },
+          "other": {
+            "start": 0,
+            "end": 3,
+            "allocated": 0,
+            "minutes": 3,
+            "id": "other",
+            "tests": [
+              "other"
+            ]
+          },
+          "lane0": {
+            "start": 4,
+            "end": 25,
+            "allocated": 4,
+            "minutes": 21,
+            "id": "lane0",
+            "tests": [
+              "a",
+              "b",
+              "c"
+            ]
+          },
+          "lane1": {
+            "start": 4,
+            "end": 15,
+            "allocated": 4,
+            "minutes": 11,
+            "id": "lane1",
+            "tests": [
+              "d",
+              "e",
+              "f"
+            ]
+          },
+          "lane2": {
+            "start": 4,
+            "end": 7,
+            "allocated": 4,
+            "minutes": 3,
+            "id": "lane2",
+            "tests": [
+              "g",
+              "h"
+            ]
+          },
+          "join": {
+            "start": 25,
+            "end": 26,
+            "allocated": 25,
+            "minutes": 1,
+            "id": "join",
+            "tests": []
+          }
+        }
+      },
+      "balanced": {
+        "makespan": 17,
+        "runnerMinutes": 49,
+        "rows": {
+          "build": {
+            "start": 0,
+            "end": 4,
+            "allocated": 0,
+            "minutes": 4,
+            "id": "build",
+            "tests": []
+          },
+          "repro": {
+            "start": 0,
+            "end": 6,
+            "allocated": 0,
+            "minutes": 6,
+            "id": "repro",
+            "tests": [
+              "repro"
+            ]
+          },
+          "other": {
+            "start": 0,
+            "end": 3,
+            "allocated": 0,
+            "minutes": 3,
+            "id": "other",
+            "tests": [
+              "other"
+            ]
+          },
+          "lane0": {
+            "start": 4,
+            "end": 16,
+            "allocated": 4,
+            "minutes": 12,
+            "id": "lane0",
+            "tests": [
+              "a",
+              "f"
+            ]
+          },
+          "lane1": {
+            "start": 4,
+            "end": 16,
+            "allocated": 4,
+            "minutes": 12,
+            "id": "lane1",
+            "tests": [
+              "b",
+              "e",
+              "h"
+            ]
+          },
+          "lane2": {
+            "start": 4,
+            "end": 15,
+            "allocated": 4,
+            "minutes": 11,
+            "id": "lane2",
+            "tests": [
+              "c",
+              "d",
+              "g"
+            ]
+          },
+          "join": {
+            "start": 16,
+            "end": 17,
+            "allocated": 16,
+            "minutes": 1,
+            "id": "join",
+            "tests": []
+          }
+        }
+      },
+      "recovery": {
+        "firstAttemptAssumedAllocatedMinutes": 49,
+        "fullRerunAdditionalMinutes": 49,
+        "selectiveAdditionalMinutes": 13,
+        "retainedJobs": 5,
+        "rerunJobs": 2,
+        "latestFailureDetector": "lane1",
+        "selected": [
+          [
+            "build",
+            1
+          ],
+          [
+            "repro",
+            1
+          ],
+          [
+            "other",
+            1
+          ],
+          [
+            "lane0",
+            1
+          ],
+          [
+            "lane1",
+            2
+          ],
+          [
+            "lane2",
+            1
+          ],
+          [
+            "join",
+            2
+          ]
+        ]
+      },
+      "scope": "synthetic minutes, unlimited runners, assumed full allocation on first attempt, no actual execution or provider authority"
+    }
+  ]
+}

@@ -1,0 +1,441 @@
+{
+  "schema": "lexlean/advisory-b2-postmerge/1",
+  "authority": false,
+  "scope": "Postmerge run costs and outcomes only; not complete lifecycle or causal savings. Cancelled CI does not prove native-host completion.",
+  "merge": "fa2280e226649e7d8fccacbad981f12faf88b602",
+  "runs": [
+    {
+      "id": 45520783138,
+      "head": "fa2280e226649e7d8fccacbad981f12faf88b602",
+      "attempt": 1,
+      "path": ".github/workflows/ci.yml",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "created": "2026-11-25T00:47:11Z",
+      "updated": "2026-11-25T03:02:11Z",
+      "metrics": {
+        "count": 24,
+        "counts": {
+          "success": 6,
+          "skipped": 16,
+          "cancelled": 1,
+          "failure": 1
+        },
+        "allocated": 8,
+        "allocated_seconds": 21776,
+        "wall_seconds": 8099
+      },
+      "raw": [
+        {
+          "id": 138891776627,
+          "name": "plan",
+          "runner": 1000183050,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "success",
+          "created": "2026-11-25T00:47:12Z",
+          "started": "2026-11-25T00:47:14Z",
+          "completed": "2026-11-25T00:47:57Z"
+        },
+        {
+          "id": 138892105855,
+          "name": "honesty",
+          "runner": 1000183055,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "success",
+          "created": "2026-11-25T00:47:57Z",
+          "started": "2026-11-25T00:47:59Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893594271,
+          "name": "Intel test construction and local targets",
+          "runner": 1000183076,
+          "labels": [
+            "macos-15-intel"
+          ],
+          "conclusion": "success",
+          "created": "2026-11-25T00:51:21Z",
+          "started": "2026-11-25T00:51:24Z",
+          "completed": "2026-11-25T01:07:37Z"
+        },
+        {
+          "id": 138893596104,
+          "name": "build and non-Lean tests (${{ matrix.target }})",
+          "runner": null,
+          "labels": [],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:21Z",
+          "started": "2026-11-25T00:51:21Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893596989,
+          "name": "atlas (cert4)",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:21Z",
+          "started": "2026-11-25T00:51:21Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893597084,
+          "name": "Windows tests (${{ matrix.lane }})",
+          "runner": null,
+          "labels": [
+            "windows-2022"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:21Z",
+          "started": "2026-11-25T00:51:21Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893597176,
+          "name": "bootstrap export",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:21Z",
+          "started": "2026-11-25T00:51:21Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893597202,
+          "name": "macOS arm64 tests (${{ matrix.lane }})",
+          "runner": null,
+          "labels": [
+            "macos-15"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:21Z",
+          "started": "2026-11-25T00:51:21Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893597274,
+          "name": "build and non-Lean tests (x86_64-pc-windows-msvc)",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:21Z",
+          "started": "2026-11-25T00:51:21Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893597316,
+          "name": "atlas (prefix)",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:21Z",
+          "started": "2026-11-25T00:51:21Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893598085,
+          "name": "atlas (${{ matrix.shard }})",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:21Z",
+          "started": "2026-11-25T00:51:21Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893598131,
+          "name": "atlas (${{ matrix.shard }})",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:21Z",
+          "started": "2026-11-25T00:51:21Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893598401,
+          "name": "atlas (closure)",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:21Z",
+          "started": "2026-11-25T00:51:21Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893598808,
+          "name": "just vv (${{ matrix.part }})",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:22Z",
+          "started": "2026-11-25T00:51:22Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893598871,
+          "name": "build and non-Lean tests (aarch64-apple-darwin)",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:22Z",
+          "started": "2026-11-25T00:51:22Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893599169,
+          "name": "atlas (cert4-replay)",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:22Z",
+          "started": "2026-11-25T00:51:22Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893599287,
+          "name": "atlas (${{ matrix.shard }})",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:22Z",
+          "started": "2026-11-25T00:51:22Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893600440,
+          "name": "atlas (join)",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:22Z",
+          "started": "2026-11-25T00:51:22Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138893600446,
+          "name": "just vv (${{ matrix.part }})",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:51:22Z",
+          "started": "2026-11-25T00:51:22Z",
+          "completed": "2026-11-25T00:51:21Z"
+        },
+        {
+          "id": 138900594197,
+          "name": "Intel conformance (moves)",
+          "runner": 1000183137,
+          "labels": [
+            "macos-15-intel"
+          ],
+          "conclusion": "success",
+          "created": "2026-11-25T01:07:38Z",
+          "started": "2026-11-25T01:07:43Z",
+          "completed": "2026-11-25T02:39:57Z"
+        },
+        {
+          "id": 138900594220,
+          "name": "Intel conformance (validate)",
+          "runner": 1000183136,
+          "labels": [
+            "macos-15-intel"
+          ],
+          "conclusion": "success",
+          "created": "2026-11-25T01:07:38Z",
+          "started": "2026-11-25T01:07:41Z",
+          "completed": "2026-11-25T02:37:00Z"
+        },
+        {
+          "id": 138900594300,
+          "name": "Intel conformance (lower)",
+          "runner": 1000183138,
+          "labels": [
+            "macos-15-intel"
+          ],
+          "conclusion": "cancelled",
+          "created": "2026-11-25T01:07:38Z",
+          "started": "2026-11-25T01:07:40Z",
+          "completed": "2026-11-25T03:01:27Z"
+        },
+        {
+          "id": 138900594352,
+          "name": "Intel conformance (print)",
+          "runner": 1000183146,
+          "labels": [
+            "macos-15-intel"
+          ],
+          "conclusion": "success",
+          "created": "2026-11-25T01:07:38Z",
+          "started": "2026-11-25T01:20:58Z",
+          "completed": "2026-11-25T02:07:35Z"
+        },
+        {
+          "id": 138946044173,
+          "name": "build and non-Lean tests (x86_64-apple-darwin)",
+          "runner": 1000183237,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "failure",
+          "created": "2026-11-25T03:01:27Z",
+          "started": "2026-11-25T03:01:29Z",
+          "completed": "2026-11-25T03:02:10Z"
+        }
+      ]
+    },
+    {
+      "id": 45520782804,
+      "head": "fa2280e226649e7d8fccacbad981f12faf88b602",
+      "attempt": 1,
+      "path": ".github/workflows/tag.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "created": "2026-11-25T00:47:11Z",
+      "updated": "2026-11-25T00:47:45Z",
+      "metrics": {
+        "count": 2,
+        "counts": {
+          "success": 1,
+          "skipped": 1
+        },
+        "allocated": 1,
+        "allocated_seconds": 31,
+        "wall_seconds": 34
+      },
+      "raw": [
+        {
+          "id": 138891775490,
+          "name": "tag a cut",
+          "runner": 1000183048,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "success",
+          "created": "2026-11-25T00:47:12Z",
+          "started": "2026-11-25T00:47:14Z",
+          "completed": "2026-11-25T00:47:45Z"
+        },
+        {
+          "id": 138892020932,
+          "name": "carry the line to main",
+          "runner": null,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:47:45Z",
+          "started": "2026-11-25T00:47:45Z",
+          "completed": "2026-11-25T00:47:45Z"
+        }
+      ]
+    },
+    {
+      "id": 45520783135,
+      "head": "fa2280e226649e7d8fccacbad981f12faf88b602",
+      "attempt": 1,
+      "path": ".github/workflows/forward.yml",
+      "status": "completed",
+      "conclusion": "failure",
+      "created": "2026-11-25T00:47:11Z",
+      "updated": "2026-11-25T00:50:33Z",
+      "metrics": {
+        "count": 2,
+        "counts": {
+          "failure": 1,
+          "skipped": 1
+        },
+        "allocated": 1,
+        "allocated_seconds": 199,
+        "wall_seconds": 202
+      },
+      "raw": [
+        {
+          "id": 138891776209,
+          "name": "forward merge",
+          "runner": 1000183051,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "failure",
+          "created": "2026-11-25T00:47:12Z",
+          "started": "2026-11-25T00:47:14Z",
+          "completed": "2026-11-25T00:50:33Z"
+        },
+        {
+          "id": 138893238965,
+          "name": "regenerate",
+          "runner": null,
+          "labels": [],
+          "conclusion": "skipped",
+          "created": "2026-11-25T00:50:33Z",
+          "started": "2026-11-25T00:50:33Z",
+          "completed": "2026-11-25T00:50:33Z"
+        }
+      ]
+    },
+    {
+      "id": 45520782960,
+      "head": "fa2280e226649e7d8fccacbad981f12faf88b602",
+      "attempt": 1,
+      "path": ".github/workflows/reproducibility.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "created": "2026-11-25T00:47:11Z",
+      "updated": "2026-11-25T00:52:51Z",
+      "metrics": {
+        "count": 1,
+        "counts": {
+          "success": 1
+        },
+        "allocated": 1,
+        "allocated_seconds": 336,
+        "wall_seconds": 339
+      },
+      "raw": [
+        {
+          "id": 138891775907,
+          "name": "repro",
+          "runner": 1000183049,
+          "labels": [
+            "ubuntu-24.04"
+          ],
+          "conclusion": "success",
+          "created": "2026-11-25T00:47:12Z",
+          "started": "2026-11-25T00:47:14Z",
+          "completed": "2026-11-25T00:52:50Z"
+        }
+      ]
+    }
+  ]
+}

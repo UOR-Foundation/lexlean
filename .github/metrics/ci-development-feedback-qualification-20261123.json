@@ -1,0 +1,59 @@
+{
+  "schema": "lexlean/nonqualifying-preview-observations/1",
+  "observed_at_utc": "2026-11-23",
+  "repo": "UOR-Foundation/lexlean",
+  "pr": 606,
+  "classification": "NONQUALIFYING_ONLY",
+  "source": "GitHub Actions workflow run and paginated job API, original job steps/logs; only completed current attempt",
+  "runs": [
+    {
+      "run_id": 45182363019,
+      "head_sha": "33b419a9449e6213f5968b84c31d4c8c14a65096",
+      "job_id": 137719108228,
+      "runner_job_seconds": 7,
+      "runner_queue_seconds": 2,
+      "conclusion": "failure",
+      "purpose": "stale base refusal before checkout",
+      "checkout": "skipped",
+      "artifact_uploaded": false
+    },
+    {
+      "run_id": 45182928295,
+      "head_sha": "416c1cae8ff65502bc70467c5c2b4b6f3e37b9af",
+      "job_id": 137721079624,
+      "runner_job_seconds": 42,
+      "runner_queue_seconds": 2,
+      "conclusion": "failure",
+      "purpose": "positive path with live defect",
+      "checkout_seconds": 31,
+      "python_seconds": 3,
+      "tests_ran": 210,
+      "tests_failed": 1,
+      "artifact_uploaded": false
+    },
+    {
+      "run_id": 45183454282,
+      "head_sha": "105e21be020813ef0044d8af876711b6f5192d3c",
+      "job_id": 137722889550,
+      "runner_job_seconds": 53,
+      "runner_queue_seconds": 3,
+      "conclusion": "success",
+      "purpose": "corrected positive path",
+      "checkout_seconds": 40,
+      "python_seconds": 3,
+      "tests_ran": 211,
+      "tests_failed": 0,
+      "artifact_uploaded": true,
+      "artifact_id": 14821284967,
+      "artifact_name": "ci-before-after-evidence",
+      "zip_bytes": 13002,
+      "zip_sha256": "bc2ddb4560391c1ad9591f55cbb068ed8be94d61dac3811a47cdd061c9098f53",
+      "uploaded_file_count_from_runner_log": 8
+    }
+  ],
+  "total_unweighted_runner_seconds": 102,
+  "actual_billed_minutes": null,
+  "full_required_gate_modified": false,
+  "production_after_cohort_available": false,
+  "usage_note": "Observed runner job occupancy is not GitHub billed minutes. Three runs differ in heads/actions and are qualification cases, not an A/B benchmark."
+}

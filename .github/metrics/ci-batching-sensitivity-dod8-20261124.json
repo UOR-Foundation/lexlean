@@ -1,0 +1,2078 @@
+{
+  "schema": "lexlean/ci-batching-sensitivity/1",
+  "scope": "DOD-8a retrospective scheduling sensitivity only; no eligibility or acceptance authority",
+  "source_pr_count": 50,
+  "large_cost_proxy_pr_count": 22,
+  "releases": [
+    "release/v0.4",
+    "release/v0.5"
+  ],
+  "independent_observed_selected_gate_and_repro_job_minutes": 33998.731,
+  "assumptions": [
+    "Final-head successful ci run with >=60 jobs is a COST proxy, not proof of whole-gate qualification; require complete positive cost and a successful positive-cost independent repro in PR lifetime.",
+    "Arrival is earliest selected successful CI creation, not actual ready-for-review; retrospective lookahead and selected successful sample bias.",
+    "All selected same-line PRs hypothetically compatible; actual source dependencies, urgency, identity changes and conflicts are unknown; do not use as admission decision.",
+    "Composite gate cost assumed max selected member gate+repro minutes; actual composite costs may be larger or smaller.",
+    "10 job-minutes per member preflight assumed; 25% recovery model is expected sensitivity not empirical failure rate; stress case adds one complete gate per multi-member batch.",
+    "Only selected gate+repro costs compared; other runs/failures/push costs and end-to-end queue contention, verification latency and merge overhead excluded; wait measures staging only.",
+    "Last incomplete batches flush at age limit outside observation if needed; separate release lines never mixed; no production dispatch or measured savings."
+  ],
+  "tests": "Synthetic size flush, age flush, separate release lines, max cost, preservation, uniqueness and wait bounds passed in JS runtime",
+  "rows": [
+    {
+      "pr": 604,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-23T00:56:34Z",
+      "ci_run": 45091696149,
+      "repro_run": 45091696180,
+      "job_minutes": 956.883
+    },
+    {
+      "pr": 602,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-22T22:41:35Z",
+      "ci_run": 45079132954,
+      "repro_run": 45079132899,
+      "job_minutes": 1051.85
+    },
+    {
+      "pr": 596,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-21T08:00:29Z",
+      "ci_run": 44882821373,
+      "repro_run": 44882821325,
+      "job_minutes": 1418.433
+    },
+    {
+      "pr": 566,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-18T20:59:41Z",
+      "ci_run": 44396790061,
+      "repro_run": 44396789818,
+      "job_minutes": 1336.383
+    },
+    {
+      "pr": 560,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-16T15:33:06Z",
+      "ci_run": 43897548879,
+      "repro_run": 43897548707,
+      "job_minutes": 1140.716
+    },
+    {
+      "pr": 553,
+      "release": "release/v0.5",
+      "arrival_proxy": "2026-11-16T04:54:15Z",
+      "ci_run": 43806849406,
+      "repro_run": 43806860849,
+      "job_minutes": 1922.8
+    },
+    {
+      "pr": 543,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-16T05:04:19Z",
+      "ci_run": 43807856651,
+      "repro_run": 43807856588,
+      "job_minutes": 1083.333
+    },
+    {
+      "pr": 557,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-15T23:16:44Z",
+      "ci_run": 43773941485,
+      "repro_run": 43773941427,
+      "job_minutes": 1267.083
+    },
+    {
+      "pr": 507,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-16T02:05:38Z",
+      "ci_run": 43790053982,
+      "repro_run": 43790053781,
+      "job_minutes": 1170.416
+    },
+    {
+      "pr": 554,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-15T18:12:19Z",
+      "ci_run": 43745407916,
+      "repro_run": 43745407863,
+      "job_minutes": 1470.5
+    },
+    {
+      "pr": 550,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-15T09:44:49Z",
+      "ci_run": 43700714704,
+      "repro_run": 43700714671,
+      "job_minutes": 1931.7
+    },
+    {
+      "pr": 545,
+      "release": "release/v0.5",
+      "arrival_proxy": "2026-11-15T15:10:25Z",
+      "ci_run": 43728379723,
+      "repro_run": 43728379603,
+      "job_minutes": 2011.8
+    },
+    {
+      "pr": 441,
+      "release": "release/v0.5",
+      "arrival_proxy": "2026-11-15T15:09:55Z",
+      "ci_run": 43728330653,
+      "repro_run": 43728330600,
+      "job_minutes": 2878.067
+    },
+    {
+      "pr": 540,
+      "release": "release/v0.5",
+      "arrival_proxy": "2026-11-14T23:43:38Z",
+      "ci_run": 43654666900,
+      "repro_run": 43646786058,
+      "job_minutes": 1741.6
+    },
+    {
+      "pr": 529,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-15T06:45:58Z",
+      "ci_run": 43686923596,
+      "repro_run": 43686923618,
+      "job_minutes": 1500.584
+    },
+    {
+      "pr": 526,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-15T04:15:01Z",
+      "ci_run": 43675919328,
+      "repro_run": 43675919336,
+      "job_minutes": 1050.384
+    },
+    {
+      "pr": 503,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-15T03:01:04Z",
+      "ci_run": 43670404538,
+      "repro_run": 43670404556,
+      "job_minutes": 1412.783
+    },
+    {
+      "pr": 536,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-14T22:43:05Z",
+      "ci_run": 43649543322,
+      "repro_run": 43649543266,
+      "job_minutes": 1388.583
+    },
+    {
+      "pr": 518,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-14T22:41:20Z",
+      "ci_run": 43649392428,
+      "repro_run": 43649392342,
+      "job_minutes": 1577.183
+    },
+    {
+      "pr": 519,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-14T12:16:24Z",
+      "ci_run": 43593987920,
+      "repro_run": 43593987917,
+      "job_minutes": 2013.7
+    },
+    {
+      "pr": 535,
+      "release": "release/v0.4",
+      "arrival_proxy": "2026-11-14T19:59:29Z",
+      "ci_run": 43635042065,
+      "repro_run": 43624887487,
+      "job_minutes": 1778.067
+    },
+    {
+      "pr": 405,
+      "release": "release/v0.5",
+      "arrival_proxy": "2026-11-14T09:46:47Z",
+      "ci_run": 43582153525,
+      "repro_run": 43582153527,
+      "job_minutes": 1895.883
+    }
+  ],
+  "excluded": [
+    {
+      "pr": 597,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 601,
+      "reason": "no_observed_large_success_and_positive_repro_pair_in_PR_window"
+    },
+    {
+      "pr": 599,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 595,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 590,
+      "reason": "no_observed_large_success_and_positive_repro_pair_in_PR_window"
+    },
+    {
+      "pr": 591,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 561,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 580,
+      "reason": "no_observed_large_success_and_positive_repro_pair_in_PR_window"
+    },
+    {
+      "pr": 578,
+      "reason": "no_observed_large_success_and_positive_repro_pair_in_PR_window"
+    },
+    {
+      "pr": 581,
+      "reason": "no_observed_large_success_and_positive_repro_pair_in_PR_window"
+    },
+    {
+      "pr": 587,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 584,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 579,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 577,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 574,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 575,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 572,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 576,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 573,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 570,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 567,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 564,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 563,
+      "reason": "no_observed_large_success_and_positive_repro_pair_in_PR_window"
+    },
+    {
+      "pr": 539,
+      "reason": "no_observed_large_success_and_positive_repro_pair_in_PR_window"
+    },
+    {
+      "pr": 493,
+      "reason": "no_observed_large_success_and_positive_repro_pair_in_PR_window"
+    },
+    {
+      "pr": 556,
+      "reason": "not_release_line"
+    },
+    {
+      "pr": 551,
+      "reason": "no_observed_large_success_and_positive_repro_pair_in_PR_window"
+    },
+    {
+      "pr": 431,
+      "reason": "no_observed_large_success_and_positive_repro_pair_in_PR_window"
+    }
+  ],
+  "scenarios": [
+    {
+      "size": 2,
+      "age_hours": 6,
+      "gate_invocations": 15,
+      "multi_batches": 7,
+      "singletons": 8,
+      "staging_wait_median_minutes": 161.85,
+      "staging_wait_p95_minutes": 360,
+      "model_job_minutes_no_recovery": 24883.482,
+      "model_job_minutes_25pct_extra_gate_per_multi_batch": 27699.049,
+      "model_job_minutes_one_extra_gate_every_multi_batch": 36145.749,
+      "model_reduction_pct_no_recovery": 26.811,
+      "batches": [
+        {
+          "release": "release/v0.4",
+          "prs": [
+            519
+          ],
+          "trigger": "2026-11-14T18:16:24.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 2013.7,
+          "proxy_gate_minutes": 2013.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            535,
+            518
+          ],
+          "trigger": "2026-11-14T22:41:20.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            161.85,
+            0
+          ],
+          "individual_minutes": 3355.25,
+          "proxy_gate_minutes": 1778.067
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            536,
+            503
+          ],
+          "trigger": "2026-11-15T03:01:04.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            257.983,
+            0
+          ],
+          "individual_minutes": 2801.366,
+          "proxy_gate_minutes": 1412.783
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            526,
+            529
+          ],
+          "trigger": "2026-11-15T06:45:58.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            150.95,
+            0
+          ],
+          "individual_minutes": 2550.968,
+          "proxy_gate_minutes": 1500.584
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            550
+          ],
+          "trigger": "2026-11-15T15:44:49.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1931.7,
+          "proxy_gate_minutes": 1931.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            554,
+            557
+          ],
+          "trigger": "2026-11-15T23:16:44.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            304.417,
+            0
+          ],
+          "individual_minutes": 2737.583,
+          "proxy_gate_minutes": 1470.5
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            507,
+            543
+          ],
+          "trigger": "2026-11-16T05:04:19.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            178.683,
+            0
+          ],
+          "individual_minutes": 2253.749,
+          "proxy_gate_minutes": 1170.416
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            560
+          ],
+          "trigger": "2026-11-16T21:33:06.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1140.716,
+          "proxy_gate_minutes": 1140.716
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            566
+          ],
+          "trigger": "2026-11-19T02:59:41.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1336.383,
+          "proxy_gate_minutes": 1336.383
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            596
+          ],
+          "trigger": "2026-11-21T14:00:29.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1418.433,
+          "proxy_gate_minutes": 1418.433
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            602,
+            604
+          ],
+          "trigger": "2026-11-23T00:56:34.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            134.983,
+            0
+          ],
+          "individual_minutes": 2008.733,
+          "proxy_gate_minutes": 1051.85
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            405
+          ],
+          "trigger": "2026-11-14T15:46:47.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1895.883,
+          "proxy_gate_minutes": 1895.883
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            540
+          ],
+          "trigger": "2026-11-15T05:43:38.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1741.6,
+          "proxy_gate_minutes": 1741.6
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            441,
+            545
+          ],
+          "trigger": "2026-11-15T15:10:25.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            0.5,
+            0
+          ],
+          "individual_minutes": 4889.867,
+          "proxy_gate_minutes": 2878.067
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            553
+          ],
+          "trigger": "2026-11-16T10:54:15.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1922.8,
+          "proxy_gate_minutes": 1922.8
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "age_hours": 12,
+      "gate_invocations": 14,
+      "multi_batches": 8,
+      "singletons": 6,
+      "staging_wait_median_minutes": 73.95,
+      "staging_wait_p95_minutes": 720,
+      "model_job_minutes_no_recovery": 23182.014,
+      "model_job_minutes_25pct_extra_gate_per_multi_batch": 26558.564,
+      "model_job_minutes_one_extra_gate_every_multi_batch": 36688.213,
+      "model_reduction_pct_no_recovery": 31.815,
+      "batches": [
+        {
+          "release": "release/v0.4",
+          "prs": [
+            519,
+            535
+          ],
+          "trigger": "2026-11-14T19:59:29.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            463.083,
+            0
+          ],
+          "individual_minutes": 3791.767,
+          "proxy_gate_minutes": 2013.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            518,
+            536
+          ],
+          "trigger": "2026-11-14T22:43:05.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            1.75,
+            0
+          ],
+          "individual_minutes": 2965.766,
+          "proxy_gate_minutes": 1577.183
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            503,
+            526
+          ],
+          "trigger": "2026-11-15T04:15:01.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            73.95,
+            0
+          ],
+          "individual_minutes": 2463.167,
+          "proxy_gate_minutes": 1412.783
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            529,
+            550
+          ],
+          "trigger": "2026-11-15T09:44:49.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            178.85,
+            0
+          ],
+          "individual_minutes": 3432.284,
+          "proxy_gate_minutes": 1931.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            554,
+            557
+          ],
+          "trigger": "2026-11-15T23:16:44.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            304.417,
+            0
+          ],
+          "individual_minutes": 2737.583,
+          "proxy_gate_minutes": 1470.5
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            507,
+            543
+          ],
+          "trigger": "2026-11-16T05:04:19.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            178.683,
+            0
+          ],
+          "individual_minutes": 2253.749,
+          "proxy_gate_minutes": 1170.416
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            560
+          ],
+          "trigger": "2026-11-17T03:33:06.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1140.716,
+          "proxy_gate_minutes": 1140.716
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            566
+          ],
+          "trigger": "2026-11-19T08:59:41.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1336.383,
+          "proxy_gate_minutes": 1336.383
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            596
+          ],
+          "trigger": "2026-11-21T20:00:29.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1418.433,
+          "proxy_gate_minutes": 1418.433
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            602,
+            604
+          ],
+          "trigger": "2026-11-23T00:56:34.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            134.983,
+            0
+          ],
+          "individual_minutes": 2008.733,
+          "proxy_gate_minutes": 1051.85
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            405
+          ],
+          "trigger": "2026-11-14T21:46:47.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1895.883,
+          "proxy_gate_minutes": 1895.883
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            540
+          ],
+          "trigger": "2026-11-15T11:43:38.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1741.6,
+          "proxy_gate_minutes": 1741.6
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            441,
+            545
+          ],
+          "trigger": "2026-11-15T15:10:25.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            0.5,
+            0
+          ],
+          "individual_minutes": 4889.867,
+          "proxy_gate_minutes": 2878.067
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            553
+          ],
+          "trigger": "2026-11-16T16:54:15.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1922.8,
+          "proxy_gate_minutes": 1922.8
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "age_hours": 24,
+      "gate_invocations": 13,
+      "multi_batches": 9,
+      "singletons": 4,
+      "staging_wait_median_minutes": 1.75,
+      "staging_wait_p95_minutes": 1440,
+      "model_job_minutes_no_recovery": 21440.414,
+      "model_job_minutes_25pct_extra_gate_per_multi_batch": 25290.934,
+      "model_job_minutes_one_extra_gate_every_multi_batch": 36842.496,
+      "model_reduction_pct_no_recovery": 36.938,
+      "batches": [
+        {
+          "release": "release/v0.4",
+          "prs": [
+            519,
+            535
+          ],
+          "trigger": "2026-11-14T19:59:29.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            463.083,
+            0
+          ],
+          "individual_minutes": 3791.767,
+          "proxy_gate_minutes": 2013.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            518,
+            536
+          ],
+          "trigger": "2026-11-14T22:43:05.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            1.75,
+            0
+          ],
+          "individual_minutes": 2965.766,
+          "proxy_gate_minutes": 1577.183
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            503,
+            526
+          ],
+          "trigger": "2026-11-15T04:15:01.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            73.95,
+            0
+          ],
+          "individual_minutes": 2463.167,
+          "proxy_gate_minutes": 1412.783
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            529,
+            550
+          ],
+          "trigger": "2026-11-15T09:44:49.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            178.85,
+            0
+          ],
+          "individual_minutes": 3432.284,
+          "proxy_gate_minutes": 1931.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            554,
+            557
+          ],
+          "trigger": "2026-11-15T23:16:44.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            304.417,
+            0
+          ],
+          "individual_minutes": 2737.583,
+          "proxy_gate_minutes": 1470.5
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            507,
+            543
+          ],
+          "trigger": "2026-11-16T05:04:19.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            178.683,
+            0
+          ],
+          "individual_minutes": 2253.749,
+          "proxy_gate_minutes": 1170.416
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            560
+          ],
+          "trigger": "2026-11-17T15:33:06.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            1440
+          ],
+          "individual_minutes": 1140.716,
+          "proxy_gate_minutes": 1140.716
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            566
+          ],
+          "trigger": "2026-11-19T20:59:41.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            1440
+          ],
+          "individual_minutes": 1336.383,
+          "proxy_gate_minutes": 1336.383
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            596
+          ],
+          "trigger": "2026-11-22T08:00:29.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            1440
+          ],
+          "individual_minutes": 1418.433,
+          "proxy_gate_minutes": 1418.433
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            602,
+            604
+          ],
+          "trigger": "2026-11-23T00:56:34.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            134.983,
+            0
+          ],
+          "individual_minutes": 2008.733,
+          "proxy_gate_minutes": 1051.85
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            405,
+            540
+          ],
+          "trigger": "2026-11-14T23:43:38.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            836.85,
+            0
+          ],
+          "individual_minutes": 3637.483,
+          "proxy_gate_minutes": 1895.883
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            441,
+            545
+          ],
+          "trigger": "2026-11-15T15:10:25.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            0.5,
+            0
+          ],
+          "individual_minutes": 4889.867,
+          "proxy_gate_minutes": 2878.067
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            553
+          ],
+          "trigger": "2026-11-17T04:54:15.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            1440
+          ],
+          "individual_minutes": 1922.8,
+          "proxy_gate_minutes": 1922.8
+        }
+      ]
+    },
+    {
+      "size": 3,
+      "age_hours": 6,
+      "gate_invocations": 14,
+      "multi_batches": 6,
+      "singletons": 8,
+      "staging_wait_median_minutes": 360,
+      "staging_wait_p95_minutes": 360,
+      "model_job_minutes_no_recovery": 23470.699,
+      "model_job_minutes_25pct_extra_gate_per_multi_batch": 25933.07,
+      "model_job_minutes_one_extra_gate_every_multi_batch": 33320.183,
+      "model_reduction_pct_no_recovery": 30.966,
+      "batches": [
+        {
+          "release": "release/v0.4",
+          "prs": [
+            519
+          ],
+          "trigger": "2026-11-14T18:16:24.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 2013.7,
+          "proxy_gate_minutes": 2013.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            535,
+            518,
+            536
+          ],
+          "trigger": "2026-11-14T22:43:05.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            163.6,
+            1.75,
+            0
+          ],
+          "individual_minutes": 4743.833,
+          "proxy_gate_minutes": 1778.067
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            503,
+            526,
+            529
+          ],
+          "trigger": "2026-11-15T06:45:58.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            224.9,
+            150.95,
+            0
+          ],
+          "individual_minutes": 3963.751,
+          "proxy_gate_minutes": 1500.584
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            550
+          ],
+          "trigger": "2026-11-15T15:44:49.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1931.7,
+          "proxy_gate_minutes": 1931.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            554,
+            557
+          ],
+          "trigger": "2026-11-16T00:12:19.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360,
+            55.583
+          ],
+          "individual_minutes": 2737.583,
+          "proxy_gate_minutes": 1470.5
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            507,
+            543
+          ],
+          "trigger": "2026-11-16T08:05:38.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360,
+            181.317
+          ],
+          "individual_minutes": 2253.749,
+          "proxy_gate_minutes": 1170.416
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            560
+          ],
+          "trigger": "2026-11-16T21:33:06.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1140.716,
+          "proxy_gate_minutes": 1140.716
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            566
+          ],
+          "trigger": "2026-11-19T02:59:41.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1336.383,
+          "proxy_gate_minutes": 1336.383
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            596
+          ],
+          "trigger": "2026-11-21T14:00:29.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1418.433,
+          "proxy_gate_minutes": 1418.433
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            602,
+            604
+          ],
+          "trigger": "2026-11-23T04:41:35.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            360,
+            225.017
+          ],
+          "individual_minutes": 2008.733,
+          "proxy_gate_minutes": 1051.85
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            405
+          ],
+          "trigger": "2026-11-14T15:46:47.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1895.883,
+          "proxy_gate_minutes": 1895.883
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            540
+          ],
+          "trigger": "2026-11-15T05:43:38.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1741.6,
+          "proxy_gate_minutes": 1741.6
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            441,
+            545
+          ],
+          "trigger": "2026-11-15T21:09:55.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360,
+            359.5
+          ],
+          "individual_minutes": 4889.867,
+          "proxy_gate_minutes": 2878.067
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            553
+          ],
+          "trigger": "2026-11-16T10:54:15.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1922.8,
+          "proxy_gate_minutes": 1922.8
+        }
+      ]
+    },
+    {
+      "size": 3,
+      "age_hours": 12,
+      "gate_invocations": 12,
+      "multi_batches": 6,
+      "singletons": 6,
+      "staging_wait_median_minutes": 585.017,
+      "staging_wait_p95_minutes": 720,
+      "model_job_minutes_no_recovery": 20230.998,
+      "model_job_minutes_25pct_extra_gate_per_multi_batch": 22869.794,
+      "model_job_minutes_one_extra_gate_every_multi_batch": 30786.181,
+      "model_reduction_pct_no_recovery": 40.495,
+      "batches": [
+        {
+          "release": "release/v0.4",
+          "prs": [
+            519,
+            535,
+            518
+          ],
+          "trigger": "2026-11-14T22:41:20.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            624.933,
+            161.85,
+            0
+          ],
+          "individual_minutes": 5368.95,
+          "proxy_gate_minutes": 2013.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            536,
+            503,
+            526
+          ],
+          "trigger": "2026-11-15T04:15:01.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            331.933,
+            73.95,
+            0
+          ],
+          "individual_minutes": 3851.75,
+          "proxy_gate_minutes": 1412.783
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            529,
+            550,
+            554
+          ],
+          "trigger": "2026-11-15T18:12:19.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            686.35,
+            507.5,
+            0
+          ],
+          "individual_minutes": 4902.784,
+          "proxy_gate_minutes": 1931.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            557,
+            507,
+            543
+          ],
+          "trigger": "2026-11-16T05:04:19.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            347.583,
+            178.683,
+            0
+          ],
+          "individual_minutes": 3520.832,
+          "proxy_gate_minutes": 1267.083
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            560
+          ],
+          "trigger": "2026-11-17T03:33:06.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1140.716,
+          "proxy_gate_minutes": 1140.716
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            566
+          ],
+          "trigger": "2026-11-19T08:59:41.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1336.383,
+          "proxy_gate_minutes": 1336.383
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            596
+          ],
+          "trigger": "2026-11-21T20:00:29.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1418.433,
+          "proxy_gate_minutes": 1418.433
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            602,
+            604
+          ],
+          "trigger": "2026-11-23T10:41:35.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            720,
+            585.017
+          ],
+          "individual_minutes": 2008.733,
+          "proxy_gate_minutes": 1051.85
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            405
+          ],
+          "trigger": "2026-11-14T21:46:47.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1895.883,
+          "proxy_gate_minutes": 1895.883
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            540
+          ],
+          "trigger": "2026-11-15T11:43:38.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1741.6,
+          "proxy_gate_minutes": 1741.6
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            441,
+            545
+          ],
+          "trigger": "2026-11-16T03:09:55.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720,
+            719.5
+          ],
+          "individual_minutes": 4889.867,
+          "proxy_gate_minutes": 2878.067
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            553
+          ],
+          "trigger": "2026-11-16T16:54:15.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1922.8,
+          "proxy_gate_minutes": 1922.8
+        }
+      ]
+    },
+    {
+      "size": 3,
+      "age_hours": 24,
+      "gate_invocations": 10,
+      "multi_batches": 7,
+      "singletons": 3,
+      "staging_wait_median_minutes": 507.5,
+      "staging_wait_p95_minutes": 1440,
+      "model_job_minutes_no_recovery": 16566.598,
+      "model_job_minutes_25pct_extra_gate_per_multi_batch": 19679.364,
+      "model_job_minutes_one_extra_gate_every_multi_batch": 29017.664,
+      "model_reduction_pct_no_recovery": 51.273,
+      "batches": [
+        {
+          "release": "release/v0.4",
+          "prs": [
+            519,
+            535,
+            518
+          ],
+          "trigger": "2026-11-14T22:41:20.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            624.933,
+            161.85,
+            0
+          ],
+          "individual_minutes": 5368.95,
+          "proxy_gate_minutes": 2013.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            536,
+            503,
+            526
+          ],
+          "trigger": "2026-11-15T04:15:01.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            331.933,
+            73.95,
+            0
+          ],
+          "individual_minutes": 3851.75,
+          "proxy_gate_minutes": 1412.783
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            529,
+            550,
+            554
+          ],
+          "trigger": "2026-11-15T18:12:19.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            686.35,
+            507.5,
+            0
+          ],
+          "individual_minutes": 4902.784,
+          "proxy_gate_minutes": 1931.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            557,
+            507,
+            543
+          ],
+          "trigger": "2026-11-16T05:04:19.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            347.583,
+            178.683,
+            0
+          ],
+          "individual_minutes": 3520.832,
+          "proxy_gate_minutes": 1267.083
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            560
+          ],
+          "trigger": "2026-11-17T15:33:06.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            1440
+          ],
+          "individual_minutes": 1140.716,
+          "proxy_gate_minutes": 1140.716
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            566
+          ],
+          "trigger": "2026-11-19T20:59:41.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            1440
+          ],
+          "individual_minutes": 1336.383,
+          "proxy_gate_minutes": 1336.383
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            596
+          ],
+          "trigger": "2026-11-22T08:00:29.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            1440
+          ],
+          "individual_minutes": 1418.433,
+          "proxy_gate_minutes": 1418.433
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            602,
+            604
+          ],
+          "trigger": "2026-11-23T22:41:35.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            1440,
+            1305.017
+          ],
+          "individual_minutes": 2008.733,
+          "proxy_gate_minutes": 1051.85
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            405,
+            540
+          ],
+          "trigger": "2026-11-15T09:46:47.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            1440,
+            603.15
+          ],
+          "individual_minutes": 3637.483,
+          "proxy_gate_minutes": 1895.883
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            441,
+            545,
+            553
+          ],
+          "trigger": "2026-11-16T04:54:15.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            824.333,
+            823.833,
+            0
+          ],
+          "individual_minutes": 6812.667,
+          "proxy_gate_minutes": 2878.067
+        }
+      ]
+    },
+    {
+      "size": 4,
+      "age_hours": 6,
+      "gate_invocations": 14,
+      "multi_batches": 6,
+      "singletons": 8,
+      "staging_wait_median_minutes": 360,
+      "staging_wait_p95_minutes": 360,
+      "model_job_minutes_no_recovery": 23470.699,
+      "model_job_minutes_25pct_extra_gate_per_multi_batch": 25933.07,
+      "model_job_minutes_one_extra_gate_every_multi_batch": 33320.183,
+      "model_reduction_pct_no_recovery": 30.966,
+      "batches": [
+        {
+          "release": "release/v0.4",
+          "prs": [
+            519
+          ],
+          "trigger": "2026-11-14T18:16:24.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 2013.7,
+          "proxy_gate_minutes": 2013.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            535,
+            518,
+            536
+          ],
+          "trigger": "2026-11-15T01:59:29.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360,
+            198.15,
+            196.4
+          ],
+          "individual_minutes": 4743.833,
+          "proxy_gate_minutes": 1778.067
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            503,
+            526,
+            529
+          ],
+          "trigger": "2026-11-15T09:01:04.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360,
+            286.05,
+            135.1
+          ],
+          "individual_minutes": 3963.751,
+          "proxy_gate_minutes": 1500.584
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            550
+          ],
+          "trigger": "2026-11-15T15:44:49.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1931.7,
+          "proxy_gate_minutes": 1931.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            554,
+            557
+          ],
+          "trigger": "2026-11-16T00:12:19.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360,
+            55.583
+          ],
+          "individual_minutes": 2737.583,
+          "proxy_gate_minutes": 1470.5
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            507,
+            543
+          ],
+          "trigger": "2026-11-16T08:05:38.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360,
+            181.317
+          ],
+          "individual_minutes": 2253.749,
+          "proxy_gate_minutes": 1170.416
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            560
+          ],
+          "trigger": "2026-11-16T21:33:06.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1140.716,
+          "proxy_gate_minutes": 1140.716
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            566
+          ],
+          "trigger": "2026-11-19T02:59:41.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1336.383,
+          "proxy_gate_minutes": 1336.383
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            596
+          ],
+          "trigger": "2026-11-21T14:00:29.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1418.433,
+          "proxy_gate_minutes": 1418.433
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            602,
+            604
+          ],
+          "trigger": "2026-11-23T04:41:35.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            360,
+            225.017
+          ],
+          "individual_minutes": 2008.733,
+          "proxy_gate_minutes": 1051.85
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            405
+          ],
+          "trigger": "2026-11-14T15:46:47.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1895.883,
+          "proxy_gate_minutes": 1895.883
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            540
+          ],
+          "trigger": "2026-11-15T05:43:38.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1741.6,
+          "proxy_gate_minutes": 1741.6
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            441,
+            545
+          ],
+          "trigger": "2026-11-15T21:09:55.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            360,
+            359.5
+          ],
+          "individual_minutes": 4889.867,
+          "proxy_gate_minutes": 2878.067
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            553
+          ],
+          "trigger": "2026-11-16T10:54:15.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            360
+          ],
+          "individual_minutes": 1922.8,
+          "proxy_gate_minutes": 1922.8
+        }
+      ]
+    },
+    {
+      "size": 4,
+      "age_hours": 12,
+      "gate_invocations": 11,
+      "multi_batches": 5,
+      "singletons": 6,
+      "staging_wait_median_minutes": 585.017,
+      "staging_wait_p95_minutes": 720,
+      "model_job_minutes_no_recovery": 19021.632,
+      "model_job_minutes_25pct_extra_gate_per_multi_batch": 21358.086,
+      "model_job_minutes_one_extra_gate_every_multi_batch": 28367.449,
+      "model_reduction_pct_no_recovery": 44.052,
+      "batches": [
+        {
+          "release": "release/v0.4",
+          "prs": [
+            519,
+            535,
+            518,
+            536
+          ],
+          "trigger": "2026-11-14T22:43:05.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            626.683,
+            163.6,
+            1.75,
+            0
+          ],
+          "individual_minutes": 6757.533,
+          "proxy_gate_minutes": 2013.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            503,
+            526,
+            529,
+            550
+          ],
+          "trigger": "2026-11-15T09:44:49.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            403.75,
+            329.8,
+            178.85,
+            0
+          ],
+          "individual_minutes": 5895.451,
+          "proxy_gate_minutes": 1931.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            554,
+            557,
+            507,
+            543
+          ],
+          "trigger": "2026-11-16T05:04:19.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            652,
+            347.583,
+            178.683,
+            0
+          ],
+          "individual_minutes": 4991.332,
+          "proxy_gate_minutes": 1470.5
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            560
+          ],
+          "trigger": "2026-11-17T03:33:06.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1140.716,
+          "proxy_gate_minutes": 1140.716
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            566
+          ],
+          "trigger": "2026-11-19T08:59:41.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1336.383,
+          "proxy_gate_minutes": 1336.383
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            596
+          ],
+          "trigger": "2026-11-21T20:00:29.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1418.433,
+          "proxy_gate_minutes": 1418.433
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            602,
+            604
+          ],
+          "trigger": "2026-11-23T10:41:35.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            720,
+            585.017
+          ],
+          "individual_minutes": 2008.733,
+          "proxy_gate_minutes": 1051.85
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            405
+          ],
+          "trigger": "2026-11-14T21:46:47.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1895.883,
+          "proxy_gate_minutes": 1895.883
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            540
+          ],
+          "trigger": "2026-11-15T11:43:38.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1741.6,
+          "proxy_gate_minutes": 1741.6
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            441,
+            545
+          ],
+          "trigger": "2026-11-16T03:09:55.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            720,
+            719.5
+          ],
+          "individual_minutes": 4889.867,
+          "proxy_gate_minutes": 2878.067
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            553
+          ],
+          "trigger": "2026-11-16T16:54:15.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            720
+          ],
+          "individual_minutes": 1922.8,
+          "proxy_gate_minutes": 1922.8
+        }
+      ]
+    },
+    {
+      "size": 4,
+      "age_hours": 24,
+      "gate_invocations": 9,
+      "multi_batches": 6,
+      "singletons": 3,
+      "staging_wait_median_minutes": 603.15,
+      "staging_wait_p95_minutes": 1440,
+      "model_job_minutes_no_recovery": 15357.232,
+      "model_job_minutes_25pct_extra_gate_per_multi_batch": 18167.657,
+      "model_job_minutes_one_extra_gate_every_multi_batch": 26598.932,
+      "model_reduction_pct_no_recovery": 54.83,
+      "batches": [
+        {
+          "release": "release/v0.4",
+          "prs": [
+            519,
+            535,
+            518,
+            536
+          ],
+          "trigger": "2026-11-14T22:43:05.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            626.683,
+            163.6,
+            1.75,
+            0
+          ],
+          "individual_minutes": 6757.533,
+          "proxy_gate_minutes": 2013.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            503,
+            526,
+            529,
+            550
+          ],
+          "trigger": "2026-11-15T09:44:49.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            403.75,
+            329.8,
+            178.85,
+            0
+          ],
+          "individual_minutes": 5895.451,
+          "proxy_gate_minutes": 1931.7
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            554,
+            557,
+            507,
+            543
+          ],
+          "trigger": "2026-11-16T05:04:19.000Z",
+          "reason": "size",
+          "wait_minutes": [
+            652,
+            347.583,
+            178.683,
+            0
+          ],
+          "individual_minutes": 4991.332,
+          "proxy_gate_minutes": 1470.5
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            560
+          ],
+          "trigger": "2026-11-17T15:33:06.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            1440
+          ],
+          "individual_minutes": 1140.716,
+          "proxy_gate_minutes": 1140.716
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            566
+          ],
+          "trigger": "2026-11-19T20:59:41.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            1440
+          ],
+          "individual_minutes": 1336.383,
+          "proxy_gate_minutes": 1336.383
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            596
+          ],
+          "trigger": "2026-11-22T08:00:29.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            1440
+          ],
+          "individual_minutes": 1418.433,
+          "proxy_gate_minutes": 1418.433
+        },
+        {
+          "release": "release/v0.4",
+          "prs": [
+            602,
+            604
+          ],
+          "trigger": "2026-11-23T22:41:35.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            1440,
+            1305.017
+          ],
+          "individual_minutes": 2008.733,
+          "proxy_gate_minutes": 1051.85
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            405,
+            540
+          ],
+          "trigger": "2026-11-15T09:46:47.000Z",
+          "reason": "age",
+          "wait_minutes": [
+            1440,
+            603.15
+          ],
+          "individual_minutes": 3637.483,
+          "proxy_gate_minutes": 1895.883
+        },
+        {
+          "release": "release/v0.5",
+          "prs": [
+            441,
+            545,
+            553
+          ],
+          "trigger": "2026-11-16T15:09:55.000Z",
+          "reason": "age_at_cohort_boundary",
+          "wait_minutes": [
+            1440,
+            1439.5,
+            615.667
+          ],
+          "individual_minutes": 6812.667,
+          "proxy_gate_minutes": 2878.067
+        }
+      ]
+    }
+  ]
+}

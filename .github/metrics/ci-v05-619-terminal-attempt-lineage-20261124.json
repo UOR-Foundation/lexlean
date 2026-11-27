@@ -1,0 +1,3568 @@
+{
+ "schema": "lexlean/ci-phase-b-attempt-snapshot/1",
+ "phase": "B_GENERIC_CI_PRE_CUTOVER_TERMINAL",
+ "source": "GitHub REST provider observation, explicit attempt pages plus filter=latest",
+ "repository": "UOR-Foundation/lexlean",
+ "candidate_tree": "2f618ea9166797da981e62650e8ed3730b6beab0",
+ "observed_run": {
+  "id": 45316289312,
+  "run_attempt": 2,
+  "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+  "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+  "workflow_id": 335341642,
+  "path": ".github/workflows/ci.yml",
+  "event": "pull_request",
+  "status": "completed",
+  "conclusion": "success",
+  "created_at": "2026-11-24T02:59:18Z",
+  "run_started_at": "2026-11-24T06:09:19Z",
+  "updated_at": "2026-11-24T09:27:07Z",
+  "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312"
+ },
+ "independent_repro": {
+  "id": 45316289414,
+  "run_attempt": 1,
+  "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+  "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+  "workflow_id": 335590268,
+  "path": ".github/workflows/reproducibility.yml",
+  "event": "pull_request",
+  "status": "completed",
+  "conclusion": "success",
+  "created_at": "2026-11-24T02:59:18Z",
+  "run_started_at": "2026-11-24T02:59:18Z",
+  "updated_at": "2026-11-24T03:06:08Z",
+  "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289414"
+ },
+ "attempts": [
+  {
+   "run": {
+    "id": 45316289312,
+    "run_attempt": 1,
+    "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+    "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+    "workflow_id": 335341642,
+    "path": ".github/workflows/ci.yml",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "failure",
+    "created_at": "2026-11-24T02:59:18Z",
+    "run_started_at": "2026-11-24T02:59:18Z",
+    "updated_at": "2026-11-24T06:07:01Z",
+    "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312"
+   },
+   "total_count": 70,
+   "jobs": [
+    {
+     "id": 138183832134,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "plan",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T02:59:19Z",
+     "started_at": "2026-11-24T02:59:21Z",
+     "completed_at": "2026-11-24T03:00:24Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179698,
+     "runner_name": "GitHub Actions 1000179698",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138183832134"
+    },
+    {
+     "id": 138184244608,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "honesty",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:00:25Z",
+     "started_at": "2026-11-24T03:00:27Z",
+     "completed_at": "2026-11-24T03:04:35Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179700,
+     "runner_name": "GitHub Actions 1000179700",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138184244608"
+    },
+    {
+     "id": 138185881283,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (prefix)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:37Z",
+     "completed_at": "2026-11-24T03:29:59Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179713,
+     "runner_name": "GitHub Actions 1000179713",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185881283"
+    },
+    {
+     "id": 138185881389,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "bootstrap export",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:40Z",
+     "completed_at": "2026-11-24T03:43:18Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179714,
+     "runner_name": "GitHub Actions 1000179714",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185881389"
+    },
+    {
+     "id": 138185881431,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "build and non-Lean tests (aarch64-unknown-linux-gnu)",
+     "status": "completed",
+     "conclusion": "failure",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:40Z",
+     "completed_at": "2026-11-24T03:19:10Z",
+     "labels": [
+      "ubuntu-24.04-arm"
+     ],
+     "runner_id": 1000179715,
+     "runner_name": "GitHub Actions 1000179715",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185881431"
+    },
+    {
+     "id": 138185881445,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "build and non-Lean tests (aarch64-apple-darwin)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T06:07:00Z",
+     "labels": [
+      "macos-15"
+     ],
+     "runner_id": 1000179709,
+     "runner_name": "GitHub Actions 1000179709",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185881445"
+    },
+    {
+     "id": 138185881489,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Windows tests (print)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:37Z",
+     "completed_at": "2026-11-24T04:24:44Z",
+     "labels": [
+      "windows-2022"
+     ],
+     "runner_id": 1000179716,
+     "runner_name": "GitHub Actions 1000179716",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185881489"
+    },
+    {
+     "id": 138185881492,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Windows tests (moves)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:37Z",
+     "completed_at": "2026-11-24T03:52:19Z",
+     "labels": [
+      "windows-2022"
+     ],
+     "runner_id": 1000179710,
+     "runner_name": "GitHub Actions 1000179710",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185881492"
+    },
+    {
+     "id": 138185881499,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Intel test construction and local targets",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:37Z",
+     "completed_at": "2026-11-24T03:22:49Z",
+     "labels": [
+      "macos-15-intel"
+     ],
+     "runner_id": 1000179712,
+     "runner_name": "GitHub Actions 1000179712",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185881499"
+    },
+    {
+     "id": 138185881510,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Windows tests (lower)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T04:20:00Z",
+     "labels": [
+      "windows-2022"
+     ],
+     "runner_id": 1000179717,
+     "runner_name": "GitHub Actions 1000179717",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185881510"
+    },
+    {
+     "id": 138185881566,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Windows tests (validate)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:45:29Z",
+     "labels": [
+      "windows-2022"
+     ],
+     "runner_id": 1000179711,
+     "runner_name": "GitHub Actions 1000179711",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185881566"
+    },
+    {
+     "id": 138185881709,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Windows tests (producer)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:15:15Z",
+     "labels": [
+      "windows-2022"
+     ],
+     "runner_id": 1000179718,
+     "runner_name": "GitHub Actions 1000179718",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185881709"
+    },
+    {
+     "id": 138185881938,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-runtime)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:57Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179719,
+     "runner_name": "GitHub Actions 1000179719",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185881938"
+    },
+    {
+     "id": 138185882122,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-preservation-lists)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:17:25Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179720,
+     "runner_name": "GitHub Actions 1000179720",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882122"
+    },
+    {
+     "id": 138185882123,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-surface-module)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T03:44:11Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179721,
+     "runner_name": "GitHub Actions 1000179721",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882123"
+    },
+    {
+     "id": 138185882132,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-preservation-runtime)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:16:10Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179738,
+     "runner_name": "GitHub Actions 1000179738",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882132"
+    },
+    {
+     "id": 138185882138,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-project-text)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T03:44:22Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179736,
+     "runner_name": "GitHub Actions 1000179736",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882138"
+    },
+    {
+     "id": 138185882152,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-surface-doc)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:16Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179728,
+     "runner_name": "GitHub Actions 1000179728",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882152"
+    },
+    {
+     "id": 138185882164,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-print)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:10Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179740,
+     "runner_name": "GitHub Actions 1000179740",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882164"
+    },
+    {
+     "id": 138185882174,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-check)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T03:44:32Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179745,
+     "runner_name": "GitHub Actions 1000179745",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882174"
+    },
+    {
+     "id": 138185882177,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-gnaf)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:20Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179731,
+     "runner_name": "GitHub Actions 1000179731",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882177"
+    },
+    {
+     "id": 138185882187,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-content-id)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:25Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179726,
+     "runner_name": "GitHub Actions 1000179726",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882187"
+    },
+    {
+     "id": 138185882190,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-lexicon-lse)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:28Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179727,
+     "runner_name": "GitHub Actions 1000179727",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882190"
+    },
+    {
+     "id": 138185882198,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-preservation-prims)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:37Z",
+     "completed_at": "2026-11-24T03:09:34Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179729,
+     "runner_name": "GitHub Actions 1000179729",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882198"
+    },
+    {
+     "id": 138185882208,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-preservation-support)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:17:04Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179733,
+     "runner_name": "GitHub Actions 1000179733",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882208"
+    },
+    {
+     "id": 138185882211,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-bodies)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:17Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179737,
+     "runner_name": "GitHub Actions 1000179737",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882211"
+    },
+    {
+     "id": 138185882220,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-preservation)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:43:07Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179724,
+     "runner_name": "GitHub Actions 1000179724",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882220"
+    },
+    {
+     "id": 138185882221,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-preservation-std)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T03:12:00Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179725,
+     "runner_name": "GitHub Actions 1000179725",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882221"
+    },
+    {
+     "id": 138185882242,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (rest)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T04:09:17Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179734,
+     "runner_name": "GitHub Actions 1000179734",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882242"
+    },
+    {
+     "id": 138185882244,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-compiler)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:46:17Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179723,
+     "runner_name": "GitHub Actions 1000179723",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882244"
+    },
+    {
+     "id": 138185882255,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-succeed)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:10Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179730,
+     "runner_name": "GitHub Actions 1000179730",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882255"
+    },
+    {
+     "id": 138185882261,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-production)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T03:39:18Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179754,
+     "runner_name": "GitHub Actions 1000179754",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882261"
+    },
+    {
+     "id": 138185882274,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-surface-tooling)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:51Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179722,
+     "runner_name": "GitHub Actions 1000179722",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882274"
+    },
+    {
+     "id": 138185882279,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-verification)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:28:14Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179751,
+     "runner_name": "GitHub Actions 1000179751",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882279"
+    },
+    {
+     "id": 138185882301,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-loops)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:29Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179732,
+     "runner_name": "GitHub Actions 1000179732",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882301"
+    },
+    {
+     "id": 138185882341,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-lexicon-lre)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:11Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179741,
+     "runner_name": "GitHub Actions 1000179741",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882341"
+    },
+    {
+     "id": 138185882348,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-lower)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T03:52:51Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179739,
+     "runner_name": "GitHub Actions 1000179739",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882348"
+    },
+    {
+     "id": 138185882365,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (examples)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T04:35:46Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179747,
+     "runner_name": "GitHub Actions 1000179747",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882365"
+    },
+    {
+     "id": 138185882370,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-diagnostics)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:32Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179735,
+     "runner_name": "GitHub Actions 1000179735",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882370"
+    },
+    {
+     "id": 138185882379,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-moves)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:16Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179744,
+     "runner_name": "GitHub Actions 1000179744",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882379"
+    },
+    {
+     "id": 138185882393,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-surface-generic)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:40Z",
+     "completed_at": "2026-11-24T03:44:13Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179755,
+     "runner_name": "GitHub Actions 1000179755",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882393"
+    },
+    {
+     "id": 138185882396,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-package)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:03Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179746,
+     "runner_name": "GitHub Actions 1000179746",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882396"
+    },
+    {
+     "id": 138185882408,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-surface-lex)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:19Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179742,
+     "runner_name": "GitHub Actions 1000179742",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882408"
+    },
+    {
+     "id": 138185882420,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-structural-grammar)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:08Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179743,
+     "runner_name": "GitHub Actions 1000179743",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882420"
+    },
+    {
+     "id": 138185882427,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-tooling-latex)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:50Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179750,
+     "runner_name": "GitHub Actions 1000179750",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882427"
+    },
+    {
+     "id": 138185882446,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-terms)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:14Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179753,
+     "runner_name": "GitHub Actions 1000179753",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882446"
+    },
+    {
+     "id": 138185882469,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-lock-text)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:27Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179748,
+     "runner_name": "GitHub Actions 1000179748",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882469"
+    },
+    {
+     "id": 138185882487,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-validate)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:17Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179752,
+     "runner_name": "GitHub Actions 1000179752",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882487"
+    },
+    {
+     "id": 138185882546,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-manifest-text)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:30Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179749,
+     "runner_name": "GitHub Actions 1000179749",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882546"
+    },
+    {
+     "id": 138185882567,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-assemble)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:10Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179756,
+     "runner_name": "GitHub Actions 1000179756",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882567"
+    },
+    {
+     "id": 138185882736,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-cli-output)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:04:36Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:20Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179757,
+     "runner_name": "GitHub Actions 1000179757",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138185882736"
+    },
+    {
+     "id": 138192973252,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Intel conformance (moves)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:22:49Z",
+     "started_at": "2026-11-24T03:22:53Z",
+     "completed_at": "2026-11-24T04:34:21Z",
+     "labels": [
+      "macos-15-intel"
+     ],
+     "runner_id": 1000179770,
+     "runner_name": "GitHub Actions 1000179770",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138192973252"
+    },
+    {
+     "id": 138192973280,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Intel conformance (lower)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:22:49Z",
+     "started_at": "2026-11-24T03:22:52Z",
+     "completed_at": "2026-11-24T04:46:37Z",
+     "labels": [
+      "macos-15-intel"
+     ],
+     "runner_id": 1000179771,
+     "runner_name": "GitHub Actions 1000179771",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138192973280"
+    },
+    {
+     "id": 138192973319,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Intel conformance (print)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:22:49Z",
+     "started_at": "2026-11-24T03:22:52Z",
+     "completed_at": "2026-11-24T04:48:46Z",
+     "labels": [
+      "macos-15-intel"
+     ],
+     "runner_id": 1000179772,
+     "runner_name": "GitHub Actions 1000179772",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138192973319"
+    },
+    {
+     "id": 138192974312,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Intel conformance (validate)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:22:50Z",
+     "started_at": "2026-11-24T03:22:53Z",
+     "completed_at": "2026-11-24T04:02:46Z",
+     "labels": [
+      "macos-15-intel"
+     ],
+     "runner_id": 1000179773,
+     "runner_name": "GitHub Actions 1000179773",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138192974312"
+    },
+    {
+     "id": 138195736706,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (census-c)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:29:59Z",
+     "started_at": "2026-11-24T03:30:01Z",
+     "completed_at": "2026-11-24T03:47:55Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179798,
+     "runner_name": "GitHub Actions 1000179798",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138195736706"
+    },
+    {
+     "id": 138195736710,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (cert4)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:29:59Z",
+     "started_at": "2026-11-24T03:30:01Z",
+     "completed_at": "2026-11-24T03:33:52Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179797,
+     "runner_name": "GitHub Actions 1000179797",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138195736710"
+    },
+    {
+     "id": 138195736740,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (census-b)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:29:59Z",
+     "started_at": "2026-11-24T03:30:02Z",
+     "completed_at": "2026-11-24T03:38:25Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179800,
+     "runner_name": "GitHub Actions 1000179800",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138195736740"
+    },
+    {
+     "id": 138195736747,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (census-d)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:29:59Z",
+     "started_at": "2026-11-24T03:30:02Z",
+     "completed_at": "2026-11-24T03:40:40Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179799,
+     "runner_name": "GitHub Actions 1000179799",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138195736747"
+    },
+    {
+     "id": 138195736771,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (census-a)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:29:59Z",
+     "started_at": "2026-11-24T03:30:01Z",
+     "completed_at": "2026-11-24T03:41:47Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179801,
+     "runner_name": "GitHub Actions 1000179801",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138195736771"
+    },
+    {
+     "id": 138197226738,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (cert4-replay)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:33:52Z",
+     "started_at": "2026-11-24T03:33:55Z",
+     "completed_at": "2026-11-24T03:37:43Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179807,
+     "runner_name": "GitHub Actions 1000179807",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138197226738"
+    },
+    {
+     "id": 138200167636,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (closure)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:41:48Z",
+     "started_at": "2026-11-24T03:41:50Z",
+     "completed_at": "2026-11-24T03:48:13Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179812,
+     "runner_name": "GitHub Actions 1000179812",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138200167636"
+    },
+    {
+     "id": 138202505196,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (orbit)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:48:13Z",
+     "started_at": "2026-11-24T03:48:16Z",
+     "completed_at": "2026-11-24T03:59:01Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179814,
+     "runner_name": "GitHub Actions 1000179814",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138202505196"
+    },
+    {
+     "id": 138202505223,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (pairs-d)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:48:13Z",
+     "started_at": "2026-11-24T03:48:16Z",
+     "completed_at": "2026-11-24T04:01:06Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179813,
+     "runner_name": "GitHub Actions 1000179813",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138202505223"
+    },
+    {
+     "id": 138202505299,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (pairs-a)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:48:13Z",
+     "started_at": "2026-11-24T03:48:15Z",
+     "completed_at": "2026-11-24T04:02:03Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179815,
+     "runner_name": "GitHub Actions 1000179815",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138202505299"
+    },
+    {
+     "id": 138202505336,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (pairs-b)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:48:13Z",
+     "started_at": "2026-11-24T03:48:15Z",
+     "completed_at": "2026-11-24T04:02:32Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179817,
+     "runner_name": "GitHub Actions 1000179817",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138202505336"
+    },
+    {
+     "id": 138202505485,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (pairs-c)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T03:48:13Z",
+     "started_at": "2026-11-24T03:48:16Z",
+     "completed_at": "2026-11-24T04:02:07Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179816,
+     "runner_name": "GitHub Actions 1000179816",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138202505485"
+    },
+    {
+     "id": 138207689394,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (join)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T04:02:33Z",
+     "started_at": "2026-11-24T04:02:35Z",
+     "completed_at": "2026-11-24T04:05:57Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179822,
+     "runner_name": "GitHub Actions 1000179822",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138207689394"
+    },
+    {
+     "id": 138216286279,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "build and non-Lean tests (x86_64-pc-windows-msvc)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T04:24:44Z",
+     "started_at": "2026-11-24T04:24:46Z",
+     "completed_at": "2026-11-24T04:25:47Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179830,
+     "runner_name": "GitHub Actions 1000179830",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138216286279"
+    },
+    {
+     "id": 138225189068,
+     "run_id": 45316289312,
+     "run_attempt": 1,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "build and non-Lean tests (x86_64-apple-darwin)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T04:48:46Z",
+     "started_at": "2026-11-24T04:48:49Z",
+     "completed_at": "2026-11-24T04:50:00Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179853,
+     "runner_name": "GitHub Actions 1000179853",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138225189068"
+    }
+   ]
+  },
+  {
+   "run": {
+    "id": 45316289312,
+    "run_attempt": 2,
+    "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+    "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+    "workflow_id": 335341642,
+    "path": ".github/workflows/ci.yml",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-24T06:09:20Z",
+    "run_started_at": "2026-11-24T06:09:19Z",
+    "updated_at": "2026-11-24T09:27:07Z",
+    "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312"
+   },
+   "total_count": 70,
+   "jobs": [
+    {
+     "id": 138255634209,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "build and non-Lean tests (aarch64-unknown-linux-gnu)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T06:09:25Z",
+     "completed_at": "2026-11-24T09:27:06Z",
+     "labels": [
+      "ubuntu-24.04-arm"
+     ],
+     "runner_id": 1000180022,
+     "runner_name": "GitHub Actions 1000180022",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255634209"
+    },
+    {
+     "id": 138255634432,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "plan",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T02:59:21Z",
+     "completed_at": "2026-11-24T03:00:24Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179698,
+     "runner_name": "GitHub Actions 1000179698",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255634432"
+    },
+    {
+     "id": 138255635092,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (rest)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T04:09:17Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179734,
+     "runner_name": "GitHub Actions 1000179734",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255635092"
+    },
+    {
+     "id": 138255635320,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (prefix)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:37Z",
+     "completed_at": "2026-11-24T03:29:59Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179713,
+     "runner_name": "GitHub Actions 1000179713",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255635320"
+    },
+    {
+     "id": 138255635413,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Windows tests (lower)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T04:20:00Z",
+     "labels": [
+      "windows-2022"
+     ],
+     "runner_id": 1000179717,
+     "runner_name": "GitHub Actions 1000179717",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255635413"
+    },
+    {
+     "id": 138255635428,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-check)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T03:44:32Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179745,
+     "runner_name": "GitHub Actions 1000179745",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255635428"
+    },
+    {
+     "id": 138255635570,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "honesty",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:00:27Z",
+     "completed_at": "2026-11-24T03:04:35Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179700,
+     "runner_name": "GitHub Actions 1000179700",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255635570"
+    },
+    {
+     "id": 138255635577,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-print)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:10Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179740,
+     "runner_name": "GitHub Actions 1000179740",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255635577"
+    },
+    {
+     "id": 138255635931,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-gnaf)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:20Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179731,
+     "runner_name": "GitHub Actions 1000179731",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255635931"
+    },
+    {
+     "id": 138255635990,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Intel conformance (moves)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:22:53Z",
+     "completed_at": "2026-11-24T04:34:21Z",
+     "labels": [
+      "macos-15-intel"
+     ],
+     "runner_id": 1000179770,
+     "runner_name": "GitHub Actions 1000179770",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255635990"
+    },
+    {
+     "id": 138255636009,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "bootstrap export",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:40Z",
+     "completed_at": "2026-11-24T03:43:18Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179714,
+     "runner_name": "GitHub Actions 1000179714",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636009"
+    },
+    {
+     "id": 138255636018,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "build and non-Lean tests (aarch64-apple-darwin)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T06:07:00Z",
+     "labels": [
+      "macos-15"
+     ],
+     "runner_id": 1000179709,
+     "runner_name": "GitHub Actions 1000179709",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636018"
+    },
+    {
+     "id": 138255636034,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Windows tests (moves)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:37Z",
+     "completed_at": "2026-11-24T03:52:19Z",
+     "labels": [
+      "windows-2022"
+     ],
+     "runner_id": 1000179710,
+     "runner_name": "GitHub Actions 1000179710",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636034"
+    },
+    {
+     "id": 138255636046,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Windows tests (producer)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:15:15Z",
+     "labels": [
+      "windows-2022"
+     ],
+     "runner_id": 1000179718,
+     "runner_name": "GitHub Actions 1000179718",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636046"
+    },
+    {
+     "id": 138255636069,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (examples)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T04:35:46Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179747,
+     "runner_name": "GitHub Actions 1000179747",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636069"
+    },
+    {
+     "id": 138255636099,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Intel conformance (print)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:22:52Z",
+     "completed_at": "2026-11-24T04:48:46Z",
+     "labels": [
+      "macos-15-intel"
+     ],
+     "runner_id": 1000179772,
+     "runner_name": "GitHub Actions 1000179772",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636099"
+    },
+    {
+     "id": 138255636125,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (cert4)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:30:01Z",
+     "completed_at": "2026-11-24T03:33:52Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179797,
+     "runner_name": "GitHub Actions 1000179797",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636125"
+    },
+    {
+     "id": 138255636179,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (census-b)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:30:02Z",
+     "completed_at": "2026-11-24T03:38:25Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179800,
+     "runner_name": "GitHub Actions 1000179800",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636179"
+    },
+    {
+     "id": 138255636237,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-lexicon-lre)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:11Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179741,
+     "runner_name": "GitHub Actions 1000179741",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636237"
+    },
+    {
+     "id": 138255636258,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-lexicon-lse)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:28Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179727,
+     "runner_name": "GitHub Actions 1000179727",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636258"
+    },
+    {
+     "id": 138255636282,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Intel test construction and local targets",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:37Z",
+     "completed_at": "2026-11-24T03:22:49Z",
+     "labels": [
+      "macos-15-intel"
+     ],
+     "runner_id": 1000179712,
+     "runner_name": "GitHub Actions 1000179712",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636282"
+    },
+    {
+     "id": 138255636379,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Windows tests (print)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:37Z",
+     "completed_at": "2026-11-24T04:24:44Z",
+     "labels": [
+      "windows-2022"
+     ],
+     "runner_id": 1000179716,
+     "runner_name": "GitHub Actions 1000179716",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636379"
+    },
+    {
+     "id": 138255636402,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (census-d)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:30:02Z",
+     "completed_at": "2026-11-24T03:40:40Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179799,
+     "runner_name": "GitHub Actions 1000179799",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636402"
+    },
+    {
+     "id": 138255636476,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (census-c)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:30:01Z",
+     "completed_at": "2026-11-24T03:47:55Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179798,
+     "runner_name": "GitHub Actions 1000179798",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636476"
+    },
+    {
+     "id": 138255636542,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (census-a)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:30:01Z",
+     "completed_at": "2026-11-24T03:41:47Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179801,
+     "runner_name": "GitHub Actions 1000179801",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636542"
+    },
+    {
+     "id": 138255636551,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-runtime)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:57Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179719,
+     "runner_name": "GitHub Actions 1000179719",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636551"
+    },
+    {
+     "id": 138255636610,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Windows tests (validate)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:45:29Z",
+     "labels": [
+      "windows-2022"
+     ],
+     "runner_id": 1000179711,
+     "runner_name": "GitHub Actions 1000179711",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636610"
+    },
+    {
+     "id": 138255636675,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-validate)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:17Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179752,
+     "runner_name": "GitHub Actions 1000179752",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255636675"
+    },
+    {
+     "id": 138255637124,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "build and non-Lean tests (x86_64-pc-windows-msvc)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T04:24:46Z",
+     "completed_at": "2026-11-24T04:25:47Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179830,
+     "runner_name": "GitHub Actions 1000179830",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255637124"
+    },
+    {
+     "id": 138255637175,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Intel conformance (lower)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:22:52Z",
+     "completed_at": "2026-11-24T04:46:37Z",
+     "labels": [
+      "macos-15-intel"
+     ],
+     "runner_id": 1000179771,
+     "runner_name": "GitHub Actions 1000179771",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255637175"
+    },
+    {
+     "id": 138255637250,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "Intel conformance (validate)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:22:53Z",
+     "completed_at": "2026-11-24T04:02:46Z",
+     "labels": [
+      "macos-15-intel"
+     ],
+     "runner_id": 1000179773,
+     "runner_name": "GitHub Actions 1000179773",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255637250"
+    },
+    {
+     "id": 138255637294,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-project-text)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T03:44:22Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179736,
+     "runner_name": "GitHub Actions 1000179736",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255637294"
+    },
+    {
+     "id": 138255637561,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (closure)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:41:50Z",
+     "completed_at": "2026-11-24T03:48:13Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179812,
+     "runner_name": "GitHub Actions 1000179812",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255637561"
+    },
+    {
+     "id": 138255637611,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-bodies)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:17Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179737,
+     "runner_name": "GitHub Actions 1000179737",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255637611"
+    },
+    {
+     "id": 138255637642,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-moves)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:16Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179744,
+     "runner_name": "GitHub Actions 1000179744",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255637642"
+    },
+    {
+     "id": 138255637681,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "build and non-Lean tests (x86_64-apple-darwin)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T04:48:49Z",
+     "completed_at": "2026-11-24T04:50:00Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179853,
+     "runner_name": "GitHub Actions 1000179853",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255637681"
+    },
+    {
+     "id": 138255637755,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (pairs-a)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:48:15Z",
+     "completed_at": "2026-11-24T04:02:03Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179815,
+     "runner_name": "GitHub Actions 1000179815",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255637755"
+    },
+    {
+     "id": 138255637783,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-tooling-latex)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:50Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179750,
+     "runner_name": "GitHub Actions 1000179750",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255637783"
+    },
+    {
+     "id": 138255637827,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (cert4-replay)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:33:55Z",
+     "completed_at": "2026-11-24T03:37:43Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179807,
+     "runner_name": "GitHub Actions 1000179807",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255637827"
+    },
+    {
+     "id": 138255637901,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-loops)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:29Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179732,
+     "runner_name": "GitHub Actions 1000179732",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255637901"
+    },
+    {
+     "id": 138255638269,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-lower)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T03:52:51Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179739,
+     "runner_name": "GitHub Actions 1000179739",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255638269"
+    },
+    {
+     "id": 138255638286,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-surface-lex)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:19Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179742,
+     "runner_name": "GitHub Actions 1000179742",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255638286"
+    },
+    {
+     "id": 138255638378,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (pairs-b)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:48:15Z",
+     "completed_at": "2026-11-24T04:02:32Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179817,
+     "runner_name": "GitHub Actions 1000179817",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255638378"
+    },
+    {
+     "id": 138255638733,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-surface-generic)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:40Z",
+     "completed_at": "2026-11-24T03:44:13Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179755,
+     "runner_name": "GitHub Actions 1000179755",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255638733"
+    },
+    {
+     "id": 138255638747,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-structural-grammar)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:08Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179743,
+     "runner_name": "GitHub Actions 1000179743",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255638747"
+    },
+    {
+     "id": 138255638776,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-assemble)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:10Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179756,
+     "runner_name": "GitHub Actions 1000179756",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255638776"
+    },
+    {
+     "id": 138255638779,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-surface-doc)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:16Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179728,
+     "runner_name": "GitHub Actions 1000179728",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255638779"
+    },
+    {
+     "id": 138255638796,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (orbit)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:48:16Z",
+     "completed_at": "2026-11-24T03:59:01Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179814,
+     "runner_name": "GitHub Actions 1000179814",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255638796"
+    },
+    {
+     "id": 138255638872,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-succeed)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:10Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179730,
+     "runner_name": "GitHub Actions 1000179730",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255638872"
+    },
+    {
+     "id": 138255639045,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (pairs-c)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:48:16Z",
+     "completed_at": "2026-11-24T04:02:07Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179816,
+     "runner_name": "GitHub Actions 1000179816",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255639045"
+    },
+    {
+     "id": 138255639130,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-package)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:21Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:03Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179746,
+     "runner_name": "GitHub Actions 1000179746",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255639130"
+    },
+    {
+     "id": 138255639238,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-preservation-lists)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:17:25Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179720,
+     "runner_name": "GitHub Actions 1000179720",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255639238"
+    },
+    {
+     "id": 138255639347,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (pairs-d)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:48:16Z",
+     "completed_at": "2026-11-24T04:01:06Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179813,
+     "runner_name": "GitHub Actions 1000179813",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255639347"
+    },
+    {
+     "id": 138255639875,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-compiler)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:46:17Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179723,
+     "runner_name": "GitHub Actions 1000179723",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255639875"
+    },
+    {
+     "id": 138255639925,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-surface-tooling)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:51Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179722,
+     "runner_name": "GitHub Actions 1000179722",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255639925"
+    },
+    {
+     "id": 138255639972,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-terms)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:14Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179753,
+     "runner_name": "GitHub Actions 1000179753",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255639972"
+    },
+    {
+     "id": 138255640014,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-production)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T03:39:18Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179754,
+     "runner_name": "GitHub Actions 1000179754",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255640014"
+    },
+    {
+     "id": 138255640035,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-preservation)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:43:07Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179724,
+     "runner_name": "GitHub Actions 1000179724",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255640035"
+    },
+    {
+     "id": 138255640153,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-preservation-std)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T03:12:00Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179725,
+     "runner_name": "GitHub Actions 1000179725",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255640153"
+    },
+    {
+     "id": 138255640192,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-preservation-support)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:17:04Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179733,
+     "runner_name": "GitHub Actions 1000179733",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255640192"
+    },
+    {
+     "id": 138255640244,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "atlas (join)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T04:02:35Z",
+     "completed_at": "2026-11-24T04:05:57Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179822,
+     "runner_name": "GitHub Actions 1000179822",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255640244"
+    },
+    {
+     "id": 138255640402,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-preservation-prims)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:37Z",
+     "completed_at": "2026-11-24T03:09:34Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179729,
+     "runner_name": "GitHub Actions 1000179729",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255640402"
+    },
+    {
+     "id": 138255640435,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-verification)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:28:14Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179751,
+     "runner_name": "GitHub Actions 1000179751",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255640435"
+    },
+    {
+     "id": 138255640476,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-preservation-runtime)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:16:10Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179738,
+     "runner_name": "GitHub Actions 1000179738",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255640476"
+    },
+    {
+     "id": 138255641265,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-lock-text)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:27Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179748,
+     "runner_name": "GitHub Actions 1000179748",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255641265"
+    },
+    {
+     "id": 138255641296,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-cli-output)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:20Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179757,
+     "runner_name": "GitHub Actions 1000179757",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255641296"
+    },
+    {
+     "id": 138255641909,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-diagnostics)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:32Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179735,
+     "runner_name": "GitHub Actions 1000179735",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255641909"
+    },
+    {
+     "id": 138255641918,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-content-id)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:25Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179726,
+     "runner_name": "GitHub Actions 1000179726",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255641918"
+    },
+    {
+     "id": 138255642046,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-surface-module)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:39Z",
+     "completed_at": "2026-11-24T03:44:11Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179721,
+     "runner_name": "GitHub Actions 1000179721",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255642046"
+    },
+    {
+     "id": 138255642259,
+     "run_id": 45316289312,
+     "run_attempt": 2,
+     "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+     "name": "just vv (bdd-bootstrap-manifest-text)",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-11-24T06:09:22Z",
+     "started_at": "2026-11-24T03:04:38Z",
+     "completed_at": "2026-11-24T03:44:30Z",
+     "labels": [
+      "ubuntu-24.04"
+     ],
+     "runner_id": 1000179749,
+     "runner_name": "GitHub Actions 1000179749",
+     "runner_group_name": "GitHub Actions",
+     "workflow_name": "ci",
+     "head_branch": "ci/603-zero-runner-drafts-v05-20261123",
+     "html_url": "https://github.com/UOR-Foundation/lexlean/actions/runs/45316289312/job/138255642259"
+    }
+   ]
+  }
+ ],
+ "latest_total_count": 70,
+ "lineage": {
+  "run_id": 45316289312,
+  "head_sha": "bd80fa3739c70396664b80b0f5ac2b289288f625",
+  "jobs": {
+   "Intel conformance (lower)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138192973280,
+    "latest_job_id": 138255637175,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "Intel conformance (moves)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138192973252,
+    "latest_job_id": 138255635990,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "Intel conformance (print)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138192973319,
+    "latest_job_id": 138255636099,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "Intel conformance (validate)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138192974312,
+    "latest_job_id": 138255637250,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "Intel test construction and local targets": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185881499,
+    "latest_job_id": 138255636282,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "Windows tests (lower)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185881510,
+    "latest_job_id": 138255635413,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "Windows tests (moves)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185881492,
+    "latest_job_id": 138255636034,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "Windows tests (print)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185881489,
+    "latest_job_id": 138255636379,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "Windows tests (producer)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185881709,
+    "latest_job_id": 138255636046,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "Windows tests (validate)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185881566,
+    "latest_job_id": 138255636610,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (census-a)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138195736771,
+    "latest_job_id": 138255636542,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (census-b)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138195736740,
+    "latest_job_id": 138255636179,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (census-c)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138195736706,
+    "latest_job_id": 138255636476,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (census-d)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138195736747,
+    "latest_job_id": 138255636402,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (cert4)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138195736710,
+    "latest_job_id": 138255636125,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (cert4-replay)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138197226738,
+    "latest_job_id": 138255637827,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (closure)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138200167636,
+    "latest_job_id": 138255637561,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (join)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138207689394,
+    "latest_job_id": 138255640244,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (orbit)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138202505196,
+    "latest_job_id": 138255638796,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (pairs-a)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138202505299,
+    "latest_job_id": 138255637755,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (pairs-b)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138202505336,
+    "latest_job_id": 138255638378,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (pairs-c)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138202505485,
+    "latest_job_id": 138255639045,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (pairs-d)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138202505223,
+    "latest_job_id": 138255639347,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "atlas (prefix)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185881283,
+    "latest_job_id": 138255635320,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "bootstrap export": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185881389,
+    "latest_job_id": 138255636009,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "build and non-Lean tests (aarch64-apple-darwin)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185881445,
+    "latest_job_id": 138255636018,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "build and non-Lean tests (aarch64-unknown-linux-gnu)": {
+    "origin_attempt": 2,
+    "origin_job_id": 138255634209,
+    "latest_job_id": 138255634209,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "build and non-Lean tests (x86_64-apple-darwin)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138225189068,
+    "latest_job_id": 138255637681,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "build and non-Lean tests (x86_64-pc-windows-msvc)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138216286279,
+    "latest_job_id": 138255637124,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "honesty": {
+    "origin_attempt": 1,
+    "origin_job_id": 138184244608,
+    "latest_job_id": 138255635570,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-assemble)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882567,
+    "latest_job_id": 138255638776,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-bodies)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882211,
+    "latest_job_id": 138255637611,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-check)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882174,
+    "latest_job_id": 138255635428,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-cli-output)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882736,
+    "latest_job_id": 138255641296,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-content-id)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882187,
+    "latest_job_id": 138255641918,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-diagnostics)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882370,
+    "latest_job_id": 138255641909,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-gnaf)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882177,
+    "latest_job_id": 138255635931,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-lexicon-lre)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882341,
+    "latest_job_id": 138255636237,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-lexicon-lse)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882190,
+    "latest_job_id": 138255636258,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-lock-text)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882469,
+    "latest_job_id": 138255641265,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-loops)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882301,
+    "latest_job_id": 138255637901,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-lower)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882348,
+    "latest_job_id": 138255638269,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-manifest-text)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882546,
+    "latest_job_id": 138255642259,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-moves)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882379,
+    "latest_job_id": 138255637642,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-package)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882396,
+    "latest_job_id": 138255639130,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-print)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882164,
+    "latest_job_id": 138255635577,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-project-text)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882138,
+    "latest_job_id": 138255637294,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-runtime)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185881938,
+    "latest_job_id": 138255636551,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-structural-grammar)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882420,
+    "latest_job_id": 138255638747,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-succeed)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882255,
+    "latest_job_id": 138255638872,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-surface-doc)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882152,
+    "latest_job_id": 138255638779,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-surface-generic)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882393,
+    "latest_job_id": 138255638733,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-surface-lex)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882408,
+    "latest_job_id": 138255638286,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-surface-module)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882123,
+    "latest_job_id": 138255642046,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-surface-tooling)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882274,
+    "latest_job_id": 138255639925,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-terms)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882446,
+    "latest_job_id": 138255639972,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-tooling-latex)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882427,
+    "latest_job_id": 138255637783,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-bootstrap-validate)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882487,
+    "latest_job_id": 138255636675,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-compiler)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882244,
+    "latest_job_id": 138255639875,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-preservation)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882220,
+    "latest_job_id": 138255640035,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-preservation-lists)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882122,
+    "latest_job_id": 138255639238,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-preservation-prims)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882198,
+    "latest_job_id": 138255640402,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-preservation-runtime)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882132,
+    "latest_job_id": 138255640476,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-preservation-std)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882221,
+    "latest_job_id": 138255640153,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-preservation-support)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882208,
+    "latest_job_id": 138255640192,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-production)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882261,
+    "latest_job_id": 138255640014,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (bdd-verification)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882279,
+    "latest_job_id": 138255640435,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (examples)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882365,
+    "latest_job_id": 138255636069,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "just vv (rest)": {
+    "origin_attempt": 1,
+    "origin_job_id": 138185882242,
+    "latest_job_id": 138255635092,
+    "conclusion": "success",
+    "status": "completed"
+   },
+   "plan": {
+    "origin_attempt": 1,
+    "origin_job_id": 138183832134,
+    "latest_job_id": 138255634432,
+    "conclusion": "success",
+    "status": "completed"
+   }
+  },
+  "retained_successes": 69,
+  "completed_execution_minutes": 2615.567,
+  "all_latest_jobs_success": true,
+  "qualification": "NONQUALIFYING_SNAPSHOT_LINEAGE",
+  "provider_authenticity_verified": false,
+  "release_gate_authorized": false
+ },
+ "vv_rows": [
+  "honesty",
+  "examples",
+  "rest",
+  "bdd-bootstrap-check",
+  "bdd-bootstrap-gnaf",
+  "bdd-bootstrap-print",
+  "bdd-bootstrap-runtime",
+  "bdd-bootstrap-lexicon-lre",
+  "bdd-bootstrap-lexicon-lse",
+  "bdd-bootstrap-project-text",
+  "bdd-bootstrap-tooling-latex",
+  "bdd-bootstrap-validate",
+  "bdd-bootstrap-lower",
+  "bdd-bootstrap-moves",
+  "bdd-bootstrap-bodies",
+  "bdd-bootstrap-succeed",
+  "bdd-bootstrap-loops",
+  "bdd-bootstrap-assemble",
+  "bdd-bootstrap-package",
+  "bdd-bootstrap-structural-grammar",
+  "bdd-bootstrap-surface-lex",
+  "bdd-bootstrap-surface-doc",
+  "bdd-bootstrap-surface-tooling",
+  "bdd-bootstrap-surface-generic",
+  "bdd-bootstrap-terms",
+  "bdd-compiler",
+  "bdd-preservation",
+  "bdd-preservation-lists",
+  "bdd-preservation-prims",
+  "bdd-preservation-std",
+  "bdd-preservation-runtime",
+  "bdd-preservation-support",
+  "bdd-production",
+  "bdd-verification",
+  "bdd-bootstrap-surface-module",
+  "bdd-bootstrap-diagnostics",
+  "bdd-bootstrap-cli-output",
+  "bdd-bootstrap-lock-text",
+  "bdd-bootstrap-content-id",
+  "bdd-bootstrap-manifest-text"
+ ],
+ "dod4_problems": [],
+ "dod4_joins_satisfied": true,
+ "billed_minutes": null,
+ "billed_cost": null
+}

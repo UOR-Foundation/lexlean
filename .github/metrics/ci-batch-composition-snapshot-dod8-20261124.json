@@ -1,0 +1,295 @@
+{
+  "snapshot": {
+    "schema": "lexlean/batch-composition-snapshot/1",
+    "repository": "UOR-Foundation/lexlean",
+    "release": "release/v0.4",
+    "base": "d553cbf42f4d51673f6e4040da2337dda4627c09",
+    "candidate": {
+      "head": "96f35dce8cb5b6b3ef8bf0bd06f974d32ed6e334",
+      "tree": "fb035493324dd5a20940ddc86e4c3c773b616a25",
+      "parents": [
+        "c0a7812aac1eac2809dbd1f76b3b237d0516d28a",
+        "d3d63f6a2e22a145db08c51927fb13d02e631296"
+      ]
+    },
+    "members": [
+      {
+        "pr": 609,
+        "head": "c0a7812aac1eac2809dbd1f76b3b237d0516d28a"
+      },
+      {
+        "pr": 607,
+        "head": "d3d63f6a2e22a145db08c51927fb13d02e631296"
+      }
+    ],
+    "comparisons": [
+      {
+        "head": "c0a7812aac1eac2809dbd1f76b3b237d0516d28a",
+        "base": "d553cbf42f4d51673f6e4040da2337dda4627c09",
+        "behind": 0,
+        "paths": [
+          {
+            "path": ".github/scripts/check_regen_writers.py",
+            "status": "added"
+          },
+          {
+            "path": ".github/scripts/test_check_regen_writers.py",
+            "status": "added"
+          },
+          {
+            "path": ".github/scripts/test_export_custody_guard.py",
+            "status": "added"
+          },
+          {
+            "path": ".github/workflows/ci.yml",
+            "status": "modified"
+          },
+          {
+            "path": ".github/workflows/regenerate.yml",
+            "status": "modified"
+          },
+          {
+            "path": "crates/conformance/src/cases/bootstrap.rs",
+            "status": "modified"
+          },
+          {
+            "path": "crates/conformance/src/cases/repository.rs",
+            "status": "modified"
+          },
+          {
+            "path": "crates/conformance/src/export_custody.rs",
+            "status": "modified"
+          },
+          {
+            "path": "VERIFICATION.md",
+            "status": "modified"
+          }
+        ]
+      },
+      {
+        "head": "d3d63f6a2e22a145db08c51927fb13d02e631296",
+        "base": "d553cbf42f4d51673f6e4040da2337dda4627c09",
+        "behind": 0,
+        "paths": [
+          {
+            "path": ".github/scripts/test_tag_gate_poll.py",
+            "status": "added"
+          },
+          {
+            "path": ".github/workflows/ci.yml",
+            "status": "modified"
+          },
+          {
+            "path": ".github/workflows/tag.yml",
+            "status": "modified"
+          },
+          {
+            "path": "crates/conformance/src/cases/repository.rs",
+            "status": "modified"
+          },
+          {
+            "path": "VERIFICATION.md",
+            "status": "modified"
+          }
+        ]
+      },
+      {
+        "head": "96f35dce8cb5b6b3ef8bf0bd06f974d32ed6e334",
+        "base": "d553cbf42f4d51673f6e4040da2337dda4627c09",
+        "behind": 0,
+        "paths": [
+          {
+            "path": ".github/scripts/check_regen_writers.py",
+            "status": "added"
+          },
+          {
+            "path": ".github/scripts/test_check_regen_writers.py",
+            "status": "added"
+          },
+          {
+            "path": ".github/scripts/test_export_custody_guard.py",
+            "status": "added"
+          },
+          {
+            "path": ".github/scripts/test_tag_gate_poll.py",
+            "status": "added"
+          },
+          {
+            "path": ".github/workflows/ci.yml",
+            "status": "modified"
+          },
+          {
+            "path": ".github/workflows/regenerate.yml",
+            "status": "modified"
+          },
+          {
+            "path": ".github/workflows/tag.yml",
+            "status": "modified"
+          },
+          {
+            "path": "crates/conformance/src/cases/bootstrap.rs",
+            "status": "modified"
+          },
+          {
+            "path": "crates/conformance/src/cases/repository.rs",
+            "status": "modified"
+          },
+          {
+            "path": "crates/conformance/src/export_custody.rs",
+            "status": "modified"
+          },
+          {
+            "path": "VERIFICATION.md",
+            "status": "modified"
+          }
+        ]
+      }
+    ],
+    "live": [
+      {
+        "pr": 609,
+        "head": "96f35dce8cb5b6b3ef8bf0bd06f974d32ed6e334",
+        "release": "release/v0.4",
+        "base": "d553cbf42f4d51673f6e4040da2337dda4627c09",
+        "draft": true,
+        "state": "open"
+      },
+      {
+        "pr": 607,
+        "head": "d3d63f6a2e22a145db08c51927fb13d02e631296",
+        "release": "release/v0.4",
+        "base": "d553cbf42f4d51673f6e4040da2337dda4627c09",
+        "draft": true,
+        "state": "open"
+      }
+    ],
+    "overlap": [
+      ".github/workflows/ci.yml",
+      "VERIFICATION.md",
+      "crates/conformance/src/cases/repository.rs"
+    ],
+    "scope": "Provider-observed source composition snapshot, not an approval or qualification receipt. Shared-file semantic resolution and complete exact-HEAD compiled validation are still required. No live merge/routing authority."
+  },
+  "tests": [
+    {
+      "name": "unchanged",
+      "expected": "SOURCE_SNAPSHOT_MATCH",
+      "actual": "SOURCE_SNAPSHOT_MATCH",
+      "authority": false
+    },
+    {
+      "name": "base moved",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "candidate changed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "tree changed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "parent order",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "missing parent",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "member changed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "duplicate member",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "source PR changed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "source PR closed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "candidate promoted",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "target changed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "extra path",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "missing path",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "duplicate path",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "status changed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "overlap missing",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "behind",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "foreign repository",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    }
+  ],
+  "limitations": [
+    "Reference and new snapshot must be captured independently from provider; this tool does not fetch or authenticate either.",
+    "Exact path union is not semantic proof, not blob-equality for overlap paths, and not authorization. No automatic admission.",
+    "Only a two-parent experimental composition is supported, not generalized N-member ancestry. Branch/base changes invalidate the observation.",
+    "Current PR 609 head is composite; member 609 is historical pre-composition parent. Source head is retained in merge ancestry, not an independently moving PR branch."
+  ]
+}

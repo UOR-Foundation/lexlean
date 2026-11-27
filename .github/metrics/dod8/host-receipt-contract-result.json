@@ -1,0 +1,94 @@
+{
+  "schema": "lexlean/advisory-host-receipt-contract/1",
+  "authority": false,
+  "checks": 17,
+  "cases": [
+    {
+      "name": "valid retained attempt and identical test names in different targets",
+      "expected": "accept",
+      "actual": "accept",
+      "result": 5
+    },
+    {
+      "name": "zero provider attempt",
+      "expected": "invalid attempt",
+      "actual": "invalid attempt"
+    },
+    {
+      "name": "unselected older receipt",
+      "expected": "receipt not selected",
+      "actual": "receipt not selected"
+    },
+    {
+      "name": "swapped lanes",
+      "expected": "wrong lane",
+      "actual": "wrong lane"
+    },
+    {
+      "name": "producer absorbs conformance",
+      "expected": "wrong lane",
+      "actual": "wrong lane"
+    },
+    {
+      "name": "duplicate plan identity",
+      "expected": "ambiguous inventory",
+      "actual": "ambiguous inventory"
+    },
+    {
+      "name": "duplicate execution",
+      "expected": "duplicate execution",
+      "actual": "duplicate execution"
+    },
+    {
+      "name": "missing test",
+      "expected": "missing test",
+      "actual": "missing test"
+    },
+    {
+      "name": "missing lane",
+      "expected": "lane roster",
+      "actual": "lane roster"
+    },
+    {
+      "name": "wrong host",
+      "expected": "foreign source or host",
+      "actual": "foreign source or host"
+    },
+    {
+      "name": "failed provider",
+      "expected": "provider failure",
+      "actual": "provider failure"
+    },
+    {
+      "name": "nonzero command",
+      "expected": "command failure",
+      "actual": "command failure"
+    },
+    {
+      "name": "ignored changed to ok",
+      "expected": "changed test outcome",
+      "actual": "changed test outcome"
+    },
+    {
+      "name": "failed test masked",
+      "expected": "changed test outcome",
+      "actual": "changed test outcome"
+    },
+    {
+      "name": "duplicate artifact",
+      "expected": "duplicate provider identity",
+      "actual": "duplicate provider identity"
+    },
+    {
+      "name": "digest substitution",
+      "expected": "receipt not selected",
+      "actual": "receipt not selected"
+    },
+    {
+      "name": "wrong tree",
+      "expected": "foreign source or host",
+      "actual": "foreign source or host"
+    }
+  ],
+  "scope": "Synthetic contract model only. Independent expected inventory and provider selection assumed, not authenticated; no actual archive bytes or command transcripts validated, no workflow integration."
+}

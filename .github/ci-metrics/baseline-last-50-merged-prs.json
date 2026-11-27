@@ -1,0 +1,416 @@
+{
+  "schema": "lexlean/ci-economic-before-after/1",
+  "cohort": "historical-final-head",
+  "snapshot_utc": "2026-11-23",
+  "source": "GitHub Actions REST exact final PR-head SHA",
+  "rates_usd_per_min": {
+    "linux": 0.006,
+    "windows": 0.01,
+    "macos": 0.062
+  },
+  "scope": "ci and reproducibility workflows on final merged PR HEAD; exact head only; failed/cancelled retries counted; previous commit heads not observable from this snapshot",
+  "qualification_rule": "both workflows successful and completed before PR merge",
+  "billable_model": "per completed job round elapsed minutes up; multiply by runner OS rate; public repo actual standard-hosted billing remains zero",
+  "records": [
+    {
+      "number": 604,
+      "head": "48f4bc2d9872988a707c5d9b4ef6c517ce50f948",
+      "base": "release/v0.4",
+      "created_at": "2026-11-22T20:14:18Z",
+      "merged_at": "2026-11-23T00:56:43Z",
+      "run_metrics": null
+    },
+    {
+      "number": 602,
+      "head": "cf549b4372322c1c34c188d2d10780aafbbecfc5",
+      "base": "release/v0.4",
+      "created_at": "2026-11-22T08:57:19Z",
+      "merged_at": "2026-11-23T00:08:31Z",
+      "run_metrics": null
+    },
+    {
+      "number": 597,
+      "head": "241666064854a86551aa29288354c829bee1e1dc",
+      "base": "main",
+      "created_at": "2026-11-21T16:44:22Z",
+      "merged_at": "2026-11-22T18:32:44Z",
+      "run_metrics": null
+    },
+    {
+      "number": 601,
+      "head": "52ddd46cc16ad31ef95613761f4f5190df8d3fbd",
+      "base": "release/v0.4",
+      "created_at": "2026-11-22T08:36:08Z",
+      "merged_at": "2026-11-22T08:46:03Z",
+      "run_metrics": null
+    },
+    {
+      "number": 599,
+      "head": "497ffa487df13c7d6c869b9fcac51c832894d1b9",
+      "base": "main",
+      "created_at": "2026-11-22T06:10:09Z",
+      "merged_at": "2026-11-22T07:52:48Z",
+      "run_metrics": null
+    },
+    {
+      "number": 595,
+      "head": "9a8454f4bc31fef5fc1b5c68e0dd374c60702ec4",
+      "base": "main",
+      "created_at": "2026-11-21T04:24:58Z",
+      "merged_at": "2026-11-21T16:57:47Z",
+      "run_metrics": null
+    },
+    {
+      "number": 596,
+      "head": "6c7fba0ded52c53e479f1324ee8d18aaa940c249",
+      "base": "release/v0.4",
+      "created_at": "2026-11-21T08:00:25Z",
+      "merged_at": "2026-11-21T08:01:17Z",
+      "run_metrics": null
+    },
+    {
+      "number": 590,
+      "head": "3a995b688a5630e7b7187fa465b546c987e27a2b",
+      "base": "release/v0.4",
+      "created_at": "2026-11-20T10:58:05Z",
+      "merged_at": "2026-11-20T21:59:47Z",
+      "run_metrics": null
+    },
+    {
+      "number": 591,
+      "head": "18dcf615f98738e2768526fe66dc90a327686426",
+      "base": "main",
+      "created_at": "2026-11-20T16:21:57Z",
+      "merged_at": "2026-11-20T17:41:06Z",
+      "run_metrics": null
+    },
+    {
+      "number": 561,
+      "head": "adb620d43989047034f85e4b5bc306370b5fd21e",
+      "base": "main",
+      "created_at": "2026-11-17T03:39:24Z",
+      "merged_at": "2026-11-20T00:07:01Z",
+      "run_metrics": null
+    },
+    {
+      "number": 578,
+      "head": "fa25e879c7f76d9112fe327cf8ee6e5b3bce5a3c",
+      "base": "release/v0.4",
+      "created_at": "2026-11-18T16:54:30Z",
+      "merged_at": "2026-11-19T16:40:41Z",
+      "run_metrics": null
+    },
+    {
+      "number": 581,
+      "head": "c2e0875e6d9adf723ad953c6d5150371cae758c4",
+      "base": "release/v0.4",
+      "created_at": "2026-11-18T21:27:22Z",
+      "merged_at": "2026-11-19T16:40:39Z",
+      "run_metrics": null
+    },
+    {
+      "number": 580,
+      "head": "37a1db1c756914cb5ad22311f1693a171c9b6549",
+      "base": "release/v0.4",
+      "created_at": "2026-11-18T17:59:48Z",
+      "merged_at": "2026-11-19T16:40:41Z",
+      "run_metrics": null
+    },
+    {
+      "number": 587,
+      "head": "aa8a52154690905700feb98d7e39b178be886830",
+      "base": "main",
+      "created_at": "2026-11-19T13:16:50Z",
+      "merged_at": "2026-11-19T14:31:46Z",
+      "run_metrics": null
+    },
+    {
+      "number": 584,
+      "head": "58c5e2db1ed17531334d1e1593d652f89700a87e",
+      "base": "main",
+      "created_at": "2026-11-19T11:22:51Z",
+      "merged_at": "2026-11-19T13:33:35Z",
+      "run_metrics": null
+    },
+    {
+      "number": 579,
+      "head": "bd65c55fc1ba7987f72d986019630c7e3e45c7b5",
+      "base": "claude/render-lean",
+      "created_at": "2026-11-18T17:38:44Z",
+      "merged_at": "2026-11-19T08:13:09Z",
+      "run_metrics": null
+    },
+    {
+      "number": 566,
+      "head": "84c3434538c7a49bfa64c42efd6a4ee7208975ef",
+      "base": "release/v0.4",
+      "created_at": "2026-11-17T15:51:54Z",
+      "merged_at": "2026-11-19T07:36:28Z",
+      "run_metrics": null
+    },
+    {
+      "number": 577,
+      "head": "dfdc56fc0076bac268a7b4a8bb71282c91de552d",
+      "base": "main",
+      "created_at": "2026-11-18T16:48:19Z",
+      "merged_at": "2026-11-19T06:20:58Z",
+      "run_metrics": null
+    },
+    {
+      "number": 574,
+      "head": "d7d5ca5f4a7a7a99073bdb29bcf2e0646d2aa3c2",
+      "base": "main",
+      "created_at": "2026-11-18T12:00:35Z",
+      "merged_at": "2026-11-19T01:16:58Z",
+      "run_metrics": null
+    },
+    {
+      "number": 575,
+      "head": "a892ef0f59b2f2da58c0f812ef68feb38c13e9a4",
+      "base": "main",
+      "created_at": "2026-11-18T13:16:38Z",
+      "merged_at": "2026-11-18T21:01:55Z",
+      "run_metrics": null
+    },
+    {
+      "number": 572,
+      "head": "991bf9f556688af0fd9de3abb411ffd3d811de6d",
+      "base": "claude/term-emitter-phase0-c376e4",
+      "created_at": "2026-11-18T09:18:47Z",
+      "merged_at": "2026-11-18T20:58:25Z",
+      "run_metrics": null
+    },
+    {
+      "number": 576,
+      "head": "cb78cb4f8081d65033645bf1c96f356445b8dde9",
+      "base": "main",
+      "created_at": "2026-11-18T16:28:17Z",
+      "merged_at": "2026-11-18T19:11:53Z",
+      "run_metrics": null
+    },
+    {
+      "number": 573,
+      "head": "8f6eac5eec55d84becec0c140d60ed013b9c0d8f",
+      "base": "main",
+      "created_at": "2026-11-18T11:22:06Z",
+      "merged_at": "2026-11-18T13:15:16Z",
+      "run_metrics": null
+    },
+    {
+      "number": 570,
+      "head": "201151b2e2af1ac0c6bf21a110dfda00364a85c3",
+      "base": "main",
+      "created_at": "2026-11-18T08:41:12Z",
+      "merged_at": "2026-11-18T08:59:48Z",
+      "run_metrics": null
+    },
+    {
+      "number": 567,
+      "head": "d276ae5336a72171e9070ec9b1e8515dd9ef340b",
+      "base": "main",
+      "created_at": "2026-11-17T15:52:41Z",
+      "merged_at": "2026-11-18T08:49:25Z",
+      "run_metrics": null
+    },
+    {
+      "number": 564,
+      "head": "82b5ac0fdcbe01e17b6d62a7e721ad49a459b63e",
+      "base": "main",
+      "created_at": "2026-11-17T15:19:12Z",
+      "merged_at": "2026-11-17T23:27:19Z",
+      "run_metrics": null
+    },
+    {
+      "number": 563,
+      "head": "c01a0da114a5668d2cd40b8d8d27982e6d8aa4e6",
+      "base": "release/v0.5",
+      "created_at": "2026-11-17T10:36:54Z",
+      "merged_at": "2026-11-17T15:29:29Z",
+      "run_metrics": null
+    },
+    {
+      "number": 560,
+      "head": "e9075c2155d7c9c474a7c4829b2f07a6c00998cb",
+      "base": "release/v0.4",
+      "created_at": "2026-11-16T12:49:42Z",
+      "merged_at": "2026-11-16T17:36:02Z",
+      "run_metrics": null
+    },
+    {
+      "number": 539,
+      "head": "1ebca4ce2a8929cd4fb76e74b7d637521f588e52",
+      "base": "release/v0.5",
+      "created_at": "2026-11-14T21:16:03Z",
+      "merged_at": "2026-11-16T20:12:45Z",
+      "run_metrics": null
+    },
+    {
+      "number": 493,
+      "head": "e4b90d47dc6e530599edac04e0869f92cd298947",
+      "base": "release/v0.4",
+      "created_at": "2026-11-12T12:54:18Z",
+      "merged_at": "2026-11-16T12:57:43Z",
+      "run_metrics": null
+    },
+    {
+      "number": 543,
+      "head": "1f4edb629b9cbdef3bb686b0df9b8afea78ddc90",
+      "base": "release/v0.4",
+      "created_at": "2026-11-14T22:07:22Z",
+      "merged_at": "2026-11-16T08:21:11Z",
+      "run_metrics": null
+    },
+    {
+      "number": 557,
+      "head": "7a9b999d18bc94b0845528081965fb2ff607b8a1",
+      "base": "release/v0.4",
+      "created_at": "2026-11-15T23:16:39Z",
+      "merged_at": "2026-11-16T05:02:28Z",
+      "run_metrics": null
+    },
+    {
+      "number": 553,
+      "head": "cdb94ebdbcb7e99ceda545d24a8dbde73abd66aa",
+      "base": "release/v0.5",
+      "created_at": "2026-11-15T16:01:09Z",
+      "merged_at": "2026-11-16T10:02:55Z",
+      "run_metrics": null
+    },
+    {
+      "number": 507,
+      "head": "144aa769d35d609b37556299f3f46ec026208268",
+      "base": "release/v0.4",
+      "created_at": "2026-11-13T00:47:13Z",
+      "merged_at": "2026-11-16T05:00:26Z",
+      "run_metrics": null
+    },
+    {
+      "number": 556,
+      "head": "fa271080652887976ae25d0aef84edc7472b0276",
+      "base": "main",
+      "created_at": "2026-11-15T23:14:13Z",
+      "merged_at": "2026-11-16T04:09:13Z",
+      "run_metrics": null
+    },
+    {
+      "number": 554,
+      "head": "3ccd3fa2374bf80887769d0af2615e1575dbbfac",
+      "base": "release/v0.4",
+      "created_at": "2026-11-15T17:26:42Z",
+      "merged_at": "2026-11-15T23:15:34Z",
+      "run_metrics": null
+    },
+    {
+      "number": 551,
+      "head": "670310ad46f08be933ad25781c7a1822df4f8fa7",
+      "base": "release/v0.4",
+      "created_at": "2026-11-15T10:01:47Z",
+      "merged_at": "2026-11-15T18:00:21Z",
+      "run_metrics": null
+    },
+    {
+      "number": 550,
+      "head": "8154aa0bf0aa529763c298a26c97a24389543bb3",
+      "base": "release/v0.4",
+      "created_at": "2026-11-15T09:44:46Z",
+      "merged_at": "2026-11-15T23:15:10Z",
+      "run_metrics": null
+    },
+    {
+      "number": 545,
+      "head": "78a92dc381ebdd40a729a712233df8eb59808bab",
+      "base": "release/v0.5",
+      "created_at": "2026-11-14T23:07:55Z",
+      "merged_at": "2026-11-15T22:12:17Z",
+      "run_metrics": null
+    },
+    {
+      "number": 441,
+      "head": "4a09ae2b2c7c991afad0af9670c2975203661f8e",
+      "base": "release/v0.5",
+      "created_at": "2026-11-08T13:34:36Z",
+      "merged_at": "2026-11-15T21:09:01Z",
+      "run_metrics": null
+    },
+    {
+      "number": 540,
+      "head": "bfbf1c0c777b82cb0368adb0d95e7839d6189441",
+      "base": "release/v0.5",
+      "created_at": "2026-11-14T21:26:00Z",
+      "merged_at": "2026-11-15T12:17:03Z",
+      "run_metrics": null
+    },
+    {
+      "number": 529,
+      "head": "bca7a7cba2c6b535ab568511163446e70eabf3b6",
+      "base": "release/v0.4",
+      "created_at": "2026-11-14T02:21:15Z",
+      "merged_at": "2026-11-15T09:52:44Z",
+      "run_metrics": null
+    },
+    {
+      "number": 526,
+      "head": "81249b2f916342452980a499a6468ecdb2eb17a1",
+      "base": "release/v0.4",
+      "created_at": "2026-11-13T21:58:51Z",
+      "merged_at": "2026-11-15T09:32:12Z",
+      "run_metrics": null
+    },
+    {
+      "number": 503,
+      "head": "0fd089b7986bf5771ae5767fd95dc1cd33b23bfa",
+      "base": "release/v0.4",
+      "created_at": "2026-11-12T21:58:09Z",
+      "merged_at": "2026-11-15T06:41:39Z",
+      "run_metrics": null
+    },
+    {
+      "number": 536,
+      "head": "43546c605fa339f7c78dbb343db9bb0a594420f3",
+      "base": "release/v0.4",
+      "created_at": "2026-11-14T18:15:41Z",
+      "merged_at": "2026-11-15T04:00:37Z",
+      "run_metrics": null
+    },
+    {
+      "number": 518,
+      "head": "25d5742a73fad6537373b1de8e5d497af61ebab6",
+      "base": "release/v0.4",
+      "created_at": "2026-11-13T18:46:13Z",
+      "merged_at": "2026-11-15T02:59:16Z",
+      "run_metrics": null
+    },
+    {
+      "number": 519,
+      "head": "b1cb0a82921541d8018b2db02ab41f7e17424df9",
+      "base": "release/v0.4",
+      "created_at": "2026-11-13T19:43:27Z",
+      "merged_at": "2026-11-15T00:20:14Z",
+      "run_metrics": null
+    },
+    {
+      "number": 535,
+      "head": "835005153c8bca4b27af1389c42c4559ea187f12",
+      "base": "release/v0.4",
+      "created_at": "2026-11-14T18:08:08Z",
+      "merged_at": "2026-11-14T22:40:06Z",
+      "run_metrics": null
+    },
+    {
+      "number": 405,
+      "head": "716bc85ec29048d07db0fa8ed4991d0de449a391",
+      "base": "release/v0.5",
+      "created_at": "2026-11-03T10:25:37Z",
+      "merged_at": "2026-11-14T20:56:31Z",
+      "run_metrics": null
+    },
+    {
+      "number": 431,
+      "head": "d444c2305253c01fe57a78ba2f5c582c5ad52b74",
+      "base": "release/v0.4",
+      "created_at": "2026-11-03T15:19:37Z",
+      "merged_at": "2026-11-14T15:58:52Z",
+      "run_metrics": null
+    }
+  ]
+}

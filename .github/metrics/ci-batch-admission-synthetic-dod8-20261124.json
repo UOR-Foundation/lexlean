@@ -1,0 +1,185 @@
+{
+  "schema": "lexlean/ci-batch-admission-synthetic/1",
+  "scope": "Advisory synthetic policy model; not live admission, no verification of declared facts, no trust proof, no qualification or routing authority",
+  "thresholds": {
+    "size": 4,
+    "age_hours": 12
+  },
+  "limitations": [
+    "Review flags and tree identities are supplied synthetic inputs, not independently authenticated.",
+    "No actual composition, scheduler, conflict resolver, dependency discovery, fast-path approval or retry logic.",
+    "Urgent or special singleton direct route is a candidate for existing full qualification, never acceptance.",
+    "Only already admitted earlier members satisfy dependencies in this prototype; external qualified dependencies need separate evidence."
+  ],
+  "tests": [
+    {
+      "name": "valid staging",
+      "expected": "STAGING_CANDIDATE",
+      "actual": "STAGING_CANDIDATE",
+      "authority": false
+    },
+    {
+      "name": "age boundary",
+      "expected": "FREEZE_FULL_CANDIDATE",
+      "actual": "FREEZE_FULL_CANDIDATE",
+      "authority": false
+    },
+    {
+      "name": "size boundary",
+      "expected": "FREEZE_FULL_CANDIDATE",
+      "actual": "FREEZE_FULL_CANDIDATE",
+      "authority": false
+    },
+    {
+      "name": "urgent direct",
+      "expected": "DIRECT_FULL_CANDIDATE",
+      "actual": "DIRECT_FULL_CANDIDATE",
+      "authority": false
+    },
+    {
+      "name": "identity direct",
+      "expected": "DIRECT_FULL_CANDIDATE",
+      "actual": "DIRECT_FULL_CANDIDATE",
+      "authority": false
+    },
+    {
+      "name": "ordered dependency",
+      "expected": "STAGING_CANDIDATE",
+      "actual": "STAGING_CANDIDATE",
+      "authority": false
+    },
+    {
+      "name": "reversed dependency",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "unresolved dependency",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "duplicate dependency",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "base moved",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "wrong release",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "wrong target",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "duplicate PR",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "duplicate head",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "stale review",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "invalid tree",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "unknown urgency",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "unknown impact",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "urgent mixed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "identity mixed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "release mixed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "control mixed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "future clock",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "oversize",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "missing pathsComplete",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "missing compatibilityReviewed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "missing trustReviewed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    },
+    {
+      "name": "missing preflightPassed",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "authority": false
+    }
+  ],
+  "passed": 28
+}
