@@ -1,3 +1,32 @@
+# Current case-study accounting reference — 2026-11-27 UTC
+
+**DOD-6 disposition:** owner-approved NO_MEASURED_WIN; qualified B1 retained. #603 remains 6/10, with DOD-7–10 open. The natural AFTER cohort is not measured. The [current closure register](CI-CLOSURE-REGISTER-603.md) contains the prospective measurement proposal, pending owner acceptance.
+
+The corrected frozen 50-PR, 128-run BEFORE snapshot is the controlling historical accounting reference. Independently joined every run ID and PR number across `ci-before-pr50-runs.json` (blob 6978133b5e434f922ec1cd807e9a741165af3ab7) and `ci-before-pr50-job-costs-corrected.json` (blob eac107477745061bc74cb307746dc18b6548f3a7). All 128 IDs are distinct, all matched records marked complete. This is replay of frozen snapshots, not fresh independent provider authentication of every run.
+
+| Metric | Corrected BEFORE | AFTER |
+| --- | ---: | --- |
+| PRs / matched runs | 50 / 128 | NOT_MEASURED |
+| Unweighted job-minutes | 88,298.354 | NOT_MEASURED |
+| Linux / Windows / macOS minutes | 68,782.200 / 7,182.714 / 12,333.437 | NOT_MEASURED |
+| Median / p90 / p95 minutes per PR | 1,818.700 / 2,615.012 / 3,040.976 | NOT_MEASURED |
+| Premerge green pair count | 29/50 | NOT_MEASURED |
+| Green-only p50 / p90 / p95 minutes | 186.233 / 450.963 / 613.490 | NOT_MEASURED |
+| Modeled private standard-runner equivalent (historical rate model) | $1,249.19 | NOT_MEASURED |
+| Actual billed usage / charges | NOT_AVAILABLE | NOT_AVAILABLE |
+
+Platform sum 88,298.351 differs from the run-total sum by 0.003 min owing to stored component precision; preserve both rather than adjusting a platform silently. The private equivalent applies historical pooled Linux $0.006/min, Windows $0.010/min, macOS $0.062/min to the corrected platform totals; no whole-minute billing reconstruction, actual invoice, current price verification or savings claim.
+
+Workflow breakdown (minutes): CI 86,812.185; independent reproducibility 275.668; regenerate 823.851; release 81.267; tag 305.383. Standalone reproducibility is 0.3122% of the corrected sample, not a removable obligation or measured savings. Trigger breakdown: pull_request 70,593.353; workflow_dispatch 14,684.617; push 3,020.384 (exact final-head premerge events, not postmerge cost). All sums reconcile to 88,298.354. Earlier heads and postmerge lifecycle are incompletely represented.
+
+The original $1,408.78 proxy and 99,321.656 raw job-minute total below are historical, superseded for current comparison. Their difference from the corrected values is an accounting correction, not CI improvement. The archived report's old public standard-runner zero-charge statement is a general pricing assumption, not an observed invoice. Preserve the original report for traceability; its status, numbers and links are not the current result.
+
+B1 observed cross-revision allocation +0.528%, elapsed -39.467%; no causal or joint measured win. Recompute and qualify final Rust rendering outcome separately. See [#603 binding disposition](https://github.com/UOR-Foundation/lexlean/issues/603#issuecomment-7200714396), [stratified historical replay](https://github.com/UOR-Foundation/lexlean/issues/603#issuecomment-7204570971) and [independent challenge](https://github.com/UOR-Foundation/lexlean/issues/603#issuecomment-7204635715). All archived figures below retain original scope and limitations.
+
+---
+
+## Historical accounting and engineering record (preserved verbatim)
+
 ## Verified source-bound correction to historical 50-PR BEFORE accounting (2026-11-23 UTC)
 
 The historical run-cost RAW snapshot remains intact. Seven anomalous runs
