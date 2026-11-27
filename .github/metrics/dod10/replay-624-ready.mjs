@@ -204,9 +204,40 @@ function selftest() {
   return {good,rejected};
 }
 
+// Raw provider adapter: fetch run and all attempt-1 job pages in order at
+// per_page=50. This is structural validation, not provider authentication.
+function normalizeRaw(raw) {
+  const r=raw?.run, pages=raw?.pages;
+  require(r && Array.isArray(pages) && pages.length>0,"raw receipt shape");
+  require(r.repository?.full_name==="UOR-Foundation/lexlean" &&
+    r.head_repository?.full_name===r.repository.full_name,"raw repository/head repository");
+  require(r.head_sha===HEAD && r.run_attempt===1,"raw head/attempt");
+  const total=pages[0].total_count;
+  require(Number.isSafeInteger(total)&&total>0&&pages.length===Math.ceil(total/50),"raw page count");
+  for(const [i,p] of pages.entries()) {
+    require(p.total_count===total&&Array.isArray(p.jobs)&&p.jobs.length===Math.min(50,total-50*i),"raw page length/total");
+  }
+  const jobs=pages.flatMap(p=>p.jobs);
+  require(jobs.every(j=>j.head_sha===HEAD&&j.run_id===r.id&&j.run_attempt===r.run_attempt),"raw job head/run/attempt");
+  require(new Set(jobs.map(j=>j.id)).size===jobs.length,"raw duplicate job");
+  return {head:r.head_sha,repository:r.repository.full_name,id:r.id,attempt:r.run_attempt,
+    workflow:r.path,event:r.event,status:r.status,conclusion:r.conclusion,
+    pages_complete:true,total_count:total,jobs:jobs.map(j=>({...j,attempt:j.run_attempt}))};
+}
+function rawSelftest() {
+  const s=specs.ready, clone=x=>JSON.parse(JSON.stringify(x));
+  const jobs=[...s.success.map(name=>({name,conclusion:"success"})),...s.skipped.map(name=>({name,conclusion:"skipped"}))]
+    .map((j,i)=>({...j,id:i+10,run_id:1,run_attempt:1,head_sha:HEAD,status:"completed"}));
+  const fixture=()=>({run:{head_sha:HEAD,repository:{full_name:"UOR-Foundation/lexlean"},head_repository:{full_name:"UOR-Foundation/lexlean"},id:1,run_attempt:1,path:s.workflow,event:"pull_request",status:"completed",conclusion:"success"},pages:[{total_count:jobs.length,jobs:clone(jobs.slice(0,50))},{total_count:jobs.length,jobs:clone(jobs.slice(50))}]});
+  const good=check("ready",normalizeRaw(fixture()));
+  const plants=[["missing page",r=>r.pages.pop()],["duplicate page",r=>r.pages[1]=clone(r.pages[0])],["short first page",r=>r.pages[0].jobs.pop()],["changed total",r=>r.pages[1].total_count++],["foreign job head",r=>r.pages[1].jobs[0].head_sha="foreign"],["foreign head repository",r=>r.run.head_repository.full_name="other/repo"],["duplicate job across pages",r=>r.pages[1].jobs[0].id=r.pages[0].jobs[0].id]];
+  const rejected=plants.map(([name,mutate])=>{const r=fixture();mutate(r);try{check("ready",normalizeRaw(r));}catch(e){return {name,refused:e.message};}throw Error("unexpected acceptance "+name);});
+  return {good,rejected};
+}
 import {readFileSync} from "node:fs";
 const [mode,path]=process.argv.slice(2);
 try {
-  const result = mode==="--self-test" ? selftest() : check(mode, JSON.parse(readFileSync(path,"utf8")));
+  const input=mode==="--self-test"?null:JSON.parse(readFileSync(path,"utf8"));
+  const result=mode==="--self-test"?{normalized:selftest(),raw:rawSelftest()}:check(mode,input.run&&input.pages?normalizeRaw(input):input);
   console.log(JSON.stringify(result,null,2));
 } catch(e) { console.error("HOLD: "+e.message); process.exitCode=1; }
