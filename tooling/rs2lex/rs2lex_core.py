@@ -789,7 +789,7 @@ class Types:
 
 KEYWORDS = set('let if match fun forall nil cons first second not apply ctor record project prim ref checked then else with true false'.split())
 KEYWORDS |= set('id ite dite cond absurd flip default decide panic toString repr max min compare pure bind map seq fst snd get set modify and or xor sorry rfl trivial show have at by do from in open end section namespace instance class structure inductive def theorem lemma example variable universe mutual where deriving return for unless mut try catch finally break continue this Type Prop Sort some none ok error unit private public protected noncomputable partial unsafe opaque abbrev attribute export local scoped macro syntax notation infix prefix postfix calc suffices obtain Id Option List Nat String Bool Unit Int Array ByteArray Except Prod Sum'.split())   # Lean names a binder must not shadow
-MUTATORS = {'push', 'push_str', 'insert', 'sort', 'next', 'pop', 'truncate', 'extend', 'remove', 'retain', 'clear', 'dedup', 'sort_unstable', 'sort_by', 'sort_by_key', 'sort_unstable_by', 'extend_from_slice', 'append', 'swap', 'reverse', 'take', 'insert_str', 'push_back', 'push_front', 'pop_front', 'pop_back', 'drain'}
+MUTATORS = {'write_str', 'write_char', 'push', 'push_str', 'insert', 'sort', 'next', 'pop', 'truncate', 'extend', 'remove', 'retain', 'clear', 'dedup', 'sort_unstable', 'sort_by', 'sort_by_key', 'sort_unstable_by', 'extend_from_slice', 'append', 'swap', 'reverse', 'take', 'insert_str', 'push_back', 'push_front', 'pop_front', 'pop_back', 'drain'}
 IDENTITY = {'to_owned', 'clone', 'cloned', 'copied', 'to_string', 'into', 'into_iter', 'iter', 'as_str', 'as_ref', 'to_vec'}
 EXTERN_TYPES = {'Diagnostic': BYTES}
 PTR = ('Ptr',)
@@ -1187,6 +1187,7 @@ class Translator:
             if not n or not isinstance(n[0], str): continue
             if n[0] in ('try', 'return', 'continue', 'break', 'assign', 'while', 'whilelet', 'for', 'loop'): return True
             if n[0] == 'mcall' and n[2] in MUTATORS: return True
+            if n[0] == 'macro' and n[1] in ('write', 'writeln'): return True
             if n[0] == 'let' and len(n) == 5 and n[4] is not None: return True
             if n[0] in ('call', 'mcall') and self.mutated_args(n): return True
             if n[0] == 'call' and n[1][0] == 'path' and len(n[1][1]) == 1 and n[1][1][0] in self.eff_closures: return True
@@ -1201,6 +1202,7 @@ class Translator:
             targets = []
             if n and n[0] == 'mcall' and n[2] in MUTATORS and self.root_var(n[1]): targets.append(self.root_var(n[1]))
             if n and n[0] == 'assign' and self.root_var(n[1]): targets.append(self.root_var(n[1]))
+            if n and n[0] == 'macro' and n[1] in ('write', 'writeln') and n[2] and self.root_var(n[2][0]): targets.append(self.root_var(n[2][0]))
             if n and n[0] in ('call', 'mcall'): targets += self.mutated_args(n)
             if n and n[0] == 'call' and n[1][0] == 'path' and len(n[1][1]) == 1 and n[1][1][0] in env and env[n[1][1][0]][0] is None \
                     and env[n[1][1][0]][1][0] == 'Closure' and n[1][1][0] not in getattr(self, '_closure_walk', ()):
@@ -1648,7 +1650,11 @@ class Translator:
             return self.exprs(e[1], env, ctx, made)
         if h == 'index':
             def at(vs, env):
-                (xs, xt), (i, it) = vs; T.unify(it, NAT, 'index'); el = T.var(); T.unify(xt, ('List', el), 'indexing')
+                (xs, xt), (i, it) = vs
+                if T.res(xt)[0] == 'Map':                 # `map[&key]` is `map.get(&key)`, and panics when absent
+                    if self.effectful(e[1]) or self.effectful(e[2]): raise Unsupported('a map indexed by an expression with effects')
+                    return self.expr(('mcall', ('mcall', e[1], 'get', [e[2]]), 'unwrap', []), env, ctx, k)
+                T.unify(it, NAT, 'index'); el = T.var(); T.unify(xt, ('List', el), 'indexing')
                 n = self.fresh('got')
                 return k(f'(match (RustStd::getAt [{show(el)}] {xs} {i}) | Option.some {n} => {n} | Option.none => {self.default(el)})', el, env)
             return self.exprs([e[1], e[2]], env, ctx, at)
@@ -1755,7 +1761,7 @@ class Translator:
                 if i + 1 < len(pieces):
                     parts.append((pieces[i + 2] or '', ('path', [pieces[i + 1]]) if pieces[i + 1] else pos.pop(0)))
             def joined(vs, env):
-                out = []
+                out = []; self._fmt_env = env          # so a Display call back into this recursion group takes its fuel
                 for (mode, ast), (v, t) in zip(parts, vs):
                     t = T.nat(t)
                     if mode is None: out.append(('s', ast[1]))
@@ -1763,6 +1769,7 @@ class Translator:
                     elif t == NAT: out.append(f'(AxiomOutput::decimal {v})')
                     elif t == BYTES: out.append(v)
                     else: out.append(self.display(v, t))
+                self._fmt_env = None
                 return k(cat(out), BYTES, env)
             def atoms(vs, env, acc=None):
                 acc = acc or []
@@ -2273,6 +2280,11 @@ class Translator:
         # for, where running the closure eagerly is what Rust does too: the terminal adapters, and `filter` and
         # `filter_map` consumed whole by `collect`. The closure is bound to a name and called, so a `return` or `?`
         # inside it leaves the closure, not the function.
+        if m == 'get_key_value' and len(args) == 1 and not self.effectful(args[0]):
+            # the entry at a key: the key found is equal to the key asked for
+            self.spec_n += 1; v = f'__held{self.spec_n}'
+            some = (('pctor', ['Some'], [(0, ('pid', v))]), None, ('call', ('path', ['Some']), [('tuple', [args[0], ('path', [v])])]))
+            return self.expr(('match', ('mcall', recv, 'get', [args[0]]), [some, (('pctor', ['None'], []), None, ('path', ['None']))]), env, ctx, k)
         eff = lambda c: c[0] == 'closure' and self.effectful(c[2])
         if ctx is not None:
             if m in ('any', 'all', 'for_each', 'try_for_each', 'find_map', 'find', 'position') and len(args) == 1 and eff(args[0]) and len(args[0][1]) == 1:
@@ -2319,6 +2331,11 @@ class Translator:
                     pres, arms = made
                     self.spec_n += 1; name = f'__scrutinee{self.spec_n}'
                     return self.atom(r, rt, lambda n, env2: self.expr(('block', pres, ('match', ('path', [name]), arms)), {**env2, name: (n, rt)}, ctx, k), env, 'scrutinee')
+            if head == 'Map' and m == 'extend' and len(args) == 1 and ctx is not None:
+                # one insertion per entry, in the iterator's order: a later entry replaces an earlier one
+                self.spec_n += 1; a, b = f'__key{self.spec_n}', f'__value{self.spec_n}'
+                put = ('block', [('expr', ('mcall', recv, 'insert', [('path', [a]), ('path', [b])]))], None)
+                return self.expr(('block', [('expr', ('for', ('ptuple', [('pid', a), ('pid', b)]), args[0], put))], None), env, ctx, k)
             hooked = self.hook_method(r, rt, m, args, recv, env, ctx, k)
             if hooked is not None: return hooked
             done = lambda v, t: k(v, t, env)

@@ -69,7 +69,7 @@ class Renamer:
         h = e[0]
         if h == 'path' and isinstance(e[1], list):
             return ('path', [scope.get(e[1][0], e[1][0])]) if len(e[1]) == 1 else e
-        if h == 'block':
+        if h == 'block' and len(e) == 3 and isinstance(e[1], list):
             inner = dict(scope); stmts = []
             for s in e[1]:
                 if s[0] == 'let':
@@ -120,7 +120,7 @@ def unshadow(f):
 PRODUCERS = {'as_mut', 'iter_mut', 'get_mut', 'values_mut', 'last_mut', 'first_mut', 'as_deref_mut', 'entry', 'peek_mut',
              'split_at_mut', 'chunks_mut', 'split_first_mut', 'split_last_mut', 'get_or_insert', 'get_or_insert_with',
              'or_insert', 'or_insert_with', 'or_default', 'as_mut_slice', 'borrow_mut', 'deref_mut', 'make_mut'}
-WRITERS = {'push', 'push_str', 'insert', 'sort', 'pop', 'truncate', 'extend', 'remove', 'retain', 'clear', 'dedup',
+WRITERS = {'write_str', 'write_char', 'push', 'push_str', 'insert', 'sort', 'pop', 'truncate', 'extend', 'remove', 'retain', 'clear', 'dedup',
            'sort_unstable', 'sort_by', 'sort_by_key', 'sort_unstable_by', 'extend_from_slice', 'append', 'swap', 'reverse',
            'take', 'insert_str', 'push_back', 'push_front', 'pop_front', 'pop_back', 'drain', 'set', 'replace', 'entry'}
 
@@ -170,3 +170,72 @@ def written_alias(f):
         elif n[0] == 'assign': target = _root(n[1])
         if target in bound: return target
     return None
+
+
+# -- the map entry API
+
+OR = ('or_default', 'or_insert', 'or_insert_with')
+
+
+def _chain(e):
+    """(map, key, default) of `map.entry(key).or_default()` and its `or_insert` forms, or None."""
+    if not (isinstance(e, tuple) and len(e) == 4 and e[0] == 'mcall' and e[2] in OR): return None
+    inner = e[1]
+    if not (isinstance(inner, tuple) and len(inner) == 4 and inner[0] == 'mcall' and inner[2] == 'entry' and len(inner[3]) == 1): return None
+    if e[2] == 'or_default': default = ('call', ('path', ['Default', 'default']), [])
+    elif e[2] == 'or_insert' and len(e[3]) == 1: default = e[3][0]
+    elif e[2] == 'or_insert_with' and len(e[3]) == 1 and e[3][0][0] == 'closure' and not e[3][0][1]: default = e[3][0][2]
+    else: return None
+    return inner[1], inner[3][0], default
+
+
+class Entries:
+    """`map.entry(k).or_default().push(v)` and `*map.entry(k).or_insert(0) += 1` as what they do: take the value at
+    the key or the default, update it, and insert it back. A bare `map.entry(k).or_insert(v);` inserts when absent.
+    An entry bound to a name (`let slot = map.entry(k).or_default();`) is left as it is, and refused where written."""
+    def __init__(self): self.n = 0
+
+    def take(self, chain):
+        m, key, default = chain
+        self.n += 1; k, e, v = f'__key{self.n}', f'__entry{self.n}', f'__held{self.n}'
+        P = lambda name: ('path', [name])
+        found = (('pctor', ['Some'], [(0, ('pid', v))]), None, ('mcall', P(v), 'clone', []))
+        absent = (('pctor', ['None'], []), None, default)
+        lets = [('let', ('pid', k), None, key, None),
+                ('let', ('pid', e), None, ('match', ('mcall', m, 'get', [P(k)]), [found, absent]), None)]
+        back = ('expr', ('mcall', m, 'insert', [P(k), P(e)]))
+        return lets, P(e), back
+
+    def expr(self, e):
+        if isinstance(e, list): return [self.expr(x) for x in e]
+        if not isinstance(e, tuple) or not e: return e
+        if e[0] == 'block' and len(e) == 3 and isinstance(e[1], list):     # a block, not a field named `block`
+            stmts = []
+            for st in e[1]:
+                chain = _chain(st[1]) if st[0] == 'expr' else None
+                if chain is not None:                       # a bare entry: insert the default when the key is absent
+                    lets, held, back = self.take(tuple(self.expr(x) for x in chain))
+                    stmts.append(('expr', ('block', lets + [back], None)))
+                else: stmts.append(self.expr(st) if st[0] != 'item' else st)
+            return ('block', stmts, self.expr(e[2]))
+        if e[0] == 'mcall' and len(e) == 4 and _chain(e[1]) is not None:
+            lets, held, back = self.take(tuple(self.expr(x) for x in _chain(e[1])))
+            self.n += 1; r = f'__result{self.n}'
+            call = ('mcall', held, e[2], self.expr(e[3]))
+            return ('block', lets + [('let', ('pid', r), None, call, None), back], ('path', [r]))
+        if e[0] == 'assign':
+            lhs = e[1]
+            while isinstance(lhs, tuple) and lhs and lhs[0] == 'deref': lhs = lhs[1]
+            if _chain(lhs) is not None:
+                lets, held, back = self.take(tuple(self.expr(x) for x in _chain(lhs)))
+                def swap(x):
+                    if x == e[1] or x == lhs: return held
+                    if isinstance(x, tuple): return tuple(swap(y) for y in x)
+                    if isinstance(x, list): return [swap(y) for y in x]
+                    return x
+                return ('block', lets + [('expr', ('assign', held, self.expr(swap(e[2])))), back], None)
+        return tuple(self.expr(x) if isinstance(x, (tuple, list)) else x for x in e)
+
+
+def entries(f):
+    return Entries().expr(f['body'])

@@ -142,6 +142,46 @@ for xs, w in shadow_cases:
     extra = 0 if w is None else len(w)
     n2 = n + (0 if w is None else len(w) + 1) + 1
     out.append('shadow ' + str(n2) + ';' + ','.join(map(str, v)) + ';' + str(len(xs) + extra) + ';' + str(len(str(n2) + str(len(xs)))))
+# index_probe: `map[&key]`, and <= and >= on strings (byte order)
+index_cases = [([rng.choice(WORDS + ['B', 'aB', '\u00e9']) for _ in range(rng.randrange(0, 6))], rng.randrange(0, 9)) for _ in range(150)]
+for keys, at in index_cases:
+    first = 0 if not keys else max(i for i, k in enumerate(keys) if k == keys[at % len(keys)])
+    bs = [k.encode() for k in keys]
+    out.append('index ' + str(first) + ';' + str(all(x <= y for x, y in zip(bs, bs[1:]))).lower() + ';' + str(any(x >= y for x, y in zip(bs, bs[1:]))).lower())
+# entry_probe: the three shapes of the map entry API
+entry_cases = [[rng.choice(WORDS) for _ in range(rng.randrange(0, 8))] for _ in range(150)]
+for ws in entry_cases:
+    keys = sorted(set(ws), key=lambda w: w.encode())
+    counts = ','.join(hx(k) + '=' + str(ws.count(k)) for k in keys)
+    places = ','.join(hx(k) + '=' + '.'.join(str(i) for i, w in enumerate(ws) if w == k) for k in keys)
+    out.append('entry ' + counts + ';' + places + ';' + str(sum(ws.index(k) for k in keys)))
+# map_probe: extend replaces earlier entries; get_key_value
+def some_pairs(): return [(rng.choice(WORDS), rng.randrange(0, 9)) for _ in range(rng.randrange(0, 5))]
+map_cases = [(some_pairs(), some_pairs(), rng.choice(WORDS)) for _ in range(150)]
+for pairs, more, ask in map_cases:
+    table = dict(pairs); table.update({k: v + 100 for k, v in more})
+    items = sorted(table.items(), key=lambda kv: kv[0].encode())
+    found = 'N' if ask not in table else 'S' + hx(ask) + '=' + str(table[ask])
+    out.append('map ' + ','.join(hx(k) + '=' + str(v) for k, v in items) + ';' + found)
+# write_probe: fmt::Write into a string through a &mut parameter, with ?
+write_cases = [[rng.choice(WORDS + ['\u00e9', 'x y']) for _ in range(rng.randrange(0, 6))] for _ in range(150)]
+for parts in write_cases:
+    out.append('write ' + hx('>' + ''.join(part + '|' for part in parts)) + ';true')
+# display_probe: a recursive Display implementation, reached through write! and to_string
+def shape_of(codes, depth):
+    if not codes: return ('L', depth)
+    if len(codes) == 1: return ('L', codes[0])
+    x, rest = codes[0], codes[1:]
+    if x % 3 == 0 and depth < 4: return ('P', ('L', x), shape_of(rest, depth + 1))
+    if x % 3 == 1 and depth < 4: return ('M', [shape_of(rest, depth + 1), ('L', x)])
+    return shape_of(rest, depth + 1)
+def shown(sh):
+    if sh[0] == 'L': return str(sh[1])
+    if sh[0] == 'P': return '(' + shown(sh[1]) + ' ' + shown(sh[2]) + ')'
+    return '[' + ''.join(shown(i) + ';' for i in sh[1]) + ']'
+display_cases = [[rng.randrange(0, 12) for _ in range(rng.randrange(0, 9))] for _ in range(150)]
+for codes in display_cases:
+    out.append('display ' + hx(shown(shape_of(codes, 0))))
 open('probe_expected.txt', 'w', newline='\n').write('\n'.join(out) + '\n')
 
 def lit(s): return f'"{s}".toUTF8'
@@ -169,6 +209,12 @@ lean.append('def eagerCases : List (List Nat × Nat) := ' + lean_list([f'({lean_
 lean.append('def optNat (o : Option Nat) : String := match o with | some v => "S" ++ toString v | none => "N"')
 lean.append('def namedCases : List (List Nat) := ' + lean_list([lean_list([str(x) for x in xs]) for xs in named_cases]))
 lean.append('def shadowCases : List (List Nat × Option (List Nat)) := ' + lean_list([f'({lean_list([str(x) for x in xs])}, {lean_opt_list(w)})' for xs, w in shadow_cases]))
+lean.append('def indexCases : List (List ByteArray × Nat) := ' + lean_list([f'({lean_list([lean_bytes(k) for k in keys])}, {at})' for keys, at in index_cases]))
+lean.append('def entryCases : List (List ByteArray) := ' + lean_list([lean_list([lean_bytes(w) for w in ws]) for ws in entry_cases]))
+def lean_pairs(ps): return lean_list([f'({lean_bytes(k)}, {v})' for k, v in ps])
+lean.append('def mapCases : List (List (ByteArray × Nat) × List (ByteArray × Nat) × ByteArray) := ' + lean_list([f'({lean_pairs(a_)}, {lean_pairs(b_)}, {lean_bytes(q)})' for a_, b_, q in map_cases]))
+lean.append('def writeCases : List (List ByteArray) := ' + lean_list([lean_list([lean_bytes(w) for w in ws]) for ws in write_cases]))
+lean.append('def displayCases : List (List Nat) := ' + lean_list([lean_list([str(x) for x in xs]) for xs in display_cases]))
 lean.append('def comboCases : List (List Nat) := ' + lean_list([lean_list([str(x) for x in xs]) for xs in combos]))
 lean += ['',
          'def main : IO Unit := do',
@@ -208,6 +254,20 @@ lean += ['',
          '  for (xs, w) in shadowCases do',
          '    let r := fShadowProbe xs w',
          '    IO.println ("shadow " ++ toString r.1 ++ ";" ++ String.intercalate "," (r.2.1.map toString) ++ ";" ++ toString r.2.2.1 ++ ";" ++ toString r.2.2.2)',
+         '  for (keys, pos) in indexCases do',
+         '    let r := fIndexProbe keys pos',
+         '    IO.println ("index " ++ toString r.1 ++ ";" ++ (if r.2.1 then "true" else "false") ++ ";" ++ (if r.2.2 then "true" else "false"))',
+         '  for ws in entryCases do',
+         '    let r := fEntryProbe ws',
+         '    IO.println ("entry " ++ String.intercalate "," (r.1.map fun e => hx e.1 ++ "=" ++ toString e.2) ++ ";" ++ String.intercalate "," (r.2.1.map fun e => hx e.1 ++ "=" ++ String.intercalate "." (e.2.map toString)) ++ ";" ++ toString r.2.2)',
+         '  for (ps, more, ask) in mapCases do',
+         '    let r := fMapProbe ps more ask',
+         '    IO.println ("map " ++ String.intercalate "," (r.1.map fun e => hx e.1 ++ "=" ++ toString e.2) ++ ";" ++ (match r.2 with | some e => "S" ++ hx e.1 ++ "=" ++ toString e.2 | none => "N"))',
+         '  for ws in writeCases do',
+         '    let r := fWriteProbe ws',
+         '    IO.println ("write " ++ hx r.1 ++ ";" ++ (if r.2 then "true" else "false"))',
+         '  for xs in displayCases do',
+         '    IO.println ("display " ++ hx (fDisplayProbe xs))',
          '']
 open('lean/ProbeMain.lean', 'w', newline='\n', encoding='utf-8').write('\n'.join(lean))
 print(len(out), 'cases')

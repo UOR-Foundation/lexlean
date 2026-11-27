@@ -404,6 +404,7 @@ def load(root, with_aliases=False):
     items = lift_nested(items)
     import unshadow
     for it in items:
+        if it['k'] == 'fn': it['body'] = unshadow.entries(it)       # the map entry API, as what it does
         if it['k'] == 'fn': it['body'] = unshadow.unshadow(it)      # every local binding on a name of its own
         if it['k'] == 'fn' and unshadow.written_alias(it):
             it['refuse'] = 'a write through a reference bound by a pattern or a let'

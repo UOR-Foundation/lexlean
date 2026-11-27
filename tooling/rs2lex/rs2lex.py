@@ -186,13 +186,14 @@ class Translator(Core):
                 candidates.append(('call', ('path', segs), args))
                 if len(segs) == 2 and args and not (segs[0], segs[1]) in self.fns:
                     candidates.append(('mcall', args[0], segs[1], args[1:]))     # `String::as_str`: a method of the first argument
+            why = None
             for ast in candidates:
                 try:
                     return self.pure(ast, env)
-                except Unsupported:
-                    continue
+                except Unsupported as x:
+                    why = why or str(x); continue
             got = self.value_of_function(c, env)
-            if got is None: raise Unsupported('a function passed by name')
+            if got is None: raise Unsupported(why or 'a function passed by name')
             f, ft = got
         box = {}
         def k(v, t, env2): box['t'] = t; return v
@@ -217,7 +218,13 @@ class Translator(Core):
     # ----------------------------------------------------------------------------------------------- Display, Debug, ==
     def fmt_call(self, key, v):
         fn = self.user_fn(key)
-        args = ([FUEL] if key in self.rec_keys else []) + [v, text('')]
+        fuel = FUEL
+        if key in self.rec_keys and key in self.cur_scc:
+            # a Display call back into the group being translated: on the group's own fuel, or not at all
+            here = getattr(self, '_fmt_env', None)
+            if not here or '__fuel' not in here: raise Unsupported('recursion through an implicit call (Display)')
+            fuel = here['__fuel'][0]
+        args = ([fuel] if key in self.rec_keys else []) + [v, text('')]
         return f'(second ({fn["lex"]} {" ".join(args)}))'
     def fixed_text(self, v, t): return f'(prim utf8_encode (prim format_decimal {v} : String) : Bytes)'
     def debug(self, v, t):
@@ -384,7 +391,9 @@ class Translator(Core):
             if t[0] == 'Fixed':
                 if strict: return k(f'(prim less_than {lo} {hi} : Bool)', BOOL, env)
                 return k(f'(not (prim less_than {hi} {lo} : Bool))', BOOL, env)
-            raise Unsupported(f'{op} on {show(t)}')
+            # any other type with an order the translation derives (Bytes by their bytes, tuples, derived Ord)
+            if strict: return k(self.less(lo, hi, t), BOOL, env)
+            return k(f'(not {self.less(hi, lo, t)})', BOOL, env)
         if t == BOOL and op in ('|', '&', '^'):
             # both operands are already evaluated, in order, so the non-short-circuit form is a choice between values
             form = {'|': f'(if {a} then true else {b})', '&': f'(if {a} then {b} else false)', '^': f'(if {a} then (not {b}) else {b})'}
@@ -869,6 +878,13 @@ class Translator(Core):
             b = self.fresh('code')
             return done(f'(match (RustStd::asciiByte {r}) | Option.some {b} => {self.ascii_on(test, b)} | Option.none => false)', BOOL)
         if rt == BYTES and m == 'chars' and not args: return done(f'(RustStd::utf8Chars {r})', ('List', BYTES))
+        if rt == BYTES and m in ('write_str', 'write_char') and len(args) == 1:
+            # `fmt::Write` into a string: append, and Ok(())
+            def wrote(vs, env2):
+                T.unify(vs[0][1], BYTES, m); err = T.var()
+                return self.assign_into(recv, f'(AxiomOutput::cat {r} {vs[0][0]})', BYTES, env2,
+                                        lambda env3: k(f'(ctor Result.ok [Unit, {show(err)}] ())', ('Result', UNIT, err), env3))
+            return arg_vals(wrote)
         if rt == BYTES and m == 'is_control' and not args:
             # Unicode's Cc: U+0000 to U+001F and U+007F to U+009F, one byte or C2 80 to C2 9F
             b = self.fresh('code')
