@@ -87,6 +87,10 @@ pub const RULES: [&str; 49] = [
 pub(super) enum Prem {
     Sub(Pf),
     Decided,
+    /// A side condition proved by a row of the certificate: the lookup of a
+    /// function, which `look<f>` proves in a constant number of steps
+    /// instead of an evaluation that walks the program to `f`.
+    Row(K),
 }
 
 use Prem::Decided;
@@ -168,7 +172,7 @@ enum Form {
 
 pub(super) struct Aligner<'g, 'a> {
     pub(super) w: Writer<'g, 'a>,
-    program: &'a Program,
+    pub(super) program: &'a Program,
     krate: &'a Crate,
     checker: Checker<'a>,
     /// Whether each function's rendering returns `R<T>`.
@@ -513,6 +517,7 @@ impl<'g, 'a> Aligner<'g, 'a> {
             let given = match premise {
                 Prem::Sub(derivation) => Given::Proof(derivation.proof, derivation.ty),
                 Decided => Given::Refl,
+                Prem::Row(proof) => Given::Term(*proof),
             };
             open.give(&mut self.w.b, given)?;
         }
@@ -965,13 +970,22 @@ impl<'g, 'a> Aligner<'g, 'a> {
                 let jd = self.jd_b(false, term, ty, lets, tail)?;
                 let ts = self.types(&types);
                 let fn_term = self.function_literal(*function)?;
+                let look = self.w.own(&format!("look{function}"));
+                let fallible = self.w.own(&format!("fal{function}"));
                 self.rule(
                     "callOps",
                     g,
                     fl,
                     jd,
                     &[("ts", ts), ("fn", fn_term)],
-                    &[sub(operands_d), Decided, Decided, Decided, Decided, Decided],
+                    &[
+                        sub(operands_d),
+                        Prem::Row(look),
+                        Decided,
+                        Decided,
+                        Prem::Row(fallible),
+                        Decided,
+                    ],
                 )
             }
             Term::Prim {
@@ -1144,13 +1158,21 @@ impl<'g, 'a> Aligner<'g, 'a> {
                 let jd = self.jd_b(true, term, ty, lets, tail)?;
                 let ts = self.types(&types);
                 let fn_term = self.function_literal(*function)?;
+                let look = self.w.own(&format!("look{function}"));
+                let fallible = self.w.own(&format!("fal{function}"));
                 self.rule(
                     "callF",
                     g,
                     true,
                     jd,
                     &[("ts", ts), ("fn", fn_term)],
-                    &[sub(operands_d), Decided, Decided, Decided, Decided],
+                    &[
+                        sub(operands_d),
+                        Prem::Row(look),
+                        Decided,
+                        Decided,
+                        Prem::Row(fallible),
+                    ],
                 )
             }
             Term::Prim {

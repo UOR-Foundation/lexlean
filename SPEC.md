@@ -6636,8 +6636,8 @@ literal, and an added axiom, each refused.
 builds each as a native core module of schema `lexlean/core-module/2`
 (`production::certificate::data_b`): the rows `program` (the target program,
 built by the same builder as certificate A's `__prog`), `krate` (the crate as a
-`RustSyntax` term, constructor for constructor), `flags`, one theorem `fun<n>`
-per function, `crate_ok`, and `root`. The derivation of a function is the
+`RustSyntax` term, constructor for constructor), `flags`, the lookups (*Lookups*
+below), one theorem `fun<n>` per function, `crate_ok`, and `root`. The derivation of a function is the
 `Corr` rule applications the aligner finds, each a library constructor applied
 to every argument it has: the program, crate, and flags; the scope and the
 judgment the rule concludes, which the aligner states; the arguments the rule
@@ -6664,6 +6664,31 @@ definitional equality, the statement the text certificate stated.
 reads each record back, verifies the production example under the pinned Lean,
 and plants a wrong lemma application, a changed statement, a forged program
 literal, an added axiom, and a row whose policy lies, each refused.
+
+*Lookups.* A function's theorem and every call it derives state two lookups:
+the function in the program, `index (Program.functions p) f = some fn`, and its
+item in the crate, `findFunction (Crate.items c) (fnIdent f) = some …`, the one
+`fnFallible` maps. Decided by evaluation, each walks the list to `f`, once for
+every function and again at every call, so the kernel's checking of a
+certificate grew with the square of the number of functions. The certificate
+instead states each lookup once, in a constant number of kernel steps, by rows
+between `flags` and the first `fun<n>`: `tl<k>`, the suffix of the program's
+function list from `k` as a definition (`tl<k> := f_k :: tl<k+1>`, so that no
+row restates a suffix as a term the kernel would infer again); `idx<k>`,
+`∀ m, index (Program.functions p) (m + k) = index tl<k> m`, from `idx<k-1>` at
+`m + 1` by `Nat.succ_add` and one step of the lookup; `look<k>`, `idx<k> 0`, the
+lookup of function `k`; `it<i>`, the suffix of the crate's items from `i`;
+`stepE`, `stepA`, and `stepF`, one step of `findFunction` past an enum, an
+`apply` method, and a function, stated over variables and closed by `Eq.refl`;
+`iteF`, the `if` whose condition is `false = true`; `fnd<i>`, that every function
+at or past the bound of the functions the items before `i` name is found in
+`it<i>` as in the whole crate, from `fnd<i-1>` by the step past item `i-1` and,
+past a function `j`, `sameIdent` refuted by `Nat.ne_of_lt` at `j < w`; and
+`fal<f>`, the fallibility a call of `f` states, `Option.map` of `fnd` at `f`'s
+item. `fun<n>` proves its two lookups by `look<n>` and by `fnd` at its item with
+one evaluation there, and `callOps` and `callF` take `look<f>` and `fal<f>` as
+their side conditions. Every lemma these rows apply is in Lean's `Init` and
+depends on no axiom; no other row's statement changes.
 
 **A function rendered as a loop** (`SP-20`). The renderer writes a function whose
 self calls are all tail calls as a loop (§17.16), so the crate no longer holds
