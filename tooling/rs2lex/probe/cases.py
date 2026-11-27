@@ -197,6 +197,12 @@ for rows in nested_cases:
             count += x; got.append(x + count)
         made.append(got)
     out.append('nested ' + '|'.join(','.join(map(str, r)) for r in made) + ';' + str(count))
+# once_probe: a table computed once
+once_cases = list(range(12))
+for n in once_cases: out.append('once ' + str((n % 5) ** 2 + 5))
+# convert_probe: `?` through a From impl
+convert_cases = list(range(8))
+for n in convert_cases: out.append('convert ' + (f'{2 * (n + 1)};0;' if n <= 3 else f'0;7;{hx("big " + str(n))}'))
 # writeback_probe: writes through a `&mut` to an element, on every way out of the body
 writeback_cases = [([rng.randrange(0, 9) for _ in range(rng.randrange(0, 7))], rng.randrange(0, 9)) for _ in range(200)]
 for xs, stop in writeback_cases:
@@ -315,6 +321,11 @@ lean += ['',
          '  for rows in nestedCases do',
          '    let r := fNestedCollectProbe rows',
          '    IO.println ("nested " ++ String.intercalate "|" (r.1.map fun row => String.intercalate "," (row.map toString)) ++ ";" ++ toString r.2)',
+         '  for n in [' + ', '.join(str(n) for n in once_cases) + '] do',
+         '    IO.println ("once " ++ toString (fOnceProbe n))',
+         '  for n in [' + ', '.join(str(n) for n in convert_cases) + '] do',
+         '    let r := fConvertProbe n',
+         '    IO.println ("convert " ++ toString r.1 ++ ";" ++ toString r.2.1 ++ ";" ++ hx r.2.2)',
          '  for (xs, stop) in writebackCases do',
          '    let r := fWritebackProbe xs stop',
          '    IO.println ("writeback " ++ String.intercalate "," (r.1.map toString) ++ ";" ++ String.intercalate "|" (r.2.1.map fun row => String.intercalate "," (row.map toString)) ++ ";" ++ toString r.2.2.1 ++ ";" ++ String.intercalate "," (r.2.2.2.1.map toString) ++ ";" ++ toString r.2.2.2.2)',

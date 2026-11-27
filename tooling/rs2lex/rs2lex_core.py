@@ -1825,8 +1825,15 @@ class Translator:
                     return f'(match {v} | Option.some {n} => {k(n, t[1], env)} | Option.none => {ctx.ret(f"(ctor Option.none [{show(R[1])}])", env)})'
                 if t[0] == 'Result' and R[0] in ('Result', 'Var'):
                     if R[0] == 'Var': T.unify(R, ('Result', T.var(), t[2])); R = T.res(R)
-                    T.unify(t[2], R[2], '? error type'); f = self.fresh('failure')
-                    return f'(match {v} | Result.ok {n} => {k(n, t[1], env)} | Result.error {f} => {ctx.ret(f"(ctor Result.error [{show(R[1])}, {show(R[2])}] {f})", env)})'
+                    f = self.fresh('failure'); given, want = T.res(t[2]), T.res(R[2]); raised = f
+                    conv = (want[1], 'from') if want[0] == 'Named' and given[0] != 'Var' and given != want else None
+                    if conv in self.fns and len(self.fns[conv]['params']) == 1 and not self.fns[conv]['generics']:
+                        # `?` hands the error to `From::from`: the crate's own impl, where the two types differ
+                        fn = self.user_fn(conv)
+                        T.unify(given, self.ty(fn['params'][0][1], conv[0]), '? error conversion')
+                        raised = f'({fn["lex"]} {f})'
+                    else: T.unify(t[2], R[2], '? error type')
+                    return f'(match {v} | Result.ok {n} => {k(n, t[1], env)} | Result.error {f} => {ctx.ret(f"(ctor Result.error [{show(R[1])}, {show(R[2])}] {raised})", env)})'
                 raise Unsupported(f'? on {show(t)} in a function returning {show(R)}')
             return self.expr(e[1], env, ctx, on)
         if h == 'assign':
@@ -2546,8 +2553,10 @@ class Translator:
         return 'Rec' + first[0].upper() + first[1:]
     def fn_deps(self, f):
         exact = getattr(self, 'exact_deps', None)
-        if exact is not None:                          # the calls a previous translation actually made
-            return {k for k in exact.get((f['owner'], f['name']), set()) if k in self.fns and not self.fns[k]['generics']}
+        # the calls a previous translation actually made; a function that pass refused made no such record, and
+        # is read by its syntax as before: taken for a function without calls, its own recursion would go unseen
+        if exact is not None and (f['owner'], f['name']) in exact:
+            return {k for k in exact[(f['owner'], f['name'])] if k in self.fns and not self.fns[k]['generics']}
         out = set()
         for n in self.walk(f['body']):
             if n and n[0] == 'call' and n[1][0] == 'path':

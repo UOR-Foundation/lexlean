@@ -89,6 +89,7 @@ class Crate:
         self.skipped = []                         # (rel, name, kind, bytes, reason)
         self.aliases = []                         # (modpath, name, params, type)
         self.custom_default = set()               # types with a hand-written Default impl
+        self.from_impls = {}                      # a type -> the one `From` impl taken for it
         for d, _, files in os.walk(root):
             for f in sorted(files):
                 if not f.endswith('.rs'): continue
@@ -194,6 +195,10 @@ class Crate:
                 if is_trait and trait and trait[-1] == 'Default': self.custom_default.add(owner)
                 if is_trait and trait and trait[-1] in ('Display', 'Debug') and name == 'fmt' and not generic_types:
                     self.parse_item(mp, rel, body[start:end + 1], owner, nbytes, kw, name, rename=f'fmt_{trait[-1].lower()}')
+                elif is_trait and trait and trait[0] == 'From' and name == 'from' and not generic_types and self.from_impls.setdefault(owner, trait) == trait:
+                    # the one conversion into the type: `T::from(x)`, and what `?` calls on an error of another type.
+                    # A second `From` impl for the type would share the name, so only the first is taken
+                    self.parse_item(mp, rel, body[start:end + 1], owner, nbytes, kw, name)
                 elif is_trait: self.skipped.append((rel, f'{owner}::{name}', 'fn', nbytes, f'trait impl ({" ".join(trait)})'))
                 elif generic_types: self.skipped.append((rel, f'{owner}::{name}', 'fn', nbytes, 'method of a generic impl'))
                 elif kw in ('fn', 'const'): self.parse_item(mp, rel, body[start:end + 1], owner, nbytes, kw, name)
@@ -403,10 +408,15 @@ def load(root, with_aliases=False):
         aliases[r.alias_at[(mp, name)]] = (params, r.rewrite(fake)['fields'][0][1])
     for it in items: it['custom_default'] = {r.resolve_type(it['mp'], n) or n for n in c.custom_default} if it['k'] == 'fn' else None
     items = lift_nested(items)
-    import unshadow, writeback
+    import once, unshadow, writeback
     for it in items:
         if it['k'] == 'fn': it['body'] = unshadow.entries(it)       # the map entry API, as what it does
         if it['k'] == 'fn': it['body'] = unshadow.unshadow(it)      # every local binding on a name of its own
+        if it['k'] == 'fn':
+            # a constant or a static declared in the body is no part of rustc's tree of it (translate.py)
+            it['local_items'] = any(n and n[0] == 'let' and len(n) == 5 and isinstance(n[1], tuple) and n[1][:1] == ('pid',)
+                                    and n[1][1][:1].isupper() for n in unshadow._walk(it['body']))
+            it['body'] = once.once(it)                               # a value computed once, as the value
         if it['k'] == 'fn': it['body'] = writeback.writeback(it)[0]  # a `&mut` to an element, as the element
         if it['k'] == 'fn' and unshadow.written_alias(it):
             it['refuse'] = 'a write through a reference bound by a pattern or a let'

@@ -85,7 +85,7 @@ def run(root, module='Crate', thir_dump=None, thir_root='.'):
             if names != [n for n, _ in it['params']]: run.thir['parameters that are patterns'] += 1; continue
             # an item declared in the body is no part of rustc's tree of it: a constant stays with the source's
             # body, and a nested function, which the loader lifted out, is called by the name it was lifted to
-            if local_const(it['body']): run.thir['a constant declared in the body'] += 1; continue
+            if it.get('local_items') or local_const(it['body']): run.thir['a constant declared in the body'] += 1; continue
             nested = {x['name'][len(it['name']) + 1:]: x['name'] for x in items if x.get('lifted_from') == it['name']}
             it['body'] = renamed_calls(body, nested) if nested else body
             it['body'] = unshadow.entries(it); it.pop('refuse', None)

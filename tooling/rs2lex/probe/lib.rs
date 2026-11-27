@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 use std::collections::HashMap;
+use std::sync::OnceLock;
 
 pub fn run_nat(ops: Vec<(usize, usize, String)>) -> (Vec<Option<String>>, Vec<(usize, String)>) {
     let mut table: BTreeMap<usize, String> = BTreeMap::new();
@@ -465,4 +466,53 @@ pub fn nested_collect_probe(rows: Vec<Vec<usize>>) -> (Vec<Vec<usize>>, usize) {
         })
         .collect();
     (out, count)
+}
+
+fn squares() -> &'static Vec<usize> {
+    static TABLE: OnceLock<Vec<usize>> = OnceLock::new();
+    TABLE.get_or_init(|| {
+        let mut made = Vec::new();
+        for i in 0..5 {
+            made.push(i * i);
+        }
+        made
+    })
+}
+
+/// a value computed once (once.py): the closure reads nothing of its function, so the cell is the value.
+pub fn once_probe(n: usize) -> usize {
+    let table = squares();
+    table[n % 5] + table.len()
+}
+
+pub struct Failure {
+    pub code: usize,
+    pub reason: String,
+}
+
+impl From<String> for Failure {
+    fn from(reason: String) -> Self {
+        Self { code: 7, reason }
+    }
+}
+
+fn bounded(n: usize) -> Result<usize, String> {
+    if n > 3 {
+        Err(format!("big {n}"))
+    } else {
+        Ok(n + 1)
+    }
+}
+
+fn doubled(n: usize) -> Result<usize, Failure> {
+    let a = bounded(n)?;
+    Ok(a * 2)
+}
+
+/// `?` on an error of another type: the error goes through the crate's own `From` impl.
+pub fn convert_probe(n: usize) -> (usize, usize, String) {
+    match doubled(n) {
+        Ok(v) => (v, 0, String::new()),
+        Err(f) => (0, f.code, f.reason),
+    }
 }
