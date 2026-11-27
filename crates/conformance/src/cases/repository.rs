@@ -2041,15 +2041,34 @@ pub(crate) fn run(id: &str) {
                     "SPEC.md names `{recipe_command}`"
                 );
             }
-            // The initial honesty job keeps its own signal. Ordinary hosts run
-            // the whole workspace; Intel's construction and partitions own the
-            // same complete inventory, including library/meta tests and doctests.
-            assert!(root_file(".github/workflows/ci.yml").contains("  honesty:\n"));
+            // The initial honesty job keeps its own signal. Every ordinary
+            // auxiliary host runs as lanes whose join holds the union of what
+            // they ran to the host's whole workspace listing, test for test;
+            // Intel's construction and partitions own the same complete
+            // inventory, including library/meta tests and doctests.
+            let ci = root_file(".github/workflows/ci.yml");
+            assert!(ci.contains("  honesty:\n"));
             assert!(!support::repo_root()
                 .join(".github/workflows/honesty.yml")
                 .exists());
-            assert!(root_file(".github/workflows/ci.yml")
-                .contains("cargo test --locked --workspace --all-features"));
+            let lanes = root_file(".github/scripts/host_lanes.py");
+            assert!(
+                lanes.contains(
+                    r#"["cargo", "test", "--locked", "--workspace", "--all-features", "--", "--list"]"#
+                ) && lanes.contains("executed is not the host's listing"),
+                "a lane host's producer lists the whole workspace and its join requires all of it"
+            );
+            for target in [
+                "aarch64-unknown-linux-gnu",
+                "aarch64-apple-darwin",
+                "x86_64-pc-windows-msvc",
+            ] {
+                assert!(
+                    ci.contains(&format!("host_lanes.py execute --target {target} "))
+                        && ci.contains(&format!("host_lanes.py join --target {target} ")),
+                    "the host {target} runs and joins the whole workspace as lanes"
+                );
+            }
         }
         // §9.4: the normative job runs on the standard runner at the default
         // width and keeps no cache, filter, or skipped recipe.
@@ -2126,7 +2145,7 @@ pub(crate) fn run(id: &str) {
             for (key, body) in &jobs {
                 if matches!(
                     key.as_str(),
-                    "host-matrix"
+                    "linux-arm-part"
                         | "intel-construction"
                         | "intel-part"
                         | "windows-part"
@@ -2140,7 +2159,11 @@ pub(crate) fn run(id: &str) {
                 );
                 // The plan decides what the run is and runs no recipe: it has
                 // ten minutes, not the six hours of the proof jobs.
-                if key == "intel-join" || key == "windows-join" || key == "macos-join" {
+                if key == "intel-join"
+                    || key == "windows-join"
+                    || key == "macos-join"
+                    || key == "linux-arm-join"
+                {
                     let limit = body
                         .lines()
                         .find_map(|line| line.trim().strip_prefix("timeout-minutes: "))
@@ -2705,6 +2728,7 @@ pub(crate) fn run(id: &str) {
                     !key.starts_with("intel-")
                         && !key.starts_with("windows-")
                         && !key.starts_with("macos-")
+                        && !key.starts_with("linux-arm-")
                 })
                 .flat_map(|(_, body)| body.lines())
                 .enumerate()
@@ -2750,8 +2774,8 @@ pub(crate) fn run(id: &str) {
             read_trace_workflow(&ci).expect("#603: the advisory read recorder");
             assert_eq!(
                 full_conditions,
-                atlas_jobs.len() + 2,
-                "every Atlas job, the bootstrap export, and the host matrix, and no other job, wait for the plan to name the whole gate"
+                atlas_jobs.len() + 1,
+                "every Atlas job and the bootstrap export, and no other job outside the laned hosts, wait for the plan to name the whole gate"
             );
             assert_eq!(rows_conditions, 1, "the legs run when the plan names a leg");
             assert_eq!(
@@ -3079,7 +3103,7 @@ pub(crate) fn run(id: &str) {
                 "bootstrap-export",
                 "vv",
                 "atlas-prefix",
-                "host-matrix",
+                "linux-arm-part",
                 "intel-construction",
                 "windows-part",
                 "macos-part",
@@ -3097,12 +3121,6 @@ pub(crate) fn run(id: &str) {
                     "{root} cannot bypass honesty"
                 );
             }
-            assert!(
-                job("host-matrix").contains("    needs: [plan, honesty]\n")
-                    && job("host-matrix")
-                        .contains("    if: ${{ needs.plan.outputs.full == 'true' }}\n"),
-                "§8.3: the hosts are checked when the plan says the run is the whole gate"
-            );
             assert!(
                 vv.contains("    needs: [plan, honesty]\n")
                     && vv.contains("        include: ${{ fromJSON(needs.plan.outputs.fanout) }}\n"),
@@ -3171,25 +3189,6 @@ pub(crate) fn run(id: &str) {
                     && task.contains("&|name| std::env::var_os(name)")
                     && task.contains("&mut std::io::stdout().lock()"),
                 "ci-summary prints to stdout and reads GITHUB_STEP_SUMMARY from the environment"
-            );
-            // The host matrix builds through its one `cargo test`: the same
-            // profile, locking, and features build the crate's library and
-            // binary, so a separate build step is time spent on nothing the
-            // test does not already require (§8.3).
-            let matrix = job("host-matrix");
-            assert_eq!(
-                matrix
-                    .matches("cargo test --locked --workspace --all-features --no-fail-fast")
-                    .count(),
-                1,
-                "the host matrix runs the workspace's tests once, and reports every failing test of the host, not the first binary's"
-            );
-            // The host sampler (#603 DOD-7a) is evidence beside the tests: the
-            // step is exactly this program, so its status is cargo's alone and
-            // no sampler failure, summary failure or added line can mask it.
-            assert!(
-                matrix.contains(HOST_TEST_STEP) && !matrix.contains("continue-on-error"),
-                "the host matrix's test step propagates cargo's status and nothing else"
             );
             // The honesty and reproducibility workflows stay separate.
             let honesty = job("honesty");
@@ -4532,7 +4531,6 @@ fn rp_18() {
 /// Behavioral plants live in the Python suite; this checks that CI runs it
 /// and connects the real build, execution and join operations to each other.
 fn intel_host_workflow(ci: &str) -> Result<(), String> {
-    let matrix = workflow_job(ci, "host-matrix")?;
     let construction = workflow_job(ci, "intel-construction")?;
     let part = workflow_job(ci, "intel-part")?;
     let join = workflow_job(ci, "intel-join")?;
@@ -4544,17 +4542,7 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
             Err(format!("RP-14: {rule}: missing `{text}`"))
         }
     };
-    let mut contexts: Vec<String> = matrix
-        .lines()
-        .filter_map(|line| line.trim().strip_prefix("- { os: "))
-        .map(|row| {
-            let target = row.split("target: ").nth(1).unwrap_or_default();
-            format!(
-                "build and non-Lean tests ({})",
-                target.trim_end_matches(" }")
-            )
-        })
-        .collect();
+    let mut contexts: Vec<String> = Vec::new();
     let aggregate_name = join
         .lines()
         .find_map(|line| line.strip_prefix("    name: "))
@@ -4578,11 +4566,6 @@ fn intel_host_workflow(ci: &str) -> Result<(), String> {
                 .to_owned(),
         );
     }
-    require(
-        &matrix,
-        "name: build and non-Lean tests (${{ matrix.target }})",
-        "the ordinary host contexts resolve their native target",
-    )?;
     for (key, body, dependencies, condition) in [
         (
             "intel-construction",
@@ -5221,7 +5204,7 @@ struct LaneHost {
     python: &'static str,
 }
 
-const LANE_HOSTS: [LaneHost; 2] = [
+const LANE_HOSTS: [LaneHost; 3] = [
     LaneHost {
         part: "windows-part",
         join: "windows-join",
@@ -5238,9 +5221,17 @@ const LANE_HOSTS: [LaneHost; 2] = [
         target: "aarch64-apple-darwin",
         python: "python3",
     },
+    LaneHost {
+        part: "linux-arm-part",
+        join: "linux-arm-join",
+        label: "Linux arm64",
+        runner: "ubuntu-24.04-arm",
+        target: "aarch64-unknown-linux-gnu",
+        python: "python3",
+    },
 ];
 
-/// §8.3: Windows and Apple silicon macOS each run as the lanes of one run,
+/// §8.3: Windows, Apple silicon macOS and Linux AArch64 each run as the lanes of one run,
 /// the conformance lanes of the Intel partition and the producer, after
 /// honesty and only in a run that is the whole gate; each aggregate keeps the
 /// host's context, runs after any lane's failure, joins every lane's receipt,
@@ -5427,22 +5418,6 @@ fn regression_honesty(ci: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// The host matrix's one test step (#603 DOD-7a): the workspace's tests beside
-/// a resource sampler whose status cannot reach the step's.
-const HOST_TEST_STEP: &str = concat!(
-    "      - name: Test the workspace on this host\n",
-    "        shell: bash\n",
-    "        run: |\n",
-    "          bash .github/scripts/sample-host.sh \"$RUNNER_TEMP/host-resources.tsv\" &\n",
-    "          sampler=$!\n",
-    "          status=0\n",
-    "          cargo test --locked --workspace --all-features --no-fail-fast || status=$?\n",
-    "          kill \"$sampler\" 2>/dev/null || true\n",
-    "          wait \"$sampler\" 2>/dev/null || true\n",
-    "          python3 .github/scripts/summarize_host_samples.py \"$RUNNER_TEMP/host-resources.tsv\" || true\n",
-    "          exit \"$status\"\n",
-);
-
 /// The advisory read recorder (#603 phase 1) traces exactly the Linux gate
 /// jobs, from right after their checkout to their last step, and can never
 /// gate: its actions end every path with success, they contain no step that
@@ -5494,7 +5469,7 @@ fn read_trace_workflow(ci: &str) -> Result<(), String> {
         }
     }
     for key in [
-        "host-matrix",
+        "linux-arm-part",
         "intel-construction",
         "intel-part",
         "windows-part",
@@ -5553,7 +5528,7 @@ fn honesty_dependencies(ci: &str) -> Result<(), String> {
         "bootstrap-export",
         "vv",
         "atlas-prefix",
-        "host-matrix",
+        "linux-arm-part",
         "intel-construction",
         "windows-part",
         "macos-part",

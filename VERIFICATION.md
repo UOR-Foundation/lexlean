@@ -23301,3 +23301,30 @@ superseding the identity's on the same paths.
 | a writer's set made on the commit's tree rather than the identity's | `test_check_regen_writers.py` (`made from tree … shared start tree`) |
 | an identity set whose parts do not give its recorded tree; no identity set | `test_check_regen_writers.py` (`identity: the parts give tree`, `identity manifest missing`) |
 | the guard's `--identity` dropped; the identity's capture, the writers' start, or combine's apply masked, removed, preceded by `exit 0` or skipped; the writers' `needs: [identity]` dropped; a raw identity patch | `test_check_regen_writers.py` (`test_workflow_refuses_weakened_writer_guards`, against `regen_lifecycle.py`) |
+
+### Linux AArch64 as lanes of one run (release/v0.5, #624)
+
+After the forward merge of release/v0.4 into this line, the Linux AArch64
+host's one `cargo test` reached its 240-minute bound with 66 of the
+conformance harness's 549 cases done (#624, run 46053363443): the bootstrap
+cases, serialized by the harness, took over three and a half hours alone. The
+same run's five macOS AArch64 lanes took 20,023 s together, about twice the
+10,322 s of the B1 monolith, which projects one Linux AArch64 job to about
+5.4 hours. The host now runs as the lanes of one run exactly as Windows and
+Apple silicon macOS do (`linux-arm-part`, `linux-arm-join`,
+`host_lanes.py`): the producer and the conformance lanes of
+`.github/intel-host-lanes.json`, each a clean checkout and build on
+`ubuntu-24.04-arm`, joined into the unchanged context
+`build and non-Lean tests (aarch64-unknown-linux-gnu)` that `ci-plan.sh` and
+`release-gate.sh` count. RP-14 holds it as the third lane host
+(`LANE_HOSTS`), so every lane-host control above applies to it, and the
+single job's pins are gone with the job. The host-resource sampler of the
+section *The host matrix samples its own CPU and memory while it tests* ran
+only in that job and is retired with it; its DOD-7a evidence stands in B1.
+
+| Planted defect | Refused by |
+| --- | --- |
+| the Linux AArch64 lanes on `ubuntu-24.04` (x86-64) | `conformance_rp_14`: `§8.3: the Linux arm64 lanes and their join: RP-14: the lanes run on the host` |
+| the join's context renamed (`Linux arm64 aggregate`) | `conformance_rp_14`: `RP-14: the matrix and Intel aggregate must expose each exact host context once` |
+| a lane dropped from the matrix; the join's receipt pattern, needs, condition or result check weakened | `conformance_rp_14`: the lane-host plants, now run for all three lane hosts |
+| the lanes traced by the read recorder | `conformance_rp_14`: `#603: native host job linux-arm-part is traced` |
