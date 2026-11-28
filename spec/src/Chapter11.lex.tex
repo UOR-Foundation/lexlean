@@ -34,7 +34,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "`lexlean.lock` is generated, canonical TOML with no comments and final LF. Users MUST NOT hand-edit it. `lexlean lock --check` regenerates it in memory and compares exact bytes. Language 1.0 and 1.1 use `spec = \"lexlean/lock/1\"`. Language 1.2 uses `spec = \"lexlean/lock/2\"`. `lexlean lock` migrates locks to the appropriate schema for the project language." (nil String))
+      (cons "`lexlean.lock` is generated, canonical TOML with no comments and final LF. Users MUST NOT hand-edit it. `lexlean lock --check` regenerates it in memory and compares exact bytes. Language 1.0 and 1.1 use `spec = \"lexlean/lock/3\"`. Language 1.2 uses `spec = \"lexlean/lock/4\"`. `lexlean lock` migrates locks to the appropriate schema for the project language." (nil String))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -61,7 +61,7 @@ definition{
   body: constructor{
     arguments: [
       "toml",
-      (cons "spec = \"lexlean/lock/1\"" (cons "language = \"1.0\"" (cons "compiler_semantics = \"64-lowercase-hex-digits\"" (cons "project_config_sha256 = \"64-lowercase-hex-digits\"" (cons "lean_toolchain = \"leanprover/lean4:v4.32.1\"" (cons "" (cons "[[workspace_file]]" (cons "path = \"lean-toolchain\"" (cons "sha256 = \"...\"" (cons "" (cons "[[package]]" (cons "id = \"lexlean.core\"" (cons "version = \"1.0.0\"" (cons "kind = \"builtin\"" (cons "source = \"embedded\"" (cons "revision = \"compiler-semantics\"" (cons "tree_sha256 = \"...\"" (cons "manifest_sha256 = \"...\"" (cons "imports = []" (cons "" (cons "[[package]]" (cons "id = \"example.algebra\"" (cons "version = \"1.2.3\"" (cons "kind = \"path\"" (cons "source = \"glossary/example.algebra\"" (cons "revision = \"none\"" (cons "tree_sha256 = \"...\"" (cons "manifest_sha256 = \"...\"" (cons "imports = [\"lexlean.core@1.0.0\"]" (nil String))))))))))))))))))))))))))))))
+      (cons "spec = \"lexlean/lock/3\"" (cons "language = \"1.0\"" (cons "compiler_semantics = \"blake3:64-lowercase-hex-digits\"" (cons "project_config_kappa = \"blake3:64-lowercase-hex-digits\"" (cons "lean_toolchain = \"leanprover/lean4:v4.32.2\"" (cons "" (cons "[[workspace_file]]" (cons "path = \"lean-toolchain\"" (cons "kappa = \"...\"" (cons "" (cons "[[package]]" (cons "id = \"lexlean.core\"" (cons "version = \"1.0.0\"" (cons "kind = \"builtin\"" (cons "source = \"embedded\"" (cons "revision = \"compiler-semantics\"" (cons "tree_kappa = \"...\"" (cons "manifest_kappa = \"...\"" (cons "imports = []" (cons "" (cons "[[package]]" (cons "id = \"example.algebra\"" (cons "version = \"1.2.3\"" (cons "kind = \"path\"" (cons "source = \"glossary/example.algebra\"" (cons "revision = \"none\"" (cons "tree_kappa = \"...\"" (cons "manifest_kappa = \"...\"" (cons "imports = [\"lexlean.core@1.0.0\"]" (nil String))))))))))))))))))))))))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -104,7 +104,7 @@ definition{
   body: constructor{
     arguments: [
       "toml",
-      (cons "[[source_package]]" (cons "id = \"lib\"" (cons "version = \"1.0.0\"" (cons "kind = \"path\"" (cons "source = \"lib\"" (cons "module_prefix = \"PkgLib\"" (cons "tree_sha256 = \"...\"" (cons "manifest_sha256 = \"...\"" (cons "imports = [\"base@1.0.0\"]" (nil String))))))))))
+      (cons "[[source_package]]" (cons "id = \"lib\"" (cons "version = \"1.0.0\"" (cons "kind = \"path\"" (cons "source = \"lib\"" (cons "module_prefix = \"PkgLib\"" (cons "tree_kappa = \"...\"" (cons "manifest_kappa = \"...\"" (cons "imports = [\"base@1.0.0\"]" (nil String))))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -118,7 +118,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "Language-1.2 model artifacts (§10.1, §17.12) have no lock rows: each is pinned" (cons "by its `sha256` in `lexlean.toml`, whose canonical bytes the lock's project" (cons "digest and the source ID cover, and every `check`, `build`, `fmt`, and" (cons "`verify` re-reads and re-digests the bytes." (nil String)))))
+      (cons "Language-1.2 model artifacts (§10.1, §17.12) have no lock rows: each is pinned" (cons "by its `kappa` in `lexlean.toml`, whose canonical bytes the lock's project" (cons "digest and the source ID cover, and every `check`, `build`, `fmt`, and" (cons "`verify` re-reads and re-digests the bytes." (nil String)))))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -210,7 +210,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "- `lexlean lock` resolves local and already-cached sources without networking." (cons "- `lexlean lock --allow-network` may acquire missing exact Git commits." (cons "- no other command accepts `--allow-network`;" (cons "- verification fails if a locked package is absent or its digest differs;" (cons "- an acquired Git package is stored at `<build_root>/cache/git/<revision>/<tree_sha256>/` and is revalidated before use;" (cons "- Git submodules, Git LFS indirection, and nested repositories are rejected." (nil String)))))))
+      (cons "- `lexlean lock` resolves local and already-cached sources without networking." (cons "- `lexlean lock --allow-network` may acquire missing exact Git commits." (cons "- no other command accepts `--allow-network`;" (cons "- verification fails if a locked package is absent or its digest differs;" (cons "- an acquired Git package is stored at `<build_root>/cache/git/<revision>/<tree_kappa>/` and is revalidated before use;" (cons "- Git submodules, Git LFS indirection, and nested repositories are rejected." (nil String)))))))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -235,7 +235,7 @@ definition{
   parameters: [],
   result: DocRows::Item,
   body: constructor{
-    arguments: [(cons "A package tree digest is SHA-256 over:" (nil String))],
+    arguments: [(cons "A package tree κ is the κ-label of:" (nil String))],
     constructor: DocRows::Item.para,
     type_arguments: []
   },
@@ -249,7 +249,7 @@ definition{
   body: constructor{
     arguments: [
       "text",
-      (cons "\"lexlean-tree-v1\\0\"" (cons "+ for each regular file in bytewise-sorted project-relative path order:" (cons "    u32be(path_byte_length)" (cons "    + path_utf8_bytes" (cons "    + u64be(file_byte_length)" (cons "    + file_bytes" (nil String)))))))
+      (cons "\"lexlean-tree-v2\\0\"" (cons "+ for each regular file in bytewise-sorted project-relative path order:" (cons "    u32be(path_byte_length)" (cons "    + path_utf8_bytes" (cons "    + u64be(file_byte_length)" (cons "    + file_bytes" (nil String)))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []

@@ -22,7 +22,7 @@
 \noindent Parameters: \texttt{(axis : ByteArray) (message : ByteArray)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{Option (ByteArray)}.\par
-\noindent Definition: \texttt{(if named (axis) ("sha256") then Option.some (LexLeanStd.Sha256.sha256Hex (message)) else (if named (axis) ("sha3-256") then Option.some (LexLeanKappa.Keccak.sha3Hex (message)) else (if named (axis) ("keccak256") then Option.some (LexLeanKappa.Keccak.keccakHex (message)) else (if named (axis) ("sha512") then Option.some (LexLeanKappa.Sha512.sha512Hex (message)) else (if named (axis) ("blake3") then Option.some (LexLeanKappa.Blake3.blake3Hex (message)) else Option.none)))))}.\par
+\noindent Definition: \texttt{(if named (axis) ("sha256") then Option.some (LexLeanStd.Sha256.sha256Hex (message)) else (if named (axis) ("sha3-256") then Option.some (LexLeanKappa.Keccak.sha3Hex (message)) else (if named (axis) ("keccak256") then Option.some (LexLeanKappa.Keccak.keccakHex (message)) else (if named (axis) ("sha512") then Option.some (LexLeanKappa.Sha512.sha512Hex (message)) else (if named (axis) ("blake3") then Option.some (LexLeanStd.Blake3.blake3Hex (message)) else Option.none)))))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{prefixOf}}
 \noindent Kind: \texttt{definition}.\par

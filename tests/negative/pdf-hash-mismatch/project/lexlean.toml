@@ -1,4 +1,4 @@
-spec = "lexlean/project/1"
+spec = "lexlean/project/2"
 name = "nat-add-zero"
 language = "1.0"
 module_prefix = "LexLeanExample"
@@ -7,7 +7,7 @@ entrypoints = ["src/Main.lex.tex"]
 build_root = ".lexlean"
 lockfile = "lexlean.lock"
 lean_workspace = "."
-lean_toolchain = "leanprover/lean4:v4.32.1"
+lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[lexicon_source]]
 package = "lexlean.std.nat"
@@ -29,9 +29,9 @@ child_timeout_ms = 300000
 [pdf]
 mode = "external"
 program = "tools/fakepdf"
-program_sha256 = "4b274a263f93eea07a2ba5db336348c773a6e04d4ebc011879ce9de307b32d2f"
+program_kappa = "blake3:4b274a263f93eea07a2ba5db336348c773a6e04d4ebc011879ce9de307b32d2f"
 version_argv = ["--version"]
-version_stdout_sha256 = "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+version_stdout_kappa = "blake3:295192ea1ec8566d563b1a7587e5f0198580cdbd043842f5090a4c197c20c67a"
 compile_argv = ["--outdir", "{out_dir}", "{input}"]
 output = "{stem}.pdf"
 resources = []

@@ -1,8 +1,7 @@
 //! The `artifacts` suite: AR-01..AR-14.
 
 use lexlean::artifact::canonical_json::Json;
-use lexlean::artifact::content_id::{FramedHasher, Sha256Digest};
-use sha2::Digest;
+use lexlean::artifact::content_id::{FramedHasher, Kappa};
 
 use crate::support::{self, P};
 
@@ -58,12 +57,12 @@ pub(crate) fn run(id: &str) {
             let value: serde_json::Value = serde_json::from_str(&stdout).expect("json");
             assert_eq!(
                 value["source_id"].as_str(),
-                Some(checked.source_id.to_hex().as_str()),
+                Some(checked.source_id.label().as_str()),
                 "check reports the source ID"
             );
             assert_eq!(
                 value["semantic_id"].as_str(),
-                Some(checked.semantic_id.to_hex().as_str()),
+                Some(checked.semantic_id.label().as_str()),
                 "check reports the semantic ID"
             );
             assert!(value.get("build_id").is_none(), "check has no build ID");
@@ -74,7 +73,7 @@ pub(crate) fn run(id: &str) {
                 lexlean::artifact::content_id::build_id(checked.source_id, checked.semantic_id);
             assert_eq!(
                 value["build_id"].as_str(),
-                Some(build_id.to_hex().as_str()),
+                Some(build_id.label().as_str()),
                 "build reports the build ID"
             );
             assert!(
@@ -316,17 +315,20 @@ pub(crate) fn run(id: &str) {
             let mut framed = FramedHasher::new("t");
             framed.frame("a", b"xy");
             framed.frame("b", b"");
-            let mut manual = sha2::Sha256::new();
+            let mut manual = blake3::Hasher::new();
             manual.update(b"t\0");
-            manual.update(1u32.to_be_bytes());
+            manual.update(&1u32.to_be_bytes());
             manual.update(b"a");
-            manual.update(2u64.to_be_bytes());
+            manual.update(&2u64.to_be_bytes());
             manual.update(b"xy");
-            manual.update(1u32.to_be_bytes());
+            manual.update(&1u32.to_be_bytes());
             manual.update(b"b");
-            manual.update(0u64.to_be_bytes());
-            let digest: [u8; 32] = manual.finalize().into();
-            assert_eq!(framed.finish(), Sha256Digest(digest), "§21.1 byte layout");
+            manual.update(&0u64.to_be_bytes());
+            assert_eq!(
+                framed.finish(),
+                crate::support::oracle_finish(&manual),
+                "§21.1 byte layout"
+            );
         }
         // §21.2: the semantics ID is sensitive to every normative input.
         "AR-06" => {
@@ -515,8 +517,8 @@ pub(crate) fn run(id: &str) {
                     "{path}: exact length"
                 );
                 assert_eq!(
-                    row["sha256"].as_str(),
-                    Some(Sha256Digest::of(&bytes).to_hex().as_str()),
+                    row["kappa"].as_str(),
+                    Some(Kappa::of(&bytes).label().as_str()),
                     "{path}: exact hash"
                 );
             }
@@ -532,6 +534,18 @@ pub(crate) fn run(id: &str) {
             assert!(
                 Json::parse(b"{\"a\":{\"b\":1,\"b\":2}}").is_err(),
                 "nested duplicate keys are rejected"
+            );
+            assert!(
+                Json::parse(b"{\"a\":1,\"\\u0061\":2}").is_err(),
+                "a key spelled with an escape duplicates its plain spelling"
+            );
+            assert!(
+                Json::parse(b"{\"x\":{\"a\\\"b\":1,\"a\\u0022b\":2}}").is_err(),
+                "nested keys that decode equal are duplicates"
+            );
+            assert!(
+                Json::parse(b"[{\"a\":1},{\"\\u0061\":2}]").is_ok(),
+                "keys that decode equal in distinct objects are not duplicates"
             );
             assert!(
                 Json::parse(b"{\"a\":[{\"b\":1},{\"b\":2}]}").is_ok(),
@@ -658,7 +672,7 @@ pub(crate) fn run(id: &str) {
             assert!(
                 rendered.contains(&format!(
                     ".lexlean/build/{}",
-                    fresh_build.build_id.expect("built").to_hex()
+                    fresh_build.build_id.expect("built").hex()
                 )),
                 "the build directory is project-relative: {rendered}"
             );
@@ -725,6 +739,8 @@ pub(crate) fn run(id: &str) {
                 );
             }
         }
+        // §21.1: every identity is a BLAKE3 κ-label.
+        "AR-15" | "AR-16" => super::kappa_identity::run(id),
         other => panic!("no artifacts case is wired for {other}"),
     }
 }

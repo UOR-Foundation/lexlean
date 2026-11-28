@@ -10,8 +10,8 @@
 \noindent Field \texttt{kind}: \texttt{ByteArray}.\par
 \noindent Field \texttt{origin}: \texttt{ByteArray}.\par
 \noindent Field \texttt{revision}: \texttt{ByteArray}.\par
-\noindent Field \texttt{treeSha256}: \texttt{ByteArray}.\par
-\noindent Field \texttt{manifestSha256}: \texttt{ByteArray}.\par
+\noindent Field \texttt{treeKappa}: \texttt{ByteArray}.\par
+\noindent Field \texttt{manifestKappa}: \texttt{ByteArray}.\par
 \noindent Field \texttt{imports}: \texttt{List (ByteArray)}.\par
 \subsection*{\texttt{LockSourcePackage}}
 \noindent Kind: \texttt{structure}.\par
@@ -20,15 +20,15 @@
 \noindent Field \texttt{kind}: \texttt{ByteArray}.\par
 \noindent Field \texttt{origin}: \texttt{ByteArray}.\par
 \noindent Field \texttt{modulePrefix}: \texttt{ByteArray}.\par
-\noindent Field \texttt{treeSha256}: \texttt{ByteArray}.\par
-\noindent Field \texttt{manifestSha256}: \texttt{ByteArray}.\par
+\noindent Field \texttt{treeKappa}: \texttt{ByteArray}.\par
+\noindent Field \texttt{manifestKappa}: \texttt{ByteArray}.\par
 \noindent Field \texttt{imports}: \texttt{List (ByteArray)}.\par
 \subsection*{\texttt{LockPdf}}
 \noindent Kind: \texttt{structure}.\par
 \noindent Field \texttt{program}: \texttt{ByteArray}.\par
-\noindent Field \texttt{programSha256}: \texttt{ByteArray}.\par
+\noindent Field \texttt{programKappa}: \texttt{ByteArray}.\par
 \noindent Field \texttt{versionArgv}: \texttt{List (ByteArray)}.\par
-\noindent Field \texttt{versionStdoutSha256}: \texttt{ByteArray}.\par
+\noindent Field \texttt{versionStdoutKappa}: \texttt{ByteArray}.\par
 \noindent Field \texttt{compileArgv}: \texttt{List (ByteArray)}.\par
 \noindent Field \texttt{output}: \texttt{ByteArray}.\par
 \noindent Field \texttt{resources}: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
@@ -36,7 +36,7 @@
 \noindent Kind: \texttt{structure}.\par
 \noindent Field \texttt{language}: \texttt{ByteArray}.\par
 \noindent Field \texttt{compilerSemantics}: \texttt{ByteArray}.\par
-\noindent Field \texttt{projectConfigSha256}: \texttt{ByteArray}.\par
+\noindent Field \texttt{projectConfigKappa}: \texttt{ByteArray}.\par
 \noindent Field \texttt{workspaceFiles}: \texttt{List ((Prod (ByteArray) (ByteArray)))}.\par
 \noindent Field \texttt{packages}: \texttt{List (LockPackage)}.\par
 \noindent Field \texttt{sourcePackages}: \texttt{List (LockSourcePackage)}.\par
@@ -59,7 +59,7 @@
 \noindent Kind: \texttt{definition}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{lit ("leanprover/lean4:v4.32.1")}.\par
+\noindent Definition: \texttt{lit ("leanprover/lean4:v4.32.2")}.\par
 \noindent Axiom policy: \texttt{none}.\par
 \subsection*{\texttt{upperHex}}
 \noindent Kind: \texttt{definition}.\par
@@ -118,7 +118,7 @@
 \noindent Parameters: \texttt{(key : ByteArray) (digest : ByteArray)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{line (key) (tomlString (LexLeanStd.Numeral.hex (digest)))}.\par
+\noindent Definition: \texttt{line (key) (tomlString (digest))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{header}}
 \noindent Kind: \texttt{definition}.\par
@@ -174,28 +174,28 @@
 \noindent Closure 1: binds \texttt{(acc, row)}, captures \texttt{(table)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (acc : ByteArray) (row : (Prod (ByteArray) (ByteArray))) => cat (acc) (cat (cat (header (table)) (stringLine (lit ("path")) ((row).1))) (digestLine (lit ("sha256")) ((row).2))))) (ByteArray.mk \#[]) (pairsByPath (rows)) : ByteArray)}.\par
+\noindent Definition: \texttt{(LexLeanCollections.listFold ((fun (acc : ByteArray) (row : (Prod (ByteArray) (ByteArray))) => cat (acc) (cat (cat (header (table)) (stringLine (lit ("path")) ((row).1))) (digestLine (lit ("kappa")) ((row).2))))) (ByteArray.mk \#[]) (pairsByPath (rows)) : ByteArray)}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{packageText}}
 \noindent Kind: \texttt{definition}.\par
 \noindent Parameters: \texttt{(row : LockPackage)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{cat (cat (cat (cat (cat (cat (cat (cat (header (lit ("[[package]]"))) (stringLine (lit ("id")) ((row).ident))) (stringLine (lit ("version")) ((row).version))) (stringLine (lit ("kind")) ((row).kind))) (stringLine (lit ("source")) ((row).origin))) (stringLine (lit ("revision")) ((row).revision))) (digestLine (lit ("tree\_sha256")) ((row).treeSha256))) (digestLine (lit ("manifest\_sha256")) ((row).manifestSha256))) (line (lit ("imports")) (tomlArray ((row).imports)))}.\par
+\noindent Definition: \texttt{cat (cat (cat (cat (cat (cat (cat (cat (header (lit ("[[package]]"))) (stringLine (lit ("id")) ((row).ident))) (stringLine (lit ("version")) ((row).version))) (stringLine (lit ("kind")) ((row).kind))) (stringLine (lit ("source")) ((row).origin))) (stringLine (lit ("revision")) ((row).revision))) (digestLine (lit ("tree\_kappa")) ((row).treeKappa))) (digestLine (lit ("manifest\_kappa")) ((row).manifestKappa))) (line (lit ("imports")) (tomlArray ((row).imports)))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{sourceText}}
 \noindent Kind: \texttt{definition}.\par
 \noindent Parameters: \texttt{(row : LockSourcePackage)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{cat (cat (cat (cat (cat (cat (cat (cat (header (lit ("[[source\_package]]"))) (stringLine (lit ("id")) ((row).ident))) (stringLine (lit ("version")) ((row).version))) (stringLine (lit ("kind")) ((row).kind))) (stringLine (lit ("source")) ((row).origin))) (stringLine (lit ("module\_prefix")) ((row).modulePrefix))) (digestLine (lit ("tree\_sha256")) ((row).treeSha256))) (digestLine (lit ("manifest\_sha256")) ((row).manifestSha256))) (line (lit ("imports")) (tomlArray ((row).imports)))}.\par
+\noindent Definition: \texttt{cat (cat (cat (cat (cat (cat (cat (cat (header (lit ("[[source\_package]]"))) (stringLine (lit ("id")) ((row).ident))) (stringLine (lit ("version")) ((row).version))) (stringLine (lit ("kind")) ((row).kind))) (stringLine (lit ("source")) ((row).origin))) (stringLine (lit ("module\_prefix")) ((row).modulePrefix))) (digestLine (lit ("tree\_kappa")) ((row).treeKappa))) (digestLine (lit ("manifest\_kappa")) ((row).manifestKappa))) (line (lit ("imports")) (tomlArray ((row).imports)))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{pdfText}}
 \noindent Kind: \texttt{definition}.\par
 \noindent Parameters: \texttt{(entry : LockPdf)}.\par
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{cat (cat (cat (cat (cat (cat (cat (header (lit ("[pdf]"))) (stringLine (lit ("program")) ((entry).program))) (digestLine (lit ("program\_sha256")) ((entry).programSha256))) (line (lit ("version\_argv")) (tomlArray ((entry).versionArgv)))) (digestLine (lit ("version\_stdout\_sha256")) ((entry).versionStdoutSha256))) (line (lit ("compile\_argv")) (tomlArray ((entry).compileArgv)))) (stringLine (lit ("output")) ((entry).output))) (pinText (lit ("[[pdf.resource]]")) ((entry).resources))}.\par
+\noindent Definition: \texttt{cat (cat (cat (cat (cat (cat (cat (header (lit ("[pdf]"))) (stringLine (lit ("program")) ((entry).program))) (digestLine (lit ("program\_kappa")) ((entry).programKappa))) (line (lit ("version\_argv")) (tomlArray ((entry).versionArgv)))) (digestLine (lit ("version\_stdout\_kappa")) ((entry).versionStdoutKappa))) (line (lit ("compile\_argv")) (tomlArray ((entry).compileArgv)))) (stringLine (lit ("output")) ((entry).output))) (pinText (lit ("[[pdf.resource]]")) ((entry).resources))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \subsection*{\texttt{canonicalLock}}
 \noindent Kind: \texttt{definition}.\par
@@ -205,6 +205,6 @@
 \noindent Execution: executable, non-escaping closures only.\par
 \noindent Production root for targets \texttt{rust-std}; admitted effects: \texttt{allocation, overflow}.\par
 \noindent Type: \texttt{ByteArray}.\par
-\noindent Definition: \texttt{(let spec : ByteArray := (if (LexLeanRuntime.equal ((given).language) (lit ("1.2")) : Bool) then lit ("lexlean/lock/2") else lit ("lexlean/lock/1")); (let head : ByteArray := cat (cat (cat (cat (stringLine (lit ("spec")) (spec)) (stringLine (lit ("language")) ((given).language))) (digestLine (lit ("compiler\_semantics")) ((given).compilerSemantics))) (digestLine (lit ("project\_config\_sha256")) ((given).projectConfigSha256))) (stringLine (lit ("lean\_toolchain")) (leanToolchain)); (let pins : ByteArray := pinText (lit ("[[workspace\_file]]")) ((given).workspaceFiles); (let rows : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : LockPackage) => cat (acc) (packageText (row)))) (ByteArray.mk \#[]) (packagesSorted ((given).packages)) : ByteArray); (let sources : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : LockSourcePackage) => cat (acc) (sourceText (row)))) (ByteArray.mk \#[]) (sourcesSorted ((given).sourcePackages)) : ByteArray); (let tail : ByteArray := (match (given).pdf with | Option.some entry => pdfText (entry) | Option.none => ByteArray.mk \#[]); cat (cat (cat (cat (head) (pins)) (rows)) (sources)) (tail)))))))}.\par
+\noindent Definition: \texttt{(let spec : ByteArray := (if (LexLeanRuntime.equal ((given).language) (lit ("1.2")) : Bool) then lit ("lexlean/lock/4") else lit ("lexlean/lock/3")); (let head : ByteArray := cat (cat (cat (cat (stringLine (lit ("spec")) (spec)) (stringLine (lit ("language")) ((given).language))) (digestLine (lit ("compiler\_semantics")) ((given).compilerSemantics))) (digestLine (lit ("project\_config\_kappa")) ((given).projectConfigKappa))) (stringLine (lit ("lean\_toolchain")) (leanToolchain)); (let pins : ByteArray := pinText (lit ("[[workspace\_file]]")) ((given).workspaceFiles); (let rows : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : LockPackage) => cat (acc) (packageText (row)))) (ByteArray.mk \#[]) (packagesSorted ((given).packages)) : ByteArray); (let sources : ByteArray := (LexLeanCollections.listFold ((fun (acc : ByteArray) (row : LockSourcePackage) => cat (acc) (sourceText (row)))) (ByteArray.mk \#[]) (sourcesSorted ((given).sourcePackages)) : ByteArray); (let tail : ByteArray := (match (given).pdf with | Option.some entry => pdfText (entry) | Option.none => ByteArray.mk \#[]); cat (cat (cat (cat (head) (pins)) (rows)) (sources)) (tail)))))))}.\par
 \noindent Axiom policy: \texttt{exact [Quot.sound, propext]}.\par
 \end{document}

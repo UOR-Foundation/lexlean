@@ -42,6 +42,15 @@
     "bootstrap/check_program": {
       "debug": 13697024
     },
+    "bootstrap/check_signature": {
+      "debug": 2031616
+    },
+    "bootstrap/check_value": {
+      "debug": 2228224
+    },
+    "bootstrap/core_json": {
+      "debug": 1835008
+    },
     "bootstrap/correspond_crate": {
       "debug": 4915200
     },
@@ -78,6 +87,15 @@
     "bootstrap/parse_audit_output": {
       "debug": 6291456
     },
+    "bootstrap/parse_entry": {
+      "debug": 196608
+    },
+    "bootstrap/print_at": {
+      "debug": 1572864
+    },
+    "bootstrap/print_core_module": {
+      "debug": 2555904
+    },
     "bootstrap/print_crate": {
       "debug": 7077888
     },
@@ -89,6 +107,9 @@
     },
     "bootstrap/print_lse": {
       "debug": 1900544
+    },
+    "bootstrap/print_semantic_module": {
+      "debug": 1179648
     },
     "bootstrap/print_tooling_module": {
       "debug": 1179648

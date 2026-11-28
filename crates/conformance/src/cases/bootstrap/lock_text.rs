@@ -17,7 +17,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use lexlean::calculus::Value;
 use lexlean::config::toml_string;
 use lexlean::lock::{parse_lock, Lock, LockPackage, LockPdf, LockSourcePackage};
-use lexlean::Sha256Digest;
+use lexlean::Kappa;
 use serde_json::Value as Json2;
 
 use super::rust_validate::{eligibility_of, rustc_differential};
@@ -39,11 +39,11 @@ const RUSTC_SEEDED: usize = 1_000;
 
 // ------------------------------------------------------------- the encoders
 
-fn digest(value: &Sha256Digest) -> Value {
-    bytes(&value.0)
+fn digest(value: &Kappa) -> Value {
+    bytes(value.as_bytes())
 }
 
-fn pins(rows: &[(String, Sha256Digest)]) -> Value {
+fn pins(rows: &[(String, Kappa)]) -> Value {
     list(
         rows.iter()
             .map(|(path, sha256)| pair(text(path), digest(sha256)))
@@ -60,8 +60,8 @@ fn enc_package(package: &LockPackage) -> Value {
             text(&package.kind),
             text(&package.source),
             text(&package.revision),
-            digest(&package.tree_sha256),
-            digest(&package.manifest_sha256),
+            digest(&package.tree_kappa),
+            digest(&package.manifest_kappa),
             texts(&package.imports),
         ],
     }
@@ -76,8 +76,8 @@ fn enc_source(package: &LockSourcePackage) -> Value {
             text(&package.kind),
             text(&package.source),
             text(&package.module_prefix),
-            digest(&package.tree_sha256),
-            digest(&package.manifest_sha256),
+            digest(&package.tree_kappa),
+            digest(&package.manifest_kappa),
             texts(&package.imports),
         ],
     }
@@ -88,9 +88,9 @@ fn enc_pdf(pdf: &LockPdf) -> Value {
         constructor: 0,
         fields: vec![
             text(&pdf.program),
-            digest(&pdf.program_sha256),
+            digest(&pdf.program_kappa),
             texts(&pdf.version_argv),
-            digest(&pdf.version_stdout_sha256),
+            digest(&pdf.version_stdout_kappa),
             texts(&pdf.compile_argv),
             text(&pdf.output),
             pins(&pdf.resources),
@@ -104,7 +104,7 @@ fn enc(lock: &Lock) -> Value {
         fields: vec![
             text(&lock.language),
             digest(&lock.compiler_semantics),
-            digest(&lock.project_config_sha256),
+            digest(&lock.project_config_kappa),
             pins(&lock.workspace_files),
             list(lock.packages.iter().map(enc_package).collect()),
             list(lock.source_packages.iter().map(enc_source).collect()),
@@ -213,12 +213,12 @@ fn texts_of(locks: &[Lock]) -> BTreeSet<String> {
 
 // ------------------------------------------------------------------ vectors
 
-fn sha(byte: u8) -> Sha256Digest {
+fn sha(byte: u8) -> Kappa {
     let mut out = [0u8; 32];
     for (index, slot) in out.iter_mut().enumerate() {
         *slot = byte.wrapping_add(u8::try_from(index).expect("a byte"));
     }
-    Sha256Digest(out)
+    crate::support::kappa_of_digest(&out)
 }
 
 fn strings(items: &[&str]) -> Vec<String> {
@@ -229,7 +229,7 @@ fn empty(language: &str) -> Lock {
     Lock {
         language: language.to_owned(),
         compiler_semantics: sha(0xa0),
-        project_config_sha256: sha(0x0f),
+        project_config_kappa: sha(0x0f),
         workspace_files: Vec::new(),
         packages: Vec::new(),
         source_packages: Vec::new(),
@@ -244,8 +244,8 @@ fn package(id: &str, version: &str, imports: &[&str]) -> LockPackage {
         kind: "lexicon".to_owned(),
         source: format!("path:../{id}"),
         revision: format!("r-{id}-{version}"),
-        tree_sha256: sha(0x10),
-        manifest_sha256: sha(0xf0),
+        tree_kappa: sha(0x10),
+        manifest_kappa: sha(0xf0),
         imports: strings(imports),
     }
 }
@@ -257,8 +257,8 @@ fn source(id: &str, prefix: &str) -> LockSourcePackage {
         kind: "source".to_owned(),
         source: format!("path:../{id}"),
         module_prefix: prefix.to_owned(),
-        tree_sha256: sha(0x20),
-        manifest_sha256: sha(0xe0),
+        tree_kappa: sha(0x20),
+        manifest_kappa: sha(0xe0),
         imports: strings(&["lexlean.std.nat"]),
     }
 }
@@ -266,9 +266,9 @@ fn source(id: &str, prefix: &str) -> LockSourcePackage {
 fn pdf(resources: &[&str]) -> LockPdf {
     LockPdf {
         program: "lualatex".to_owned(),
-        program_sha256: sha(0x30),
+        program_kappa: sha(0x30),
         version_argv: strings(&["--version"]),
-        version_stdout_sha256: sha(0x40),
+        version_stdout_kappa: sha(0x40),
         compile_argv: strings(&["-interaction=nonstopmode", "-halt-on-error", "main.tex"]),
         output: "main.pdf".to_owned(),
         resources: resources
@@ -284,7 +284,7 @@ fn pdf(resources: &[&str]) -> LockPdf {
     }
 }
 
-fn files(paths: &[&str]) -> Vec<(String, Sha256Digest)> {
+fn files(paths: &[&str]) -> Vec<(String, Kappa)> {
     paths
         .iter()
         .enumerate()
@@ -429,7 +429,7 @@ fn named() -> Vec<Vector> {
         });
     };
     add("the empty text", "");
-    add("plain text", "lexlean/lock/2");
+    add("plain text", "lexlean/lock/4");
     add("a quote", "say \"hi\"");
     add("a backslash", "a\\b");
     add("a newline", "one\ntwo");
@@ -487,15 +487,15 @@ fn drawn_texts(seeded: &mut Seeded) -> Vec<String> {
     (0..count).map(|_| drawn_text(seeded)).collect()
 }
 
-fn drawn_sha(seeded: &mut Seeded) -> Sha256Digest {
+fn drawn_sha(seeded: &mut Seeded) -> Kappa {
     let mut out = [0u8; 32];
     for slot in &mut out {
         *slot = u8::try_from(seeded.below(256)).expect("a byte");
     }
-    Sha256Digest(out)
+    crate::support::kappa_of_digest(&out)
 }
 
-fn drawn_pins(seeded: &mut Seeded) -> Vec<(String, Sha256Digest)> {
+fn drawn_pins(seeded: &mut Seeded) -> Vec<(String, Kappa)> {
     let count = seeded.below(5);
     (0..count)
         .map(|_| {
@@ -512,7 +512,7 @@ fn drawn_pins(seeded: &mut Seeded) -> Vec<(String, Sha256Digest)> {
 fn drawn_lock(seeded: &mut Seeded) -> Lock {
     let language = (*seeded.pick(&["1.0", "1.1", "1.2", "1.2", ""])).to_owned();
     let compiler_semantics = drawn_sha(seeded);
-    let project_config_sha256 = drawn_sha(seeded);
+    let project_config_kappa = drawn_sha(seeded);
     let workspace_files = drawn_pins(seeded);
     let packages = (0..seeded.below(5))
         .map(|_| LockPackage {
@@ -521,8 +521,8 @@ fn drawn_lock(seeded: &mut Seeded) -> Lock {
             kind: drawn_text(seeded),
             source: drawn_text(seeded),
             revision: drawn_text(seeded),
-            tree_sha256: drawn_sha(seeded),
-            manifest_sha256: drawn_sha(seeded),
+            tree_kappa: drawn_sha(seeded),
+            manifest_kappa: drawn_sha(seeded),
             imports: drawn_texts(seeded),
         })
         .collect();
@@ -533,17 +533,17 @@ fn drawn_lock(seeded: &mut Seeded) -> Lock {
             kind: drawn_text(seeded),
             source: drawn_text(seeded),
             module_prefix: drawn_text(seeded),
-            tree_sha256: drawn_sha(seeded),
-            manifest_sha256: drawn_sha(seeded),
+            tree_kappa: drawn_sha(seeded),
+            manifest_kappa: drawn_sha(seeded),
             imports: drawn_texts(seeded),
         })
         .collect();
     let pdf = if seeded.chance(30) {
         Some(LockPdf {
             program: drawn_text(seeded),
-            program_sha256: drawn_sha(seeded),
+            program_kappa: drawn_sha(seeded),
             version_argv: drawn_texts(seeded),
-            version_stdout_sha256: drawn_sha(seeded),
+            version_stdout_kappa: drawn_sha(seeded),
             compile_argv: drawn_texts(seeded),
             output: drawn_text(seeded),
             resources: drawn_pins(seeded),
@@ -554,7 +554,7 @@ fn drawn_lock(seeded: &mut Seeded) -> Lock {
     Lock {
         language,
         compiler_semantics,
-        project_config_sha256,
+        project_config_kappa,
         workspace_files,
         packages,
         source_packages,
@@ -628,14 +628,14 @@ const PLANTS: &[Plant] = &[
     Plant {
         label: "every lock is spec 2",
         root: 1,
-        site: "(lit \"lexlean/lock/1\")",
-        replacement: "(lit \"lexlean/lock/2\")",
+        site: "(lit \"lexlean/lock/3\")",
+        replacement: "(lit \"lexlean/lock/4\")",
         vector: "an empty language-1.1 lock",
     },
     Plant {
         label: "the toolchain is another",
         root: 1,
-        site: "\"leanprover/lean4:v4.32.1\"",
+        site: "\"leanprover/lean4:v4.32.2\"",
         replacement: "\"leanprover/lean4:v4.32.0\"",
         vector: "an empty language-1.2 lock",
     },

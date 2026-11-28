@@ -33,7 +33,9 @@ definition{
   parameters: [],
   result: DocRows::Item,
   body: constructor{
-    arguments: [(cons "All compound SHA-256 inputs use:" (nil String))],
+    arguments: [
+      (cons "Every identity LexLean computes, names, or pins is a UOR κ-label on the BLAKE3" (cons "σ-axis, `kappa(bytes) = \"blake3:\" || lowercase_hex(BLAKE3-256(bytes))`: 71 ASCII" (cons "bytes, `blake3:` and the 64 lowercase hexadecimal digits of the 32-byte BLAKE3" (cons "hash of the bytes (the BLAKE3 specification's default hash mode, no key, no" (cons "context). It is exactly the κ-label `uor-addr` writes on its `blake3` σ-axis and" (cons "the address Hologram's content store re-derives for the same bytes, so a store" (cons "that holds a carrier agrees with LexLean on its identity without knowing" (cons "anything about LexLean. `KAPPA(m)` below is `kappa(m)`, and a compound" (cons "identity's carrier `m` uses:" (nil String))))))))))
+    ],
     constructor: DocRows::Item.para,
     type_arguments: []
   },
@@ -60,7 +62,9 @@ definition{
   parameters: [],
   result: DocRows::Item,
   body: constructor{
-    arguments: [(cons "Labels are ASCII and unique within each hash recipe." (nil String))],
+    arguments: [
+      (cons "Labels are ASCII and unique within each hash recipe. A carrier begins with its" (cons "recipe's domain and a NUL, and a domain contains no NUL, so two recipes never" (cons "share a carrier. An identity framed into another is framed as its 71 label" (cons "bytes, never as the bare digest, so the σ-axis is part of what the outer" (cons "identity covers. A recipe whose inputs change raises its domain's version; the" (cons "recipes of this chapter are the `-v2` ones, the first on BLAKE3." (nil String)))))))
+    ],
     constructor: DocRows::Item.para,
     type_arguments: []
   },
@@ -73,7 +77,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "Every SHA-256 in these recipes is the standard library's `Sha256` package" (cons "(§17.22). The package digests one message, so a recipe holds its frames until" (cons "it finishes. FIPS 180-4 defines SHA-256 for messages of fewer than 2^64 bits," (cons "that is fewer than 2^61 bytes; no host allocates a larger one." (nil String)))))
+      (cons "Every κ-label is computed by the standard library's certified `Blake3` package" (cons "(§17.22) and by nothing else. The package hashes one message, so a recipe holds" (cons "its frames until it finishes. A directory or a Lean module named by an identity" (cons "(§21.5, §22.8, §18.8) uses the 64 hexadecimal digits without `blake3:`, since a" (cons "colon is not a portable path character." (nil String))))))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -86,6 +90,20 @@ definition{
   parameters: [],
   result: DocRows::Item,
   body: constructor{
+    arguments: [
+      (cons "SHA-256 appears in LexLean only where a format LexLean does not own requires" (cons "it: the release's `checksums.txt` and `MANIFEST.sha256` (`sha256sum` and" (cons "crates.io, §30.3), the digest the Lean release's publisher states for its bytes" (cons "(`model/authorities.toml`), the differential oracle's pin of an external" (cons "checkout (§17.19), and the standard library's `Sha256` module, which is a" (cons "function LexLean offers and never an identity it computes. `audit-hashes`" (cons "refuses any other (`AR-15`)." (nil String))))))))
+    ],
+    constructor: DocRows::Item.para,
+    type_arguments: []
+  },
+  executable: true
+}
+
+definition{
+  name: i0008,
+  parameters: [],
+  result: DocRows::Item,
+  body: constructor{
     arguments: [3, 1, "21.2 Compiler-semantics ID"],
     constructor: DocRows::Item.heading,
     type_arguments: []
@@ -94,7 +112,7 @@ definition{
 }
 
 definition{
-  name: i0008,
+  name: i0009,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -106,13 +124,13 @@ definition{
 }
 
 definition{
-  name: i0009,
+  name: i0010,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
     arguments: [
       "toml",
-      (cons "spec = \"lexlean/compiler-semantics/1\"" (cons "language = \"1.0\"" (cons "project_schema = \"lexlean/project/1\"" (cons "lock_schema = \"lexlean/lock/1\"" (cons "lexicon_schema = \"lexlean/lexicon/1\"" (cons "entry_schema = \"lexlean/entry/1\"" (cons "lean_backend = \"3\"" (cons "latex_backend = \"2\"" (cons "proof_lowering = \"1\"" (cons "axiom_parser = \"lean-4.32.1/2\"" (cons "canonical_json = \"1\"" (nil String))))))))))))
+      (cons "spec = \"lexlean/compiler-semantics/1\"" (cons "language = \"1.0\"" (cons "project_schema = \"lexlean/project/2\"" (cons "lock_schema = \"lexlean/lock/3\"" (cons "lexicon_schema = \"lexlean/lexicon/1\"" (cons "entry_schema = \"lexlean/entry/1\"" (cons "lean_backend = \"3\"" (cons "latex_backend = \"2\"" (cons "proof_lowering = \"1\"" (cons "axiom_parser = \"lean-4.32.2/2\"" (cons "canonical_json = \"1\"" (nil String))))))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -121,7 +139,7 @@ definition{
 }
 
 definition{
-  name: i0010,
+  name: i0011,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -135,7 +153,7 @@ definition{
 }
 
 definition{
-  name: i0011,
+  name: i0012,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -149,7 +167,7 @@ definition{
 }
 
 definition{
-  name: i0012,
+  name: i0013,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -161,7 +179,7 @@ definition{
 }
 
 definition{
-  name: i0013,
+  name: i0014,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -175,7 +193,7 @@ definition{
 }
 
 definition{
-  name: i0014,
+  name: i0015,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -189,12 +207,12 @@ definition{
 }
 
 definition{
-  name: i0015,
+  name: i0016,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "A file of the tree contributes its bytes, except that a `.lex.tex` source whose" (cons "semantic, tooling, or core module is written in the authoring notation (§17.21)" (cons "contributes the same source with that module written as its data form, the" (cons "`\\semanticdata{…}`, `\\toolingdata{…}`, or `\\coredata{…}` argument of canonical JSON that the" (cons "source had before the notation existed. The two forms read to one module, so" (cons "the form a normative source is written in is not part of what the compiler" (cons "means: moving a source of the tree to the notation, or back, changes no" (cons "compiler-semantics ID, and changing the module it holds changes the ID in" (cons "either form (`AU-06`). The identity a preservation record states for the native" (cons "library (`library.registry_sha256`, §17.17) is taken the same way, over the" (cons "module list and each native source as its data form, so moving a library module" (cons "to the notation changes no verification record (`AU-06`)." (nil String)))))))))))))
+      (cons "A file of the tree contributes its bytes, except that a `.lex.tex` source whose" (cons "semantic, tooling, or core module is written in the authoring notation (§17.21)" (cons "contributes the same source with that module written as its data form, the" (cons "`\\semanticdata{…}`, `\\toolingdata{…}`, or `\\coredata{…}` argument of canonical JSON that the" (cons "source had before the notation existed. The two forms read to one module, so" (cons "the form a normative source is written in is not part of what the compiler" (cons "means: moving a source of the tree to the notation, or back, changes no" (cons "compiler-semantics ID, and changing the module it holds changes the ID in" (cons "either form (`AU-06`). The identity a preservation record states for the native" (cons "library (`library.registry_kappa`, §17.17) is taken the same way, over the" (cons "module list and each native source as its data form, so moving a library module" (cons "to the notation changes no verification record (`AU-06`)." (nil String)))))))))))))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -203,7 +221,7 @@ definition{
 }
 
 definition{
-  name: i0016,
+  name: i0017,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -217,7 +235,7 @@ definition{
 }
 
 definition{
-  name: i0017,
+  name: i0018,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -229,7 +247,7 @@ definition{
 }
 
 definition{
-  name: i0018,
+  name: i0019,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -241,13 +259,13 @@ definition{
 }
 
 definition{
-  name: i0019,
+  name: i0020,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
     arguments: [
       "text",
-      (cons "SHA256(" (cons "  \"lexlean-source-v1\\0\"" (cons "  || frame(\"project\", canonical_project_toml_bytes)" (cons "  || frame(\"lock\", canonical_lock_bytes)" (cons "  || for each selected module/import-closure source in sorted path order:" (cons "       frame(\"path\", project_relative_path_utf8)" (cons "       || frame(\"source\", normalized_source_bytes)" (cons ")" (nil String)))))))))
+      (cons "KAPPA(" (cons "  \"lexlean-source-v2\\0\"" (cons "  || frame(\"project\", canonical_project_toml_bytes)" (cons "  || frame(\"lock\", canonical_lock_bytes)" (cons "  || for each selected module/import-closure source in sorted path order:" (cons "       frame(\"path\", project_relative_path_utf8)" (cons "       || frame(\"source\", normalized_source_bytes)" (cons ")" (nil String)))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -256,7 +274,7 @@ definition{
 }
 
 definition{
-  name: i0020,
+  name: i0021,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -270,7 +288,7 @@ definition{
 }
 
 definition{
-  name: i0021,
+  name: i0022,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -282,7 +300,7 @@ definition{
 }
 
 definition{
-  name: i0022,
+  name: i0023,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -294,13 +312,13 @@ definition{
 }
 
 definition{
-  name: i0023,
+  name: i0024,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
     arguments: [
       "text",
-      (cons "SHA256(" (cons "  \"lexlean-semantic-v1\\0\"" (cons "  || frame(\"compiler-semantics\", compiler_semantics_digest_bytes)" (cons "  || frame(\"language\", \"1.0\")" (cons "  || frame(\"toolchain\", \"leanprover/lean4:v4.32.1\")" (cons "  || frame(\"linked-ir\", canonical_linked_ir_json)" (cons "  || frame(\"lexicon-closure\", canonical_linked_lexicon_json)" (cons ")" (nil String)))))))))
+      (cons "KAPPA(" (cons "  \"lexlean-semantic-v2\\0\"" (cons "  || frame(\"compiler-semantics\", compiler_semantics_label)" (cons "  || frame(\"language\", \"1.0\")" (cons "  || frame(\"toolchain\", \"leanprover/lean4:v4.32.2\")" (cons "  || frame(\"linked-ir\", canonical_linked_ir_json)" (cons "  || frame(\"lexicon-closure\", canonical_linked_lexicon_json)" (cons ")" (nil String)))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -309,7 +327,7 @@ definition{
 }
 
 definition{
-  name: i0024,
+  name: i0025,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -323,7 +341,7 @@ definition{
 }
 
 definition{
-  name: i0025,
+  name: i0026,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -335,7 +353,7 @@ definition{
 }
 
 definition{
-  name: i0026,
+  name: i0027,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -349,13 +367,13 @@ definition{
 }
 
 definition{
-  name: i0027,
+  name: i0028,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
     arguments: [
       "text",
-      (cons "SHA256(" (cons "  \"lexlean-build-v1\\0\"" (cons "  || frame(\"source-id\", source_id_bytes)" (cons "  || frame(\"semantic-id\", semantic_id_bytes)" (cons ")" (nil String))))))
+      (cons "KAPPA(" (cons "  \"lexlean-build-v2\\0\"" (cons "  || frame(\"source-id\", source_id_label)" (cons "  || frame(\"semantic-id\", semantic_id_label)" (cons ")" (nil String))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -364,7 +382,7 @@ definition{
 }
 
 definition{
-  name: i0028,
+  name: i0029,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -376,7 +394,7 @@ definition{
 }
 
 definition{
-  name: i0029,
+  name: i0030,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -388,7 +406,7 @@ definition{
 }
 
 definition{
-  name: i0030,
+  name: i0031,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -400,7 +418,7 @@ definition{
 }
 
 definition{
-  name: i0031,
+  name: i0032,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -415,7 +433,7 @@ definition{
 }
 
 definition{
-  name: i0032,
+  name: i0033,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -429,7 +447,7 @@ definition{
 }
 
 definition{
-  name: i0033,
+  name: i0034,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -443,7 +461,7 @@ definition{
 }
 
 definition{
-  name: i0034,
+  name: i0035,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -455,7 +473,7 @@ definition{
 }
 
 definition{
-  name: i0035,
+  name: i0036,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -467,29 +485,15 @@ definition{
 }
 
 definition{
-  name: i0036,
-  parameters: [],
-  result: DocRows::Item,
-  body: constructor{
-    arguments: [
-      "json",
-      (cons "{" (cons "  \"spec\": \"lexlean/build-manifest/1\"," (cons "  \"compiler\": {" (cons "    \"version\": \"1.0.0\"," (cons "    \"semantics_id\": \"...\"" (cons "  }," (cons "  \"language\": \"1.0\"," (cons "  \"project\": \"example-project\"," (cons "  \"source_id\": \"...\"," (cons "  \"semantic_id\": \"...\"," (cons "  \"build_id\": \"...\"," (cons "  \"lean_toolchain\": \"leanprover/lean4:v4.32.1\"," (cons "  \"selection\": []," (cons "  \"modules\": []," (cons "  \"inputs\": []," (cons "  \"outputs\": []" (cons "}" (nil String))))))))))))))))))
-    ],
-    constructor: DocRows::Item.fence,
-    type_arguments: []
-  },
-  executable: true
-}
-
-definition{
   name: i0037,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "Each output row contains kind, project/build-relative path, byte length, and SHA-256. Rows sort by `(kind, path)`." (nil String))
+      "json",
+      (cons "{" (cons "  \"spec\": \"lexlean/build-manifest/2\"," (cons "  \"compiler\": {" (cons "    \"version\": \"1.0.0\"," (cons "    \"semantics_id\": \"...\"" (cons "  }," (cons "  \"language\": \"1.0\"," (cons "  \"project\": \"example-project\"," (cons "  \"source_id\": \"...\"," (cons "  \"semantic_id\": \"...\"," (cons "  \"build_id\": \"...\"," (cons "  \"lean_toolchain\": \"leanprover/lean4:v4.32.2\"," (cons "  \"selection\": []," (cons "  \"modules\": []," (cons "  \"inputs\": []," (cons "  \"outputs\": []" (cons "}" (nil String))))))))))))))))))
     ],
-    constructor: DocRows::Item.para,
+    constructor: DocRows::Item.fence,
     type_arguments: []
   },
   executable: true
@@ -501,7 +505,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "In language 1.2, every configured model artifact (§10.1, §17.12) is an" (cons "`inputs` row of kind `model-artifact` with its project-relative path, byte" (cons "length, and SHA-256, so the bytes a build's typed artifact values were" (cons "decoded from are named by the manifest." (nil String)))))
+      (cons "Each output row contains kind, project/build-relative path, byte length, and κ-label. Rows sort by `(kind, path)`." (nil String))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -515,7 +519,7 @@ definition{
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "The manifest does not contain its own hash. A verification attestation records the exact manifest-file hash." (nil String))
+      (cons "In language 1.2, every configured model artifact (§10.1, §17.12) is an" (cons "`inputs` row of kind `model-artifact` with its project-relative path, byte" (cons "length, and κ-label, so the bytes a build's typed artifact values were" (cons "decoded from are named by the manifest." (nil String)))))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -528,6 +532,20 @@ definition{
   parameters: [],
   result: DocRows::Item,
   body: constructor{
+    arguments: [
+      (cons "The manifest does not contain its own hash. A verification attestation records the exact manifest-file hash." (nil String))
+    ],
+    constructor: DocRows::Item.para,
+    type_arguments: []
+  },
+  executable: true
+}
+
+definition{
+  name: i0041,
+  parameters: [],
+  result: DocRows::Item,
+  body: constructor{
     arguments: [3, 1, "21.7 Canonical JSON"],
     constructor: DocRows::Item.heading,
     type_arguments: []
@@ -536,7 +554,7 @@ definition{
 }
 
 definition{
-  name: i0041,
+  name: i0042,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -548,7 +566,7 @@ definition{
 }
 
 definition{
-  name: i0042,
+  name: i0043,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -562,7 +580,7 @@ definition{
 }
 
 definition{
-  name: i0043,
+  name: i0044,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -574,7 +592,7 @@ definition{
 }
 
 definition{
-  name: i0044,
+  name: i0045,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -586,7 +604,7 @@ definition{
 }
 
 definition{
-  name: i0045,
+  name: i0046,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -598,7 +616,7 @@ definition{
 }
 
 definition{
-  name: i0046,
+  name: i0047,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -612,7 +630,7 @@ definition{
 }
 
 definition{
-  name: i0047,
+  name: i0048,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -626,7 +644,7 @@ definition{
 }
 
 definition{
-  name: i0048,
+  name: i0049,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -640,7 +658,7 @@ definition{
 }
 
 definition{
-  name: i0049,
+  name: i0050,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -652,7 +670,7 @@ definition{
 }
 
 definition{
-  name: i0050,
+  name: i0051,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -666,7 +684,7 @@ definition{
 }
 
 definition{
-  name: i0051,
+  name: i0052,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -680,7 +698,7 @@ definition{
 }
 
 definition{
-  name: i0052,
+  name: i0053,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -694,13 +712,13 @@ definition{
 }
 
 definition{
-  name: i0053,
+  name: i0054,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
     arguments: [
       "text",
-      (cons "group_digest(G) = SHA256(" (cons "  \"lexlean-declaration-group-v1\u0000\"" (cons "  || frame(\"compiler-semantics\", compiler_semantics_digest_bytes)" (cons "  || frame(\"language\", \"1.2\")" (cons "  || frame(\"toolchain\", \"leanprover/lean4:v4.32.1\")" (cons "  || for each member of G in (module, name) order:" (cons "       frame(\"declaration\", canonical_declaration_json)" (cons "  || for each reference from a member of G to a declaration outside G," (cons "     once each, in (module, name) order:" (cons "       [frame(\"reference-module\", module_utf8), when it is another module's]" (cons "       || frame(\"reference\", name_utf8)" (cons "       || frame(\"reference-id\", declaration_id_bytes)" (cons ")" (cons "" (cons "declaration_id(D in G) = SHA256(" (cons "  \"lexlean-declaration-v1\u0000\"" (cons "  || frame(\"group\", group_digest(G))" (cons "  || frame(\"name\", name_utf8)" (cons ")" (nil String))))))))))))))))))))
+      (cons "group_digest(G) = KAPPA(" (cons "  \"lexlean-declaration-group-v2\u0000\"" (cons "  || frame(\"compiler-semantics\", compiler_semantics_label)" (cons "  || frame(\"language\", \"1.2\")" (cons "  || frame(\"toolchain\", \"leanprover/lean4:v4.32.2\")" (cons "  || for each member of G in (module, name) order:" (cons "       frame(\"declaration\", canonical_declaration_json)" (cons "  || for each reference from a member of G to a declaration outside G," (cons "     once each, in (module, name) order:" (cons "       [frame(\"reference-module\", module_utf8), when it is another module's]" (cons "       || frame(\"reference\", name_utf8)" (cons "       || frame(\"reference-id\", declaration_id_label)" (cons ")" (cons "" (cons "declaration_id(D in G) = KAPPA(" (cons "  \"lexlean-declaration-v2\u0000\"" (cons "  || frame(\"group\", group_digest(G))" (cons "  || frame(\"name\", name_utf8)" (cons ")" (nil String))))))))))))))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -709,7 +727,7 @@ definition{
 }
 
 definition{
-  name: i0054,
+  name: i0055,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -723,13 +741,13 @@ definition{
 }
 
 definition{
-  name: i0055,
+  name: i0056,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
     arguments: [
       "text",
-      (cons "statement_id(T) = SHA256(" (cons "  \"lexlean-statement-v1\u0000\"" (cons "  || frame(\"compiler-semantics\", compiler_semantics_digest_bytes)" (cons "  || frame(\"language\", \"1.2\")" (cons "  || frame(\"toolchain\", \"leanprover/lean4:v4.32.1\")" (cons "  || frame(\"statement\", canonical_declaration_json_without_proof)" (cons "  || for each reference of that JSON, other than T itself, in (module, name)" (cons "     order, framed as for a group" (cons ")" (nil String))))))))))
+      (cons "statement_id(T) = KAPPA(" (cons "  \"lexlean-statement-v2\u0000\"" (cons "  || frame(\"compiler-semantics\", compiler_semantics_label)" (cons "  || frame(\"language\", \"1.2\")" (cons "  || frame(\"toolchain\", \"leanprover/lean4:v4.32.2\")" (cons "  || frame(\"statement\", canonical_declaration_json_without_proof)" (cons "  || for each reference of that JSON, other than T itself, in (module, name)" (cons "     order, framed as for a group" (cons ")" (nil String))))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -738,7 +756,7 @@ definition{
 }
 
 definition{
-  name: i0056,
+  name: i0057,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
@@ -752,13 +770,13 @@ definition{
 }
 
 definition{
-  name: i0057,
+  name: i0058,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
     arguments: [
       "json",
-      (cons "{" (cons "  \"spec\": \"lexlean/declarations/1\"," (cons "  \"module\": \"Main\"," (cons "  \"declarations\": [" (cons "    {\"name\": \"judge\", \"kind\": \"definition\", \"id\": \"...\", \"references\": [{\"name\": \"small\"}]}," (cons "    {\"name\": \"judge_five\", \"kind\": \"theorem\", \"id\": \"...\", \"statement_id\": \"...\", \"references\": [{\"name\": \"judge\"}]}" (cons "  ]" (cons "}" (nil String)))))))))
+      (cons "{" (cons "  \"spec\": \"lexlean/declarations/2\"," (cons "  \"module\": \"Main\"," (cons "  \"declarations\": [" (cons "    {\"name\": \"judge\", \"kind\": \"definition\", \"id\": \"...\", \"references\": [{\"name\": \"small\"}]}," (cons "    {\"name\": \"judge_five\", \"kind\": \"theorem\", \"id\": \"...\", \"statement_id\": \"...\", \"references\": [{\"name\": \"judge\"}]}" (cons "  ]" (cons "}" (nil String)))))))))
     ],
     constructor: DocRows::Item.fence,
     type_arguments: []
@@ -767,12 +785,12 @@ definition{
 }
 
 definition{
-  name: i0058,
+  name: i0059,
   parameters: [],
   result: DocRows::Item,
   body: constructor{
     arguments: [
-      (cons "Declarations are listed in source order; each row's `references` are its" (cons "references to project declarations in `(module, name)` order, with `module`" (cons "only for another module's. The schema is" (cons "`api/schemas/declarations.schema.json`. It lies outside `schemas/` and so" (cons "outside the compiler-semantics ID, like the schemas of §24.7, and its SHA-256" (cons "is recorded under its spec in `api/schemas/versions.toml`: the IDs are derived" (cons "from what the compiler computes and change nothing it computes. A language-1.0" (cons "or 1.1 build publishes no declarations file, so their output is unchanged." (nil String)))))))))
+      (cons "Declarations are listed in source order; each row's `references` are its" (cons "references to project declarations in `(module, name)` order, with `module`" (cons "only for another module's. The schema is" (cons "`api/schemas/declarations.schema.json`. It lies outside `schemas/` and so" (cons "outside the compiler-semantics ID, like the schemas of §24.7, and its κ-label" (cons "is recorded under its spec in `api/schemas/versions.toml`: the IDs are derived" (cons "from what the compiler computes and change nothing it computes. A language-1.0" (cons "or 1.1 build publishes no declarations file, so their output is unchanged." (nil String)))))))))
     ],
     constructor: DocRows::Item.para,
     type_arguments: []
@@ -781,7 +799,7 @@ definition{
 }
 
 definition{
-  name: i0059,
+  name: i0060,
   parameters: [],
   result: DocRows::Item,
   body: constructor{

@@ -9,10 +9,15 @@
 # request's branch as a fast-forward, dispatches `ci.yml` there (a push with
 # the workflow token starts no `pull_request` run), and deletes the
 # `regenerate/` branch: the landing needs no patch handled by hand. Otherwise
-# the patch is the run's artifact, as before:
+# the patch set is the run's artifact, as before:
 #
-#   gh run download <run> --name regenerated-<commit>
-#   git apply --index regenerated.patch
+#   gh run download <run> --name regenerated-<commit> --dir regenerated
+#   python3 .github/scripts/patch_set.py apply --dir regenerated --name regenerated --base <commit>
+#
+# Every change passes between jobs as a bounded patch set
+# (`.github/scripts/patch_set.py`): parts cut between whole file diffs, each
+# below Git's 1023 MiB patch limit, bound to the commit and to the trees
+# before and after, and checked whole before any part is applied (#624).
 #
 # A push to `regenerate/**` starts it from any commit, because GitHub
 # dispatches only a workflow its default branch carries. `cut.yml` calls it on
@@ -54,7 +59,7 @@ jobs:
   # it (`just relock-identity`): the identity-only lock relocks,
   # `LANGUAGE_1_2_SEMANTICS_ID`, and the descriptor pins of the production
   # requests. Every writer starts from this tree; an ID that did not move
-  # returns an empty patch.
+  # returns a set of no parts.
   identity:
     name: relock identity
     if: github.repository == 'UOR-Foundation/LexLean'
@@ -81,13 +86,14 @@ jobs:
         run: just relock-identity
       - name: Capture what it wrote
         shell: bash
+        env:
+          COMMIT: ${{ inputs.ref || github.sha }}
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/identity"
           git add --all
-          git diff --cached --binary > "$RUNNER_TEMP/identity/identity.patch"
-          git diff --cached --name-only | tee "$RUNNER_TEMP/identity/identity.files"
-          echo "identity: $(wc -l < "$RUNNER_TEMP/identity/identity.files") paths" >> "$GITHUB_STEP_SUMMARY"
+          # The relocked identity as a bounded patch set on the commit's tree:
+          # the tree it gives is the start tree of every writer's set.
+          python3 .github/scripts/patch_set.py write --name identity --base "$COMMIT" --out "$RUNNER_TEMP/identity" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: regenerate-part-identity
@@ -126,10 +132,13 @@ jobs:
       # recipes wrote; `combine` applies the identity first.
       - name: Start from the relocked identity
         shell: bash
+        env:
+          COMMIT: ${{ inputs.ref || github.sha }}
         run: |
           set -euo pipefail
-          if [ -s "$RUNNER_TEMP/identity/identity.patch" ]; then
-            git apply --index "$RUNNER_TEMP/identity/identity.patch"
+          # The set is checked whole and applied to the commit's own tree.
+          python3 .github/scripts/patch_set.py apply --dir "$RUNNER_TEMP/identity" --name identity --base "$COMMIT"
+          if ! git diff --cached --quiet; then
             git -c user.name=regenerate -c user.email=regenerate@localhost commit --quiet --no-verify -m identity
           fi
       - name: Install the pinned Rust toolchain
@@ -151,6 +160,13 @@ jobs:
           sudo mkswap "$RUNNER_TEMP/lexlean-regenerate.swap"
           sudo swapon "$RUNNER_TEMP/lexlean-regenerate.swap"
           sudo sysctl vm.swappiness=10
+      - name: Refresh the project locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo build -q -p lexlean
+          L="$PWD/target/debug/lexlean"
+          for p in bootstrap stdlib compiler; do (cd "$p" && "$L" lock); done
       - name: Run the write recipes
         shell: bash
         env:
@@ -170,13 +186,20 @@ jobs:
           just --timestamp --timestamp-format '%s%.3f' $recipes
       - name: Capture what the recipes wrote
         shell: bash
+        env:
+          COMMIT: ${{ inputs.ref || github.sha }}
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/part"
           git add --all
-          git diff --cached --binary > "$RUNNER_TEMP/part/${{ matrix.writer }}.patch"
-          git diff --cached --name-only | tee "$RUNNER_TEMP/part/${{ matrix.writer }}.files"
-          echo "${{ matrix.writer }}: $(wc -l < "$RUNNER_TEMP/part/${{ matrix.writer }}.files") paths" >> "$GITHUB_STEP_SUMMARY"
+          # Every writer refreshes the locks, because its recipes read them; one
+          # writer reports them, or `combine` sees three parts write one path.
+          if [ "${{ matrix.writer }}" != production-export ]; then
+            git reset -q -- bootstrap/lexlean.lock stdlib/lexlean.lock compiler/lexlean.lock
+          fi
+          # The staged change as a bounded patch set: no renames, so every
+          # path a part touches is named; NUL-delimited paths, including
+          # legal newline filenames.
+          python3 .github/scripts/patch_set.py write --name "${{ matrix.writer }}" --base "$COMMIT" --out "$RUNNER_TEMP/part" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: regenerate-part-${{ matrix.writer }}
@@ -202,19 +225,30 @@ jobs:
           pattern: regenerate-part-*
           path: ${{ runner.temp }}/parts
           merge-multiple: true
+      - name: Exercise writer ownership regression controls
+        run: python3 -m unittest discover -s .github/scripts -p 'test_check_regen_writers.py' -v
+      - name: Exercise the bounded patch-set controls
+        run: python3 -m unittest discover -s .github/scripts -p 'test_patch_set.py' -v
+      - name: Exercise transferred-export environment guard checks
+        run: python3 -m unittest discover -s .github/scripts -p 'test_export_custody_guard.py' -v
+      - name: Reject overlapping or unaccounted writer paths
+        shell: bash
+        env:
+          COMMIT: ${{ inputs.ref || github.sha }}
+        run: python3 .github/scripts/check_regen_writers.py --parts-dir "$RUNNER_TEMP/parts" --base "$COMMIT" --identity identity
       - name: Apply every part
         shell: bash
+        env:
+          COMMIT: ${{ inputs.ref || github.sha }}
         run: |
           set -euo pipefail
-          for part in identity production-export records oracles; do
-            # A writer that changed nothing returns an empty patch.
-            if [ -s "$RUNNER_TEMP/parts/$part.patch" ]; then
-              git apply --index "$RUNNER_TEMP/parts/$part.patch"
-            fi
-          done
-          mkdir -p "$RUNNER_TEMP/combined"
-          git diff --cached --binary > "$RUNNER_TEMP/combined/combined.patch"
-          echo "combined: $(git diff --cached --name-only | wc -l) paths" >> "$GITHUB_STEP_SUMMARY"
+          # Each set is checked whole again: the identity applied to the
+          # commit's tree, then the writers' sets in turn, after which the
+          # index is each writer's tree on its paths and the identity's
+          # elsewhere.
+          python3 .github/scripts/patch_set.py apply --dir "$RUNNER_TEMP/parts" --name identity --base "$COMMIT" | tee -a "$GITHUB_STEP_SUMMARY"
+          python3 .github/scripts/patch_set.py combine --dir "$RUNNER_TEMP/parts" --names production-export,records,oracles --base "$COMMIT" | tee -a "$GITHUB_STEP_SUMMARY"
+          python3 .github/scripts/patch_set.py write --name combined --base "$COMMIT" --out "$RUNNER_TEMP/combined" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: regenerate-combined
@@ -260,11 +294,9 @@ jobs:
           path: ${{ runner.temp }}/combined
       - name: Apply the regenerated tree
         shell: bash
-        run: |
-          set -euo pipefail
-          if [ -s "$RUNNER_TEMP/combined/combined.patch" ]; then
-            git apply --index "$RUNNER_TEMP/combined/combined.patch"
-          fi
+        env:
+          COMMIT: ${{ inputs.ref || github.sha }}
+        run: python3 .github/scripts/patch_set.py apply --dir "$RUNNER_TEMP/combined" --name combined --base "$COMMIT"
       - name: Write the moved counts
         shell: bash
         run: |
@@ -309,6 +341,11 @@ jobs:
           # cores go to a plain file under a zero limit: none is written.
           sudo sysctl -w kernel.core_pattern=core
           ulimit -c 0
+          # A runner that runs out of memory loses its agent and leaves no log
+          # of why, so the free memory goes to the log once a minute.
+          ( while true; do echo "memory $(date -u +%H:%M:%S) $(free -m | awk '/^Mem:/ {print "used=" $3 "M available=" $7 "M"} /^Swap:/ {print "swap=" $3 "M"}' | tr '\n' ' ')"; sleep 60; done ) &
+          trace=$!
+          trap 'kill "$trace" 2>/dev/null || true' EXIT
           # Rows for packages no longer in the exports are dropped; for each
           # recursive package without a row, the case whose source names its
           # root runs whole and measures it (`LEXLEAN_MEASURE_STACK=all`).
@@ -359,8 +396,84 @@ jobs:
             exit 0
           fi
           echo "measuring: $cases" | tee -a "$GITHUB_STEP_SUMMARY"
-          LEXLEAN_MEASURE_STACK=all cargo test -p repo-conformance --all-features --test conformance -- $cases --nocapture 2>&1 \
-            | grep -E --line-buffered 'debug [0-9]+ bytes|test result|panicked|^test '
+          # Three runs on 2026-11-14 lost their runner while several of these
+          # cases measured at once. Alone, BS-36 left 7 GiB of this runner's
+          # 16 GiB available and BS-72 measured 10 to 12 GiB, so these run one
+          # at a time and the rest two at a time.
+          heavy="conformance_bs_36 conformance_bs_69 conformance_bs_70 conformance_bs_71 conformance_bs_72"
+          light=""
+          heavy_cases=""
+          for case in $cases; do
+            is_heavy=0
+            for h in $heavy; do
+              if [ "$case" = "$h" ]; then
+                is_heavy=1
+                break
+              fi
+            done
+            if [ "$is_heavy" = 1 ]; then
+              heavy_cases="$heavy_cases $case"
+            else
+              light="$light $case"
+            fi
+          done
+          # A job's own 360-minute limit cancels this step outright if it is
+          # reached, and a cancelled job skips every later step, so the tree
+          # never returns and a row measured seconds before the limit is
+          # lost with everything else. Each row is instead written to
+          # tests/stack-bounds.json as it is measured (stack_bounds.rs
+          # record_row/rewrite), so a step that fails, rather than being
+          # cancelled, still returns whatever is already on disk. Stop
+          # ourselves inside a budget comfortably under the job's own limit,
+          # so a run that cannot finish everything fails cleanly instead of
+          # being cancelled, and keeps every row it reached.
+          step_start=$(date +%s)
+          deadline_s=$((320 * 60))
+          overall_status=0
+          remaining() {
+            local now elapsed left
+            now=$(date +%s)
+            elapsed=$((now - step_start))
+            left=$((deadline_s - elapsed))
+            if [ "$left" -lt 0 ]; then
+              left=0
+            fi
+            echo "$left"
+          }
+          if [ -n "$light" ]; then
+            left=$(remaining)
+            if [ "$left" -gt 0 ]; then
+              echo "measuring (threads=2, budget ${left}s): $light" | tee -a "$GITHUB_STEP_SUMMARY"
+              if ! timeout "${left}s" env LEXLEAN_MEASURE_STACK=all cargo test -p repo-conformance --all-features --test conformance -- $light --test-threads=2 --nocapture 2>&1 \
+                | grep -E --line-buffered 'debug [0-9]+ bytes|test result|panicked|^test '; then
+                overall_status=1
+              fi
+            else
+              echo "no time left in the ${deadline_s}s budget; skipping: $light" | tee -a "$GITHUB_STEP_SUMMARY"
+              overall_status=1
+            fi
+          fi
+          # Heavy cases already run one at a time; looping them individually
+          # (instead of one --test-threads=1 invocation over all of them)
+          # costs nothing and prints exactly when each one starts and ends.
+          for case in $heavy_cases; do
+            left=$(remaining)
+            if [ "$left" -le 0 ]; then
+              echo "no time left in the ${deadline_s}s budget; skipping: $case" | tee -a "$GITHUB_STEP_SUMMARY"
+              overall_status=1
+              continue
+            fi
+            started=$(date +%s)
+            echo "$case: started $(date -u +%H:%M:%S) (threads=1, budget ${left}s)" | tee -a "$GITHUB_STEP_SUMMARY"
+            if ! timeout "${left}s" env LEXLEAN_MEASURE_STACK=all cargo test -p repo-conformance --all-features --test conformance -- "$case" --test-threads=1 --nocapture 2>&1 \
+              | grep -E --line-buffered 'debug [0-9]+ bytes|test result|panicked|^test '; then
+              overall_status=1
+            fi
+            ended=$(date +%s)
+            mins=$(( (ended - started) / 60 ))
+            echo "$case: ended $(date -u +%H:%M:%S), ${mins}m" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+          exit "$overall_status"
       - name: Return the regenerated tree
         if: ${{ !cancelled() }}
         shell: bash
@@ -371,10 +484,14 @@ jobs:
           out="$RUNNER_TEMP/regenerated"
           mkdir -p "$out"
           git add --all
-          git diff --cached --binary > "$out/regenerated.patch"
+          python3 .github/scripts/patch_set.py write --name regenerated --base "$COMMIT" --out "$out"
           git diff --cached --name-only > "$out/regenerated-files.txt"
           echo "$COMMIT" > "$out/base-commit.txt"
-          (cd "$out" && sha256sum regenerated.patch regenerated-files.txt base-commit.txt > SHA256SUMS)
+          # Every file of the artifact, so `deliver` refuses one missing,
+          # altered, or added. It binds the files to each other, not to their
+          # producer: the run's own artifact store is what this trusts.
+          (cd "$out" && find . -mindepth 1 -maxdepth 1 -type f ! -name SHA256SUMS -printf '%P\0' \
+            | LC_ALL=C sort -z | xargs -0 sha256sum > SHA256SUMS)
           {
             echo "### Regenerated $(wc -l < "$out/regenerated-files.txt") paths on $COMMIT"
             echo
@@ -385,8 +502,8 @@ jobs:
               echo '```'
             fi
             echo '```bash'
-            echo "gh run download $GITHUB_RUN_ID --repo $GITHUB_REPOSITORY --name regenerated-$COMMIT"
-            echo "git apply --index regenerated.patch"
+            echo "gh run download $GITHUB_RUN_ID --repo $GITHUB_REPOSITORY --name regenerated-$COMMIT --dir regenerated"
+            echo "python3 .github/scripts/patch_set.py apply --dir regenerated --name regenerated --base $COMMIT"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

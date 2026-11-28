@@ -3,10 +3,9 @@
 use std::collections::BTreeSet;
 use std::process::Command;
 
-use sha2::Digest;
-
 use crate::support::{self, P};
 
+mod arrays;
 mod boolean;
 mod bytes;
 mod declaration_ids;
@@ -57,6 +56,24 @@ theorem{
     }
 }
 
+fn depth_fixture(name: &str) -> String {
+    std::fs::read_to_string(
+        support::repo_root()
+            .join("tests/semantic-json-depth")
+            .join(name),
+    )
+    .expect("committed semantic JSON depth fixture")
+}
+
+/// A module whose one definition is a list of `cells` elements.
+fn list_source(cells: usize) -> String {
+    format!(
+        "\\begin{{lexlean}}{{Main}}\n\\useglossary{{lexlean.std.nat@1.2.0}}\n\\title{{Natural number addition}}\n\\begin{{semanticmodule}}\ndefinition{{ name: xs, parameters: [], result: (List Nat), body: {}(nil Nat){} }}\n\\end{{semanticmodule}}\n\\end{{lexlean}}\n",
+        "(cons 1 ".repeat(cells),
+        ")".repeat(cells)
+    )
+}
+
 fn semantic_json_depth_diagnostic() {
     let project = P::example();
     project.edit("lexlean.toml", "language = \"1.0\"", "language = \"1.2\"");
@@ -64,80 +81,199 @@ fn semantic_json_depth_diagnostic() {
     let stack_bytes = support::limits_of(&project)
         .compile_stack_plan()
         .stack_bytes;
-    std::thread::Builder::new()
+    let project = std::thread::Builder::new()
         .stack_size(stack_bytes)
-        .spawn(move || semantic_json_depth_diagnostic_on_stack(&project))
+        .spawn(move || {
+            semantic_json_depth_diagnostic_on_stack(&project);
+            project
+        })
         .expect("reader test thread")
         .join()
         .expect("semantic JSON depth assertions");
+
+    // A list of 1000 cells nests past every bounded reader's 128 levels. The
+    // build and the snapshot run after the compile thread, on their caller's
+    // stack: the CLI's main thread, and an SDK caller's default 2 MiB thread.
+    project.write("src/Main.lex.tex", &depth_fixture("list-1000.lex.tex"));
+    project.relock();
+    let (code, stdout, stderr) = project.cli(&["build"]);
+    assert_eq!(code, 0, "a list of 1000 cells builds: {stdout}{stderr}");
+    let engine = project.engine();
+    let bytes = std::thread::Builder::new()
+        .stack_size(2 << 20)
+        .spawn(move || {
+            let snapshot = engine
+                .snapshot(lexlean::CheckRequest {
+                    selection: lexlean::Selection::Entrypoints,
+                })
+                .expect("a list of 1000 cells has a snapshot");
+            let bytes = snapshot.canonical_bytes();
+            assert_eq!(
+                snapshot.snapshot_id(),
+                lexlean::Kappa::of(&bytes),
+                "the snapshot ID is the digest of its canonical bytes"
+            );
+            bytes
+        })
+        .expect("snapshot caller thread")
+        .join()
+        .expect("the snapshot of a list of 1000 cells is written without a panic");
+    let text = String::from_utf8(bytes).expect("UTF-8");
+    let depth = lexlean::production::lower::json_depth(&text);
+    assert!(
+        depth > 1000,
+        "the snapshot carries the whole list ({depth} levels)"
+    );
+
+    // The authoring API reads, converts, and writes the same module for a
+    // caller on a default 2 MiB stack, and refuses one nested past its bound.
+    std::thread::Builder::new()
+        .stack_size(2 << 20)
+        .spawn(|| {
+            let source = depth_fixture("list-1000.lex.tex");
+            let value = lexlean::sdk::read_module(&source).expect("the API reads 1000 cells");
+            let data = lexlean::sdk::to_data_form(&source).expect("to the data form");
+            assert_eq!(
+                lexlean::sdk::read_module(&data).expect("the data form reads"),
+                value
+            );
+            let notation = lexlean::sdk::to_notation(&data).expect("back to the notation");
+            assert_eq!(
+                lexlean::sdk::read_module(&notation).expect("it reads"),
+                value
+            );
+            let written = lexlean::sdk::write_module(&source, &value).expect("written");
+            assert_eq!(
+                lexlean::sdk::read_module(&written).expect("it reads"),
+                value
+            );
+            let spans = lexlean::sdk::declaration_spans(&source).expect("spans");
+            assert_eq!(spans.map(|spans| spans.len()), Some(1));
+            let refused = lexlean::sdk::read_module(&depth_fixture("negative/list-1100.lex.tex"))
+                .expect_err("past the API's bound");
+            assert!(refused.message.contains("nested more deeply"), "{refused}");
+        })
+        .expect("authoring API caller thread")
+        .join()
+        .expect("the authoring API reads a list of 1000 cells on a default stack");
 }
 
 fn semantic_json_depth_diagnostic_on_stack(project: &P) {
-    let fixture = |name: &str| {
-        std::fs::read_to_string(
-            support::repo_root()
-                .join("tests/semantic-json-depth")
-                .join(name),
-        )
-        .expect("committed semantic JSON depth fixture")
-    };
-    for name in ["list-122.lex.tex", "split-list-200.lex.tex"] {
-        project.write("src/Main.lex.tex", &fixture(name));
+    for name in ["list-1000.lex.tex", "split-list-200.lex.tex"] {
+        project.write("src/Main.lex.tex", &depth_fixture(name));
         project.relock();
         project.check_ok();
     }
-    let parse_data = |data: &str| {
-        lexlean::ir::semantic::SemanticModule::parse(
+    let store = lexlean::ir::semantic::model::ArtifactStore::new(u64::MAX, u64::MAX);
+    let imported = std::collections::BTreeMap::new();
+    let parse_data = |data: &str, max_depth: Option<u64>| match max_depth {
+        Some(max_depth) => lexlean::ir::semantic::SemanticModule::parse_bounded(
             data,
             "1.2",
             "LexLeanExample",
             &[],
-            &std::collections::BTreeMap::new(),
-            &lexlean::ir::semantic::model::ArtifactStore::new(u64::MAX, u64::MAX),
-        )
+            &imported,
+            &store,
+            max_depth,
+        ),
+        None => lexlean::ir::semantic::SemanticModule::parse(
+            data,
+            "1.2",
+            "LexLeanExample",
+            &[],
+            &imported,
+            &store,
+        ),
     };
+    // Past the project's max_scope_depth (1024), the notation is refused.
     for name in [
-        "negative/list-123.lex.tex",
-        "negative/later-list-123.lex.tex",
+        "negative/list-1100.lex.tex",
+        "negative/later-list-1100.lex.tex",
     ] {
-        let source = fixture(name);
-        project.write("src/Main.lex.tex", &source);
+        project.write("src/Main.lex.tex", &depth_fixture(name));
         project.relock();
-        let error = project.check_fails_with("LLT4001");
+        let error = project.check_fails_with("LLP2001");
         let message = &error.diagnostics[0].message;
-        assert!(message.contains("128-level"), "{message}");
-        assert!(message.contains("recursion limit exceeded"), "{message}");
-        assert!(message.contains("smaller definitions"), "{message}");
-        assert!(message.contains("prim append"), "{message}");
-        assert!(
-            !message.contains("column"),
-            "generated JSON coordinates are not source positions: {message}"
-        );
-        let data_form = lexlean::sdk::to_data_form(&source).expect("notation writes to data form");
-        let data = data_form
-            .split_once("\\semanticdata{")
-            .expect("semantic data")
-            .1
-            .split_once("}\n\\end{semanticmodule}")
-            .expect("module end")
-            .0;
-        let failure = parse_data(data).expect_err("same bound on semantic JSON input");
-        assert_eq!(failure.code.as_str(), "LLT4001");
-        assert!(failure.reason.contains("prim append"));
+        assert!(message.contains("nested more deeply"), "{message}");
+        assert!(message.contains("1024 levels"), "{message}");
+        assert!(message.contains("max_scope_depth"), "{message}");
         for arguments in [vec!["check"], vec!["check", "--diagnostic-format", "json"]] {
             let (code, stdout, stderr) = project.cli(&arguments);
             assert_ne!(code, 0);
-            assert!(format!("{stdout}{stderr}").contains("prim append"));
+            assert!(format!("{stdout}{stderr}").contains("max_scope_depth"));
         }
     }
+    // The data form is bounded the same way: a list of 200 cells reads
+    // under a bound of 1024, and is refused under 150 and under the
+    // default of a reader with no project, which a default stack hosts.
+    let data_form =
+        lexlean::sdk::to_data_form(&list_source(200)).expect("notation writes to data form");
+    let data = data_form
+        .split_once("\\semanticdata{")
+        .expect("semantic data")
+        .1
+        .split_once("}\n\\end{semanticmodule}")
+        .expect("module end")
+        .0;
+    parse_data(data, Some(1024)).expect("a list of 200 cells reads under 1024 levels");
+    for max_depth in [Some(150), None] {
+        let failure = parse_data(data, max_depth).expect_err("deeper than the bound");
+        assert_eq!(failure.code.as_str(), "LLT4001");
+        assert!(failure.reason.contains("max_scope_depth"), "{failure}");
+        assert!(failure.reason.contains("prim append"), "{failure}");
+        assert!(
+            !failure.reason.contains("column"),
+            "generated JSON coordinates are not source positions: {failure}"
+        );
+    }
+    // Both bounds are the project's: under 150, a list of 145 cells (150
+    // levels of JSON) checks, its JSON is refused at 146, and its notation at
+    // 148 (two levels shallower than its JSON).
+    project.edit(
+        "lexlean.toml",
+        "max_scope_depth = 1024",
+        "max_scope_depth = 150",
+    );
+    for (cells, refusal) in [
+        (145, None),
+        (146, Some(("LLT4001", "150 that max_scope_depth allows"))),
+        (147, Some(("LLT4001", "150 that max_scope_depth allows"))),
+        (
+            148,
+            Some(("LLP2001", "150 levels, the project's max_scope_depth")),
+        ),
+    ] {
+        project.write("src/Main.lex.tex", &list_source(cells));
+        project.relock();
+        match refusal {
+            None => {
+                project.check_ok();
+            }
+            Some((code, words)) => {
+                let error = project.check_fails_with(code);
+                assert!(
+                    error.diagnostics[0].message.contains(words),
+                    "{cells} cells: {error}"
+                );
+            }
+        }
+    }
+    project.edit(
+        "lexlean.toml",
+        "max_scope_depth = 150",
+        "max_scope_depth = 1024",
+    );
+    project.relock();
+    project.check_ok();
+    let parse_data = |data: &str| parse_data(data, None);
 
-    let empty = r#"{"declarations":[],"spec":"lexlean/semantic-module/2"}"#;
+    let empty = r#"{"declarations":[],"spec":"lexlean/semantic-module/3"}"#;
     let invalid = [
         empty.replace(",\"spec\"", " \"spec\""),
         empty.replace("{\"declarations\"", "{ \"declarations\""),
-        empty.replace("\"spec\":", "\"spec\":\"lexlean/semantic-module/2\",\"spec\":"),
+        empty.replace("\"spec\":", "\"spec\":\"lexlean/semantic-module/3\",\"spec\":"),
         empty.replace("\"declarations\":[]", "\"declarations\":[],\"foreign\":true"),
-        r#"{"declarations":[{"body":{"kind":"nat","prose":"foreign","value":"1"},"kind":"definition","name":"x","parameters":[],"result":{"kind":"nat"}}],"spec":"lexlean/semantic-module/2"}"#.to_owned(),
+        r#"{"declarations":[{"body":{"kind":"nat","prose":"foreign","value":"1"},"kind":"definition","name":"x","parameters":[],"result":{"kind":"nat"}}],"spec":"lexlean/semantic-module/3"}"#.to_owned(),
     ];
     for data in invalid {
         let error =
@@ -754,12 +890,12 @@ pub(crate) fn run(id: &str) {
             let inner =
                 lexlean::project::Project::load(&project.root.join("lexlean.toml")).expect("load");
             let checked = support::checked_project(&project);
-            let mut hasher = sha2::Sha256::new();
-            hasher.update(b"lexlean-source-v1\0");
-            let frame = |hasher: &mut sha2::Sha256, label: &str, bytes: &[u8]| {
-                hasher.update(u32::try_from(label.len()).expect("short").to_be_bytes());
+            let mut hasher = blake3::Hasher::new();
+            hasher.update(b"lexlean-source-v2\0");
+            let frame = |hasher: &mut blake3::Hasher, label: &str, bytes: &[u8]| {
+                hasher.update(&u32::try_from(label.len()).expect("short").to_be_bytes());
                 hasher.update(label.as_bytes());
-                hasher.update((bytes.len() as u64).to_be_bytes());
+                hasher.update(&(bytes.len() as u64).to_be_bytes());
                 hasher.update(bytes);
             };
             frame(
@@ -774,9 +910,8 @@ pub(crate) fn run(id: &str) {
                 "source",
                 checked.modules["Main"].normalized.as_bytes(),
             );
-            let manual: [u8; 32] = hasher.finalize().into();
             assert_eq!(
-                lexlean::artifact::content_id::Sha256Digest(manual),
+                support::oracle_finish(&hasher),
                 checked.source_id,
                 "§21.3: the source ID equals its manual recomputation"
             );
@@ -1090,7 +1225,7 @@ pub(crate) fn run(id: &str) {
                         .expect("language-1.1 attestation"),
                 )
                 .expect("attestation JSON");
-                let expected = lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_1).to_hex();
+                let expected = lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_1).label();
                 assert_eq!(
                     attestation["lexlean"]["compiler_semantics"].as_str(),
                     Some(expected.as_str()),
@@ -1541,7 +1676,7 @@ pub(crate) fn run(id: &str) {
             let twelve = P::language_1_2_example();
             twelve.check_ok();
             let (spec, value) = snapshot_of(&twelve);
-            assert_eq!(spec, "lexlean/semantic-snapshot/2");
+            assert_eq!(spec, "lexlean/semantic-snapshot/4");
             support::assert_schema("semantic-snapshot-v2", "the 1.2 snapshot", &value);
             support::assert_schema(
                 "semantic-module-v2",
@@ -1582,7 +1717,7 @@ pub(crate) fn run(id: &str) {
             eleven.edit("src/Main.lex.tex", "@1.2.0", "@1.1.0");
             eleven.edit(
                 "src/Main.lex.tex",
-                "lexlean/semantic-module/2",
+                "lexlean/semantic-module/3",
                 "lexlean/semantic-module/1",
             );
             eleven.relock();
@@ -1606,7 +1741,7 @@ pub(crate) fn run(id: &str) {
             let v1_under_12 = P::language_1_2_example();
             v1_under_12.edit(
                 "src/Main.lex.tex",
-                "lexlean/semantic-module/2",
+                "lexlean/semantic-module/3",
                 "lexlean/semantic-module/1",
             );
             let error = v1_under_12.check_fails_with("LLP2003");
@@ -1616,7 +1751,7 @@ pub(crate) fn run(id: &str) {
             v2_under_11.edit(
                 "src/Support.lex.tex",
                 "lexlean/semantic-module/1",
-                "lexlean/semantic-module/2",
+                "lexlean/semantic-module/3",
             );
             let error = v2_under_11.check_fails_with("LLT4001");
             assert!(error
@@ -1682,7 +1817,7 @@ pub(crate) fn run(id: &str) {
 
             // Language 1.1 keeps its historical envelope byte for byte.
             let (spec, value) = snapshot_of(&P::semantic_example());
-            assert_eq!(spec, "lexlean/semantic-snapshot/1");
+            assert_eq!(spec, "lexlean/semantic-snapshot/3");
             support::assert_schema("semantic-snapshot", "the 1.1 snapshot", &value);
         }
         "SM-24" => {
@@ -2748,6 +2883,8 @@ pub(crate) fn run(id: &str) {
         "SM-37" => nested::run(),
         // §21.9: declaration IDs and statement IDs.
         "SM-38" => declaration_ids::run(),
+        // §17.12: arrays of fixed-width integers.
+        "SM-39" => arrays::run(),
         // §17.10: a theorem proved by a split on the value of a document
         // term.
         "SM-35" => {
@@ -2990,7 +3127,7 @@ pub(crate) fn run(id: &str) {
                     // Language 1.1 reads the data form only.
                     formatted
                         .replace("@1.2.0", "@1.1.0")
-                        .replace("lexlean/semantic-module/2", "lexlean/semantic-module/1")
+                        .replace("lexlean/semantic-module/3", "lexlean/semantic-module/1")
                 } else {
                     text
                 };

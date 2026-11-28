@@ -34,12 +34,12 @@ const CAPACITY: usize = 1 << 24;
 /// bytes. Under rustc every library is rendered.
 const EVALUATOR_LIBRARY: usize = 16_384;
 
-const MANIFESTS: usize = 349;
-const ACCEPTED: usize = 330;
-const HEADER_RULES: usize = 182;
+const MANIFESTS: usize = 379;
+const ACCEPTED: usize = 360;
+const HEADER_RULES: usize = 186;
 const RENDER_RULES: usize = 137;
 const HEADER_MUTANTS: usize = 2_000;
-const RENDER_MUTANTS: usize = 330;
+const RENDER_MUTANTS: usize = 360;
 const EVALUATOR_RENDERS: usize = 241;
 
 fn nat(value: usize) -> Value {
@@ -229,11 +229,11 @@ type Files = (Vec<u8>, Vec<u8>);
 type Reshape = Box<dyn Fn(&mut Scaffold)>;
 
 fn sha256(data: &[u8]) -> String {
-    lexlean::Sha256Digest::of(data).to_hex()
+    lexlean::Kappa::of(data).label()
 }
 
 fn semantics() -> String {
-    lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_2).to_hex()
+    lexlean::compiler_semantics_id_for(lexlean::LANGUAGE_1_2).label()
 }
 
 fn runtime_text(std: bool) -> String {
@@ -311,6 +311,37 @@ fn render_run(render: &Render, expected: Files) -> Run {
     )
 }
 
+/// The ordered render corpora consumed by the evaluator and rustc.
+fn render_corpora(
+    renders: &[(Render, Files)],
+    shaped: &[Render],
+    mutants: &[Render],
+) -> (Vec<Run>, Vec<Run>) {
+    let mut within = Vec::new();
+    let mut compiled = Vec::new();
+    let inputs = renders
+        .iter()
+        .map(|(render, files)| (render, Some(files)))
+        .chain(shaped.iter().chain(mutants).map(|render| (render, None)));
+    for (render, files) in inputs {
+        if render.library.len() <= EVALUATOR_LIBRARY {
+            let expected = files.cloned().unwrap_or_else(|| files_of(render));
+            let run = render_run(render, expected);
+            within.push(run.clone());
+            compiled.push(run);
+        } else {
+            // rustc expands each argument byte into an array element, so
+            // the native corpus uses the existing 4,096-byte prefix. The
+            // full-library run feeds neither consumer; accepted() still
+            // holds its complete library to the package::package recipe.
+            let mut render = render.clone();
+            render.library.truncate(4_096);
+            compiled.push(render_run(&render, files_of(&render)));
+        }
+    }
+    (within, compiled)
+}
+
 /// A manifest the oracle accepts, what `renderPackage` is given for it, and
 /// the two files `package::package` wrote.
 fn accepted(manifest: &Manifest) -> Option<(Render, Files)> {
@@ -320,7 +351,7 @@ fn accepted(manifest: &Manifest) -> Option<(Render, Files)> {
         name: manifest.name.clone(),
         version: manifest.version.clone(),
         std: manifest.profile == "rust-std",
-        program: manifest.program.id().expect("an accepted program").to_hex(),
+        program: manifest.program.id().expect("an accepted program").label(),
         sources: manifest.sources.clone(),
         effects: manifest.effects.clone(),
         exports: manifest
@@ -400,21 +431,23 @@ const VERSIONS: &[&str] = &[
 ];
 const PROFILES: &[&str] = &["rust-std", "rust-core", "rust-wasm", "", "rust-Std", "std"];
 const SPECS: &[&str] = &[
-    "lexlean/rust-package/1",
     "lexlean/rust-package/2",
+    "lexlean/rust-package/9",
     "",
-    "lexlean/rust-provenance/1",
+    "lexlean/rust-provenance/2",
 ];
 const SOURCES: &[&str] = &[
-    "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
-    "1111111111111111111111111111111111111111111111111111111111111111",
-    "0000000000000000000000000000000000000000000000000000000000000000",
-    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-    "09D5F3630D4F28017017DA9DF6A1032805F8848C3BB64AA228C953FD1534D028",
-    "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d02",
-    "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d0280",
-    "g9d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
+    "blake3:09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
+    "blake3:1111111111111111111111111111111111111111111111111111111111111111",
+    "blake3:0000000000000000000000000000000000000000000000000000000000000000",
+    "blake3:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "blake3:09D5F3630D4F28017017DA9DF6A1032805F8848C3BB64AA228C953FD1534D028",
+    "blake3:09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d02",
+    "blake3:09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d0280",
+    "blake3:g9d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
     "",
+    "09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
+    "sha256:09d5f3630d4f28017017da9df6a1032805f8848c3bb64aa228c953fd1534d028",
 ];
 const EFFECTS: &[&str] = &[
     "allocation",
@@ -679,7 +712,7 @@ const PLANTS: [Plant; 21] = [
     Plant {
         label: "the spec is not checked",
         root: 0,
-        site: "(if (same spec (text \"lexlean/rust-package/1\")) then",
+        site: "(if (same spec (text \"lexlean/rust-package/2\")) then",
         replacement: "(if true then",
     },
     Plant {
@@ -697,8 +730,8 @@ const PLANTS: [Plant; 21] = [
     Plant {
         label: "the digests of Cargo.toml and lib.rs are swapped",
         root: 1,
-        site: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Sha256::sha256Hex cargo)) \",\") path (LexLeanStd.Sha256::sha256Hex library))",
-        replacement: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Sha256::sha256Hex library)) \",\") path (LexLeanStd.Sha256::sha256Hex cargo))",
+        site: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Blake3::blake3Label cargo)) \",\") path (LexLeanStd.Blake3::blake3Label library))",
+        replacement: "(putEntry (put (putEntry opened (text \"Cargo.toml\") (LexLeanStd.Blake3::blake3Label library)) \",\") path (LexLeanStd.Blake3::blake3Label cargo))",
     },
     Plant {
         label: "the library path is always src/lib.rs in Cargo.toml",
@@ -866,45 +899,7 @@ pub(super) fn case() {
         }
         render_mutants.push(render);
     }
-    let render_runs: Vec<Run> = renders
-        .iter()
-        .map(|(render, files)| render_run(render, files.clone()))
-        .chain(
-            shaped
-                .iter()
-                .chain(&render_mutants)
-                .map(|render| render_run(render, files_of(render))),
-        )
-        .collect();
-    let within: Vec<Run> = renders
-        .iter()
-        .map(|(render, _)| render)
-        .chain(&shaped)
-        .chain(&render_mutants)
-        .zip(&render_runs)
-        .filter(|(render, _)| render.library.len() <= EVALUATOR_LIBRARY)
-        .map(|(_, run)| run.clone())
-        .collect();
-    // rustc compiles each byte of an argument as one array element, and the
-    // libraries of the committed packages are megabytes together, so a render
-    // whose library is beyond the evaluator's bound runs under rustc on the
-    // first 4,096 bytes of it, held to the recipe, which reads it only as
-    // bytes to digest.
-    let compiled: Vec<Run> = renders
-        .iter()
-        .map(|(render, _)| render)
-        .chain(&shaped)
-        .chain(&render_mutants)
-        .zip(&render_runs)
-        .map(|(render, run)| {
-            if render.library.len() <= EVALUATOR_LIBRARY {
-                return run.clone();
-            }
-            let mut render = render.clone();
-            render.library.truncate(4_096);
-            render_run(&render, files_of(&render))
-        })
-        .collect();
+    let (within, compiled) = render_corpora(&renders, &shaped, &render_mutants);
     eprintln!(
         "BS-15: {} manifests ({} accepted), {} and {} rule inputs, {} and {} mutants, {} renders under the evaluator ({:?})",
         manifests.len(),
@@ -1028,4 +1023,116 @@ pub(super) fn case() {
         );
     }
     eprintln!("BS-15: passed in {:?}", started.elapsed());
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn previous_corpora(
+        renders: &[(Render, Files)],
+        shaped: &[Render],
+        render_mutants: &[Render],
+    ) -> (Vec<Run>, Vec<Run>) {
+        let render_runs: Vec<Run> = renders
+            .iter()
+            .map(|(render, files)| render_run(render, files.clone()))
+            .chain(
+                shaped
+                    .iter()
+                    .chain(render_mutants)
+                    .map(|render| render_run(render, files_of(render))),
+            )
+            .collect();
+        let within: Vec<Run> = renders
+            .iter()
+            .map(|(render, _)| render)
+            .chain(shaped)
+            .chain(render_mutants)
+            .zip(&render_runs)
+            .filter(|(render, _)| render.library.len() <= EVALUATOR_LIBRARY)
+            .map(|(_, run)| run.clone())
+            .collect();
+        // rustc compiles each byte of an argument as one array element, and the
+        // libraries of the committed packages are megabytes together, so a render
+        // whose library is beyond the evaluator's bound runs under rustc on the
+        // first 4,096 bytes of it, held to the recipe, which reads it only as
+        // bytes to digest.
+        let compiled: Vec<Run> = renders
+            .iter()
+            .map(|(render, _)| render)
+            .chain(shaped)
+            .chain(render_mutants)
+            .zip(&render_runs)
+            .map(|(render, run)| {
+                if render.library.len() <= EVALUATOR_LIBRARY {
+                    return run.clone();
+                }
+                let mut render = render.clone();
+                render.library.truncate(4_096);
+                render_run(&render, files_of(&render))
+            })
+            .collect();
+        (within, compiled)
+    }
+
+    #[test]
+    fn render_corpora_preserve_inputs_and_outcomes() {
+        let mut renders = Vec::new();
+        for std in [false, true] {
+            for length in [
+                0,
+                4_096,
+                EVALUATOR_LIBRARY - 1,
+                EVALUATOR_LIBRARY,
+                EVALUATOR_LIBRARY + 1,
+                EVALUATOR_LIBRARY * 2,
+            ] {
+                let render = Render {
+                    scaffold: scaffold::get().expect("the scaffold").clone(),
+                    name: format!("render_{length}"),
+                    version: "1.2.3".to_owned(),
+                    std,
+                    program: format!("blake3:{}", "f".repeat(64)),
+                    sources: vec![format!("blake3:{}", "a".repeat(64))],
+                    effects: vec!["overflow".to_owned()],
+                    exports: vec![("run".to_owned(), 0)],
+                    library: (0u8..=255).cycle().take(length).collect(),
+                };
+                // Distinct supplied files catch replacing the package's
+                // expected outcome with the recipe for a small library.
+                let files = (
+                    format!("package cargo: {std} {length}").into_bytes(),
+                    format!("package provenance: {std} {length}").into_bytes(),
+                );
+                renders.push((render, files));
+            }
+        }
+        let shaped: Vec<Render> = renders
+            .iter()
+            .map(|(render, _)| {
+                let mut render = render.clone();
+                render.name = "a\"b\\c".to_owned();
+                render.scaffold.library = "A.rs".to_owned();
+                render
+            })
+            .collect();
+        let mutants: Vec<Render> = shaped
+            .iter()
+            .map(|render| {
+                let mut render = render.clone();
+                render.exports.reverse();
+                render.sources.clear();
+                render
+            })
+            .collect();
+        let expected = previous_corpora(&renders, &shaped, &mutants);
+        let observed = render_corpora(&renders, &shaped, &mutants);
+        assert_eq!(
+            observed, expected,
+            "both ordered vectors are byte-identical"
+        );
+        assert_eq!(observed.0.len(), 24, "both profiles include the boundary");
+        assert_eq!(observed.1.len(), 36, "rustc keeps every render");
+    }
 }

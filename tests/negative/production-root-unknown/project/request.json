@@ -1,1 +1,1 @@
-{"spec":"lexlean/production-request/1","roots":[{"root":"Production.Main.absent","package":{"name":"pkg","version":"1.0.0"},"targets":[{"id":"rust-std","digest":"0218e76d906f1be031cc37ed67032bbfda28134b5104ee8e08fc3f8ea1afe70a"}]}]}
+{"spec":"lexlean/production-request/2","roots":[{"root":"Production.Main.absent","package":{"name":"pkg","version":"1.0.0"},"targets":[{"id":"rust-std","digest":"blake3:ff6fb69d279c5156f367288913ea502fbdce78bb6660b55013be6774058906bf"}]}]}

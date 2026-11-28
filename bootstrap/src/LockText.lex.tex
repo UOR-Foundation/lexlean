@@ -15,8 +15,8 @@ structure{
     {name: kind, type: Bytes},
     {name: origin, type: Bytes},
     {name: revision, type: Bytes},
-    {name: treeSha256, type: Bytes},
-    {name: manifestSha256, type: Bytes},
+    {name: treeKappa, type: Bytes},
+    {name: manifestKappa, type: Bytes},
     {name: imports, type: (List Bytes)}
   ]
 }
@@ -31,8 +31,8 @@ structure{
     {name: kind, type: Bytes},
     {name: origin, type: Bytes},
     {name: modulePrefix, type: Bytes},
-    {name: treeSha256, type: Bytes},
-    {name: manifestSha256, type: Bytes},
+    {name: treeKappa, type: Bytes},
+    {name: manifestKappa, type: Bytes},
     {name: imports, type: (List Bytes)}
   ]
 }
@@ -43,9 +43,9 @@ structure{
   parameters: [],
   fields: [
     {name: program, type: Bytes},
-    {name: programSha256, type: Bytes},
+    {name: programKappa, type: Bytes},
     {name: versionArgv, type: (List Bytes)},
-    {name: versionStdoutSha256, type: Bytes},
+    {name: versionStdoutKappa, type: Bytes},
     {name: compileArgv, type: (List Bytes)},
     {name: output, type: Bytes},
     {name: resources, type: (List (Bytes * Bytes))}
@@ -59,7 +59,7 @@ structure{
   fields: [
     {name: language, type: Bytes},
     {name: compilerSemantics, type: Bytes},
-    {name: projectConfigSha256, type: Bytes},
+    {name: projectConfigKappa, type: Bytes},
     {name: workspaceFiles, type: (List (Bytes * Bytes))},
     {name: packages, type: (List LockPackage)},
     {name: sourcePackages, type: (List LockSourcePackage)},
@@ -87,7 +87,7 @@ definition{
   name: leanToolchain,
   parameters: [],
   result: Bytes,
-  body: (lit "leanprover/lean4:v4.32.1"),
+  body: (lit "leanprover/lean4:v4.32.2"),
   executable: true
 }
 
@@ -158,7 +158,7 @@ definition{
   name: digestLine,
   parameters: [key : Bytes, digest : Bytes],
   result: Bytes,
-  body: (line key (tomlString (LexLeanStd.Numeral::hex digest))),
+  body: (line key (tomlString digest)),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -218,7 +218,7 @@ definition{
   name: pinText,
   parameters: [table : Bytes, rows : (List (Bytes * Bytes))],
   result: Bytes,
-  body: (prim list_fold (fun [table] (acc : Bytes) (row : (Bytes * Bytes)) => (cat acc (cat (cat (header table) (stringLine (lit "path") (first row))) (digestLine (lit "sha256") (second row))))) 0x (pairsByPath rows) : Bytes),
+  body: (prim list_fold (fun [table] (acc : Bytes) (row : (Bytes * Bytes)) => (cat acc (cat (cat (header table) (stringLine (lit "path") (first row))) (digestLine (lit "kappa") (second row))))) 0x (pairsByPath rows) : Bytes),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -227,7 +227,7 @@ definition{
   name: packageText,
   parameters: [row : LockPackage],
   result: Bytes,
-  body: (cat (cat (cat (cat (cat (cat (cat (cat (header (lit "[[package]]")) (stringLine (lit "id") (project row ident))) (stringLine (lit "version") (project row version))) (stringLine (lit "kind") (project row kind))) (stringLine (lit "source") (project row origin))) (stringLine (lit "revision") (project row revision))) (digestLine (lit "tree_sha256") (project row treeSha256))) (digestLine (lit "manifest_sha256") (project row manifestSha256))) (line (lit "imports") (tomlArray (project row imports)))),
+  body: (cat (cat (cat (cat (cat (cat (cat (cat (header (lit "[[package]]")) (stringLine (lit "id") (project row ident))) (stringLine (lit "version") (project row version))) (stringLine (lit "kind") (project row kind))) (stringLine (lit "source") (project row origin))) (stringLine (lit "revision") (project row revision))) (digestLine (lit "tree_kappa") (project row treeKappa))) (digestLine (lit "manifest_kappa") (project row manifestKappa))) (line (lit "imports") (tomlArray (project row imports)))),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -236,7 +236,7 @@ definition{
   name: sourceText,
   parameters: [row : LockSourcePackage],
   result: Bytes,
-  body: (cat (cat (cat (cat (cat (cat (cat (cat (header (lit "[[source_package]]")) (stringLine (lit "id") (project row ident))) (stringLine (lit "version") (project row version))) (stringLine (lit "kind") (project row kind))) (stringLine (lit "source") (project row origin))) (stringLine (lit "module_prefix") (project row modulePrefix))) (digestLine (lit "tree_sha256") (project row treeSha256))) (digestLine (lit "manifest_sha256") (project row manifestSha256))) (line (lit "imports") (tomlArray (project row imports)))),
+  body: (cat (cat (cat (cat (cat (cat (cat (cat (header (lit "[[source_package]]")) (stringLine (lit "id") (project row ident))) (stringLine (lit "version") (project row version))) (stringLine (lit "kind") (project row kind))) (stringLine (lit "source") (project row origin))) (stringLine (lit "module_prefix") (project row modulePrefix))) (digestLine (lit "tree_kappa") (project row treeKappa))) (digestLine (lit "manifest_kappa") (project row manifestKappa))) (line (lit "imports") (tomlArray (project row imports)))),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -245,7 +245,7 @@ definition{
   name: pdfText,
   parameters: [entry : LockPdf],
   result: Bytes,
-  body: (cat (cat (cat (cat (cat (cat (cat (header (lit "[pdf]")) (stringLine (lit "program") (project entry program))) (digestLine (lit "program_sha256") (project entry programSha256))) (line (lit "version_argv") (tomlArray (project entry versionArgv)))) (digestLine (lit "version_stdout_sha256") (project entry versionStdoutSha256))) (line (lit "compile_argv") (tomlArray (project entry compileArgv)))) (stringLine (lit "output") (project entry output))) (pinText (lit "[[pdf.resource]]") (project entry resources))),
+  body: (cat (cat (cat (cat (cat (cat (cat (header (lit "[pdf]")) (stringLine (lit "program") (project entry program))) (digestLine (lit "program_kappa") (project entry programKappa))) (line (lit "version_argv") (tomlArray (project entry versionArgv)))) (digestLine (lit "version_stdout_kappa") (project entry versionStdoutKappa))) (line (lit "compile_argv") (tomlArray (project entry compileArgv)))) (stringLine (lit "output") (project entry output))) (pinText (lit "[[pdf.resource]]") (project entry resources))),
   axioms: [Quot.sound, propext],
   executable: true
 }
@@ -254,7 +254,7 @@ definition{
   name: canonicalLock,
   parameters: [given : Lock],
   result: Bytes,
-  body: (let spec : Bytes := (if (prim equal (project given language) (lit "1.2") : Bool) then (lit "lexlean/lock/2") else (lit "lexlean/lock/1")); (let head : Bytes := (cat (cat (cat (cat (stringLine (lit "spec") spec) (stringLine (lit "language") (project given language))) (digestLine (lit "compiler_semantics") (project given compilerSemantics))) (digestLine (lit "project_config_sha256") (project given projectConfigSha256))) (stringLine (lit "lean_toolchain") (leanToolchain))); (let pins : Bytes := (pinText (lit "[[workspace_file]]") (project given workspaceFiles)); (let rows : Bytes := (prim list_fold (fun (acc : Bytes) (row : LockPackage) => (cat acc (packageText row))) 0x (packagesSorted (project given packages)) : Bytes); (let sources : Bytes := (prim list_fold (fun (acc : Bytes) (row : LockSourcePackage) => (cat acc (sourceText row))) 0x (sourcesSorted (project given sourcePackages)) : Bytes); (let tail : Bytes := (match (project given pdf)
+  body: (let spec : Bytes := (if (prim equal (project given language) (lit "1.2") : Bool) then (lit "lexlean/lock/4") else (lit "lexlean/lock/3")); (let head : Bytes := (cat (cat (cat (cat (stringLine (lit "spec") spec) (stringLine (lit "language") (project given language))) (digestLine (lit "compiler_semantics") (project given compilerSemantics))) (digestLine (lit "project_config_kappa") (project given projectConfigKappa))) (stringLine (lit "lean_toolchain") (leanToolchain))); (let pins : Bytes := (pinText (lit "[[workspace_file]]") (project given workspaceFiles)); (let rows : Bytes := (prim list_fold (fun (acc : Bytes) (row : LockPackage) => (cat acc (packageText row))) 0x (packagesSorted (project given packages)) : Bytes); (let sources : Bytes := (prim list_fold (fun (acc : Bytes) (row : LockSourcePackage) => (cat acc (sourceText row))) 0x (sourcesSorted (project given sourcePackages)) : Bytes); (let tail : Bytes := (match (project given pdf)
     | Option.some entry => (pdfText entry)
     | Option.none => 0x); (cat (cat (cat (cat head pins) rows) sources) tail))))))),
   axioms: [Quot.sound, propext],

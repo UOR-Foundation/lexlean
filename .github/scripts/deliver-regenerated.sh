@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# The delivery of `regenerate.yml` (SPEC.md §9.4): the patch its `finish` job
+# The delivery of `regenerate.yml` (SPEC.md §9.4): the patch set its `finish` job
 # returned, committed on the commit it was made from and pushed to the branch
 # that commit heads, then the gate dispatched on that branch.
 #
 # The branch is the one a caller names (BRANCH, `cut.yml`), or else the head
 # branch of the one open pull request of this repository whose head is
-# COMMIT. With none, or several, nothing is pushed and the patch stays the
+# COMMIT. With none, or several, nothing is pushed and the patch set stays the
 # run's artifact. The push is a fast-forward of COMMIT: a branch pushed again
 # while the run worked rejects it, and the newer head is left alone. A push
 # with the workflow token starts no `pull_request` run, so `ci.yml` is
@@ -15,7 +15,9 @@
 #
 # Inputs, from the environment: REPO, COMMIT, BRANCH (may be empty), RUN_URL,
 # REGENERATED (the downloaded `regenerated-<commit>` artifact), GITHUB_REF,
-# GITHUB_STEP_SUMMARY. The checkout is COMMIT with the workflow token.
+# GITHUB_STEP_SUMMARY. The checkout is COMMIT with the workflow token. Output,
+# to GITHUB_OUTPUT: `head`, the commit the gate was dispatched on, when it was
+# (`cut.yml` waits for that run and lands the cut on it); nothing otherwise.
 set -euo pipefail
 
 repo=${REPO:?REPO names owner/name}
@@ -23,9 +25,18 @@ commit=${COMMIT:?COMMIT names the regenerated commit}
 branch=${BRANCH:-}
 dir=${REGENERATED:?REGENERATED names the artifact directory}
 summary=${GITHUB_STEP_SUMMARY:-/dev/null}
+output=${GITHUB_OUTPUT:-/dev/null}
 say() { printf '%s\n' "$1" | tee -a "$summary"; }
 
-(cd "$dir" && sha256sum --check --quiet SHA256SUMS)
+(cd "$dir" && sha256sum --check --strict --quiet SHA256SUMS)
+# `sha256sum --check` reads only what SHA256SUMS lists: every other entry of
+# the artifact is refused, so no file reaches the commit unchecked.
+listed=$(cd "$dir" && sed -E 's/^[0-9a-f]{64}  //' SHA256SUMS | LC_ALL=C sort)
+present=$(cd "$dir" && find . -mindepth 1 -maxdepth 1 ! -name SHA256SUMS -printf '%P\n' | LC_ALL=C sort)
+if [ "$listed" != "$present" ]; then
+  echo "::error::SHA256SUMS does not list exactly the files of the artifact"
+  exit 1
+fi
 if [ "$(cat "$dir/base-commit.txt")" != "$commit" ]; then
   echo "::error::the artifact was made from $(cat "$dir/base-commit.txt"), not $commit"
   exit 1
@@ -49,11 +60,17 @@ if [ "$remote" != "$commit" ]; then
   exit 0
 fi
 
-if [ -s "$dir/regenerated.patch" ]; then
-  git apply --index "$dir/regenerated.patch"
-fi
+# The set is checked whole and applied to the commit's own tree; the index
+# must then hold exactly the tree `finish` recorded.
+python3 .github/scripts/patch_set.py apply --dir "$dir" --name regenerated --base "$commit"
 if git diff --cached --quiet; then
   say "The regenerated tree of \`$commit\` is the committed tree: nothing to deliver."
+  # A caller's branch was pushed with the workflow token, which started no
+  # run: the gate is dispatched for it all the same.
+  if [ -n "${BRANCH:-}" ]; then
+    gh workflow run ci.yml --repo "$repo" --ref "$branch"
+    echo "head=$commit" >> "$output"
+  fi
 else
   paths=$(git diff --cached --name-only | wc -l)
   {
@@ -71,6 +88,7 @@ else
   # A plain push is a fast-forward or nothing.
   git push origin "HEAD:refs/heads/$branch"
   gh workflow run ci.yml --repo "$repo" --ref "$branch"
+  echo "head=$(git rev-parse HEAD)" >> "$output"
   say "Delivered $paths regenerated paths to \`$branch\` as \`$(git rev-parse HEAD)\` and dispatched \`ci.yml\` there."
 fi
 

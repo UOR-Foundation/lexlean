@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use serde::Deserialize;
 
-use crate::artifact::content_id::{tree_digest, Sha256Digest};
+use crate::artifact::content_id::{tree_kappa, Kappa};
 use crate::code;
 use crate::diagnostic::{Diagnostic, DiagnosticDetail, Span};
 use crate::lexicon::entry::{parse_entry, Denotation, Entry, EntryContext};
@@ -54,10 +54,10 @@ pub struct LexiconPackage {
     pub imports: Vec<PackageRef>,
     /// Entries by local ID.
     pub entries: BTreeMap<String, Entry>,
-    /// SHA-256 of the manifest bytes.
-    pub manifest_sha256: Sha256Digest,
+    /// κ-label of the manifest bytes.
+    pub manifest_kappa: Kappa,
     /// The §11.5 tree digest over `lexicon.toml` and `entries/`.
-    pub tree_sha256: Sha256Digest,
+    pub tree_kappa: Kappa,
     /// The participating files and their byte totals, for the explicit
     /// resource policy (§10.2).
     pub total_bytes: usize,
@@ -187,7 +187,7 @@ pub fn load_package(
         .iter()
         .map(|(path, bytes)| (path.as_str(), bytes.as_slice()))
         .collect();
-    let tree_sha256 = tree_digest(&borrowed);
+    let tree_kappa = tree_kappa(&borrowed);
     let total_bytes = files.iter().map(|(_, bytes)| bytes.len()).sum();
 
     let Some(manifest_bytes) = files
@@ -200,7 +200,7 @@ pub fn load_package(
             format!("{display_root}: lexicon.toml is missing"),
         )]);
     };
-    let manifest_sha256 = Sha256Digest::of(manifest_bytes);
+    let manifest_kappa = Kappa::of(manifest_bytes);
     let manifest_path = display("lexicon.toml");
     let Ok(manifest_text) = std::str::from_utf8(manifest_bytes) else {
         return Err(vec![file_error(
@@ -432,8 +432,8 @@ pub fn load_package(
             version: manifest.version,
             imports,
             entries,
-            manifest_sha256,
-            tree_sha256,
+            manifest_kappa,
+            tree_kappa,
             total_bytes,
         })
     } else {

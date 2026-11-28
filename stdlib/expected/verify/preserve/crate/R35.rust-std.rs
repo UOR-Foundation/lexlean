@@ -855,40 +855,63 @@ pub fn format_int(p0: i64) -> Str {
     Str::format_i64(p0)
 }
 
-pub fn f0(v0: List<i64>, v1: List<i64>) -> R<List<i64>> {
-    f1(v0, v1)
+pub fn f0(v0: List<i64>) -> R<List<i64>> {
+    f1(2u64, 0u64, 0i64, v0)
 }
 
-pub fn f1(v0: List<i64>, v1: List<i64>) -> R<List<i64>> {
-    let m1 = v0;
+pub fn f1(v0: u64, v1: u64, v2: i64, v3: List<i64>) -> R<List<i64>> {
+    let m1 = v3;
     match m1.uncons() {
         None => {
             Ok(List::<i64>::nil())
         }
-        Some((v2, v3)) => {
-            let m2 = v1;
-            match m2.uncons() {
-                None => {
-                    Ok(List::<i64>::nil())
-                }
-                Some((v4, v5)) => {
-                    Ok(List::cons(f2(f3(v2, v4)?)?, f1(v3, v5)?))
-                }
+        Some((v4, v5)) => {
+            let a2 = v1;
+            let a3 = 0u64;
+            if nat_eq(a2, a3) {
+                f1(v0, 1u64, v4, v5)
+            } else {
+                Ok(List::cons(f2(v0, f3(v2, v4)?)?, f1(v0, 0u64, 0i64, v5)?))
             }
         }
     }
 }
 
-pub fn f2(v0: i64) -> R<i64> {
-    let m6 = {
-        let a4 = v0;
-        let a5 = {
-            let a3 = 32768i64;
-            int_neg(a3)?
-        };
-        compare(a4, a5)
+pub fn f2(v0: u64, v1: i64) -> R<i64> {
+    let a4 = v0;
+    let a5 = 0u64;
+    if nat_eq(a4, a5) {
+        f4(v1)
+    } else {
+        let a6 = v0;
+        let a7 = 1u64;
+        if nat_eq(a6, a7) {
+            f5(v1)
+        } else {
+            Ok(v1)
+        }
+    }
+}
+
+pub fn f3(v0: i64, v1: i64) -> R<i64> {
+    let a9 = v0;
+    let a10 = {
+        let a8 = v1;
+        int_neg(a8)?
     };
-    if match m6 {
+    int_sub(a9, a10)
+}
+
+pub fn f4(v0: i64) -> R<i64> {
+    let m14 = {
+        let a12 = v0;
+        let a13 = {
+            let a11 = 32768i64;
+            int_neg(a11)?
+        };
+        compare(a12, a13)
+    };
+    if match m14 {
         Ordering::Less => {
             true
         }
@@ -899,15 +922,15 @@ pub fn f2(v0: i64) -> R<i64> {
             false
         }
     } {
-        let a7 = 32768i64;
-        int_neg(a7)
+        let a15 = 32768i64;
+        int_neg(a15)
     } else {
-        let m10 = {
-            let a8 = 32767i64;
-            let a9 = v0;
-            compare(a8, a9)
+        let m18 = {
+            let a16 = 32767i64;
+            let a17 = v0;
+            compare(a16, a17)
         };
-        if match m10 {
+        if match m18 {
             Ordering::Less => {
                 true
             }
@@ -925,11 +948,49 @@ pub fn f2(v0: i64) -> R<i64> {
     }
 }
 
-pub fn f3(v0: i64, v1: i64) -> R<i64> {
-    let a12 = v0;
-    let a13 = {
-        let a11 = v1;
-        int_neg(a11)?
+pub fn f5(v0: i64) -> R<i64> {
+    let m22 = {
+        let a20 = v0;
+        let a21 = {
+            let a19 = 2147483648i64;
+            int_neg(a19)?
+        };
+        compare(a20, a21)
     };
-    int_sub(a12, a13)
+    if match m22 {
+        Ordering::Less => {
+            true
+        }
+        Ordering::Equal => {
+            false
+        }
+        Ordering::Greater => {
+            false
+        }
+    } {
+        f3(v0, 4294967296i64)
+    } else {
+        let m25 = {
+            let a23 = 2147483647i64;
+            let a24 = v0;
+            compare(a23, a24)
+        };
+        if match m25 {
+            Ordering::Less => {
+                true
+            }
+            Ordering::Equal => {
+                false
+            }
+            Ordering::Greater => {
+                false
+            }
+        } {
+            let a26 = v0;
+            let a27 = 4294967296i64;
+            int_sub(a26, a27)
+        } else {
+            Ok(v0)
+        }
+    }
 }

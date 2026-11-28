@@ -856,39 +856,80 @@ pub fn format_int(p0: i64) -> Str {
 }
 
 pub fn f0(v0: List<i64>, v1: List<i64>) -> R<List<i64>> {
-    f1(8u64, v0, v1)
+    f1(v0, v1)
 }
 
-pub fn f1(v0: u64, v1: List<i64>, v2: List<i64>) -> R<List<i64>> {
-    let m1 = v1;
+pub fn f1(v0: List<i64>, v1: List<i64>) -> R<List<i64>> {
+    let m1 = v0;
     match m1.uncons() {
         None => {
             Ok(List::<i64>::nil())
         }
-        Some((v3, v4)) => {
-            let m2 = v2;
+        Some((v2, v3)) => {
+            let m2 = v1;
             match m2.uncons() {
                 None => {
                     Ok(List::<i64>::nil())
                 }
-                Some((v5, v6)) => {
-                    let a3 = v0;
-                    let a4 = 0u64;
-                    if nat_eq(a3, a4) {
-                        Ok(List::<i64>::nil())
-                    } else {
-                        Ok(List::cons({
-                            let a5 = v3;
-                            let a6 = v5;
-                            int_mul(a5, a6)?
-                        }, f1({
-                            let a7 = v0;
-                            let a8 = 1u64;
-                            nat_sub(a7, a8)
-                        }, v4, v6)?))
-                    }
+                Some((v4, v5)) => {
+                    Ok(List::cons(f2(f3(v2, v4)?)?, f1(v3, v5)?))
                 }
             }
         }
     }
+}
+
+pub fn f2(v0: i64) -> R<i64> {
+    let m6 = {
+        let a4 = v0;
+        let a5 = {
+            let a3 = 32768i64;
+            int_neg(a3)?
+        };
+        compare(a4, a5)
+    };
+    if match m6 {
+        Ordering::Less => {
+            true
+        }
+        Ordering::Equal => {
+            false
+        }
+        Ordering::Greater => {
+            false
+        }
+    } {
+        let a7 = 32768i64;
+        int_neg(a7)
+    } else {
+        let m10 = {
+            let a8 = 32767i64;
+            let a9 = v0;
+            compare(a8, a9)
+        };
+        if match m10 {
+            Ordering::Less => {
+                true
+            }
+            Ordering::Equal => {
+                false
+            }
+            Ordering::Greater => {
+                false
+            }
+        } {
+            Ok(32767i64)
+        } else {
+            Ok(v0)
+        }
+    }
+}
+
+pub fn f3(v0: i64, v1: i64) -> R<i64> {
+    let a12 = v0;
+    let a13 = {
+        let a11 = v1;
+        int_neg(a11)?
+    };
+    int_sub(a12, a13)
 }

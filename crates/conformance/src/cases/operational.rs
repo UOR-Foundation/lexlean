@@ -905,6 +905,81 @@ fn parts_equal_the_whole() {
         text.contains("from any part of the run") && text.contains(&rest[0]),
         "{text}"
     );
+    // A join refuses a part that ran another toolchain: the first shard's
+    // output names the address of every executable it ran or was built by
+    // (§22.11), and a `lake` other than the join's is refused, naming the
+    // part, the tool, and both addresses, although no record names `lake`.
+    let addresses_path = dir("a").join("toolchain.json");
+    let addresses = std::fs::read_to_string(addresses_path.as_std_path())
+        .expect("a shard names its toolchain addresses");
+    let lake = serde_json::from_str::<serde_json::Value>(&addresses).expect("the addresses parse")
+        ["lake"]
+        .as_str()
+        .expect("the addresses name lake")
+        .to_owned();
+    // Another valid address, so the join reaches the toolchain check.
+    let planted_lake = format!("blake3:{}", "f".repeat(64));
+    assert_ne!(lake, planted_lake);
+    std::fs::write(
+        addresses_path.as_std_path(),
+        addresses.replacen(&lake, &planted_lake, 1),
+    )
+    .expect("plant another lake");
+    let error = run_part(VerifyPart::Join {
+        plan: plan(&rest, &rest),
+        parts: vec![dir("a"), dir("b")],
+    })
+    .map(|_| ())
+    .expect_err("a part of another lake");
+    support::expect_code(&error, "LLI9001");
+    let text = error.to_string();
+    assert!(
+        text.contains("ran `lake`") && text.contains(&planted_lake) && text.contains(&lake),
+        "{text}"
+    );
+    std::fs::write(addresses_path.as_std_path(), &addresses).expect("restore the addresses");
+    // The same refusal from a real binary: a join whose own toolchain's
+    // `lake` differs by one appended byte from the pinned one the shards ran
+    // refuses them, naming both addresses. Its preflight hashes the changed
+    // file, so the join never trusts a part of the pinned toolchain.
+    #[cfg(unix)]
+    {
+        let pinned = support::real_elan_home()
+            .join("toolchains")
+            .join(support::mangled_toolchain_name())
+            .join("bin")
+            .join("lake");
+        let mut changed = std::fs::read(&pinned).expect("the pinned lake");
+        changed.push(0);
+        let changed_address = lexlean::Kappa::of(&changed).label();
+        let home = support::fake_elan_home(&[("lake".to_owned(), changed)]);
+        let home_text = home.path().to_string_lossy().into_owned();
+        let project = P::copy_example(example);
+        let error = support::with_env(&[("ELAN_HOME", Some(&home_text))], || {
+            Operational::new(1, None).expect("width 1").scoped(|| {
+                lexlean::verify_part(
+                    &project.engine(),
+                    VerifyRequest {
+                        selection: Selection::Entrypoints,
+                    },
+                    VerifyPart::Join {
+                        plan: plan(&rest, &rest),
+                        parts: vec![dir("a"), dir("b")],
+                    },
+                )
+            })
+        })
+        .map(|_| ())
+        .expect_err("a join whose own lake changed");
+        support::expect_code(&error, "LLI9001");
+        let text = error.to_string();
+        assert!(
+            text.contains("ran `lake`") && text.contains(&lake) && text.contains(&changed_address),
+            "{text}"
+        );
+    }
+    #[cfg(not(unix))]
+    support::unix_only("VR-23", "symlinked toolchain to plant a changed `lake` in");
     // A join refuses a record that another `leanchecker` ran: the second
     // shard's replay record of a module names an executable that is not the
     // join's, as a part on a different toolchain would have written it.
@@ -915,11 +990,12 @@ fn parts_equal_the_whole() {
         .join(format!("{replayed}.json"));
     let text = std::fs::read_to_string(record_path.as_std_path()).expect("the replay record");
     let recorded = serde_json::from_str::<serde_json::Value>(&text).expect("the record parses")
-        ["executable_sha256"]
+        ["executable_kappa"]
         .as_str()
         .expect("the record names its executable")
         .to_owned();
-    let planted = "0".repeat(recorded.len());
+    // Another valid κ-label, so the join reaches the toolchain check.
+    let planted = format!("blake3:{}", "0".repeat(64));
     assert_ne!(recorded, planted);
     std::fs::write(
         record_path.as_std_path(),

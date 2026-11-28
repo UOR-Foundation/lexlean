@@ -3,20 +3,20 @@
 # compiler executable (presence only). SPEC.md §28.2, §28.4.
 
 [platform_independent]
-".lexlean/verified/$ATTESTATION/audit/LexLeanAudit.A4adbb996ff10a92994adb5c16c83714f.LexLeanExample.Main.lean" = "ce72b0930147248dfa799553ba634a7da3d05df24977acc9873052cdc47d91a2"
-".lexlean/verified/$ATTESTATION/audit/output.txt" = "e0a31c670eac06f52782d864e0a948c11d06d4901077474ddcc6afb86817ac0a"
-".lexlean/verified/$ATTESTATION/build-manifest.json" = "35756bb4faa1d6c83843cfb7b76e29e6072f1b3412a5f49d25d2979a215b2077"
-".lexlean/verified/$ATTESTATION/coverage/LexLeanExample/Main.coverage.json" = "5a81aa88d63337f087021e9bf442e661a9154c61b6977d71c9d2fd8517c80bd1"
-".lexlean/verified/$ATTESTATION/lexicons/Main.closure.json" = "e3ccaf68438657e3d4be155b2252ba99b8ced2217f6272103a7fc43b3beb96d0"
-".lexlean/verified/$ATTESTATION/maps/LexLeanExample/Main.map.json" = "ef9ed01fc38eef596255e7c87abe5d68b5ccbcaf9c2286ba08376480ecfb81e2"
-".lexlean/verified/$ATTESTATION/modules/LexLeanExample/Main.lean" = "792d7e4ee5a217e84aa1de344819b604708295330fe60d72142e4377b1fade13"
-".lexlean/verified/$ATTESTATION/modules/LexLeanExample/Main.tex" = "8de0caeff94f772f520b5acfa68458761dd2bdf96f78488ec3872ff3d07864e8"
-".lexlean/verified/$ATTESTATION/probe/LexLeanProbe.P4adbb996ff10a92994adb5c16c83714f.lean" = "9b60841472826e74bb77f24f90d6dc56dcfe4ab727fa000a8ae6f164b7edb8d5"
+".lexlean/verified/$ATTESTATION/audit/LexLeanAudit.Aef717aa516d9e8ca0176df0fd93b91e0.LexLeanExample.Main.lean" = "blake3:b80ff0205a94c853ebb6c4c074ccbb32a5066729ba669f8fb8c95f14cfda4eab"
+".lexlean/verified/$ATTESTATION/audit/output.txt" = "blake3:c62ec571ca253c8e5f5eebcd6304720665235b3fe85c286021580cbfe0d8cb3e"
+".lexlean/verified/$ATTESTATION/build-manifest.json" = "blake3:6ead436fe0680e7d2b7c46b3fcbbdd502c55fb106d532ff1bbf1d313254e3328"
+".lexlean/verified/$ATTESTATION/coverage/LexLeanExample/Main.coverage.json" = "blake3:9260934f91366dd8019a918e14e06d7746f2b49aa79469e706a0f2828d003117"
+".lexlean/verified/$ATTESTATION/lexicons/Main.closure.json" = "blake3:432d888fc70d4349a4309dd29c6096b089a135ceaa000bf1dfc80f9c4eefbef7"
+".lexlean/verified/$ATTESTATION/maps/LexLeanExample/Main.map.json" = "blake3:e4476e6e5304d4a258565435d6b0b8bb85bb68d498d117990dc1140822a52a01"
+".lexlean/verified/$ATTESTATION/modules/LexLeanExample/Main.lean" = "blake3:f86310629110e4baf6721665ff53eab70bad342ffd37faddf301b9fc12518f10"
+".lexlean/verified/$ATTESTATION/modules/LexLeanExample/Main.tex" = "blake3:989267c9266f544434487eacf893ec857c24ffde78f3cb3d5a4ffc5b2a42969c"
+".lexlean/verified/$ATTESTATION/probe/LexLeanProbe.Pef717aa516d9e8ca0176df0fd93b91e0.lean" = "blake3:4e1236d99f221e8496382fe1bddea93afb80c303f2857aa049b19e3b839595b4"
 
 [process_bound]
 files = [
     ".lexlean/verified/$ATTESTATION/attestation.json",
-    ".lexlean/verified/$ATTESTATION/audit/LexLeanAudit.A4adbb996ff10a92994adb5c16c83714f.LexLeanExample.Main.process.json",
+    ".lexlean/verified/$ATTESTATION/audit/LexLeanAudit.Aef717aa516d9e8ca0176df0fd93b91e0.LexLeanExample.Main.process.json",
     ".lexlean/verified/$ATTESTATION/oleans/LexLeanExample/Main.olean",
     ".lexlean/verified/$ATTESTATION/probe/process.json",
     ".lexlean/verified/$ATTESTATION/process/lean/LexLeanExample.Main.json",

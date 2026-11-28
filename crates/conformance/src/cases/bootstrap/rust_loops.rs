@@ -40,9 +40,9 @@ const CERTIFICATE_BUDGET: u64 = 3_145_728;
 
 /// The programs the evaluator is given: those of at most this many nodes.
 const EVALUATOR_NODES: usize = 300;
-const VECTORS: usize = 177;
-const VECTORS_WITHIN: usize = 72;
-const EVALUATOR_MUTANTS: usize = 136;
+const VECTORS: usize = 206;
+const VECTORS_WITHIN: usize = 78;
+const EVALUATOR_MUTANTS: usize = 139;
 
 fn prim(operation: Prim, operands: Vec<Expr>) -> Expr {
     Expr::Prim {

@@ -153,6 +153,7 @@
       "MD-10",
       "MD-11",
       "MD-12",
+      "MD-13",
       "PX-01",
       "PX-02",
       "PX-03",
@@ -264,7 +265,8 @@
     "preservation-std": [
       "SP-29",
       "SP-32",
-      "SP-33"
+      "SP-33",
+      "SP-34"
     ],
     "bootstrap-diagnostics": [
       "BS-29"
@@ -277,6 +279,79 @@
     ],
     "bootstrap-manifest-text": [
       "BS-34"
+    ],
+    "bootstrap-grammar-proof": [
+      "BS-35"
+    ],
+    "bootstrap-semantic-print": [
+      "BS-36"
+    ],
+    "bootstrap-semantic-read": [
+      "BS-37"
+    ],
+    "bootstrap-core-json": [
+      "BS-38"
+    ],
+    "bootstrap-core-print": [
+      "BS-39"
+    ],
+    "bootstrap-core-read": [
+      "BS-40"
+    ],
+    "bootstrap-grammar-math": [
+      "BS-42"
+    ],
+    "bootstrap-proposition-terms": [
+      "BS-43"
+    ],
+    "bootstrap-lexicon-schema": [
+      "BS-50"
+    ],
+    "bootstrap-lse-scopes": [
+      "BS-51"
+    ],
+    "bootstrap-lse-types": [
+      "BS-52"
+    ],
+    "bootstrap-toml-read": [
+      "BS-53"
+    ],
+    "bootstrap-package-ref": [
+      "BS-54"
+    ],
+    "bootstrap-lexicon-entry": [
+      "BS-55"
+    ],
+    "stdlib": [
+      "EX-09",
+      "SL-01",
+      "SL-02",
+      "SL-03",
+      "SL-04",
+      "SL-05",
+      "SL-09",
+      "SL-10",
+      "SL-11",
+      "SL-13",
+      "SL-14"
+    ],
+    "language-models": [
+      "LM-01",
+      "LM-02",
+      "LM-03",
+      "LM-04",
+      "LM-05",
+      "LM-06",
+      "LM-07",
+      "LM-08",
+      "LM-09",
+      "LM-13"
+    ],
+    "wasi": [
+      "CL-25",
+      "CL-26",
+      "CL-27",
+      "CL-28"
     ]
   },
   "targets": {

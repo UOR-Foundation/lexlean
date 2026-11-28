@@ -4,7 +4,7 @@
 
 use camino::Utf8PathBuf;
 
-use crate::artifact::content_id::Sha256Digest;
+use crate::artifact::content_id::Kappa;
 use crate::code;
 use crate::config::Limits;
 use crate::diagnostic::Diagnostic;
@@ -15,8 +15,8 @@ use crate::verify::child::{run as run_child, ChildHome, ChildSpec, Normalizer};
 pub struct Tool {
     /// The absolute executable path.
     pub path: Utf8PathBuf,
-    /// SHA-256 of the executable bytes.
-    pub sha256: Sha256Digest,
+    /// κ-label of the executable bytes.
+    pub kappa: Kappa,
     /// The recorded, normalized version output.
     pub version_output: String,
 }
@@ -32,6 +32,115 @@ pub struct Toolchain {
     pub lake: Tool,
     /// `leanchecker`.
     pub leanchecker: Tool,
+}
+
+/// The format of [`Addresses`] as a part of a verification writes it.
+pub const ADDRESSES_SPEC: &str = "lexlean/verify-toolchain/1";
+
+/// The addresses of every executable a verification ran or was built by
+/// (SPEC.md §22.11): `lean`, `lake`, and `leanchecker` as the preflight
+/// hashed them, the running `lexlean`, and the `rustc` that compiled it.
+/// Two parts of one verification agree on all five or neither trusts the
+/// other's records.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Addresses {
+    /// `lean`.
+    pub lean: Kappa,
+    /// `lake`.
+    pub lake: Kappa,
+    /// `leanchecker`.
+    pub leanchecker: Kappa,
+    /// The running `lexlean` executable.
+    pub lexlean: Kappa,
+    /// The `rustc` that compiled this `lexlean` (its executable and driver
+    /// library, [`crate::build_identity::RUSTC_KAPPA`]).
+    pub rustc: Kappa,
+}
+
+impl Addresses {
+    /// The addresses of this preflighted toolchain, the running executable
+    /// whose digest is `lexlean`, and the compiler that built it.
+    #[must_use]
+    pub fn of(toolchain: &Toolchain, lexlean: Kappa) -> Self {
+        Self {
+            lean: toolchain.lean.kappa,
+            lake: toolchain.lake.kappa,
+            leanchecker: toolchain.leanchecker.kappa,
+            lexlean,
+            rustc: Kappa::parse(crate::build_identity::RUSTC_KAPPA)
+                .expect("the build script writes a κ-label"),
+        }
+    }
+
+    /// Every tool with its address, in name order.
+    #[must_use]
+    pub fn tools(&self) -> [(&'static str, Kappa); 5] {
+        [
+            ("lake", self.lake),
+            ("lean", self.lean),
+            ("leanchecker", self.leanchecker),
+            ("lexlean", self.lexlean),
+            ("rustc", self.rustc),
+        ]
+    }
+
+    /// The canonical JSON form.
+    #[must_use]
+    pub fn to_json(&self) -> crate::artifact::canonical_json::Json {
+        use crate::artifact::canonical_json::Json;
+        let mut pairs = vec![("spec", Json::Str(ADDRESSES_SPEC.to_owned()))];
+        for (tool, address) in self.tools() {
+            pairs.push((tool, Json::Str(address.label())));
+        }
+        Json::object(pairs)
+    }
+
+    /// Read the canonical JSON form, refusing anything else: another
+    /// format, a missing or malformed address, or an unknown field.
+    ///
+    /// # Errors
+    ///
+    /// What is wrong with `json`.
+    pub fn from_json(json: &crate::artifact::canonical_json::Json) -> Result<Self, String> {
+        use crate::artifact::canonical_json::Json;
+        let Json::Obj(fields) = json else {
+            return Err("the toolchain addresses are an object".to_owned());
+        };
+        if fields.get("spec") != Some(&Json::Str(ADDRESSES_SPEC.to_owned())) {
+            return Err(format!("`spec` must be `{ADDRESSES_SPEC}`"));
+        }
+        let address = |tool: &str| match fields.get(tool) {
+            Some(Json::Str(hex)) => {
+                Kappa::parse(hex).map_err(|reason| format!("the address of `{tool}`: {reason}"))
+            }
+            _ => Err(format!("the address of `{tool}` is required")),
+        };
+        let addresses = Self {
+            lean: address("lean")?,
+            lake: address("lake")?,
+            leanchecker: address("leanchecker")?,
+            lexlean: address("lexlean")?,
+            rustc: address("rustc")?,
+        };
+        if let Some(unknown) = fields
+            .keys()
+            .find(|key| *key != "spec" && !addresses.tools().iter().any(|(tool, _)| tool == key))
+        {
+            return Err(format!("unknown field `{unknown}`"));
+        }
+        Ok(addresses)
+    }
+
+    /// The first tool whose address differs between `self` and `other`, with
+    /// both addresses, in name order.
+    #[must_use]
+    pub fn first_difference(&self, other: &Self) -> Option<(&'static str, Kappa, Kappa)> {
+        self.tools()
+            .into_iter()
+            .zip(other.tools())
+            .find(|((_, mine), (_, theirs))| mine != theirs)
+            .map(|((tool, mine), (_, theirs))| (tool, mine, theirs))
+    }
 }
 
 fn environment(message: impl Into<String>) -> Diagnostic {
@@ -65,7 +174,7 @@ fn version_probe(
     path: &Utf8PathBuf,
     argv: &[&str],
     bin_dir: &Utf8PathBuf,
-    sha256: Sha256Digest,
+    kappa: Kappa,
     limits: &Limits,
 ) -> Result<String, Diagnostic> {
     let record = run_child(
@@ -73,7 +182,7 @@ fn version_probe(
             tool: name,
             module: None,
             program: path,
-            executable_sha256: sha256,
+            executable_kappa: kappa,
             argv: argv.iter().map(|argument| (*argument).to_owned()).collect(),
             cwd: bin_dir,
             extra_env: Vec::new(),
@@ -104,20 +213,20 @@ fn load_tool(
             "the pinned toolchain has no `{name}` executable: {path}: {io_error}"
         ))
     })?;
-    let sha256 = Sha256Digest::of(&bytes);
+    let kappa = Kappa::of(&bytes);
     let version_output = match version_argv {
-        Some(argv) => version_probe(name, &path, argv, bin_dir, sha256, limits)?,
+        Some(argv) => version_probe(name, &path, argv, bin_dir, kappa, limits)?,
         None => String::new(),
     };
     Ok(Tool {
         path,
-        sha256,
+        kappa,
         version_output,
     })
 }
 
 /// Locate and preflight the pinned toolchain: `lean` and `lake` must report
-/// version 4.32.1 (§8.2); every executable digest is recorded (§22.9). The
+/// version 4.32.2 (§8.2); every executable digest is recorded (§22.9). The
 /// version probes run under the configured child limits (§25.5).
 pub fn preflight(limits: &Limits) -> Result<Toolchain, Diagnostic> {
     let root = toolchain_root()?;
@@ -151,8 +260,8 @@ pub fn preflight(limits: &Limits) -> Result<Toolchain, Diagnostic> {
     // the functional check.
     let mut leanchecker = load_tool(&bin_dir, "leanchecker", None, limits)?;
     leanchecker.version_output = format!(
-        "leanchecker bin/leanchecker sha256:{}",
-        leanchecker.sha256.to_hex()
+        "leanchecker bin/leanchecker kappa:{}",
+        leanchecker.kappa.label()
     );
     Ok(Toolchain {
         root,
@@ -196,29 +305,33 @@ mod tests {
         for (tool, banner) in [
             (
                 "lean",
-                "Lean (version 4.32.1, x86_64-unknown-linux-gnu, commit f054605, Release)",
+                "Lean (version 4.32.2, x86_64-unknown-linux-gnu, commit f3b06c7, Release)",
             ),
             (
                 "lake",
-                "Lake version 5.0.0-src+f054605 (Lean version 4.32.1)",
+                "Lake version 5.0.0-src+f3b06c7 (Lean version 4.32.2)",
             ),
         ] {
             assert!(reports_pinned_version(tool, banner), "{tool}: {banner}");
         }
         for (tool, banner) in [
+            ("lean", "Lean (version 4.32.1, release)"),
+            ("lean", "Lean (version 4.32.20, release)"),
             ("lean", "Lean (version 4.32.10, release)"),
-            ("lean", "Lean (version 4.32.1-rc1, release)"),
-            ("lean", "Lean (version 4.31.0, built with 4.32.1)"),
-            ("lean", "unrecognized banner 4.32.1"),
-            ("lean", "Lean (version 4.32.1, release"),
-            ("lean", "Lean (version 4.32.1, release)\nextra output"),
+            ("lean", "Lean (version 4.32.2-rc1, release)"),
+            ("lean", "Lean (version 4.31.0, built with 4.32.2)"),
+            ("lean", "unrecognized banner 4.32.2"),
+            ("lean", "Lean (version 4.32.2, release"),
+            ("lean", "Lean (version 4.32.2, release)\nextra output"),
+            ("lake", "Lake version 5.0.0 (Lean version 4.32.1)"),
+            ("lake", "Lake version 5.0.0 (Lean version 4.32.20)"),
             ("lake", "Lake version 5.0.0 (Lean version 4.32.10)"),
-            ("lake", "Lake version 5.0.0 (Lean version 4.32.1-rc1)"),
-            ("lake", "Lake version 4.32.1 (Lean version 4.31.0)"),
-            ("lake", "Lake version 5.0.0 (Lean version 4.32.1"),
+            ("lake", "Lake version 5.0.0 (Lean version 4.32.2-rc1)"),
+            ("lake", "Lake version 4.32.2 (Lean version 4.31.0)"),
+            ("lake", "Lake version 5.0.0 (Lean version 4.32.2"),
             (
                 "lake",
-                "Lake version 5.0.0 (Lean version 4.32.1)\nextra output",
+                "Lake version 5.0.0 (Lean version 4.32.2)\nextra output",
             ),
         ] {
             assert!(!reports_pinned_version(tool, banner), "{tool}: {banner}");

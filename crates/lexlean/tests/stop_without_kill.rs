@@ -41,7 +41,7 @@ fn scenario() {
         tool: "lake",
         module: Some("Probe".to_owned()),
         program,
-        executable_sha256: lexlean::Sha256Digest::of(b"script"),
+        executable_kappa: lexlean::Kappa::of(b"script"),
         argv: Vec::new(),
         cwd,
         extra_env: Vec::new(),

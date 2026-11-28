@@ -98,7 +98,7 @@ Feature: configuration-lock
     And the twin Lake configuration fails with LLC0101 or LLV7007
 
   @CF-14 @build
-  Scenario: Language 1.0 accepts only leanprover/lean4:v4.32.1 for verification.
+  Scenario: Language 1.0 accepts only leanprover/lean4:v4.32.2 for verification.
     Given one example copy with `lean_toolchain = "leanprover/lean4:v4.31.0"` in lexlean.toml and another whose lean-toolchain file reads leanprover/lean4:v4.31.0
     When Engine::load runs on the first and lock --check runs on the second
     Then the foreign toolchain string fails configuration with LLC0101
@@ -121,7 +121,7 @@ Feature: configuration-lock
   Scenario: Language 1.2 declaration support accepts language 1.2 and rejects unsupported or malformed language versions.
     Given the example project with `language = "1.2"` and copies declaring `1.3`, `2.0`, `1.2.0`, `01.2`, ` 1.2`, `1.2 `, `1`, `1.`, `v1.2`, and the empty string
     When each lexlean.toml is loaded, the 1.2 copy is locked, and `lexlean init . --language 1.2` runs in an empty directory
-    Then the 1.2 copy locks as language 1.2, and the initialized project writes a `lexlean/lock/2` lock and a configuration valid against the language-1.2 schemas
+    Then the 1.2 copy locks as language 1.2, and the initialized project writes a `lexlean/lock/4` lock and a configuration valid against the language-1.2 schemas
     And every other spelling fails with LLC0103 naming that exact spelling
 
   @CF-18 @build
@@ -129,5 +129,5 @@ Feature: configuration-lock
     Given the committed language 1.0 and 1.1 examples and every other committed example
     When each is relocked and checked with `lock --check`, its documents are validated against its language's schemas, and a copy of the 1.1 example is migrated to 1.2 and relocked
     Then the 1.0 and 1.1 locks are byte-identical with written = false and pass `lock --check`, and every example validates against its own language's schemas
-    And the migrated copy fails `lock --check` with LLC0102 before relocking, then writes a `lexlean/lock/2` lock valid against `lock-v2` with an unchanged generated Lean module set and a different semantic identity
+    And the migrated copy fails `lock --check` with LLC0102 before relocking, then writes a `lexlean/lock/4` lock valid against `lock-v2` with an unchanged generated Lean module set and a different semantic identity
     And an unsupported lock schema `lexlean/lock/3` fails lock parsing with LLC0103

@@ -7,7 +7,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use camino::{Utf8Path, Utf8PathBuf};
 
 use crate::artifact::canonical_json::Json;
-use crate::artifact::content_id::{build_id, Sha256Digest};
+use crate::artifact::content_id::{build_id, Kappa};
 use crate::artifact::manifest::{BuildManifest, FileRow, ModuleRow};
 use crate::artifact::source_map::{ArtifactKind, MapArtifact, MapSource, SourceMap};
 use crate::code;
@@ -87,6 +87,10 @@ pub enum VerifyPart {
 }
 
 /// What a part of a verification produced.
+// A κ-label is 71 bytes where the earlier digest was 32, which tips the
+// published variant past the lint's threshold. One value is returned per
+// verification part, so boxing it would change the public API for no saving.
+#[allow(clippy::large_enum_variant)]
 pub enum VerifyPartOutcome {
     /// A shard's output directory, and the number of processes it ran.
     Shard {
@@ -169,11 +173,11 @@ pub struct VerifiedUnit {
 /// A project result set (§24.4): always a set, never a singular unit.
 pub struct ProjectResultSet<U> {
     /// The source ID.
-    pub source_id: Sha256Digest,
+    pub source_id: Kappa,
     /// The semantic ID.
-    pub semantic_id: Sha256Digest,
+    pub semantic_id: Kappa,
     /// The build ID, present after a build.
-    pub build_id: Option<Sha256Digest>,
+    pub build_id: Option<Kappa>,
     /// Units by module name.
     pub units: BTreeMap<String, U>,
 }
@@ -181,13 +185,13 @@ pub struct ProjectResultSet<U> {
 /// A verified project (§24.4).
 pub struct VerifiedProject {
     /// The source ID.
-    pub source_id: Sha256Digest,
+    pub source_id: Kappa,
     /// The semantic ID.
-    pub semantic_id: Sha256Digest,
+    pub semantic_id: Kappa,
     /// The build ID.
-    pub build_id: Sha256Digest,
+    pub build_id: Kappa,
     /// The attestation ID.
-    pub attestation_id: Sha256Digest,
+    pub attestation_id: Kappa,
     /// The published verified directory.
     pub root: Utf8PathBuf,
     /// Units by module name.
@@ -226,7 +230,7 @@ pub struct RenderedModule {
 /// A fully rendered build (§21.5).
 pub struct RenderedBuild {
     /// The build ID.
-    pub build_id: Sha256Digest,
+    pub build_id: Kappa,
     /// Modules in sorted name order.
     pub modules: Vec<RenderedModule>,
     /// Every file of the build directory as `(relative path, bytes)`,
@@ -238,19 +242,159 @@ pub struct RenderedBuild {
     pub manifest_bytes: Vec<u8>,
 }
 
+/// One Lean module a host elaborates for a selection (§23.4 `lean-modules`).
+pub(crate) struct LeanModule {
+    /// `text-laws` or `runtime` for a shipped library module, `project` for
+    /// a generated module of the selection.
+    kind: &'static str,
+    /// The source module name of a project module.
+    module: Option<String>,
+    /// The Lean module name.
+    lean_module: String,
+    /// The exact Lean text: for a project module, the bytes `build` writes
+    /// at its `modules/` path.
+    text: String,
+    /// The axiom policies verification holds the module's declarations to
+    /// (§22.6): its entries of [`crate::verify::policy::table`].
+    policies: Vec<crate::verify::policy::Entry>,
+}
+
+/// The `lexlean/lean-modules/1` document: every Lean module a host
+/// elaborates for a selection, in elaboration order, and the identities that
+/// pin them (§23.4).
+pub(crate) struct LeanModules {
+    language: String,
+    semantics_id: Kappa,
+    source_id: Kappa,
+    semantic_id: Kappa,
+    build_id: Kappa,
+    modules: Vec<LeanModule>,
+}
+
+impl LeanModules {
+    /// The source module names of the project modules.
+    pub(crate) fn project_modules(&self) -> BTreeSet<String> {
+        self.modules
+            .iter()
+            .filter_map(|module| module.module.clone())
+            .collect()
+    }
+
+    /// The source ID.
+    pub(crate) fn source_id(&self) -> Kappa {
+        self.source_id
+    }
+
+    /// The semantic ID.
+    pub(crate) fn semantic_id(&self) -> Kappa {
+        self.semantic_id
+    }
+
+    /// The build ID `build` publishes the same modules under.
+    pub(crate) fn build_id(&self) -> Kappa {
+        self.build_id
+    }
+
+    /// The canonical file bytes of the document.
+    pub(crate) fn canonical_bytes(&self) -> Vec<u8> {
+        let modules = self
+            .modules
+            .iter()
+            .map(|module| {
+                let mut row = vec![
+                    ("kind", Json::Str(module.kind.to_owned())),
+                    ("lean_module", Json::Str(module.lean_module.clone())),
+                    (
+                        "kappa",
+                        Json::Str(Kappa::of(module.text.as_bytes()).label()),
+                    ),
+                    ("text", Json::Str(module.text.clone())),
+                ];
+                if let Some(name) = &module.module {
+                    row.push(("module", Json::Str(name.clone())));
+                }
+                let policies = module
+                    .policies
+                    .iter()
+                    .map(|entry| {
+                        let mut policy = vec![
+                            ("declaration", Json::Str(entry.name.clone())),
+                            ("kind", Json::Str(entry.policy.kind().to_owned())),
+                            (
+                                "axioms",
+                                Json::Arr(
+                                    entry
+                                        .policy
+                                        .axioms()
+                                        .iter()
+                                        .cloned()
+                                        .map(Json::Str)
+                                        .collect(),
+                                ),
+                            ),
+                            ("rule", Json::Str(entry.rule.token().to_owned())),
+                        ];
+                        if let crate::verify::policy::Rule::Model { members } = &entry.rule {
+                            policy.push((
+                                "members",
+                                Json::Arr(members.iter().cloned().map(Json::Str).collect()),
+                            ));
+                        }
+                        Json::object(policy)
+                    })
+                    .collect();
+                row.push(("axiom_policies", Json::Arr(policies)));
+                Json::object(row)
+            })
+            .collect();
+        Json::object(vec![
+            ("spec", Json::Str("lexlean/lean-modules/1".to_owned())),
+            (
+                "compiler",
+                Json::object(vec![
+                    ("version", Json::Str(crate::COMPILER_VERSION.to_owned())),
+                    ("semantics_id", Json::Str(self.semantics_id.label())),
+                ]),
+            ),
+            ("language", Json::Str(self.language.clone())),
+            (
+                "lean_toolchain",
+                Json::Str(crate::LEAN_TOOLCHAIN.to_owned()),
+            ),
+            ("source_id", Json::Str(self.source_id.label())),
+            ("semantic_id", Json::Str(self.semantic_id.label())),
+            ("build_id", Json::Str(self.build_id.label())),
+            ("modules", Json::Arr(modules)),
+        ])
+        .to_file_bytes()
+    }
+}
+
 fn file_row(kind: &str, path: &str, bytes: &[u8]) -> FileRow {
     FileRow {
         kind: kind.to_owned(),
         path: path.to_owned(),
         byte_length: bytes.len(),
-        sha256: Sha256Digest::of(bytes),
+        kappa: Kappa::of(bytes),
     }
 }
 
 /// Render the complete platform-independent build artifact set from a
 /// checked project (§21.5, §21.6). No Lean process runs here (CL-05).
-#[allow(clippy::too_many_lines)]
+/// The printers recurse once per level of what the compile thread admitted,
+/// so they run on a stack of the same size (§25.5).
 pub fn render_build(
+    project: &Project,
+    checked: &CheckedProject,
+) -> Result<RenderedBuild, LexLeanError> {
+    crate::on_stack(
+        project.config.limits.compile_stack_plan().stack_bytes,
+        || render_build_inline(project, checked),
+    )
+}
+
+#[allow(clippy::too_many_lines)]
+fn render_build_inline(
     project: &Project,
     checked: &CheckedProject,
 ) -> Result<RenderedBuild, LexLeanError> {
@@ -314,7 +458,7 @@ pub fn render_build(
             sources: vec![MapSource::File {
                 id: 0,
                 path: checked_module.document.source_path.clone(),
-                sha256: checked_module.document.source_sha256,
+                kappa: checked_module.document.source_kappa,
             }],
             artifacts: vec![
                 MapArtifact {
@@ -480,12 +624,12 @@ pub fn render_build(
         &project.config.lockfile,
         &checked.canonical_lock,
     ));
-    for (path, byte_length, sha256) in &checked.artifacts {
+    for (path, byte_length, kappa) in &checked.artifacts {
         inputs.push(FileRow {
             kind: "model-artifact".to_owned(),
             path: path.clone(),
             byte_length: *byte_length,
-            sha256: *sha256,
+            kappa: *kappa,
         });
     }
     for (name, checked_module) in &checked.modules {
@@ -523,7 +667,7 @@ pub fn render_build(
             kind: "lexicon".to_owned(),
             path,
             byte_length: package.total_bytes,
-            sha256: package.tree_sha256,
+            kappa: package.tree_kappa,
         });
     }
 
@@ -566,6 +710,7 @@ pub(crate) struct MutationGuard {
 
 /// Acquire the project mutation lock at `<build_root>/.lock` (§21.8). The
 /// build root's components are checked for symlinks first (§25.1).
+#[cfg(not(target_os = "wasi"))]
 fn acquire_lock(project: &Project) -> Result<MutationGuard, LexLeanError> {
     use fs4::fs_std::FileExt;
     let build_root = project
@@ -592,6 +737,17 @@ fn acquire_lock(project: &Project) -> Result<MutationGuard, LexLeanError> {
     Ok(MutationGuard { _file: file })
 }
 
+/// WASI has no file lock, and a WASI host may share its directories with
+/// other processes, so a command that changes the project is refused there
+/// before it touches anything rather than run without the lock (§8.3, §21.8).
+#[cfg(target_os = "wasi")]
+fn acquire_lock(project: &Project) -> Result<MutationGuard, LexLeanError> {
+    Err(host_failure(format!(
+        "{}/.lock: this host has no file lock, so it runs no command that changes the project",
+        project.config.build_root
+    )))
+}
+
 /// Publish a rendered build atomically at its content-addressed path
 /// (§21.5, §21.8): staging, fsync, validate-before-reuse, rename.
 pub fn publish_build(
@@ -609,13 +765,7 @@ fn publish_build_locked(
     build: &RenderedBuild,
     guard: &MutationGuard,
 ) -> Result<Utf8PathBuf, LexLeanError> {
-    publish_tree(
-        project,
-        "build",
-        &build.build_id.to_hex(),
-        &build.files,
-        guard,
-    )
+    publish_tree(project, "build", build.build_id.hex(), &build.files, guard)
 }
 
 /// Publish `files` atomically at `<build_root>/<area>/<name>`, a
@@ -953,6 +1103,98 @@ impl Engine {
             &self.project.config.language,
             crate::compiler_semantics_id_for(&self.project.config.language),
         ))
+    }
+
+    /// The Lean modules of a selection as `lexlean lean-modules` prints them
+    /// (§23.4): the `check` pipeline and [`render_build`], with no lock and
+    /// no publication, so it runs where `build` is refused (§8.3). It is not
+    /// an [`Engine`] method of §24.1; the CLI is its one caller.
+    pub(crate) fn lean_modules(&self, request: &BuildRequest) -> Result<LeanModules, LexLeanError> {
+        self.bound("lean-modules", self.lean_modules_inner(request))
+    }
+
+    fn lean_modules_inner(&self, request: &BuildRequest) -> Result<LeanModules, LexLeanError> {
+        let (checked, _lock) = self.checked(&request.selection)?;
+        let rendered = render_build(&self.project, &checked)?;
+        let mut modules: Vec<LeanModule> = Vec::new();
+        // The shipped libraries the generated modules import come first, in
+        // the order verification compiles them (§22.3): the text laws, then
+        // the runtime closed under its own imports, leaving out a runtime
+        // module the project generates itself (the runtime's own project).
+        if rendered
+            .modules
+            .iter()
+            .any(|module| crate::text_laws::imports_laws(&module.lean_text))
+        {
+            for file in crate::text_laws::stage().map_err(LexLeanError::from_diagnostic)? {
+                modules.push(LeanModule {
+                    kind: "text-laws",
+                    module: None,
+                    lean_module: file.module,
+                    text: file.text,
+                    policies: Vec::new(),
+                });
+            }
+        }
+        let mut runtime = crate::backend::runtime::imported_by(
+            rendered
+                .modules
+                .iter()
+                .map(|module| module.lean_text.as_str()),
+        )
+        .map_err(LexLeanError::from_diagnostic)?;
+        runtime.retain(|library| {
+            !rendered
+                .modules
+                .iter()
+                .any(|module| module.lean_module == library.name)
+        });
+        // The table verification's policy stage evaluates, by module.
+        let mut policies: BTreeMap<String, Vec<crate::verify::policy::Entry>> =
+            crate::verify::policy::table(&checked, &rendered.modules, &runtime)
+                .into_iter()
+                .map(|table| (table.lean_module, table.entries))
+                .collect();
+        for library in runtime {
+            modules.push(LeanModule {
+                kind: "runtime",
+                module: None,
+                lean_module: library.name.clone(),
+                text: library.text.clone(),
+                policies: policies.remove(&library.name).unwrap_or_default(),
+            });
+        }
+        // The project's modules in the order verification elaborates them:
+        // topological frontiers of the import graph, each in module order.
+        let frontiers = crate::verify::partition::elaboration_order(
+            rendered.modules.len(),
+            &|index| rendered.modules[index].module.clone(),
+            &|index| {
+                checked.modules[&rendered.modules[index].module]
+                    .document
+                    .imports
+                    .to_vec()
+            },
+        )
+        .map_err(LexLeanError::from_diagnostic)?;
+        for index in frontiers.into_iter().flatten() {
+            let module = &rendered.modules[index];
+            modules.push(LeanModule {
+                kind: "project",
+                module: Some(module.module.clone()),
+                lean_module: module.lean_module.clone(),
+                text: module.lean_text.clone(),
+                policies: policies.remove(&module.lean_module).unwrap_or_default(),
+            });
+        }
+        Ok(LeanModules {
+            language: self.project.config.language.clone(),
+            semantics_id: crate::compiler_semantics_id_for(&self.project.config.language),
+            source_id: checked.source_id,
+            semantic_id: checked.semantic_id,
+            build_id: rendered.build_id,
+            modules,
+        })
     }
 
     fn check_inner(
@@ -1455,13 +1697,13 @@ pub fn parse_lock_bytes(path: &str, bytes: &[u8]) -> Result<Lock, Vec<Diagnostic
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct CommandIds {
     /// The source ID.
-    pub source_id: Option<Sha256Digest>,
+    pub source_id: Option<Kappa>,
     /// The semantic ID.
-    pub semantic_id: Option<Sha256Digest>,
+    pub semantic_id: Option<Kappa>,
     /// The build ID.
-    pub build_id: Option<Sha256Digest>,
+    pub build_id: Option<Kappa>,
     /// The attestation ID.
-    pub attestation_id: Option<Sha256Digest>,
+    pub attestation_id: Option<Kappa>,
 }
 
 /// The canonical JSON command-result object (§20.6). Absent IDs are
@@ -1502,7 +1744,7 @@ pub fn command_result_json(
         ("attestation_id", ids.attestation_id),
     ] {
         if let Some(id) = id {
-            fields.push((name, Json::Str(id.to_hex())));
+            fields.push((name, Json::Str(id.label())));
         }
     }
     if let Some(text) = explanation {

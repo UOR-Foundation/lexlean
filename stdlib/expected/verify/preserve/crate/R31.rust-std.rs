@@ -856,7 +856,7 @@ pub fn format_int(p0: i64) -> Str {
 }
 
 pub fn f0(v0: List<i64>, v1: List<i64>) -> R<List<i64>> {
-    f1(1u64, 0u64, 0i64, f2(64u64, v0, v1)?)
+    f1(0u64, 0u64, 0i64, f2(64u64, v0, v1)?)
 }
 
 pub fn f1(v0: u64, v1: u64, v2: i64, v3: List<i64>) -> R<List<i64>> {

@@ -221,3 +221,10 @@ Feature: preservation
     When the program is rendered and the fixture's production root is exported
     Then the arm reads the box and binds nothing, and the kernel accepts every certificate of the root
     And a lowering that does not fold a returned clone is refused by the kernel with `LLV7015`
+
+  @SP-34 @build
+  Scenario: A structurally recursive definition with more parameters than Lean's structural search considers recurses in its generated Lean on the argument its source declares: Lean tries no candidate argument once more than ten are possible and then compiles the definition by well-founded recursion, which a `reflexivity` proof through it cannot unfold, so a definition with `recursive_argument` and more than ten parameters, executable or not, states the argument with `termination_by structural`; a definition with at most ten parameters generates the bytes it generated before.
+    Given the `wide-recursion` fixture, whose `wideOf` and `wideModelOf` have eleven parameters and whose `narrowOf` has ten
+    When the fixture's generated Lean is read and the fixture is verified
+    Then `wideOf` and `wideModelOf` state their argument, `narrowOf` states none, and the kernel accepts each definition's theorem proved by `reflexivity`
+    And a backend that states the argument only as `SP-32` does is refused by Lean with `LLV7002`

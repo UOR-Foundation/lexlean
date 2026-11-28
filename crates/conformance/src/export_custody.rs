@@ -2,8 +2,9 @@
 //! (SPEC.md §9.4). The `bootstrap-export` job exports the bootstrap project
 //! once, requires its packages to equal the committed packages, and uploads
 //! the bundle with a custody record that binds it to the repository, the
-//! run and its attempt, the commit and its tree, the toolchain pins and the
-//! toolchains that ran, and the bundle's bytes. A conformance case of the same
+//! run and its attempt, the commit and its tree, the toolchain pins, the
+//! toolchains that ran and the addresses of their executables, and the
+//! bundle's bytes. A conformance case of the same
 //! run that needs the export takes it from there instead of exporting the
 //! project again: the harness names the directory it waits in through
 //! [`VARIABLE`], checks the record against its own run and checkout, replays
@@ -17,7 +18,6 @@ use std::time::{Duration, Instant};
 use camino::{Utf8Path, Utf8PathBuf};
 use lexlean::api::production::{self, ProductionOutput, ProductionResult};
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 
 use crate::production_export::{self as harness, Exported, BOOTSTRAP};
 use crate::support::{self, P};
@@ -26,7 +26,7 @@ use crate::support::{self, P};
 pub const VARIABLE: &str = "LEXLEAN_BOOTSTRAP_EXPORT";
 
 /// The custody record's format.
-pub const SPEC: &str = "lexlean/ci-bootstrap-export/1";
+pub const SPEC: &str = "lexlean/ci-bootstrap-export/2";
 
 /// The custody record, beside the bundle in the uploaded directory.
 pub const CUSTODY_FILE: &str = "custody.json";
@@ -48,6 +48,10 @@ pub const ARTIFACT_DIR: &str = "artifact";
 
 /// The repository files whose bytes pin the toolchains and the dependencies.
 pub const PINS: [&str; 3] = ["rust-toolchain.toml", "lean-toolchain", "Cargo.lock"];
+
+/// The executables of the pinned Lean toolchain a custody record addresses,
+/// beside `rustc` (SPEC.md §22.11).
+pub const LEAN_EXECUTABLES: [&str; 3] = ["lake", "lean", "leanchecker"];
 
 /// The longest a case waits for the run's export: the export job's own
 /// limit, after which the job has failed and the fetcher says so.
@@ -73,10 +77,14 @@ pub struct Custody {
     pub pins: BTreeMap<String, String>,
     /// What the toolchains report: `rustc -vV` and `lean --version`.
     pub toolchains: BTreeMap<String, String>,
+    /// The address of each executable: the SHA-256 of `lake`, `lean`, and
+    /// `leanchecker` of the pinned toolchain, and the address of the `rustc`
+    /// that compiled the job's own binary (§22.11).
+    pub executables: BTreeMap<String, String>,
     /// The project-relative bundle directory of the export.
     pub bundle_path: String,
     /// [`bundle_digest`] of the bundle.
-    pub bundle_sha256: String,
+    pub bundle_kappa: String,
     /// The number of files in the bundle.
     pub bundle_files: u64,
 }
@@ -98,13 +106,12 @@ pub struct Identity {
     pub pins: BTreeMap<String, String>,
     /// What the toolchains report.
     pub toolchains: BTreeMap<String, String>,
+    /// The address of each executable.
+    pub executables: BTreeMap<String, String>,
 }
 
-fn sha256_hex(bytes: &[u8]) -> String {
-    Sha256::digest(bytes)
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect()
+fn kappa_label(bytes: &[u8]) -> String {
+    crate::support::oracle_kappa(bytes).label()
 }
 
 fn run(root: &Utf8Path, program: &str, arguments: &[&str]) -> Result<String, String> {
@@ -130,7 +137,8 @@ fn run(root: &Utf8Path, program: &str, arguments: &[&str]) -> Result<String, Str
 /// # Errors
 ///
 /// When the run is not named by GitHub's variables, the checkout's tracked
-/// files differ from its commit, or a toolchain cannot be asked its version.
+/// files differ from its commit, a toolchain cannot be asked its version, or
+/// an executable of the pinned toolchain cannot be read.
 pub fn identity(root: &Utf8Path) -> Result<Identity, String> {
     let variable = |name: &str| -> Result<String, String> {
         std::env::var(name)
@@ -163,12 +171,25 @@ pub fn identity(root: &Utf8Path) -> Result<Identity, String> {
     for name in PINS {
         let bytes = std::fs::read(root.join(name).as_std_path())
             .map_err(|error| format!("{name}: {error}"))?;
-        pins.insert(name.to_owned(), sha256_hex(&bytes));
+        pins.insert(name.to_owned(), kappa_label(&bytes));
     }
     let toolchains = BTreeMap::from([
         ("lean".to_owned(), run(root, "lean", &["--version"])?),
         ("rustc".to_owned(), run(root, "rustc", &["-vV"])?),
     ]);
+    let bin = lexlean::verify::toolchain::toolchain_root()
+        .map_err(|error| format!("the pinned toolchain: {}", error.message))?
+        .join("bin");
+    let mut executables = BTreeMap::new();
+    for name in LEAN_EXECUTABLES {
+        let bytes = std::fs::read(bin.join(name).as_std_path())
+            .map_err(|error| format!("{bin}/{name}: {error}"))?;
+        executables.insert(name.to_owned(), kappa_label(&bytes));
+    }
+    executables.insert(
+        "rustc".to_owned(),
+        lexlean::build_identity::RUSTC_KAPPA.to_owned(),
+    );
     Ok(Identity {
         repository,
         run_id,
@@ -177,23 +198,24 @@ pub fn identity(root: &Utf8Path) -> Result<Identity, String> {
         tree: run(root, "git", &["rev-parse", "HEAD^{tree}"])?,
         pins,
         toolchains,
+        executables,
     })
 }
 
 /// The digest of a bundle directory: the SHA-256 of one line
-/// `<sha256 of the file>  <relative path>` per file, in path order, and the
+/// `<kappa of the file>  <relative path>` per file, in path order, and the
 /// number of files.
 #[must_use]
 pub fn bundle_digest(bundle: &Utf8Path) -> (String, u64) {
     let files = harness::tree(bundle);
     let mut listing = String::new();
     for (relative, bytes) in &files {
-        listing.push_str(&sha256_hex(bytes));
+        listing.push_str(&kappa_label(bytes));
         listing.push_str("  ");
         listing.push_str(relative);
         listing.push('\n');
     }
-    (sha256_hex(listing.as_bytes()), files.len() as u64)
+    (kappa_label(listing.as_bytes()), files.len() as u64)
 }
 
 /// Whether `custody` names the run and checkout `current` is in and the
@@ -262,10 +284,16 @@ pub fn check(custody: &Custody, current: &Identity, bundle: &(String, u64)) -> R
         custody.toolchains == current.toolchains,
     );
     same(
+        "executables",
+        &custody.executables,
+        &current.executables,
+        custody.executables == current.executables,
+    );
+    same(
         "bundle",
-        &(&custody.bundle_sha256, custody.bundle_files),
+        &(&custody.bundle_kappa, custody.bundle_files),
         &(&bundle.0, bundle.1),
-        custody.bundle_sha256 == bundle.0 && custody.bundle_files == bundle.1,
+        custody.bundle_kappa == bundle.0 && custody.bundle_files == bundle.1,
     );
     let path = Utf8Path::new(&custody.bundle_path);
     same(
@@ -296,13 +324,14 @@ fn copy_files(from: &Utf8Path, to: &Utf8Path) -> Result<(), String> {
 
 /// Export the bootstrap project once for the run, require its packages to
 /// equal the committed packages, and write the bundle and its custody record
-/// to `output`. Returns the record.
+/// to `output`. Returns the record, and the export, whose verified directory
+/// the `examples` recipe then holds to its records (§9.4).
 ///
 /// # Errors
 ///
 /// When the run or checkout cannot be named, the export fails, a package
 /// differs from the committed one, or `output` cannot be written.
-pub fn publish(output: &Utf8Path) -> Result<Custody, String> {
+pub fn publish(output: &Utf8Path) -> Result<(Custody, Exported), String> {
     let root = support::repo_root();
     let before = identity(&root)?;
     let exported = harness::export(BOOTSTRAP)?;
@@ -320,7 +349,7 @@ pub fn publish(output: &Utf8Path) -> Result<Custody, String> {
     }
     let bundle = output.join(BUNDLE_DIR);
     copy_files(&exported.bundle(), &bundle)?;
-    let (bundle_sha256, bundle_files) = bundle_digest(&bundle);
+    let (bundle_kappa, bundle_files) = bundle_digest(&bundle);
     let custody = Custody {
         spec: SPEC.to_owned(),
         repository: before.repository,
@@ -330,8 +359,9 @@ pub fn publish(output: &Utf8Path) -> Result<Custody, String> {
         tree: before.tree,
         pins: before.pins,
         toolchains: before.toolchains,
+        executables: before.executables,
         bundle_path: exported.output.bundle.to_string(),
-        bundle_sha256,
+        bundle_kappa,
         bundle_files,
     };
     std::fs::write(
@@ -339,7 +369,7 @@ pub fn publish(output: &Utf8Path) -> Result<Custody, String> {
         harness::canonical(&custody),
     )
     .map_err(|error| format!("{output}/{CUSTODY_FILE}: {error}"))?;
-    Ok(custody)
+    Ok((custody, exported))
 }
 
 /// Wait in `directory` for the run's export, check its custody record
@@ -349,7 +379,7 @@ pub fn publish(output: &Utf8Path) -> Result<Custody, String> {
 /// # Errors
 ///
 /// When the run has no export, the record names another run, commit, tree,
-/// pin, toolchain, or bundle, or the bundle does not replay.
+/// pin, toolchain, executable, or bundle, or the bundle does not replay.
 pub fn take(directory: &Utf8Path) -> Result<Exported, String> {
     std::fs::create_dir_all(directory.as_std_path())
         .and_then(|()| std::fs::write(directory.join(WANTED).as_std_path(), b""))
@@ -379,6 +409,11 @@ pub fn take(directory: &Utf8Path) -> Result<Exported, String> {
     .map_err(|error| format!("{CUSTODY_FILE}: {error}"))?;
     let source = artifact.join(BUNDLE_DIR);
     let digest = bundle_digest(&source);
+    // Waiting and content hashing do not depend on process environment.
+    // From here through replay, identity and toolchain resolution do: share
+    // the same guard as a fresh production export. This excludes tests that
+    // temporarily change PATH, without serializing unrelated verifiers.
+    let _environment = support::env_shared();
     let root = support::repo_root();
     check(&custody, &identity(&root)?, &digest)?;
     let project = P::bootstrap();
@@ -398,12 +433,12 @@ pub fn take(directory: &Utf8Path) -> Result<Exported, String> {
         ));
     }
     eprintln!(
-        "bootstrap export: taken from run {} attempt {} after {:?} (commit {}, bundle sha256 {}, {} files), replayed",
+        "bootstrap export: taken from run {} attempt {} after {:?} (commit {}, bundle kappa {}, {} files), replayed",
         custody.run_id,
         custody.run_attempt,
         started.elapsed(),
         custody.commit,
-        custody.bundle_sha256,
+        custody.bundle_kappa,
         custody.bundle_files
     );
     Ok(Exported {

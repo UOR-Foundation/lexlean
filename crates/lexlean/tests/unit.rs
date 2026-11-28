@@ -66,16 +66,17 @@ fn lse_rejects_unbound_locals() {
     );
 }
 
-/// §21.1: the frame function has the exact byte layout. The expected digest
-/// is that of `d\0 || u32be(5) || "label" || u64be(4) || "body"`, computed
-/// outside this crate, which has no second implementation to compare with.
+/// §21.1: the frame function has the exact byte layout. The expected κ-label
+/// is the BLAKE3 of `d\0 || u32be(5) || "label" || u64be(4) || "body"`,
+/// computed outside this crate by the reference `blake3` package, since the
+/// crate has no second implementation to compare with.
 #[test]
 fn frame_layout_is_exact() {
     let mut framed = FramedHasher::new("d");
     framed.frame("label", b"body");
     assert_eq!(
-        framed.finish().to_hex(),
-        "b82a03486854ed54dbbd42f2e9976d311fd99389b8c089ff0eed7d477406159a"
+        framed.finish().as_str(),
+        "blake3:241d04caff2579e809ad79a971cd7db15d87e386203ad157f75b9202bfa882da"
     );
 }
 

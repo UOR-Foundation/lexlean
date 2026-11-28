@@ -5,7 +5,8 @@
 # the exact pinned toolchains and no build cache: §9.4 says "from a clean
 # checkout", and a restored target directory is not one. CI runs its twelve
 # recipes as the legs of `.github/vv-rows.json` at once, each its own clean
-# checkout: `examples`, which here verifies every example but UOR Atlas, and
+# checkout: `examples`, which here verifies every example but UOR Atlas and
+# the bootstrap project (the `bootstrap export` job verifies it), and
 # `honesty`, format/model/spec-links and the BDD meta target first, then
 # `rest`, the remaining recipes in order, with the `bdd` rows below.
 # Together they run every recipe of `vv` exactly once, so the gate is the same
@@ -35,10 +36,11 @@
 # from broken code.
 #
 # Which runs are the gate (§9.4): the `plan` job decides from the event alone.
-# A pull request that is a draft runs honesty then the `rest` leg, because
-# a head pushed again before it is final should cost two jobs and not the whole
-# gate; it is a development signal and the pull request is not mergeable on it.
-# So does a ready pull request whose base is neither `main` nor `release/*`: a
+# A draft pull request skips every expensive job before runner allocation,
+# including `plan`. `ready_for_review`, even on the same SHA, restores full
+# candidate qualification; skipped draft jobs are not proof of acceptance.
+# A ready pull request whose base is neither `main` nor `release/*` runs
+# honesty then the `rest` leg as a development signal: a
 # stacked pull request cannot land on a line, and the pull request that carries
 # the stack into one runs the whole gate. Marking a draft ready, which the
 # `pull_request` types below include, a push to a ready pull request into
@@ -103,13 +105,18 @@ env:
 
 jobs:
   # What this run is (SPEC.md §9.4), decided from the event before any job that
-  # costs a runner starts: a draft pull request, or a ready one whose base is
-  # neither `main` nor `release/*`, runs the `rest` leg and nothing else; a ready
+  # costs an expensive runner starts. Draft jobs skip before runner allocation;
+  # a ready pull request whose base is neither `main` nor `release/*` runs
+  # the `rest` leg and honesty as a development signal; a ready
   # pull request into one of those, a request (planned as the pull request whose
   # head it names, when there is one), and a push to `main` run the whole
   # gate, except a push that merges a head whose tree it equals and whose whole
-  # gate passed (it runs nothing and names the run). `.github/ci-plan.sh` is the
-  # decision, and RP-14 runs it against planted events.
+  # gate passed (it runs nothing and names the run). A pull request into a
+  # line runs the Intel macOS jobs only when it is a release cut (`cut/v*`) or
+  # its base is `main`; the push that lands any other runs them, alone after
+  # honesty when its tree is the one the pull request verified (`intel`).
+  # `.github/ci-plan.sh` is the decision, and RP-14 runs it against planted
+  # events.
   plan:
     name: plan
     # Automatic draft PR events allocate no runner. Ready and manual runs retain the plan.
@@ -124,6 +131,7 @@ jobs:
       rows: ${{ steps.plan.outputs.rows }}
       honesty: ${{ steps.plan.outputs.honesty }}
       fanout: ${{ steps.plan.outputs.fanout }}
+      intel: ${{ steps.plan.outputs.intel }}
       bootstrap: ${{ steps.plan.outputs.bootstrap }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -137,6 +145,7 @@ jobs:
           EVENT: ${{ github.event_name }}
           DRAFT: ${{ github.event.pull_request.draft }}
           BASE: ${{ github.event.pull_request.base.ref }}
+          HEAD: ${{ github.event.pull_request.head.ref }}
           REPO: ${{ github.repository }}
           REF: ${{ github.ref_name }}
         run: .github/ci-plan.sh
@@ -179,9 +188,15 @@ jobs:
       - name: Test the Intel construction and inventory checks
         env:
           PYTHONDONTWRITEBYTECODE: "1"
+        shell: bash
         run: |
+          set -euo pipefail
+          python3 -m unittest discover -s .github/scripts -p 'test_check_regen_writers.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_patch_set.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_export_custody_guard.py'
           python3 -m unittest discover -s .github/scripts -p 'test_intel_host_tests.py'
           python3 -m unittest discover -s .github/scripts -p 'test_host_lanes.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_tag_gate_poll.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_provider_read.py'
           python3 -m unittest discover -s .github/scripts -p 'test_ci_plan_provider_retry.py'
           python3 -m unittest discover -s .github/scripts -p 'test_summarize_host_samples.py'
@@ -231,7 +246,12 @@ jobs:
   # leg's own run and checkout and replays the bundle before the case reads
   # it. The `bdd-bootstrap-*` legs, which all take it, start when this job has
   # passed (`vv-bootstrap`); the other legs start when honesty passes and wait
-  # only at that point; the artifact is read by this run alone.
+  # only at that point; the artifact is read by this run alone. The export
+  # verifies the bootstrap project through the same `verify` that the
+  # `examples` recipe runs, so this job is also that project's part of the
+  # recipe: it formats, locks, checks, and builds a clean copy first, and holds
+  # the export's verified directory to the recipe's checks after, and the
+  # `examples` leg does not verify the project again.
   bootstrap-export:
     name: bootstrap export
     needs: [plan, honesty]
@@ -289,6 +309,15 @@ jobs:
           sample_pid=$!
           trap 'kill "$sample_pid" 2>/dev/null || true; wait "$sample_pid" 2>/dev/null || true' EXIT
           cargo xtask export-bootstrap --output "$RUNNER_TEMP/bootstrap-export" 2>&1 | tee ci-evidence/vv.txt
+      # The bootstrap project's part of the `examples` recipe (§9.4), made
+      # visible as the Atlas join makes Atlas's: the leg names it in its part
+      # and does not verify it.
+      - name: Assert the export verified the bootstrap example
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F "verify-examples: bootstrap verified (attestation " ci-evidence/vv.txt
+          grep -E "^verify-examples: bootstrap: [0-9]+ normalized verification records equal expected/verify " ci-evidence/vv.txt
       - name: Summarize the run's timing and memory
         if: ${{ !cancelled() }}
         run: cargo xtask ci-summary --evidence ci-evidence
@@ -308,6 +337,7 @@ jobs:
           retention-days: 14
       - uses: ./.github/actions/read-trace-stop
         if: ${{ !cancelled() }}
+
 
   vv:
     name: just vv (${{ matrix.part }})
@@ -365,6 +395,11 @@ jobs:
       # NEON built for its target (an x86-64 runner cannot execute it).
       - name: Add the SIMD targets of the pinned Rust
         run: bash .github/retry.sh rustup target add aarch64-unknown-linux-gnu wasm32-unknown-unknown
+      # CL-25 builds the executable for WASI with the pinned toolchain and runs
+      # it under the runner's Node (§8.3); the target is added here rather than
+      # in rust-toolchain.toml, which the export custody records byte for byte.
+      - name: Add the WASI target of the pinned toolchain
+        run: bash .github/retry.sh rustup target add wasm32-wasip1
       - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
         with:
           tool: just,cargo-deny
@@ -444,8 +479,10 @@ jobs:
       # These assertions make its complete proof run visible as first-class CI
       # evidence without running the expensive verifier a second time.
       # The leg that runs `examples` is chosen by the matrix, not by the log,
-      # so a leg that should have verified Atlas and did not fails here.
-      - name: Assert the leg verified every example but Atlas
+      # so a leg that should have verified the examples and did not fails
+      # here, as does one that verified Atlas or the bootstrap project, which
+      # their own jobs verify.
+      - name: Assert the leg verified every example but Atlas and bootstrap
         shell: bash
         run: |
           set -euo pipefail
@@ -454,6 +491,10 @@ jobs:
               grep -F "verify-examples: nat-add-zero verified (attestation " ci-evidence/vv.txt
               if grep -F "verify-examples: uor-atlas" ci-evidence/vv.txt; then
                 echo "::error::the examples leg verified Atlas, which the Atlas jobs verify as parts (SPEC.md §9.4)"
+                exit 1
+              fi
+              if grep -F "verify-examples: bootstrap" ci-evidence/vv.txt; then
+                echo "::error::the examples leg verified the bootstrap project, which the bootstrap export verifies (SPEC.md §9.4)"
                 exit 1
               fi
               ;;
@@ -537,6 +578,11 @@ jobs:
       # NEON built for its target (an x86-64 runner cannot execute it).
       - name: Add the SIMD targets of the pinned Rust
         run: bash .github/retry.sh rustup target add aarch64-unknown-linux-gnu wasm32-unknown-unknown
+      # CL-25 builds the executable for WASI with the pinned toolchain and runs
+      # it under the runner's Node (§8.3); the target is added here rather than
+      # in rust-toolchain.toml, which the export custody records byte for byte.
+      - name: Add the WASI target of the pinned toolchain
+        run: bash .github/retry.sh rustup target add wasm32-wasip1
       - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
         with:
           tool: just,cargo-deny
@@ -616,8 +662,10 @@ jobs:
       # These assertions make its complete proof run visible as first-class CI
       # evidence without running the expensive verifier a second time.
       # The leg that runs `examples` is chosen by the matrix, not by the log,
-      # so a leg that should have verified Atlas and did not fails here.
-      - name: Assert the leg verified every example but Atlas
+      # so a leg that should have verified the examples and did not fails
+      # here, as does one that verified Atlas or the bootstrap project, which
+      # their own jobs verify.
+      - name: Assert the leg verified every example but Atlas and bootstrap
         shell: bash
         run: |
           set -euo pipefail
@@ -626,6 +674,10 @@ jobs:
               grep -F "verify-examples: nat-add-zero verified (attestation " ci-evidence/vv.txt
               if grep -F "verify-examples: uor-atlas" ci-evidence/vv.txt; then
                 echo "::error::the examples leg verified Atlas, which the Atlas jobs verify as parts (SPEC.md §9.4)"
+                exit 1
+              fi
+              if grep -F "verify-examples: bootstrap" ci-evidence/vv.txt; then
+                echo "::error::the examples leg verified the bootstrap project, which the bootstrap export verifies (SPEC.md §9.4)"
                 exit 1
               fi
               ;;
@@ -790,6 +842,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -888,6 +946,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -986,6 +1050,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -1084,6 +1154,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -1182,6 +1258,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -1281,6 +1363,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -1380,6 +1468,12 @@ jobs:
           for part in ci-parts/atlas-part-*; do
             mv "$part" "ci-parts/${part#ci-parts/atlas-part-}"
           done
+          # A rerun of the run's jobs also finds the part this job uploaded in
+          # an earlier attempt; it is never this job's input, and the shard
+          # writes into an empty directory.
+          case "$LEXLEAN_EXAMPLES_PART" in
+            shard:*) rm -rf "ci-parts/${LEXLEAN_EXAMPLES_PART##*:}" ;;
+          esac
           ls ci-parts
       - name: Reserve bounded overflow memory for native Atlas
         run: |
@@ -1432,82 +1526,26 @@ jobs:
         if: ${{ !cancelled() }}
 
   # §8.3: the crate builds and its non-Lean tests pass on every supported
-  # host. This job installs no Lean toolchain on purpose — that is the
+  # host. No host job installs a Lean toolchain, on purpose — that is the
   # property under test. A case whose assertions need the pinned toolchain
   # goes through `repo_conformance::support::lean_backed`, which on a
   # non-normative host runs the case's platform-independent assertions and
   # reports which ones it skipped; on Linux x86-64 the same gate makes the
   # toolchain mandatory, so nothing passes vacuously where it matters.
   #
-  # The two hosts below keep their original single invocation. Windows runs
-  # as lanes below, each building for itself, and Intel's conformance
-  # execution is partitioned below after one construction; each aggregate
-  # retains its supported-host status (issue #449).
-  # There is no separate build step here: `cargo test` with the same `--locked
-  # --workspace --all-features` builds, in the same profile, the library and the
-  # binary of `lexlean` (its integration tests run the binary) before it runs a
-  # test, so a crate that does not build fails this job at the same step. A
-  # separate build step added only the non-test compilation of the repository's
-  # own `xtask` and `repo-conformance`, which no host in this job runs.
-  host-matrix:
-    name: build and non-Lean tests (${{ matrix.target }})
-    needs: [plan, honesty]
-    if: ${{ needs.plan.outputs.full == 'true' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
-          - { os: macos-15, target: aarch64-apple-darwin }
-    runs-on: ${{ matrix.os }}
-    # Keep the existing bound; scheduling changes do not extend it.
-    timeout-minutes: 240
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Install the pinned Rust toolchain
-        shell: bash
-        run: bash .github/retry.sh rustup toolchain install
-      # The image label and the host triple are separate facts. A runner
-      # image that changed architecture underneath the label would otherwise
-      # leave one of the five §8.3 hosts silently untested.
-      - name: The runner is the host this leg claims
-        shell: bash
-        run: |
-          set -euo pipefail
-          host="$(rustc -vV | sed -n 's/^host: //p')"
-          if [ "$host" != "${{ matrix.target }}" ]; then
-            echo "::error::${{ matrix.os }} is $host, not ${{ matrix.target }} (SPEC.md §8.3)"
-            exit 1
-          fi
-          echo "$host"
-      # `--no-fail-fast`: cargo otherwise stops at the first test binary that
-      # fails, so a host with two independent failures reports one, and each
-      # further one costs a whole run of the leg. The job fails exactly when a
-      # test fails, as before; only what it reports is complete (SPEC.md §8.3).
-      # Evidence for #603 DOD-7a, never a gate: the host's CPU and memory every
-      # five seconds while the tests run, summarized after them. The step's
-      # status is cargo's alone; the sampler's cannot reach it.
-      - name: Test the workspace on this host
-        shell: bash
-        run: |
-          bash .github/scripts/sample-host.sh "$RUNNER_TEMP/host-resources.tsv" &
-          sampler=$!
-          status=0
-          cargo test --locked --workspace --all-features --no-fail-fast || status=$?
-          kill "$sampler" 2>/dev/null || true
-          wait "$sampler" 2>/dev/null || true
-          python3 .github/scripts/summarize_host_samples.py "$RUNNER_TEMP/host-resources.tsv" || true
-          exit "$status"
-
   # Construct Intel workspace tests once, then keep ordinary tests, every
   # non-conformance harness, and all doctests on their original runner. The
   # conformance binary embeds its checkout path and builds generated packages
   # offline, so its same-run handoff includes those explicit dependencies.
   # No build cache, credentials, or evidence from another run is admitted.
+  #
+  # Intel macOS has about one hosted runner here, and these jobs take about
+  # three hours of it, so they run when the plan's `intel` is set: on the line,
+  # on a release cut, and on a pull request into `main` (§9.4).
   intel-construction:
     name: Intel test construction and local targets
     needs: [plan, honesty]
-    if: ${{ needs.plan.outputs.full == 'true' }}
+    if: ${{ needs.plan.outputs.intel == 'true' }}
     runs-on: macos-15-intel
     timeout-minutes: 240
     outputs:
@@ -1530,7 +1568,7 @@ jobs:
   intel-part:
     name: Intel conformance (${{ matrix.lane }})
     needs: [plan, intel-construction]
-    if: ${{ needs.plan.outputs.full == 'true' }}
+    if: ${{ needs.plan.outputs.intel == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -1561,7 +1599,7 @@ jobs:
   intel-join:
     name: build and non-Lean tests (x86_64-apple-darwin)
     needs: [plan, intel-construction, intel-part]
-    if: ${{ always() && needs.plan.outputs.full == 'true' }}
+    if: ${{ !cancelled() && needs.plan.outputs.intel == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -1644,7 +1682,7 @@ jobs:
   windows-join:
     name: build and non-Lean tests (x86_64-pc-windows-msvc)
     needs: [plan, windows-part]
-    if: ${{ always() && needs.plan.outputs.full == 'true' }}
+    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -1660,6 +1698,158 @@ jobs:
         shell: bash
         env:
           PART_RESULT: ${{ needs.windows-part.result }}
+        run: |
+          set -euo pipefail
+          test "$PART_RESULT" = success
+
+  # Apple silicon macOS as lanes of one run (§8.3), exactly as Windows: its
+  # one `cargo test` took about 104 minutes, almost all of it the conformance
+  # harness. Each lane is its own clean checkout and build of the same
+  # partition (`.github/intel-host-lanes.json` plus `producer`), and the join
+  # requires every lane of this run and commit, lanes that are disjoint, and
+  # an execution equal to the host's whole listing, before the host's context
+  # passes.
+  macos-part:
+    name: macOS arm64 tests (${{ matrix.lane }})
+    needs: [plan, honesty]
+    if: ${{ needs.plan.outputs.full == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [producer, lower, print, validate, moves]
+    runs-on: macos-15
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the pinned Rust toolchain
+        run: bash .github/retry.sh rustup toolchain install
+      - name: The runner is the host this leg claims
+        shell: bash
+        run: |
+          set -euo pipefail
+          host="$(rustc -vV | sed -n 's/^host: //p')"
+          if [ "$host" != aarch64-apple-darwin ]; then
+            echo "::error::macos-15 is $host, not aarch64-apple-darwin (SPEC.md §8.3)"
+            exit 1
+          fi
+          echo "$host"
+      - name: Execute this lane and record its inventory
+        shell: bash
+        run: python3 .github/scripts/host_lanes.py execute --target aarch64-apple-darwin --lane ${{ matrix.lane }} --output "$RUNNER_TEMP/host-lane"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
+        with:
+          name: host-aarch64-apple-darwin-${{ matrix.lane }}
+          path: ${{ runner.temp }}/host-lane
+          if-no-files-found: error
+          retention-days: 14
+
+  # The Apple silicon host status: every lane's receipt, joined. It runs even
+  # after a failure, so a missing lane reads as a failure and never as success.
+  macos-join:
+    name: build and non-Lean tests (aarch64-apple-darwin)
+    needs: [plan, macos-part]
+    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: host-aarch64-apple-darwin-*
+          path: ${{ runner.temp }}/host-lanes
+      - name: Verify every lane and the complete macOS arm64 inventory
+        run: python3 .github/scripts/host_lanes.py join --target aarch64-apple-darwin --artifacts "$RUNNER_TEMP/host-lanes"
+      - name: All macOS arm64 lanes succeeded
+        if: ${{ always() }}
+        shell: bash
+        env:
+          PART_RESULT: ${{ needs.macos-part.result }}
+        run: |
+          set -euo pipefail
+          test "$PART_RESULT" = success
+
+  # Linux AArch64 runs as lanes of one run, exactly as Windows and Apple
+  # silicon macOS (issue #449): after the forward merge of release/v0.4 into
+  # release/v0.5 its one `cargo test` passed the job's 240 minutes with 66 of
+  # 549 conformance cases done (#624, run 46053363443), the serialized
+  # bootstrap cases alone taking over three and a half hours. Each lane is its
+  # own clean checkout and build of the same partition
+  # (`.github/intel-host-lanes.json` plus `producer`), and the join requires
+  # every lane of this run and commit, lanes that are disjoint, and an
+  # execution equal to the host's whole listing, before the host's context
+  # passes; the aggregate retains the host's supported-host status.
+  linux-arm-part:
+    name: Linux arm64 tests (${{ matrix.lane }})
+    needs: [plan, honesty]
+    if: ${{ needs.plan.outputs.full == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [producer, lower, print, validate, moves]
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the pinned Rust toolchain
+        run: bash .github/retry.sh rustup toolchain install
+      # The image label and the host triple are separate facts. A runner
+      # image that changed architecture underneath the label would otherwise
+      # leave one of the five §8.3 hosts silently untested.
+      - name: The runner is the host this leg claims
+        shell: bash
+        run: |
+          set -euo pipefail
+          host="$(rustc -vV | sed -n 's/^host: //p')"
+          if [ "$host" != aarch64-unknown-linux-gnu ]; then
+            echo "::error::ubuntu-24.04-arm is $host, not aarch64-unknown-linux-gnu (SPEC.md §8.3)"
+            exit 1
+          fi
+          echo "$host"
+      # Evidence for #603 DOD-7a, never a gate: the host's CPU and memory every
+      # five seconds while the lane runs, summarized after it, as the single
+      # Linux AArch64 job recorded them. The step's status is the lane's alone;
+      # the sampler's cannot reach it.
+      - name: Execute this lane and record its inventory
+        shell: bash
+        run: |
+          bash .github/scripts/sample-host.sh "$RUNNER_TEMP/host-resources.tsv" &
+          sampler=$!
+          status=0
+          python3 .github/scripts/host_lanes.py execute --target aarch64-unknown-linux-gnu --lane ${{ matrix.lane }} --output "$RUNNER_TEMP/host-lane" || status=$?
+          kill "$sampler" 2>/dev/null || true
+          wait "$sampler" 2>/dev/null || true
+          python3 .github/scripts/summarize_host_samples.py "$RUNNER_TEMP/host-resources.tsv" || true
+          exit "$status"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
+        with:
+          name: host-aarch64-unknown-linux-gnu-${{ matrix.lane }}
+          path: ${{ runner.temp }}/host-lane
+          if-no-files-found: error
+          retention-days: 14
+
+  # The Linux AArch64 host status: every lane's receipt, joined. It runs even
+  # after a failure, so a missing lane reads as a failure and never as success.
+  linux-arm-join:
+    name: build and non-Lean tests (aarch64-unknown-linux-gnu)
+    needs: [plan, linux-arm-part]
+    if: ${{ !cancelled() && needs.plan.outputs.full == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: host-aarch64-unknown-linux-gnu-*
+          path: ${{ runner.temp }}/host-lanes
+      - name: Verify every lane and the complete Linux arm64 inventory
+        run: python3 .github/scripts/host_lanes.py join --target aarch64-unknown-linux-gnu --artifacts "$RUNNER_TEMP/host-lanes"
+      - name: All Linux arm64 lanes succeeded
+        if: ${{ always() }}
+        shell: bash
+        env:
+          PART_RESULT: ${{ needs.linux-arm-part.result }}
         run: |
           set -euo pipefail
           test "$PART_RESULT" = success

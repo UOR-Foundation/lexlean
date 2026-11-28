@@ -149,9 +149,9 @@ pub(crate) fn run(id: &str) {
             for tool in ["lean", "lake", "leanchecker"] {
                 let record = &attestation["toolchain"][tool];
                 assert!(
-                    record["executable_sha256"]
-                        .as_str()
-                        .is_some_and(|hex| hex.len() == 64),
+                    record["executable_kappa"].as_str().is_some_and(|label| {
+                        lexlean::artifact::content_id::Kappa::parse(label).is_ok()
+                    }),
                     "{tool}: executable hash recorded: {attestation}"
                 );
             }
@@ -159,7 +159,7 @@ pub(crate) fn run(id: &str) {
                 assert!(
                     attestation["toolchain"][tool]["version_output"]
                         .as_str()
-                        .is_some_and(|version| version.contains("4.32.1")),
+                        .is_some_and(|version| version.contains("4.32.2")),
                     "{tool}: pinned version recorded"
                 );
             }
@@ -168,12 +168,16 @@ pub(crate) fn run(id: &str) {
             // pinned Lean identity; refusal happens before module compilation.
             for (tool, banner) in [
                 ("lean", "Lean (version 4.31.0, release)"),
+                ("lean", "Lean (version 4.32.1, release)"),
+                ("lean", "Lean (version 4.32.20, release)"),
                 ("lean", "Lean (version 4.32.10, release)"),
-                ("lean", "Lean (version 4.32.1-rc1, release)"),
-                ("lean", "Lean (version 4.31.0, built with 4.32.1)"),
+                ("lean", "Lean (version 4.32.2-rc1, release)"),
+                ("lean", "Lean (version 4.31.0, built with 4.32.2)"),
+                ("lake", "Lake version 5.0.0 (Lean version 4.32.1)"),
+                ("lake", "Lake version 5.0.0 (Lean version 4.32.20)"),
                 ("lake", "Lake version 5.0.0 (Lean version 4.32.10)"),
-                ("lake", "Lake version 5.0.0 (Lean version 4.32.1-rc1)"),
-                ("lake", "Lake version 4.32.1 (Lean version 4.31.0)"),
+                ("lake", "Lake version 5.0.0 (Lean version 4.32.2-rc1)"),
+                ("lake", "Lake version 4.32.2 (Lean version 4.31.0)"),
             ] {
                 let script = format!("#!/bin/sh\nprintf '%s\\n' '{banner}'\n");
                 let lying = support::fake_toolchain(&[(tool, &script)]);
@@ -396,7 +400,7 @@ pub(crate) fn run(id: &str) {
             });
 
             // §20.4: a warning is remapped exactly like an error. Lean
-            // 4.32.1 prints the unused-variable warning of a lifted
+            // 4.32.2 prints the unused-variable warning of a lifted
             // universal binder in the named form
             // `path:line:col: warning(name): message`, so the planted
             // message uses that form at the generated binder's own
@@ -1041,10 +1045,12 @@ pub(crate) fn run(id: &str) {
             let lexlean::artifact::canonical_json::Json::Str(recorded_hex) = recorded else {
                 panic!("the ID is a string")
             };
-            assert_eq!(recomputed.to_hex(), recorded_hex, "§22.9 recomputation");
+            assert_eq!(recomputed.label(), recorded_hex, "§22.9 recomputation");
+            // A directory name cannot hold the label's colon, so the
+            // directory is the label's hex digits.
             assert_eq!(
                 fixture.outcome.root.file_name(),
-                Some(recorded_hex.as_str()),
+                Some(recomputed.hex()),
                 "the directory is the attestation ID"
             );
             assert!(!body.contains("timestamp"), "no timestamp is hashed");
@@ -1119,7 +1125,7 @@ pub(crate) fn run(id: &str) {
             }
 
             // §20.4: a rejection Lean reports in its named form
-            // (`error(lean.unknownIdentifier)`, the shape Lean 4.32.1
+            // (`error(lean.unknownIdentifier)`, the shape Lean 4.32.2
             // prints) is remapped like any other, not lost to a bare
             // whole-output diagnostic: the failure carries the source span
             // of the token it names and keeps the error name.
@@ -1375,7 +1381,7 @@ fn run_platform_independent(id: &str) {
         }
         "VR-04" => {
             let (probe, audit) = lexlean::verify::reserved_module_names(
-                lexlean::artifact::content_id::Sha256Digest::of(b"x"),
+                lexlean::artifact::content_id::Kappa::of(b"x"),
             );
             assert!(probe.starts_with("LexLeanProbe.P") && audit.starts_with("LexLeanAudit.A"));
             assert_ne!(probe, audit);

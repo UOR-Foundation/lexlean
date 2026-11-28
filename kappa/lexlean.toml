@@ -1,13 +1,13 @@
-spec = "lexlean/project/1"
+spec = "lexlean/project/2"
 name = "kappa"
 language = "1.2"
 module_prefix = "LexLeanKappa"
 source_roots = ["src"]
-entrypoints = ["src/Axis.lex.tex", "src/Blake3.lex.tex", "src/Compose.lex.tex", "src/Gguf.lex.tex", "src/Json.lex.tex", "src/Keccak.lex.tex", "src/Label.lex.tex", "src/Onnx.lex.tex", "src/Sha512.lex.tex", "src/Word.lex.tex"]
+entrypoints = ["src/Axis.lex.tex", "src/Compose.lex.tex", "src/Gguf.lex.tex", "src/Json.lex.tex", "src/Keccak.lex.tex", "src/Label.lex.tex", "src/Onnx.lex.tex", "src/Sha512.lex.tex", "src/Word.lex.tex"]
 build_root = ".lexlean"
 lockfile = "lexlean.lock"
 lean_workspace = "."
-lean_toolchain = "leanprover/lean4:v4.32.1"
+lean_toolchain = "leanprover/lean4:v4.32.2"
 
 [[lexicon_source]]
 package = "lexlean.std.nat"

@@ -1,7 +1,7 @@
 //! `BS-32` (SPEC.md §11.5, §17.23, §19.8, §21.1–§21.5, §22.9): the labeled
 //! hash recipes of content identity as language-1.2 source,
 //! `LexLeanBoot.ContentId`, held to the byte to
-//! `lexlean::artifact::content_id::{tree_digest, source_id, semantic_id_for,
+//! `lexlean::artifact::content_id::{tree_kappa, source_id, semantic_id_for,
 //! build_id, attestation_id, pdf_recipe_id}`.
 //!
 //! Each root writes its recipe's domain, a NUL, and its frames, each frame a
@@ -15,10 +15,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use lexlean::artifact::content_id::{
-    attestation_id, build_id, pdf_recipe_id, semantic_id_for, source_id, tree_digest,
+    attestation_id, build_id, pdf_recipe_id, semantic_id_for, source_id, tree_kappa, KAPPA_PREFIX,
 };
 use lexlean::calculus::Value;
-use lexlean::Sha256Digest;
+use lexlean::Kappa;
 use serde_json::Value as Json2;
 
 use super::rust_validate::{eligibility_of, rustc_differential};
@@ -58,12 +58,12 @@ fn rows_value(rows: &Rows) -> Value {
     )
 }
 
-fn digest_of(value: &[u8]) -> Sha256Digest {
-    Sha256Digest(value.try_into().expect("a digest is 32 bytes"))
+fn digest_of(value: &[u8]) -> Kappa {
+    Kappa::parse(utf8(value)).expect("the recipe gives a κ-label")
 }
 
-fn out(digest: Sha256Digest) -> Json2 {
-    serde_json::to_value(bytes(&digest.0)).expect("a value is JSON")
+fn out(digest: Kappa) -> Json2 {
+    serde_json::to_value(bytes(digest.as_bytes())).expect("a value is JSON")
 }
 
 fn utf8(value: &[u8]) -> &str {
@@ -75,7 +75,7 @@ fn tree_run(rows: &Rows) -> Run {
         .iter()
         .map(|(path, content)| (utf8(path), content.as_slice()))
         .collect();
-    (vec![rows_value(rows)], out(tree_digest(&borrowed)))
+    (vec![rows_value(rows)], out(tree_kappa(&borrowed)))
 }
 
 fn source_run(project: &[u8], lock: &[u8], rows: &Rows) -> Run {
@@ -205,7 +205,7 @@ fn committed_projects() -> Vec<(Vec<u8>, Vec<u8>, Rows)> {
 }
 
 /// The source, semantic, and build IDs of each committed build manifest.
-fn committed_builds() -> Vec<(Sha256Digest, Sha256Digest, Sha256Digest)> {
+fn committed_builds() -> Vec<(Kappa, Kappa, Kappa)> {
     let mut dirs = Vec::new();
     projects_under(repo_root().as_std_path(), &mut dirs);
     let mut out = Vec::new();
@@ -214,9 +214,7 @@ fn committed_builds() -> Vec<(Sha256Digest, Sha256Digest, Sha256Digest)> {
             continue;
         };
         let json: Json2 = serde_json::from_slice(&bytes).expect("a build manifest");
-        let id = |key: &str| {
-            Sha256Digest::from_hex(json[key].as_str().expect("an ID")).expect("a digest")
-        };
+        let id = |key: &str| Kappa::parse(json[key].as_str().expect("an ID")).expect("a digest");
         out.push((id("source_id"), id("semantic_id"), id("build_id")));
     }
     out
@@ -224,8 +222,17 @@ fn committed_builds() -> Vec<(Sha256Digest, Sha256Digest, Sha256Digest)> {
 
 // ------------------------------------------------------------------ vectors
 
+/// The κ-label whose digest is `digest`: a recipe frames an identity as its
+/// 71 label bytes (§21.1), so that is what a root is given, never the bare
+/// 32 bytes.
+fn label(digest: &[u8]) -> Vec<u8> {
+    assert_eq!(digest.len(), 32, "a digest is 32 bytes");
+    format!("{KAPPA_PREFIX}{}", super::hex(digest)).into_bytes()
+}
+
 fn d(byte: u8) -> Vec<u8> {
-    (0..32u8).map(|index| byte.wrapping_add(index)).collect()
+    let digest: Vec<u8> = (0..32u8).map(|index| byte.wrapping_add(index)).collect();
+    label(&digest)
 }
 
 fn row(path: &str, content: &[u8]) -> (Vec<u8>, Vec<u8>) {
@@ -297,7 +304,11 @@ fn named() -> Vec<Vector> {
         semantic_run(&d(0x11), "1.2", "{\"modules\":[]}", "[]"),
     );
     add("an empty IR", 2, semantic_run(&d(0x22), "1.1", "", ""));
-    add("a build of zero digests", 3, build_run(&[0; 32], &[0; 32]));
+    add(
+        "a build of zero digests",
+        3,
+        build_run(&label(&[0; 32]), &label(&[0; 32])),
+    );
     add("two distinct digests", 3, build_run(&d(0x01), &d(0x80)));
     add("an empty body", 4, attestation_run(""));
     add("a body of 300 bytes", 4, attestation_run(&"b".repeat(300)));
@@ -332,9 +343,10 @@ fn drawn_text(seeded: &mut Seeded, most: usize) -> String {
 }
 
 fn drawn_digest(seeded: &mut Seeded) -> Vec<u8> {
-    (0..32)
+    let digest: Vec<u8> = (0..32)
         .map(|_| u8::try_from(seeded.below(256)).expect("a byte"))
-        .collect()
+        .collect();
+    label(&digest)
 }
 
 fn drawn_rows(seeded: &mut Seeded) -> Rows {
@@ -422,31 +434,10 @@ const PLANTS: &[Plant] = &[
         vector: "a path of 300 bytes",
     },
     Plant {
-        label: "the high byte of a word is dropped",
-        root: 0,
-        site: "(byteText (prim to_nat (LexLeanStd.Sha256::shiftRight word (24 : UInt32)) : Nat))",
-        replacement: "(byteText 0)",
-        vector: "one empty file",
-    },
-    Plant {
-        label: "the low byte of a word is its third",
-        root: 0,
-        site: "(prim bit_and word (255 : UInt32) : UInt32)",
-        replacement: "(prim bit_and (LexLeanStd.Sha256::shiftRight word (8 : UInt32)) (255 : UInt32) : UInt32)",
-        vector: "two files",
-    },
-    Plant {
-        label: "the digest ends a word early",
-        root: 3,
-        site: "(wordBytes (project digest h7))",
-        replacement: "0x",
-        vector: "a build of zero digests",
-    },
-    Plant {
         label: "the tree is hashed in the source domain",
         root: 0,
-        site: "(lit \"lexlean-tree-v1\")",
-        replacement: "(lit \"lexlean-source-v1\")",
+        site: "(lit \"lexlean-tree-v2\")",
+        replacement: "(lit \"lexlean-source-v2\")",
         vector: "a file with an empty path",
     },
     Plant {
@@ -466,7 +457,7 @@ const PLANTS: &[Plant] = &[
     Plant {
         label: "the toolchain is another",
         root: 2,
-        site: "(lit \"leanprover/lean4:v4.32.1\")",
+        site: "(lit \"leanprover/lean4:v4.32.2\")",
         replacement: "(lit \"leanprover/lean4:v4.32.0\")",
         vector: "the language 1.2",
     },
@@ -651,7 +642,7 @@ pub(super) fn case() {
         rustc_corpus[1].push(source);
     }
     for (source, semantic, _) in &builds {
-        let run = build_run(&source.0, &semantic.0);
+        let run = build_run(source.as_bytes(), semantic.as_bytes());
         evaluator_corpus[3].push(run.clone());
         rustc_corpus[3].push(run);
     }

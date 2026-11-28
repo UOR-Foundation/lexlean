@@ -18,6 +18,22 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+// The standard library's certified BLAKE3 κ-label package (SPEC.md §17.22,
+// §21.1), the same committed copy the crate compiles, so the address of the
+// compiler is the κ-label every other identity is.
+// The bytes are the export's, so the formatter leaves them as they are.
+#[rustfmt::skip]
+#[path = "blake3_package.rs"]
+#[allow(warnings, clippy::all, clippy::pedantic, clippy::nursery)]
+mod blake3_package;
+
+/// The κ-label of `bytes`, as the certified package writes it.
+fn kappa(bytes: &[u8]) -> String {
+    let label = blake3_package::run(blake3_package::Bytes::lit(bytes))
+        .expect("a message whose length fits 64 bits is inside the domain of BLAKE3");
+    String::from_utf8(label.octets().to_vec()).expect("a κ-label is ASCII")
+}
+
 /// The crate-relative directories whose regular files participate in the
 /// compiler-semantics digest (SPEC.md §21.2), with their repository-relative
 /// names.
@@ -28,10 +44,18 @@ const SEMANTIC_DIRS: [(&str, &str); 4] = [
     ("tests/golden/canonical-json", "tests/golden/canonical-json"),
 ];
 
+include!("src/wasi_stack.rs");
+
 /// The embedded directory the `production-data` feature carries.
 const PRODUCTION_DATA_DIR: &str = "language/preservation-1.2/library";
 
 fn main() {
+    // WASI fixes the one stack when the executable is linked; the depth the
+    // check pipeline accepts there is planned on exactly this stack (§8.3).
+    println!("cargo:rerun-if-changed=src/wasi_stack.rs");
+    if env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("wasi") {
+        println!("cargo:rustc-link-arg-bins=-zstack-size={WASI_STACK_BYTES}");
+    }
     let manifest = PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("cargo sets this"));
 
     let mut files: Vec<(String, PathBuf)> = Vec::new();
@@ -80,31 +104,6 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("cargo sets this"));
     fs::write(out_dir.join("embedded.rs"), out).expect("write embedded.rs");
 
-    // The standard library's SHA-256 package (SPEC.md §17.22, `SL-06`): the
-    // committed production export, linked and not copied, wrapped as one
-    // module. The file's bytes follow the opening brace unchanged, so its
-    // inner `forbid(unsafe_code)` stays the module's first item.
-    let package = resolve_file(&manifest, "sha256_package.rs");
-    println!("cargo:rerun-if-changed={}", package.display());
-    let body = fs::read_to_string(&package).unwrap_or_else(|error| {
-        panic!(
-            "{}: the SHA-256 package must be present (SPEC.md §17.22): {error}",
-            package.display()
-        )
-    });
-    assert!(
-        body.starts_with("#![forbid(unsafe_code)]"),
-        "{}: not the committed SHA-256 package",
-        package.display()
-    );
-    fs::write(
-        out_dir.join("sha256_package.rs"),
-        format!(
-            "#[allow(warnings, missing_docs, clippy::all, clippy::pedantic, clippy::nursery)]\npub(crate) mod sha256_package {{\n{body}\n}}\n"
-        ),
-    )
-    .expect("write sha256_package.rs");
-
     // The closed error registry, for `lexlean explain` (§23.4). Resolved
     // through the same link mechanism and copied to OUT_DIR so the CLI
     // includes one path in every layout.
@@ -122,6 +121,78 @@ fn main() {
         errors.display()
     );
     fs::write(out_dir.join("errors.toml"), bytes).expect("write errors.toml");
+
+    rustc_identity(&out_dir);
+}
+
+/// The address of the compiler that builds this crate (SPEC.md §22.11): the
+/// κ-label of one line `<κ-label of the file>  <sysroot-relative path>` per
+/// file of the `rustc` executable and its driver library, in path order, and
+/// what `rustc -vV` reports. The `rustc` executable is a thin launcher; the
+/// compiler is the driver library it loads, so both are addressed. A compiler
+/// whose sysroot cannot be read is a build failure, never an empty address.
+fn rustc_identity(out_dir: &Path) {
+    use std::process::Command;
+
+    println!("cargo:rerun-if-env-changed=RUSTC");
+    let rustc = env::var("RUSTC").unwrap_or_else(|_| "rustc".to_owned());
+    let run = |argument: &str| {
+        let output = Command::new(&rustc)
+            .arg(argument)
+            .output()
+            .unwrap_or_else(|error| panic!("running `{rustc} {argument}`: {error}"));
+        assert!(
+            output.status.success(),
+            "`{rustc} {argument}` failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8(output.stdout).expect("rustc reports UTF-8")
+    };
+    let version = run("-vV").replace("\r\n", "\n");
+    let sysroot = PathBuf::from(run("--print=sysroot").trim());
+    let mut files: Vec<(String, PathBuf)> = Vec::new();
+    for directory in ["bin", "lib"] {
+        let Ok(entries) = fs::read_dir(sysroot.join(directory)) else {
+            continue;
+        };
+        for entry in entries.filter_map(Result::ok) {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            let compiler = name == "rustc"
+                || name == "rustc.exe"
+                || name.starts_with("rustc_driver-")
+                || name.starts_with("librustc_driver-");
+            if compiler && entry.path().is_file() {
+                files.push((format!("{directory}/{name}"), entry.path()));
+            }
+        }
+    }
+    files.sort();
+    assert!(
+        files.iter().any(|(path, _)| path.starts_with("bin/rustc")),
+        "{}: no `rustc` executable in the compiler's sysroot",
+        sysroot.display()
+    );
+    let mut listing = String::new();
+    for (relative, path) in &files {
+        println!("cargo:rerun-if-changed={}", path.display());
+        let bytes =
+            fs::read(path).unwrap_or_else(|error| panic!("reading {}: {error}", path.display()));
+        listing.push_str(&kappa(&bytes));
+        listing.push_str("  ");
+        listing.push_str(relative);
+        listing.push('\n');
+    }
+    let address = kappa(listing.as_bytes());
+    fs::write(
+        out_dir.join("rustc_identity.rs"),
+        format!(
+            "/// What `rustc -vV` reported for the compiler that built this crate.\n\
+             pub const RUSTC_VERSION: &str = {version:?};\n\
+             /// The address of that compiler's executable and driver library.\n\
+             pub const RUSTC_KAPPA: &str = {address:?};\n"
+        ),
+    )
+    .expect("write rustc_identity.rs");
 }
 
 /// Resolve a crate-relative normative path: a directory or file as such; a
@@ -228,24 +299,4 @@ fn collect(dir: &Path, rel: &str, out: &mut Vec<(String, PathBuf)>) {
             panic!("{child_rel}: normative data must contain only regular files");
         }
     }
-}
-
-/// Resolve a crate-relative file link: the file itself, or the relative path
-/// a checkout without symlink support stores in its place.
-fn resolve_file(manifest: &Path, crate_relative: &str) -> PathBuf {
-    let direct = manifest.join(crate_relative);
-    let text = fs::read_to_string(&direct).unwrap_or_else(|error| {
-        panic!(
-            "{}: the link `{crate_relative}` is missing: {error}",
-            direct.display()
-        )
-    });
-    let target = text.trim();
-    if !target.contains('\n') && target.starts_with("../") {
-        let candidate = manifest.join(target);
-        if candidate.is_file() {
-            return candidate;
-        }
-    }
-    direct
 }

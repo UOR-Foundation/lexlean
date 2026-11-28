@@ -257,8 +257,8 @@ fn exact(object: &std::collections::BTreeMap<String, Json>, keys: &[&str]) -> bo
 
 /// Read the value at `pos`.
 fn read_at(reader: &mut Reader<'_>, pos: Pos, depth: usize) -> Result<Json, SurfaceError> {
-    if depth > MAX_DEPTH {
-        return Err(reader.error("nested more deeply than the notation reads"));
+    if depth > reader.max_depth {
+        return Err(reader.error(generic::TOO_DEEP));
     }
     match pos {
         Pos::Term => terms::read(reader, depth),
@@ -574,8 +574,8 @@ mod types {
 
     /// Read a type.
     pub(super) fn read(reader: &mut Reader<'_>, depth: usize) -> Result<Json, SurfaceError> {
-        if depth > super::MAX_DEPTH {
-            return Err(reader.error("nested more deeply than the notation reads"));
+        if depth > reader.max_depth {
+            return Err(reader.error(super::generic::TOO_DEEP));
         }
         let offset = reader.offset();
         match reader.peek() {
@@ -1153,8 +1153,8 @@ mod terms {
 
     /// Read a term.
     pub(super) fn read(reader: &mut Reader<'_>, depth: usize) -> Result<Json, SurfaceError> {
-        if depth > super::MAX_DEPTH {
-            return Err(reader.error("nested more deeply than the notation reads"));
+        if depth > reader.max_depth {
+            return Err(reader.error(super::generic::TOO_DEEP));
         }
         let offset = reader.offset();
         match reader.peek() {
@@ -1684,7 +1684,21 @@ pub fn print_module(module: &Json) -> Result<String, SurfaceError> {
 ///
 /// Text that is not a sequence of declarations.
 pub fn parse_module(text: &str, spec: &str) -> Result<Json, SurfaceError> {
-    let mut reader = Reader::new(text)?;
+    parse_module_bounded(text, spec, MAX_DEPTH)
+}
+
+/// [`parse_module`] reading to `max_depth` levels of nesting, on a stack the
+/// caller has sized for them (the linker: `max_scope_depth`, §25.5).
+///
+/// # Errors
+///
+/// Text that is not a sequence of declarations.
+pub fn parse_module_bounded(
+    text: &str,
+    spec: &str,
+    max_depth: usize,
+) -> Result<Json, SurfaceError> {
+    let mut reader = Reader::new(text)?.with_max_depth(max_depth);
     let mut declarations = Vec::new();
     while !reader.done() {
         declarations.push(read_at(&mut reader, declaration(), 1)?);
@@ -1701,7 +1715,20 @@ pub fn parse_module(text: &str, spec: &str) -> Result<Json, SurfaceError> {
 ///
 /// Text that is not a sequence of declarations.
 pub fn declaration_spans(text: &str) -> Result<Vec<(usize, usize)>, SurfaceError> {
-    let mut reader = Reader::new(text)?;
+    declaration_spans_bounded(text, MAX_DEPTH)
+}
+
+/// [`declaration_spans`] reading to `max_depth` levels of nesting, on a stack
+/// the caller has sized for them.
+///
+/// # Errors
+///
+/// Text that is not a sequence of declarations.
+pub fn declaration_spans_bounded(
+    text: &str,
+    max_depth: usize,
+) -> Result<Vec<(usize, usize)>, SurfaceError> {
+    let mut reader = Reader::new(text)?.with_max_depth(max_depth);
     let mut spans = Vec::new();
     while !reader.done() {
         let start = reader.offset();
@@ -2054,7 +2081,7 @@ mod tests {
     #[test]
     fn a_module_and_its_declaration_spans() {
         let module = json(
-            r#"{spec: "lexlean/semantic-module/2", declarations: [
+            r#"{spec: "lexlean/semantic-module/3", declarations: [
                 theorem{name: a, parameters: [], statement: bool{value: true}, proof: decide{}},
                 theorem{name: b, parameters: [], statement: bool{value: true}, proof: decide{}}
             ]}"#,
@@ -2062,7 +2089,7 @@ mod tests {
         let text = print_module(&module).expect("prints");
         assert!(text.contains("}\n\ntheorem{"), "{text}");
         assert_eq!(
-            parse_module(&text, "lexlean/semantic-module/2").expect("parses"),
+            parse_module(&text, "lexlean/semantic-module/3").expect("parses"),
             module
         );
         let spans = declaration_spans(&text).expect("spans");

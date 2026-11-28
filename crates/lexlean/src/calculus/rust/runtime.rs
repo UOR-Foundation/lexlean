@@ -5,7 +5,7 @@
 //!
 //! The runtime is printed from four language-1.2 modules (`RuntimeSupport`,
 //! `RustRuntime`, `RuntimeStd`, and `RustStd`) and held nowhere as a string;
-//! the SHA-256 of the printed text is what every package's provenance records,
+//! the κ-label of the printed text is what every package's provenance records,
 //! and generated code reaches it only through [`Item`], so no rendering can
 //! name a runtime function that does not exist or call one with the wrong
 //! failure mode.
@@ -536,7 +536,7 @@ mod tests {
         }
     }
 
-    /// LexLean's compiler semantics records the SHA-256 of each profile's
+    /// LexLean's compiler semantics records the κ-label of each profile's
     /// runtime, so a change to the runtime is a change to LexLean's
     /// identity: a runtime edited without its record fails here.
     #[test]
@@ -563,7 +563,7 @@ mod tests {
                 ),
             ),
         ] {
-            let digest = crate::artifact::content_id::Sha256Digest::of(text.as_bytes()).to_hex();
+            let digest = crate::artifact::content_id::Kappa::of(text.as_bytes()).label();
             assert_eq!(
                 table.get(key).and_then(toml::Value::as_str),
                 Some(digest.as_str()),

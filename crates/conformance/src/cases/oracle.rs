@@ -86,7 +86,7 @@ fn pin_and_digest() {
     // The digest: the frame is the one the pin states.
     let dir = tempfile::tempdir().expect("tempdir");
     pin_tree(dir.path());
-    let (digest, files) = oracle::tree_digest(dir.path(), &synthetic_pin()).expect("digest");
+    let (digest, files) = oracle::tree_kappa(dir.path(), &synthetic_pin()).expect("digest");
     assert_eq!((digest.as_str(), files), (SYNTHETIC_DIGEST, 2));
     // A file outside the used prefixes, a `.git` or `.lake` or `target`
     // directory, and an empty directory are not part of it ...
@@ -96,7 +96,7 @@ fn pin_and_digest() {
     write(dir.path(), ".git/HEAD", "ignored");
     std::fs::create_dir_all(dir.path().join("lean/empty")).expect("dir");
     assert_eq!(
-        oracle::tree_digest(dir.path(), &synthetic_pin())
+        oracle::tree_kappa(dir.path(), &synthetic_pin())
             .expect("digest")
             .0,
         SYNTHETIC_DIGEST
@@ -107,7 +107,7 @@ fn pin_and_digest() {
         let copy = tempfile::tempdir().expect("tempdir");
         pin_tree(copy.path());
         edit(copy.path());
-        oracle::tree_digest(copy.path(), &synthetic_pin())
+        oracle::tree_kappa(copy.path(), &synthetic_pin())
             .expect("digest")
             .0
     };
@@ -443,6 +443,56 @@ fn toolchains_are_the_repositorys() {
         }
         other => panic!("an oracle that needs another Lean is a drift: {other:?}"),
     }
+    // An oracle that names an earlier patch release is built with the pinned
+    // Lean only when the pin names exactly that release.
+    let text = read("oracle/lean4-prod.toml");
+    let with_source = |source: Option<&str>| -> Result<Pin, String> {
+        let mut kept: Vec<&str> = text
+            .lines()
+            .filter(|line| !line.starts_with("source_lean_toolchain"))
+            .collect();
+        let line = source.map(|name| format!("source_lean_toolchain = \"{name}\""));
+        if let Some(line) = &line {
+            let at = kept
+                .iter()
+                .position(|row| row.starts_with("lean_toolchain"))
+                .expect("lean_toolchain")
+                + 1;
+            kept.insert(at, line);
+        }
+        Pin::parse(&(kept.join("\n") + "\n"))
+    };
+    let bare = with_source(None).expect("a pin without a source Lean");
+    assert_eq!(bare.source_lean_toolchain, None);
+    let (minor, patch) = pin
+        .lean_toolchain
+        .rsplit_once('.')
+        .expect("a patch release");
+    let patch: u32 = patch.parse().expect("a numeric patch");
+    if patch > 0 {
+        let earlier = format!("{minor}.{}", patch - 1);
+        write(
+            source.path(),
+            "lean/lean-toolchain",
+            &format!("{earlier}\n"),
+        );
+        assert!(matches!(
+            oracle::check_source_toolchain(&bare, source.path()),
+            Err(Unavailable::ToolchainDrift(_))
+        ));
+        let named = with_source(Some(&earlier)).expect("an earlier patch is admissible");
+        oracle::check_source_toolchain(&named, source.path())
+            .expect("the named earlier patch is built with the pinned Lean");
+    }
+    for refused in [
+        pin.lean_toolchain.clone(),
+        format!("{minor}.{}", patch + 1),
+        "leanprover/lean4:v3.0.0".to_owned(),
+        "leanprover/lean4:v0.0.1".to_owned(),
+    ] {
+        with_source(Some(&refused))
+            .expect_err(&format!("`{refused}` is not an earlier patch of the pin"));
+    }
 }
 
 // ---- acquisition ---------------------------------------------------------------
@@ -476,7 +526,7 @@ fn origin() -> (tempfile::TempDir, Pin) {
     pin.commit = git(&["rev-parse", "HEAD"]);
     pin.remote = dir.path().display().to_string();
     pin.timeout_seconds = 120;
-    let (digest, files) = oracle::tree_digest(dir.path(), &pin).expect("digest");
+    let (digest, files) = oracle::tree_kappa(dir.path(), &pin).expect("digest");
     pin.tree_sha256 = digest;
     pin.tree_files = files;
     (dir, pin)
@@ -641,7 +691,7 @@ fn isolation_tree() -> tempfile::TempDir {
     write(
         dir.path(),
         "compiler/lexlean.lock",
-        "spec = \"lexlean/lock/1\"\n",
+        "spec = \"lexlean/lock/3\"\n",
     );
     write(
         dir.path(),

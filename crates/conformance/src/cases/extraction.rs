@@ -204,7 +204,7 @@ impl Probe {
             "name = \"probe\"\nversion = \"0.1.0\"\ndefaultTargets = [\"Probe\"]\n\n[[lean_lib]]\nname = \"Probe\"\nglobs = [\"Probe.+\"]\n",
         )
         .expect("lakefile");
-        std::fs::write(root.join("lean-toolchain"), "leanprover/lean4:v4.32.1\n")
+        std::fs::write(root.join("lean-toolchain"), "leanprover/lean4:v4.32.2\n")
             .expect("toolchain");
         std::fs::write(root.join("Probe/Main.lean"), PROBE_MODULE).expect("module");
         let probe = Self {
@@ -358,7 +358,7 @@ pub fn run(id: &str) {
             );
             assert_eq!(
                 input.id(),
-                lexlean::artifact::content_id::Sha256Digest::of(&committed)
+                lexlean::artifact::content_id::Kappa::of(&committed)
             );
             // The input is a function of the program, not of Lean's unique
             // counter: renumbering every variable leaves it unchanged.
@@ -387,10 +387,10 @@ pub fn run(id: &str) {
                         &std::fs::read(path.as_std_path()).expect("attestation"),
                     )
                     .expect("attestation JSON");
-                    assert_eq!(attestation["spec"], "lexlean/attestation/2");
+                    assert_eq!(attestation["spec"], "lexlean/attestation/4");
                     assert_eq!(
-                        attestation["compiler_input"]["sha256"],
-                        lexlean::artifact::content_id::Sha256Digest::of(&input).to_hex(),
+                        attestation["compiler_input"]["kappa"],
+                        lexlean::artifact::content_id::Kappa::of(&input).label(),
                         "the attestation records the compiler input"
                     );
                     assert_eq!(
@@ -927,10 +927,10 @@ pub fn run(id: &str) {
         // §22.10: the authority interface is closed, pinned, and probed.
         "NE-04" => {
             let adapter = lcnf::adapter().expect("the adapter");
-            assert_eq!(adapter.authority.lean_version, "4.32.1");
+            assert_eq!(adapter.authority.lean_version, "4.32.2");
             assert_eq!(
                 adapter.authority.lean_githash,
-                "f054605aea4b840552cca2e725580bffd1e1b704"
+                "f3b06c705e6c85f5314019d5d3baab0fec5b580c"
             );
             let model =
                 repo_model::Model::load(&support::repo_root().join("model").into_std_path_buf())
@@ -988,7 +988,7 @@ pub fn run(id: &str) {
                 value["lean"]["githash"] = "0000000000000000000000000000000000000000".into();
             });
             assert!(
-                matches!(extract(&foreign), Err(Rejection::Drift(reason)) if reason.contains("pinned to 4.32.1"))
+                matches!(extract(&foreign), Err(Rejection::Drift(reason)) if reason.contains("pinned to 4.32.2"))
             );
             if support::lean_backed("NE-04") {
                 ne_04_under_lean(adapter, &driver);
@@ -1302,8 +1302,8 @@ fn ne_04_under_lean(adapter: &lexlean::ir::tooling::ToolingModule, driver: &lcnf
         let bytes =
             std::fs::read(toolchain.root.join(&source.file).as_std_path()).expect("pinned source");
         assert_eq!(
-            lexlean::artifact::content_id::Sha256Digest::of(&bytes).to_hex(),
-            source.sha256,
+            lexlean::artifact::content_id::Kappa::of(&bytes).label(),
+            source.kappa,
             "{}",
             source.file
         );
