@@ -131,45 +131,59 @@ def execute(root, target, lane, output):
 
 def join(root, target, artifacts):
     bdd, plan, names = lanes(root)
+    artifacts = Path(artifacts)
+    require(artifacts.is_dir() and not artifacts.is_symlink(), "not a regular host artifact directory")
+    paths = {lane: f"host-{target}-{lane}/receipt.json" for lane in names}
+    factory.exact_files(artifacts, list(paths.values()))
     receipts = {}
-    for path in sorted(Path(artifacts).glob("*/receipt.json")):
-        receipt = json.loads(path.read_text())
-        require(receipt.get("schema") == SCHEMA and receipt.get("target") == target,
+    for lane, name in paths.items():
+        path = artifacts / name
+        receipt = factory.read_json(path)
+        require(isinstance(receipt, dict) and type(receipt.get("schema")) is int
+                and receipt["schema"] == SCHEMA and receipt.get("target") == target,
                 f"{path}: a receipt of another host or format")
-        require(receipt["lane"] not in receipts, f"two receipts of lane `{receipt['lane']}`")
-        receipts[receipt["lane"]] = receipt
+        require(receipt.get("lane") == lane, f"{path}: receipt lane differs from artifact name")
+        receipts[lane] = receipt
     return check_join(receipts, names, plan, bdd, identity(root))
 
-
 def check_join(receipts, names, plan, bdd, here):
-    """The lanes are this run's and commit's, complete, disjoint, and passed."""
+    """The lanes are this run's and commit's, complete, assigned, and passed."""
     require(sorted(receipts) == sorted(names), f"lanes {sorted(names)}, receipts {sorted(receipts)}")
+    require(set(names) == {PRODUCER, *plan["lanes"]}, "lane roster differs from plan")
+    require(re.fullmatch(r"[1-9][0-9]*", str(here["attempt"])), "invalid join attempt")
     for lane, receipt in receipts.items():
+        require(receipt.get("lane") == lane, f"receipt lane identity differs from `{lane}`")
         for field in ("commit", "tree", "run", "attempt"):
             if field == "attempt":
-                require(str(receipt[field]).isdigit() and int(receipt[field]) <= int(here[field] or 0),
+                require(re.fullmatch(r"[1-9][0-9]*", str(receipt[field]))
+                        and int(receipt[field]) <= int(here[field]),
                         f"lane `{lane}` ran in another attempt")
             else:
                 require(receipt[field] == here[field], f"lane `{lane}` ran on another {field}")
         require(receipt.get("passed") is True, f"lane `{lane}` did not pass")
     conformance = receipts[PRODUCER]["conformance"]
-    require(conformance and all(r["conformance"] == conformance for r in receipts.values()),
-            "the lanes listed different conformance harnesses")
+    require(conformance and len(conformance) == len(set(conformance))
+            and all(r["conformance"] == conformance for r in receipts.values()),
+            "the lanes listed different or duplicate conformance harnesses")
     named = {factory.test_name(i) for ids in bdd["parts"].values() for i in ids}
     require(named <= set(conformance), f"named tests absent: {sorted(named - set(conformance))}")
+    assigned = {}
+    for lane, parts in plan["lanes"].items():
+        expected = {factory.test_name(i) for part in parts if part in bdd["parts"] for i in bdd["parts"][part]}
+        if bdd["remainder"] in parts:
+            expected |= set(conformance) - named
+        assigned[lane] = Counter(expected)
+    require(sum(assigned.values(), Counter()) == Counter(conformance), "conformance lane plan drift")
     whole = Counter(receipts[PRODUCER]["whole"] or [])
-    ran = Counter(name for r in receipts.values() for name in r["executed"])
-    require(whole, "the producer listed no workspace")
-    missing, extra = whole - ran, ran - whole
-    require(not missing and not extra,
-            f"executed is not the host's listing: missing {sorted(missing)[:20]}, extra {sorted(extra)[:20]}")
-    for lane in names:
-        if lane == PRODUCER:
-            continue
-        require(set(receipts[lane]["executed"]) <= set(conformance),
-                f"lane `{lane}` ran a test outside the conformance harness")
-    print(f"host-lanes: {len(ran)} tests of {len(names)} lanes equal the host's listing, each once")
-    return sum(ran.values())
+    require(whole and not (Counter(conformance) - whole), "workspace listing lacks conformance tests")
+    # Test names may repeat across distinct workspace targets. Preserve their
+    # multiplicity, but reserve exactly one occurrence for the conformance harness.
+    assigned[PRODUCER] = whole - Counter(conformance)
+    for lane, expected in assigned.items():
+        require(Counter(receipts[lane]["executed"]) == expected,
+                f"lane `{lane}` execution differs from its assigned inventory")
+    print(f"host-lanes: {sum(whole.values())} tests of {len(names)} lanes equal the host's assigned listing")
+    return sum(whole.values())
 
 
 def main():

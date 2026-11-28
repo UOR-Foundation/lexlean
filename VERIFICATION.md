@@ -23319,8 +23319,16 @@ Apple silicon macOS do (`linux-arm-part`, `linux-arm-join`,
 `release-gate.sh` count. RP-14 holds it as the third lane host
 (`LANE_HOSTS`), so every lane-host control above applies to it, and the
 single job's pins are gone with the job. The host-resource sampler of the
-section *The host matrix samples its own CPU and memory while it tests* ran
-only in that job and is retired with it; its DOD-7a evidence stands in B1.
+section *The host matrix samples its own CPU and memory while it tests* moves
+with the host: each Linux AArch64 lane runs `sample-host.sh` beside its
+`host_lanes.py execute`, and RP-14 pins that step exactly, so its status is
+the lane's alone.
+
+The join is #631's validator (#603 DOD-8), integrated here so that the new
+lane host is never joined by the weaker one: each receipt must sit at its own
+exact artifact path, name its own lane, carry a positive attempt, and execute
+exactly the conformance tests the partition assigns its lane, the producer
+the rest of the workspace listing.
 
 | Planted defect | Refused by |
 | --- | --- |
@@ -23328,3 +23336,11 @@ only in that job and is retired with it; its DOD-7a evidence stands in B1.
 | the join's context renamed (`Linux arm64 aggregate`) | `conformance_rp_14`: `RP-14: the matrix and Intel aggregate must expose each exact host context once` |
 | a lane dropped from the matrix; the join's receipt pattern, needs, condition or result check weakened | `conformance_rp_14`: the lane-host plants, now run for all three lane hosts |
 | the lanes traced by the read recorder | `conformance_rp_14`: `#603: native host job linux-arm-part is traced` |
+| a Linux AArch64 lane's receipt missing | `test_host_lanes.py` `LinuxArm`: `artifact files differ: missing=[…-moves/receipt.json]` |
+| a duplicated receipt directory; a receipt naming another lane | `test_host_lanes.py` `LinuxArm`: `unexpected artifact directory`, `receipt lane differs from artifact name` |
+| a receipt of another host; another host's artifact directory | `test_host_lanes.py` `LinuxArm`: `a receipt of another host or format`, `unexpected artifact directory` |
+| a failed lane | `test_host_lanes.py` `LinuxArm`: ``lane `validate` did not pass`` |
+| one test swapped between two lanes | `test_host_lanes.py` `LinuxArm`: ``lane `lower` execution differs from its assigned inventory`` |
+| a zero attempt, in a receipt or the join's own | `test_host_lanes.py` `LinuxArm`: `ran in another attempt`, `invalid join attempt` |
+| the lane step's `exit "$status"` replaced by `exit 0` | `conformance_rp_14`: `the Linux AArch64 lane step propagates the lane's status and nothing else` |
+| the join's per-lane inventory check removed | `conformance_rp_13`: `a lane host's producer lists the whole workspace and its join requires all of it` |

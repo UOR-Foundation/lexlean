@@ -2055,7 +2055,7 @@ pub(crate) fn run(id: &str) {
             assert!(
                 lanes.contains(
                     r#"["cargo", "test", "--locked", "--workspace", "--all-features", "--", "--list"]"#
-                ) && lanes.contains("executed is not the host's listing"),
+                ) && lanes.contains("execution differs from its assigned inventory"),
                 "a lane host's producer lists the whole workspace and its join requires all of it"
             );
             for target in [
@@ -3189,6 +3189,15 @@ pub(crate) fn run(id: &str) {
                     && task.contains("&|name| std::env::var_os(name)")
                     && task.contains("&mut std::io::stdout().lock()"),
                 "ci-summary prints to stdout and reads GITHUB_STEP_SUMMARY from the environment"
+            );
+            // The host sampler (#603 DOD-7a) is evidence beside each Linux
+            // AArch64 lane: the step is exactly this program, so its status
+            // is the lane's alone and no sampler failure, summary failure or
+            // added line can mask it.
+            let linux_arm = job("linux-arm-part");
+            assert!(
+                linux_arm.contains(LINUX_ARM_LANE_STEP) && !linux_arm.contains("continue-on-error"),
+                "the Linux AArch64 lane step propagates the lane's status and nothing else"
             );
             // The honesty and reproducibility workflows stay separate.
             let honesty = job("honesty");
@@ -5417,6 +5426,22 @@ fn regression_honesty(ci: &str) -> Result<(), String> {
     }
     Ok(())
 }
+
+/// A Linux AArch64 lane's one step (#603 DOD-7a): the lane beside a resource
+/// sampler whose status cannot reach the step's.
+const LINUX_ARM_LANE_STEP: &str = concat!(
+    "      - name: Execute this lane and record its inventory\n",
+    "        shell: bash\n",
+    "        run: |\n",
+    "          bash .github/scripts/sample-host.sh \"$RUNNER_TEMP/host-resources.tsv\" &\n",
+    "          sampler=$!\n",
+    "          status=0\n",
+    "          python3 .github/scripts/host_lanes.py execute --target aarch64-unknown-linux-gnu --lane ${{ matrix.lane }} --output \"$RUNNER_TEMP/host-lane\" || status=$?\n",
+    "          kill \"$sampler\" 2>/dev/null || true\n",
+    "          wait \"$sampler\" 2>/dev/null || true\n",
+    "          python3 .github/scripts/summarize_host_samples.py \"$RUNNER_TEMP/host-resources.tsv\" || true\n",
+    "          exit \"$status\"\n",
+);
 
 /// The advisory read recorder (#603 phase 1) traces exactly the Linux gate
 /// jobs, from right after their checkout to their last step, and can never

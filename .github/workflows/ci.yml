@@ -1806,9 +1806,21 @@ jobs:
             exit 1
           fi
           echo "$host"
+      # Evidence for #603 DOD-7a, never a gate: the host's CPU and memory every
+      # five seconds while the lane runs, summarized after it, as the single
+      # Linux AArch64 job recorded them. The step's status is the lane's alone;
+      # the sampler's cannot reach it.
       - name: Execute this lane and record its inventory
         shell: bash
-        run: python3 .github/scripts/host_lanes.py execute --target aarch64-unknown-linux-gnu --lane ${{ matrix.lane }} --output "$RUNNER_TEMP/host-lane"
+        run: |
+          bash .github/scripts/sample-host.sh "$RUNNER_TEMP/host-resources.tsv" &
+          sampler=$!
+          status=0
+          python3 .github/scripts/host_lanes.py execute --target aarch64-unknown-linux-gnu --lane ${{ matrix.lane }} --output "$RUNNER_TEMP/host-lane" || status=$?
+          kill "$sampler" 2>/dev/null || true
+          wait "$sampler" 2>/dev/null || true
+          python3 .github/scripts/summarize_host_samples.py "$RUNNER_TEMP/host-resources.tsv" || true
+          exit "$status"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ always() }}
         with:
